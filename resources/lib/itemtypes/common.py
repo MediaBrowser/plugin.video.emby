@@ -110,7 +110,7 @@ class ItemBase(object):
                                    kodi_type)
 
     def update_playstate(self, mark_played, view_count, resume, duration,
-                         kodi_fileid, lastViewedAt, plex_type):
+                         kodi_fileid, kodi_fileid_2, lastViewedAt):
         """
         Use with websockets, not xml
         """
@@ -128,5 +128,11 @@ class ItemBase(object):
                                resume,
                                duration,
                                view_count,
-                               timing.plex_date_to_kodi(lastViewedAt),
-                               plex_type)
+                               timing.plex_date_to_kodi(lastViewedAt))
+        if kodi_fileid_2:
+            # Our dirty hack for episodes
+            self.kodidb.set_resume(kodi_fileid_2,
+                                   resume,
+                                   duration,
+                                   view_count,
+                                   timing.plex_date_to_kodi(lastViewedAt))

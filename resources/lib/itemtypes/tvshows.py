@@ -32,8 +32,13 @@ class TvShowMixin(object):
                                    userdata['Resume'],
                                    userdata['Runtime'],
                                    userdata['PlayCount'],
-                                   userdata['LastPlayedDate'],
-                                   plex_type)
+                                   userdata['LastPlayedDate'])
+            if db_item['kodi_fileid_2']:
+                self.kodidb.set_resume(db_item['kodi_fileid_2'],
+                                       userdata['Resume'],
+                                       userdata['Runtime'],
+                                       userdata['PlayCount'],
+                                       userdata['LastPlayedDate'])
         return True
 
     def remove(self, plex_id, plex_type=None):
@@ -54,7 +59,7 @@ class TvShowMixin(object):
         # EPISODE #####
         if db_item['plex_type'] == v.PLEX_TYPE_EPISODE:
             # Delete episode, verify season and tvshow
-            self.remove_episode(db_item['kodi_id'], db_item['kodi_fileid'])
+            self.remove_episode(db_item)
             # Season verification
             if (db_item['season_id'] and
                     not self.plexdb.season_has_episodes(db_item['season_id'])):
@@ -72,7 +77,7 @@ class TvShowMixin(object):
             # Remove episodes, season, verify tvshow
             episodes = list(self.plexdb.episode_by_season(db_item['plex_id']))
             for episode in episodes:
-                self.remove_episode(episode['kodi_id'], episode['kodi_fileid'])
+                self.remove_episode(episode)
                 self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
             # Remove season
             self.remove_season(db_item['kodi_id'])
@@ -91,8 +96,7 @@ class TvShowMixin(object):
                 self.plexdb.remove(season['plex_id'], v.PLEX_TYPE_SEASON)
             episodes = list(self.plexdb.episode_by_show(db_item['plex_id']))
             for episode in episodes:
-                self.remove_episode(episode['kodi_id'],
-                                    episode['kodi_fileid'])
+                self.remove_episode(episode)
                 self.plexdb.remove(episode['plex_id'], v.PLEX_TYPE_EPISODE)
             self.remove_show(db_item['kodi_id'])
 
@@ -120,17 +124,19 @@ class TvShowMixin(object):
         self.kodidb.remove_season(kodi_id)
         LOG.debug("Removed season: %s", kodi_id)
 
-    def remove_episode(self, kodi_id, file_id):
+    def remove_episode(self, db_item):
         """
         Remove an episode, and episode only from the Kodi DB (not Plex DB)
         """
-        self.kodidb.modify_people(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodidb.remove_file(file_id, plex_type=v.PLEX_TYPE_EPISODE)
-        self.kodidb.delete_artwork(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodidb.remove_episode(kodi_id)
-        self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
-        self.kodidb.remove_ratings(kodi_id, v.KODI_TYPE_EPISODE)
-        LOG.debug("Removed episode: %s", kodi_id)
+        self.kodidb.modify_people(db_item['kodi_id'], v.KODI_TYPE_EPISODE)
+        self.kodidb.remove_file(db_item['kodi_fileid'])
+        if db_item['kodi_fileid_2']:
+            self.kodidb.remove_file(db_item['kodi_fileid_2'])
+        self.kodidb.delete_artwork(db_item['kodi_id'], v.KODI_TYPE_EPISODE)
+        self.kodidb.remove_episode(db_item['kodi_id'])
+        self.kodidb.remove_uniqueid(db_item['kodi_id'], v.KODI_TYPE_EPISODE)
+        self.kodidb.remove_ratings(db_item['kodi_id'], v.KODI_TYPE_EPISODE)
+        LOG.debug("Removed episode: %s", db_item['kodi_id'])
 
 
 class Show(TvShowMixin, ItemBase):
@@ -367,6 +373,7 @@ class Episode(TvShowMixin, ItemBase):
             update_item = True
             kodi_id = episode['kodi_id']
             old_kodi_fileid = episode['kodi_fileid']
+            old_kodi_fileid_2 = episode['kodi_fileid_2']
             kodi_pathid = episode['kodi_pathid']
 
         peoples = api.people()
@@ -452,6 +459,15 @@ class Episode(TvShowMixin, ItemBase):
             playurl = filename
             # Root path tvshows/ already saved in Kodi DB
             kodi_pathid = self.kodidb.add_path(path)
+            if not app.SYNC.direct_paths:
+                # need to set a 2nd file entry for a path without plex show id
+                # This fixes e.g. context menu and widgets working as they
+                # should
+                # A dirty hack, really
+                path_2 = 'plugin://%s.tvshows/' % v.ADDON_ID
+                # filename_2 is exactly the same as filename
+                # so WITH plex show id!
+                kodi_pathid_2 = self.kodidb.add_path(path_2)
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -459,9 +475,17 @@ class Episode(TvShowMixin, ItemBase):
             kodi_fileid = self.kodidb.modify_file(filename,
                                                   kodi_pathid,
                                                   api.date_created())
+            if not app.SYNC.direct_paths:
+                kodi_fileid_2 = self.kodidb.modify_file(filename,
+                                                        kodi_pathid_2,
+                                                        api.date_created())
+            else:
+                kodi_fileid_2 = None
 
             if kodi_fileid != old_kodi_fileid:
                 self.kodidb.remove_file(old_kodi_fileid)
+                if not app.SYNC.direct_paths:
+                    self.kodidb.remove_file(old_kodi_fileid_2)
             ratingid = self.kodidb.get_ratingid(kodi_id,
                                                 v.KODI_TYPE_EPISODE)
             self.kodidb.update_ratings(kodi_id,
@@ -502,7 +526,7 @@ class Episode(TvShowMixin, ItemBase):
                                        airs_before_episode,
                                        playurl,
                                        kodi_pathid,
-                                       kodi_fileid,
+                                       kodi_fileid,  # and NOT kodi_fileid_2
                                        parent_id,
                                        userdata['UserRating'],
                                        kodi_id)
@@ -510,8 +534,13 @@ class Episode(TvShowMixin, ItemBase):
                                    api.resume_point(),
                                    api.runtime(),
                                    userdata['PlayCount'],
-                                   userdata['LastPlayedDate'],
-                                   v.PLEX_TYPE_EPISODE)
+                                   userdata['LastPlayedDate'])
+            if not app.SYNC.direct_paths:
+                self.kodidb.set_resume(kodi_fileid_2,
+                                       api.resume_point(),
+                                       api.runtime(),
+                                       userdata['PlayCount'],
+                                       userdata['LastPlayedDate'])
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
                                     section_id=section_id,
@@ -521,6 +550,7 @@ class Episode(TvShowMixin, ItemBase):
                                     parent_id=parent_id,
                                     kodi_id=kodi_id,
                                     kodi_fileid=kodi_fileid,
+                                    kodi_fileid_2=kodi_fileid_2,
                                     kodi_pathid=kodi_pathid,
                                     last_sync=self.last_sync)
         # OR ADD THE EPISODE #####
@@ -529,6 +559,12 @@ class Episode(TvShowMixin, ItemBase):
             kodi_fileid = self.kodidb.add_file(filename,
                                                kodi_pathid,
                                                api.date_created())
+            if not app.SYNC.direct_paths:
+                kodi_fileid_2 = self.kodidb.add_file(filename,
+                                                     kodi_pathid_2,
+                                                     api.date_created())
+            else:
+                kodi_fileid_2 = None
 
             rating_id = self.kodidb.add_ratingid()
             self.kodidb.add_ratings(rating_id,
@@ -552,7 +588,7 @@ class Episode(TvShowMixin, ItemBase):
                                         kodi_id,
                                         v.KODI_TYPE_EPISODE)
             self.kodidb.add_episode(kodi_id,
-                                    kodi_fileid,
+                                    kodi_fileid,  # and NOT kodi_fileid_2
                                     api.title(),
                                     api.plot(),
                                     rating_id,
@@ -574,8 +610,13 @@ class Episode(TvShowMixin, ItemBase):
                                    api.resume_point(),
                                    api.runtime(),
                                    userdata['PlayCount'],
-                                   userdata['LastPlayedDate'],
-                                   None)  # Do send None to avoid episode loop
+                                   userdata['LastPlayedDate'])
+            if not app.SYNC.direct_paths:
+                self.kodidb.set_resume(kodi_fileid_2,
+                                       api.resume_point(),
+                                       api.runtime(),
+                                       userdata['PlayCount'],
+                                       userdata['LastPlayedDate'])
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
                                     section_id=section_id,
@@ -585,26 +626,10 @@ class Episode(TvShowMixin, ItemBase):
                                     parent_id=parent_id,
                                     kodi_id=kodi_id,
                                     kodi_fileid=kodi_fileid,
+                                    kodi_fileid_2=kodi_fileid_2,
                                     kodi_pathid=kodi_pathid,
                                     last_sync=self.last_sync)
-            if not app.SYNC.direct_paths:
-                # need to set a SECOND file entry for a path without plex show id
-                filename = api.file_name(force_first_media=True)
-                path = 'plugin://%s.tvshows/' % v.ADDON_ID
-                # Filename is exactly the same, WITH plex show id!
-                filename = ('%s%s/?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                            % (path, show_id, plex_id, v.PLEX_TYPE_EPISODE,
-                               filename))
-                kodi_pathid = self.kodidb.add_path(path)
-                second_kodi_fileid = self.kodidb.add_file(filename,
-                                                          kodi_pathid,
-                                                          api.date_created())
-                self.kodidb.set_resume(second_kodi_fileid,
-                                       api.resume_point(),
-                                       api.runtime(),
-                                       userdata['PlayCount'],
-                                       userdata['LastPlayedDate'],
-                                       None)  # Do send None - 2nd entry
-        self.kodidb.modify_streams(kodi_fileid,
+
+        self.kodidb.modify_streams(kodi_fileid,  # and NOT kodi_fileid_2
                                    api.mediastreams(),
                                    api.runtime())

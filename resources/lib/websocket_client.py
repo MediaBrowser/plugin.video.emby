@@ -18,6 +18,7 @@ class WebSocket(backgroundthread.KillableThread):
 
     def __init__(self):
         self.ws = None
+        self.redirect_uri = None
         super(WebSocket, self).__init__()
 
     def process(self, opcode, message):
@@ -46,20 +47,20 @@ class WebSocket(backgroundthread.KillableThread):
 
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
+        app.APP.register_thread(self)
         counter = 0
         while not self.isCanceled():
             # In the event the server goes offline
-            while self.isSuspended():
+            if self.isSuspended():
                 # Set in service.py
                 if self.ws is not None:
                     self.ws.close()
                     self.ws = None
-                if self.isCanceled():
+                if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
                     LOG.info("##===---- %s Stopped ----===##",
                              self.__class__.__name__)
                     return
-                app.APP.monitor.waitForAbort(1)
             try:
                 self.process(*self.receive(self.ws))
             except websocket.WebSocketTimeoutException:
@@ -91,6 +92,16 @@ class WebSocket(backgroundthread.KillableThread):
                              self.__class__.__name__)
                     self.ws = None
                     app.APP.monitor.waitForAbort(1)
+                except websocket.WebsocketRedirect as e:
+                    LOG.info('301 redirect detected')
+                    self.redirect_uri = e.headers.get('location', e.headers.get('Location'))
+                    if self.redirect_uri:
+                        self.redirect_uri.decode('utf-8')
+                    counter += 1
+                    if counter >= 10:
+                        LOG.info('%s: Repeated WebsocketRedirect detected. Stopping now',
+                                 self.__class__.__name__)
+                        break
                 except websocket.WebSocketException as e:
                     LOG.info('%s: WebSocketException: %s',
                              self.__class__.__name__, e)
@@ -125,6 +136,7 @@ class WebSocket(backgroundthread.KillableThread):
         # Close websocket connection on shutdown
         if self.ws is not None:
             self.ws.close()
+        app.APP.deregister_thread(self)
         LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
 
@@ -136,23 +148,25 @@ class PMS_Websocket(WebSocket):
         """
         Returns True if the thread is suspended
         """
-        return (self._suspended or
-                app.APP.suspend_threads or
-                app.SYNC.background_sync_disabled)
+        return self._suspended or app.SYNC.background_sync_disabled
 
     def getUri(self):
-        server = app.CONN.server
-        # Get the appropriate prefix for the websocket
-        if server.startswith('https'):
-            server = "wss%s" % server[5:]
+        if self.redirect_uri:
+            uri = self.redirect_uri
+            self.redirect_uri = None
         else:
-            server = "ws%s" % server[4:]
-        uri = "%s/:/websockets/notifications" % server
-        # Need to use plex.tv token, if any. NOT user token
-        if app.ACCOUNT.plex_token:
-            uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
+            server = app.CONN.server
+            # Get the appropriate prefix for the websocket
+            if server.startswith('https'):
+                server = "wss%s" % server[5:]
+            else:
+                server = "ws%s" % server[4:]
+            uri = "%s/:/websockets/notifications" % server
+            # Need to use plex.tv token, if any. NOT user token
+            if app.ACCOUNT.plex_token:
+                uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
         sslopt = {}
-        if utils.settings('sslverify') == "false":
+        if v.KODIVERSION == 17 and utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
         LOG.debug("%s: Uri: %s, sslopt: %s",
                   self.__class__.__name__, uri, sslopt)
@@ -186,11 +200,6 @@ class PMS_Websocket(WebSocket):
         # Drop everything we're not interested in
         if typus not in ('playing', 'timeline', 'activity'):
             return
-        elif typus == 'activity' and app.SYNC.db_scan is True:
-            # Only add to processing if PKC is NOT doing a lib scan (and thus
-            # possibly causing these reprocessing messages en mass)
-            LOG.debug('%s: Dropping message as PKC is currently synching',
-                      self.__class__.__name__)
         else:
             # Put PMS message on queue and let libsync take care of it
             app.APP.websocket_queue.put(message)
@@ -209,10 +218,14 @@ class Alexa_Websocket(WebSocket):
                 app.ACCOUNT.restricted_user)
 
     def getUri(self):
-        uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
-               % (app.ACCOUNT.plex_user_id,
-                  v.PKC_MACHINE_IDENTIFIER,
-                  app.ACCOUNT.plex_token))
+        if self.redirect_uri:
+            uri = self.redirect_uri
+            self.redirect_uri = None
+        else:
+            uri = ('wss://pubsub.plex.tv/sub/websockets/%s/%s?X-Plex-Token=%s'
+                   % (app.ACCOUNT.plex_user_id,
+                      v.PKC_MACHINE_IDENTIFIER,
+                      app.ACCOUNT.plex_token))
         sslopt = {}
         LOG.debug("%s: Uri: %s, sslopt: %s",
                   self.__class__.__name__, uri, sslopt)

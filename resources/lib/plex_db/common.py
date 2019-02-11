@@ -194,7 +194,8 @@ def initialize():
                     section_name TEXT,
                     plex_type TEXT,
                     kodi_tagid INTEGER,
-                    sync_to_kodi INTEGER)
+                    sync_to_kodi INTEGER,
+                    last_sync INTEGER)
             ''')
             plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS movie(
@@ -239,6 +240,7 @@ def initialize():
                     parent_id INTEGER,
                     kodi_id INTEGER,
                     kodi_fileid INTEGER,
+                    kodi_fileid_2 INTEGER,
                     kodi_pathid INTEGER,
                     fanart_synced INTEGER,
                     last_sync INTEGER)

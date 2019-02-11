@@ -23,10 +23,6 @@ WEBSOCKET_MESSAGES = []
 PLAYSTATE_SESSIONS = {}
 
 
-def interrupt_processing():
-    return app.APP.stop_pkc or app.APP.suspend_threads or app.SYNC.stop_sync
-
-
 def multi_delete(input_list, delete_list):
     """
     Deletes the list items of input_list at the positions in delete_list
@@ -81,9 +77,6 @@ def process_websocket_messages():
     update_kodi_video_library, update_kodi_music_library = False, False
     delete_list = []
     for i, message in enumerate(WEBSOCKET_MESSAGES):
-        if interrupt_processing():
-            # Chances are that Kodi gets shut down
-            break
         if message['state'] == 9:
             successful, video, music = process_delete_message(message)
         elif now - message['timestamp'] < app.SYNC.backgroundsync_saftymargin:
@@ -285,10 +278,14 @@ def process_playing(data):
                           PLAYSTATE_SESSIONS)
             # Attach Kodi info to the session
             try:
-                PLAYSTATE_SESSIONS[session_key]['file_id'] = typus['kodi_fileid']
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid'] = typus['kodi_fileid']
             except KeyError:
                 # media type without file - no need to do anything
                 continue
+            if typus['plex_type'] == v.PLEX_TYPE_EPISODE:
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid_2'] = typus['kodi_fileid_2']
+            else:
+                PLAYSTATE_SESSIONS[session_key]['kodi_fileid_2'] = None
             PLAYSTATE_SESSIONS[session_key]['kodi_id'] = typus['kodi_id']
             PLAYSTATE_SESSIONS[session_key]['kodi_type'] = typus['kodi_type']
         session = PLAYSTATE_SESSIONS[session_key]
@@ -357,9 +354,9 @@ def process_playing(data):
                                  session['viewCount'],
                                  resume,
                                  session['duration'],
-                                 session['file_id'],
-                                 timing.unix_timestamp(),
-                                 v.PLEX_TYPE_FROM_KODI_TYPE[session['kodi_type']])
+                                 session['kodi_fileid'],
+                                 session['kodi_fileid_2'],
+                                 timing.unix_timestamp())
 
 
 def cache_artwork(plex_id, plex_type, kodi_id=None, kodi_type=None):

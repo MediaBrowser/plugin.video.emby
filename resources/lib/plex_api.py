@@ -1256,7 +1256,7 @@ class API(object):
         """
         return self.item.get('librarySectionID')
 
-    def collections_match(self):
+    def collections_match(self, section_id):
         """
         Downloads one additional xml from the PMS in order to return a list of
         tuples [(collection_id, plex_id), ...] for all collections of the
@@ -1264,7 +1264,7 @@ class API(object):
         Pass in the collection id of e.g. the movie's metadata
         """
         if self.collections is None:
-            self.collections = PF.collections(self.library_section_id())
+            self.collections = PF.collections(section_id)
             if self.collections is None:
                 LOG.error('Could not download collections for %s',
                           self.library_section_id())
@@ -1769,7 +1769,7 @@ class API(object):
             if force_check is False:
                 # Validate the path is correct with user intervention
                 if self.ask_to_validate(path):
-                    app.SYNC.stop_sync = True
+                    app.APP.stop_threads(block=False)
                     path = None
                 app.SYNC.path_verified = True
             else:

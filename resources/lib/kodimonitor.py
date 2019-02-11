@@ -54,7 +54,8 @@ class KodiMonitor(xbmc.Monitor):
         """
         LOG.debug('PKC settings change detected')
         # Assume that the user changed something so we can try to reconnect
-        app.APP.suspend = False
+        # app.APP.suspend = False
+        # app.APP.resume_threads(block=False)
 
     def onNotification(self, sender, method, data):
         """
@@ -69,7 +70,6 @@ class KodiMonitor(xbmc.Monitor):
             self.hack_replay = None
 
         if method == "Player.OnPlay":
-            app.SYNC.suspend_sync = True
             with app.APP.lock_playqueues:
                 self.PlayBackStart(data)
         elif method == "Player.OnStop":
@@ -87,7 +87,6 @@ class KodiMonitor(xbmc.Monitor):
             else:
                 with app.APP.lock_playqueues:
                     _playback_cleanup()
-            app.SYNC.suspend_sync = False
         elif method == 'Playlist.OnAdd':
             if 'item' in data and data['item'].get('type') == v.KODI_TYPE_SHOW:
                 # Hitting the "browse" button on tv show info dialog
@@ -208,7 +207,8 @@ class KodiMonitor(xbmc.Monitor):
         """
         pass
 
-    def _playlist_onclear(self, data):
+    @staticmethod
+    def _playlist_onclear(data):
         """
         Called if a Kodi playlist is cleared. Example data dict:
         {
@@ -222,7 +222,8 @@ class KodiMonitor(xbmc.Monitor):
         else:
             LOG.debug('Detected PKC clear - ignoring')
 
-    def _get_ids(self, kodi_id, kodi_type, path):
+    @staticmethod
+    def _get_ids(kodi_id, kodi_type, path):
         """
         Returns the tuple (plex_id, plex_type) or (None, None)
         """
@@ -316,7 +317,7 @@ class KodiMonitor(xbmc.Monitor):
                     return
                 playerid = js.get_playlist_id(playlist_type)
                 if not playerid:
-                    LOG.error('Coud not get playerid for data', data)
+                    LOG.error('Coud not get playerid for data %s', data)
                     return
         playqueue = PQ.PLAYQUEUES[playerid]
         info = js.get_player_props(playerid)
@@ -493,8 +494,14 @@ def _record_playstate(status, ended):
                           time,
                           totaltime,
                           playcount,
-                          last_played,
-                          status['plex_type'])
+                          last_played)
+        if 'kodi_fileid_2' in db_item and db_item['kodi_fileid_2']:
+            # Dirty hack for our episodes
+            kodidb.set_resume(db_item['kodi_fileid_2'],
+                              time,
+                              totaltime,
+                              playcount,
+                              last_played)
     # Hack to force "in progress" widget to appear if it wasn't visible before
     if (app.APP.force_reload_skin and
             xbmc.getCondVisibility('Window.IsVisible(Home.xml)')):

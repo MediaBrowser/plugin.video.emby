@@ -223,7 +223,7 @@ def ERROR(txt='', hide_tb=False, notify=False, cancel_sync=False):
     LOG.error('Error encountered: %s - %s', txt, short)
     if cancel_sync:
         from . import app
-        app.SYNC.stop_sync = True
+        app.APP.stop_threads(block=False)
     if hide_tb:
         return short
 
@@ -340,14 +340,14 @@ def valid_filename(text):
     text = re.sub(r'(?! )\s', '', text)
     # ASCII characters 0 to 31 (non-printable, just in case)
     text = re.sub(u'[\x00-\x1f]', '', text)
-    if v.PLATFORM == 'Windows':
+    if v.DEVICE == 'Windows':
         # Whitespace at the end of the filename is illegal
         text = text.strip()
         # Dot at the end of a filename is illegal
         text = re.sub(r'\.+$', '', text)
         # Illegal Windows characters
         text = re.sub(r'[/\\:*?"<>|\^]', '', text)
-    elif v.PLATFORM == 'MacOSX':
+    elif v.DEVICE == 'MacOSX':
         # Colon is illegal
         text = re.sub(r':', '', text)
         # Files cannot begin with a dot
@@ -466,7 +466,7 @@ def wipe_database():
     kodi_db.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
-    settings('lastfullsync', value="0")
+    settings('sections_asked_for_machine_identifier', value='')
     init_dbs()
     LOG.info('Wiping done')
     if settings('kodi_db_has_been_wiped_clean') != 'true':
@@ -502,19 +502,7 @@ def reset(ask_user=True):
         return
     from . import app
     # first stop any db sync
-    app.APP.suspend_threads = True
-    count = 15
-    while app.SYNC.db_scan:
-        LOG.info("Sync is running, will retry: %s...", count)
-        count -= 1
-        if count == 0:
-            LOG.error('Could not stop PKC syncing process to reset the DB')
-            # Could not stop the database from running. Please try again later.
-            messageDialog(lang(29999), lang(39601))
-            app.APP.suspend_threads = False
-            return
-        xbmc.sleep(1000)
-
+    app.APP.suspend_threads()
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
     if ask_user and yesno_dialog(lang(29999), lang(39603)):

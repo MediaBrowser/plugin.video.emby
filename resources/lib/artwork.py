@@ -18,8 +18,6 @@ requests.packages.urllib3.disable_warnings()
 TIMEOUT = (35.1, 35.1)
 BATCH_SIZE = 500
 
-IMAGE_CACHING_SUSPENDS = []
-
 
 def double_urlencode(text):
     return quote_plus(quote_plus(text))
@@ -30,10 +28,17 @@ def double_urldecode(text):
 
 
 class ImageCachingThread(backgroundthread.KillableThread):
-    def isSuspended(self):
-        return any(IMAGE_CACHING_SUSPENDS)
+    def __init__(self):
+        super(ImageCachingThread, self).__init__()
+        self.suspend_points = [(self, '_suspended')]
+        if not utils.settings('imageSyncDuringPlayback') == 'true':
+            self.suspend_points.append((app.APP, 'is_playing_video'))
 
-    def _url_generator(self, kind, kodi_type):
+    def isSuspended(self):
+        return any(getattr(obj, txt) for obj, txt in self.suspend_points)
+
+    @staticmethod
+    def _url_generator(kind, kodi_type):
         """
         Main goal is to close DB connection between calls
         """
@@ -60,11 +65,13 @@ class ImageCachingThread(backgroundthread.KillableThread):
 
     def run(self):
         LOG.info("---===### Starting ImageCachingThread ###===---")
+        app.APP.register_caching_thread(self)
         try:
             self._run()
         except Exception:
             utils.ERROR()
         finally:
+            app.APP.deregister_caching_thread(self)
             LOG.info("---===### Stopped ImageCachingThread ###===---")
 
     def _run(self):
@@ -74,14 +81,8 @@ class ImageCachingThread(backgroundthread.KillableThread):
         for kind in kinds:
             for kodi_type in ('poster', 'fanart'):
                 for url in self._url_generator(kind, kodi_type):
-                    if self.isCanceled():
+                    if self.wait_while_suspended():
                         return
-                    while self.isSuspended():
-                        # Set in service.py
-                        if self.isCanceled():
-                            # Abort was requested while waiting. We should exit
-                            return
-                        app.APP.monitor.waitForAbort(1)
                     cache_url(url)
         # Toggles Image caching completed to Yes
         utils.settings('plex_status_image_caching', value=utils.lang(107))

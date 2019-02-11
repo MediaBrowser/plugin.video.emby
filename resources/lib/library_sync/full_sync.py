@@ -19,7 +19,7 @@ if common.PLAYLIST_SYNC_ENABLED:
 
 LOG = getLogger('PLEX.sync.full_sync')
 # How many items will be put through the processing chain at once?
-BATCH_SIZE = 200
+BATCH_SIZE = 500
 # Safety margin to filter PMS items - how many seconds to look into the past?
 UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
@@ -44,7 +44,6 @@ class FullSync(common.fullsync_mixin):
         """
         repair=True: force sync EVERY item
         """
-        self._canceled = False
         self.repair = repair
         self.callback = callback
         self.queue = None
@@ -69,6 +68,7 @@ class FullSync(common.fullsync_mixin):
         self.context = None
         self.get_children = None
         self.successful = None
+        self.section_success = None
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         self.threader = backgroundthread.ThreaderManager(
             worker=backgroundthread.NonstoppingBackgroundWorker,
@@ -83,9 +83,9 @@ class FullSync(common.fullsync_mixin):
                 progress = 0
             self.dialog.update(progress,
                                '%s (%s)' % (self.section_name, self.section_type_text),
-                               '%s/%s %s'
-                               % (self.current, self.total, self.title))
-            if app.APP.player.isPlayingVideo():
+                               '%s %s/%s'
+                               % (self.title, self.current, self.total))
+            if app.APP.is_playing_video:
                 self.dialog.close()
                 self.dialog = None
 
@@ -233,14 +233,14 @@ class FullSync(common.fullsync_mixin):
                         if not itemtype.update_userdata(xml_item, section['plex_type']):
                             # Somehow did not sync this item yet
                             itemtype.add_update(xml_item,
-                                                section['section_name'],
-                                                section['section_id'])
+                                                section_name=section['section_name'],
+                                                section_id=section['section_id'])
                         itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
                                                          section['plex_type'],
                                                          self.current_sync)
                         self.current += 1
                         self.update_progressbar()
-                        if (i + 1) % BATCH_SIZE == 0:
+                        if (i + 1) % (10 * BATCH_SIZE) == 0:
                             break
                 if last:
                     break
@@ -249,38 +249,39 @@ class FullSync(common.fullsync_mixin):
             LOG.error('Could not entirely process section %s', section)
             return False
 
-    def threaded_get_iterators(self, kinds, queue, updated_at=None,
-                               last_viewed_at=None):
+    def threaded_get_iterators(self, kinds, queue, all_items=False):
         """
         PF.SectionItems is costly, so let's do it asynchronous
         """
-        if self.repair:
-            updated_at = None
-            last_viewed_at = None
-        else:
-            updated_at = updated_at - UPDATED_AT_SAFETY if updated_at else None
-            last_viewed_at = last_viewed_at - LAST_VIEWED_AT_SAFETY \
-                if last_viewed_at else None
         try:
             for kind in kinds:
                 for section in (x for x in sections.SECTIONS
                                 if x['plex_type'] == kind[1]):
                     if self.isCanceled():
                         return
+                    if not section['sync_to_kodi']:
+                        LOG.info('User chose to not sync section %s', section)
+                        continue
                     element = copy.deepcopy(section)
                     element['section_type'] = element['plex_type']
                     element['plex_type'] = kind[0]
                     element['element_type'] = kind[1]
                     element['context'] = kind[2]
                     element['get_children'] = kind[3]
+                    if self.repair or all_items:
+                        updated_at = None
+                    else:
+                        updated_at = section['last_sync'] - UPDATED_AT_SAFETY \
+                            if section['last_sync'] else None
                     try:
                         element['iterator'] = PF.SectionItems(section['section_id'],
                                                               plex_type=kind[0],
                                                               updated_at=updated_at,
-                                                              last_viewed_at=last_viewed_at)
+                                                              last_viewed_at=None)
                     except RuntimeError:
                         LOG.warn('Sync at least partially unsuccessful')
                         self.successful = False
+                        self.section_success = False
                     else:
                         queue.put(element)
         finally:
@@ -304,14 +305,13 @@ class FullSync(common.fullsync_mixin):
         # Already start setting up the iterators. We need to enforce
         # syncing e.g. show before season before episode
         iterator_queue = Queue.Queue()
-        updated_at = int(utils.settings('lastfullsync')) or None
         task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
                                                None,
                                                kinds,
-                                               iterator_queue,
-                                               updated_at=updated_at)
+                                               iterator_queue)
         backgroundthread.BGThreader.addTask(task)
         while True:
+            self.section_success = True
             section = iterator_queue.get()
             iterator_queue.task_done()
             if section is None:
@@ -324,10 +324,14 @@ class FullSync(common.fullsync_mixin):
             # Now do the heavy lifting
             if self.isCanceled() or not self.addupdate_section(section):
                 return False
+            if self.section_success:
+                # Need to check because a thread might have missed to get
+                # some items from the PMS
+                with PlexDB() as plexdb:
+                    # Set the new time mark for the next delta sync
+                    plexdb.update_section_last_sync(section['section_id'],
+                                                    self.current_sync)
         common.update_kodi_library(video=True, music=True)
-        if self.successful:
-            # Set timestamp for next sync - neglecting playstates!
-            utils.settings('lastfullsync', value=str(int(self.current_sync)))
         # In order to not delete all your songs again
         if app.SYNC.enable_music:
             kinds.extend([
@@ -337,6 +341,8 @@ class FullSync(common.fullsync_mixin):
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
         LOG.info('Start synching playstate and userdata for every item')
+        # Make sure we're not showing an item's title in the sync dialog
+        self.title = ''
         self.threader.shutdown()
         self.threader = None
         if not self.show_dialog_userdata and self.dialog:
@@ -346,7 +352,8 @@ class FullSync(common.fullsync_mixin):
         task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
                                                None,
                                                kinds,
-                                               iterator_queue)
+                                               iterator_queue,
+                                               all_items=True)
         backgroundthread.BGThreader.addTask(task)
         while True:
             section = iterator_queue.get()
@@ -363,7 +370,7 @@ class FullSync(common.fullsync_mixin):
                 return False
 
         # Delete movies that are not on Plex anymore
-        LOG.info('Looking for items to delete')
+        LOG.debug('Looking for items to delete')
         kinds = [
             (v.PLEX_TYPE_MOVIE, itemtypes.Movie),
             (v.PLEX_TYPE_SHOW, itemtypes.Show),
@@ -392,14 +399,22 @@ class FullSync(common.fullsync_mixin):
         LOG.debug('Done deleting')
         return True
 
-    @utils.log_time
     def run(self):
+        app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            app.APP.deregister_thread(self)
+            LOG.info('Done full_sync')
+
+    @utils.log_time
+    def _run(self):
         self.current_sync = timing.plex_now()
         # Delete playlist and video node files from Kodi
         utils.delete_playlists()
         utils.delete_nodes()
         # Get latest Plex libraries and build playlist and video node files
-        if not sections.sync_from_pms():
+        if not sections.sync_from_pms(self):
             return
         self.successful = True
         try:
@@ -434,7 +449,6 @@ class FullSync(common.fullsync_mixin):
                              icon='{error}')
             if self.callback:
                 self.callback(self.successful)
-            LOG.info('Done full_sync')
 
 
 def start(show_dialog, repair=False, callback=None):

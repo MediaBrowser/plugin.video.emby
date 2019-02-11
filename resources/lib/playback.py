@@ -11,7 +11,6 @@ from .plex_api import API
 from .plex_db import PlexDB
 from . import plex_functions as PF
 from . import utils
-from .downloadutils import DownloadUtils as DU
 from .kodi_db import KodiVideoDB
 from . import playlist_func as PL
 from . import playqueue as PQ
@@ -50,10 +49,18 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     global RESOLVE
     # If started via Kodi context menu, we never resolve
     RESOLVE = resolve if not app.PLAYSTATE.context_menu_play else False
-    if not app.ACCOUNT.authenticated:
-        LOG.error('Not yet authenticated for PMS, abort starting playback')
-        # "Unauthorized for PMS"
-        utils.dialog('notification', utils.lang(29999), utils.lang(30017))
+    if not app.CONN.online or not app.ACCOUNT.authenticated:
+        if not app.CONN.online:
+            LOG.error('PMS not online for playback')
+            # "{0} offline"
+            utils.dialog('notification',
+                         utils.lang(29999),
+                         utils.lang(39213).format(app.CONN.server_name),
+                         icon='{plex}')
+        else:
+            LOG.error('Not yet authenticated for PMS, abort starting playback')
+            # "Unauthorized for PMS"
+            utils.dialog('notification', utils.lang(29999), utils.lang(30017))
         _ensure_resolve(abort=True)
         return
     with app.APP.lock_playqueues:
@@ -135,16 +142,8 @@ def _playlist_playback(plex_id, plex_type):
     for the next item in line :-)
     (by the way: trying to get active Kodi player id will return [])
     """
-    xml = PF.GetPlexMetadata(plex_id)
-    try:
-        xml[0].attrib
-    except (IndexError, TypeError, AttributeError):
-        LOG.error('Could not get a PMS xml for plex id %s', plex_id)
-        # "Play error"
-        utils.dialog('notification',
-                     utils.lang(29999),
-                     utils.lang(30128),
-                     icon='{error}')
+    xml = PF.GetPlexMetadata(plex_id, reraise=True)
+    if xml in (None, 401):
         _ensure_resolve(abort=True)
         return
     # Kodi bug: playqueue will ALWAYS be audio playqueue UNTIL playback
@@ -164,16 +163,9 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     Playback setup if Kodi starts playing an item for the first time.
     """
     LOG.info('Initializing PKC playback')
-    xml = PF.GetPlexMetadata(plex_id)
-    try:
-        xml[0].attrib
-    except (IndexError, TypeError, AttributeError):
+    xml = PF.GetPlexMetadata(plex_id, reraise=True)
+    if xml in (None, 401):
         LOG.error('Could not get a PMS xml for plex id %s', plex_id)
-        # "Play error"
-        utils.dialog('notification',
-                     utils.lang(29999),
-                     utils.lang(30128),
-                     icon='{error}')
         _ensure_resolve(abort=True)
         return
     if playqueue.kodi_pl.size() > 1:
@@ -182,6 +174,11 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
             _init_existing_kodi_playlist(playqueue, pos)
         except PL.PlaylistError:
             LOG.error('Playback_init for existing Kodi playlist failed')
+            # "Play error"
+            utils.dialog('notification',
+                         utils.lang(29999),
+                         utils.lang(30128),
+                         icon='{error}')
             _ensure_resolve(abort=True)
             return
         # Now we need to use setResolvedUrl for the item at position ZERO
@@ -259,12 +256,10 @@ def _ensure_resolve(abort=False):
     will be destroyed.
     """
     if RESOLVE:
-        if not abort:
-            # Releases the other Python thread without a ListItem
-            transfer.send(True)
-        else:
-            # Shows PKC error message
-            transfer.send(None)
+        # Releases the other Python thread without a ListItem
+        transfer.send(True)
+        # Shows PKC error message
+        # transfer.send(None)
     if abort:
         # Reset some playback variables
         app.PLAYSTATE.context_menu_play = False
@@ -418,7 +413,10 @@ def _conclude_playback(playqueue, pos):
         LOG.info('Resuming playback at %s', item.offset)
         if v.KODIVERSION >= 18 and api:
             # Kodi 18 Alpha 3 broke StartOffset
-            percent = item.offset / api.runtime() * 100.0
+            try:
+                percent = item.offset / api.runtime() * 100.0
+            except ZeroDivisionError:
+                percent = 0.0
             LOG.debug('Resuming at %s percent', percent)
             listitem.setProperty('StartPercent', str(percent))
         else:
@@ -446,21 +444,20 @@ def process_indirect(key, offset, resolve=True):
              key, offset, resolve)
     global RESOLVE
     RESOLVE = resolve
+    offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset)) if offset != '0' else None
     if key.startswith('http') or key.startswith('{server}'):
-        xml = DU().downloadUrl(key)
+        xml = PF.get_playback_xml(key, app.CONN.server_name)
     elif key.startswith('/system/services'):
-        xml = DU().downloadUrl('http://node.plexapp.com:32400%s' % key)
+        xml = PF.get_playback_xml('http://node.plexapp.com:32400%s' % key,
+                                  'plexapp.com',
+                                  authenticate=False,
+                                  token=app.ACCOUNT.plex_token)
     else:
-        xml = DU().downloadUrl('{server}%s' % key)
-    try:
-        xml[0].attrib
-    except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not download PMS metadata')
+        xml = PF.get_playback_xml('{server}%s' % key, app.CONN.server_name)
+    if xml is None:
         _ensure_resolve(abort=True)
         return
-    if offset != '0':
-        offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset))
-        # Todo: implement offset
+
     api = API(xml[0])
     listitem = transfer.PKCListItem()
     api.create_listitem(listitem)
@@ -469,19 +466,31 @@ def process_indirect(key, offset, resolve=True):
     playqueue.clear()
     item = PL.Playlist_Item()
     item.xml = xml[0]
-    item.offset = int(offset)
+    item.offset = offset
     item.plex_type = v.PLEX_TYPE_CLIP
     item.playmethod = 'DirectStream'
+
     # Need to get yet another xml to get the final playback url
-    xml = DU().downloadUrl('http://node.plexapp.com:32400%s'
-                           % xml[0][0][0].attrib['key'])
     try:
-        xml[0].attrib
+        xml = PF.get_playback_xml('http://node.plexapp.com:32400%s'
+                                  % xml[0][0][0].attrib['key'],
+                                  'plexapp.com',
+                                  authenticate=False,
+                                  token=app.ACCOUNT.plex_token)
     except (TypeError, IndexError, AttributeError):
-        LOG.error('Could not download last xml for playurl')
+        LOG.error('XML malformed: %s', xml.attrib)
+        xml = None
+    if xml is None:
         _ensure_resolve(abort=True)
         return
-    playurl = xml[0].attrib['key']
+
+    try:
+        playurl = xml[0].attrib['key']
+    except (TypeError, IndexError, AttributeError):
+        LOG.error('Last xml malformed: %s', xml.attrib)
+        _ensure_resolve(abort=True)
+        return
+
     item.file = playurl
     listitem.setPath(utils.try_encode(playurl))
     playqueue.items.append(item)
@@ -533,7 +542,7 @@ def threaded_playback(kodi_playlist, startpos, offset):
     app.APP.player.play(kodi_playlist, None, False, startpos)
     if offset and offset != '0':
         i = 0
-        while not app.APP.player.isPlaying():
+        while not app.APP.is_playing:
             app.APP.monitor.waitForAbort(0.1)
             i += 1
             if i > 100:

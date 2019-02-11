@@ -15,19 +15,6 @@ if library_sync.PLAYLIST_SYNC_ENABLED:
 LOG = getLogger('PLEX.sync')
 
 
-def set_library_scan_toggle(boolean=True):
-    """
-    Make sure to hit this function before starting large scans
-    """
-    if not boolean:
-        # Deactivate
-        app.SYNC.db_scan = False
-        utils.window('plex_dbScan', clear=True)
-    else:
-        app.SYNC.db_scan = True
-        utils.window('plex_dbScan', value="true")
-
-
 class Sync(backgroundthread.KillableThread):
     """
     The one and only library sync thread. Spawn only 1!
@@ -35,16 +22,11 @@ class Sync(backgroundthread.KillableThread):
     def __init__(self):
         self.sync_successful = False
         self.last_full_sync = 0
-        self.fanart = None
-        # Show sync dialog even if user deactivated?
-        self.force_dialog = False
+        self.fanart_thread = None
         self.image_cache_thread = None
         # Lock used to wait on a full sync, e.g. on initial sync
         # self.lock = backgroundthread.threading.Lock()
         super(Sync, self).__init__()
-
-    def isSuspended(self):
-        return self._suspended or app.APP.suspend_threads
 
     def triage_lib_scans(self):
         """
@@ -52,7 +34,6 @@ class Sync(backgroundthread.KillableThread):
         triggered full or repair syncs
         """
         if app.SYNC.run_lib_scan in ("full", "repair"):
-            set_library_scan_toggle()
             LOG.info('Full library scan requested, starting')
             self.start_library_sync(show_dialog=True,
                                     repair=app.SYNC.run_lib_scan == 'repair',
@@ -89,23 +70,16 @@ class Sync(backgroundthread.KillableThread):
         """
         self.sync_successful = successful
         self.last_full_sync = timing.unix_timestamp()
-        set_library_scan_toggle(boolean=False)
         if not successful:
             LOG.warn('Could not finish scheduled full sync')
-        # try:
-        #     self.lock.release()
-        # except backgroundthread.threading.ThreadError:
-        #     pass
+        app.APP.resume_fanart_thread()
+        app.APP.resume_caching_thread()
 
     def start_library_sync(self, show_dialog=None, repair=False, block=False):
-        set_library_scan_toggle(boolean=True)
+        app.APP.suspend_fanart_thread(block=True)
+        app.APP.suspend_caching_thread(block=True)
         show_dialog = show_dialog if show_dialog is not None else app.SYNC.sync_dialog
         library_sync.start(show_dialog, repair, self.on_library_scan_finished)
-        # if block:
-        # self.lock.acquire()
-        # Will block until scan is finished
-        # self.lock.acquire()
-        # self.lock.release()
 
     def start_fanart_download(self, refresh):
         if not utils.settings('FanartTV') == 'true':
@@ -114,11 +88,11 @@ class Sync(backgroundthread.KillableThread):
         if not app.SYNC.artwork:
             LOG.info('Not synching Plex PMS artwork, not getting artwork')
             return False
-        elif self.fanart is None or not self.fanart.is_alive():
+        elif self.fanart_thread is None or not self.fanart_thread.is_alive():
             LOG.info('Start downloading additional fanart with refresh %s',
                      refresh)
-            self.fanart = library_sync.FanartThread(self.on_fanart_download_finished, refresh)
-            self.fanart.start()
+            self.fanart_thread = library_sync.FanartThread(self.on_fanart_download_finished, refresh)
+            self.fanart_thread.start()
             return True
         else:
             LOG.info('Still downloading fanart')
@@ -144,16 +118,21 @@ class Sync(backgroundthread.KillableThread):
         self.image_cache_thread.start()
 
     def run(self):
+        LOG.info("---===### Starting Sync Thread ###===---")
+        app.APP.register_thread(self)
         try:
             self._run_internal()
         except Exception:
-            app.SYNC.db_scan = False
-            utils.window('plex_dbScan', clear=True)
             utils.ERROR(txt='sync.py crashed', notify=True)
             raise
+        finally:
+            try:
+                app.APP.deregister_thread(self)
+            except ValueError:
+                pass
+            LOG.info("###===--- Sync Thread Stopped ---===###")
 
     def _run_internal(self):
-        LOG.info("---===### Starting Sync Thread ###===---")
         install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
         playlist_monitor = None
         initial_sync_done = False
@@ -170,6 +149,8 @@ class Sync(backgroundthread.KillableThread):
                                          v.MIN_DB_VERSION):
                 LOG.warn("Db version out of date: %s minimum version "
                          "required: %s", current_version, v.MIN_DB_VERSION)
+                # In order to not wait for this thread to suspend
+                app.APP.deregister_thread(self)
                 # DB out of date. Proceed to recreate?
                 if not utils.yesno_dialog(utils.lang(29999),
                                           utils.lang(39401)):
@@ -186,17 +167,10 @@ class Sync(backgroundthread.KillableThread):
 
         while not self.isCanceled():
             # In the event the server goes offline
-            while self.isSuspended():
-                if self.isCanceled():
-                    # Abort was requested while waiting. We should exit
-                    LOG.info("###===--- Sync Thread Stopped ---===###")
-                    return
-                app.APP.monitor.waitForAbort(1)
-
+            if self.wait_while_suspended():
+                return
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
-                set_library_scan_toggle()
-                self.force_dialog = True
                 # Initialize time offset Kodi - PMS
                 library_sync.sync_pms_time()
                 last_time_sync = timing.unix_timestamp()
@@ -217,7 +191,6 @@ class Sync(backgroundthread.KillableThread):
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
                     app.APP.monitor.waitForAbort(1)
-                self.force_dialog = False
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
 
             elif not initial_sync_done:
@@ -237,13 +210,10 @@ class Sync(backgroundthread.KillableThread):
                     app.APP.monitor.waitForAbort(1)
 
             # Currently no db scan, so we could start a new scan
-            elif app.SYNC.db_scan is False:
+            else:
                 # Full scan was requested from somewhere else
                 if app.SYNC.run_lib_scan is not None:
-                    # Force-show dialogs since they are user-initiated
-                    self.force_dialog = True
                     self.triage_lib_scans()
-                    self.force_dialog = False
                     # Reset the flag
                     app.SYNC.run_lib_scan = None
                     continue
@@ -251,7 +221,7 @@ class Sync(backgroundthread.KillableThread):
                 # Standard syncs - don't force-show dialogs
                 now = timing.unix_timestamp()
                 if (now - self.last_full_sync > app.SYNC.full_sync_intervall and
-                        not app.SYNC.suspend_sync):
+                        not app.APP.is_playing_video):
                     LOG.info('Doing scheduled full library scan')
                     self.start_library_sync()
                 elif now - last_time_sync > one_day_in_seconds:
@@ -287,4 +257,3 @@ class Sync(backgroundthread.KillableThread):
             DU().stopSession()
         except AttributeError:
             pass
-        LOG.info("###===--- Sync Thread Stopped ---===###")

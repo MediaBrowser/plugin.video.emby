@@ -167,6 +167,7 @@ class DownloadUtils():
             kwargs['timeout'] = timeout
 
         # ACTUAL DOWNLOAD HAPPENING HERE
+        success = False
         try:
             r = self._doDownload(s, action_type, **kwargs)
 
@@ -176,44 +177,37 @@ class DownloadUtils():
             LOG.warn(e)
             if reraise:
                 raise
-
         except exceptions.ConnectionError as e:
             # Connection error
             LOG.warn("Server unreachable at: %s", url)
             LOG.warn(e)
             if reraise:
                 raise
-
         except exceptions.Timeout as e:
             LOG.warn("Server timeout at: %s", url)
             LOG.warn(e)
             if reraise:
                 raise
-
         except exceptions.HTTPError as e:
             LOG.warn('HTTP Error at %s', url)
             LOG.warn(e)
             if reraise:
                 raise
-
         except exceptions.TooManyRedirects as e:
             LOG.warn("Too many redirects connecting to: %s", url)
             LOG.warn(e)
             if reraise:
                 raise
-
         except exceptions.RequestException as e:
             LOG.warn("Unknown error connecting to: %s", url)
             LOG.warn(e)
             if reraise:
                 raise
-
         except SystemExit:
             LOG.info('SystemExit detected, aborting download')
             self.stopSession()
             if reraise:
                 raise
-
         except Exception:
             LOG.warn('Unknown error while downloading. Traceback:')
             import traceback
@@ -223,6 +217,7 @@ class DownloadUtils():
 
         # THE RESPONSE #####
         else:
+            success = True
             # We COULD contact the PMS, hence it ain't dead
             if authenticate is True:
                 self.count_error = 0
@@ -300,12 +295,12 @@ class DownloadUtils():
                          url, r.status_code)
                 return True
 
-        # And now deal with the consequences of the exceptions
-        if authenticate is True:
-            # Make the addon aware of status
-            self.count_error += 1
-            if self.count_error >= self.connection_attempts:
-                LOG.warn('Failed to connect to %s too many times. '
-                         'Declare PMS dead', url)
-                app.CONN.online = False
-        return
+        finally:
+            if not success and authenticate:
+                # Deal with the consequences of the exceptions
+                # Make the addon aware of status
+                self.count_error += 1
+                if self.count_error >= self.connection_attempts:
+                    LOG.warn('Failed to connect to %s too many times. '
+                             'Declare PMS dead', url)
+                    app.CONN.online = False

@@ -206,7 +206,7 @@ class ControlledWindow(ControlledBase, BaseWindow):
             if action in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
                 self.doClose()
                 return
-        except:
+        except Exception:
             traceback.print_exc()
 
         BaseWindow.onAction(self, action)
@@ -218,7 +218,7 @@ class ControlledDialog(ControlledBase, BaseDialog):
             if action in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
                 self.doClose()
                 return
-        except:
+        except Exception:
             traceback.print_exc()
 
         BaseDialog.onAction(self, action)
@@ -228,7 +228,8 @@ DUMMY_LIST_ITEM = xbmcgui.ListItem()
 
 
 class ManagedListItem(object):
-    def __init__(self, label='', label2='', iconImage='', thumbnailImage='', path='', data_source=None, properties=None):
+    def __init__(self, label='', label2='', iconImage='', thumbnailImage='',
+                 path='', data_source=None, properties=None):
         self._listItem = xbmcgui.ListItem(label, label2, iconImage, thumbnailImage, path)
         self.dataSource = data_source
         self.properties = {}
@@ -608,13 +609,15 @@ class ManagedControlList(object):
     def getViewPosition(self):
         try:
             return int(xbmc.getInfoLabel('Container({0}).Position'.format(self.controlID)))
-        except:
+        except Exception:
             return 0
 
     def getViewRange(self):
         viewPosition = self.getViewPosition()
         selected = self.getSelectedPosition()
-        return range(max(selected - viewPosition, 0), min(selected + (self._maxViewIndex - viewPosition) + 1, self.size() - 1))
+        return range(max(selected - viewPosition, 0),
+                     min(selected + (self._maxViewIndex - viewPosition) + 1,
+                         self.size() - 1))
 
     def positionIsValid(self, pos):
         return 0 <= pos < self.size()
@@ -809,7 +812,7 @@ class SafeControlEdit(object):
                 if self.processOffControlAction(action.getButtonCode()):
                     self._win.setFocusId(self.controlID)
                     return
-        except:
+        except Exception:
             traceback.print_exc()
 
         self._winOnAction(action)

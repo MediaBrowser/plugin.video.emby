@@ -77,7 +77,10 @@ class KillableThread(threading.Thread):
 
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
         self._canceled = False
+        # Set to True to set the thread to suspended
         self._suspended = False
+        # Thread will return True only if suspended state is reached
+        self.suspend_reached = False
         super(KillableThread, self).__init__(group, target, name, args, kwargs)
 
     def isCanceled(self):
@@ -94,17 +97,41 @@ class KillableThread(threading.Thread):
         """
         self._canceled = True
 
-    def suspend(self):
+    def suspend(self, block=False):
         """
         Call to suspend this thread
         """
         self._suspended = True
+        if block:
+            while not self.suspend_reached:
+                LOG.debug('Waiting for thread to suspend: %s', self)
+                if app.APP.monitor.waitForAbort(0.1):
+                    return
 
     def resume(self):
         """
         Call to revive a suspended thread back to life
         """
         self._suspended = False
+
+    def wait_while_suspended(self):
+        """
+        Blocks until thread is not suspended anymore or the thread should
+        exit.
+        Returns True only if the thread should exit (=isCanceled())
+        """
+        while self.isSuspended():
+            try:
+                self.suspend_reached = True
+                # Set in service.py
+                if self.isCanceled():
+                    # Abort was requested while waiting. We should exit
+                    return True
+                if app.APP.monitor.waitForAbort(0.1):
+                    return True
+            finally:
+                self.suspend_reached = False
+        return self.isCanceled()
 
     def isSuspended(self):
         """
@@ -198,7 +225,8 @@ class BackgroundWorker(object):
         self._abort = False
         self._task = None
 
-    def _runTask(self, task):
+    @staticmethod
+    def _runTask(task):
         if task._canceled:
             return
         try:

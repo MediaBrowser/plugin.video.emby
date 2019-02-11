@@ -3,24 +3,38 @@
 from __future__ import absolute_import, division, unicode_literals
 import xbmc
 
-from .. import app, utils, variables as v
+from .. import utils, variables as v
 
-PLAYLIST_SYNC_ENABLED = (v.PLATFORM != 'Microsoft UWP' and
+PLAYLIST_SYNC_ENABLED = (v.DEVICE != 'Microsoft UWP' and
                          utils.settings('enablePlaylistSync') == 'true')
 
 
-class libsync_mixin(object):
-    def isCanceled(self):
-        return (self._canceled or app.APP.stop_pkc or app.SYNC.stop_sync or
-                app.APP.suspend_threads or app.SYNC.suspend_sync)
-
-
 class fullsync_mixin(object):
+    def __init__(self):
+        self._canceled = False
+
+    def abort(self):
+        """Hit method to terminate the thread"""
+        self._canceled = True
+    # Let's NOT suspend sync threads but immediately terminate them
+    suspend = abort
+
+    @property
+    def suspend_reached(self):
+        """Since we're not suspending, we'll never set it to True"""
+        return False
+
+    @suspend_reached.setter
+    def suspend_reached(self):
+        pass
+
+    def resume(self):
+        """Obsolete since we're not suspending"""
+        pass
+
     def isCanceled(self):
-        return (self._canceled or
-                app.APP.stop_pkc or
-                app.SYNC.stop_sync or
-                app.APP.suspend_threads)
+        """Check whether we should exit this thread"""
+        return self._canceled
 
 
 def update_kodi_library(video=True, music=True):

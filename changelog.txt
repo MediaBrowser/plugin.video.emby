@@ -1,3 +1,31 @@
+version 2.7.0:
+- WARNING: You will need to reset the Kodi database if you're using the stable version of PKC!
+- Version 2.6.6-9 for everyone
+- Choose which Plex libraries get synched to Kodi
+
+version 2.6.9 (beta only):
+- Fix PKC crashing on resetting the database
+
+version 2.6.8 (beta only):
+- Choose which Plex libraries get synched to Kodi
+- Fix PKC becoming unresponsive
+- Fix rare case where thousands of identical playlists could be generated
+- Fix movies or shows disappearing in fringe cases
+- Fix processing of collections in special cases
+- Implement Codacy suggestions
+
+version 2.6.7 (beta only):
+- Fix "Unauthorized for PMS" e.g. on switching Plex users
+- Improve error messages when playback failes
+
+version 2.6.6 (beta only):
+- WARNING: You will need to reset the Kodi database!
+- Greatly speed up sync for episodes, especially for large libraries
+- Allow websocket redirects. Never allow insecure HTTPs connections for Kodi Leia
+- Optimize headers for communication with PMS to appear like a Plex Media Player
+- Fix PMS log entries 'Unable to find client profile for device'
+- Improve sync dialog
+
 version 2.6.5:
 - Fix extras not playing
 - Hide "Verify SSL certificate" setting for Kodi 18 Krypton

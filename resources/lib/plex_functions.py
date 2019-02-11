@@ -9,7 +9,7 @@ from copy import deepcopy
 from time import time
 from threading import Thread
 
-from .downloadutils import DownloadUtils as DU
+from .downloadutils import DownloadUtils as DU, exceptions
 from . import backgroundthread, utils, plex_tv, variables as v, app
 
 ###############################################################################
@@ -454,7 +454,7 @@ def _poke_pms(pms, queue):
              url, pms['uuid'], xml.get('machineIdentifier'))
 
 
-def GetPlexMetadata(key):
+def GetPlexMetadata(key, reraise=False):
     """
     Returns raw API metadata for key as an etree XML.
 
@@ -481,18 +481,71 @@ def GetPlexMetadata(key):
         # 'includeConcerts': 1
     }
     url = url + '?' + urlencode(arguments)
-    xml = DU().downloadUrl(url)
-    if xml == 401:
-        # Either unauthorized (taken care of by doUtils) or PMS under strain
-        return 401
-    # Did we receive a valid XML?
     try:
-        xml.attrib
-    # Nope we did not receive a valid XML
-    except AttributeError:
-        LOG.error("Error retrieving metadata for %s", url)
-        xml = None
-    return xml
+        xml = DU().downloadUrl(url, reraise=reraise)
+    except exceptions.RequestException:
+        # "PMS offline"
+        utils.dialog('notification',
+                     utils.lang(29999),
+                     utils.lang(39213).format(app.CONN.server_name),
+                     icon='{plex}')
+    except Exception:
+        # "Error"
+        utils.dialog('notification',
+                     utils.lang(29999),
+                     utils.lang(30135),
+                     icon='{error}')
+    else:
+        if xml == 401:
+            # Either unauthorized (taken care of by doUtils) or PMS under strain
+            return 401
+        # Did we receive a valid XML?
+        try:
+            xml[0].attrib
+        # Nope we did not receive a valid XML
+        except (TypeError, IndexError, AttributeError):
+            LOG.error("Error retrieving metadata for %s", url)
+            xml = None
+        return xml
+
+
+def get_playback_xml(url, server_name, authenticate=True, token=None):
+    """
+    Returns None if something went wrong
+    """
+    header_options = {'X-Plex-Token': token} if not authenticate else None
+    try:
+        xml = DU().downloadUrl(url,
+                               authenticate=authenticate,
+                               headerOptions=header_options,
+                               reraise=True)
+    except exceptions.RequestException:
+        # "{0} offline"
+        utils.dialog('notification',
+                     utils.lang(29999),
+                     utils.lang(39213).format(server_name),
+                     icon='{plex}')
+    except Exception as e:
+        LOG.error(e)
+        import traceback
+        LOG.error("Traceback:\n%s", traceback.format_exc())
+        # "Play error"
+        utils.dialog('notification',
+                     utils.lang(29999),
+                     utils.lang(30128),
+                     icon='{error}')
+    else:
+        try:
+            xml[0].attrib
+        except (TypeError, IndexError, AttributeError):
+            LOG.error('Could not get a valid xml, unfortunately')
+            # "Play error"
+            utils.dialog('notification',
+                         utils.lang(29999),
+                         utils.lang(30128),
+                         icon='{error}')
+        else:
+            return xml
 
 
 def GetAllPlexChildren(key):

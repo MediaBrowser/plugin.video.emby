@@ -189,7 +189,7 @@ class Movie(ItemBase):
                     # e.g. when added via websocket
                     LOG.debug('Costly looking up Plex collection %s: %s',
                               plex_set_id, set_name)
-                    for index, coll_plex_id in api.collections_match():
+                    for index, coll_plex_id in api.collections_match(section_id):
                         # Get Plex artwork for collections - a pain
                         if index == plex_set_id:
                             set_xml = PF.GetPlexMetadata(coll_plex_id)
@@ -214,8 +214,7 @@ class Movie(ItemBase):
                                resume,
                                runtime,
                                playcount,
-                               dateplayed,
-                               v.PLEX_TYPE_MOVIE)
+                               dateplayed)
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
                               section_id=section_id,
@@ -279,8 +278,7 @@ class Movie(ItemBase):
                                userdata['Resume'],
                                userdata['Runtime'],
                                userdata['PlayCount'],
-                               userdata['LastPlayedDate'],
-                               plex_type)
+                               userdata['LastPlayedDate'])
         self.kodidb.update_userrating(db_item['kodi_id'],
                                       db_item['kodi_type'],
                                       userdata['UserRating'])

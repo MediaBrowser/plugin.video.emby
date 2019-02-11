@@ -80,13 +80,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         self.subscription_manager = None
         super(PlexCompanion, self).__init__()
 
-    def isSuspended(self):
-        """
-        Returns True if the thread is suspended
-        """
-        return self._suspended or app.APP.suspend
-
-    def _process_alexa(self, data):
+    @staticmethod
+    def _process_alexa(data):
         xml = PF.GetPlexMetadata(data['key'])
         try:
             xml[0].attrib
@@ -141,7 +136,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         executebuiltin('RunPlugin(plugin://%s?%s)'
                        % (v.ADDON_ID, urlencode(params)))
 
-    def _process_playlist(self, data):
+    @staticmethod
+    def _process_playlist(data):
         # Get the playqueue ID
         _, container_key, query = PF.ParseContainerKey(data['containerKey'])
         try:
@@ -165,7 +161,8 @@ class PlexCompanion(backgroundthread.KillableThread):
                                   offset=data.get('offset'),
                                   transient_token=data.get('token'))
 
-    def _process_streams(self, data):
+    @staticmethod
+    def _process_streams(data):
         """
         Plex Companion client adjusted audio or subtitle stream
         """
@@ -186,7 +183,8 @@ class PlexCompanion(backgroundthread.KillableThread):
         else:
             LOG.error('Unknown setStreams command: %s', data)
 
-    def _process_refresh(self, data):
+    @staticmethod
+    def _process_refresh(data):
         """
         example data: {'playQueueID': '8475', 'commandID': '11'}
         """
@@ -245,6 +243,7 @@ class PlexCompanion(backgroundthread.KillableThread):
         """
         Ensure that sockets will be closed no matter what
         """
+        app.APP.register_thread(self)
         try:
             self._run()
         finally:
@@ -257,7 +256,8 @@ class PlexCompanion(backgroundthread.KillableThread):
                     self.httpd.socket.close()
                 except AttributeError:
                     pass
-        LOG.info("----===## Plex Companion stopped ##===----")
+            app.APP.deregister_thread(self)
+            LOG.info("----===## Plex Companion stopped ##===----")
 
     def _run(self):
         httpd = self.httpd
@@ -303,10 +303,8 @@ class PlexCompanion(backgroundthread.KillableThread):
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            while self.isSuspended():
-                if self.isCanceled():
-                    break
-                app.APP.monitor.waitForAbort(1)
+            if self.wait_while_suspended():
+                break
             try:
                 message_count += 1
                 if httpd:

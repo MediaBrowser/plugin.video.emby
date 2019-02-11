@@ -97,12 +97,6 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
     (playlist) are swapped. This is what this monitor is for. Don't replace
     this mechanism till Kodi's implementation of playlists has improved
     """
-    def isSuspended(self):
-        """
-        Returns True if the thread is suspended
-        """
-        return self._suspended or app.APP.suspend_threads
-
     def _compare_playqueues(self, playqueue, new):
         """
         Used to poll the Kodi playqueue and update the Plex playqueue if needed
@@ -193,11 +187,17 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
 
     def run(self):
         LOG.info("----===## Starting PlayqueueMonitor ##===----")
+        app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            app.APP.deregister_thread(self)
+            LOG.info("----===## PlayqueueMonitor stopped ##===----")
+
+    def _run(self):
         while not self.isCanceled():
-            while self.isSuspended():
-                if self.isCanceled():
-                    break
-                app.APP.monitor.waitForAbort(1)
+            if self.wait_while_suspended():
+                return
             with app.APP.lock_playqueues:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
@@ -212,4 +212,3 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                             self._compare_playqueues(playqueue, kodi_pl)
                         playqueue.old_kodi_pl = list(kodi_pl)
             app.APP.monitor.waitForAbort(0.2)
-        LOG.info("----===## PlayqueueMonitor stopped ##===----")

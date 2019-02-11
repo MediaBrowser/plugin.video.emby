@@ -476,7 +476,7 @@ class VideoNodes(object):
             "unwatched.content","unwatched.path",
             "recent.title","recent.content","recent.path",
             "recentepisodes.title","recentepisodes.content",
-            "recentepisodes.path","inprogressepisodes.title",
+            "recentepisodes.path", "inprogressepisodes.title",
             "inprogressepisodes.content","inprogressepisodes.path"
         ]
 

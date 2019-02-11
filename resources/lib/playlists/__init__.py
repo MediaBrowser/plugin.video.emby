@@ -43,7 +43,7 @@ IGNORE_PLEX_PLAYLIST_CHANGE = list()
 
 
 def isCanceled():
-    return app.APP.stop_pkc or app.SYNC.stop_sync or app.APP.suspend_threads
+    return app.APP.stop_pkc or app.SYNC.stop_sync
 
 
 def kodi_playlist_monitor():
