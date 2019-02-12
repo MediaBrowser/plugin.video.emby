@@ -7,6 +7,7 @@ import logging
 import os
 
 import xbmc
+import xbmcgui
 import xbmcvfs
 
 from objects.obj import Objects
@@ -45,7 +46,7 @@ class Player(xbmc.Player):
             Accounts for scenario where Kodi starts playback and exits immediately.
             First, ensure previous playback terminated correctly in Emby.
         '''
-        self.stop_playback()
+        #self.stop_playback()
         self.up_next = False
         count = 0
         monitor = xbmc.Monitor()
@@ -68,6 +69,23 @@ class Player(xbmc.Player):
                 LOG.info('Cancel playback report')
 
                 return
+
+        if current_file.endswith('emby-loading.mp4'):
+            
+            ''' Clear the virtual and strm link path from the playlist.
+            '''
+            LOG.info("emby-loading.mp4 detected.")
+            self.pause()
+
+            current_window = xbmcgui.getCurrentWindowId()
+
+            if not current_window == 12005:
+                xbmc.sleep(500)
+            
+            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).remove(xbmc.getInfoLabel('Player.Filenameandpath')) #TODO detect the right playlist
+            window('emby_loadingvideo.bool', True)
+
+            return
 
         items = window('emby_play.json')
         item = None

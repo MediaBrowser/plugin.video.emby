@@ -949,3 +949,15 @@ msgstr ""
 msgctxt "#33197"
 msgid "A sync is already running, please wait until it completes and try again."
 msgstr ""
+
+msgctxt "#33198"
+msgid "Loading video splash"
+msgstr ""
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33200"
+msgid "Black"
+msgstr ""

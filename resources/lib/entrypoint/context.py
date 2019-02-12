@@ -36,6 +36,10 @@ class Context(object):
     _selected_option = None
 
     def __init__(self, transcode=False, delete=False):
+        
+        self.server = None
+        self.kodi_id = None
+        self.media = None
 
         try:
             self.kodi_id = sys.listitem.getVideoInfoTag().getDbId() or None
@@ -43,7 +47,6 @@ class Context(object):
             self.server = sys.listitem.getProperty('embyserver') or None
             item_id = sys.listitem.getProperty('embyid')
         except AttributeError:
-            self.server = None
 
             if xbmc.getInfoLabel('ListItem.Property(embyid)'):
                 item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
@@ -171,6 +174,10 @@ class Context(object):
             TheVoid('DeleteItem', {'ServerId': self.server, 'Id': self.item['Id']})
 
     def transcode(self):
-        filename = xbmc.getInfoLabel("ListItem.Filenameandpath")
-        filename += "&transcode=true"
-        xbmc.executebuiltin("PlayMedia(%s)" % filename)
+
+        path = "http://127.0.0.1:57578/emby/play/file.strm?Id=%s&transcode=true" % self.item['Id']
+
+        if self.kodi_id:
+            path += "&KodiId=%s" % self.kodi_id
+
+        xbmc.executebuiltin("PlayMedia(%s)" % path)

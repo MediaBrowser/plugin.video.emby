@@ -5,6 +5,7 @@
 import binascii
 import json
 import logging
+import Queue
 import threading
 import sys
 
@@ -40,6 +41,10 @@ class Monitor(xbmc.Monitor):
         self.listener.start()
         self.webservice = WebService()
         self.webservice.start()
+
+        self.workers_threads = []
+        self.queue = Queue.Queue()
+
         xbmc.Monitor.__init__(self)
 
     def onScanStarted(self, library):
@@ -47,6 +52,43 @@ class Monitor(xbmc.Monitor):
 
     def onScanFinished(self, library):
         LOG.info("--<[ kodi scan/%s ]", library)
+
+    def _get_server(self, method, data):
+
+        ''' Retrieve the Emby server.
+        '''
+        try:
+            if not data.get('ServerId'):
+                raise Exception("ServerId undefined.")
+
+            if method != 'LoadServer' and data['ServerId'] not in self.servers:
+
+                try:
+                    connect.Connect().register(data['ServerId'])
+                    self.server_instance(data['ServerId'])
+                except Exception as error:
+
+                    LOG.error(error)
+                    dialog("ok", heading="{emby}", line1=_(33142))
+
+                    return
+
+            server = Emby(data['ServerId']).get_client()
+        except Exception:
+            server = Emby().get_client()
+
+        return server
+
+    def add_worker(self, method):
+        
+        ''' Use threads to avoid blocking the onNotification function.
+        '''
+        if len(self.workers_threads) < 3:
+
+            new_thread = MonitorWorker(self)
+            new_thread.start()
+            self.workers_threads.append(new_thread)
+            LOG.info("-->[ q:monitor/%s ]", method)
 
     def onNotification(self, sender, method, data):
 
@@ -72,25 +114,11 @@ class Monitor(xbmc.Monitor):
             if method not in ('plugin.video.emby_play_action'):
                 return
 
-            data = json.loads(data)
             method = "Play"
-
-            if data:
-                data = json.loads(binascii.unhexlify(data[0]))
+            data = json.loads(data)
+            data = json.loads(binascii.unhexlify(data[0])) if data else data
         else:
-            if method not in ('Player.OnPlay', 'VideoLibrary.OnUpdate', 'Player.OnAVChange'):
-
-                ''' We have to clear the playlist if it was stopped before it has been played completely.
-                    Otherwise the next played item will be added the previous queue.
-                '''
-                if method == "Player.OnStop":
-                    xbmc.sleep(3000) # let's wait for the player so we don't clear the canceled playlist by mistake.
-
-                    if xbmc.getCondVisibility("!Player.HasMedia + !Window.IsVisible(busydialog)"):
-
-                        xbmc.executebuiltin("Playlist.Clear")
-                        LOG.info("[ playlist ] cleared")
-
+            if method not in ('Player.OnPlay', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
                 return
 
             data = json.loads(data)
@@ -102,173 +130,11 @@ class Monitor(xbmc.Monitor):
 
             return
 
-        try:
-            if not data.get('ServerId'):
-                raise Exception("ServerId undefined.")
+        server = self._get_server(method, data)
+        self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
+        self.add_worker(method)
 
-            if method != 'LoadServer' and data['ServerId'] not in self.servers:
-
-                try:
-                    connect.Connect().register(data['ServerId'])
-                    self.server_instance(data['ServerId'])
-                except Exception as error:
-
-                    LOG.error(error)
-                    dialog("ok", heading="{emby}", line1=_(33142))
-
-                    return
-
-            server = Emby(data['ServerId'])
-        except Exception:
-            server = Emby()
-
-        if method == 'GetItem':
-
-            item = server['api'].get_item(data['Id'])
-            self.void_responder(data, item)
-
-        elif method == 'GetAdditionalParts':
-
-            item = server['api'].get_additional_parts(data['Id'])
-            self.void_responder(data, item)
-
-        elif method == 'GetIntros':
-
-            item = server['api'].get_intros(data['Id'])
-            self.void_responder(data, item)
-
-        elif method == 'GetImages':
-
-            item = server['api'].get_images(data['Id'])
-            self.void_responder(data, item)
-
-        elif method == 'GetServerAddress':
-
-            server_address = server['auth/server-address']
-            self.void_responder(data, server_address)
-
-        elif method == 'GetPlaybackInfo':
-
-            sources = server['api'].get_play_info(data['Id'], data['Profile'])
-            self.void_responder(data, sources)
-
-        elif method == 'GetLiveStream':
-
-            sources = server['api'].get_live_stream(data['Id'], data['PlaySessionId'], data['Token'], data['Profile'])
-            self.void_responder(data, sources)
-
-        elif method == 'GetToken':
-
-            token = server['auth/token']
-            self.void_responder(data, token)
-
-        elif method == 'GetSession':
-
-            session = server['api'].get_device(self.device_id)
-            self.void_responder(data, session)
-
-        elif method == 'GetUsers':
-
-            users = server['api'].get_users(data.get('IsDisabled', True), data.get('IsHidden', True))
-            self.void_responder(data, users)
-
-        elif method == 'GetTranscodeOptions':
-
-            result = server['api'].get_transcode_settings()
-            self.void_responder(data, result)
-
-        elif method == 'GetThemes':
-
-            if data['Type'] == 'Video':
-                theme = server['api'].get_items_theme_video(data['Id'])
-            else:
-                theme = server['api'].get_items_theme_song(data['Id'])
-
-            self.void_responder(data, theme)
-
-        elif method == 'GetTheme':
-
-            theme = server['api'].get_themes(data['Id'])
-            self.void_responder(data, theme)
-
-        elif method == 'Browse':
-
-            result = downloader.get_filtered_section(data.get('Id'), data.get('Media'), data.get('Limit'),
-                                                     data.get('Recursive'), data.get('Sort'), data.get('SortOrder'),
-                                                     data.get('Filters'), data.get('Params'), data.get('ServerId'))
-            self.void_responder(data, result)
-
-        elif method == 'BrowseSeason':
-
-            result = server['api'].get_seasons(data['Id'])
-            self.void_responder(data, result)
-
-        elif method == 'LiveTV':
-
-            result = server['api'].get_channels()
-            self.void_responder(data, result)
-
-        elif method == 'RecentlyAdded':
-
-            result = server['api'].get_recently_added(data.get('Media'), data.get('Id'), data.get('Limit'))
-            self.void_responder(data, result)
-
-        elif method == 'Genres':
-
-            result = server['api'].get_genres(data.get('Id'))
-            self.void_responder(data, result)
-
-        elif method == 'Recommended':
-
-            result = server['api'].get_recommendation(data.get('Id'), data.get('Limit'))
-            self.void_responder(data, result)
-
-        elif method == 'RefreshItem':
-            server['api'].refresh_item(data['Id'])
-
-        elif method == 'FavoriteItem':
-            server['api'].favorite(data['Id'], data['Favorite'])
-
-        elif method == 'DeleteItem':
-            server['api'].delete_item(data['Id'])
-
-        elif method == 'PlayPlaylist':
-
-            server['api'].post_session(server['config/app.session'], "Playing", {
-                'PlayCommand': "PlayNow",
-                'ItemIds': data['Id'],
-                'StartPositionTicks': 0
-            })
-
-        elif method == 'Play':
-
-            items = server['api'].get_items(data['ItemIds'])
-
-            PlaylistWorker(data.get('ServerId'), items, data['PlayCommand'] == 'PlayNow',
-                           data.get('StartPositionTicks', 0), data.get('AudioStreamIndex'),
-                           data.get('SubtitleStreamIndex')).start()
-
-        elif method in ('ReportProgressRequested', 'Player.OnAVChange'):
-            self.player.report_playback(data.get('Report', True))
-
-        elif method == 'Playstate':
-            self.playstate(data)
-
-        elif method == 'GeneralCommand':
-            self.general_commands(data)
-
-        elif method == 'LoadServer':
-            self.server_instance(data['ServerId'])
-
-        elif method == 'AddUser':
-            server['api'].session_add_user(server['config/app.session'], data['Id'], data['Add'])
-            self.additional_users(server)
-
-        elif method == 'Player.OnPlay':
-            on_play(data, server)
-
-        elif method == 'VideoLibrary.OnUpdate':
-            on_update(data, server)
+        return
 
     def void_responder(self, data, result):
 
@@ -339,7 +205,138 @@ class Monitor(xbmc.Monitor):
             window('EmbyAdditionalUserImage.%s' % index, image)
             window('EmbyAdditionalUserPosition.%s' % user['UserId'], str(index))
 
-    def playstate(self, data):
+    def GetItem(self, server, data, *args, **kwargs):
+
+        item = server['api'].get_item(data['Id'])
+        self.void_responder(data, item)
+
+    def GetAdditionalParts(self, server, data, *args, **kwargs):
+
+        item = server['api'].get_additional_parts(data['Id'])
+        self.void_responder(data, item)
+
+    def GetIntros(self, server, data, *args, **kwargs):
+
+        item = server['api'].get_intros(data['Id'])
+        self.void_responder(data, item)
+
+    def GetImages(self, server, data, *args, **kwargs):
+
+        item = server['api'].get_images(data['Id'])
+        self.void_responder(data, item)
+
+    def GetServerAddress(self, server, data, *args, **kwargs):
+
+        server_address = server['auth/server-address']
+        self.void_responder(data, server_address)
+
+    def GetPlaybackInfo(self, server, data, *args, **kwargs):
+        
+        sources = server['api'].get_play_info(data['Id'], data['Profile'])
+        self.void_responder(data, sources)
+
+    def GetLiveStream(self, server, data, *args, **kwargs):
+
+        sources = server['api'].get_live_stream(data['Id'], data['PlaySessionId'], data['Token'], data['Profile'])
+        self.void_responder(data, sources)
+
+    def GetToken(self, server, data, *args, **kwargs):
+
+        token = server['auth/token']
+        self.void_responder(data, token)
+
+    def GetSession(self, server, data, *args, **kwargs):
+
+        session = server['api'].get_device(self.device_id)
+        self.void_responder(data, session)
+
+    def GetUsers(self, server, data, *args, **kwargs):
+
+        users = server['api'].get_users(data.get('IsDisabled', True), data.get('IsHidden', True))
+        self.void_responder(data, users)
+
+    def GetTranscodeOptions(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_transcode_settings()
+        self.void_responder(data, result)
+
+    def GetThemes(self, server, data, *args, **kwargs):
+
+        if data['Type'] == 'Video':
+            theme = server['api'].get_items_theme_video(data['Id'])
+        else:
+            theme = server['api'].get_items_theme_song(data['Id'])
+
+        self.void_responder(data, theme)
+
+    def GetTheme(self, server, data, *args, **kwargs):
+
+        theme = server['api'].get_themes(data['Id'])
+        self.void_responder(data, theme)
+
+    def Browse(self, server, data, *args, **kwargs):
+
+        result = downloader.get_filtered_section(data.get('Id'), data.get('Media'), data.get('Limit'),
+                                                 data.get('Recursive'), data.get('Sort'), data.get('SortOrder'),
+                                                 data.get('Filters'), data.get('Params'), data.get('ServerId'))
+        self.void_responder(data, result)
+
+    def BrowseSeason(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_seasons(data['Id'])
+        self.void_responder(data, result)
+
+    def LiveTV(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_channels()
+        self.void_responder(data, result)
+
+    def RecentlyAdded(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_recently_added(data.get('Media'), data.get('Id'), data.get('Limit'))
+        self.void_responder(data, result)
+
+    def Genres(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_genres(data.get('Id'))
+        self.void_responder(data, result)
+
+    def Recommended(self, server, data, *args, **kwargs):
+
+        result = server['api'].get_recommendation(data.get('Id'), data.get('Limit'))
+        self.void_responder(data, result)
+
+    def RefreshItem(self, server, data, *args, **kwargs):
+        server['api'].refresh_item(data['Id'])
+
+    def FavoriteItem(self, server, data, *args, **kwargs):
+        server['api'].favorite(data['Id'], data['Favorite'])
+
+    def DeleteItem(self, server, data, *args, **kwargs):
+        server['api'].delete_item(data['Id'])        
+
+    def PlayPlaylist(self, server, data, *args, **kwargs):
+
+        server['api'].post_session(server['config/app.session'], "Playing", {
+            'PlayCommand': "PlayNow",
+            'ItemIds': data['Id'],
+            'StartPositionTicks': 0
+        })
+
+    def Play(self, server, data, *args, **kwargs):
+        items = server['api'].get_items(data['ItemIds'])
+
+        PlaylistWorker(data.get('ServerId'), items, data['PlayCommand'] == 'PlayNow',
+                       data.get('StartPositionTicks', 0), data.get('AudioStreamIndex'),
+                       data.get('SubtitleStreamIndex')).start()
+
+    def Player_OnAVChange(self, *args, **kwargs):
+        self.ReportProgressRequested(*args, **kwargs)
+
+    def ReportProgressRequested(self, server, data, *args, **kwargs):
+        self.player.report_playback(data.get('Report', True))
+
+    def Playstate(self, server, data, *args, **kwargs):
 
         ''' Emby playstate updates.
         '''
@@ -365,7 +362,7 @@ class Monitor(xbmc.Monitor):
             actions[command]()
             LOG.info("[ command/%s ]", command)
 
-    def general_commands(self, data):
+    def GeneralCommand(self, server, data, *args, **kwargs):
 
         ''' General commands from Emby to control the Kodi interface.
         '''
@@ -433,14 +430,78 @@ class Monitor(xbmc.Monitor):
             if command in builtin:
                 xbmc.executebuiltin(builtin[command])
 
+    def LoadServer(self, server, data, *args, **kwargs):
+        self.server_instance(data['ServerId'])
+
+    def AddUser(self, server, data, *args, **kwargs):
+
+        server['api'].session_add_user(server['config/app.session'], data['Id'], data['Add'])
+        self.additional_users(server)
+
+    def Player_OnPlay(self, server, data, *args, **kwargs):
+        on_play(data, server)
+
+    def Player_OnStop(self, *args, **kwargs):
+
+        ''' We have to clear the playlist if it was stopped before it has been played completely.
+            Otherwise the next played item will be added the previous queue.
+            Let's wait for the player so we don't clear the canceled playlist by mistake.
+        '''
+        xbmc.sleep(3000)
+
+        if not self.player.isPlaying() and xbmcgui.getCurrentWindowId() not in [12005, 10138]:
+            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+
+    def Playlist_OnClear(self, server, data, *args, **kwargs):
+
+        ''' Widgets do not truly clear the playlist.
+        '''
+        if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
+            window('emby_playlistclear.bool', True)
+
+        self.player.stop_playback()
+
+    def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
+        on_update(data, server)
+
+
+class MonitorWorker(threading.Thread):
+
+    def __init__(self, monitor):
+
+        ''' Thread the monitor so that we can do whatever we need without blocking onNotification.
+        '''
+        self.monitor = monitor
+        self.queue = monitor.queue
+        threading.Thread.__init__(self)
+
+    def run(self):
+
+        while True:
+
+            try:
+                func, server, data = self.queue.get(timeout=1)
+            except Queue.Empty:
+                self.monitor.workers_threads.remove(self)
+
+                break
+
+            try:
+                func(server, data)
+                self.queue.task_done()
+            except Exception as error:
+                LOG.error(error)
+
+            if self.monitor.waitForAbort(0.5):
+                break
 
 class Listener(threading.Thread):
 
     stop_thread = False
 
     def __init__(self, monitor):
-        self.monitor = monitor
 
+        self.monitor = monitor
         threading.Thread.__init__(self)
 
     def run(self):
@@ -454,7 +515,6 @@ class Listener(threading.Thread):
             special_listener()
 
             if self.monitor.waitForAbort(0.5):
-                # Abort was requested while waiting. We should exit
                 break
 
         LOG.warn("---<[ listener ]")
