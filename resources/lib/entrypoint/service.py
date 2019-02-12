@@ -491,6 +491,12 @@ class Service(xbmc.Monitor):
         reload(library)
         reload(monitor)
 
+        import webservice
+        from helper import playstrm
+
+        reload(webservice)
+        reload(playstrm)
+
         objects.obj.Objects().mapping()
 
         LOG.warn("---[ objects reloaded ]")
