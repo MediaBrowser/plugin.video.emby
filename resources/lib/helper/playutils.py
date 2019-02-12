@@ -61,9 +61,9 @@ class PlayUtils(object):
         ''' Item will be updated with the property PlaybackInfo, which
             holds all the playback information.
         '''
-        self.item = item
-        self.item['PlaybackInfo'] = {}
+        item['PlaybackInfo'] = {}
         self.info = {
+            'Item': item,
             'ServerId': server_id,
             'ServerAddress': server,
             'ForceTranscode': force_transcode,
@@ -76,7 +76,7 @@ class PlayUtils(object):
         '''
         params = {
             'ServerId': self.info['ServerId'],
-            'Id': self.item['Id'],
+            'Id': self.info['Item']['Id'],
             'Profile': self.get_device_profile()
         }
         info = TheVoid('GetPlaybackInfo', params).get()
@@ -119,6 +119,7 @@ class PlayUtils(object):
                 source = sources[resp]
             else:
                 LOG.info("No media source selected.")
+
                 return False
         else:
             source = sources[0]
@@ -131,12 +132,12 @@ class PlayUtils(object):
 
         ''' Do not allow source selection for.
         '''
-        if self.item['MediaType'] != 'Video':
+        if self.info['Item']['MediaType'] != 'Video':
             LOG.debug("MediaType is not a video.")
 
             return False
 
-        elif self.item['Type'] == 'TvChannel':
+        elif self.info['Item']['Type'] == 'TvChannel':
             LOG.debug("TvChannel detected.")
 
             return False
@@ -146,7 +147,7 @@ class PlayUtils(object):
 
             return False
 
-        elif 'SourceType' in self.item and self.item['SourceType'] != 'Library':
+        elif 'SourceType' in self.info['Item'] and self.info['Item']['SourceType'] != 'Library':
             LOG.debug("SourceType not from library.")
 
             return False
@@ -168,7 +169,7 @@ class PlayUtils(object):
 
     def is_strm(self, source):
 
-        if source.get('Container') == 'strm' or self.item['Path'].endswith('.strm'):
+        if source.get('Container') == 'strm' or self.info['Item']['Path'].endswith('.strm'):
             LOG.info("strm detected")
 
             return True
@@ -211,9 +212,9 @@ class PlayUtils(object):
 
         self.info['AudioStreamIndex'] = self.info.get('AudioStreamIndex') or source.get('DefaultAudioStreamIndex')
         self.info['SubtitleStreamIndex'] = self.info.get('SubtitleStreamIndex') or source.get('DefaultSubtitleStreamIndex')
-        self.item['PlaybackInfo'].update(self.info)
+        self.info['Item']['PlaybackInfo'].update(self.info)
 
-        API = api.API(self.item, self.info['ServerAddress'])
+        API = api.API(self.info['Item'], self.info['ServerAddress'])
         window('embyfilename', value=API.get_file_path(source.get('Path')).encode('utf-8'))
 
     def live_stream(self, source):
@@ -222,7 +223,7 @@ class PlayUtils(object):
         '''
         params = {
             'ServerId': self.info['ServerId'],
-            'Id': self.item['Id'],
+            'Id': self.info['Item']['Id'],
             'Profile': self.get_device_profile(),
             'PlaySessionId': self.info['PlaySessionId'],
             'Token': source['OpenToken']
@@ -242,7 +243,7 @@ class PlayUtils(object):
 
         self.info['Method'] = "Transcode"
 
-        if self.item['MediaType'] == 'Video':
+        if self.info['Item']['MediaType'] == 'Video':
             base, params = source['TranscodingUrl'].split('?')
 
             if settings('skipDialogTranscode') != "3" and source.get('MediaStreams'):
@@ -265,7 +266,7 @@ class PlayUtils(object):
 
     def direct_play(self, source):
 
-        API = api.API(self.item, self.info['ServerAddress'])
+        API = api.API(self.info['Item'], self.info['ServerAddress'])
         self.info['Method'] = "DirectPlay"
         self.info['Path'] = API.get_file_path(source.get('Path'))
 
@@ -275,14 +276,14 @@ class PlayUtils(object):
 
         self.info['Method'] = "DirectStream"
 
-        if self.item['Type'] == "Audio":
+        if self.info['Item']['Type'] == "Audio":
             self.info['Path'] = ("%s/emby/Audio/%s/stream.%s?static=true&api_key=%s" %
-                                (self.info['ServerAddress'], self.item['Id'],
+                                (self.info['ServerAddress'], self.info['Item']['Id'],
                                  source.get('Container', "mp4").split(',')[0],
                                  self.info['Token']))
         else:
             self.info['Path'] = ("%s/emby/Videos/%s/stream?static=true&MediaSourceId=%s&api_key=%s" %
-                                (self.info['ServerAddress'], self.item['Id'], source['Id'], self.info['Token']))
+                                (self.info['ServerAddress'], self.info['Item']['Id'], source['Id'], self.info['Token']))
 
         return self.info['Path']
 
@@ -436,7 +437,7 @@ class PlayUtils(object):
         if self.info['ForceTranscode']:
             profile['DirectPlayProfiles'] = []
 
-        if self.item['Type'] == 'TvChannel':
+        if self.info['Item']['Type'] == 'TvChannel':
             profile['TranscodingProfiles'].insert(0, {
                 "Container": "ts",
                 "Type": "Video",
@@ -494,8 +495,7 @@ class PlayUtils(object):
                 kodi += 1
 
         listitem.setSubtitles(subs)
-        self.item['PlaybackInfo']['Subtitles'] = mapping
-
+        self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
 
     @classmethod
     def download_external_subs(cls, src, filename):
@@ -629,6 +629,257 @@ class PlayUtils(object):
             url = "%s/emby%s" % (self.info['ServerAddress'], stream['DeliveryUrl'])
         else:
             url = ("%s/emby/Videos/%s/%s/Subtitles/%s/Stream.%s?api_key=%s" %
-                  (self.info['ServerAddress'], self.item['Id'], source['Id'], index, stream['Codec'], self.info['Token']))
+                  (self.info['ServerAddress'], self.info['Item']['Id'], source['Id'], index, stream['Codec'], self.info['Token']))
 
         return url
+
+
+class PlayUtilsStrm(PlayUtils):
+
+
+    def __init__(self, item, force_transcode=False, server_id=None, server=None):
+
+        ''' Item will be updated with the property PlaybackInfo, which
+            holds all the playback information.
+        '''
+        PlayUtils.__init__(self, item, force_transcode, server_id, server['auth/server-address'], server['auth/token'])
+
+        item['PlaybackInfo'] = {}
+        self.info = {
+            'Item': item,
+            'ServerId': server['auth/server-id'],
+            'ServerAddress': server['auth/server-address'],
+            'Server': server,
+            'ForceTranscode': force_transcode,
+            'Token': server['auth/token']
+        }
+
+    def get_sources(self, source_id=None):
+
+        ''' Return sources based on the optional source_id or the device profile.
+        '''
+        info = self.info['Server']['api'].get_play_info(self.info['Item']['Id'], self.get_device_profile())
+        LOG.info(info)
+
+        self.info['PlaySessionId'] = info['PlaySessionId']
+        sources = []
+
+        if not info.get('MediaSources'):
+            LOG.info("No MediaSources found.")
+
+        elif source_id:
+            for source in info:
+
+                if source['Id'] == source_id:
+                    sources.append(source)
+
+                    break
+
+        elif not self.is_selection(info) or len(info['MediaSources']) == 1:
+
+            LOG.info("Skip source selection.")
+            sources.append(info['MediaSources'][0])
+
+        else:
+            sources.extend([x for x in info['MediaSources']])
+
+        return sources
+
+    def select_source(self, sources, audio=None, subtitle=None):
+
+        if len(sources) > 1:
+            selection = []
+
+            for source in sources:
+                selection.append(source.get('Name', "na"))
+
+            resp = dialog("select", _(33130), selection)
+
+            if resp < 0:
+                LOG.info("No media source selected.")
+
+                return False
+
+            source = sources[resp]
+        else:
+            source = sources[0]
+
+        self.get(source, audio, subtitle)
+
+        return source
+
+    def is_selection(self, sources):
+
+        ''' Do not allow source selection for.
+        '''
+        if self.info['Item']['MediaType'] != 'Video':
+            LOG.info("MediaType is not a video.")
+
+            return False
+
+        elif self.info['Item']['Type'] == 'TvChannel':
+            LOG.info("TvChannel detected.")
+
+            return False
+
+        elif len(sources) == 1 and sources[0]['Type'] == 'Placeholder':
+            LOG.info("Placeholder detected.")
+
+            return False
+
+        elif 'SourceType' in self.info['Item'] and self.info['Item']['SourceType'] != 'Library':
+            LOG.info("SourceType not from library.")
+
+            return False
+
+        return True
+
+    def get(self, source, audio=None, subtitle=None):
+
+        ''' The server returns sources based on the MaxStreamingBitrate value and other filters.
+            prop: embyfilename for ?? I thought it was to pass the real path to subtitle add-ons but it's not working?
+        '''
+        self.info['MediaSourceId'] = source['Id']
+
+        if source.get('RequiresClosing'):
+
+            ''' Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
+            '''
+            self.info['LiveStreamId'] = source['LiveStreamId']
+            source['SupportsDirectPlay'] = False
+            source['Protocol'] = "LiveTV"
+
+        if self.info['ForceTranscode']:
+
+            source['SupportsDirectPlay'] = False
+            source['SupportsDirectStream'] = False
+
+        if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
+
+            LOG.info("--[ direct play ]")
+            self.direct_play(source)
+
+        elif source['SupportsDirectStream']:
+
+            LOG.info("--[ direct stream ]")
+            self.direct_url(source)
+
+        else:
+            LOG.info("--[ transcode ]")
+            self.transcode(source, audio, subtitle)
+
+        self.info['AudioStreamIndex'] = self.info.get('AudioStreamIndex') or source.get('DefaultAudioStreamIndex')
+        self.info['SubtitleStreamIndex'] = self.info.get('SubtitleStreamIndex') or source.get('DefaultSubtitleStreamIndex')
+        self.info['Item']['PlaybackInfo'].update(self.info)
+
+    def live_stream(self, source):
+
+        ''' Get live stream media info.
+        '''
+        info = self.info['Server']['api'].get_live_stream(self.info['Item']['Id'], self.info['PlaySessionId'],source['OpenToken'], self.get_device_profile())
+        LOG.info(info)
+
+        if info['MediaSource'].get('RequiresClosing'):
+            self.info['LiveStreamId'] = source['LiveStreamId']
+
+        return info['MediaSource']
+
+    def get_audio_subs(self, source, audio=None, subtitle=None):
+
+        ''' For transcoding only
+            Present the list of audio/subs to select from, before playback starts.
+
+            Since Emby returns all possible tracks together, sort them.
+            IsTextSubtitleStream if true, is available to download from server.
+        '''
+        prefs = ""
+        audio_streams = collections.OrderedDict()
+        subs_streams = collections.OrderedDict()
+        streams = source['MediaStreams']
+
+        for stream in streams:
+
+            index = stream['Index']
+            stream_type = stream['Type']
+
+            if stream_type == 'Audio':
+
+                codec = stream['Codec']
+                channel = stream.get('ChannelLayout', "")
+
+                if 'Language' in stream:
+                    track = "%s - %s - %s %s" % (index, stream['Language'], codec, channel)
+                else:
+                    track = "%s - %s %s" % (index, codec, channel)
+
+                audio_streams[track] = index
+
+            elif stream_type == 'Subtitle':
+
+                if 'Language' in stream:
+                    track = "%s - %s" % (index, stream['Language'])
+                else:
+                    track = "%s - %s" % (index, stream['Codec'])
+
+                if stream['IsDefault']:
+                    track = "%s - Default" % track
+                if stream['IsForced']:
+                    track = "%s - Forced" % track
+
+                subs_streams[track] = index
+
+        skip_dialog = int(settings('skipDialogTranscode') or 0)
+        audio_selected = None
+
+        if audio:
+            audio_selected = audio
+
+        elif skip_dialog in (0, 1):
+            if len(audio_streams) > 1:
+
+                selection = list(audio_streams.keys())
+                resp = dialog("select", _(33013), selection)
+                audio_selected = audio_streams[selection[resp]] if resp else source['DefaultAudioStreamIndex']
+            else: # Only one choice
+                audio_selected = audio_streams[next(iter(audio_streams))]
+        else:
+            audio_selected = source['DefaultAudioStreamIndex']
+
+        self.info['AudioStreamIndex'] = audio_selected
+        prefs += "&AudioStreamIndex=%s" % audio_selected
+        prefs += "&AudioBitrate=384000" if streams[audio_selected].get('Channels', 0) > 2 else "&AudioBitrate=192000"
+
+        if subtitle:
+
+            index = subtitle
+            server_settings = self.info['Server']['api'].get_transcode_settings()
+            stream = streams[index]
+
+            if server_settings['EnableSubtitleExtraction'] and stream['SupportsExternalStream']:
+                self.info['SubtitleUrl'] = self.get_subtitles(source, stream, index)
+            else:
+                prefs += "&SubtitleStreamIndex=%s" % index
+
+            self.info['SubtitleStreamIndex'] = index
+
+        elif skip_dialog in (0, 2) and len(subs_streams):
+
+            selection = list(['No subtitles']) + list(subs_streams.keys())
+            resp = dialog("select", _(33014), selection)
+
+            if resp:
+                index = subs_streams[selection[resp]] if resp > -1 else source.get('DefaultSubtitleStreamIndex')
+
+                if index is not None:
+
+                    server_settings = self.info['Server']['api'].get_transcode_settings()
+                    stream = streams[index]
+
+                    if server_settings['EnableSubtitleExtraction'] and stream['SupportsExternalStream']:
+                        self.info['SubtitleUrl'] = self.get_subtitles(source, stream, index)
+                    else:
+                        prefs += "&SubtitleStreamIndex=%s" % index
+
+                self.info['SubtitleStreamIndex'] = index
+
+        return prefs

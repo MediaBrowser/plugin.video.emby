@@ -79,7 +79,7 @@ class Monitor(xbmc.Monitor):
 
         return server
 
-    def add_worker(self):
+    def add_worker(self, method):
         
         ''' Use threads to avoid blocking the onNotification function.
         '''
@@ -88,7 +88,7 @@ class Monitor(xbmc.Monitor):
             new_thread = MonitorWorker(self)
             new_thread.start()
             self.workers_threads.append(new_thread)
-            LOG.info("-->[ q:monitor/%s ]", id(new_thread))
+            LOG.info("-->[ q:monitor/%s ]", method)
 
     def onNotification(self, sender, method, data):
 
@@ -132,7 +132,7 @@ class Monitor(xbmc.Monitor):
 
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
-        self.add_worker()
+        self.add_worker(method)
 
         return
 
@@ -449,18 +449,17 @@ class Monitor(xbmc.Monitor):
         '''
         xbmc.sleep(3000)
 
-        if xbmc.getCondVisibility("!Player.HasMedia + !Window.IsVisible(busydialog)"):
-            xbmc.executebuiltin('Playlist.Clear')
+        if not self.player.isPlaying() and xbmcgui.getCurrentWindowId() not in [12005, 10138]:
+            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
 
         ''' Widgets do not truly clear the playlist.
         '''
         if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
-            return
+            window('emby_playlistclear.bool', True)
 
-        LOG.info("[ playlist cleared ]")
-        window('emby_playlistclear.bool', True)
+        self.player.stop_playback()
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
@@ -483,14 +482,15 @@ class MonitorWorker(threading.Thread):
             try:
                 func, server, data = self.queue.get(timeout=1)
             except Queue.Empty:
-
                 self.monitor.workers_threads.remove(self)
-                LOG.debug("--<[ q:monitor/%s ]", id(self))
 
                 break
 
-            func(server, data)
-            self.queue.task_done()
+            try:
+                func(server, data)
+                self.queue.task_done()
+            except Exception as error:
+                LOG.error(error)
 
             if self.monitor.waitForAbort(0.5):
                 break
