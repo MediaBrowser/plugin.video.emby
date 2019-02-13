@@ -259,7 +259,7 @@ class QueuePlay(threading.Thread):
         while True:
 
             try:
-                params, path = self.server.queue.get(timeout=1)
+                params, path = self.server.queue.get(timeout=0.01)
             except Queue.Empty:
                 if init_play:
 
