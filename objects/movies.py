@@ -49,7 +49,7 @@ class Movies(KodiDb):
     @emby_item()
     @library_check()
     def movie(self, item, e_item, library):
-        
+
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
         '''
@@ -172,7 +172,7 @@ class Movies(KodiDb):
                 API = api.API(trailer, self.server['auth/server-address'])
 
                 if self.direct_path:
-                    obj['Trailer'] = API.get_file_path()
+                    obj['Trailer'] = API.get_file_path(trailer[0]['Path'])
                 else:
                     obj['Trailer'] = "plugin://plugin.video.emby/trailer?id=%s&mode=play" % trailer[0]['Id']
 
@@ -219,7 +219,7 @@ class Movies(KodiDb):
     @stop()
     @emby_item()
     def boxset(self, item, e_item):
-                
+
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
 
@@ -300,7 +300,7 @@ class Movies(KodiDb):
     @stop()
     @emby_item()
     def userdata(self, item, e_item):
-        
+
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
         '''
@@ -353,7 +353,7 @@ class Movies(KodiDb):
         elif obj['Media'] == 'set':
 
             for movie in self.emby_db.get_item_by_parent_id(*values(obj, QUEM.get_item_by_parent_movie_obj)):
-                
+
                 temp_obj = dict(obj)
                 temp_obj['MovieId'] = movie[1]
                 temp_obj['Movie'] = movie[0]
