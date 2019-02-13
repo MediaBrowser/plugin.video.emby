@@ -76,6 +76,7 @@
 						<textoffsetx>20</textoffsetx>
 						<font>font13</font>
 						<textcolor>ffe1e1e1</textcolor>
+						<focusedcolor>ffe1e1e1</focusedcolor>
 						<shadowcolor>66000000</shadowcolor>
 						<disabledcolor>FF404040</disabledcolor>
 						<texturefocus border="10" colordiffuse="ff303034">dialogs/menu_back.png</texturefocus>
@@ -91,6 +92,7 @@
 						<textoffsetx>20</textoffsetx>
 						<font>font13</font>
 						<textcolor>ffe1e1e1</textcolor>
+						<focusedcolor>ffe1e1e1</focusedcolor>
 						<shadowcolor>66000000</shadowcolor>
 						<disabledcolor>FF404040</disabledcolor>
 						<texturefocus border="10" colordiffuse="ff303034">dialogs/menu_back.png</texturefocus>
