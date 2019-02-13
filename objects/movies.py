@@ -169,7 +169,12 @@ class Movies(KodiDb):
             if obj['LocalTrailer']:
 
                 trailer = self.server['api'].get_local_trailers(obj['Id'])
-                obj['Trailer'] = "plugin://plugin.video.emby/trailer?id=%s&mode=play" % trailer[0]['Id']
+                API = api.API(trailer, self.server['auth/server-address'])
+
+                if self.direct_path:
+                    obj['Trailer'] = API.get_file_path()
+                else:
+                    obj['Trailer'] = "plugin://plugin.video.emby/trailer?id=%s&mode=play" % trailer[0]['Id']
 
             elif obj['Trailer']:
                 obj['Trailer'] = "plugin://plugin.video.youtube/play/?video_id=%s" % obj['Trailer'].rsplit('=', 1)[1]
