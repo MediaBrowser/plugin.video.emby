@@ -30,10 +30,10 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class Actions(object):
 
-    def __init__(self, server_id=None):
+    def __init__(self, server_id=None, server=None):
 
         self.server_id = server_id or None
-        self.server = TheVoid('GetServerAddress', {'ServerId': self.server_id}).get()
+        self.server = server or TheVoid('GetServerAddress', {'ServerId': self.server_id}).get()
         self.stack = []
 
     def get_playlist(self, item):
