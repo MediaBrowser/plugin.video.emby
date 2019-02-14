@@ -478,6 +478,10 @@ msgctxt "#33039"
 msgid "Enable music library?"
 msgstr ""
 
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr ""
+
 msgctxt "#33047"
 msgid "Kodi can't locate file:"
 msgstr ""
@@ -960,4 +964,8 @@ msgstr ""
 
 msgctxt "#33200"
 msgid "Black"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
 msgstr ""
