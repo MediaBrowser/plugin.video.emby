@@ -502,6 +502,10 @@ msgctxt "#33058"
 msgid "Perform local database reset"
 msgstr ""
 
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr ""
+
 msgctxt "#33060"
 msgid "Sync theme media"
 msgstr ""

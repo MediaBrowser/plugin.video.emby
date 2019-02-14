@@ -120,6 +120,8 @@ class Events(object):
             get_themes()
         elif mode == 'managelibs':
             manage_libraries()
+        elif mode == 'texturecache':
+            cache_artwork()
         elif mode == 'backup':
             backup()
         elif mode == 'restartservice':
@@ -189,6 +191,7 @@ def listing():
     directory(_(33134), "plugin://plugin.video.emby/?mode=addserver", False)
     directory(_(33054), "plugin://plugin.video.emby/?mode=adduser", False)
     directory(_(5), "plugin://plugin.video.emby/?mode=settings", False)
+    directory(_(33059), "plugin://plugin.video.emby/?mode=texturecache", False)
     directory(_(33058), "plugin://plugin.video.emby/?mode=reset", False)
     directory(_(33192), "plugin://plugin.video.emby/?mode=restartservice", False)
 
@@ -896,3 +899,9 @@ def backup():
 
     LOG.info("backup completed")
     dialog("ok", heading="{emby}", line1="%s %s" % (_(33091), backup))
+
+def cache_artwork():
+
+    from objects.kodi import artwork
+
+    artwork.Artwork(None).cache_all()
