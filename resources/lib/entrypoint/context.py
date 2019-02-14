@@ -36,13 +36,13 @@ class Context(object):
     _selected_option = None
 
     def __init__(self, transcode=False, delete=False):
-        
+
         self.server = None
         self.kodi_id = None
         self.media = None
 
         try:
-            self.kodi_id = sys.listitem.getVideoInfoTag().getDbId() or None
+            self.kodi_id = max(sys.listitem.getVideoInfoTag().getDbId(), 0) or max(sys.listitem.getMusicInfoTag().getDbId(), 0) or None
             self.media = self.get_media_type()
             self.server = sys.listitem.getProperty('embyserver') or None
             item_id = sys.listitem.getProperty('embyid')
@@ -80,7 +80,7 @@ class Context(object):
 
         ''' Get media type based on sys.listitem. If unfilled, base on visible window.
         '''
-        media = sys.listitem.getVideoInfoTag().getMediaType()
+        media = sys.listitem.getVideoInfoTag().getMediaType() or sys.listitem.getMusicInfoTag().getMediaType()
 
         if not media:
 
