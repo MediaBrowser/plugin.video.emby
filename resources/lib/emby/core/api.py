@@ -342,3 +342,15 @@ class API(object):
 
     def delete_item(self, item_id):
         return  self.items("/%s" % item_id, "DELETE")
+
+    def is_valid_episode(self, show_id, item_id):
+
+        ''' Special function to detect if episodes are displayed in emby.
+            Detect stacked versions, etc.
+        '''
+        result = self.shows("/%s/Episodes" % show_id, {
+                    'UserId': "{UserId}",
+                    'AdjacentTo': item_id
+                })
+
+        return [x for x in result['Items'] if x['Id'] == item_id]
