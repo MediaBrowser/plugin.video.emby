@@ -23,13 +23,14 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class TVShows(KodiDb):
 
-    def __init__(self, server, embydb, videodb, direct_path, update_library=False, *args, **kwargs):
+    def __init__(self, server, embydb, videodb, direct_path, update_library=False, verify=True, *args, **kwargs):
 
         self.server = server
         self.emby = embydb
         self.video = videodb
         self.direct_path = direct_path
         self.update_library = update_library
+        self.verify = verify
 
         self.emby_db = emby_db.EmbyDatabase(embydb.cursor)
         self.objects = Objects()
@@ -279,6 +280,11 @@ class TVShows(KodiDb):
 
         elif obj['SeriesId'] is None:
             LOG.info("Skipping episode %s with missing SeriesId", obj['Id'])
+
+            return
+
+        elif self.verify and self.server['api'].is_valid_episode(obj['SeriesId'], obj['Id']):
+            LOG.info("Skipping episode %s, should not be displayed", obj['Id'])
 
             return
 
