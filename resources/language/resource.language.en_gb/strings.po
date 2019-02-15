@@ -526,6 +526,14 @@ msgctxt "#33064"
 msgid "Remove user from the session"
 msgstr ""
 
+msgctxt "#33066"
+msgid "Removed"
+msgstr ""
+
+msgctxt "#33067"
+msgid "Added"
+msgstr ""
+
 msgctxt "#33074"
 msgid "Are you sure you want to reset your local Kodi database?"
 msgstr ""

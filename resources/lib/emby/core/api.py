@@ -106,8 +106,11 @@ class API(object):
 
     #################################################################################################
 
-    def get_users(self):
-        return  self._get("Users")
+    def get_users(self, disabled=False, hidden=False):
+        return  self._get("Users", params={
+                    'IsDisabled': disabled,
+                    'IsHidden': hidden
+                })
 
     def get_public_users(self):
         return  self._get("Users/Public")

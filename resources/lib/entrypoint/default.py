@@ -754,6 +754,7 @@ def add_user():
 
         user = eligible[resp]
         event('AddUser', {'Id': user['Id'], 'Add': True})
+        dialog("notification", heading="{emby}", message="%s %s" % (_(33067), user['Name']), icon="{emby}", time=1000, sound=False)
     else: # Remove user
         resp = dialog("select", _(33064), [x['UserName'] for x in current])
 
@@ -762,6 +763,9 @@ def add_user():
 
         user = current[resp]
         event('AddUser', {'Id': user['UserId'], 'Add': False})
+        dialog("notification", heading="{emby}", message="%s %s" % (_(33066), user['Name']), icon="{emby}", time=1000, sound=False)
+
+    return add_user()
 
 def get_themes():
 
