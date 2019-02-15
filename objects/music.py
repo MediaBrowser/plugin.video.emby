@@ -21,7 +21,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class Music(KodiDb):
 
-    def __init__(self, server, embydb, musicdb, direct_path):
+    def __init__(self, server, embydb, musicdb, direct_path, *args, **kwargs):
 
         self.server = server
         self.emby = embydb
@@ -55,7 +55,7 @@ class Music(KodiDb):
     @stop()
     @emby_item()
     @library_check()
-    def artist(self, item, e_item, library):
+    def artist(self, item, e_item, library, *args, **kwargs):
 
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
@@ -125,7 +125,7 @@ class Music(KodiDb):
 
     @stop()
     @emby_item()
-    def album(self, item, e_item):
+    def album(self, item, e_item, *args, **kwargs):
 
         ''' Update object to kodi.
         '''
@@ -233,7 +233,7 @@ class Music(KodiDb):
 
     @stop()
     @emby_item()
-    def song(self, item, e_item):
+    def song(self, item, e_item, *args, **kwargs):
 
         ''' Update object to kodi.
         '''
@@ -463,7 +463,7 @@ class Music(KodiDb):
 
     @stop()
     @emby_item()
-    def remove(self, item_id, e_item):
+    def remove(self, item_id, e_item, *args, **kwargs):
 
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
@@ -543,7 +543,7 @@ class Music(KodiDb):
         LOG.info("DELETE song [%s] %s", kodi_id, item_id)
 
     @emby_item()
-    def get_child(self, item_id, e_item):
+    def get_child(self, item_id, e_item, *args, **kwargs):
 
         ''' Get all child elements from tv show emby id.
         '''
