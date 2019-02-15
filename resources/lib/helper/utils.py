@@ -107,7 +107,7 @@ def compare_version(a, b):
 
     return 0
 
-def find(dict, item):
+def find(dict, item, beta=True):
 
     ''' Find value in dictionary.
     '''
@@ -118,6 +118,9 @@ def find(dict, item):
 
         if re.match(key, item, re.I):
             return dict[key]
+
+    if beta:
+        return find(dict, item.replace('beta-', ""), False)
 
 def event(method, data=None, sender=None, hexlify=False):
 
