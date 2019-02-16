@@ -287,14 +287,20 @@ def initialize():
             ''')
             # DB indicees for faster lookups
             commands = (
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_movie_1 ON movie (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_show_1 ON show (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_season_1 ON season (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_episode_1 ON episode (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_artist_1 ON artist (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_album_1 ON album (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_track_1 ON track (plex_id)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_1 ON playlists (plex_id)',
+                'CREATE INDEX IF NOT EXISTS ix_movie_1 ON movie (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_movie_2 ON movie (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_show_1 ON show (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_show_2 ON show (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_season_1 ON season (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_season_2 ON season (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_episode_1 ON episode (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_episode_2 ON episode (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_artist_1 ON artist (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_artist_2 ON artist (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_album_1 ON album (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_album_2 ON album (kodi_id)',
+                'CREATE INDEX IF NOT EXISTS ix_track_1 ON track (last_sync)',
+                'CREATE UNIQUE INDEX IF NOT EXISTS ix_track_2 ON track (kodi_id)',
                 'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_2 ON playlists (kodi_path)',
                 'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_3 ON playlists (kodi_hash)',
             )
