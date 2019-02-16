@@ -259,8 +259,8 @@ def process_playing(data):
         if session_key not in PLAYSTATE_SESSIONS:
             with PlexDB(lock=False) as plexdb:
                 typus = plexdb.item_by_id(plex_id, plex_type=None)
-            if not typus:
-                # Item not (yet) in Kodi library
+            if not typus or 'kodi_fileid' not in typus:
+                # Item not (yet) in Kodi library or not affiliated with a file
                 continue
             if utils.settings('plex_serverowned') == 'false':
                 # Not our PMS, we are not authorized to get the sessions
@@ -277,11 +277,7 @@ def process_playing(data):
                 LOG.debug('Updated current sessions. They are: %s',
                           PLAYSTATE_SESSIONS)
             # Attach Kodi info to the session
-            try:
-                PLAYSTATE_SESSIONS[session_key]['kodi_fileid'] = typus['kodi_fileid']
-            except KeyError:
-                # media type without file - no need to do anything
-                continue
+            PLAYSTATE_SESSIONS[session_key]['kodi_fileid'] = typus['kodi_fileid']
             if typus['plex_type'] == v.PLEX_TYPE_EPISODE:
                 PLAYSTATE_SESSIONS[session_key]['kodi_fileid_2'] = typus['kodi_fileid_2']
             else:
