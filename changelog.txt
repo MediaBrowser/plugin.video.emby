@@ -1,3 +1,11 @@
+version 2.7.1:
+- Fix playback not starting at all 
+- Fix rare TypeError: unsupported operand type(s) for /: 'NoneType' and 'int' on playback startup
+- Improve plex db lookups by creating better db indicees 
+- Fix background sync crashing in rare cases
+- Update translations
+- Add Ko-fi donate button 
+
 version 2.7.0:
 - WARNING: You will need to reset the Kodi database if you're using the stable version of PKC!
 - Version 2.6.6-9 for everyone
