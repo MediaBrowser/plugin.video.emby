@@ -20,7 +20,7 @@ import client
 from database import reset, get_sync, Database, emby_db, get_credentials
 from objects import Objects, Actions
 from downloader import TheVoid
-from helper import _, event, settings, window, dialog, api, JSONRPC
+from helper import _, event, settings, window, dialog, api, kodi_version, JSONRPC
 
 #################################################################################################
 
@@ -126,6 +126,8 @@ class Events(object):
             backup()
         elif mode == 'restartservice':
             window('emby.restart.bool', True)
+        elif mode == 'patchmusic':
+            event('PatchMusic', {'Notification': True})
         else:
             listing()
 
@@ -233,6 +235,9 @@ def manage_libraries():
     directory(_(33140), "plugin://plugin.video.emby/?mode=repairlibs", False)
     directory(_(33184), "plugin://plugin.video.emby/?mode=removelibs", False)
     directory(_(33060), "plugin://plugin.video.emby/?mode=thememedia", False)
+
+    if kodi_version() >= 18:
+        directory(_(33202), "plugin://plugin.video.emby/?mode=patchmusic", False)
 
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))

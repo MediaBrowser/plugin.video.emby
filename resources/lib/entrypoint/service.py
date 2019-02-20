@@ -237,7 +237,7 @@ class Service(xbmc.Monitor):
                               'LibraryChanged', 'ServerOnline', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary',
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
-                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection'):
+                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic'):
                 return
 
             data = json.loads(data)[0]
@@ -436,6 +436,9 @@ class Service(xbmc.Monitor):
             else:
                 dialog("notification", heading="{emby}", message=_(33181), icon="{emby}", sound=False)
                 window('emby.restart.bool', True)
+
+        elif method == 'PatchMusic':
+            self.library_thread.run_library_task(method, data.get('Notification', True))
 
     def onSettingsChanged(self):
 

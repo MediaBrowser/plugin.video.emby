@@ -981,3 +981,15 @@ msgstr ""
 msgctxt "#33201"
 msgid "Emby play"
 msgstr ""
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr ""
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr ""
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr ""

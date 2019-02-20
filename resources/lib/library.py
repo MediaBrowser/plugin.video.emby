@@ -12,6 +12,7 @@ import xbmc
 import xbmcgui
 
 from objects import Movies, TVShows, MusicVideos, Music
+from objects.kodi import Movies as kMovies, TVShows as kTVShows, MusicVideos as kMusicVideos, Music as kMusic, Kodi
 from database import Database, emby_db, get_sync, save_sync
 from full_sync import FullSync
 from views import Views
@@ -56,6 +57,7 @@ class Library(threading.Thread):
     def __init__(self, monitor):
 
         self.media = {'Movies': Movies, 'TVShows': TVShows, 'MusicVideos': MusicVideos, 'Music': Music}
+        self.kodi_media = {'Movies': kMovies, 'TVShows': kTVShows, 'MusicVideos': kMusicVideos, 'Music': kMusic, 'Kodi': Kodi}
         self.MEDIA = MEDIA
 
         self.direct_path = settings('useDirectPaths') == "1"
@@ -517,6 +519,18 @@ class Library(threading.Thread):
             selected_libraries.append(library['Id'])
 
         event(modes[mode], {'Id': ','.join([libraries[x - 1]['Id'] for x in selection]), 'Update': mode == 'SyncLibrarySelection'})
+
+    def run_library_task(self, task, notification=False):
+
+        try:
+            with FullSync(self, server=self.server) as sync:
+                sync[task](notification)
+        except Exception as error:
+            LOG.exception(error)
+
+            return False
+
+        return True
 
     def add_library(self, library_id, update=False):
 
