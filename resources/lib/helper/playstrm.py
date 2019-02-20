@@ -204,7 +204,7 @@ class PlayStrm(object):
 
                     window('emby.skip.%s' % intro['Id'], value="true")
 
-    def _set_additional_parts(self, item_id):
+    def _set_additional_parts(self):
 
         ''' Create listitems and add them to the stack of playlist.
         '''
