@@ -40,13 +40,16 @@ class Player(xbmc.Player):
     def is_playing_file(self, file):
         return file in self.played
 
+    def onAVStarted(self):
+        LOG.info("[ onAVStarted ]")        
+
     def onPlayBackStarted(self):
 
         ''' We may need to wait for info to be set in kodi monitor.
             Accounts for scenario where Kodi starts playback and exits immediately.
             First, ensure previous playback terminated correctly in Emby.
         '''
-        #self.stop_playback()
+        LOG.info("[ onPlayBackStarted ]")
         self.up_next = False
         count = 0
         monitor = xbmc.Monitor()
@@ -75,14 +78,14 @@ class Player(xbmc.Player):
             ''' Clear the virtual and strm link path from the playlist.
             '''
             LOG.info("emby-loading.mp4 detected.")
+
+            if settings('platformDetected') in ('CoreElec', 'LibreElec', 'OSMC', 'Linux/Android', 'Linux/RPi'):
+                LOG.info("[ delay pause ]")
+                xbmc.sleep(1000)
+
             self.pause()
 
-            current_window = xbmcgui.getCurrentWindowId()
-
-            if not current_window == 12005:
-                xbmc.sleep(500)
-            
-            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).remove(xbmc.getInfoLabel('Player.Filenameandpath')) #TODO detect the right playlist
+            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).remove(xbmc.getInfoLabel('Player.Filenameandpath'))
             window('emby_loadingvideo.bool', True)
 
             return
@@ -355,7 +358,6 @@ class Player(xbmc.Player):
 
                 return
 
-
         result = JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
         result = result.get('result', {})
         item['Volume'] = result.get('volume')
@@ -404,61 +406,66 @@ class Player(xbmc.Player):
         LOG.info("Played info: %s", self.played)
 
         for file in self.played:
-            item = self.get_file_info(file)
 
-            window('emby.skip.%s.bool' % item['Id'], True)
+            try:
+                item = self.get_file_info(file)
 
-            if window('emby.external.bool'):
-                window('emby.external', clear=True)
+                window('emby.skip.%s.bool' % item['Id'], True)
 
-                if int(item['CurrentPosition']) == 1:
-                    item['CurrentPosition'] = int(item['Runtime'])
+                if window('emby.external.bool'):
+                    window('emby.external', clear=True)
 
-            data = {
-                'ItemId': item['Id'],
-                'MediaSourceId': item['MediaSourceId'],
-                'PositionTicks': int(item['CurrentPosition'] * 10000000),
-                'PlaySessionId': item['PlaySessionId']
-            }
-            item['Server']['api'].session_stop(data)
+                    if int(item['CurrentPosition']) == 1:
+                        item['CurrentPosition'] = int(item['Runtime'])
 
-            if item.get('LiveStreamId'):
+                data = {
+                    'ItemId': item['Id'],
+                    'MediaSourceId': item['MediaSourceId'],
+                    'PositionTicks': int(item['CurrentPosition'] * 10000000),
+                    'PlaySessionId': item['PlaySessionId']
+                }
+                item['Server']['api'].session_stop(data)
 
-                LOG.info("<[ livestream/%s ]", item['LiveStreamId'])
-                item['Server']['api'].close_live_stream(item['LiveStreamId'])
+                if item.get('LiveStreamId'):
 
-            elif item['PlayMethod'] == 'Transcode':
+                    LOG.info("<[ livestream/%s ]", item['LiveStreamId'])
+                    item['Server']['api'].close_live_stream(item['LiveStreamId'])
 
-                LOG.info("<[ transcode/%s ]", item['Id'])
-                item['Server']['api'].close_transcode(item['DeviceId'])
+                elif item['PlayMethod'] == 'Transcode':
+
+                    LOG.info("<[ transcode/%s ]", item['Id'])
+                    item['Server']['api'].close_transcode(item['DeviceId'])
 
 
-            path = xbmc.translatePath("special://profile/addon_data/plugin.video.emby/temp/").decode('utf-8')
+                path = xbmc.translatePath("special://profile/addon_data/plugin.video.emby/temp/").decode('utf-8')
 
-            if xbmcvfs.exists(path):
-                dirs, files = xbmcvfs.listdir(path)
+                if xbmcvfs.exists(path):
+                    dirs, files = xbmcvfs.listdir(path)
 
-                for file in files:
-                    xbmcvfs.delete(os.path.join(path, file.decode('utf-8')))
+                    for file in files:
+                        xbmcvfs.delete(os.path.join(path, file.decode('utf-8')))
 
-            result = item['Server']['api'].get_item(item['Id']) or {}
+                result = item['Server']['api'].get_item(item['Id']) or {}
 
-            if 'UserData' in result and result['UserData']['Played']:
-                delete = False
-
-                if result['Type'] == 'Episode' and settings('deleteTV.bool'):
-                    delete = True
-                elif result['Type'] == 'Movie' and settings('deleteMovies.bool'):
-                    delete = True
-
-                if not settings('offerDelete.bool'):
+                if 'UserData' in result and result['UserData']['Played']:
                     delete = False
 
-                if delete:
-                    LOG.info("Offer delete option")
+                    if result['Type'] == 'Episode' and settings('deleteTV.bool'):
+                        delete = True
+                    elif result['Type'] == 'Movie' and settings('deleteMovies.bool'):
+                        delete = True
 
-                    if dialog("yesno", heading=_(30091), line1=_(33015), autoclose=120000):
-                        item['Server']['api'].delete_item(item['Id'])
+                    if not settings('offerDelete.bool'):
+                        delete = False
+
+                    if delete:
+                        LOG.info("Offer delete option")
+
+                        if dialog("yesno", heading=_(30091), line1=_(33015), autoclose=120000):
+                            item['Server']['api'].delete_item(item['Id'])
+            
+            except Exception as error:
+                LOG.error(error)
 
             window('emby.external_check', clear=True)
 
