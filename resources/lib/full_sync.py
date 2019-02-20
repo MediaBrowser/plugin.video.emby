@@ -69,6 +69,12 @@ class FullSync(object):
 
         return self
 
+    def _restore_point(self, restore):
+
+        ''' Assign the restore point and save the sync status.
+        '''
+        self.sync['RestorePoint'] = restore
+        save_sync(self.sync)
 
     def libraries(self, library_id=None, update=False):
 
@@ -196,7 +202,7 @@ class FullSync(object):
                 self.sync['Whitelist'].append(library)
 
             self.sync['Libraries'].pop(self.sync['Libraries'].index(library))
-            self.sync['RestorePoint'] = {}
+            self._restore_point({})
 
         elapsed = datetime.datetime.now() - start_time
         settings('SyncInstallRunDone.bool', True)
@@ -272,7 +278,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "Movie", False, self.sync['RestorePoint'].get('params')):
                         
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, movie in enumerate(items['Items']):
@@ -312,7 +318,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "Series", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, show in enumerate(items['Items']):
@@ -362,7 +368,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "MusicVideo", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, mvideo in enumerate(items['Items']):
@@ -402,7 +408,7 @@ class FullSync(object):
 
                     for items in server.get_artists(library['Id'], False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, artist in enumerate(items['Items']):
@@ -464,7 +470,7 @@ class FullSync(object):
 
                     for items in server.get_items(library_id, "BoxSet", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, boxset in enumerate(items['Items']):
