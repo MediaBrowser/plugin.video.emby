@@ -38,7 +38,7 @@ if __name__ == "__main__":
     LOG.debug("--->[ context ]")
 
     try:
-        Context(play=True)
+        Context(True)
     except Exception as error:
         LOG.exception(error)
 

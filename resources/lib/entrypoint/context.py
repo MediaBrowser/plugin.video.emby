@@ -35,14 +35,14 @@ class Context(object):
 
     _selected_option = None
 
-    def __init__(self, transcode=False, delete=False):
-        
+    def __init__(self, play=False, transcode=False, delete=False):
+
         self.server = None
         self.kodi_id = None
         self.media = None
 
         try:
-            self.kodi_id = sys.listitem.getVideoInfoTag().getDbId() or None
+            self.kodi_id = max(sys.listitem.getVideoInfoTag().getDbId(), 0) or max(sys.listitem.getMusicInfoTag().getDbId(), 0) or None
             self.media = self.get_media_type()
             self.server = sys.listitem.getProperty('embyserver') or None
             item_id = sys.listitem.getProperty('embyid')
@@ -62,8 +62,8 @@ class Context(object):
 
         if self.item:
 
-            if transcode:
-                self.transcode()
+            if play or transcode:
+                self.play(transcode)
 
             elif delete:
                 self.delete_item()
@@ -80,7 +80,7 @@ class Context(object):
 
         ''' Get media type based on sys.listitem. If unfilled, base on visible window.
         '''
-        media = sys.listitem.getVideoInfoTag().getMediaType()
+        media = sys.listitem.getVideoInfoTag().getMediaType() or sys.listitem.getMusicInfoTag().getMediaType()
 
         if not media:
 
@@ -173,11 +173,14 @@ class Context(object):
         if delete:
             TheVoid('DeleteItem', {'ServerId': self.server, 'Id': self.item['Id']})
 
-    def transcode(self):
+    def play(self, transcode=False):
 
-        path = "http://127.0.0.1:57578/emby/play/file.strm?Id=%s&transcode=true" % self.item['Id']
+        path = "http://127.0.0.1:57578/emby/play/file.strm?Id=%s" % self.item['Id']
 
         if self.kodi_id:
             path += "&KodiId=%s" % self.kodi_id
+
+        if transcode:
+            path += "&transcode=true"
 
         xbmc.executebuiltin("PlayMedia(%s)" % path)

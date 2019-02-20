@@ -478,6 +478,10 @@ msgctxt "#33039"
 msgid "Enable music library?"
 msgstr ""
 
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr ""
+
 msgctxt "#33047"
 msgid "Kodi can't locate file:"
 msgstr ""
@@ -498,6 +502,10 @@ msgctxt "#33058"
 msgid "Perform local database reset"
 msgstr ""
 
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr ""
+
 msgctxt "#33060"
 msgid "Sync theme media"
 msgstr ""
@@ -516,6 +524,14 @@ msgstr ""
 
 msgctxt "#33064"
 msgid "Remove user from the session"
+msgstr ""
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr ""
+
+msgctxt "#33067"
+msgid "Added"
 msgstr ""
 
 msgctxt "#33074"
@@ -960,4 +976,8 @@ msgstr ""
 
 msgctxt "#33200"
 msgid "Black"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
 msgstr ""

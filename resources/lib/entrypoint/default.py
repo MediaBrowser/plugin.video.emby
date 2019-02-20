@@ -120,6 +120,8 @@ class Events(object):
             get_themes()
         elif mode == 'managelibs':
             manage_libraries()
+        elif mode == 'texturecache':
+            cache_artwork()
         elif mode == 'backup':
             backup()
         elif mode == 'restartservice':
@@ -189,6 +191,7 @@ def listing():
     directory(_(33134), "plugin://plugin.video.emby/?mode=addserver", False)
     directory(_(33054), "plugin://plugin.video.emby/?mode=adduser", False)
     directory(_(5), "plugin://plugin.video.emby/?mode=settings", False)
+    directory(_(33059), "plugin://plugin.video.emby/?mode=texturecache", False)
     directory(_(33058), "plugin://plugin.video.emby/?mode=reset", False)
     directory(_(33192), "plugin://plugin.video.emby/?mode=restartservice", False)
 
@@ -751,6 +754,7 @@ def add_user():
 
         user = eligible[resp]
         event('AddUser', {'Id': user['Id'], 'Add': True})
+        dialog("notification", heading="{emby}", message="%s %s" % (_(33067), user['Name']), icon="{emby}", time=1000, sound=False)
     else: # Remove user
         resp = dialog("select", _(33064), [x['UserName'] for x in current])
 
@@ -759,6 +763,9 @@ def add_user():
 
         user = current[resp]
         event('AddUser', {'Id': user['UserId'], 'Add': False})
+        dialog("notification", heading="{emby}", message="%s %s" % (_(33066), user['Name']), icon="{emby}", time=1000, sound=False)
+
+    return add_user()
 
 def get_themes():
 
@@ -896,3 +903,9 @@ def backup():
 
     LOG.info("backup completed")
     dialog("ok", heading="{emby}", line1="%s %s" % (_(33091), backup))
+
+def cache_artwork():
+
+    from objects.kodi import artwork
+
+    artwork.Artwork(None).cache_all()

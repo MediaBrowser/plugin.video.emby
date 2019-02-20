@@ -179,7 +179,14 @@ class Service(xbmc.Monitor):
             This pulls a dict that contains all the information for the build needed.
         '''
         LOG.info("--[ check updates/%s ]", objects.version)
-        kodi = "DEV" if settings('devMode.bool') else xbmc.getInfoLabel('System.BuildVersion')
+        
+        if settings('devMode.bool'):
+            kodi = "DEV"
+        elif not self.settings['addon_version'].replace(".", "").isdigit():
+            LOG.info("[ objects/beta check ]")
+            kodi = "beta-%s" % xbmc.getInfoLabel('System.BuildVersion')
+        else:
+            kodi = xbmc.getInfoLabel('System.BuildVersion')
 
         try:
             versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/databases.json').json()

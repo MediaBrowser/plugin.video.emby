@@ -623,7 +623,10 @@ class UpdatedWorker(threading.Thread):
                         except Queue.Empty:
                             break
 
-                        obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])[item['Type']]
+                        if item['Type'] in ('Series', 'Season', 'Episode'):
+                            obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1], verify=True)[item['Type']]
+                        else:
+                            obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])[item['Type']]
 
                         try:
                             if obj(item) and self.notify:
