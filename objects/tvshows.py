@@ -283,7 +283,7 @@ class TVShows(KodiDb):
 
             return
 
-        elif self.verify and self.server['api'].is_valid_episode(obj['SeriesId'], obj['Id']):
+        elif self.verify and not self.server['api'].is_valid_episode(obj['SeriesId'], obj['Id']):
             LOG.info("Skipping episode %s, should not be displayed", obj['Id'])
 
             return
