@@ -13,7 +13,7 @@ import xbmcvfs
 import downloader as server
 import helper.xmls as xmls
 from database import Database, get_sync, save_sync, emby_db
-from helper import _, settings, window, progress, dialog, LibraryException
+from helper import _, settings, window, progress, dialog, kodi_version, LibraryException
 from helper.utils import get_screensaver, set_screensaver
 from views import Views
 
@@ -505,6 +505,9 @@ class FullSync(object):
 
         ''' Patch the music database to silence the rescan prompt.
         '''
+        if kodi_version() < 18:
+            return
+
         with self.library.database_lock:
             with Database('music') as musicdb:
                 self.library.kodi_media['Music'](musicdb.cursor).disable_rescan(musicdb.path.split('MyMusic')[1].split('.db')[0], 0)
