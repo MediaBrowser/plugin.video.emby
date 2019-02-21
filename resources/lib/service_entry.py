@@ -91,10 +91,6 @@ class Service(object):
         for prop in WINDOW_PROPERTIES:
             utils.window(prop, clear=True)
 
-        # To detect Kodi profile switches
-        utils.window('plex_kodiProfile',
-                     value=utils.try_decode(xbmc.translatePath("special://profile")))
-
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         # Clear video nodes properties
         library_sync.VideoNodes().clearProperties()
@@ -423,13 +419,6 @@ class Service(object):
 
         # Main PKC program loop
         while not self.isCanceled():
-            # Check for Kodi profile change
-            if utils.window('plex_kodiProfile') != v.KODI_PROFILE:
-                # Profile change happened, terminate this thread and others
-                LOG.info("Kodi profile was: %s and changed to: %s. "
-                         "Terminating old PlexKodiConnect thread.",
-                         v.KODI_PROFILE, utils.window('plex_kodiProfile'))
-                break
 
             # Check for PKC commands from other Python instances
             plex_command = utils.window('plexkodiconnect.command')
