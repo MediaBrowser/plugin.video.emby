@@ -35,7 +35,7 @@ STRINGS = (utils.try_encode(utils.lang(12021)),
            utils.try_encode(utils.lang(12023)))
 
 
-class Service():
+class Service(object):
     ws = None
     sync = None
     plexcompanion = None
