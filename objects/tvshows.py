@@ -23,7 +23,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class TVShows(KodiDb):
 
-    def __init__(self, server, embydb, videodb, direct_path, update_library=False, verify=True, *args, **kwargs):
+    def __init__(self, server, embydb, videodb, direct_path, update_library=False, verify=False, *args, **kwargs):
 
         self.server = server
         self.emby = embydb
