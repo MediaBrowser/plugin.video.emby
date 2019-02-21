@@ -48,6 +48,16 @@ class WebSocket(backgroundthread.KillableThread):
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
         app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            # Close websocket connection on shutdown
+            if self.ws is not None:
+                self.ws.close()
+            app.APP.deregister_thread(self)
+            LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
+
+    def _run(self):
         counter = 0
         while not self.isCanceled():
             # In the event the server goes offline
@@ -133,11 +143,6 @@ class WebSocket(backgroundthread.KillableThread):
                 if self.ws is not None:
                     self.ws.close()
                 self.ws = None
-        # Close websocket connection on shutdown
-        if self.ws is not None:
-            self.ws.close()
-        app.APP.deregister_thread(self)
-        LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
 
 class PMS_Websocket(WebSocket):
