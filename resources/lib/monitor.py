@@ -151,7 +151,7 @@ class Monitor(xbmc.Monitor):
         elif settings('additionalUsers'):
 
             users = settings('additionalUsers').split(',')
-            all_users = server['api'].get_users()
+            all_users = server['api'].get_users(hidden=True)
 
             for additional in users:
                 for user in all_users:
