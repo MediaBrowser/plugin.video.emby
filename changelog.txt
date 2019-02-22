@@ -1,3 +1,6 @@
+version 2.7.2:
+- Fix Kodi profile switch not working correctly and PKC not exiting cleanly
+
 version 2.7.1:
 - Fix playback not starting at all 
 - Fix rare TypeError: unsupported operand type(s) for /: 'NoneType' and 'int' on playback startup
