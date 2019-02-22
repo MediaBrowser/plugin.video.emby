@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import sys
 import xbmc
-import xbmcgui
 
 from . import utils, clientinfo, timing
 from . import initialsetup
@@ -29,10 +28,6 @@ LOG = logging.getLogger("PLEX.service")
 WINDOW_PROPERTIES = (
     "pms_token", "plex_token", "plex_authenticated", "plex_restricteduser",
     "plex_allows_mediaDeletion", "plexkodiconnect.command", "plex_result")
-
-# "Start from beginning", "Play from beginning"
-STRINGS = (utils.try_encode(utils.lang(12021)),
-           utils.try_encode(utils.lang(12023)))
 
 
 class Service(object):
@@ -105,6 +100,7 @@ class Service(object):
         self.setup = None
         self.alexa = None
         self.playqueue = None
+        self.context_monitor = None
         # Flags for other threads
         self.connection_check_running = False
         self.auth_running = False
@@ -402,6 +398,9 @@ class Service(object):
         # Some plumbing
         app.init()
         app.APP.monitor = kodimonitor.KodiMonitor()
+        self.context_monitor = kodimonitor.ContextMonitor()
+        # Start immediately to catch user input even before auth
+        self.context_monitor.start()
         app.APP.player = xbmc.Player()
         # Initialize the PKC playqueues
         PQ.init_playqueues()
@@ -466,17 +465,6 @@ class Service(object):
             if app.APP.suspend:
                 app.APP.monitor.waitForAbort(0.1)
                 continue
-
-            # Detect the resume dialog for widgets. Could also be used to detect
-            # external players (see Emby implementation)
-            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
-                if xbmc.getInfoLabel('Control.GetLabel(1002)') in STRINGS:
-                    # Remember that the item IS indeed resumable
-                    control = int(xbmcgui.Window(10106).getFocusId())
-                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
-                else:
-                    # Different context menu is displayed
-                    app.PLAYSTATE.resume_playback = False
 
             # Before proceeding, need to make sure:
             # 1. Server is online
