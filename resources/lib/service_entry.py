@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import sys
 import xbmc
-import xbmcgui
 
 from . import utils, clientinfo, timing
 from . import initialsetup
@@ -30,12 +29,8 @@ WINDOW_PROPERTIES = (
     "pms_token", "plex_token", "plex_authenticated", "plex_restricteduser",
     "plex_allows_mediaDeletion", "plexkodiconnect.command", "plex_result")
 
-# "Start from beginning", "Play from beginning"
-STRINGS = (utils.try_encode(utils.lang(12021)),
-           utils.try_encode(utils.lang(12023)))
 
-
-class Service():
+class Service(object):
     ws = None
     sync = None
     plexcompanion = None
@@ -91,10 +86,6 @@ class Service():
         for prop in WINDOW_PROPERTIES:
             utils.window(prop, clear=True)
 
-        # To detect Kodi profile switches
-        utils.window('plex_kodiProfile',
-                     value=utils.try_decode(xbmc.translatePath("special://profile")))
-
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         # Clear video nodes properties
         library_sync.VideoNodes().clearProperties()
@@ -109,6 +100,7 @@ class Service():
         self.setup = None
         self.alexa = None
         self.playqueue = None
+        self.context_monitor = None
         # Flags for other threads
         self.connection_check_running = False
         self.auth_running = False
@@ -406,6 +398,9 @@ class Service():
         # Some plumbing
         app.init()
         app.APP.monitor = kodimonitor.KodiMonitor()
+        self.context_monitor = kodimonitor.ContextMonitor()
+        # Start immediately to catch user input even before auth
+        self.context_monitor.start()
         app.APP.player = xbmc.Player()
         # Initialize the PKC playqueues
         PQ.init_playqueues()
@@ -423,13 +418,6 @@ class Service():
 
         # Main PKC program loop
         while not self.isCanceled():
-            # Check for Kodi profile change
-            if utils.window('plex_kodiProfile') != v.KODI_PROFILE:
-                # Profile change happened, terminate this thread and others
-                LOG.info("Kodi profile was: %s and changed to: %s. "
-                         "Terminating old PlexKodiConnect thread.",
-                         v.KODI_PROFILE, utils.window('plex_kodiProfile'))
-                break
 
             # Check for PKC commands from other Python instances
             plex_command = utils.window('plexkodiconnect.command')
@@ -477,17 +465,6 @@ class Service():
             if app.APP.suspend:
                 app.APP.monitor.waitForAbort(0.1)
                 continue
-
-            # Detect the resume dialog for widgets. Could also be used to detect
-            # external players (see Emby implementation)
-            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
-                if xbmc.getInfoLabel('Control.GetLabel(1002)') in STRINGS:
-                    # Remember that the item IS indeed resumable
-                    control = int(xbmcgui.Window(10106).getFocusId())
-                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
-                else:
-                    # Different context menu is displayed
-                    app.PLAYSTATE.resume_playback = False
 
             # Before proceeding, need to make sure:
             # 1. Server is online

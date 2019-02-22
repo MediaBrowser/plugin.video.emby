@@ -7,7 +7,9 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from json import loads
 import copy
+
 import xbmc
+import xbmcgui
 
 from .plex_db import PlexDB
 from . import kodi_db
@@ -16,11 +18,11 @@ from . import utils, timing, plex_functions as PF, playback
 from . import json_rpc as js, playqueue as PQ, playlist_func as PL
 from . import backgroundthread, app, variables as v
 
-###############################################################################
-
 LOG = getLogger('PLEX.kodimonitor')
 
-###############################################################################
+# "Start from beginning", "Play from beginning"
+STRINGS = (utils.try_encode(utils.lang(12021)),
+           utils.try_encode(utils.lang(12023)))
 
 
 class KodiMonitor(xbmc.Monitor):
@@ -530,3 +532,36 @@ def _clean_file_table():
         LOG.debug('Database was locked, unable to clean file table')
     else:
         LOG.debug('Done cleaning up Kodi file table')
+
+
+class ContextMonitor(backgroundthread.KillableThread):
+    """
+    Detect the resume dialog for widgets. Could also be used to detect
+    external players (see Emby implementation)
+
+    Let's not register this thread because it won't quit due to
+    xbmc.getCondVisibility
+    It should still exit at some point due to xbmc.abortRequested
+    """
+    def run(self):
+        LOG.info("----===## Starting ContextMonitor ##===----")
+        # app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            # app.APP.deregister_thread(self)
+            LOG.info("##===---- ContextMonitor Stopped ----===##")
+
+    def _run(self):
+        while not self.isCanceled():
+            # The following function will block if called while PKC should
+            # exit!
+            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
+                if xbmc.getInfoLabel('Control.GetLabel(1002)') in STRINGS:
+                    # Remember that the item IS indeed resumable
+                    control = int(xbmcgui.Window(10106).getFocusId())
+                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
+                else:
+                    # Different context menu is displayed
+                    app.PLAYSTATE.resume_playback = False
+            app.APP.monitor.waitForAbort(0.1)
