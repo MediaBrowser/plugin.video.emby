@@ -30,7 +30,7 @@ def addon_id():
     return "plugin.video.emby"
 
 def kodi_version():
-    return xbmc.getInfoLabel('System.BuildVersion')[:2]
+    return int(xbmc.getInfoLabel('System.BuildVersion')[:2])
 
 def window(key, value=None, clear=False, window_id=10000):
 

@@ -506,6 +506,7 @@ class FullSync(object):
         ''' Patch the music database to silence the rescan prompt.
         '''
         if kodi_version() < 18:
+            LOG.info("version not supported for patching music db.")
             return
 
         with self.library.database_lock:
