@@ -5,6 +5,8 @@ Monitors the Kodi playqueue and adjusts the Plex playqueue accordingly
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+import copy
+
 import xbmc
 
 from .plex_api import API
@@ -97,11 +99,14 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
     (playlist) are swapped. This is what this monitor is for. Don't replace
     this mechanism till Kodi's implementation of playlists has improved
     """
-    def _compare_playqueues(self, playqueue, new):
+    def _compare_playqueues(self, playqueue, new_kodi_playqueue):
         """
         Used to poll the Kodi playqueue and update the Plex playqueue if needed
         """
         old = list(playqueue.items)
+        # We might append to new_kodi_playqueue but will need the original
+        # still back in the main loop
+        new = copy.deepcopy(new_kodi_playqueue)
         index = list(range(0, len(old)))
         LOG.debug('Comparing new Kodi playqueue %s with our play queue %s',
                   new, old)
