@@ -459,8 +459,6 @@ class Monitor(xbmc.Monitor):
         if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
             window('emby_playlistclear.bool', True)
 
-        self.player.stop_playback()
-
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
 

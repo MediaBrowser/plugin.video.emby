@@ -89,6 +89,7 @@ class Player(xbmc.Player):
 
             return
 
+        self.stop_playback()
         items = window('emby_play.json')
         item = None
 
