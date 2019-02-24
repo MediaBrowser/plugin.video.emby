@@ -14,7 +14,6 @@ import xbmcvfs
 import emby_db
 from helper.utils import delete_folder
 from helper import _, settings, window, dialog
-from objects import obj
 
 #################################################################################################
 
@@ -128,6 +127,8 @@ class Database(object):
             Compatible check, in the event multiple db version are supported with the same Kodi version.
             Discover by file as a last resort.
         '''
+        from objects import obj
+
         databases = obj.Objects().objects
 
         if file not in ('video', 'music', 'texture') or databases.get('database_set%s' % file):
