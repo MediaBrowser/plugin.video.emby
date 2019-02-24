@@ -78,8 +78,11 @@ class Player(xbmc.Player):
             ''' Clear the virtual and strm link path from the playlist.
             '''
             LOG.info("emby-loading.mp4 detected.")
+            platform = settings('platformDetected')
+            distro = settings('distroDetected')
 
-            if settings('platformDetected') in ('CoreElec', 'LibreElec', 'OSMC', 'Linux/Android', 'Linux/RPi'):
+            if (platform in ('ATV2', 'Linux/RPi', 'Unknown') or 
+                platform == 'Linux/Android' and settings('lowPowered.bool') or distro == 'CoreElec'):
 
                 LOG.info("[ delay pause ]")
                 xbmc.sleep(1000)

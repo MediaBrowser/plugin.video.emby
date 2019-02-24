@@ -19,8 +19,8 @@ class Setup(object):
 
     def __init__(self):
 
-        self.set_web_server()
         self.setup()
+        self.set_web_server()
 
         LOG.info("---<[ setup ]")
 
@@ -108,6 +108,13 @@ class Setup(object):
             dialog("ok", heading="{emby}", line1=_(33145))
 
     def _is_artwork_caching(self):
+
+        if settings('lowPowered.bool'):
+
+            LOG.info("Artwork caching ignored due to platform limitation.")
+            settings('enableTextureCache.bool', True)
+
+            return
 
         value = dialog("yesno", heading="{emby}", line1=_(33117))
         settings('enableTextureCache.bool', value)

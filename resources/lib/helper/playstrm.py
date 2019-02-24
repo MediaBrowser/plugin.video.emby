@@ -169,7 +169,7 @@ class PlayStrm(object):
 
                 seektime = False if not choice else True
 
-        if seektime and settings('platformDetected') == 'CoreElec':
+        if seektime and settings('distroDetected') == 'CoreElec':
 
             ''' For some reason, CoreElec triggers OnStop when starting playback with resume. Add a dummy and remove it later.
             '''

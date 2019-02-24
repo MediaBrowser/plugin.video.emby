@@ -35,6 +35,7 @@ class FullSync(object):
     sync = None
     running = False
     screensaver = None
+    artwork = None
 
 
     def __init__(self, library, server):
@@ -65,6 +66,13 @@ class FullSync(object):
             set_screensaver(value="")
 
         self.running = True
+
+        if settings('enableTextureCache.bool') and settings('lowPowered.bool'):
+
+            self.artwork = True
+            settings('enableTextureCache.bool', False)
+            LOG.info("[ disable artwork cache ]")
+
         window('emby_sync.bool', True)
 
         return self
@@ -586,9 +594,16 @@ class FullSync(object):
         self.running = False
         window('emby_sync', clear=True)
 
-        if not settings('dbSyncScreensaver.bool') and self.screensaver is not None:
+        if self.screensaver is not None:
 
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
             set_screensaver(value=self.screensaver)
+            self.screensaver = None
+
+        if self.artwork is not None:
+
+            settings('enableTextureCache.bool', True)
+            self.artwork = None
+            LOG.info("[ enable artwork cache ]")
 
         LOG.info("--<[ fullsync ]")
