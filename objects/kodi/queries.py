@@ -188,13 +188,16 @@ get_show_by_unique_id = """ SELECT  idShow
                             FROM    tvshow_view 
                             WHERE   uniqueid_value = ? 
                         """
-
 get_total_episodes =    """ SELECT  totalCount 
                             FROM    tvshowcounts 
                             WHERE   idShow = ?
                         """
 get_total_episodes_obj =    [   "{ParentId}"
                             ]
+get_artwork =           """ SELECT  url 
+                            FROM art 
+                            WHERE media_type != 'actor'
+                        """
 
 
 
