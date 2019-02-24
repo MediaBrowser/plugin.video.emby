@@ -180,6 +180,14 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
         params = self.get_params()
+
+        if 'kodi/movies' in self.path:
+            params['MediaType'] = "movie"
+        elif 'kodi/musicvideos' in self.path:
+            params['MediaType'] = 'musicvideo'
+        elif 'kodi/tvshows' in self.path:
+            params['MediaType'] = "episode"
+
         loading_videos = ['default', 'black']
         loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % loading_videos[int(settings('loadingVideo') or 0)]).decode('utf-8')
         self.wfile.write(loading)
