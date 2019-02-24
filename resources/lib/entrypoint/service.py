@@ -247,6 +247,7 @@ class Service(xbmc.Monitor):
 
             data = json.loads(data)
 
+        LOG.debug("[ onNotification/%s/%s ]", sender, method)
         LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data, indent=4))
 
         if method == 'ServerOnline':

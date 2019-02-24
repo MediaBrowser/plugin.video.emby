@@ -255,6 +255,7 @@ class QueuePlay(threading.Thread):
         xbmc.sleep(200) # Let Kodi catch up.
         start_position = None
         position = None
+        original_play = xbmc.getInfoLabel('Player.Filenameandpath')
 
         while True:
 
@@ -266,6 +267,9 @@ class QueuePlay(threading.Thread):
                     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
                     LOG.info("[ playback starting/%s ]", start_position)
                     play.start_playback(start_position)
+                    play.remove_from_playlist_by_path(original_play)
+                    dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+                    play.remove_from_playlist_by_path(dummy)
 
                 self.server.threads.remove(self)
                 self.server.pending = []

@@ -80,12 +80,11 @@ class Player(xbmc.Player):
             LOG.info("emby-loading.mp4 detected.")
 
             if settings('platformDetected') in ('CoreElec', 'LibreElec', 'OSMC', 'Linux/Android', 'Linux/RPi'):
+
                 LOG.info("[ delay pause ]")
                 xbmc.sleep(1000)
 
             self.pause()
-
-            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).remove(xbmc.getInfoLabel('Player.Filenameandpath'))
             window('emby_loadingvideo.bool', True)
 
             return

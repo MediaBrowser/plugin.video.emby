@@ -93,6 +93,7 @@ class PlayStrm(object):
 
         self.info['StartIndex'] = max(self.info['KodiPlaylist'].getposition(), 0)
         self.info['Index'] = self.info['StartIndex']
+
         LOG.info("[ play/%s/%s ]", self.info['Id'], self.info['Index'])
 
         listitem = xbmcgui.ListItem()
@@ -144,12 +145,26 @@ class PlayStrm(object):
             resume = self.info['Item']['UserData'].get('PlaybackPositionTicks')
 
             if resume:
-                choice = self.actions.resume_dialog(api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0), self.info['Item'])
+
+                adjusted = api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0)
+                choice = self.actions.resume_dialog(adjusted, self.info['Item'])
+                LOG.info("Resume: %s", adjusted)
 
                 if choice is None:
                     raise Exception("User backed out of resume dialog.")
 
                 seektime = False if not choice else True
+
+        if seektime and settings('platformDetected') == 'CoreElec':
+
+            ''' For some reason, CoreElec triggers OnStop when starting playback with resume. Add a dummy and remove it later.
+            '''
+            LOG.info("[ Adding dummy/%s ]", self.info['Index'])
+            dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+            listitem = xbmcgui.ListItem()
+            listitem.setPath(dummy)
+            self.info['KodiPlaylist'].add(url=dummy, listitem=listitem, index=self.info['Index'])
+            self.info['Index'] += 1
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros()
