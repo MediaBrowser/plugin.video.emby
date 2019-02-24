@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, unicode_literals
 import os
 import sys
-import re
 import platform
 
 import xbmc
@@ -99,50 +98,30 @@ PKC_MACHINE_IDENTIFIER = None
 # Minimal PKC version needed for the Kodi database - otherwise need to recreate
 MIN_DB_VERSION = '2.6.8'
 
-# Supported databases
+# Supported databases - version numbers in tuples should decrease
 SUPPORTED_VIDEO_DB = {
     # Kodi 17 Krypton:
-    17: {
-        107: 107,
-    },
+    17: (107, ),
     # Kodi 18 Leia:
-    18: {
-        113: 113,
-        116: 116
-    },
+    18: (116, 113),
     # Kodi 19 - EXTREMLY EXPERIMENTAL!
-    19: {
-        113: 113,
-        116: 116
-    }
+    19: (116, 113)
 }
 SUPPORTED_MUSIC_DB = {
     # Kodi 17 Krypton:
-    17: {
-        60: 60,
-    },
+    17: (60, ),
     # Kodi 18 Leia:
-    18: {
-        72: 72,
-    },
+    18: (72, ),
     # Kodi 19 - EXTREMLY EXPERIMENTAL!
-    19: {
-        72: 72,
-    }
+    19: (72, )
 }
 SUPPORTED_TEXTURE_DB = {
     # Kodi 17 Krypton:
-    17: {
-        13: 13,
-    },
+    17: (13, ),
     # Kodi 18 Leia:
-    18: {
-        13: 13,
-    },
+    18: (13, ),
     # Kodi 19 - EXTREMLY EXPERIMENTAL!
-    19: {
-        13: 13,
-    }
+    19: (13, )
 }
 DB_VIDEO_VERSION = None
 DB_VIDEO_PATH = None
@@ -590,57 +569,6 @@ PLEX_STREAM_TYPE_FROM_STREAM_TYPE = {
     'subtitle': '3'
 }
 
-
-def database_paths():
-    '''
-    Set the Kodi database paths. Will raise a RuntimeError if the DBs are
-    not found or of a wrong, unsupported version
-    '''
-    global DB_VIDEO_VERSION, DB_VIDEO_PATH
-    global DB_MUSIC_VERSION, DB_MUSIC_PATH
-    global DB_TEXTURE_VERSION, DB_TEXTURE_PATH
-    database_path = try_decode(xbmc.translatePath('special://database'))
-    video_versions = []
-    music_versions = []
-    texture_versions = []
-    types = (
-        (re.compile(r'''MyVideos(\d+).db'''), video_versions),
-        (re.compile(r'''MyMusic(\d+).db'''), music_versions),
-        (re.compile(r'''Textures(\d+).db'''), texture_versions)
-    )
-    for root, _, files in path_ops.walk(database_path):
-        for file in files:
-            for typus in types:
-                match = typus[0].search(path_ops.path.join(root, file))
-                if not match:
-                    continue
-                typus[1].append(int(match.group(1)))
-    try:
-        DB_VIDEO_VERSION = max(video_versions)
-        SUPPORTED_VIDEO_DB[KODIVERSION][DB_VIDEO_VERSION]
-        DB_VIDEO_PATH = path_ops.path.join(database_path,
-                                           'MyVideos%s.db' % DB_VIDEO_VERSION)
-    except (ValueError, KeyError):
-        raise RuntimeError('Video DB %s not supported'
-                           % DB_VIDEO_VERSION)
-    try:
-        DB_MUSIC_VERSION = max(music_versions)
-        SUPPORTED_MUSIC_DB[KODIVERSION][DB_MUSIC_VERSION]
-        DB_MUSIC_PATH = path_ops.path.join(database_path,
-                                           'MyMusic%s.db' % DB_MUSIC_VERSION)
-    except (ValueError, KeyError):
-        raise RuntimeError('Music DB %s not supported'
-                           % DB_MUSIC_VERSION)
-    try:
-        DB_TEXTURE_VERSION = max(texture_versions)
-        SUPPORTED_TEXTURE_DB[KODIVERSION][DB_TEXTURE_VERSION]
-        DB_TEXTURE_PATH = path_ops.path.join(database_path,
-                                             'Textures%s.db' % DB_TEXTURE_VERSION)
-    except (ValueError, KeyError):
-        raise RuntimeError('Texture DB %s not supported'
-                           % DB_TEXTURE_VERSION)
-
-
 # Encoding to be used for our m3u playlist files
 # m3u files do not have encoding specified by definition, unfortunately.
 if DEVICE == 'Windows':
@@ -651,3 +579,36 @@ else:
             M3U_ENCODING == 'ascii' or
             M3U_ENCODING == 'ANSI_X3.4-1968'):
         M3U_ENCODING = 'utf-8'
+
+
+def database_paths():
+    '''
+    Set the Kodi database paths - PKC will choose the HIGHEST available and
+    supported database version for the current Kodi version.
+    Will raise a RuntimeError if the DBs are not found or of a wrong,
+    unsupported version
+    '''
+    # Check Kodi version first
+    if KODIVERSION not in (17, 18, 19):
+        raise RuntimeError('Kodiversion %s not supported by PKC' % KODIVERSION)
+
+    database_path = try_decode(xbmc.translatePath('special://database'))
+    thismodule = sys.modules[__name__]
+    types = (('MyVideos%s.db', SUPPORTED_VIDEO_DB,
+              'DB_VIDEO_VERSION', 'DB_VIDEO_PATH'),
+             ('MyMusic%s.db', SUPPORTED_MUSIC_DB,
+              'DB_MUSIC_VERSION', 'DB_MUSIC_PATH'),
+             ('Textures%s.db', SUPPORTED_TEXTURE_DB,
+              'DB_TEXTURE_VERSION', 'DB_TEXTURE_PATH'))
+    for string, versions, actual_version, actual_path in types:
+        for version in versions[KODIVERSION]:
+            file = string % version
+            path = path_ops.path.join(database_path, file)
+            if path_ops.exists(path):
+                setattr(thismodule, actual_version, version)
+                setattr(thismodule, actual_path, path)
+
+    if (DB_VIDEO_VERSION is None or
+            DB_MUSIC_VERSION is None or
+            DB_TEXTURE_VERSION is None):
+        raise RuntimeError('Kodi database versions not supported by PKC')
