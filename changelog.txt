@@ -1,3 +1,7 @@
+version 2.7.3:
+- Fix PKC trying to initialize playqueues over and over again
+- Fix PKC not starting due to a higher version Kodi database
+
 version 2.7.2:
 - Fix Kodi profile switch not working correctly and PKC not exiting cleanly
 
