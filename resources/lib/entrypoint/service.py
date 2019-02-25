@@ -58,11 +58,7 @@ class Service(xbmc.Monitor):
         settings('platformDetected', client.get_platform())
         settings('distroDetected', client.get_distro())
         memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
-
-        if int(memory or 3072) < 3072:
-
-            LOG.info("[ low powered/%sMB ]", memory)
-            settings('lowPowered.bool', True)
+        settings('lowPowered.bool', int(memory or 2961) < 2961) # Use shield (~3GB) as cutoff
 
         if self.settings['enable_context']:
             window('emby_context.bool', True)
@@ -73,7 +69,7 @@ class Service(xbmc.Monitor):
         LOG.warn("Version: %s", client.get_version())
         LOG.warn("KODI Version: %s", xbmc.getInfoLabel('System.BuildVersion'))
         LOG.warn("Platform: %s", settings('platformDetected'))
-        LOG.warn("OS: %s", settings('distroDetected'))
+        LOG.warn("OS: %s/%sMB", settings('distroDetected'), memory)
         LOG.warn("Python Version: %s", sys.version)
         LOG.warn("Using dynamic paths: %s", settings('useDirectPaths') == "0")
         LOG.warn("Log Level: %s", self.settings['log_level'])
