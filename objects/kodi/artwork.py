@@ -33,6 +33,7 @@ class Artwork(object):
         self.cursor = cursor
         self.enable_cache = settings('enableTextureCache.bool')
         self.queue = Queue.Queue()
+        self.thread_limit = 1 if settings('lowPowered.bool') else 2
         self.threads = []
         self.kodi = {
             'username': settings('webServerUser'),
@@ -151,7 +152,7 @@ class Artwork(object):
 
     def add_worker(self):
 
-        if self.queue.qsize() and len(self.threads) < 2:
+        if self.queue.qsize() and len(self.threads) < self.thread_limit:
 
             new_thread = GetArtworkWorker(self.kodi, self.queue, self.threads)
             new_thread.start()
