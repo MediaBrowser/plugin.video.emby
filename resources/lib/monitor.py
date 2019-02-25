@@ -37,7 +37,7 @@ class Monitor(xbmc.Monitor):
 
         self.player = player.Player()
         self.device_id = get_device_id()
-        self.listener = Listener()
+        self.listener = Listener(self)
         self.listener.start()
         self.webservice = WebService()
         self.webservice.start()
@@ -498,7 +498,9 @@ class Listener(threading.Thread):
 
     stop_thread = False
 
-    def __init__(self):
+    def __init__(self, monitor):
+
+        self.monitor = monitor
         threading.Thread.__init__(self)
 
     def run(self):
@@ -511,7 +513,7 @@ class Listener(threading.Thread):
         while not self.stop_thread:
             special_listener()
 
-            if window('emby_should_stop.bool'):
+            if self.monitor.waitForAbort(0.5):
                 break
 
         LOG.warn("---<[ listener ]")
