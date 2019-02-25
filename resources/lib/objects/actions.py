@@ -30,20 +30,20 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class Actions(object):
 
-    def __init__(self, server_id=None, server=None):
+    def __init__(self, server_id=None, server=None, *args, **kwargs):
 
         self.server_id = server_id or None
         self.server = server or TheVoid('GetServerAddress', {'ServerId': self.server_id}).get()
         self.stack = []
 
-    def get_playlist(self, item):
+    def get_playlist(self, item, *args, **kwargs):
 
         if item['Type'] == 'Audio':
             return xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
 
         return xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-    def play(self, item, db_id=None, transcode=False, playlist=False):
+    def play(self, item, db_id=None, transcode=False, playlist=False, *args, **kwargs):
 
         ''' Play item based on if playback started from widget ot not.
             To get everything to work together, play the first item in the stack with setResolvedUrl,
@@ -83,7 +83,7 @@ class Actions(object):
             if len(sys.argv) > 1: xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, self.stack[0][1])
             xbmc.Player().play(kodi_playlist, windowed=False)
 
-    def set_playlist(self, item, listitem, db_id=None, transcode=False):
+    def set_playlist(self, item, listitem, db_id=None, transcode=False, *args, **kwargs):
 
         ''' Verify seektime, set intros, set main item and set additional parts.
             Detect the seektime for video type content.
@@ -117,7 +117,7 @@ class Actions(object):
         if item.get('PartCount'):
             self._set_additional_parts(item['Id'])
 
-    def _set_intros(self, item):
+    def _set_intros(self, item, *args, **kwargs):
 
         ''' if we have any play them when the movie/show is not being resumed.
         '''
@@ -150,7 +150,7 @@ class Actions(object):
 
                 window('emby.skip.%s' % intro['Id'], value="true")
 
-    def _set_additional_parts(self, item_id):
+    def _set_additional_parts(self, item_id, *args, **kwargs):
 
         ''' Create listitems and add them to the stack of playlist.
         '''
@@ -170,7 +170,7 @@ class Actions(object):
 
             self.stack.append([part['PlaybackInfo']['Path'], listitem])
 
-    def play_playlist(self, items, clear=True, seektime=None, audio=None, subtitle=None):
+    def play_playlist(self, items, clear=True, seektime=None, audio=None, subtitle=None, *args, **kwargs):
 
         ''' Play a list of items. Creates a new playlist. Add additional items as plugin listing.
         '''
@@ -221,7 +221,7 @@ class Actions(object):
             playlist.add(path, listitem, index)
             index += 1
 
-    def set_listitem(self, item, listitem, db_id=None, seektime=None, intro=False):
+    def set_listitem(self, item, listitem, db_id=None, seektime=None, intro=False, *args, **kwargs):
 
         objects = Objects()
         API = api.API(item, self.server)
@@ -278,7 +278,7 @@ class Actions(object):
 
         listitem.setContentLookup(False)
 
-    def listitem_video(self, obj, listitem, item, seektime=None, intro=False):
+    def listitem_video(self, obj, listitem, item, seektime=None, intro=False, *args, **kwargs):
 
         ''' Set listitem for video content. That also include streams.
         '''
@@ -462,7 +462,7 @@ class Actions(object):
         listitem.setInfo('video', metadata)
         listitem.setContentLookup(False)
 
-    def listitem_channel(self, obj, listitem, item):
+    def listitem_channel(self, obj, listitem, item, *args, **kwargs):
 
         ''' Set listitem for channel content.
         '''
@@ -501,7 +501,7 @@ class Actions(object):
         listitem.setInfo('video', metadata)
         listitem.setContentLookup(False)
 
-    def listitem_music(self, obj, listitem, item):
+    def listitem_music(self, obj, listitem, item, *args, **kwargs):
         API = api.API(item, self.server)
 
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
@@ -558,7 +558,7 @@ class Actions(object):
         listitem.setInfo('music', metadata)
         listitem.setContentLookup(False)
 
-    def listitem_photo(self, obj, listitem, item):
+    def listitem_photo(self, obj, listitem, item, *args, **kwargs):
         API = api.API(item, self.server)
 
         obj['Overview'] = API.get_overview(obj['Overview'])
@@ -594,7 +594,7 @@ class Actions(object):
         listitem.setInfo('pictures', metadata)
         listitem.setContentLookup(False)
 
-    def set_artwork(self, artwork, listitem, media):
+    def set_artwork(self, artwork, listitem, media, *args, **kwargs):
 
         if media == 'Episode':
 
@@ -640,7 +640,7 @@ class Actions(object):
             else:
                 self._set_art(listitem, k_art, artwork.get(e_art, " "))
 
-    def _set_art(self, listitem, art, path):
+    def _set_art(self, listitem, art, path, *args, **kwargs):
         LOG.debug(" [ art/%s ] %s", art, path)
 
         if art in ('fanart_image', 'small_poster', 'tiny_poster',
@@ -652,7 +652,7 @@ class Actions(object):
         else:
             listitem.setArt({art: path})
 
-    def resume_dialog(self, seektime):
+    def resume_dialog(self, seektime, item, *args, **kwargs):
 
         ''' Base resume dialog based on Kodi settings.
         '''
@@ -692,18 +692,19 @@ class Actions(object):
 
 class PlaylistWorker(threading.Thread):
 
-    def __init__(self, server_id, items, *args):
+    def __init__(self, server_id, items, *args, **kwargs):
 
         self.server_id = server_id
         self.items = items
         self.args = args
+        self.kwargs = kwargs
         threading.Thread.__init__(self)
 
     def run(self):
-        Actions(self.server_id).play_playlist(self.items, *self.args)
+        Actions(self.server_id).play_playlist(self.items, *self.args, **self.kwargs)
 
 
-def on_update(data, server):
+def on_update(data, server, *args, **kwargs):
 
     ''' Only for manually marking as watched/unwatched
     '''
@@ -726,7 +727,7 @@ def on_update(data, server):
 
         window('emby.skip.%s' % item[0], clear=True)
 
-def on_play(data, server):
+def on_play(data, server, *args, **kwargs):
 
     ''' Setup progress for emby playback.
     '''

@@ -21,7 +21,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class Movies(KodiDb):
 
-    def __init__(self, server, embydb, videodb, direct_path):
+    def __init__(self, server, embydb, videodb, direct_path, *args, **kwargs):
 
         self.server = server
         self.emby = embydb
@@ -48,8 +48,8 @@ class Movies(KodiDb):
     @stop()
     @emby_item()
     @library_check()
-    def movie(self, item, e_item, library):
-        
+    def movie(self, item, e_item, library, *args, **kwargs):
+
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
         '''
@@ -169,7 +169,12 @@ class Movies(KodiDb):
             if obj['LocalTrailer']:
 
                 trailer = self.server['api'].get_local_trailers(obj['Id'])
-                obj['Trailer'] = "plugin://plugin.video.emby/trailer?id=%s&mode=play" % trailer[0]['Id']
+                API = api.API(trailer, self.server['auth/server-address'])
+
+                if self.direct_path:
+                    obj['Trailer'] = API.get_file_path(trailer[0]['Path'])
+                else:
+                    obj['Trailer'] = "plugin://plugin.video.emby/trailer?id=%s&mode=play" % trailer[0]['Id']
 
             elif obj['Trailer']:
                 obj['Trailer'] = "plugin://plugin.video.youtube/play/?video_id=%s" % obj['Trailer'].rsplit('=', 1)[1]
@@ -204,8 +209,8 @@ class Movies(KodiDb):
 
     @stop()
     @emby_item()
-    def boxset(self, item, e_item):
-                
+    def boxset(self, item, e_item, *args, **kwargs):
+
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
 
@@ -285,8 +290,8 @@ class Movies(KodiDb):
 
     @stop()
     @emby_item()
-    def userdata(self, item, e_item):
-        
+    def userdata(self, item, e_item, *args, **kwargs):
+
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
         '''
@@ -318,7 +323,7 @@ class Movies(KodiDb):
 
     @stop()
     @emby_item()
-    def remove(self, item_id, e_item):
+    def remove(self, item_id, e_item, *args, **kwargs):
 
         ''' Remove movieid, fileid, emby reference.
             Remove artwork, boxset
