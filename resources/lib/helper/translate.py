@@ -49,5 +49,7 @@ STRINGS = {
     'tvshows': 30305,
     'fav_movies': 30180,
     'fav_tvshows': 30181,
-    'fav_episodes': 30182
+    'fav_episodes': 30182,
+    'task_success': 33203,
+    'task_fail': 33204
 }

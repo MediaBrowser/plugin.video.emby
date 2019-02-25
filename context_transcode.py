@@ -38,7 +38,7 @@ if __name__ == "__main__":
     LOG.debug("--->[ context ]")
 
     try:
-        Context(True)
+        Context(transcode=True)
     except Exception as error:
         LOG.exception(error)
 

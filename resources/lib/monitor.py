@@ -37,7 +37,7 @@ class Monitor(xbmc.Monitor):
 
         self.player = player.Player()
         self.device_id = get_device_id()
-        self.listener = Listener(self)
+        self.listener = Listener()
         self.listener.start()
         self.webservice = WebService()
         self.webservice.start()
@@ -148,15 +148,15 @@ class Monitor(xbmc.Monitor):
 
         if server_id is not None:
             self.servers.append(server_id)
-        elif settings('additionalUsers'):
+        elif settings('addUsers'):
 
-            users = settings('additionalUsers').split(',')
-            all_users = server['api'].get_users()
+            users = settings('addUsers').split(',')
+            all_users = server['api'].get_users(hidden=True)
 
             for additional in users:
                 for user in all_users:
 
-                    if user['Name'].lower() in additional.decode('utf-8').lower():
+                    if user['Id'] == additional:
                         server['api'].session_add_user(server['config/app.session'], user['Id'], True)
 
             self.additional_users(server)
@@ -449,7 +449,7 @@ class Monitor(xbmc.Monitor):
         '''
         xbmc.sleep(3000)
 
-        if not self.player.isPlaying() and xbmcgui.getCurrentWindowId() not in [12005, 10138]:
+        if not self.player.isPlaying() and xbmcgui.getCurrentWindowId() not in (12005, 10138):
             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
@@ -458,8 +458,6 @@ class Monitor(xbmc.Monitor):
         '''
         if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
             window('emby_playlistclear.bool', True)
-
-        self.player.stop_playback()
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
@@ -488,20 +486,19 @@ class MonitorWorker(threading.Thread):
 
             try:
                 func(server, data)
-                self.queue.task_done()
             except Exception as error:
                 LOG.error(error)
 
-            if self.monitor.waitForAbort(0.5):
+            self.queue.task_done()
+
+            if window('emby_should_stop.bool'):
                 break
 
 class Listener(threading.Thread):
 
     stop_thread = False
 
-    def __init__(self, monitor):
-
-        self.monitor = monitor
+    def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
@@ -514,7 +511,7 @@ class Listener(threading.Thread):
         while not self.stop_thread:
             special_listener()
 
-            if self.monitor.waitForAbort(0.5):
+            if window('emby_should_stop.bool'):
                 break
 
         LOG.warn("---<[ listener ]")

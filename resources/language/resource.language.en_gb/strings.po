@@ -478,8 +478,20 @@ msgctxt "#33039"
 msgid "Enable music library?"
 msgstr ""
 
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr ""
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr ""
+
 msgctxt "#33045"
 msgid "Updating artwork cache"
+msgstr ""
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
 msgstr ""
 
 msgctxt "#33047"
@@ -487,7 +499,7 @@ msgid "Kodi can't locate file:"
 msgstr ""
 
 msgctxt "#33048"
-msgid "You may need to verify your network credentials in the add-on settings or use the Emby path substitution to format your path correctly (Emby dashboard > library). Stop syncing?"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
 msgstr ""
 
 msgctxt "#33049"
@@ -579,7 +591,7 @@ msgid "Refresh boxsets"
 msgstr ""
 
 msgctxt "#33099"
-msgid "Install the server plugin Kodi companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
 msgstr ""
 
 msgctxt "#33100"
@@ -611,7 +623,7 @@ msgid "Enable the option to transcode"
 msgstr ""
 
 msgctxt "#33107"
-msgid "Users added to the session (no space between users). (eg username,username2)"
+msgid "Users added to the session"
 msgstr ""
 
 msgctxt "#33108"
@@ -731,7 +743,7 @@ msgid "Update library"
 msgstr ""
 
 msgctxt "#33137"
-msgid "Enable Kodi companion"
+msgid "Enable Kodi Companion (server plugin)"
 msgstr ""
 
 msgctxt "#33138"
@@ -763,7 +775,7 @@ msgid "Removing library"
 msgstr ""
 
 msgctxt "#33145"
-msgid "Please make sure your Samba (smb) share of your Emby server is accessible to your Kodi installation and that you have path substitution configured on your server. Otherwise, Kodi may fail to locate your files."
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
 msgstr ""
 
 msgctxt "#33146"
@@ -980,4 +992,20 @@ msgstr ""
 
 msgctxt "#33201"
 msgid "Emby play"
+msgstr ""
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr ""
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr ""
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr ""
+
+msgctxt "#33205"
+msgid "Delay playback (in seconds, default: 0)"
 msgstr ""

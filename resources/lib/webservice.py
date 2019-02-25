@@ -180,6 +180,14 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
         params = self.get_params()
+
+        if 'kodi/movies' in self.path:
+            params['MediaType'] = "movie"
+        elif 'kodi/musicvideos' in self.path:
+            params['MediaType'] = 'musicvideo'
+        elif 'kodi/tvshows' in self.path:
+            params['MediaType'] = "episode"
+
         loading_videos = ['default', 'black']
         loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % loading_videos[int(settings('loadingVideo') or 0)]).decode('utf-8')
         self.wfile.write(loading)
@@ -255,17 +263,21 @@ class QueuePlay(threading.Thread):
         xbmc.sleep(200) # Let Kodi catch up.
         start_position = None
         position = None
+        original_play = xbmc.getInfoLabel('Player.Filenameandpath')
 
         while True:
 
             try:
-                params, path = self.server.queue.get(timeout=0.01)
+                params, path = self.server.queue.get(timeout=float(settings('delayAfterLoading') or 0.01))
             except Queue.Empty:
                 if init_play:
 
                     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
                     LOG.info("[ playback starting/%s ]", start_position)
                     play.start_playback(start_position)
+                    play.remove_from_playlist_by_path(original_play)
+                    dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+                    play.remove_from_playlist_by_path(dummy)
 
                 self.server.threads.remove(self)
                 self.server.pending = []

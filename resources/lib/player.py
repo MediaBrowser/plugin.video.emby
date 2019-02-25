@@ -78,18 +78,21 @@ class Player(xbmc.Player):
             ''' Clear the virtual and strm link path from the playlist.
             '''
             LOG.info("emby-loading.mp4 detected.")
+            platform = settings('platformDetected')
+            distro = settings('distroDetected')
 
-            if settings('platformDetected') in ('CoreElec', 'LibreElec', 'OSMC', 'Linux/Android', 'Linux/RPi'):
+            if (platform in ('ATV2', 'Linux/RPi', 'Unknown') or 
+                platform == 'Linux/Android' and settings('lowPowered.bool') or distro == 'CoreElec'):
+
                 LOG.info("[ delay pause ]")
                 xbmc.sleep(1000)
 
             self.pause()
-
-            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).remove(xbmc.getInfoLabel('Player.Filenameandpath'))
             window('emby_loadingvideo.bool', True)
 
             return
 
+        self.stop_playback()
         items = window('emby_play.json')
         item = None
 

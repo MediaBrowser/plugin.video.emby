@@ -38,7 +38,8 @@ class PlayStrm(object):
             'AdditionalParts': None,
             'ServerId': server_id,
             'KodiPlaylist': xbmc.PlayList(xbmc.PLAYLIST_VIDEO),
-            'Server': Emby(server_id).get_client()
+            'Server': Emby(server_id).get_client(),
+            'MediaType': params.get('MediaType')
         }
         if self.info['Transcode'] is None:
              self.info['Transcode'] = settings('playFromTranscode.bool') if settings('playFromStream.bool') else None
@@ -49,10 +50,19 @@ class PlayStrm(object):
         self._detect_play()
         LOG.info("[ play strm ]")
 
+    def add_to_playlist(self, media_type, db_id, index=None, playlist_id=None):
+
+        playlist = playlist_id or self.info['KodiPlaylist'].getPlayListId()
+
+        if index is None:
+            JSONRPC('Playlist.Add').execute({'playlistid': playlist, 'item': {'%sid' % media_type: int(db_id)}})
+        else:
+            JSONRPC('Playlist.Insert').execute({'playlistid': playlist, 'position': index, 'item': {'%sid' % media_type: int(db_id)}})
+
     def remove_from_playlist(self, index, playlist_id=None):
 
-        playlist = playlist_id or 1
-        JSONRPC('Playlist.Remove').execute({'playlistid': playlist_id, 'position': index})
+        playlist = playlist_id or self.info['KodiPlaylist'].getPlayListId()
+        JSONRPC('Playlist.Remove').execute({'playlistid': playlist, 'position': index})
     
     def remove_from_playlist_by_path(self, path):
         
@@ -93,6 +103,7 @@ class PlayStrm(object):
 
         self.info['StartIndex'] = max(self.info['KodiPlaylist'].getposition(), 0)
         self.info['Index'] = self.info['StartIndex']
+
         LOG.info("[ play/%s/%s ]", self.info['Id'], self.info['Index'])
 
         listitem = xbmcgui.ListItem()
@@ -106,27 +117,31 @@ class PlayStrm(object):
     def play_folder(self, position=None):
 
         ''' When an entire queue is requested, 
-            queue playlist items using strm links to setup playback later.
+            If requested from Kodi, MediaType is provided, add as Kodi would,
+            otherwise queue playlist items using strm links to setup playback later.
         '''
         self.info['StartIndex'] = position or max(self.info['KodiPlaylist'].size(), 0)
         self.info['Index'] = self.info['StartIndex'] + 1
         LOG.info("[ play folder/%s/%s ]", self.info['Id'], self.info['Index'])
 
-        listitem = xbmcgui.ListItem()
-        self.actions.set_listitem(self.info['Item'], listitem, self.info['DbId'])
-        url = "http://127.0.0.1:57578/emby/play/file.strm?mode=playfolder&Id=%s" % self.info['Id']
+        if self.info['DbId'] and self.info['MediaType']:
+            self.add_to_playlist(self.info['MediaType'], self.info['DbId'], self.info['Index'])
+        else:
+            listitem = xbmcgui.ListItem()
+            self.actions.set_listitem(self.info['Item'], listitem, self.info['DbId'])
+            url = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % self.info['Id']
 
-        if self.info['DbId']:
-            url += "&KodiId=%s" % self.info['DbId']
+            if self.info['DbId']:
+                url += "&KodiId=%s" % self.info['DbId']
 
-        if self.info['ServerId']:
-            url += "&server=%s" % self.info['ServerId']
+            if self.info['ServerId']:
+                url += "&server=%s" % self.info['ServerId']
 
-        if self.info['Transcode']:
-            url += "&transcode=true"
+            if self.info['Transcode']:
+                url += "&transcode=true"
 
-        listitem.setPath(url)
-        self.info['KodiPlaylist'].add(url=url, listitem=listitem, index=self.info['Index'])
+            listitem.setPath(url)
+            self.info['KodiPlaylist'].add(url=url, listitem=listitem, index=self.info['Index'])
 
         return self.info['Index']
 
@@ -144,12 +159,26 @@ class PlayStrm(object):
             resume = self.info['Item']['UserData'].get('PlaybackPositionTicks')
 
             if resume:
-                choice = self.actions.resume_dialog(api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0), self.info['Item'])
+
+                adjusted = api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0)
+                choice = self.actions.resume_dialog(adjusted, self.info['Item'])
+                LOG.info("Resume: %s", adjusted)
 
                 if choice is None:
                     raise Exception("User backed out of resume dialog.")
 
                 seektime = False if not choice else True
+
+        if seektime and settings('distroDetected') == 'CoreElec':
+
+            ''' For some reason, CoreElec triggers OnStop when starting playback with resume. Add a dummy and remove it later.
+            '''
+            LOG.info("[ Adding dummy/%s ]", self.info['Index'])
+            dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+            listitem = xbmcgui.ListItem()
+            listitem.setPath(dummy)
+            self.info['KodiPlaylist'].add(url=dummy, listitem=listitem, index=self.info['Index'])
+            self.info['Index'] += 1
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros()

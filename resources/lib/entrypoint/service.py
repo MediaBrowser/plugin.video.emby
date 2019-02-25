@@ -56,6 +56,13 @@ class Service(xbmc.Monitor):
         window('emby_logLevel', value=str(self.settings['log_level']))
         window('emby_kodiProfile', value=self.settings['profile'])
         settings('platformDetected', client.get_platform())
+        settings('distroDetected', client.get_distro())
+        memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
+
+        if int(memory or 3072) < 3072:
+
+            LOG.info("[ low powered/%sMB ]", memory)
+            settings('lowPowered.bool', True)
 
         if self.settings['enable_context']:
             window('emby_context.bool', True)
@@ -66,6 +73,7 @@ class Service(xbmc.Monitor):
         LOG.warn("Version: %s", client.get_version())
         LOG.warn("KODI Version: %s", xbmc.getInfoLabel('System.BuildVersion'))
         LOG.warn("Platform: %s", settings('platformDetected'))
+        LOG.warn("OS: %s", settings('distroDetected'))
         LOG.warn("Python Version: %s", sys.version)
         LOG.warn("Using dynamic paths: %s", settings('useDirectPaths') == "0")
         LOG.warn("Log Level: %s", self.settings['log_level'])
@@ -237,7 +245,7 @@ class Service(xbmc.Monitor):
                               'LibraryChanged', 'ServerOnline', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary',
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
-                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection'):
+                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic'):
                 return
 
             data = json.loads(data)[0]
@@ -247,6 +255,7 @@ class Service(xbmc.Monitor):
 
             data = json.loads(data)
 
+        LOG.debug("[ onNotification/%s/%s ]", sender, method)
         LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data, indent=4))
 
         if method == 'ServerOnline':
@@ -436,6 +445,9 @@ class Service(xbmc.Monitor):
             else:
                 dialog("notification", heading="{emby}", message=_(33181), icon="{emby}", sound=False)
                 window('emby.restart.bool', True)
+
+        elif method == 'PatchMusic':
+            self.library_thread.run_library_task(method, data.get('Notification', True))
 
     def onSettingsChanged(self):
 

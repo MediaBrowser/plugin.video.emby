@@ -13,7 +13,7 @@ import xbmcvfs
 import downloader as server
 import helper.xmls as xmls
 from database import Database, get_sync, save_sync, emby_db
-from helper import _, settings, window, progress, dialog, LibraryException
+from helper import _, settings, window, progress, dialog, kodi_version, LibraryException
 from helper.utils import get_screensaver, set_screensaver
 from views import Views
 
@@ -35,6 +35,7 @@ class FullSync(object):
     sync = None
     running = False
     screensaver = None
+    artwork = None
 
 
     def __init__(self, library, server):
@@ -65,10 +66,28 @@ class FullSync(object):
             set_screensaver(value="")
 
         self.running = True
+
+        if settings('enableTextureCache.bool') and settings('lowPowered.bool'):
+
+            self.artwork = True
+            settings('enableTextureCache.bool', False)
+            LOG.info("[ disable artwork cache ]")
+
         window('emby_sync.bool', True)
 
         return self
 
+    def __getitem__(self, key):
+
+        if key == 'PatchMusic':
+            return self.patch_music
+
+    def _restore_point(self, restore):
+
+        ''' Assign the restore point and save the sync status.
+        '''
+        self.sync['RestorePoint'] = restore
+        save_sync(self.sync)
 
     def libraries(self, library_id=None, update=False):
 
@@ -196,7 +215,7 @@ class FullSync(object):
                 self.sync['Whitelist'].append(library)
 
             self.sync['Libraries'].pop(self.sync['Libraries'].index(library))
-            self.sync['RestorePoint'] = {}
+            self._restore_point({})
 
         elapsed = datetime.datetime.now() - start_time
         settings('SyncInstallRunDone.bool', True)
@@ -272,7 +291,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "Movie", False, self.sync['RestorePoint'].get('params')):
                         
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, movie in enumerate(items['Items']):
@@ -312,7 +331,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "Series", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, show in enumerate(items['Items']):
@@ -362,7 +381,7 @@ class FullSync(object):
 
                     for items in server.get_items(library['Id'], "MusicVideo", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, mvideo in enumerate(items['Items']):
@@ -394,6 +413,7 @@ class FullSync(object):
         ''' Process artists, album, songs from a single library.
         '''
         Music = self.library.media['Music']
+        self.patch_music()
 
         with self.library.music_database_lock:
             with Database('music') as musicdb:
@@ -402,7 +422,7 @@ class FullSync(object):
 
                     for items in server.get_artists(library['Id'], False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, artist in enumerate(items['Items']):
@@ -464,7 +484,7 @@ class FullSync(object):
 
                     for items in server.get_items(library_id, "BoxSet", False, self.sync['RestorePoint'].get('params')):
 
-                        self.sync['RestorePoint'] = items['RestorePoint']
+                        self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, boxset in enumerate(items['Items']):
@@ -489,6 +509,23 @@ class FullSync(object):
 
         self.boxsets(None)
 
+    def patch_music(self, notification=False):
+
+        ''' Patch the music database to silence the rescan prompt.
+        '''
+        if kodi_version() < 18:
+            LOG.info("version not supported for patching music db.")
+            return
+
+        with self.library.database_lock:
+            with Database('music') as musicdb:
+                self.library.kodi_media['Music'](musicdb.cursor).disable_rescan(musicdb.path.split('MyMusic')[1].split('.db')[0], 0)
+        
+        settings('MusicRescan.bool', True)
+
+        if notification:
+            dialog("notification", heading="{emby}", message=_('task_success'), icon="{emby}", time=1000, sound=False)
+
     @progress(_(33144))
     def remove_library(self, library_id, dialog):
 
@@ -503,9 +540,6 @@ class FullSync(object):
             library = db.get_view(library_id.replace('Mixed:', ""))
             items = db.get_item_by_media_folder(library_id.replace('Mixed:', ""))
             media = 'music' if library[1] == 'music' else 'video'
-
-            if media == 'music':
-                settings('MusicRescan.bool', False)
 
             if items:
                 count = 0
@@ -560,9 +594,16 @@ class FullSync(object):
         self.running = False
         window('emby_sync', clear=True)
 
-        if not settings('dbSyncScreensaver.bool') and self.screensaver is not None:
+        if self.screensaver is not None:
 
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
             set_screensaver(value=self.screensaver)
+            self.screensaver = None
+
+        if self.artwork is not None:
+
+            settings('enableTextureCache.bool', True)
+            self.artwork = None
+            LOG.info("[ enable artwork cache ]")
 
         LOG.info("--<[ fullsync ]")
