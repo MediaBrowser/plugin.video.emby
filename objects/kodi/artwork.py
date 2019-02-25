@@ -3,17 +3,21 @@
 #################################################################################################
 
 import logging
+import os
 import urllib
 import Queue
 import threading
 
 import xbmc
+import xbmcgui
 import xbmcvfs
 
 import queries as QU
+import queries_music as QUMU
 import queries_texture as QUTEX
-from helper import window, settings
 import requests
+from helper import _, window, settings, dialog
+from database import Database
 
 ##################################################################################################
 
@@ -117,11 +121,11 @@ class Artwork(object):
             if row[1] in ('poster', 'fanart'):
                 self.delete_cache(row[0])
 
-    def cache(self, url):
+    def cache(self, url, forced=False):
 
         ''' Cache a single image to texture cache.
         '''
-        if not url or not self.enable_cache:
+        if not url or not self.enable_cache and not forced:
             return
 
         url = self.double_urlencode(url)
@@ -147,13 +151,9 @@ class Artwork(object):
 
     def add_worker(self):
 
-        for thread in self.threads:
-            if thread.is_done:
-                self.threads.remove(thread)
-
         if self.queue.qsize() and len(self.threads) < 2:
 
-            new_thread = GetArtworkWorker(self.kodi, self.queue)
+            new_thread = GetArtworkWorker(self.kodi, self.queue, self.threads)
             new_thread.start()
             LOG.info("-->[ q:artwork/%s ]", id(new_thread))
             self.threads.append(new_thread)
@@ -162,8 +162,6 @@ class Artwork(object):
 
         ''' Delete cached artwork.
         '''
-        from database import Database
-
         with Database('texture') as texturedb:
 
             try:
@@ -177,15 +175,113 @@ class Artwork(object):
                 texturedb.cursor.execute(QUTEX.delete_cache, (url,))
                 LOG.info("DELETE cached %s", cached)
 
+    def cache_textures(self):
+
+        ''' This method will sync all Kodi artwork to textures13.db
+            and cache them locally. This takes diskspace!
+        '''
+        if not dialog("yesno", heading="{emby}", line1=_(33042)):
+            LOG.info("<[ cache textures ]")
+
+            return
+
+        pdialog = xbmcgui.DialogProgress()
+        pdialog.create(_('addon_name'), _(33045))
+
+        if dialog("yesno", heading="{emby}", line1=_(33044)):
+            self.delete_all_cache()
+
+        self._cache_all_video_entries(pdialog)
+        self._cache_all_music_entries(pdialog)
+        pdialog.update(100, "%s: %s" % (_(33046), len(self.queue.queue)))
+
+        while len(self.threads):
+
+            if pdialog.iscanceled():
+                break
+
+            remaining = len(self.queue.queue)
+            pdialog.update(100, "%s: %s" % (_(33046), remaining))
+            LOG.info("Waiting for all threads to exit: %s (%s)", len(self.threads), remaining)
+            xbmc.sleep(500)
+
+        pdialog.close()
+
+    def delete_all_cache(self):
+
+        ''' Remove all existing textures from the thumbnails folder.
+        '''
+        LOG.info("[ delete all thumbnails ]")
+        cache = xbmc.translatePath('special://thumbnails/').decode('utf-8')
+
+        if xbmcvfs.exists(cache):
+            dirs, ignored = xbmcvfs.listdir(cache)
+            
+            for directory in dirs:
+                ignored, files = xbmcvfs.listdir(os.path.join(cache, directory).decode('utf-8'))
+                
+                for file in files:
+
+                    cached = os.path.join(cache, directory, file).decode('utf-8')
+                    xbmcvfs.delete(cached)
+                    LOG.debug("DELETE cached %s", cached)
+
+        with Database('texture') as kodidb:
+            kodidb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
+
+            for table in kodidb.cursor.fetchall():
+                name = table[0]
+
+                if name != 'version':
+                    kodidb.cursor.execute("DELETE FROM " + name)
+
+    def _cache_all_video_entries(self, pdialog):
+
+        ''' Cache all artwork from video db. Don't include actors.
+        '''
+        with Database('video') as kodidb:
+
+            kodidb.cursor.execute(QU.get_artwork)
+            urls = kodidb.cursor.fetchall()
+
+        self._cache_all_entries(urls, pdialog)
+
+    def _cache_all_music_entries(self, pdialog):
+
+        ''' Cache all artwork from music db.
+        '''
+        with Database('music') as kodidb:
+            
+            kodidb.cursor.execute(QUMU.get_artwork)
+            urls = kodidb.cursor.fetchall()
+
+        self._cache_all_entries(urls, pdialog)
+
+    def _cache_all_entries(self, urls, pdialog):
+
+        ''' Cache all entries.
+        '''
+        total = len(urls)
+        LOG.info("[ artwork cache pending/%s ]", total)
+
+        for index, url in enumerate(urls):
+
+            if pdialog.iscanceled():
+                break
+
+            pdialog.update(int((float(index) / float(total))*100), "%s: %s/%s" % (_(33045), index, total))
+            self.cache(url[0], forced=True)
+
 
 class GetArtworkWorker(threading.Thread):
 
-    is_done = False
 
-    def __init__(self, kodi, queue):
+    def __init__(self, kodi, queue, threads):
 
         self.kodi = kodi
         self.queue = queue
+        self.threads = threads
+
         threading.Thread.__init__(self)
 
     def run(self):
@@ -200,7 +296,7 @@ class GetArtworkWorker(threading.Thread):
                     url = self.queue.get(timeout=2)
                 except Queue.Empty:
 
-                    self.is_done = True
+                    self.threads.remove(self)
                     LOG.info("--<[ q:artwork/%s ]", id(self))
 
                     return
@@ -218,169 +314,7 @@ class GetArtworkWorker(threading.Thread):
 
                 self.queue.task_done()
 
-                if xbmc.Monitor().abortRequested():
+                if window('emby_should_stop.bool'):
+                    LOG.info("[ exited artwork/%s ]", id(self))
+
                     break
-
-
-
-
-"""
-
-# -*- coding: utf-8 -*-
-
-#################################################################################################
-
-import logging
-import os
-import urllib
-from sqlite3 import OperationalError
-
-import xbmc
-import xbmcgui
-import xbmcvfs
-import requests
-
-import resources.lib.image_cache_thread as image_cache_thread
-from resources.lib.helper import _, window, settings, JSONRPC
-from resources.lib.database import Database
-from __objs__ import QU
-
-##################################################################################################
-
-log = logging.getLogger("EMBY."+__name__)
-
-##################################################################################################
-
-
-class Artwork(object):
-
-    xbmc_host = 'localhost'
-    xbmc_port = None
-    xbmc_username = None
-    xbmc_password = None
-
-    image_cache_threads = []
-    image_cache_limit = 0
-
-
-    def __init__(self, server):
-
-        self.server = server
-        self.enable_texture_cache = settings('enableTextureCache') == "true"
-        self.image_cache_limit = int(settings('imageCacheLimit')) * 5
-        log.debug("image cache thread count: %s", self.image_cache_limit)
-
-        if not self.xbmc_port and self.enable_texture_cache:
-            self._set_webserver_details()
-
-
-    def texture_cache_sync(self):
-        # This method will sync all Kodi artwork to textures13.db
-        # and cache them locally. This takes diskspace!
-        if not dialog(type_="yesno",
-                      heading="{emby}",
-                      line1=_(33042)):
-            return
-
-        log.info("Doing Image Cache Sync")
-
-        pdialog = xbmcgui.DialogProgress()
-        pdialog.create(_(29999), _(33043))
-
-        # ask to rest all existing or not
-        if dialog(type_="yesno", heading="{emby}", line1=_(33044)):
-            log.info("Resetting all cache data first")
-            self.delete_cache()
-
-        # Cache all entries in video DB
-        self._cache_all_video_entries(pdialog)
-        # Cache all entries in music DB
-        self._cache_all_music_entries(pdialog)
-
-        pdialog.update(100, "%s %s" % (_(33046), len(self.image_cache_threads)))
-        log.info("Waiting for all threads to exit")
-
-        while len(self.image_cache_threads):
-            for thread in self.image_cache_threads:
-                if thread.is_finished:
-                    self.image_cache_threads.remove(thread)
-            pdialog.update(100, "%s %s" % (_(33046), len(self.image_cache_threads)))
-            log.info("Waiting for all threads to exit: %s", len(self.image_cache_threads))
-            xbmc.sleep(500)
-
-        pdialog.close()
-
-    @classmethod
-    def delete_cache(cls):
-        # Remove all existing textures first
-        path = xbmc.translatePath('special://thumbnails/').decode('utf-8')
-        if xbmcvfs.exists(path):
-            dirs, ignore_files = xbmcvfs.listdir(path)
-            for directory in dirs:
-                ignore_dirs, files = xbmcvfs.listdir(path + directory)
-                for file_ in files:
-
-                    if os.path.supports_unicode_filenames:
-                        filename = os.path.join(path + directory.decode('utf-8'),
-                                                file_.decode('utf-8'))
-                    else:
-                        filename = os.path.join(path.encode('utf-8') + directory, file_)
-
-                    xbmcvfs.delete(filename)
-                    log.debug("deleted: %s", filename)
-
-        # remove all existing data from texture DB
-        with DatabaseConn('texture') as cursor_texture:
-            cursor_texture.execute('SELECT tbl_name FROM sqlite_master WHERE type="table"')
-            rows = cursor_texture.fetchall()
-            for row in rows:
-                table_name = row[0]
-                if table_name != "version":
-                    cursor_texture.execute("DELETE FROM " + table_name)
-
-    def _cache_all_video_entries(self, pdialog):
-
-        with Database('video') as cursor_video:
-
-            cursor_video.execute("SELECT url FROM art WHERE media_type != 'actor'") # dont include actors
-            result = cursor_video.fetchall()
-            total = len(result)
-            log.info("Image cache sync about to process %s images", total)
-            cursor_video.close()
-
-            count = 0
-            for url in result:
-
-                if pdialog.iscanceled():
-                    break
-
-                percentage = int((float(count) / float(total))*100)
-                message = "%s of %s (%s)" % (count, total, len(self.image_cache_threads))
-                pdialog.update(percentage, "%s %s" % (_(33045), message))
-                self.cache_texture(url[0])
-                count += 1
-
-    def _cache_all_music_entries(self, pdialog):
-
-        with Database('music') as cursor_music:
-        
-            cursor_music.execute("SELECT url FROM art")
-            result = cursor_music.fetchall()
-            total = len(result)
-            
-            log.info("Image cache sync about to process %s images", total)
-
-            count = 0
-            for url in result:
-
-                if pdialog.iscanceled():
-                    break
-
-                percentage = int((float(count) / float(total))*100)
-                message = "%s of %s" % (count, total)
-                pdialog.update(percentage, "%s %s" % (_(33045), message))
-                self.cache_texture(url[0])
-                count += 1
-
-"""
-
