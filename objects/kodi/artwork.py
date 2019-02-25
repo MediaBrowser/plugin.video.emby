@@ -299,7 +299,7 @@ class GetArtworkWorker(threading.Thread):
                 memory_available = xbmc.getFreeMem()
                 LOG.info(memory_available)
 
-                if memory_available < 200:
+                if memory_available < 500:
                     
                     if monitor.waitForAbort(2):
                         LOG.info("[ exited artwork/%s ]", id(self))
