@@ -623,7 +623,7 @@ msgid "Enable the option to transcode"
 msgstr ""
 
 msgctxt "#33107"
-msgid "Users added to the session (no space between users). (eg username,username2)"
+msgid "Users added to the session"
 msgstr ""
 
 msgctxt "#33108"

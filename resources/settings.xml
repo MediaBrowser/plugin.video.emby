@@ -71,7 +71,7 @@
 	    <setting label="30520" id="skipContextMenu" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
 
 	    <setting label="33107" type="lsep" />
-		<setting label="30528" id="additionalUsers" type="text" default="" />
+		<setting label="30528" id="addUsers" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=adduser&permanent=true)" option="close" />
 
 		<setting type="sep"/>
 		<setting label="30534" type="lsep" />

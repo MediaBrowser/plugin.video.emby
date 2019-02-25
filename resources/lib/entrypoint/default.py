@@ -111,7 +111,7 @@ class Events(object):
         elif mode == 'settings':
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
         elif mode == 'adduser':
-            add_user()
+            add_user(params.get('permanent') == 'true')
         elif mode == 'checkupdate':
             event('CheckUpdate')
         elif mode == 'updateserver':
@@ -735,43 +735,85 @@ def create_listitem(item):
 
     return li
 
-def add_user():
+def add_user(permanent=False):
 
     ''' Add or remove users from the default server session.
+        permanent=True from the add-on settings.
     '''
     if not window('emby_online.bool'):
         return
 
     session = TheVoid('GetSession', {}).get()
     users = TheVoid('GetUsers', {'IsDisabled': False, 'IsHidden': False}).get()
-    current = session[0]['AdditionalUsers']
 
-    result = dialog("select", _(33061), [_(33062), _(33063)] if current else [_(33062)])
+    for user in users:
 
-    if result < 0:
-        return
+        if user['Id'] == session[0]['UserId']:
+            users.remove(user)
 
-    if not result: # Add user
-        eligible = [x for x in users if x['Id'] not in [current_user['UserId'] for current_user in current]]
-        resp = dialog("select", _(33064), [x['Name'] for x in eligible])
+            break
 
-        if resp < 0:
-            return
+    while True:
 
-        user = eligible[resp]
-        event('AddUser', {'Id': user['Id'], 'Add': True})
-        dialog("notification", heading="{emby}", message="%s %s" % (_(33067), user['Name']), icon="{emby}", time=1000, sound=False)
-    else: # Remove user
-        resp = dialog("select", _(33064), [x['UserName'] for x in current])
+        session = TheVoid('GetSession', {}).get()
+        additional = current = session[0]['AdditionalUsers']
+        add_session = True
 
-        if resp < 0:
-            return
+        if permanent:
 
-        user = current[resp]
-        event('AddUser', {'Id': user['UserId'], 'Add': False})
-        dialog("notification", heading="{emby}", message="%s %s" % (_(33066), user['Name']), icon="{emby}", time=1000, sound=False)
+            perm_users = settings('addUsers').split(',') if settings('addUsers') else []
+            current = []
 
-    return add_user()
+            for user in users:
+                for perm_user in perm_users:
+
+                    if user['Id'] == perm_user:
+                        current.append({'UserName': user['Name'], 'UserId': user['Id']})
+
+        result = dialog("select", _(33061), [_(33062), _(33063)] if current else [_(33062)])
+
+        if result < 0:
+            break
+
+        if not result: # Add user
+
+            eligible = [x for x in users if x['Id'] not in [current_user['UserId'] for current_user in current]]
+            resp = dialog("select", _(33064), [x['Name'] for x in eligible])
+
+            if resp < 0:
+                break
+
+            user = eligible[resp]
+
+            if permanent:
+
+                perm_users.append(user['Id'])
+                settings('addUsers', ','.join(perm_users))
+
+                if user['Id'] in [current_user['UserId'] for current_user in additional]:
+                    add_session = False
+            
+            if add_session:
+                event('AddUser', {'Id': user['Id'], 'Add': True})
+
+            dialog("notification", heading="{emby}", message="%s %s" % (_(33067), user['Name']), icon="{emby}", time=1000, sound=False)
+        else: # Remove user
+            resp = dialog("select", _(33064), [x['UserName'] for x in current])
+
+            if resp < 0:
+                break
+
+            user = current[resp]
+
+            if permanent:
+
+                perm_users.remove(user['UserId'])
+                settings('addUsers', ','.join(perm_users))
+            
+            if add_session:
+                event('AddUser', {'Id': user['UserId'], 'Add': False})
+
+            dialog("notification", heading="{emby}", message="%s %s" % (_(33066), user['UserName']), icon="{emby}", time=1000, sound=False)
 
 def get_themes():
 
