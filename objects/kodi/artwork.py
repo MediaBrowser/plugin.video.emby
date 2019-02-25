@@ -290,8 +290,23 @@ class GetArtworkWorker(threading.Thread):
         ''' Prepare the request. Request removes the urlencode which is required in this case.
             Use a session allows to use a pool of connections.
         '''
+        monitor = xbmc.Monitor()
+
         with requests.Session() as s:
+
             while True:
+
+                memory_available = xbmc.getFreeMem()
+                LOG.info(memory_available)
+
+                if memory_available < 200:
+                    
+                    if monitor.waitForAbort(2):
+                        LOG.info("[ exited artwork/%s ]", id(self))
+
+                        break
+
+                    continue
 
                 try:
                     url = self.queue.get(timeout=2)
