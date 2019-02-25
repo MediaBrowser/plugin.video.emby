@@ -68,6 +68,9 @@ get_total_episodes =	""" SELECT	totalCount
     						FROM 	tvshowcounts 
     						WHERE 	idShow = ? 
     					"""
+get_artwork =           """ SELECT  url 
+                            FROM art
+                        """
 
 
 
