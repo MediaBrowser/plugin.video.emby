@@ -295,11 +295,9 @@ class GetArtworkWorker(threading.Thread):
         with requests.Session() as s:
 
             while True:
-
                 memory_available = xbmc.getFreeMem()
-                LOG.info(memory_available)
 
-                if memory_available < 500:
+                if memory_available < 650: # seems going lower causes instabilities in Kodi
                     
                     if monitor.waitForAbort(2):
                         LOG.info("[ exited artwork/%s ]", id(self))
