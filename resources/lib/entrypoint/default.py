@@ -956,4 +956,4 @@ def cache_artwork():
 
     from objects.kodi import artwork
 
-    artwork.Artwork(None).cache_all()
+    artwork.Artwork(None).cache_textures()

@@ -58,11 +58,7 @@ class Service(xbmc.Monitor):
         settings('platformDetected', client.get_platform())
         settings('distroDetected', client.get_distro())
         memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
-
-        if int(memory or 3072) < 3072:
-
-            LOG.info("[ low powered/%sMB ]", memory)
-            settings('lowPowered.bool', True)
+        settings('lowPowered.bool', int(memory or 2961) < 2961) # Use shield (~3GB) as cutoff
 
         if self.settings['enable_context']:
             window('emby_context.bool', True)
@@ -73,7 +69,7 @@ class Service(xbmc.Monitor):
         LOG.warn("Version: %s", client.get_version())
         LOG.warn("KODI Version: %s", xbmc.getInfoLabel('System.BuildVersion'))
         LOG.warn("Platform: %s", settings('platformDetected'))
-        LOG.warn("OS: %s", settings('distroDetected'))
+        LOG.warn("OS: %s/%sMB", settings('distroDetected'), memory)
         LOG.warn("Python Version: %s", sys.version)
         LOG.warn("Using dynamic paths: %s", settings('useDirectPaths') == "0")
         LOG.warn("Log Level: %s", self.settings['log_level'])
@@ -197,13 +193,13 @@ class Service(xbmc.Monitor):
             kodi = xbmc.getInfoLabel('System.BuildVersion')
 
         try:
-            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/databases.json').json()
+            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/objects.json').json()
             build = find(versions, kodi)
 
             if not build:
                 raise Exception("build %s incompatible?!" % kodi)
 
-            label, zipfile = build.split('-', 1)
+            label, min_version, zipfile = build.split('-', 2)
 
             if label == 'DEV' and forced:
                 LOG.info("--[ force/objects/%s ]", label)
@@ -211,7 +207,12 @@ class Service(xbmc.Monitor):
             elif label == objects.version:
                 LOG.info("--[ objects/%s ]", objects.version)
 
-                return False
+            elif compare_version(self.settings['addon_version'], min_version) < 0:
+
+                if objects.version[:2] == label[:2]:
+                    LOG.info("--[ min add-on version not met: %s ]", min_version)
+
+                    return False
 
             get_objects(zipfile, label + '.zip')
             self.reload_objects()
