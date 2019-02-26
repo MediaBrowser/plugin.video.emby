@@ -1,3 +1,6 @@
+version 2.7.4:
+- Fix PKC not synching new items if an older Kodi db is present
+
 version 2.7.3:
 - Fix PKC trying to initialize playqueues over and over again
 - Fix PKC not starting due to a higher version Kodi database
