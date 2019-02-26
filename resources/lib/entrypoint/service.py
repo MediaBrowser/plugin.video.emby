@@ -207,6 +207,8 @@ class Service(xbmc.Monitor):
             elif label == objects.version:
                 LOG.info("--[ objects/%s ]", objects.version)
 
+                return False
+
             elif compare_version(self.settings['addon_version'], min_version) < 0:
 
                 if objects.version[:2] == label[:2]:
