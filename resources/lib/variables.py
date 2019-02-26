@@ -607,6 +607,7 @@ def database_paths():
             if path_ops.exists(path):
                 setattr(thismodule, actual_version, version)
                 setattr(thismodule, actual_path, path)
+                break
 
     if (DB_VIDEO_VERSION is None or
             DB_MUSIC_VERSION is None or
