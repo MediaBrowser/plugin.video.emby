@@ -193,13 +193,13 @@ class Service(xbmc.Monitor):
             kodi = xbmc.getInfoLabel('System.BuildVersion')
 
         try:
-            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/databases.json').json()
+            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/objects.json').json()
             build = find(versions, kodi)
 
             if not build:
                 raise Exception("build %s incompatible?!" % kodi)
 
-            label, zipfile = build.split('-', 1)
+            label, min_version, zipfile = build.split('-', 2)
 
             if label == 'DEV' and forced:
                 LOG.info("--[ force/objects/%s ]", label)
@@ -207,7 +207,12 @@ class Service(xbmc.Monitor):
             elif label == objects.version:
                 LOG.info("--[ objects/%s ]", objects.version)
 
-                return False
+            elif compare_version(self.settings['addon_version'], min_version) < 0:
+
+                if objects.version[:2] == label[:2]:
+                    LOG.info("--[ min add-on version not met: %s ]", min_version)
+
+                    return False
 
             get_objects(zipfile, label + '.zip')
             self.reload_objects()
