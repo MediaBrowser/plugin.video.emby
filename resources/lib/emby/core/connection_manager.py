@@ -601,16 +601,13 @@ class ConnectionManager(object):
         servers = []
 
         for found_server in found_servers:
-
             server = self._convert_endpoint_address_to_manual_address(found_server)
 
             info = {
                 'Id': found_server['Id'],
                 'LocalAddress': server or found_server['Address'],
                 'Name': found_server['Name']
-            } #TODO
-            info['LastConnectionMode'] = CONNECTION_MODE['Manual'] if info.get('ManualAddress') else CONNECTION_MODE['Local']
-
+            }
             servers.append(info)
         else:
             return servers
