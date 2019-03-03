@@ -729,8 +729,7 @@ class Actions(object):
 
         if art in ('fanart_image', 'small_poster', 'tiny_poster',
                    'medium_landscape', 'medium_poster', 'small_fanartimage',
-                   'medium_fanartimage', 'fanart_noindicators', 'discart',
-                   'tvshow.poster'):
+                   'medium_fanartimage', 'fanart_noindicators', 'tvshow.poster'):
 
             listitem.setProperty(art, path)
         else:
