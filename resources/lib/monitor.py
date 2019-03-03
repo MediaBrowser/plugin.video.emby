@@ -39,8 +39,6 @@ class Monitor(xbmc.Monitor):
         self.device_id = get_device_id()
         self.listener = Listener(self)
         self.listener.start()
-        self.webservice = WebService()
-        self.webservice.start()
 
         self.workers_threads = []
         self.queue = Queue.Queue()
