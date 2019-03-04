@@ -153,9 +153,10 @@ class PlayStrm(object):
         '''
         seektime = self._resume()
 
-        if seektime and settings('distroDetected') == 'CoreElec':
+        if settings('distroDetected') == 'CoreElec':
 
-            ''' For some reason, CoreElec triggers OnStop when starting playback with resume. Add a dummy and remove it later.
+            ''' For some reason, CoreElec triggers OnStop when starting playback, if there's already playback ongoing aka emby-loading video. 
+                The stop skips the next item in the playlist. Add a dummy that will be skipped and remove it later.
             '''
             LOG.info("[ Adding dummy/%s ]", self.info['Index'])
             dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
