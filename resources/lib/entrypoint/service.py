@@ -18,6 +18,7 @@ import library
 import setup
 import monitor
 import requests
+import webservice
 from views import Views, verify_kodi_defaults
 from helper import _, window, settings, event, dialog, find, compare_version
 from downloader import get_objects
@@ -36,6 +37,7 @@ class Service(xbmc.Monitor):
     running = True
     library_thread = None
     monitor = None
+    webservice = None
     play_event = None
     warn = True
     settings = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
@@ -153,6 +155,11 @@ class Service(xbmc.Monitor):
 
             self.library_thread.stop_client()
             self.library_thread = None
+
+        if self.webservice is not None:
+
+            self.webservice.stop()
+            self.webservice = None
 
     def check_version(self):
 
@@ -274,6 +281,11 @@ class Service(xbmc.Monitor):
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
+
+                if self.webservice is None:
+
+                    self.webservice = webservice.WebService()
+                    self.webservice.start()
 
                 if self.library_thread is None:
 
@@ -543,9 +555,10 @@ class Service(xbmc.Monitor):
         if self.library_thread is not None:
             self.library_thread.stop_client()
 
-        if self.monitor is not None:
+        if self.webservice is not None:
+            self.webservice.stop()
 
+        if self.monitor is not None:
             self.monitor.listener.stop()
-            self.monitor.webservice.stop()
 
         LOG.warn("---<<<[ %s ]", client.get_addon_name())

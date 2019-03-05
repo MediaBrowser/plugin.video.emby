@@ -39,8 +39,6 @@ class Monitor(xbmc.Monitor):
         self.device_id = get_device_id()
         self.listener = Listener(self)
         self.listener.start()
-        self.webservice = WebService()
-        self.webservice.start()
 
         self.workers_threads = []
         self.queue = Queue.Queue()
@@ -458,6 +456,8 @@ class Monitor(xbmc.Monitor):
         '''
         if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
             window('emby_playlistclear.bool', True)
+
+        window('emby.autoplay', clear=True)
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)

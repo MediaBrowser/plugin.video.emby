@@ -204,6 +204,7 @@ class Connect(object):
 
         credentials = client.get_credentials()
         save_credentials(credentials)
+        window('emby.restart.bool', True)
 
     def manual_server(self, manager=None):
 

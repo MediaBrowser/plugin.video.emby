@@ -48,7 +48,8 @@ def set_properties(item, method, server_id=None):
         'AudioStreamIndex': info.get('AudioStreamIndex'),
         'SubtitleStreamIndex': info.get('SubtitleStreamIndex'),
         'CurrentPosition': info.get('CurrentPosition'),
-        'CurrentEpisode': info.get('CurrentEpisode')
+        'CurrentEpisode': info.get('CurrentEpisode'),
+        'LiveStreamId': info.get('LiveStreamId')
     })
 
     window('emby_play.json', current)

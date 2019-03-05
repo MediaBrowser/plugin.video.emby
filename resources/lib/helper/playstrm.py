@@ -151,27 +151,12 @@ class PlayStrm(object):
             Detect the seektime for video type content.
             Verify the default video action set in Kodi for accurate resume behavior.
         '''
-        seektime = window('emby.resume')
-        window('emby.resume', clear=True)
-        seektime = seektime == 'true' if seektime else None
+        seektime = self._resume()
 
-        if seektime is None and self.info['Item']['MediaType'] in ('Video', 'Audio'):
-            resume = self.info['Item']['UserData'].get('PlaybackPositionTicks')
+        if settings('distroDetected') == 'CoreElec':
 
-            if resume:
-
-                adjusted = api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0)
-                choice = self.actions.resume_dialog(adjusted, self.info['Item'])
-                LOG.info("Resume: %s", adjusted)
-
-                if choice is None:
-                    raise Exception("User backed out of resume dialog.")
-
-                seektime = False if not choice else True
-
-        if seektime and settings('distroDetected') == 'CoreElec':
-
-            ''' For some reason, CoreElec triggers OnStop when starting playback with resume. Add a dummy and remove it later.
+            ''' For some reason, CoreElec triggers OnStop when starting playback, if there's already playback ongoing aka emby-loading video. 
+                The stop skips the next item in the playlist. Add a dummy that will be skipped and remove it later.
             '''
             LOG.info("[ Adding dummy/%s ]", self.info['Index'])
             dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
@@ -200,6 +185,37 @@ class PlayStrm(object):
 
         if self.info['Item'].get('PartCount'):
             self._set_additional_parts()
+
+    def _resume(self):
+
+        ''' Resume item if available.
+            Returns bool or raise an exception if resume was cancelled by user.
+        '''
+        seektime = window('emby.resume')
+        seektime = seektime == 'true' if seektime else None
+        auto_play = window('emby.autoplay.bool')
+        window('emby.resume', clear=True)
+
+        if auto_play:
+
+            seektime = False
+            LOG.info("[ skip resume for auto play ]")
+
+        elif seektime is None and self.info['Item']['MediaType'] in ('Video', 'Audio'):
+            resume = self.info['Item']['UserData'].get('PlaybackPositionTicks')
+
+            if resume:
+
+                adjusted = api.API(self.info['Item'], self.info['Server']).adjust_resume((resume or 0) / 10000000.0)
+                seektime = self.actions.resume_dialog(adjusted, self.info['Item'])
+                LOG.info("Resume: %s", adjusted)
+
+                if seektime is None:
+                    raise Exception("User backed out of resume dialog.")
+
+            window('emby.autoplay.bool', True)
+
+        return seektime
 
     def _set_intros(self):
 
