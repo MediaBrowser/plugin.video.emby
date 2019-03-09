@@ -31,4 +31,9 @@ def check_migration():
         utils.settings('ipaddress', value='')
         utils.settings('port', value='')
 
+    if not utils.compare_version(last_migration, '2.7.6'):
+        LOG.info('Migrating to version 2.7.5')
+        from .library_sync.sections import delete_files
+        delete_files()
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
