@@ -404,9 +404,19 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
 
     Pass synched=False if the items have NOT been synched to the Kodi DB
     """
-    LOG.debug('Browsing to key %s, section %s, plex_type: %s, synched: %s',
-              key, section_id, plex_type, synched)
+    LOG.debug('Browsing to key %s, section %s, plex_type: %s, synched: %s, '
+              'prompt "%s"', key, section_id, plex_type, synched, prompt)
     app.init(entrypoint=True)
+    if prompt:
+        prompt = utils.dialog('input', prompt)
+        if prompt is None:
+            # User cancelled
+            return
+        prompt = prompt.strip().decode('utf-8')
+        if '?' not in key:
+            key = '%s?query=%s' % (key, prompt)
+        else:
+            key = '%s&query=%s' % (key, prompt)
     xml = DU().downloadUrl('{server}%s' % key)
     try:
         xml.attrib
