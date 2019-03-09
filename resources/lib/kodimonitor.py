@@ -454,6 +454,9 @@ def _record_playstate(status, ended):
     if not status['plex_id']:
         LOG.debug('No Plex id found to record playstate for status %s', status)
         return
+    if status['plex_type'] not in v.PLEX_VIDEOTYPES:
+        LOG.debug('Not messing with non-video entries')
+        return
     with PlexDB() as plexdb:
         db_item = plexdb.item_by_id(status['plex_id'], status['plex_type'])
     if not db_item:
