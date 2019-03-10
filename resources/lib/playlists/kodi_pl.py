@@ -14,10 +14,10 @@ from ..plex_api import API
 from .. import utils, path_ops, variables as v
 ###############################################################################
 LOG = getLogger('PLEX.playlists.kodi_pl')
-
-###############################################################################
-
 REGEX_FILE_NUMBERING = re.compile(r'''_(\d\d)\.\w+$''')
+# Avoid endless loops. Store the Kodi paths
+IGNORE_KODI_PLAYLIST_CHANGE = list()
+###############################################################################
 
 
 def create(plex_id):
@@ -65,7 +65,12 @@ def create(plex_id):
     if xml_playlist is None:
         LOG.error('Could not get Plex playlist %s', plex_id)
         raise PlaylistError('Could not get Plex playlist %s' % plex_id)
-    _write_playlist_to_file(playlist, xml_playlist)
+    IGNORE_KODI_PLAYLIST_CHANGE.append(playlist.kodi_path)
+    try:
+        _write_playlist_to_file(playlist, xml_playlist)
+    except Exception:
+        IGNORE_KODI_PLAYLIST_CHANGE.remove(playlist.kodi_path)
+        raise
     playlist.kodi_hash = utils.generate_file_md5(path)
     db.update_playlist(playlist)
     LOG.debug('Created Kodi playlist based on Plex playlist: %s', playlist)
@@ -79,12 +84,14 @@ def delete(playlist):
     Returns None or raises PlaylistError
     """
     if path_ops.exists(playlist.kodi_path):
+        IGNORE_KODI_PLAYLIST_CHANGE.append(playlist.kodi_path)
         try:
             path_ops.remove(playlist.kodi_path)
             LOG.debug('Deleted Kodi playlist: %s', playlist)
         except (OSError, IOError) as err:
             LOG.error('Could not delete Kodi playlist file %s. Error:\n%s: %s',
                       playlist, err.errno, err.strerror)
+            IGNORE_KODI_PLAYLIST_CHANGE.remove(playlist.kodi_path)
             raise PlaylistError('Could not delete %s' % playlist.kodi_path)
     db.update_playlist(playlist, delete=True)
 
