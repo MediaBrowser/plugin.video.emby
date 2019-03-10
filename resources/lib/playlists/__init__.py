@@ -36,9 +36,6 @@ SUPPORTED_FILETYPES = (
 )
 # Avoid endless loops. Store Plex IDs for creating, Kodi paths for deleting!
 IGNORE_KODI_PLAYLIST_CHANGE = list()
-# Used for updating Plex playlists due to Kodi changes - Plex playlist
-# will have to be deleted first. Add Plex ids!
-IGNORE_PLEX_PLAYLIST_CHANGE = list()
 ###############################################################################
 
 
@@ -99,10 +96,10 @@ def websocket(plex_id, status):
     plex_id = int(plex_id)
     with app.APP.lock_playlists:
         playlist = db.get_playlist(plex_id=plex_id)
-        if plex_id in IGNORE_PLEX_PLAYLIST_CHANGE:
+        if plex_id in plex_pl.IGNORE_PLEX_PLAYLIST_CHANGE:
             LOG.debug('Ignoring detected Plex playlist change for %s',
                       playlist)
-            IGNORE_PLEX_PLAYLIST_CHANGE.remove(plex_id)
+            plex_pl.IGNORE_PLEX_PLAYLIST_CHANGE.remove(plex_id)
             return
         if playlist and status == 9:
             # Won't be able to download metadata of the deleted playlist
@@ -250,7 +247,6 @@ def _full_sync():
                     LOG.info('Skipping Kodi playlist %s', path)
             else:
                 LOG.debug('Changed Kodi playlist detected: %s', path)
-                IGNORE_PLEX_PLAYLIST_CHANGE.append(playlist.plex_id)
                 plex_pl.delete(playlist)
                 playlist.kodi_hash = kodi_hash
                 try:

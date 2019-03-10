@@ -10,7 +10,9 @@ from .common import PlaylistError
 from . import pms, db
 ###############################################################################
 LOG = getLogger('PLEX.playlists.plex_pl')
-
+# Used for updating Plex playlists due to Kodi changes - Plex playlist
+# will have to be deleted first. Add Plex ids!
+IGNORE_PLEX_PLAYLIST_CHANGE = list()
 ###############################################################################
 
 
@@ -28,6 +30,7 @@ def create(playlist):
     if not plex_ids:
         LOG.warning('No Plex ids found for playlist %s', playlist)
         raise PlaylistError
+    IGNORE_PLEX_PLAYLIST_CHANGE.append(playlist.plex_id)
     pms.add_items(playlist, plex_ids)
     db.update_playlist(playlist)
     LOG.debug('Done creating Plex playlist %s', playlist)
@@ -40,5 +43,6 @@ def delete(playlist):
     Returns None or raises PlaylistError
     """
     LOG.debug('Deleting playlist from PMS: %s', playlist)
+    IGNORE_PLEX_PLAYLIST_CHANGE.append(playlist.plex_id)
     pms.delete(playlist)
     db.update_playlist(playlist, delete=True)
