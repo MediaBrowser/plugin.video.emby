@@ -54,8 +54,8 @@ def create(plex_id):
         else:
             number = int(occurance.group(1)) + 1
             if number > 3:
-                LOG.error('Detected spanning tree issue, abort sync for %s',
-                          playlist)
+                LOG.warn('Detected spanning tree issue, abort sync for %s',
+                         playlist)
                 raise PlaylistError('Spanning tree warning')
             basename = re.sub(REGEX_FILE_NUMBERING, '', path)
             path = '%s_%02d.m3u' % (basename, number)
