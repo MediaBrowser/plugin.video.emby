@@ -74,7 +74,10 @@ class PlexDBBase(object):
             answ = self.album(plex_id)
         elif plex_type == v.PLEX_TYPE_ARTIST:
             answ = self.artist(plex_id)
-        else:
+        elif plex_type in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_PHOTO, v.PLEX_TYPE_PLAYLIST):
+            # Will never be synched to Kodi
+            pass
+        elif plex_type is None:
             # SLOW - lookup plex_id in all our tables
             for kind in (v.PLEX_TYPE_MOVIE,
                          v.PLEX_TYPE_EPISODE,

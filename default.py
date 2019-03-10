@@ -41,33 +41,18 @@ class Main():
         elif mode == 'plex_node':
             self.play()
 
-        elif mode == 'ondeck':
-            entrypoint.on_deck_episodes(itemid,
-                                        params.get('tagname'),
-                                        int(params.get('limit')))
-
-        elif mode == 'recentepisodes':
-            entrypoint.recent_episodes(params.get('type'),
-                                       params.get('tagname'),
-                                       int(params.get('limit')))
-
-        elif mode == 'nextup':
-            entrypoint.next_up_episodes(params['tagname'],
-                                        int(params['limit']))
-
-        elif mode == 'inprogressepisodes':
-            entrypoint.in_progress_episodes(params['tagname'],
-                                            int(params['limit']))
-
         elif mode == 'browseplex':
             entrypoint.browse_plex(key=params.get('key'),
-                                   plex_section_id=params.get('id'))
+                                   plex_type=params.get('plex_type'),
+                                   section_id=params.get('section_id'),
+                                   synched=params.get('synched') != 'false',
+                                   prompt=params.get('prompt'))
 
         elif mode == 'watchlater':
             entrypoint.watchlater()
 
         elif mode == 'channels':
-            entrypoint.channels()
+            entrypoint.browse_plex(key='/channels/all')
 
         elif mode == 'route_to_extras':
             # Hack so we can store this path in the Kodi DB
@@ -86,20 +71,23 @@ class Main():
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % v.ADDON_ID)
 
         elif mode == 'enterPMS':
-            entrypoint.create_new_pms()
+            LOG.info('Request to manually enter new PMS address')
+            transfer.plex_command('enter_new_pms_address')
 
         elif mode == 'reset':
             transfer.plex_command('RESET-PKC')
 
         elif mode == 'togglePlexTV':
-            entrypoint.toggle_plex_tv_sign_in()
+            LOG.info('Toggle of Plex.tv sign-in requested')
+            transfer.plex_command('toggle_plex_tv_sign_in')
 
         elif mode == 'passwords':
             from resources.lib.windows import direct_path_sources
             direct_path_sources.start()
 
         elif mode == 'switchuser':
-            entrypoint.switch_plex_user()
+            LOG.info('Plex home user switch requested')
+            transfer.plex_command('switch_plex_user')
 
         elif mode in ('manualsync', 'repair'):
             if mode == 'repair':
@@ -114,7 +102,8 @@ class Main():
             transfer.plex_command('textures-scan')
 
         elif mode == 'chooseServer':
-            entrypoint.choose_pms_server()
+            LOG.info("Choosing PMS server requested, starting")
+            transfer.plex_command('choose_pms_server')
 
         elif mode == 'deviceid':
             self.deviceid()
@@ -139,7 +128,7 @@ class Main():
             entrypoint.playlists(params.get('content_type'))
 
         elif mode == 'hub':
-            entrypoint.hub(params.get('type'))
+            entrypoint.hub(params.get('content_type'))
 
         elif mode == 'select-libraries':
             LOG.info('User requested to select Plex libraries')

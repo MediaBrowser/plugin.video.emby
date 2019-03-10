@@ -23,9 +23,7 @@ def sync_pms_time():
 
     # Get all Plex libraries
     sections = PF.get_plex_sections()
-    try:
-        sections.attrib
-    except AttributeError:
+    if not sections:
         LOG.error("Error download PMS views, abort sync_pms_time")
         return False
 

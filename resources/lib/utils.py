@@ -17,6 +17,7 @@ from functools import wraps
 import hashlib
 import re
 import gc
+
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -429,11 +430,10 @@ def wipe_database():
     Will also delete all cached artwork.
     """
     LOG.warn('Start wiping')
-    # Clean up the playlists
-    delete_playlists()
-    # Clean up the video nodes
-    delete_nodes()
+    from .library_sync.sections import delete_files
     from . import kodi_db, plex_db
+    # Clean up the playlists and video nodes
+    delete_files()
     # First get the paths to all synced playlists
     playlist_paths = []
     try:
@@ -812,76 +812,6 @@ class XmlKodiSetting(object):
             for key, attribute in attrib.iteritems():
                 element.set(key, attribute)
         return element
-
-
-def playlist_xsp(mediatype, tagname, viewid, viewtype="", delete=False):
-    """
-    Feed with tagname as unicode
-    """
-    path = path_ops.translate_path("special://profile/playlists/video/")
-    if viewtype == "mixed":
-        plname = "%s - %s" % (tagname, mediatype)
-        xsppath = "%sPlex %s - %s.xsp" % (path, viewid, mediatype)
-    else:
-        plname = tagname
-        xsppath = "%sPlex %s.xsp" % (path, viewid)
-
-    # Create the playlist directory
-    if not path_ops.exists(path):
-        LOG.info("Creating directory: %s", path)
-        path_ops.makedirs(path)
-
-    # Only add the playlist if it doesn't already exists
-    if path_ops.exists(xsppath):
-        LOG.info('Path %s does exist', xsppath)
-        if delete:
-            path_ops.remove(xsppath)
-            LOG.info("Successfully removed playlist: %s.", tagname)
-        return
-
-    # Using write process since there's no guarantee the xml declaration works
-    # with etree
-    kinds = {
-        'homevideos': 'movies',
-        'movie': 'movies',
-        'show': 'tvshows'
-    }
-    LOG.info("Writing playlist file to: %s", xsppath)
-    with open(path_ops.encode_path(xsppath), 'wb') as filer:
-        filer.write(try_encode(
-            '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-            '<smartplaylist type="%s">\n\t'
-                '<name>Plex %s</name>\n\t'
-                '<match>all</match>\n\t'
-                '<rule field="tag" operator="is">\n\t\t'
-                    '<value>%s</value>\n\t'
-                '</rule>\n'
-            '</smartplaylist>\n'
-            % (kinds.get(mediatype, mediatype), plname, tagname)))
-    LOG.info("Successfully added playlist: %s", tagname)
-
-
-def delete_playlists():
-    """
-    Clean up the playlists
-    """
-    path = path_ops.translate_path('special://profile/playlists/video/')
-    for root, _, files in path_ops.walk(path):
-        for file in files:
-            if file.startswith('Plex'):
-                path_ops.remove(path_ops.path.join(root, file))
-
-
-def delete_nodes():
-    """
-    Clean up video nodes
-    """
-    path = path_ops.translate_path("special://profile/library/video/")
-    for root, dirs, _ in path_ops.walk(path):
-        for directory in dirs:
-            if directory.startswith('Plex-'):
-                path_ops.rmtree(path_ops.path.join(root, directory))
-        break
 
 
 def generate_file_md5(path):

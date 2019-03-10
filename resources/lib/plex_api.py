@@ -35,6 +35,7 @@ from logging import getLogger
 from re import sub
 from urllib import urlencode, unquote, quote
 from urlparse import parse_qsl
+
 from xbmcgui import ListItem
 
 from .plex_db import PlexDB
@@ -148,6 +149,30 @@ class API(object):
                                          self.plex_type(),
                                          omit_check=True)
         return path
+
+    def directory_path(self, section_id=None, plex_type=None, old_key=None,
+                       synched=True):
+        key = self.item.get('fastKey')
+        if not key:
+            key = self.item.get('key')
+            if old_key:
+                key = '%s/%s' % (old_key, key)
+            elif not key.startswith('/'):
+                key = '/library/sections/%s/%s' % (section_id, key)
+        params = {
+            'mode': 'browseplex',
+            'key': key,
+            'plex_type': plex_type or self.plex_type()
+        }
+        if not synched:
+            # No item to be found in the Kodi DB
+            params['synched'] = 'false'
+        if self.item.get('prompt'):
+            # User input needed, e.g. search for a movie or episode
+            params['prompt'] = self.item.get('prompt')
+        if section_id:
+            params['id'] = section_id
+        return 'plugin://%s/?%s' % (v.ADDON_ID, urlencode(params))
 
     def path_and_plex_id(self):
         """
@@ -334,6 +359,26 @@ class API(object):
             'Rating': rating,
             'UserRating': userrating
         }
+
+    def leave_count(self):
+        """
+        Returns the following dict or None
+        {
+            'totalepisodes': unicode('leafCount'),
+            'watchedepisodes': unicode('viewedLeafCount'),
+            'unwatchedepisodes': unicode(totalepisodes - watchedepisodes)
+        }
+        """
+        try:
+            total = int(self.item.attrib['leafCount'])
+            watched = int(self.item.attrib['viewedLeafCount'])
+            return {
+                'totalepisodes': unicode(total),
+                'watchedepisodes': unicode(watched),
+                'unwatchedepisodes': unicode(total - watched)
+            }
+        except (KeyError, TypeError):
+            pass
 
     def collection_list(self):
         """
@@ -522,7 +567,7 @@ class API(object):
 
     def resume_point(self):
         """
-        Returns the resume point of time in seconds as int. 0 if not found
+        Returns the resume point of time in seconds as float. 0.0 if not found
         """
         try:
             resume = float(self.item.attrib['viewOffset'])
@@ -588,7 +633,7 @@ class API(object):
 
     def premiere_date(self):
         """
-        Returns the "originallyAvailableAt" or None
+        Returns the "originallyAvailableAt", e.g. "2018-11-16" or None
         """
         return self.item.get('originallyAvailableAt')
 
@@ -859,7 +904,20 @@ class API(object):
             'subtitle': subtitlelanguages
         }
 
-    def one_artwork(self, art_kind):
+    def one_artwork(self, art_kind, aspect=None):
+        """
+        aspect can be: 'square', '16:9', 'poster'. Defaults to 'poster'
+        """
+        aspect = 'poster' if not aspect else aspect
+        if aspect == 'poster':
+            width = 1000
+            height = 1500
+        elif aspect == '16:9':
+            width = 1920
+            height = 1080
+        elif aspect == 'square':
+            width = 1000
+            height = 1000
         artwork = self.item.get(art_kind)
         if artwork and not artwork.startswith('http'):
             if '/composite/' in artwork:
@@ -870,27 +928,48 @@ class API(object):
                     args = dict(parse_qsl(args))
                     width = int(args.get('width', 400))
                     height = int(args.get('height', 400))
-                    # Adjust to 4k resolution 3,840x2,160
-                    scaling = 3840.0 / float(max(width, height))
+                    # Adjust to 4k resolution 1920x1080
+                    scaling = 1920.0 / float(max(width, height))
                     width = int(scaling * width)
                     height = int(scaling * height)
                 except ValueError:
                     # e.g. playlists
-                    width = 3840
-                    height = 3840
+                    pass
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
-            artwork = ('%s/photo/:/transcode?width=3840&height=3840&'
+            artwork = ('%s/photo/:/transcode?width=1920&height=1920&'
                        'minSize=1&upscale=0&url=%s'
                        % (app.CONN.server, quote(artwork)))
             artwork = self.attach_plex_token_to_url(artwork)
         return artwork
+
+    def artwork_episode(self, full_artwork):
+        """
+        Episodes are special, they only get the thumb, because all the other
+        artwork will be saved under season and show EXCEPT if you're
+        constructing a listitem and the item has NOT been synched to the Kodi db
+        """
+        artworks = {}
+        # Item is currently NOT in the Kodi DB
+        art = self.one_artwork('thumb')
+        if art:
+            artworks['thumb'] = art
+        if not full_artwork:
+            # For episodes, only get the thumb. Everything else stemms from
+            # either the season or the show
+            return artworks
+        for kodi_artwork, plex_artwork in \
+                v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
+            art = self.one_artwork(plex_artwork)
+            if art:
+                artworks[kodi_artwork] = art
+        return artworks
 
     def artwork(self, kodi_id=None, kodi_type=None, full_artwork=False):
         """
         Gets the URLs to the Plex artwork. Dict keys will be missing if there
         is no corresponding artwork.
         Pass kodi_id and kodi_type to grab the artwork saved in the Kodi DB
-        (thus potentially more artwork, e.g. clearart, discart)
+        (thus potentially more artwork, e.g. clearart, discart).
 
         Output ('max' version)
         {
@@ -905,44 +984,9 @@ class API(object):
         Passing full_artwork=True returns ALL the artwork for the item, so not
         just 'thumb' for episodes, but also season and show artwork
         """
-        artworks = {}
         if self.plex_type() == v.PLEX_TYPE_EPISODE:
-            # Artwork lookup for episodes is broken for addon paths
-            # Episodes is a bit special, only get the thumb, because all
-            # the other artwork will be saved under season and show
-            # EXCEPT if you're constructing a listitem
-            if not full_artwork:
-                art = self.one_artwork('thumb')
-                if art:
-                    artworks['thumb'] = art
-                return artworks
-            for kodi_artwork, plex_artwork in \
-                    v.KODI_TO_PLEX_ARTWORK_EPISODE.iteritems():
-                art = self.one_artwork(plex_artwork)
-                if art:
-                    artworks[kodi_artwork] = art
-            if not full_artwork:
-                return artworks
-            with PlexDB(lock=False) as plexdb:
-                db_item = plexdb.item_by_id(self.plex_id(),
-                                            v.PLEX_TYPE_EPISODE)
-                if db_item:
-                    season_id = db_item['parent_id']
-                    show_id = db_item['grandparent_id']
-                else:
-                    return artworks
-            # Grab artwork from the season
-            with KodiVideoDB(lock=False) as kodidb:
-                season_art = kodidb.get_art(season_id, v.KODI_TYPE_SEASON)
-            for kodi_art in season_art:
-                artworks['season.%s' % kodi_art] = season_art[kodi_art]
-            # Grab more artwork from the show
-            with KodiVideoDB(lock=False) as kodidb:
-                show_art = kodidb.get_art(show_id, v.KODI_TYPE_SHOW)
-            for kodi_art in show_art:
-                artworks['tvshow.%s' % kodi_art] = show_art[kodi_art]
-            return artworks
-
+            return self.artwork_episode(full_artwork)
+        artworks = {}
         if kodi_id:
             # in Kodi database, potentially with additional e.g. clearart
             if self.plex_type() in v.PLEX_VIDEOTYPES:
@@ -951,9 +995,6 @@ class API(object):
             else:
                 with KodiMusicDB(lock=False) as kodidb:
                     return kodidb.get_art(kodi_id, kodi_type)
-
-        # Grab artwork from Plex
-        # if self.plex_type() == v.PLEX_TYPE_EPISODE:
 
         for kodi_artwork, plex_artwork in v.KODI_TO_PLEX_ARTWORK.iteritems():
             art = self.one_artwork(plex_artwork)
@@ -974,6 +1015,10 @@ class API(object):
                                 v.PLEX_TYPE_ARTIST):
             # need to set poster also as thumb
             art = self.one_artwork('thumb')
+            if art:
+                artworks['thumb'] = art
+        if self.plex_type() == v.PLEX_TYPE_PLAYLIST:
+            art = self.one_artwork('composite')
             if art:
                 artworks['thumb'] = art
         return artworks
@@ -1560,6 +1605,96 @@ class API(object):
                                listitem=None,
                                append_show_title=False,
                                append_sxxexx=False):
+        """
+        Use for video items only
+        Call on a child level of PMS xml response (e.g. in a for loop)
+
+        listitem        : existing xbmcgui.ListItem to work with
+                          otherwise, a new one is created
+        append_show_title : True to append TV show title to episode title
+        append_sxxexx    : True to append SxxExx to episode title
+
+        Returns XBMC listitem for this PMS library item
+        """
+        title = self.title()
+        typus = self.plex_type()
+
+        if listitem is None:
+            listitem = ListItem(title)
+        else:
+            listitem.setLabel(title)
+        # Necessary; Kodi won't start video otherwise!
+        listitem.setProperty('IsPlayable', 'true')
+        # Video items, e.g. movies and episodes or clips
+        people = self.people()
+        userdata = self.userdata()
+        metadata = {
+            'genre': self.genre_list(),
+            'country': self.country_list(),
+            'year': self.year(),
+            'rating': self.audience_rating(),
+            'playcount': userdata['PlayCount'],
+            'cast': people['Cast'],
+            'director': people['Director'],
+            'plot': self.plot(),
+            'sorttitle': self.sorttitle(),
+            'duration': userdata['Runtime'],
+            'studio': self.music_studio_list(),
+            'tagline': self.tagline(),
+            'writer': people.get('Writer'),
+            'premiered': self.premiere_date(),
+            'dateadded': self.date_created(),
+            'lastplayed': userdata['LastPlayedDate'],
+            'mpaa': self.content_rating(),
+            'aired': self.premiere_date(),
+        }
+        # Do NOT set resumetime - otherwise Kodi always resumes at that time
+        # even if the user chose to start element from the beginning
+        # listitem.setProperty('resumetime', str(userdata['Resume']))
+        listitem.setProperty('totaltime', str(userdata['Runtime']))
+
+        if typus == v.PLEX_TYPE_EPISODE:
+            metadata['mediatype'] = 'episode'
+            _, _, show, season, episode = self.episode_data()
+            season = -1 if season is None else int(season)
+            episode = -1 if episode is None else int(episode)
+            metadata['episode'] = episode
+            metadata['sortepisode'] = episode
+            metadata['season'] = season
+            metadata['sortseason'] = season
+            metadata['tvshowtitle'] = show
+            if season and episode:
+                if append_sxxexx is True:
+                    title = "S%.2dE%.2d - %s" % (season, episode, title)
+            if append_show_title is True:
+                title = "%s - %s " % (show, title)
+            if append_show_title or append_sxxexx:
+                listitem.setLabel(title)
+        elif typus == v.PLEX_TYPE_MOVIE:
+            metadata['mediatype'] = 'movie'
+        else:
+            # E.g. clips, trailers, ...
+            pass
+
+        plex_id = self.plex_id()
+        listitem.setProperty('plexid', str(plex_id))
+        with PlexDB() as plexdb:
+            db_item = plexdb.item_by_id(plex_id, self.plex_type())
+        if db_item:
+            metadata['dbid'] = db_item['kodi_id']
+        metadata['title'] = title
+        # Expensive operation
+        listitem.setInfo('video', infoLabels=metadata)
+        try:
+            # Add context menu entry for information screen
+            listitem.addContextMenuItems([(utils.lang(30032),
+                                           'XBMC.Action(Info)',)])
+        except TypeError:
+            # Kodi fuck-up
+            pass
+        return listitem
+
+    def _create_folder_listitem(self, listitem=None):
         """
         Use for video items only
         Call on a child level of PMS xml response (e.g. in a for loop)

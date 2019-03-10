@@ -8,7 +8,26 @@ from __future__ import absolute_import, division, unicode_literals
 from json import loads, dumps
 from xbmc import executeJSONRPC
 
-from . import timing
+from . import kodi_constants, timing, variables as v
+
+JSON_FROM_KODITYPE = {
+    v.KODI_TYPE_MOVIE: ('VideoLibrary.GetMovieDetails',
+                        kodi_constants.FIELDS_MOVIES),
+    v.KODI_TYPE_SHOW: ('VideoLibrary.GetTVShowDetails',
+                       kodi_constants.FIELDS_TVSHOWS),
+    v.KODI_TYPE_SEASON: ('VideoLibrary.GetSeasonDetails',
+                         kodi_constants.FIELDS_SEASON),
+    v.KODI_TYPE_EPISODE: ('VideoLibrary.GetEpisodeDetails',
+                          kodi_constants.FIELDS_EPISODES),
+    v.KODI_TYPE_ARTIST: ('AudioLibrary.GetArtistDetails',
+                         kodi_constants.FIELDS_ARTISTS),
+    v.KODI_TYPE_ALBUM: ('AudioLibrary.GetAlbumDetails',
+                        kodi_constants.FIELDS_ALBUMS),
+    v.KODI_TYPE_SONG: ('AudioLibrary.GetSongDetails',
+                       kodi_constants.FIELDS_SONGS),
+    v.KODI_TYPE_SET: ('VideoLibrary.GetMovieSetDetails',
+                      []),
+}
 
 
 class JsonRPC(object):
@@ -557,3 +576,16 @@ def settings_setsettingvalue(setting, value):
         'setting': setting,
         'value': value
     })
+
+
+def item_details(kodi_id, kodi_type):
+    '''
+    Returns the Kodi item dict for this item
+    '''
+    json, fields = JSON_FROM_KODITYPE[kodi_type]
+    ret = JsonRPC(json).execute({'%sid' % kodi_type: kodi_id,
+                                'properties': fields})
+    try:
+        return ret['result']['%sdetails' % kodi_type]
+    except (KeyError, TypeError):
+        return {}
