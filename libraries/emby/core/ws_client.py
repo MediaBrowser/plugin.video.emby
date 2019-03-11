@@ -9,7 +9,7 @@ import time
 
 import xbmc
 
-from ..resources import websocket
+import websocket
 
 ##################################################################################################
 
@@ -68,6 +68,8 @@ class WSClient(threading.Thread):
 
             if not self.stop and monitor.waitForAbort(5):
                 break
+
+            self.client['callback_ws']('WebSocketRestarting')
 
         LOG.info("---<[ websocket ]")
 
