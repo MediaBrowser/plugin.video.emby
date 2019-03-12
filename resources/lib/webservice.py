@@ -67,7 +67,6 @@ class HttpServer(BaseHTTPServer.HTTPServer):
         ''' Handle one request at a time until stopped.
         '''
         self.stop = False
-        self.play = False
         self.pending = []
         self.threads = []
         self.queue = Queue.Queue()
@@ -190,7 +189,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         loading_videos = ['default', 'black']
         loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % loading_videos[int(settings('loadingVideo') or 0)]).decode('utf-8')
-        self.wfile.write(loading)
+        self.wfile.write(bytes(loading))
 
         if params['Id'] not in self.server.pending:
 
@@ -231,19 +230,6 @@ class QueuePlay(threading.Thread):
         self.server = server
         threading.Thread.__init__(self)
 
-    def is_playback_ready(self):
-        count = 0
-
-        while not window('emby_loadingvideo.bool'):
-
-            if count > 200:
-                raise Exception("Failed to start queue play.")
-
-            count += 1
-            xbmc.sleep(50)
-
-        window('emby_loadingvideo', clear=True)
-
     def run(self):
 
         ''' Queue up strm playback that was called in the webservice.
@@ -263,25 +249,51 @@ class QueuePlay(threading.Thread):
         xbmc.sleep(200) # Let Kodi catch up.
         start_position = None
         position = None
-        original_play = xbmc.getInfoLabel('Player.Filenameandpath')
+        original_play = None
+
+        def is_playback_ready():
+
+            ''' Waits for prompt setup in player.py that lets
+                us know the emby-loading video is paused.
+
+                Returns the path of the emby-loading video.
+            '''
+            count = 0
+
+            while not window('emby_loadingvideo.bool'):
+
+                if count > 200:
+                    raise Exception("Failed to start queue play.")
+
+                count += 1
+                xbmc.sleep(50)
+
+            window('emby_loadingvideo', clear=True)
+
+            return xbmc.getInfoLabel('Player.Filenameandpath')
+
+        def finish():
+
+            ''' Terminate this thread correctly.
+            '''
+            xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+            self.server.threads.remove(self)
+            self.server.pending = []
 
         while True:
 
             try:
                 params, path = self.server.queue.get(timeout=float(settings('delayAfterLoading') or 0.01))
             except Queue.Empty:
-                if init_play:
 
-                    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-                    LOG.info("[ playback starting/%s ]", start_position)
-                    play.start_playback(start_position)
-                    play.remove_from_playlist_by_path(original_play)
-                    dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
-                    play.remove_from_playlist_by_path(dummy)
+                finish()
 
-                self.server.threads.remove(self)
-                self.server.pending = []
-                
+                LOG.info("[ playback starting/%s ]", start_position)
+                play.start_playback(start_position)
+
+                dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+                play.remove_from_playlist_by_path(dummy)
+
                 break
 
             play = playstrm.PlayStrm(params, params.get('ServerId'))
@@ -299,25 +311,22 @@ class QueuePlay(threading.Thread):
                         position = play.play_folder(position)
                     else:
                         play_folder = True
-                        self.is_playback_ready()
+                        original_play = is_playback_ready()
                         start_position = position = play.play()
                         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
                 else:
-                    self.is_playback_ready()
+                    original_play = is_playback_ready()
                     play.play()
             except Exception as error:
 
                 LOG.error(error)
                 xbmc.Player().stop()
-                init_play = False
                 self.server.queue.queue.clear()
-                self.server.threads.remove(self)
-                self.server.pending = []
-                xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                finish()
 
                 break
 
-            init_play = True
+            play.remove_from_playlist_by_path(original_play)
             self.server.queue.task_done()
 
         LOG.info("--<[ queue play ]")
