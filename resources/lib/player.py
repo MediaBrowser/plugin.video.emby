@@ -40,6 +40,9 @@ class Player(xbmc.Player):
     def is_playing_file(self, file):
         return file in self.played
 
+    def is_current_file(self, file):
+        return file == self.get_playing_file()
+
     def onAVStarted(self):
         LOG.info("[ onAVStarted ]")        
 
@@ -409,6 +412,11 @@ class Player(xbmc.Player):
         LOG.info("Played info: %s", self.played)
 
         for file in self.played:
+
+            if self.is_current_file(file):
+                LOG.info("[ skip stop played for currently playing: %s ]", file)
+
+                continue
 
             try:
                 item = self.get_file_info(file)
