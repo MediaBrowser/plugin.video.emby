@@ -41,8 +41,6 @@
 	
 	<category label="30516"><!-- Playback -->
 		<setting label="33113" type="lsep" />
-		<setting label="33198" id="loadingVideo" type="enum" lvalues="33199|33200" visible="true" default="0" />
-		<setting label="33205" id="delayAfterLoading" type="slider" visible="true" option="float" range="0,0.1,10" default="0" />
 		<setting label="30518" id="enableCinema" type="bool" default="true" />
 		<setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
 		<setting label="30002" id="playFromStream" type="bool" default="true" />

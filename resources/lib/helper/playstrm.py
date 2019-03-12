@@ -23,7 +23,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 
 class PlayStrm(object):
 
-    def __init__(self, params, server_id=None):
+    def __init__(self, params, server_id=None, loading_video=None):
 
         ''' Workflow: Strm that calls our webservice in database. When played,
             the webserivce returns a dummy file to play. Meanwhile,
@@ -39,7 +39,8 @@ class PlayStrm(object):
             'ServerId': server_id,
             'KodiPlaylist': xbmc.PlayList(xbmc.PLAYLIST_VIDEO),
             'Server': Emby(server_id).get_client(),
-            'MediaType': params.get('MediaType')
+            'MediaType': params.get('MediaType'),
+            'LoadingVideo': loading_video
         }
         if self.info['Transcode'] is None:
              self.info['Transcode'] = settings('playFromTranscode.bool') if settings('playFromStream.bool') else None
@@ -153,16 +154,16 @@ class PlayStrm(object):
         '''
         seektime = self._resume()
 
-        if settings('distroDetected') == 'CoreElec':
+        if seektime and settings('distroDetected') == 'CoreElec':
 
             ''' For some reason, CoreElec triggers OnStop when starting playback, if there's already playback ongoing aka emby-loading video. 
                 The stop skips the next item in the playlist. Add a dummy that will be skipped and remove it later.
             '''
             LOG.info("[ Adding dummy/%s ]", self.info['Index'])
-            dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
+
             listitem = xbmcgui.ListItem()
-            listitem.setPath(dummy)
-            self.info['KodiPlaylist'].add(url=dummy, listitem=listitem, index=self.info['Index'])
+            listitem.setPath(self.info['LoadingVideo'])
+            self.info['KodiPlaylist'].add(url=self.info['LoadingVideo'], listitem=listitem, index=self.info['Index'])
             self.info['Index'] += 1
 
         if settings('enableCinema.bool') and not seektime:

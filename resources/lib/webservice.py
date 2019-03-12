@@ -208,15 +208,24 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif 'kodi/tvshows' in self.path:
             params['MediaType'] = "episode"
 
-        loading_videos = ['default', 'black']
-        loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % loading_videos[int(settings('loadingVideo') or 0)]).decode('utf-8')
+        res = xbmc.getInfoLabel('System.ScreenResolution')
+
+        if '@' in res:
+            refresh_rate = res.split('@', 1)[1].split('Hz')[0].replace('.', "_")
+
+            if refresh_rate not in ["23_976", "24", "25", "59_97", "30", "50", "59_94", "60"]:
+                refresh_rate = "25"
+        else:
+            refresh_rate = "25"
+
+        loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % refresh_rate).decode('utf-8')
         self.wfile.write(bytes(loading))
 
         if params['Id'] not in self.server.pending:
 
             xbmc.log("[ webservice/%s ] path: %s params: %s" % (str(id(self)), str(self.path), str(params)), xbmc.LOGWARNING)
             self.server.pending.append(params['Id'])
-            self.server.queue.put((params, ''.join(["http://127.0.0.1", ":", str(PORT), self.path.encode('utf-8')]),))
+            self.server.queue.put((params, ''.join(["http://127.0.0.1", ":", str(PORT), self.path.encode('utf-8')]), loading.encode('utf-8'), ))
 
             if len(self.server.threads) < 1:
 
@@ -304,20 +313,18 @@ class QueuePlay(threading.Thread):
         while True:
 
             try:
-                params, path = self.server.queue.get(timeout=float(settings('delayAfterLoading') or 0.01))
+                params, path, loading = self.server.queue.get(timeout=0.01)
             except Queue.Empty:
 
                 finish()
 
                 LOG.info("[ playback starting/%s ]", start_position)
                 play.start_playback(start_position)
-
-                dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
-                play.remove_from_playlist_by_path(dummy)
+                play.remove_from_playlist_by_path(loading.decode('utf-8'))
 
                 break
 
-            play = playstrm.PlayStrm(params, params.get('ServerId'))
+            play = playstrm.PlayStrm(params, params.get('ServerId'), loading.decode('utf-8'))
             play.remove_from_playlist_by_path(path)
 
             if start_position is None:
