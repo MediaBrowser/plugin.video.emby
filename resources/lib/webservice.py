@@ -30,6 +30,26 @@ class WebService(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
+    def is_alive(self):
+
+        ''' Called to see if the webservice is still responding.
+        '''
+        alive = True
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(('127.0.0.1', PORT))
+            s.sendall("")
+        except Exception as error:
+            LOG.error(error)
+
+            if 'Errno 61' in error:
+                alive = False
+
+        s.close()
+
+        return alive
+
     def stop(self):
 
         ''' Called when the thread needs to stop
@@ -46,9 +66,9 @@ class WebService(threading.Thread):
         ''' Called to start the webservice.
         '''
         LOG.info("--->[ webservice/%s ]", PORT)
+        server = HttpServer(('127.0.0.1', PORT), RequestHandler)
 
         try:
-            server = HttpServer(('127.0.0.1', PORT), requestHandler)
             server.serve_forever()
         except Exception as error:
 
@@ -75,11 +95,12 @@ class HttpServer(BaseHTTPServer.HTTPServer):
             self.handle_request()
 
 
-class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     ''' Http request handler. Do not use LOG here,
         it will hang requests in Kodi > show information dialog.
     '''
+    timeout = 0.5
 
     def log_message(self, format, *args):
 
@@ -94,7 +115,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             BaseHTTPServer.BaseHTTPRequestHandler.handle(self)
         except Exception as error:
-            pass#xbmc.log(str(error), xbmc.LOGWARNING)
+            pass
 
     def do_QUIT(self):
 
@@ -147,8 +168,6 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Send headers and reponse
         '''
         try:
-            #xbmc.log(str(self.path), xbmc.LOGWARNING)
-
             if 'extrafanart' in self.path or 'extrathumbs' in self.path:
                 raise Exception("unsupported artwork request")
 
@@ -160,8 +179,10 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             elif 'file.strm' not in self.path:
                 self.images()
-            else:
+            elif 'file.strm' in self.path:
                 self.strm()
+            else:
+                xbmc.log(str(self.path), xbmc.LOGWARNING)
 
         except Exception as error:
             self.send_error(500, "[ webservice ] Exception occurred: %s" % error)

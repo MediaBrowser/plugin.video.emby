@@ -124,6 +124,14 @@ class Service(xbmc.Monitor):
                         if update:
                             self.settings['last_progress_report'] = datetime.today()
 
+            if self.webservice is not None and not self.webservice.is_alive():
+                
+                LOG.info("[ restarting webservice ]")
+                self.webservice.stop()
+
+                self.webservice = webservice.WebService()
+                self.webservice.start()
+
             if window('emby.restart.bool'):
 
                 window('emby.restart', clear=True)
@@ -302,7 +310,7 @@ class Service(xbmc.Monitor):
             if data.get('ServerId') is None:
                 self.stop_default()
 
-                if self.waitForAbort(120):
+                if self.waitForAbort(20):
                     return
                 
                 self.start_default()
