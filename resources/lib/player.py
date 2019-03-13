@@ -146,6 +146,8 @@ class Player(xbmc.Player):
         if item['PlayOption'] == 'Addon':
             self.set_audio_subs(item['AudioStreamIndex'], item['SubtitleStreamIndex'])
 
+        item['Track'] = True
+
     def set_item(self, file, item):
 
         ''' Set playback information.
@@ -176,7 +178,8 @@ class Player(xbmc.Player):
             'Muted': muted,
             'Volume': volume,
             'Server': Emby(item['ServerId']).get_client(),
-            'Paused': False
+            'Paused': False,
+            'Track': False
         })
 
         self.played[file] = item
@@ -340,6 +343,9 @@ class Player(xbmc.Player):
         item = self.get_file_info(current_file)
 
         if window('emby.external.bool'):
+            return
+
+        if not item['Track']:
             return
 
         if not report:
