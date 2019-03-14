@@ -43,7 +43,7 @@ class WebService(threading.Thread):
         except Exception as error:
             LOG.error(error)
 
-            if 'Errno 61' in error:
+            if 'Errno 61' in str(error):
                 alive = False
 
         s.close()
@@ -209,6 +209,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             params['MediaType'] = "episode"
 
         res = xbmc.getInfoLabel('System.ScreenResolution')
+        xbmc.log("[ webservice ] resolution: %s" % res, xbmc.LOGWARNING)
 
         if '@' in res:
             refresh_rate = res.split('@', 1)[1].split('Hz')[0].replace('.', "_")
