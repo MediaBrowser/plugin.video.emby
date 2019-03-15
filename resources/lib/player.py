@@ -27,6 +27,8 @@ class Player(xbmc.Player):
     up_next = False
 
     def __init__(self):
+
+        self.monitor = xbmc.Monitor()
         xbmc.Player.__init__(self)
 
     @silent_catch()
@@ -43,6 +45,25 @@ class Player(xbmc.Player):
     def is_current_file(self, file):
         return file == self.get_playing_file()
 
+    def get_current_file(self, count=0):
+
+        ''' Each count is approx 1s.
+        '''
+        try:
+            return self.getPlayingFile()
+        except Exception:
+
+            while count > 0:
+                try:
+                    return self.getPlayingFile()
+                except Exception:
+                    count -= 1
+
+                if self.monitor.waitForAbort(1):
+                    return
+            else:
+                raise Exception("FileNotFound")
+
     def onAVStarted(self):
         LOG.info("[ onAVStarted ]")        
 
@@ -54,27 +75,13 @@ class Player(xbmc.Player):
         '''
         LOG.info("[ onPlayBackStarted ]")
         self.up_next = False
-        count = 0
-        monitor = xbmc.Monitor()
 
         try:
-            current_file = self.getPlayingFile()
-        except Exception:
+            current_file = self.get_current_file(5)
+        except Exception as error:
+            LOG.error(error)
 
-            while count < 5:
-                try:
-                    current_file = self.getPlayingFile()
-                    count = 0
-                    break
-                except Exception:
-                    count += 1
-
-                if monitor.waitForAbort(1):
-                    return
-            else:
-                LOG.info('Cancel playback report')
-
-                return
+            return
 
         if current_file.endswith('emby-loading.mp4'):
             
@@ -101,7 +108,7 @@ class Player(xbmc.Player):
 
         while not items:
 
-            if monitor.waitForAbort(2):
+            if self.monitor.waitForAbort(2):
                 return
 
             items = window('emby_play.json')
@@ -140,7 +147,7 @@ class Player(xbmc.Player):
         item['Server']['api'].session_playing(data)
         window('emby.skip.%s.bool' % item['Id'], True)
 
-        if monitor.waitForAbort(2):
+        if self.monitor.waitForAbort(2):
             return
 
         if item['PlayOption'] == 'Addon':
@@ -415,18 +422,19 @@ class Player(xbmc.Player):
         if not self.played:
             return
 
-        LOG.info("Played info: %s", self.played)
+        LOG.info("[ played info ] %s", self.played)
 
-        for file in self.played:
-
-            if self.is_current_file(file):
-                LOG.info("[ skip stop played for currently playing: %s ]", file)
-
-                continue
+        for file in dict(self.played):
 
             try:
                 item = self.get_file_info(file)
 
+                if not item['Track']:
+                    LOG.info("[ skip stop ] %s", file)
+
+                    continue
+
+                self.played.pop(file, None)
                 window('emby.skip.%s.bool' % item['Id'], True)
 
                 if window('emby.external.bool'):
@@ -485,5 +493,3 @@ class Player(xbmc.Player):
                 LOG.error(error)
 
             window('emby.external_check', clear=True)
-
-        self.played.clear()

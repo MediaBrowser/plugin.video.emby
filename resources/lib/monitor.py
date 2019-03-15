@@ -117,6 +117,8 @@ class Monitor(xbmc.Monitor):
             data = json.loads(binascii.unhexlify(data[0])) if data else data
         else:
             if method not in ('Player.OnPlay', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
+                LOG.info("[ %s/%s ]", sender, method)
+
                 return
 
             data = json.loads(data)
