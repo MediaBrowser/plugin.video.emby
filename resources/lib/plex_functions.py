@@ -819,7 +819,12 @@ def get_plex_sections():
     """
     Returns all Plex sections (libraries) of the PMS as an etree xml
     """
-    return DU().downloadUrl('{server}/library/sections')
+    xml = DU().downloadUrl('{server}/library/sections')
+    try:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
+        xml = None
+    return xml
 
 
 def init_plex_playqueue(plex_id, librarySectionUUID, mediatype='movie',

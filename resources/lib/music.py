@@ -3,8 +3,8 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from . import utils
 from .plex_api import API
+from . import utils
 from . import variables as v
 
 ###############################################################################
@@ -12,7 +12,7 @@ LOG = getLogger('PLEX.music')
 ###############################################################################
 
 
-def excludefromscan_music_folders(xml):
+def excludefromscan_music_folders(sections):
     """
     Gets a complete list of paths for music libraries from the PMS. Sets them
     to be excluded in the advancedsettings.xml from being scanned by Kodi.
@@ -24,16 +24,17 @@ def excludefromscan_music_folders(xml):
     paths = []
     reboot = False
     api = API(item=None)
-    for library in xml:
-        if library.attrib['type'] != v.PLEX_TYPE_ARTIST:
+    for section in sections:
+        if section.plex_type != v.PLEX_TYPE_ARTIST:
             # Only look at music libraries
             continue
-        for location in library:
-            if location.tag == 'Location':
-                path = api.validate_playurl(location.attrib['path'],
-                                            typus=v.PLEX_TYPE_ARTIST,
-                                            omit_check=True)
-                paths.append(__turn_to_regex(path))
+        if not section.sync_to_kodi:
+            continue
+        for location in section.xml.findall('Location'):
+            path = api.validate_playurl(location.attrib['path'],
+                                        typus=v.PLEX_TYPE_ARTIST,
+                                        omit_check=True)
+            paths.append(_turn_to_regex(path))
     try:
         with utils.XmlKodiSetting(
                 'advancedsettings.xml',
@@ -73,7 +74,7 @@ def excludefromscan_music_folders(xml):
         utils.reboot_kodi(utils.lang(39711))
 
 
-def __turn_to_regex(path):
+def _turn_to_regex(path):
     """
     Turns a path into regex expression to be fed to Kodi's advancedsettings.xml
     """

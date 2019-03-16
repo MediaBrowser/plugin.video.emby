@@ -1,3 +1,11 @@
+version 2.7.6:
+- Make 2.7.5 available for everyone
+
+version 2.7.5 (beta only):
+- Giant overhaul of widgets
+- Fix some KeyErrors when playing songs
+- Fix rare cases where playlists were being created
+
 version 2.7.4:
 - Fix PKC not synching new items if an older Kodi db is present
 
