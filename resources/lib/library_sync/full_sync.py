@@ -258,6 +258,7 @@ class FullSync(common.fullsync_mixin):
                 for section in (x for x in sections.SECTIONS
                                 if x.section_type == kind[1]):
                     if self.isCanceled():
+                        LOG.debug('Need to exit now')
                         return
                     if not section.sync_to_kodi:
                         LOG.info('User chose to not sync section %s', section)
