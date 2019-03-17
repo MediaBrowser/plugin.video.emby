@@ -90,9 +90,9 @@ def sync_pms_time():
     # Toggle watched state back
     PF.scrobble(plex_id, 'unwatched')
     try:
-        plextime = xml[0].get('lastViewedAt')
-    except (IndexError, TypeError, AttributeError):
-        LOG.error('Could not get lastViewedAt - aborting')
+        plextime = xml[0].attrib['lastViewedAt']
+    except (IndexError, TypeError, AttributeError, KeyError):
+        LOG.warn('Could not get lastViewedAt - aborting')
         return False
 
     # Calculate time offset Kodi-PMS
