@@ -459,7 +459,7 @@ class Service(object):
                 continue
 
             if app.APP.suspend:
-                app.APP.monitor.waitForAbort(0.1)
+                xbmc.sleep(100)
                 continue
 
             # Before proceeding, need to make sure:
@@ -498,7 +498,7 @@ class Service(object):
                 if utils.settings('enable_alexa') == 'true':
                     self.alexa.start()
 
-            app.APP.monitor.waitForAbort(0.1)
+            xbmc.sleep(100)
 
         # EXITING PKC
         # Tell all threads to terminate (e.g. several lib sync threads)
