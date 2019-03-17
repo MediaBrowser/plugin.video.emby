@@ -372,19 +372,15 @@ def verify_kodi_item(plex_id, kodi_item):
         raise PlaylistError
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
-    kodi_id, _ = kodiid_from_filename(kodi_item['file'],
-                                      v.KODI_TYPE_MOVIE)
-    kodi_item['type'] = v.KODI_TYPE_MOVIE
-    if kodi_id is None:
-        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
-                                          v.KODI_TYPE_EPISODE)
-        kodi_item['type'] = v.KODI_TYPE_EPISODE
-    if kodi_id is None:
-        kodi_id, _ = kodiid_from_filename(kodi_item['file'],
-                                          v.KODI_TYPE_SONG)
-        kodi_item['type'] = v.KODI_TYPE_SONG
+    # Try the VIDEO DB first - will find both movies and episodes
+    kodi_id, kodi_type = kodiid_from_filename(kodi_item['file'],
+                                              db_type='video')
+    if not kodi_id:
+        # No movie or episode found - try MUSIC DB now for songs
+        kodi_id, kodi_type = kodiid_from_filename(kodi_item['file'],
+                                                  db_type='music')
     kodi_item['id'] = kodi_id
-    kodi_item['type'] = None if kodi_id is None else kodi_item['type']
+    kodi_item['type'] = None if kodi_id is None else kodi_type
     LOG.debug('Research results for kodi_item: %s', kodi_item)
     return kodi_item
 
