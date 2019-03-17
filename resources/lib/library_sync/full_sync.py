@@ -410,7 +410,7 @@ class FullSync(common.fullsync_mixin):
     def _run(self):
         self.current_sync = timing.plex_now()
         # Get latest Plex libraries and build playlist and video node files
-        if not sections.sync_from_pms(self):
+        if self.isCanceled() or not sections.sync_from_pms(self):
             return
         self.successful = True
         try:
@@ -422,10 +422,7 @@ class FullSync(common.fullsync_mixin):
             # Actual syncing - do only new items first
             LOG.info('Running full_library_sync with repair=%s',
                      self.repair)
-            if not self.full_library_sync():
-                self.successful = False
-                return
-            if self.isCanceled():
+            if self.isCanceled() or not self.full_library_sync():
                 self.successful = False
                 return
             if common.PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
