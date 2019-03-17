@@ -451,6 +451,9 @@ class Service(object):
                     self.choose_plex_libraries()
                 elif plex_command == 'RESET-PKC':
                     utils.reset()
+                elif plex_command == 'EXIT-PKC':
+                    LOG.info('Received command from another instance to quit')
+                    app.APP.stop_pkc = True
                 if task:
                     backgroundthread.BGThreader.addTasksToFront([task])
                 continue
@@ -506,26 +509,37 @@ class Service(object):
         library_sync.clear_window_vars()
         # Will block until threads have quit
         app.APP.stop_threads()
-        utils.window('plex_service_started', clear=True)
-        LOG.info("======== STOP %s ========", v.ADDON_NAME)
 
 
 def start():
     # Safety net - Kody starts PKC twice upon first installation!
     if utils.window('plex_service_started') == 'true':
-        EXIT = True
-    else:
-        utils.window('plex_service_started', value='true')
-        EXIT = False
-
-    # Delay option
+        LOG.info('Another service.py instance is already running - shutting '
+                 'it down now')
+        # Telling the other Python instance of PKC to shut down now
+        i = 0
+        while utils.window('plexkodiconnect.command'):
+            xbmc.sleep(20)
+            i += 1
+            if i > 300:
+                LOG.error('Could not tell other PKC instance to shut down')
+                return
+        utils.window('plexkodiconnect.command', value='EXIT-PKC')
+        # Telling successful - now wait for actual shut-down
+        i = 0
+        while utils.window('plex_service_started'):
+            xbmc.sleep(20)
+            i += 1
+            if i > 300:
+                LOG.error('Could not shut down other PKC instance')
+                return
+    utils.window('plex_service_started', value='true')
     DELAY = int(utils.settings('startupDelay'))
-
     LOG.info("Delaying Plex startup by: %s sec...", DELAY)
-    if EXIT:
-        LOG.error('PKC service.py already started - exiting this instance')
-    elif DELAY and xbmc.Monitor().waitForAbort(DELAY):
+    if DELAY and xbmc.Monitor().waitForAbort(DELAY):
         # Start the service
         LOG.info("Abort requested while waiting. PKC not started.")
     else:
         Service().ServiceEntryPoint()
+    utils.window('plex_service_started', clear=True)
+    LOG.info("======== STOP PlexKodiConnect service ========")
