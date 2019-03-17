@@ -246,20 +246,27 @@ class Section(object):
         }
         if not self.sync_to_kodi:
             args['synched'] = 'false'
-        addon_path = self.addon_path(args)
+        addon_index = self.addon_path(args)
         if self.sync_to_kodi and self.section_type in v.PLEX_VIDEOTYPES:
-            path = 'library://video/Plex-%s' % self.section_id
+            path = 'library://video/Plex-{0}/{0}_all.xml'
+            path = path.format(self.section_id)
+            index = 'library://video/Plex-%s' % self.section_id
         else:
             # No xmls to link to - let's show the listings on the fly
-            path = addon_path
+            index = addon_index
+            args['key'] = '/library/sections/%s/all' % self.section_id
+            path = self.addon_path(args)
+        # .index will list all possible nodes for this library
+        utils.window('%s.index' % self.node, value=index)
         utils.window('%s.title' % self.node, value=self.name)
         utils.window('%s.type' % self.node, value=self.content)
         utils.window('%s.content' % self.node, value=path)
+        # .path leads to all elements of this library
         utils.window('%s.path' % self.node,
                      value='ActivateWindow(Videos,%s,return)' % path)
         utils.window('%s.id' % self.node, value=str(self.section_id))
         # To let the user navigate into this node when selecting widgets
-        utils.window('%s.addon_path' % self.node, value=addon_path)
+        utils.window('%s.addon_index' % self.node, value=addon_index)
         if not self.sync_to_kodi:
             self.remove_files_from_kodi()
             return
