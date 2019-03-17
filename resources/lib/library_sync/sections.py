@@ -246,20 +246,27 @@ class Section(object):
         }
         if not self.sync_to_kodi:
             args['synched'] = 'false'
-        addon_path = self.addon_path(args)
+        addon_index = self.addon_path(args)
         if self.sync_to_kodi and self.section_type in v.PLEX_VIDEOTYPES:
-            path = 'library://video/Plex-%s' % self.section_id
+            path = 'library://video/Plex-{0}/{0}_all.xml'
+            path = path.format(self.section_id)
+            index = 'library://video/Plex-%s' % self.section_id
         else:
             # No xmls to link to - let's show the listings on the fly
-            path = addon_path
+            index = addon_index
+            args['key'] = '/library/sections/%s/all' % self.section_id
+            path = self.addon_path(args)
+        # .index will list all possible nodes for this library
+        utils.window('%s.index' % self.node, value=index)
         utils.window('%s.title' % self.node, value=self.name)
         utils.window('%s.type' % self.node, value=self.content)
         utils.window('%s.content' % self.node, value=path)
+        # .path leads to all elements of this library
         utils.window('%s.path' % self.node,
                      value='ActivateWindow(Videos,%s,return)' % path)
         utils.window('%s.id' % self.node, value=str(self.section_id))
         # To let the user navigate into this node when selecting widgets
-        utils.window('%s.addon_path' % self.node, value=addon_path)
+        utils.window('%s.addon_index' % self.node, value=addon_index)
         if not self.sync_to_kodi:
             self.remove_files_from_kodi()
             return
@@ -307,7 +314,7 @@ class Section(object):
                 xml = getattr(nodes, 'node_%s' % node_type)(self, node_name)
             self._write_xml(xml, xml_name)
         self.order += 1
-        self._window_node(path, node_name, node_type)
+        self._window_node(path, node_name, node_type, pms_node)
 
     def _write_xml(self, xml, xml_name):
         LOG.debug('Creating xml for section %s: %s', self.name, xml_name)
@@ -329,17 +336,17 @@ class Section(object):
         utils.indent(xml)
         etree.ElementTree(xml).write(self.playlist_path, encoding='utf-8')
 
-    def _window_node(self, path, node_name, node_type):
+    def _window_node(self, path, node_name, node_type, pms_node):
         """
         Will save this section's node to the Kodi window variables
 
         Uses the same conventions/logic as Emby for Kodi does
         """
-        if self.section_type == v.PLEX_TYPE_ARTIST:
-            window_path = 'ActivateWindow(Music,%s,return)' % path
-        elif self.section_type == v.PLEX_TYPE_PHOTO:
+        if pms_node or not self.sync_to_kodi:
             # Check: elif node_type in ('browse', 'homevideos', 'photos'):
             window_path = path
+        elif self.section_type == v.PLEX_TYPE_ARTIST:
+            window_path = 'ActivateWindow(Music,%s,return)' % path
         else:
             window_path = 'ActivateWindow(Videos,%s,return)' % path
         # if node_type == 'all':
