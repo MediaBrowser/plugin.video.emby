@@ -283,6 +283,8 @@ class FullSync(common.fullsync_mixin):
                         self.section_success = False
                     else:
                         queue.put(element)
+        except Exception:
+            utils.ERROR(notify=True)
         finally:
             queue.put(None)
 
