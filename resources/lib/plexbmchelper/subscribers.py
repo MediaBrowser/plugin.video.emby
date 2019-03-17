@@ -289,7 +289,9 @@ class SubscriptionMgr(object):
         # To avoid RuntimeError, don't use self.lastplayers
         for playerid in (0, 1, 2):
             self.last_params['state'] = 'stopped'
-            self._send_pms_notification(playerid, self.last_params)
+            self._send_pms_notification(playerid,
+                                        self.last_params,
+                                        timeout=0.0001)
 
     def _plex_stream_index(self, playerid, stream_type):
         """
@@ -399,7 +401,11 @@ class SubscriptionMgr(object):
         self.last_params = params
         return params
 
-    def _send_pms_notification(self, playerid, params):
+    def _send_pms_notification(self, playerid, params, timeout=None):
+        """
+        Pass a really low timeout in seconds if shutting down Kodi and we don't
+        need the PMS' response
+        """
         serv = self._server_by_host(self.server)
         playqueue = PQ.PLAYQUEUES[playerid]
         xargs = params_pms()
@@ -416,7 +422,8 @@ class SubscriptionMgr(object):
         DU().downloadUrl(url,
                          authenticate=False,
                          parameters=xargs,
-                         headerOverride=HEADERS_PMS)
+                         headerOverride=HEADERS_PMS,
+                         timeout=timeout)
         LOG.debug("Sent server notification with parameters: %s to %s",
                   xargs, url)
 
