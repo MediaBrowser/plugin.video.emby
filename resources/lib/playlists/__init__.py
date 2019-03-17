@@ -202,6 +202,8 @@ def _full_sync():
             return False
         playlist = db.get_playlist(plex_id=plex_id)
         LOG.debug('Removing outdated Plex playlist from Kodi: %s', playlist)
+        if playlist is None:
+            continue
         try:
             kodi_pl.delete(playlist)
         except PlaylistError:
