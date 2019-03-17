@@ -258,6 +258,7 @@ class FullSync(common.fullsync_mixin):
                 for section in (x for x in sections.SECTIONS
                                 if x.section_type == kind[1]):
                     if self.isCanceled():
+                        LOG.debug('Need to exit now')
                         return
                     if not section.sync_to_kodi:
                         LOG.info('User chose to not sync section %s', section)
@@ -283,6 +284,8 @@ class FullSync(common.fullsync_mixin):
                         self.section_success = False
                     else:
                         queue.put(element)
+        except Exception:
+            utils.ERROR(notify=True)
         finally:
             queue.put(None)
 
@@ -410,7 +413,7 @@ class FullSync(common.fullsync_mixin):
     def _run(self):
         self.current_sync = timing.plex_now()
         # Get latest Plex libraries and build playlist and video node files
-        if not sections.sync_from_pms(self):
+        if self.isCanceled() or not sections.sync_from_pms(self):
             return
         self.successful = True
         try:
@@ -422,10 +425,7 @@ class FullSync(common.fullsync_mixin):
             # Actual syncing - do only new items first
             LOG.info('Running full_library_sync with repair=%s',
                      self.repair)
-            if not self.full_library_sync():
-                self.successful = False
-                return
-            if self.isCanceled():
+            if self.isCanceled() or not self.full_library_sync():
                 self.successful = False
                 return
             if common.PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
@@ -437,6 +437,7 @@ class FullSync(common.fullsync_mixin):
                 self.dialog.close()
             if self.threader:
                 self.threader.shutdown()
+                self.threader = None
             if not self.successful and not self.isCanceled():
                 # "ERROR in library sync"
                 utils.dialog('notification',

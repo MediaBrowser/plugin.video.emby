@@ -84,7 +84,7 @@ def show_main_menu(content_type=None):
     # Get nodes from the window props
     totalnodes = int(utils.window('Plex.nodes.total') or 0)
     for i in range(totalnodes):
-        path = utils.window('Plex.nodes.%s.content' % i)
+        path = utils.window('Plex.nodes.%s.index' % i)
         if not path:
             continue
         label = utils.window('Plex.nodes.%s.title' % i)
@@ -114,9 +114,9 @@ def show_main_menu(content_type=None):
                 continue
             # Add ANOTHER menu item that uses add-on paths instead of direct
             # paths in order to let the user navigate into all submenus
-            addon_path = utils.window('Plex.nodes.%s.addon_path' % i)
+            addon_index = utils.window('Plex.nodes.%s.addon_index' % i)
             # Append "(More...)" to the label
-            directory_item('%s (%s)' % (label, utils.lang(22082)), addon_path)
+            directory_item('%s (%s)' % (label, utils.lang(22082)), addon_index)
     # Playlists
     if content_type != 'image':
         path = 'plugin://%s?mode=playlists' % v.ADDON_ID

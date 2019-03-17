@@ -1,3 +1,11 @@
+version 2.7.7:
+- Fix sync not working due to non-ASCII Plex library names
+- Fix PKC synching playstate to wrong user on profile switch. Be aware that Kodi profile switches are error-prone
+- Fix playback sometimes not being reported for direct paths
+- Fix float() argument must be a string or a number
+- Fix nodes for skin use
+- Fix 'NoneType' object has no attribute 'kodi_path'
+
 version 2.7.6:
 - Make 2.7.5 available for everyone
 
