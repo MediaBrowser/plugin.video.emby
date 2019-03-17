@@ -434,6 +434,7 @@ class FullSync(common.fullsync_mixin):
                 self.dialog.close()
             if self.threader:
                 self.threader.shutdown()
+                self.threader = None
             if not self.successful and not self.isCanceled():
                 # "ERROR in library sync"
                 utils.dialog('notification',
