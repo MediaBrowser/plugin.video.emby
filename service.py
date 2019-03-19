@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import imp
 import logging
 import os
 import threading
@@ -14,8 +15,9 @@ import xbmcaddon
 #################################################################################################
 
 __addon__ = xbmcaddon.Addon(id='plugin.video.emby')
-__base__ = xbmc.translatePath(os.path.join(__addon__.getAddonInfo('path'), 'resources', 'lib')).decode('utf-8')
-__libraries__ = xbmc.translatePath(os.path.join(__addon__.getAddonInfo('path'), 'libraries')).decode('utf-8')
+__addon_path__ = __addon__.getAddonInfo('path').decode('utf-8')
+__base__ = xbmc.translatePath(os.path.join(__addon_path__, 'resources', 'lib')).decode('utf-8')
+__libraries__ = xbmc.translatePath(os.path.join(__addon_path__, 'libraries')).decode('utf-8')
 __pcache__ = xbmc.translatePath(os.path.join(__addon__.getAddonInfo('profile'), 'emby')).decode('utf-8')
 __cache__ = xbmc.translatePath('special://temp/emby').decode('utf-8')
 
@@ -32,9 +34,8 @@ sys.path.append(__base__)
 
 #################################################################################################
 
-from entrypoint import Service
 from helper import settings
-from emby import Emby
+import entrypoint
 
 #################################################################################################
 
@@ -47,7 +48,7 @@ DELAY = int(settings('startupDelay') if settings('SyncInstallRunDone.bool') else
 class ServiceManager(threading.Thread):
 
     ''' Service thread. 
-        To allow to restart and reload modules internally. 
+        To allow to restart and reload modules internally.
     '''
     exception = None
 
@@ -55,16 +56,20 @@ class ServiceManager(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        global entrypoint
+        global settings
+
         service = None
 
         try:
-            service = Service()
+            service = entrypoint.Service()
 
             if DELAY and xbmc.Monitor().waitForAbort(DELAY):
                 raise Exception("Aborted during startup delay")
 
             service.service()
         except Exception as error:
+            self.exception = error
 
             if service is not None:
 
@@ -72,12 +77,43 @@ class ServiceManager(threading.Thread):
                     service.shutdown()
                 
                 if 'RestartService' in error:
-                    service.reload_objects()
 
-            self.exception = error
+                    ''' Delete lib and objects entries to reload them as if it were the first time.
+                        Delete .pyo files to force Kodi to recreate them.
+                        Finally, re-initialize modules that are used in __main__ to reload all our modules.
+                    '''
+                    for mod in dict(sys.modules):
+                        module = sys.modules[mod]
+
+                        try:
+                            module_path = imp.find_module(mod.split('.')[0])[1]
+
+                            if ('plugin.video.emby' in module_path and not 'libraries' in module_path or 
+                                mod.startswith('objects')):
+
+                                LOG.debug("[ reload/%s ]", mod)
+                                del sys.modules[mod]
+                        except ImportError: #xbmc built-in functions or entries with None
+                            pass
+
+                    import entrypoint
+                    import helper
+                    import objects
+
+                    try:
+                        helper.utils.delete_pyo(__addon_path__)
+                        helper.utils.delete_pyo(__pcache__)
+                    except Exception:
+                        pass
+
+                    imp.reload(entrypoint)
+                    imp.reload(helper)
+                    imp.reload(objects)
+
+                    from helper import settings
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     LOG.warn("-->[ service ]")
     LOG.warn("Delay startup by %s seconds.", DELAY)
@@ -98,8 +134,6 @@ if __name__ == "__main__":
                 continue
 
         except Exception as error:
-            ''' Issue initializing the service.
-            '''
             LOG.exception(error)
 
         break

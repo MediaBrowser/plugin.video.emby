@@ -357,3 +357,22 @@ class API(object):
                 })
 
         return [x for x in result['Items'] if x['Id'] == item_id]
+
+    def is_valid_series(self, parent_id, name, show_id):
+
+        ''' Special function to detect if series is displayed or pooled.
+            Use series name. I coudln't find another way.
+
+            Returns main series id found.
+        '''
+        result = self.users("/Items", params={
+                    'ParentId': parent_id,
+                    'Recursive': True,
+                    'IncludeItemTypes': "Series",
+                    'NameStartsWith': name
+                })
+
+        try:
+            return result['Items'][0]['Id']
+        except Exception:
+            return show_id

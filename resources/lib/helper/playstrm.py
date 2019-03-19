@@ -44,6 +44,11 @@ class PlayStrm(object):
         if self.info['Transcode'] is None:
              self.info['Transcode'] = settings('playFromTranscode.bool') if settings('playFromStream.bool') else None
 
+        if window('emby.playlist.audio.bool'):
+
+            LOG.info("[ audio playlist detected ]")
+            self.info['KodiPlaylist'] = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+
         self.actions = Actions(server_id, self.info['Server']['auth/server-address'])
         self.set_listitem = self.actions.set_listitem
         self.params = params
@@ -59,10 +64,10 @@ class PlayStrm(object):
         else:
             JSONRPC('Playlist.Insert').execute({'playlistid': playlist, 'position': index, 'item': {'%sid' % media_type: int(db_id)}})
 
-    def remove_from_playlist(self, index, playlist_id=None):
+    def remove_from_playlist(self, index):
 
-        playlist = playlist_id or self.info['KodiPlaylist'].getPlayListId()
-        JSONRPC('Playlist.Remove').execute({'playlistid': playlist, 'position': index})
+        LOG.debug("[ removing ] %s", index)
+        JSONRPC('Playlist.Remove').execute({'playlistid': self.info['KodiPlaylist'].getPlayListId(), 'position': index})
     
     def remove_from_playlist_by_path(self, path):
         
@@ -91,17 +96,11 @@ class PlayStrm(object):
     def start_playback(self, index=0):
         xbmc.Player().play(self.info['KodiPlaylist'], startpos=index, windowed=False)
 
-    def play(self, delayed=True):
+    def play(self, start_position=None, delayed=True):
 
         ''' Create and add listitems to the Kodi playlist.
         '''
-        if window('emby_playlistclear.bool'):
-            
-            LOG.info("[ play clearing playlist ]")
-            self.actions.get_playlist(self.info['Item']).clear()
-            window('emby_playlistclear.bool', clear=True)
-
-        self.info['StartIndex'] = max(self.info['KodiPlaylist'].getposition(), 0)
+        self.info['StartIndex'] = start_position if start_position is not None else max(self.info['KodiPlaylist'].getposition(), 0)
         self.info['Index'] = self.info['StartIndex']
 
         LOG.info("[ play/%s/%s ]", self.info['Id'], self.info['Index'])
@@ -152,18 +151,6 @@ class PlayStrm(object):
             Verify the default video action set in Kodi for accurate resume behavior.
         '''
         seektime = self._resume()
-
-        if settings('distroDetected') == 'CoreElec':
-
-            ''' For some reason, CoreElec triggers OnStop when starting playback, if there's already playback ongoing aka emby-loading video. 
-                The stop skips the next item in the playlist. Add a dummy that will be skipped and remove it later.
-            '''
-            LOG.info("[ Adding dummy/%s ]", self.info['Index'])
-            dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
-            listitem = xbmcgui.ListItem()
-            listitem.setPath(dummy)
-            self.info['KodiPlaylist'].add(url=dummy, listitem=listitem, index=self.info['Index'])
-            self.info['Index'] += 1
 
         if settings('enableCinema.bool') and not seektime:
             self._set_intros()

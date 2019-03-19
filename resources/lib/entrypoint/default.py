@@ -65,10 +65,32 @@ class Events(object):
             emby_id = params.get('id')
             get_video_extras(emby_id, emby_path, server)
 
-        elif mode =='play':
+        elif mode == 'play':
 
             item = TheVoid('GetItem', {'Id': params['id'], 'ServerId': server}).get()
             Actions(server).play(item, params.get('dbid'), params.get('transcode') == 'true', playlist=params.get('playlist') == 'true')
+
+        elif mode =='playstrm':
+
+            while not window('emby.playlist.play.bool'):
+                xbmc.sleep(50)
+
+                if window('emby.playlist.aborted.bool'):
+                    LOG.info("[ playback aborted ]")
+
+                    break
+            else:
+                LOG.info("[ playback started ]")
+                xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
+
+            window('emby.playlist.play', clear=True)
+            window('emby.playlist.ready', clear=True)
+            window('emby.playlist.aborted', clear=True)
+
+        elif mode == 'playsimple':
+            from helper import playsimple
+
+            playsimple.PlaySimple(params, server).play()
 
         elif mode == 'playlist':
             event('PlayPlaylist', {'Id': params['id'], 'ServerId': server})

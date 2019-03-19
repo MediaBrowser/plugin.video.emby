@@ -124,6 +124,14 @@ class Service(xbmc.Monitor):
                         if update:
                             self.settings['last_progress_report'] = datetime.today()
 
+            if self.webservice is not None and not self.webservice.is_alive():
+                
+                LOG.info("[ restarting webservice ]")
+                self.webservice.stop()
+
+                self.webservice = webservice.WebService()
+                self.webservice.start()
+
             if window('emby.restart.bool'):
 
                 window('emby.restart', clear=True)
@@ -302,7 +310,7 @@ class Service(xbmc.Monitor):
             if data.get('ServerId') is None:
                 self.stop_default()
 
-                if self.waitForAbort(120):
+                if self.waitForAbort(20):
                     return
                 
                 self.start_default()
@@ -545,7 +553,7 @@ class Service(xbmc.Monitor):
 
             "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup",
             "emby.external", "emby.external_check", "emby_deviceId", "emby_db_check", "emby_pathverified",
-            "emby_sync", "emby_playlistclear"
+            "emby_sync"
         ]
         for prop in properties:
             window(prop, clear=True)

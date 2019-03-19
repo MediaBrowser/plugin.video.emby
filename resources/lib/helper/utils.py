@@ -412,6 +412,22 @@ def copy_file(path, dest):
     xbmcvfs.copy(path, dest)
     LOG.debug("copy: %s to %s", path, dest)
 
+def delete_pyo(path):
+
+    ''' Delete pyo files to force Kodi to recreate them.
+    '''
+    dirs, files = xbmcvfs.listdir(path)
+
+    if dirs:
+
+        for directory in dirs:
+            delete_pyo(os.path.join(path, directory.decode('utf-8')))
+
+    for file in files:
+
+        if file.endswith('.pyo'):
+            xbmcvfs.delete(os.path.join(path, file.decode('utf-8')))
+
 def normalize_string(text):
 
     ''' For theme media, do not modify unless modified in TV Tunes.

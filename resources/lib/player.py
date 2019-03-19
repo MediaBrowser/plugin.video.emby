@@ -27,6 +27,8 @@ class Player(xbmc.Player):
     up_next = False
 
     def __init__(self):
+
+        self.monitor = xbmc.Monitor()
         xbmc.Player.__init__(self)
 
     @silent_catch()
@@ -40,6 +42,28 @@ class Player(xbmc.Player):
     def is_playing_file(self, file):
         return file in self.played
 
+    def is_current_file(self, file):
+        return file == self.get_playing_file()
+
+    def get_current_file(self, count=0):
+
+        ''' Each count is approx 1s.
+        '''
+        try:
+            return self.getPlayingFile()
+        except Exception:
+
+            while count > 0:
+                try:
+                    return self.getPlayingFile()
+                except Exception:
+                    count -= 1
+
+                if self.monitor.waitForAbort(1):
+                    return
+            else:
+                raise Exception("FileNotFound")
+
     def onAVStarted(self):
         LOG.info("[ onAVStarted ]")        
 
@@ -51,54 +75,22 @@ class Player(xbmc.Player):
         '''
         LOG.info("[ onPlayBackStarted ]")
         self.up_next = False
-        count = 0
-        monitor = xbmc.Monitor()
 
         try:
-            current_file = self.getPlayingFile()
-        except Exception:
-
-            while count < 5:
-                try:
-                    current_file = self.getPlayingFile()
-                    count = 0
-                    break
-                except Exception:
-                    count += 1
-
-                if monitor.waitForAbort(1):
-                    return
-            else:
-                LOG.info('Cancel playback report')
-
-                return
-
-        if current_file.endswith('emby-loading.mp4'):
-            
-            ''' Clear the virtual and strm link path from the playlist.
-            '''
-            LOG.info("emby-loading.mp4 detected.")
-            platform = settings('platformDetected')
-            distro = settings('distroDetected')
-
-            if (platform in ('ATV2', 'Linux/RPi', 'Unknown') or 
-                platform == 'Linux/Android' and settings('lowPowered.bool') or distro == 'CoreElec'):
-
-                LOG.info("[ delay pause ]")
-                xbmc.sleep(1000)
-
-            self.pause()
-            window('emby_loadingvideo.bool', True)
+            current_file = self.get_current_file(5)
+        except Exception as error:
+            LOG.error(error)
 
             return
 
         self.stop_playback()
         items = window('emby_play.json')
         item = None
+        count = 0
 
         while not items:
 
-            if monitor.waitForAbort(2):
+            if self.monitor.waitForAbort(2):
                 return
 
             items = window('emby_play.json')
@@ -137,11 +129,13 @@ class Player(xbmc.Player):
         item['Server']['api'].session_playing(data)
         window('emby.skip.%s.bool' % item['Id'], True)
 
-        if monitor.waitForAbort(2):
+        if self.monitor.waitForAbort(2):
             return
 
         if item['PlayOption'] == 'Addon':
             self.set_audio_subs(item['AudioStreamIndex'], item['SubtitleStreamIndex'])
+
+        item['Track'] = True
 
     def set_item(self, file, item):
 
@@ -173,7 +167,8 @@ class Player(xbmc.Player):
             'Muted': muted,
             'Volume': volume,
             'Server': Emby(item['ServerId']).get_client(),
-            'Paused': False
+            'Paused': False,
+            'Track': False
         })
 
         self.played[file] = item
@@ -339,6 +334,9 @@ class Player(xbmc.Player):
         if window('emby.external.bool'):
             return
 
+        if not item['Track']:
+            return
+
         if not report:
 
             previous = item['CurrentPosition']
@@ -406,13 +404,19 @@ class Player(xbmc.Player):
         if not self.played:
             return
 
-        LOG.info("Played info: %s", self.played)
+        LOG.info("[ played info ] %s", self.played)
 
-        for file in self.played:
+        for file in dict(self.played):
 
             try:
                 item = self.get_file_info(file)
 
+                if not item['Track']:
+                    LOG.info("[ skip stop ] %s", file)
+
+                    continue
+
+                self.played.pop(file, None)
                 window('emby.skip.%s.bool' % item['Id'], True)
 
                 if window('emby.external.bool'):
@@ -471,5 +475,3 @@ class Player(xbmc.Player):
                 LOG.error(error)
 
             window('emby.external_check', clear=True)
-
-        self.played.clear()

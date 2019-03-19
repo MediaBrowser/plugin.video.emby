@@ -30,6 +30,26 @@ class WebService(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
+    def is_alive(self):
+
+        ''' Called to see if the webservice is still responding.
+        '''
+        alive = True
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(('127.0.0.1', PORT))
+            s.sendall("")
+        except Exception as error:
+            LOG.error(error)
+
+            if 'Errno 61' in str(error):
+                alive = False
+
+        s.close()
+
+        return alive
+
     def stop(self):
 
         ''' Called when the thread needs to stop
@@ -46,9 +66,9 @@ class WebService(threading.Thread):
         ''' Called to start the webservice.
         '''
         LOG.info("--->[ webservice/%s ]", PORT)
+        server = HttpServer(('127.0.0.1', PORT), RequestHandler)
 
         try:
-            server = HttpServer(('127.0.0.1', PORT), requestHandler)
             server.serve_forever()
         except Exception as error:
 
@@ -67,7 +87,6 @@ class HttpServer(BaseHTTPServer.HTTPServer):
         ''' Handle one request at a time until stopped.
         '''
         self.stop = False
-        self.play = False
         self.pending = []
         self.threads = []
         self.queue = Queue.Queue()
@@ -76,11 +95,12 @@ class HttpServer(BaseHTTPServer.HTTPServer):
             self.handle_request()
 
 
-class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     ''' Http request handler. Do not use LOG here,
         it will hang requests in Kodi > show information dialog.
     '''
+    timeout = 0.5
 
     def log_message(self, format, *args):
 
@@ -95,7 +115,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             BaseHTTPServer.BaseHTTPRequestHandler.handle(self)
         except Exception as error:
-            pass#xbmc.log(str(error), xbmc.LOGWARNING)
+            pass
 
     def do_QUIT(self):
 
@@ -148,8 +168,6 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Send headers and reponse
         '''
         try:
-            #xbmc.log(str(self.path), xbmc.LOGWARNING)
-
             if 'extrafanart' in self.path or 'extrathumbs' in self.path:
                 raise Exception("unsupported artwork request")
 
@@ -161,8 +179,10 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             elif 'file.strm' not in self.path:
                 self.images()
-            else:
+            elif 'file.strm' in self.path:
                 self.strm()
+            else:
+                xbmc.log(str(self.path), xbmc.LOGWARNING)
 
         except Exception as error:
             self.send_error(500, "[ webservice ] Exception occurred: %s" % error)
@@ -188,17 +208,35 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif 'kodi/tvshows' in self.path:
             params['MediaType'] = "episode"
 
-        loading_videos = ['default', 'black']
-        loading = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/%s/emby-loading.mp4" % loading_videos[int(settings('loadingVideo') or 0)]).decode('utf-8')
-        self.wfile.write(loading)
+        if settings('pluginSingle.bool'):
+            path = "plugin://plugin.video.emby?mode=playsingle&id=%s" % params['Id']
+
+            if params.get('server'):
+                path += "&server=%s" % params['server']
+
+            if params.get('transcode'):
+                path += "&transcode=true"
+
+            if params.get('KodiId'):
+                path += "&dbid=%s" % params['KodiId']
+
+            if params.get('Name'):
+                path += "&filename=%s" % params['Name']
+
+            self.wfile.write(bytes(path))
+
+            return
+
+        path = "plugin://plugin.video.emby?mode=playstrm&id=%s" % params['Id']
+        self.wfile.write(bytes(path))
 
         if params['Id'] not in self.server.pending:
-
             xbmc.log("[ webservice/%s ] path: %s params: %s" % (str(id(self)), str(self.path), str(params)), xbmc.LOGWARNING)
-            self.server.pending.append(params['Id'])
-            self.server.queue.put((params, ''.join(["http://127.0.0.1", ":", str(PORT), self.path.encode('utf-8')]),))
 
-            if len(self.server.threads) < 1:
+            self.server.pending.append(params['Id'])
+            self.server.queue.put(params)
+
+            if not len(self.server.threads):
 
                 queue = QueuePlay(self.server)
                 queue.start()
@@ -231,93 +269,106 @@ class QueuePlay(threading.Thread):
         self.server = server
         threading.Thread.__init__(self)
 
-    def is_playback_ready(self):
-        count = 0
-
-        while not window('emby_loadingvideo.bool'):
-
-            if count > 200:
-                raise Exception("Failed to start queue play.")
-
-            count += 1
-            xbmc.sleep(50)
-
-        window('emby_loadingvideo', clear=True)
-
     def run(self):
 
-        ''' Queue up strm playback that was called in the webservice.
-            Remove the dummy video in player.py (virtual library paths) and here (actual strm link).
+        ''' Workflow for new playback:
+            
+            Queue up strm playback that was called in the webservice.
+            Called playstrm in default.py which will wait for our signal here.
+            Downloads emby information.
+            Add content to the playlist after the strm file that initiated playback from db.
+            Start playback by telling playstrm waiting. It will fail playback of the current strm and
+            move to the next entry for us. If play folder, playback starts here.
 
             Required delay for widgets, custom skin containers and non library windows.
             Otherwise Kodi will freeze if no artwork textures are cached yet in Textures13.db
             Will be skipped if the player already has media and is playing.
 
-            Important: Never move the check to start play_folder() to prevent race conditions!
+            Why do all this instead of using plugin?
+            Strms behaves better than plugin in database.
+            Allows to load chapter images with direct play.
+            Allows to have proper artwork for intros.
+            Faster than resolving using plugin, especially on low powered devices.
+            Cons:
+            Can't use external players with this method.
         '''
         LOG.info("-->[ queue play ]")
-        init_play = False
         play_folder = False
         play = None
-
-        xbmc.sleep(200) # Let Kodi catch up.
         start_position = None
         position = None
-        original_play = xbmc.getInfoLabel('Player.Filenameandpath')
+
+        xbmc.sleep(200) # Let Kodi catch up
 
         while True:
 
             try:
-                params, path = self.server.queue.get(timeout=float(settings('delayAfterLoading') or 0.01))
-            except Queue.Empty:
-                if init_play:
+                try:
+                    params = self.server.queue.get(timeout=0.01)
+                except Queue.Empty:
+                    count = 20
 
-                    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-                    LOG.info("[ playback starting/%s ]", start_position)
-                    play.start_playback(start_position)
-                    play.remove_from_playlist_by_path(original_play)
-                    dummy = xbmc.translatePath("special://home/addons/plugin.video.emby/resources/skins/default/media/videos/default/emby-loading.mp4").decode('utf-8')
-                    play.remove_from_playlist_by_path(dummy)
+                    while not window('emby.playlist.ready.bool'):
+                        xbmc.sleep(50)
 
-                self.server.threads.remove(self)
-                self.server.pending = []
-                
-                break
+                        if not count:
+                            LOG.info("[ playback aborted ]")
 
-            play = playstrm.PlayStrm(params, params.get('ServerId'))
-            play.remove_from_playlist_by_path(path)
+                            raise Exception("PlaybackAborted")
 
-            if start_position is None:
+                        count -= 1
+                    else:
+                        LOG.info("[ playback starting/%s ]", start_position)
+                        window('emby.playlist.ready', clear=True)
 
-                start_position = max(play.info['KodiPlaylist'].getposition(), 0)
-                position = start_position
+                        if play_folder:
 
-            try:
-                if self.server.pending.count(params['Id']) != len(self.server.pending):
+                            LOG.info("[ start play ]")
+                            xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                            play.start_playback()
+                        else:
+                            window('emby.playlist.play.bool', True)
+
+                            xbmc.sleep(1000)
+                            play.remove_from_playlist(start_position)
+
+                    break
+
+                play = playstrm.PlayStrm(params, params.get('ServerId'))
+
+                if start_position is None:
+
+                    start_position = max(play.info['KodiPlaylist'].getposition(), 0)
+                    position = start_position + 1
+
+                if play_folder:
+                    position = play.play_folder(position)
+                else:
+                    if self.server.pending.count(params['Id']) != len(self.server.pending):
+                        play_folder = True
+
+                    window('emby.playlist.start', str(start_position))
+                    position = play.play(position)
 
                     if play_folder:
-                        position = play.play_folder(position)
-                    else:
-                        play_folder = True
-                        self.is_playback_ready()
-                        start_position = position = play.play()
                         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-                else:
-                    self.is_playback_ready()
-                    play.play()
+
             except Exception as error:
 
                 LOG.error(error)
+                play.info['KodiPlaylist'].clear()
                 xbmc.Player().stop()
-                init_play = False
                 self.server.queue.queue.clear()
-                self.server.threads.remove(self)
-                self.server.pending = []
-                xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+
+                if play_folder:
+                    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                else:
+                    window('emby.playlist.aborted.bool', True)
 
                 break
 
-            init_play = True
             self.server.queue.task_done()
 
+        self.server.threads.remove(self)
+        self.server.pending = []
         LOG.info("--<[ queue play ]")

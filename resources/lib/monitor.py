@@ -116,12 +116,16 @@ class Monitor(xbmc.Monitor):
             data = json.loads(data)
             data = json.loads(binascii.unhexlify(data[0])) if data else data
         else:
-            if method not in ('Player.OnPlay', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
+            if method not in ('Player.OnPlay', 'Playlist.OnAdd', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
+
+                LOG.info("[ %s/%s ]", sender, method)
+                LOG.debug(data)
+
                 return
 
             data = json.loads(data)
 
-        LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data, indent=4))
+        LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data))
 
         if self.sleep:
             LOG.info("System.OnSleep detected, ignore monitor request.")
@@ -451,17 +455,26 @@ class Monitor(xbmc.Monitor):
             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
-
-        ''' Widgets do not truly clear the playlist.
-        '''
-        if xbmc.PlayList(xbmc.PLAYLIST_VIDEO).size():
-            window('emby_playlistclear.bool', True)
-
         window('emby.autoplay', clear=True)
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
 
+    def Playlist_OnAdd(self, server, data, *args, **kwargs):
+
+        ''' Detect widget playback. Widget for some reason, use audio playlists.
+        '''
+        if data['playlistid'] == 0 and data['position'] == 0:
+            window('emby.playlist.audio.bool', True)
+        else:
+            window('emby.playlist.audio', clear=True)
+
+        LOG.info(data)
+        if window('emby.playlist.start') and data['position'] == int(window('emby.playlist.start')) + 1:
+
+            LOG.info("--[ playlist ready ]")
+            window('emby.playlist.ready.bool', True)
+            window('emby.playlist.start', clear=True)
 
 class MonitorWorker(threading.Thread):
 
