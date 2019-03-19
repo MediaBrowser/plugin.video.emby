@@ -32,6 +32,7 @@ class Monitor(xbmc.Monitor):
 
     servers = []
     sleep = False
+    playlistid = 0
 
     def __init__(self):
 
@@ -115,7 +116,7 @@ class Monitor(xbmc.Monitor):
             data = json.loads(data)
             data = json.loads(binascii.unhexlify(data[0])) if data else data
         else:
-            if method not in ('Player.OnPlay', 'Playlist.OnAdd', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
+            if method not in ('Player.OnPlay', 'Playlist.OnAdd', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
 
                 LOG.info("[ %s/%s ]", sender, method)
                 LOG.debug(data)
@@ -443,19 +444,12 @@ class Monitor(xbmc.Monitor):
     def Player_OnPlay(self, server, data, *args, **kwargs):
         on_play(data, server)
 
-    def Player_OnStop(self, *args, **kwargs):
-
-        ''' We have to clear the playlist if it was stopped before it has been played completely.
-            Otherwise the next played item will be added the previous queue.
-            Let's wait for the player so we don't clear the canceled playlist by mistake.
-        '''
-        xbmc.sleep(3000)
-
-        if not self.player.isPlaying() and xbmcgui.getCurrentWindowId() not in (12005, 10138):
-            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
-
     def Playlist_OnClear(self, server, data, *args, **kwargs):
-        window('emby.autoplay', clear=True)
+
+        if self.playlistid == data['playlistid']:
+
+            LOG.info("[ reset autoplay ]")
+            window('emby.autoplay', clear=True)
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
@@ -464,10 +458,14 @@ class Monitor(xbmc.Monitor):
 
         ''' Detect widget playback. Widget for some reason, use audio playlists.
         '''
-        if data['playlistid'] == 0 and data['position'] == 0:
-            window('emby.playlist.audio.bool', True)
-        else:
-            window('emby.playlist.audio', clear=True)
+        if data['position'] == 0:
+
+            if data['playlistid'] == 0:
+                window('emby.playlist.audio.bool', True)
+            else:
+                window('emby.playlist.audio', clear=True)
+
+            self.playlistid = data['playlistid']
 
         LOG.info(data)
         if window('emby.playlist.start') and data['position'] == int(window('emby.playlist.start')) + 1:

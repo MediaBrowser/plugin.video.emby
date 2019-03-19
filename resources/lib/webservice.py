@@ -319,7 +319,6 @@ class QueuePlay(threading.Thread):
                         count -= 1
                     else:
                         LOG.info("[ playback starting/%s ]", start_position)
-                        window('emby.playlist.ready', clear=True)
 
                         if play_folder:
 
@@ -368,6 +367,10 @@ class QueuePlay(threading.Thread):
                 break
 
             self.server.queue.task_done()
+
+        window('emby.playlist.ready', clear=True)
+        window('emby.playlist.start', clear=True)
+        window('emby.playlist.audio', clear=True)
 
         self.server.threads.remove(self)
         self.server.pending = []
