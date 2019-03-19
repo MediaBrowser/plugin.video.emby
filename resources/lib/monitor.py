@@ -77,7 +77,7 @@ class Monitor(xbmc.Monitor):
 
         return server
 
-    def add_worker(self, method):
+    def add_worker(self):
         
         ''' Use threads to avoid blocking the onNotification function.
         '''
@@ -86,7 +86,6 @@ class Monitor(xbmc.Monitor):
             new_thread = MonitorWorker(self)
             new_thread.start()
             self.workers_threads.append(new_thread)
-            LOG.info("-->[ q:monitor/%s ]", method)
 
     def onNotification(self, sender, method, data):
 
@@ -126,6 +125,7 @@ class Monitor(xbmc.Monitor):
             data = json.loads(data)
 
         LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data))
+        data['MonitorMethod'] = method
 
         if self.sleep:
             LOG.info("System.OnSleep detected, ignore monitor request.")
@@ -134,7 +134,7 @@ class Monitor(xbmc.Monitor):
 
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
-        self.add_worker(method)
+        self.add_worker()
 
         return
 
@@ -498,6 +498,7 @@ class MonitorWorker(threading.Thread):
                 break
 
             try:
+                LOG.info("-->[ q:monitor/%s ]", data['MonitorMethod'])
                 func(server, data)
             except Exception as error:
                 LOG.error(error)
