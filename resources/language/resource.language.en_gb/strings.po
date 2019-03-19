@@ -997,3 +997,7 @@ msgstr ""
 msgctxt "#33204"
 msgid "Task failed!"
 msgstr ""
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr ""
