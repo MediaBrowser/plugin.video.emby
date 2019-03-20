@@ -3,16 +3,18 @@
 # Addon id: plugin.video.emby
 # Addon Provider: angelblue05
 # Translators:
-# Wolfgang Petri <horstepipe@googlemail.com>, 2018
-# sualfred <su4lfred@gmail.com>, 2018
+# Saiez, 2019
+# sualfred <su4lfred@gmail.com>, 2019
 # Benni <semool@secure-mail.biz>, 2019
+# Wolfgang Petri <horstepipe@googlemail.com>, 2019
+# Mike Delling <mike.delling@gmail.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: Benni <semool@secure-mail.biz>, 2019\n"
+"Last-Translator: Mike Delling <mike.delling@gmail.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/emby-for-kodi/teams/91090/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -229,7 +231,7 @@ msgid "Verify connection"
 msgstr "Verbindung überprüfen"
 
 msgctxt "#30504"
-msgid "Use altername device name"
+msgid "Use alternate device name"
 msgstr "Alternativen Gerätenamen benutzen"
 
 msgctxt "#30506"
@@ -495,20 +497,36 @@ msgctxt "#33039"
 msgid "Enable music library?"
 msgstr "Musikdatenbank aktivieren?"
 
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Das Caching wird einige Zeit dauern. Trotzdem fortfahren?"
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Bild Zwischenspeicher zurücksetzen?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Aktualisiere Artwork Cache"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Warte auf Beendigung von laufenden Prozessen"
+
 msgctxt "#33047"
 msgid "Kodi can't locate file:"
 msgstr "Kodi kann die Datei nicht finden:"
 
 msgctxt "#33048"
 msgid ""
-"You may need to verify your network credentials in the add-on settings or "
-"use the Emby path substitution to format your path correctly (Emby dashboard"
-" > library). Stop syncing?"
+"Use the Emby path substitution to format your path correctly or ensure your "
+"path is added to Kodi's file manager. For more information, check the FAQ in"
+" Emby for Kodi's github wiki. Stop syncing?"
 msgstr ""
-"Du solltest deine Netzwerkzugangsdaten in den Addon Einstellungen überprüfen"
-" oder die Emby Funktion \"(Optionaler) Gemeinsamer Netzwerkordner\" (Emby "
-"Dashboard > Bibliothek > Verzeichnisse) benutzen. Synchronisierung "
-"abbrechen?"
+"Benutze '(Optionaler) Gemeinsamer Netzwerkordner' um den korrekten Pfad zu "
+"setzen oder stelle sicher das der Pfad im Kodi Dateimanager hinzugefügt "
+"wurde. Für weitere Informationen lies die FAQ auf der 'Emby for Kodi' Github"
+" Wiki Seite. Syncronisierung stoppen?"
 
 msgctxt "#33049"
 msgid "New"
@@ -521,6 +539,10 @@ msgstr "Benutzer zur Sitzung hinzufügen"
 msgctxt "#33058"
 msgid "Perform local database reset"
 msgstr "Lokale Datenbank zurücksetzen"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Cache alle Artworks"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -541,6 +563,14 @@ msgstr "Benutzer entfernen"
 msgctxt "#33064"
 msgid "Remove user from the session"
 msgstr "Benutzer aus der Sitzung entfernen"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Entfernt"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Hinzugefügt"
 
 msgctxt "#33074"
 msgid "Are you sure you want to reset your local Kodi database?"
@@ -595,13 +625,13 @@ msgstr "Sammlungen aktualisieren"
 
 msgctxt "#33099"
 msgid ""
-"Install the server plugin Kodi companion to automatically apply emby library"
+"Install the server plugin Kodi Companion to automatically apply emby library"
 " updates at startup. This setting can be found in the add-on settings > sync"
 " options > Enable Kodi Companion."
 msgstr ""
-"Installiere auf dem Emby Server das 'Kodi Companion' Plugin um automatische "
-"Updates der Bibliothek zu erhalten. Diese Einstellung findest du unter 'Emby"
-" Addon Einstellungen > Syncronisierung > Aktiviere Kodi Companion'."
+"Installiere das Server Plugin 'Kodi Companion' um automatisch Emby Datenbank"
+" Updates beim Kodi Start zu erhalten. Diese Einstellung befindet sich in den"
+" Emby Addon Einstellungen > Syncronisierung > Aktiviere 'Kodi Companion'."
 
 msgctxt "#33100"
 msgid "Would you like to sync empty shows?"
@@ -640,11 +670,8 @@ msgid "Enable the option to transcode"
 msgstr "Transkodierungsoptionen aktivieren"
 
 msgctxt "#33107"
-msgid ""
-"Users added to the session (no space between users). (eg username,username2)"
-msgstr ""
-"Zur Sitzung hinzugefügte Benutzer (keine Leerzeichen zwischen den "
-"Benutzern). (z.B. Benutzer,Benutzer2)"
+msgid "Users added to the session"
+msgstr "Benutzer zur Sitzung hinzugefügt"
 
 msgctxt "#33108"
 msgid "Notifications are delayed during video playback (except live tv)."
@@ -798,8 +825,8 @@ msgid "Update library"
 msgstr "Datenbank aktualisieren"
 
 msgctxt "#33137"
-msgid "Enable Kodi companion"
-msgstr "Aktiviere Kodi Companion"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "'Kodi Companion' aktivieren (Server Plugin)"
 
 msgctxt "#33138"
 msgid ""
@@ -838,14 +865,13 @@ msgstr "Datenbank entfernen"
 
 msgctxt "#33145"
 msgid ""
-"Please make sure your Samba (smb) share of your Emby server is accessible to"
-" your Kodi installation and that you have path substitution configured on "
-"your server. Otherwise, Kodi may fail to locate your files."
+"Please make sure your Emby server libraries are accessible to your Kodi "
+"installation and that you have path substitution configured on your server. "
+"For more information, check the FAQ in Emby for Kodi's github wiki."
 msgstr ""
-"Bitte stell sicher das deine Samba Freigabe (smb) auf deinem Emby Server für"
-" Kodi zugänglich ist und das '(Optionaler) Gemeinsamer Netzwerkordner' auf "
-"dem Emby Server korrekt eingestellt ist. Ansonsten kann Kodi die Dateien "
-"nicht finden."
+"Bitte stell sicher das Kodi Zugriff auf die Emby Server Bibliotheken hat und"
+" '(Optionaler) Gemeinsamer Netzwerkordner' konfiguriert ist. Für weitere "
+"Informationen lies die FAQ auf der 'Emby for Kodi' Github Wiki Seite."
 
 msgctxt "#33146"
 msgid "Unable to connect to Emby."
@@ -1021,7 +1047,7 @@ msgstr "Neustart zum anwenden des Patches"
 
 msgctxt "#33182"
 msgid "Play with cinema mode"
-msgstr "Abspielen mit Kino Modus"
+msgstr "Mit Kinomodus abspielen"
 
 msgctxt "#33183"
 msgid "Enable the option to play with cinema mode"
@@ -1053,18 +1079,6 @@ msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
 msgstr "Sollen Rotten Tomatoes Bewertungen syncronisiert werden?"
 
-msgctxt "#33189"
-msgid ""
-"The database version detected is unsupported. Syncing may not work, proceed "
-"anyway?"
-msgstr ""
-"Die erkannte Datenbankversion wird nicht unterstützt. Die Syncronisierung "
-"wird nicht funktionieren. Trotzdem fortfahren?"
-
-msgctxt "#33190"
-msgid "Enable Kodi database discovery"
-msgstr "'Kodi Database discovery' aktivieren?"
-
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
 msgstr "'Emby for Kodi' Neustarten zum anwenden der Änderung?"
@@ -1080,3 +1094,41 @@ msgstr "Neustart..."
 msgctxt "#33194"
 msgid "Manage libraries"
 msgstr "Datenbanken verwalten"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Emby for Kodi aktivieren"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "erweiterte Einstellungen"
+
+msgctxt "#33197"
+msgid ""
+"A sync is already running, please wait until it completes and try again."
+msgstr ""
+"Synchronisation läuft bereits, nach dem Abschluss bitte erneut versuchen."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "Emby"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Emby play"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Musik Datenbank 'Rescan Patch'"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Aufgabe abgeschlossen!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Aufgabe fehlgeschlagen!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr ""
