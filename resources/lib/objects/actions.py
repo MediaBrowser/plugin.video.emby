@@ -437,7 +437,8 @@ class Actions(object):
             listitem.setProperty('IsPlayable', 'true')
             listitem.setProperty('IsFolder', 'false')
 
-            if obj['Resume'] and seektime != False:
+            if obj['Resume'] and obj['Runtime'] and seektime != False:
+
                 listitem.setProperty('resumetime', str(obj['Resume']))
                 listitem.setProperty('StartPercent', str(((obj['Resume']/obj['Runtime']) * 100) - 0.40))
             else:
