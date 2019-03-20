@@ -44,16 +44,16 @@ class PlayStrm(object):
         if self.info['Transcode'] is None:
              self.info['Transcode'] = settings('playFromTranscode.bool') if settings('playFromStream.bool') else None
 
-        if window('emby.playlist.audio.bool'):
-
-            LOG.info("[ audio playlist detected ]")
-            self.info['KodiPlaylist'] = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-
         self.actions = Actions(server_id, self.info['Server']['auth/server-address'])
         self.set_listitem = self.actions.set_listitem
         self.params = params
         self._detect_play()
         LOG.info("[ play strm ]")
+
+        if window('emby.playlist.audio.bool'):
+
+            LOG.info("[ audio playlist detected ]")
+            self.info['KodiPlaylist'] = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
 
     def add_to_playlist(self, media_type, db_id, index=None, playlist_id=None):
 
