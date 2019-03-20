@@ -51,7 +51,7 @@ def process_method_on_list(method_to_run, items):
         pool.close()
         pool.join()
     else:
-        all_items = [method_to_run(items) for item in items]
+        all_items = [method_to_run(item) for item in items]
     all_items = filter(None, all_items)
     return all_items
 
