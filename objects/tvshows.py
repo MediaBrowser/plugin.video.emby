@@ -54,7 +54,7 @@ class TVShows(KodiDb):
     @stop()
     @emby_item()
     @library_check()
-    def tvshow(self, item, e_item, library, *args, **kwargs):
+    def tvshow(self, item, e_item, library, pooling=None, *args, **kwargs):
 
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
@@ -65,6 +65,10 @@ class TVShows(KodiDb):
         '''
         API = api.API(item, self.server['auth/server-address'])
         obj = self.objects.map(item, 'Series')
+        obj['Item'] = item
+        obj['Library'] = library
+        obj['LibraryId'] = library['Id']
+        obj['LibraryName'] = library['Name']
         update = True
 
         if not settings('syncEmptyShows.bool') and not obj['RecursiveCount']:
@@ -73,6 +77,12 @@ class TVShows(KodiDb):
             self.remove(obj['Id'])
 
             return False
+
+        elif pooling is None:
+            obj['Item']['Id'] = self.server['api'].is_valid_series(obj['LibraryId'], obj['Title'], obj['Id'])
+
+            if obj['Item']['Id'] != obj['Id']:
+                return self.tvshow(obj['Item'], library=obj['Library'], pooling=obj['Id'])
 
         try:
             obj['ShowId'] = e_item[0]
@@ -90,8 +100,6 @@ class TVShows(KodiDb):
 
 
         obj['Path'] = API.get_file_path(obj['Path'])
-        obj['LibraryId'] = library['Id']
-        obj['LibraryName'] = library['Name']
         obj['Genres'] = obj['Genres'] or []
         obj['People'] = obj['People'] or []
         obj['Mpaa'] = API.get_mpaa(obj['Mpaa'])
@@ -126,6 +134,14 @@ class TVShows(KodiDb):
             self.tvshow_add(obj)
 
 
+        if pooling:
+
+            obj['SeriesId'] = pooling
+            LOG.info("POOL %s [%s/%s]", obj['Title'], obj['Id'], obj['SeriesId'])
+            self.emby_db.add_reference(*values(obj, QUEM.add_reference_pool_obj))
+
+            return
+
         self.link(*values(obj, QU.update_tvshow_link_obj))
         self.update_path(*values(obj, QU.update_path_tvshow_obj))
         self.add_tags(*values(obj, QU.add_tags_tvshow_obj))
@@ -137,23 +153,20 @@ class TVShows(KodiDb):
 
         season_episodes = {}
 
-        for season in self.server['api'].get_seasons(obj['Id'])['Items']:
+        try:
+            all_seasons = self.server['api'].get_seasons(obj['Id'])['Items']
+        except Exception as error:
+            LOG.error("Unable to pull seasons for %s", obj['Title'])
+            LOG.error(error)
 
+            return
+
+        for season in all_seasons:
             if season['SeriesId'] != obj['Id']:
-                obj['SeriesId'] = season['SeriesId']
-                self.item_ids.append(season['SeriesId'])
 
-                try:
-                    self.emby_db.get_item_by_id(*values(obj, QUEM.get_item_series_obj))[0]
-
-                    if self.update_library:
-                        season_episodes[season['Id']] = season['SeriesId']
-                except TypeError:
-
-                    self.emby_db.add_reference(*values(obj, QUEM.add_reference_pool_obj))
-                    LOG.info("POOL %s [%s/%s]", obj['Title'], obj['Id'], obj['SeriesId'])
+                if self.update_library:
                     season_episodes[season['Id']] = season['SeriesId']
-                
+
             try:
                 self.emby_db.get_item_by_id(season['Id'])[0]
                 self.item_ids.append(season['Id'])
@@ -241,11 +254,7 @@ class TVShows(KodiDb):
 
         if obj['ShowId'] is None:
 
-            try:
-                obj['ShowId'] = self.emby_db.get_item_by_id(*values(obj, QUEM.get_item_series_obj))[0]
-            except (KeyError, TypeError):
-                LOG.error("Unable to add series %s", obj['SeriesId'])
-
+            if not self.get_show_id(obj):
                 return False
 
         obj['SeasonId'] = self.get_season(*values(obj, QU.get_season_obj))
