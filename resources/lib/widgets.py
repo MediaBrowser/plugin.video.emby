@@ -210,9 +210,10 @@ def _generate_content(xml_element):
         # Prefix to the episode's title/label
         if season_no is not None and episode_no is not None:
             if APPEND_SXXEXX is True:
-                item['label'] = "S%.2dE%.2d - %s" % (season_no, episode_no, item['label'])
+                item['title'] = "S%.2dE%.2d - %s" % (season_no, episode_no, item['title'])
         if APPEND_SHOW_TITLE is True:
-            item['label'] = "%s - %s " % (tvshowtitle, item['label'])
+            item['title'] = "%s - %s " % (tvshowtitle, item['title'])
+        item['label'] = item['title']
 
     # Determine the path for this item
     key = api.path_and_plex_id()

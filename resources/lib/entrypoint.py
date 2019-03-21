@@ -174,6 +174,12 @@ def show_listing(xml, plex_type=None, section_id=None, synched=True, key=None,
     # Initialization
     widgets.PLEX_TYPE = plex_type
     widgets.SYNCHED = synched
+    if plex_type == v.PLEX_TYPE_SHOW and key and 'onDeck' in key:
+        widgets.APPEND_SHOW_TITLE = utils.settings('OnDeckTvAppendShow') == 'true'
+        widgets.APPEND_SXXEXX = utils.settings('OnDeckTvAppendSeason') == 'true'
+    if plex_type == v.PLEX_TYPE_SHOW and key and 'recentlyAdded' in key:
+        widgets.APPEND_SHOW_TITLE = utils.settings('RecentTvAppendShow') == 'true'
+        widgets.APPEND_SXXEXX = utils.settings('RecentTvAppendSeason') == 'true'
     if content_type and xml[0].tag == 'Playlist':
         # Certain views mix playlist types audio and video
         for entry in reversed(xml):
