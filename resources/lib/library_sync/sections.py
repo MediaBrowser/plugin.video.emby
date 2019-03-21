@@ -314,6 +314,7 @@ class Section(object):
                 xml = getattr(nodes, 'node_%s' % node_type)(self, node_name)
             self._write_xml(xml, xml_name)
         self.order += 1
+        path = 'library://video/Plex-%s/%s' % (self.section_id, xml_name)
         self._window_node(path, node_name, node_type, pms_node)
 
     def _write_xml(self, xml, xml_name):
