@@ -373,6 +373,10 @@ class API(object):
                 })
 
         try:
+            for item in result['Items']:
+                if item['Id'] == show_id:
+                    return item['Id']
+
             return result['Items'][0]['Id']
         except Exception:
             return show_id

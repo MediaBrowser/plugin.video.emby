@@ -337,6 +337,12 @@ class Player(xbmc.Player):
         if not item['Track']:
             return
 
+        result = JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
+        result = result.get('result', {})
+        item['Volume'] = result.get('volume')
+        item['Muted'] = result.get('muted')
+        self.detect_audio_subs(item)
+
         if not report:
 
             previous = item['CurrentPosition']
@@ -358,13 +364,8 @@ class Player(xbmc.Player):
             if (item['CurrentPosition'] - previous) < 30:
 
                 return
-
-        result = JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
-        result = result.get('result', {})
-        item['Volume'] = result.get('volume')
-        item['Muted'] = result.get('muted')
-        item['CurrentPosition'] = int(self.getTime())
-        self.detect_audio_subs(item)
+        else:
+            item['CurrentPosition'] = int(self.getTime())
 
         data = {
             'QueueableMediaTypes': "Video,Audio",
