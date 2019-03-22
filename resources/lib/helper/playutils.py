@@ -277,7 +277,12 @@ class PlayUtils(object):
 
         self.info['Method'] = "DirectStream"
 
-        if self.info['Item']['Type'] == "Audio":
+        if source.get('Protocol') == 'LiveTV':
+
+            server = source['Path'].lower().split('/livetv')[0]
+            self.info['Path'] = source['Path'].replace(server, self.info['ServerAddress'])
+
+        elif self.info['Item']['Type'] == "Audio":
             self.info['Path'] = ("%s/emby/Audio/%s/stream.%s?static=true&api_key=%s" %
                                 (self.info['ServerAddress'], self.info['Item']['Id'],
                                  source.get('Container', "mp4").split(',')[0],
