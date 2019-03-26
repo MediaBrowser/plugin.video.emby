@@ -466,6 +466,31 @@ class InitialSetup(object):
                   server['machineIdentifier'], server['ip'], server['port'],
                   server['scheme'])
 
+    @staticmethod
+    def _add_sources(root, extension):
+        changed = False
+        count = 2
+        for source in root.findall('.//path'):
+            if source.text == extension:
+                count -= 1
+            if count == 0:
+                # sources already set
+                break
+        else:
+            # Missing smb:// occurences, re-add.
+            changed = True
+            for _ in range(0, count):
+                source = etree.SubElement(root, 'source')
+                etree.SubElement(
+                    source,
+                    'name').text = "PlexKodiConnect Masterlock Hack"
+                etree.SubElement(
+                    source,
+                    'path',
+                    {'pathversion': "1"}).text = extension
+                etree.SubElement(source, 'allowsharing').text = "true"
+        return changed
+
     def setup(self):
         """
         Initial setup. Run once upon startup.
@@ -507,28 +532,13 @@ class InitialSetup(object):
             with utils.XmlKodiSetting('sources.xml',
                                       force_create=True,
                                       top_element='sources') as xml:
-                root = xml.set_setting(['video'])
-                count = 2
-                for source in root.findall('.//path'):
-                    if source.text == "smb://":
-                        count -= 1
-                    if count == 0:
-                        # sources already set
-                        break
-                else:
-                    # Missing smb:// occurences, re-add.
-                    for _ in range(0, count):
-                        source = etree.SubElement(root, 'source')
-                        etree.SubElement(
-                            source,
-                            'name').text = "PlexKodiConnect Masterlock Hack"
-                        etree.SubElement(
-                            source,
-                            'path',
-                            {'pathversion': "1"}).text = "smb://"
-                        etree.SubElement(source, 'allowsharing').text = "true"
-                if reboot is False:
-                    reboot = xml.write_xml
+                changed = False
+                for extension in ('smb://', 'nfs://'):
+                    root = xml.set_setting(['video'])
+                    changed = self._add_sources(root, extension) or changed
+                if changed:
+                    xml.write_xml = True
+                    reboot = True
         except utils.ParseError:
             pass
 
