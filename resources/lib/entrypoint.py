@@ -429,6 +429,7 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
     except AttributeError:
         LOG.error('Could not browse to key %s, section %s',
                   key, section_id)
+        return
     show_listing(xml, plex_type, section_id, synched, key)
 
 
