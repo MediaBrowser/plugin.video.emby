@@ -57,6 +57,30 @@ def guess_content_type():
     return content_type
 
 
+def _wait_for_auth():
+    """
+    Call to be sure that PKC is authenticated, e.g. for widgets on Kodi startup.
+    Will wait for at most 30s, then fail if not authenticated. Will set
+    xbmcplugin.endOfDirectory(int(argv[1]), False) if failed
+
+    WARNING - this will potentially stall the shutdown of Kodi since we cannot
+    poll xbmc.Monitor().abortRequested() or waitForAbort() or
+    xbmc.abortRequested
+    """
+    counter = 0
+    startupdelay = int(utils.settings('startupDelay') or 0)
+    # Wait for <startupdelay in seconds> + 10 seconds at most
+    startupdelay = 10 * startupdelay + 100
+    while utils.window('plex_authenticated') != 'true':
+        counter += 1
+        if counter == startupdelay:
+            LOG.error('Aborting view, we were not authenticated for PMS')
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+            return False
+        xbmc.sleep(100)
+    return True
+
+
 def directory_item(label, path, folder=True):
     """
     Adds a xbmcplugin.addDirectoryItem() directory itemlistitem
@@ -228,6 +252,8 @@ def get_video_files(plex_id, params):
     if plex_id is None:
         LOG.info('No Plex ID found, abort getting Extras')
         return xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     item = PF.GetPlexMetadata(plex_id)
     try:
@@ -285,6 +311,8 @@ def extra_fanart(plex_id, plex_path):
     # because of the caching system in xbmc
     fanart_dir = path_ops.translate_path("special://thumbnails/plex/%s/"
                                          % plex_id)
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     if not path_ops.exists(fanart_dir):
         # Download the images to the cache directory
         path_ops.makedirs(fanart_dir)
@@ -329,6 +357,8 @@ def playlists(content_type):
     """
     content_type = content_type or guess_content_type()
     LOG.debug('Listing Plex %s playlists', content_type)
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     from .playlists.pms import all_playlists
     xml = all_playlists()
@@ -352,6 +382,8 @@ def hub(content_type):
     """
     content_type = content_type or guess_content_type()
     LOG.debug('Showing Plex Hub entries for %s', content_type)
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     xml = PF.get_plex_hub()
     try:
@@ -385,6 +417,8 @@ def watchlater():
     """
     Listing for plex.tv Watch Later section (if signed in to plex.tv)
     """
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     if utils.window('plex_token') == '':
         LOG.error('No watch later - not signed in to plex.tv')
         return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
@@ -412,6 +446,8 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
     """
     LOG.debug('Browsing to key %s, section %s, plex_type: %s, synched: %s, '
               'prompt "%s"', key, section_id, plex_type, synched, prompt)
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     if prompt:
         prompt = utils.dialog('input', prompt)
@@ -429,6 +465,7 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
     except AttributeError:
         LOG.error('Could not browse to key %s, section %s',
                   key, section_id)
+        return
     show_listing(xml, plex_type, section_id, synched, key)
 
 
@@ -436,6 +473,8 @@ def extras(plex_id):
     """
     Lists all extras for plex_id
     """
+    if not _wait_for_auth():
+        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     xml = PF.GetPlexMetadata(plex_id)
     try:

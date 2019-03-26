@@ -57,24 +57,28 @@ def process_method_on_list(method_to_run, items):
 
 
 def get_clean_image(image):
-    '''helper to strip all kodi tags/formatting of an image path/url'''
+    '''
+    helper to strip all kodi tags/formatting of an image path/url
+    Pass in either unicode or str; returns unicode
+    '''
     if not image:
         return ""
-    if "music@" in image:
+    if not isinstance(image, str):
+        image = image.encode('utf-8')
+    if b"music@" in image:
         # fix for embedded images
-        thumbcache = xbmc.getCacheThumbName(image).replace(".tbn", ".jpg")
-        thumbcache = "special://thumbnails/%s/%s" % (thumbcache[0], thumbcache)
+        thumbcache = xbmc.getCacheThumbName(image)
+        thumbcache = thumbcache.replace(b".tbn", b".jpg")
+        thumbcache = b"special://thumbnails/%s/%s" % (thumbcache[0], thumbcache)
         if not xbmcvfs.exists(thumbcache):
             xbmcvfs.copy(image, thumbcache)
         image = thumbcache
-    if image and "image://" in image:
-        image = image.replace("image://", "")
-        image = urllib.unquote(image.encode("utf-8"))
-        if image.endswith("/"):
+    if image and b"image://" in image:
+        image = image.replace(b"image://", b"")
+        image = urllib.unquote(image)
+        if image.endswith(b"/"):
             image = image[:-1]
-    if not isinstance(image, unicode):
-        image = image.decode("utf8")
-    return image
+    return image.decode('utf-8')
 
 
 def generate_item(xml_element):
