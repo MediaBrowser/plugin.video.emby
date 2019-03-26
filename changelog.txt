@@ -1,3 +1,9 @@
+version 2.7.9:
+- Wait for PKC to authorize before loading widgets
+- Fix UnicodeDecodeError for libraries with non-ASCII paths
+- Fix TypeError on Kodi start
+- Fix Kodi Masterlock for nfs paths (requires restart) 
+
 version 2.7.8:
 - Fix widgets not working in some cases like NVidia Shield
 - Fix appending of show title, season and episode number
