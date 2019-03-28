@@ -1,3 +1,8 @@
+version 2.7.10:
+- WARNING: You will need to reset the Kodi database!
+- Fix duplicate music entries for direct paths (forces a Kodi database reset) 
+- Fix playback sometimes not being reported for direct paths
+
 version 2.7.9:
 - Wait for PKC to authorize before loading widgets
 - Fix UnicodeDecodeError for libraries with non-ASCII paths
