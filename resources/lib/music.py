@@ -8,7 +8,7 @@ from . import utils
 from . import variables as v
 
 ###############################################################################
-LOG = getLogger('PLEX.music')
+LOG = getLogger('PLEX.music.py')
 ###############################################################################
 
 
@@ -25,7 +25,7 @@ def excludefromscan_music_folders(sections):
     reboot = False
     api = API(item=None)
     for section in sections:
-        if section.plex_type != v.PLEX_TYPE_ARTIST:
+        if section.section_type != v.PLEX_TYPE_ARTIST:
             # Only look at music libraries
             continue
         if not section.sync_to_kodi:
