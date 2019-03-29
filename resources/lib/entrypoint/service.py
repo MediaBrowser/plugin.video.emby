@@ -126,11 +126,8 @@ class Service(xbmc.Monitor):
 
             if self.webservice is not None and not self.webservice.is_alive():
                 
-                LOG.info("[ restarting webservice ]")
-                self.webservice.stop()
-
-                self.webservice = webservice.WebService()
-                self.webservice.start()
+                LOG.info("[ restarting due to socket disconnect ]")
+                window('emby.restart.bool', True)
 
             if window('emby.restart.bool'):
 
