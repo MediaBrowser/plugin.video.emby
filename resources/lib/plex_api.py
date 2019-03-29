@@ -152,9 +152,9 @@ class API(object):
 
     def directory_path(self, section_id=None, plex_type=None, old_key=None,
                        synched=True):
-        key = self.item.get('fastKey')
+        key = cast(unicode, self.item.get('fastKey'))
         if not key:
-            key = self.item.get('key')
+            key = cast(unicode, self.item.get('key'))
             if old_key:
                 key = '%s/%s' % (old_key, key)
             elif not key.startswith('/'):
@@ -169,10 +169,10 @@ class API(object):
             params['synched'] = 'false'
         if self.item.get('prompt'):
             # User input needed, e.g. search for a movie or episode
-            params['prompt'] = self.item.get('prompt')
+            params['prompt'] = cast(unicode, self.item.get('prompt'))
         if section_id:
             params['id'] = section_id
-        return 'plugin://%s/?%s' % (v.ADDON_ID, urlencode(params))
+        return utils.extend_url('plugin://%s/' % v.ADDON_ID, params)
 
     def path_and_plex_id(self):
         """

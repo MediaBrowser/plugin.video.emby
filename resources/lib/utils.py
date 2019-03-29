@@ -9,6 +9,7 @@ from sqlite3 import connect, OperationalError
 from datetime import datetime
 from unicodedata import normalize
 from threading import Lock
+import urllib
 # Originally tried faster cElementTree, but does NOT work reliably with Kodi
 import xml.etree.ElementTree as etree
 import defusedxml.ElementTree as defused_etree  # etree parse unsafe
@@ -269,26 +270,59 @@ def cast(func, value):
         func (func): Calback function to used cast to type (int, bool, float).
         value (any): value to be cast and returned.
     """
-    if value is not None:
-        if func == bool:
-            return bool(int(value))
-        elif func == unicode:
-            if isinstance(value, (int, long, float)):
-                return unicode(value)
-            else:
-                return value.decode('utf-8')
-        elif func == str:
-            if isinstance(value, (int, long, float)):
-                return str(value)
-            else:
-                return value.encode('utf-8')
-        elif func in (int, float):
-            try:
-                return func(value)
-            except ValueError:
-                return float('nan')
-        return func(value)
-    return value
+    if value is None:
+        return value
+    elif func == bool:
+        return bool(int(value))
+    elif func == unicode:
+        if isinstance(value, (int, long, float)):
+            return unicode(value)
+        elif isinstance(value, unicode):
+            return value
+        else:
+            return value.decode('utf-8')
+    elif func == str:
+        if isinstance(value, (int, long, float)):
+            return str(value)
+        elif isinstance(value, str):
+            return value
+        else:
+            return value.encode('utf-8')
+    elif func in (int, float):
+        try:
+            return func(value)
+        except ValueError:
+            return float('nan')
+    return func(value)
+
+
+def extend_url(url, params):
+    """
+    Pass in an url [unicode] and params [dict]. Returns the extended url
+        '<url><? or &><urllib.urlencode(params)>'
+    in unicode
+    """
+    params = encode_dict(params) if params else {}
+    params = urllib.urlencode(params).decode('utf-8')
+    if '?' in url:
+        return '%s&%s' % (url, params)
+    else:
+        return '%s?%s' % (url, params)
+
+
+def encode_dict(dictionary):
+    """
+    Pass in a dict. Will return the same dict with all keys and values encoded
+    in utf-8 - as long as they are unicode. Ignores all non-unicode entries
+
+    Useful for urllib.urlencode or urllib.(un)quote
+    """
+    for key, value in dictionary.iteritems():
+        if isinstance(key, unicode):
+            dictionary[key.encode('utf-8')] = dictionary.pop(key)
+        if isinstance(value, unicode):
+            dictionary[key] = value.encode('utf-8')
+    return dictionary
 
 
 def try_encode(input_str, encoding='utf-8'):
