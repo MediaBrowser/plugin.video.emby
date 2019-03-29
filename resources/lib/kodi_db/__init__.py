@@ -22,9 +22,14 @@ def kodiid_from_filename(path, kodi_type=None, db_type=None):
     """
     kodi_id = None
     path = utils.try_decode(path)
-    path, filename = path_ops.path.split(path)
     # Make sure path ends in either '/' or '\'
-    path = path_ops.path.join(path, '')
+    # We CANNOT use path_ops.path.join as this can result in \ where we need /
+    try:
+        filename = path.rsplit('/', 1)[1]
+        path = path.rsplit('/', 1)[0] + '/'
+    except IndexError:
+        filename = path.rsplit('\\', 1)[1]
+        path = path.rsplit('\\', 1)[0] + '\\'
     if kodi_type == v.KODI_TYPE_SONG or db_type == 'music':
         with KodiMusicDB(lock=False) as kodidb:
             try:
