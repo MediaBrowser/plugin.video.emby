@@ -1928,13 +1928,3 @@ class API(object):
         # Kodi cannot locate the file #s. Please verify your PKC settings. Stop
         # syncing?
         return utils.yesno_dialog(utils.lang(29999), utils.lang(39031) % url)
-
-    @staticmethod
-    def _set_listitem_artprop(listitem, arttype, path):
-        if arttype in (
-                'thumb', 'fanart_image', 'small_poster', 'tiny_poster',
-                'medium_landscape', 'medium_poster', 'small_fanartimage',
-                'medium_fanartimage', 'fanart_noindicators'):
-            listitem.setProperty(arttype, path)
-        else:
-            listitem.setArt({arttype: path})
