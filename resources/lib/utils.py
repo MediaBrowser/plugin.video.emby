@@ -12,7 +12,8 @@ from threading import Lock
 import urllib
 # Originally tried faster cElementTree, but does NOT work reliably with Kodi
 import xml.etree.ElementTree as etree
-import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+# etree parse unsafe; make sure we're always receiving unicode
+from . import defused_etree
 from xml.etree.ElementTree import ParseError
 from functools import wraps
 import hashlib
