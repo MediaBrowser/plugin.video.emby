@@ -8,13 +8,8 @@ from logging import getLogger
 from re import sub
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from urlparse import urlparse, parse_qs
-import xbmc
 
-from .. import companion
-from .. import json_rpc as js
-from .. import clientinfo
-from .. import variables as v
+from .. import utils, companion, json_rpc as js, clientinfo, variables as v
 from .. import app
 
 ###############################################################################
@@ -102,8 +97,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
         request_path = self.path[1:]
         request_path = sub(r"\?.*", "", request_path)
-        url = urlparse(self.path)
-        paramarrays = parse_qs(url.query)
+        parseresult = utils.urlparse(self.path)
+        paramarrays = utils.parse_qs(parseresult.query)
         params = {}
         for key in paramarrays:
             params[key] = paramarrays[key][0]

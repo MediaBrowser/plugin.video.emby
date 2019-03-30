@@ -8,7 +8,6 @@ e.g. plugin://... calls. Hence be careful to only rely on window variables.
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import urllib
 try:
     from multiprocessing.pool import ThreadPool
     SUPPORTS_POOL = True
@@ -75,10 +74,12 @@ def get_clean_image(image):
         image = thumbcache
     if image and b"image://" in image:
         image = image.replace(b"image://", b"")
-        image = urllib.unquote(image)
-        if image.endswith(b"/"):
+        image = utils.unquote(image)
+        if image.endswith("/"):
             image = image[:-1]
-    return image.decode('utf-8')
+        return image
+    else:
+        return image.decode('utf-8')
 
 
 def generate_item(xml_element):
@@ -227,7 +228,7 @@ def _generate_content(xml_element):
             'key': key,
             'offset': xml_element.attrib.get('viewOffset', '0'),
         }
-        url = "plugin://%s?%s" % (v.ADDON_ID, urllib.urlencode(params))
+        url = utils.extend_url('plugin://%s' % v.ADDON_ID, params)
     elif plex_type == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:

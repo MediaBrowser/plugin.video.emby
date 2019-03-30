@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from urllib import urlencode, quote_plus
 from ast import literal_eval
-from urlparse import urlparse, parse_qsl
 from copy import deepcopy
 from time import time
 from threading import Thread
@@ -57,9 +55,9 @@ def ParseContainerKey(containerKey):
 
     Output hence: library, key, query       (str, int, dict)
     """
-    result = urlparse(containerKey)
-    library, key = GetPlexKeyNumber(result.path)
-    query = dict(parse_qsl(result.query))
+    result = utils.urlparse(containerKey)
+    library, key = GetPlexKeyNumber(result.path.decode('utf-8'))
+    query = dict(utils.parse_qsl(result.query))
     return library, key, query
 
 
@@ -480,9 +478,9 @@ def GetPlexMetadata(key, reraise=False):
         # 'includePopularLeaves': 1,
         # 'includeConcerts': 1
     }
-    url = url + '?' + urlencode(arguments)
     try:
-        xml = DU().downloadUrl(url, reraise=reraise)
+        xml = DU().downloadUrl(utils.extend_url(url, arguments),
+                               reraise=reraise)
     except exceptions.RequestException:
         # "PMS offline"
         utils.dialog('notification',
@@ -556,7 +554,7 @@ def GetAllPlexChildren(key):
     Input:
         key             Key to a Plex item, e.g. 12345
     """
-    return DownloadChunks("{server}/library/metadata/%s/children?" % key)
+    return DownloadChunks("{server}/library/metadata/%s/children" % key)
 
 
 def GetPlexSectionResults(viewId, args=None):
@@ -569,9 +567,9 @@ def GetPlexSectionResults(viewId, args=None):
 
     Returns None if something went wrong
     """
-    url = "{server}/library/sections/%s/all?" % viewId
+    url = "{server}/library/sections/%s/all" % viewId
     if args:
-        url += urlencode(args) + '&'
+        url = utils.extend_url(url, args)
     return DownloadChunks(url)
 
 
@@ -726,9 +724,6 @@ class Leaves(DownloadGen):
 def DownloadChunks(url):
     """
     Downloads PMS url in chunks of CONTAINERSIZE.
-
-    url MUST end with '?' (if no other url encoded args are present) or '&'
-
     Returns a stitched-together xml or None.
     """
     xml = None
@@ -740,13 +735,13 @@ def DownloadChunks(url):
             'X-Plex-Container-Start': pos,
             'sort': 'id'
         }
-        xmlpart = DU().downloadUrl(url + urlencode(args))
+        xmlpart = DU().downloadUrl(utils.extend_url(url, args))
         # If something went wrong - skip in the hope that it works next time
         try:
             xmlpart.attrib
         except AttributeError:
-            LOG.error('Error while downloading chunks: %s',
-                      url + urlencode(args))
+            LOG.error('Error while downloading chunks: %s, args: %s',
+                      url, args)
             pos += CONTAINERSIZE
             error_counter += 1
             continue
@@ -799,16 +794,14 @@ def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
     if updatedAt:
         args.append('updatedAt>=%s' % updatedAt)
     if args:
-        url += '?' + '&'.join(args) + '&'
-    else:
-        url += '?'
+        url += '?' + '&'.join(args)
     return DownloadChunks(url)
 
 
 def GetPlexOnDeck(viewId):
     """
     """
-    return DownloadChunks("{server}/library/sections/%s/onDeck?" % viewId)
+    return DownloadChunks("{server}/library/sections/%s/onDeck" % viewId)
 
 
 def get_plex_hub():
@@ -843,7 +836,7 @@ def init_plex_playqueue(plex_id, librarySectionUUID, mediatype='movie',
     }
     if trailers is True:
         args['extrasPrefixCount'] = utils.settings('trailerNumber')
-    xml = DU().downloadUrl(url + '?' + urlencode(args), action_type="POST")
+    xml = DU().downloadUrl(utils.extend_url(url, args), action_type="POST")
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
@@ -976,12 +969,12 @@ def scrobble(ratingKey, state):
         'identifier': 'com.plexapp.plugins.library'
     }
     if state == "watched":
-        url = "{server}/:/scrobble?" + urlencode(args)
+        url = '{server}/:/scrobble'
     elif state == "unwatched":
-        url = "{server}/:/unscrobble?" + urlencode(args)
+        url = '{server}/:/unscrobble'
     else:
         return
-    DU().downloadUrl(url)
+    DU().downloadUrl(utils.extend_url(url, args))
     LOG.info("Toggled watched state for Plex item %s", ratingKey)
 
 
@@ -1058,12 +1051,13 @@ def transcode_image_path(key, AuthToken, path, width, height):
         path = 'http://127.0.0.1:32400' + key
     else:  # internal path, add-on
         path = 'http://127.0.0.1:32400' + path + '/' + key
-    path = utils.try_encode(path)
     # This is bogus (note the extra path component) but ATV is stupid when it
     # comes to caching images, it doesn't use querystrings. Fortunately PMS is
     # lenient...
+    path = path.encode('utf-8')
     transcode_path = ('/photo/:/transcode/%sx%s/%s'
-                      % (width, height, quote_plus(path)))
+                      % (width, height, utils.quote_plus(path)))
+    transcode_path = transcode_path.decode('utf-8')
     args = {
         'width': width,
         'height': height,
@@ -1071,4 +1065,4 @@ def transcode_image_path(key, AuthToken, path, width, height):
     }
     if AuthToken:
         args['X-Plex-Token'] = AuthToken
-    return transcode_path + '?' + urlencode(args)
+    return utils.extend_url(transcode_path, args)

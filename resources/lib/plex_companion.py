@@ -8,7 +8,6 @@ from logging import getLogger
 from threading import Thread
 from Queue import Empty
 from socket import SHUT_RDWR
-from urllib import urlencode
 from xbmc import executebuiltin
 
 from .plexbmchelper import listener, plexgdm, subscribers, httppersist
@@ -96,7 +95,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                 transient_token=data.get('token'))
         elif data['containerKey'].startswith('/playQueues/'):
             _, container_key, _ = PF.ParseContainerKey(data['containerKey'])
-            xml = PF.DownloadChunks('{server}/playQueues/%s?' % container_key)
+            xml = PF.DownloadChunks('{server}/playQueues/%s' % container_key)
             if xml is None:
                 # "Play error"
                 utils.dialog('notification',
@@ -133,8 +132,7 @@ class PlexCompanion(backgroundthread.KillableThread):
             'key': '{server}%s' % data.get('key'),
             'offset': data.get('offset')
         }
-        executebuiltin('RunPlugin(plugin://%s?%s)'
-                       % (v.ADDON_ID, urlencode(params)))
+        executebuiltin('RunPlugin(plugin://%s)' % utils.extend_url(v.ADDON_ID, params))
 
     @staticmethod
     def _process_playlist(data):

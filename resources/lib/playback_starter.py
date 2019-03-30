@@ -2,13 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from urlparse import parse_qsl
 
-
-from . import playback
-from . import context_entry
-from . import transfer
-from . import backgroundthread
+from . import utils, playback, context_entry, transfer, backgroundthread
 
 ###############################################################################
 
@@ -35,7 +30,7 @@ class PlaybackTask(backgroundthread.Task):
             LOG.debug('Detected 3rd party add-on call - ignoring')
             transfer.send(True)
             return
-        params = dict(parse_qsl(params))
+        params = dict(utils.parse_qsl(params))
         mode = params.get('mode')
         resolve = False if params.get('handle') == '-1' else True
         LOG.debug('Received mode: %s, params: %s', mode, params)
