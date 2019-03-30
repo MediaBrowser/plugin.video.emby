@@ -201,3 +201,18 @@ def copy_tree(src, dst, *args, **kwargs):
     src = encode_path(src)
     dst = encode_path(dst)
     return dir_util.copy_tree(src, dst, *args, **kwargs)
+
+
+def basename(path):
+    """
+    Returns the filename for path [unicode] or an empty string if not possible.
+    Safer than using os.path.basename, as we could be expecting \\ for / or
+    vice versa
+    """
+    try:
+        return path.rsplit('/', 1)[1]
+    except IndexError:
+        try:
+            return path.rsplit('\\', 1)[1]
+        except IndexError:
+            return ''

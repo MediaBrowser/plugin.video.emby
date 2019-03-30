@@ -226,7 +226,7 @@ class Section(object):
         args = copy.deepcopy(args)
         for key, value in args.iteritems():
             args[key] = value.format(self=self)
-        return 'plugin://plugin.video.plexkodiconnect?%s' % urllib.urlencode(args)
+        return utils.extend_url('plugin://%s' % v.ADDON_ID, args)
 
     def to_kodi(self):
         """

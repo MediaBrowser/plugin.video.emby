@@ -29,9 +29,13 @@ class Main():
     def __init__(self):
         LOG.debug('Full sys.argv received: %s', argv)
         # Parse parameters
-        path = unicode_paths.decode(argv[0])
+        params = dict(parse_qsl(argv[2][1:]))
         arguments = unicode_paths.decode(argv[2])
-        params = dict(parse_qsl(arguments[1:]))
+        path = unicode_paths.decode(argv[0])
+        # Ensure unicode
+        for key, value in params.iteritems():
+            params[key.decode('utf-8')] = params.pop(key)
+            params[key] = value.decode('utf-8')
         mode = params.get('mode', '')
         itemid = params.get('id', '')
 
