@@ -33,8 +33,6 @@ http://stackoverflow.com/questions/111945/is-there-any-way-to-do-http-put-in-pyt
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from re import sub
-from urllib import urlencode, unquote, quote
-from urlparse import parse_qsl
 
 from xbmcgui import ListItem
 
@@ -101,10 +99,8 @@ class API(object):
         """
         Returns the unique int <ratingKey><updatedAt>
         """
-        return int('%s%s' % (self.item.get('ratingKey'),
-                             self.item.get('updatedAt',
-                                           self.item.get('addedAt',
-                                                         1541572987))))
+        return int('%s%s' % (self.plex_id(),
+                             self.updated_at() or self.item.get('addedAt', 1541572987)))
 
     def plex_id(self):
         """
@@ -152,9 +148,9 @@ class API(object):
 
     def directory_path(self, section_id=None, plex_type=None, old_key=None,
                        synched=True):
-        key = cast(unicode, self.item.get('fastKey'))
+        key = self.item.get('fastKey')
         if not key:
-            key = cast(unicode, self.item.get('key'))
+            key = self.item.get('key')
             if old_key:
                 key = '%s/%s' % (old_key, key)
             elif not key.startswith('/'):
@@ -169,7 +165,7 @@ class API(object):
             params['synched'] = 'false'
         if self.item.get('prompt'):
             # User input needed, e.g. search for a movie or episode
-            params['prompt'] = cast(unicode, self.item.get('prompt'))
+            params['prompt'] = self.item.get('prompt')
         if section_id:
             params['id'] = section_id
         return utils.extend_url('plugin://%s/' % v.ADDON_ID, params)
@@ -210,7 +206,7 @@ class API(object):
     def file_path(self, force_first_media=False):
         """
         Returns the direct path to this item, e.g. '\\NAS\movies\movie.mkv'
-        or None
+        as unicode or None
 
         force_first_media=True:
             will always use 1st media stream, e.g. when several different
@@ -221,51 +217,43 @@ class API(object):
                 return
         try:
             if force_first_media is False:
-                ans = self.item[self.mediastream][self.part].attrib['file']
+                ans = cast(str, self.item[self.mediastream][self.part].attrib['file'])
             else:
-                ans = self.item[0][self.part].attrib['file']
+                ans = cast(str, self.item[0][self.part].attrib['file'])
         except (TypeError, AttributeError, IndexError, KeyError):
-            ans = None
-        if ans is not None:
-            try:
-                ans = utils.try_decode(unquote(ans))
-            except UnicodeDecodeError:
-                # Sometimes, Plex seems to have encoded in latin1
-                ans = unquote(ans).decode('latin1')
-        return ans
+            return
+        return utils.unquote(ans)
 
     def get_picture_path(self):
         """
         Returns the item's picture path (transcode, if necessary) as string.
         Will always use addon paths, never direct paths
         """
-        extension = self.item[0][0].attrib['key'][self.item[0][0].attrib['key'].rfind('.'):].lower()
+        path = self.item[0][0].get('key')
+        extension = path[path.rfind('.'):].lower()
         if app.SYNC.force_transcode_pix or extension not in v.KODI_SUPPORTED_IMAGES:
             # Let Plex transcode
             # max width/height supported by plex image transcoder is 1920x1080
             path = app.CONN.server + PF.transcode_image_path(
-                self.item[0][0].get('key'),
+                path,
                 app.ACCOUNT.pms_token,
-                "%s%s" % (app.CONN.server, self.item[0][0].get('key')),
+                "%s%s" % (app.CONN.server, path),
                 1920,
                 1080)
         else:
-            path = self.attach_plex_token_to_url(
-                '%s%s' % (app.CONN.server, self.item[0][0].attrib['key']))
+            path = self.attach_plex_token_to_url('%s%s' % (app.CONN.server, path))
         # Attach Plex id to url to let it be picked up by our playqueue agent
         # later
-        return utils.try_encode('%s&plex_id=%s' % (path, self.plex_id()))
+        return '%s&plex_id=%s' % (path, self.plex_id())
 
     def tv_show_path(self):
         """
         Returns the direct path to the TV show, e.g. '\\NAS\tv\series'
         or None
         """
-        res = None
         for child in self.item:
             if child.tag == 'Location':
-                res = child.get('path')
-        return res
+                return child.get('path')
 
     def season_number(self):
         """
@@ -295,10 +283,7 @@ class API(object):
         """
         Returns the play count for the item as an int or the int 0 if not found
         """
-        try:
-            return int(self.item.attrib['viewCount'])
-        except (KeyError, ValueError):
-            return 0
+        return cast(int, self.item.get('viewCount')) or 0
 
     def userdata(self):
         """
@@ -781,8 +766,7 @@ class API(object):
             'container': self._data_from_part_or_media('container'),
         }
         try:
-            answ['bitDepth'] = self.item[0][self.part][self.mediastream].get(
-                'bitDepth')
+            answ['bitDepth'] = self.item[0][self.part][self.mediastream].get('bitDepth')
         except (TypeError, AttributeError, KeyError, IndexError):
             answ['bitDepth'] = None
         return answ
@@ -848,7 +832,7 @@ class API(object):
         subtitlelanguages = []
         try:
             # Sometimes, aspectratio is on the "toplevel"
-            aspect = self.item[0].get('aspectRatio')
+            aspect = cast(float, self.item[0].get('aspectRatio'))
         except IndexError:
             # There is no stream info at all, returning empty
             return {
@@ -860,39 +844,37 @@ class API(object):
         for child in self.item[0]:
             container = child.get('container')
             # Loop over Streams
-            for grandchild in child:
-                stream = grandchild.attrib
+            for stream in child:
                 media_type = int(stream.get('streamType', 999))
                 track = {}
                 if media_type == 1:  # Video streams
-                    if 'codec' in stream:
-                        track['codec'] = stream['codec'].lower()
+                    if 'codec' in stream.attrib:
+                        track['codec'] = stream.get('codec').lower()
                         if "msmpeg4" in track['codec']:
                             track['codec'] = "divx"
                         elif "mpeg4" in track['codec']:
-                            # if "simple profile" in profile or profile == "":
-                            #    track['codec'] = "xvid"
                             pass
                         elif "h264" in track['codec']:
                             if container in ("mp4", "mov", "m4v"):
                                 track['codec'] = "avc1"
-                    track['height'] = stream.get('height')
-                    track['width'] = stream.get('width')
+                    track['height'] = cast(int, stream.get('height'))
+                    track['width'] = cast(int, stream.get('width'))
                     # track['Video3DFormat'] = item.get('Video3DFormat')
-                    track['aspect'] = stream.get('aspectRatio', aspect)
-                    track['duration'] = self.resume_runtime()[1]
+                    track['aspect'] = cast(float,
+                                           stream.get('aspectRatio') or aspect)
+                    track['duration'] = self.runtime()
                     track['video3DFormat'] = None
                     videotracks.append(track)
                 elif media_type == 2:  # Audio streams
-                    if 'codec' in stream:
-                        track['codec'] = stream['codec'].lower()
+                    if 'codec' in stream.attrib:
+                        track['codec'] = stream.get('codec').lower()
                         if ("dca" in track['codec'] and
                                 "ma" in stream.get('profile', '').lower()):
                             track['codec'] = "dtshd_ma"
-                    track['channels'] = stream.get('channels')
+                    track['channels'] = cast(int, stream.get('channels'))
                     # 'unknown' if we cannot get language
-                    track['language'] = stream.get(
-                        'languageCode', utils.lang(39310)).lower()
+                    track['language'] = stream.get('languageCode',
+                                                   utils.lang(39310).lower())
                     audiotracks.append(track)
                 elif media_type == 3:  # Subtitle streams
                     # 'unknown' if we cannot get language
@@ -925,7 +907,7 @@ class API(object):
                     # e.g. Plex collections where artwork already contains
                     # width and height. Need to upscale for better resolution
                     artwork, args = artwork.split('?')
-                    args = dict(parse_qsl(args))
+                    args = dict(utils.parse_qsl(args))
                     width = int(args.get('width', 400))
                     height = int(args.get('height', 400))
                     # Adjust to 4k resolution 1920x1080
@@ -938,7 +920,7 @@ class API(object):
                 artwork = '%s?width=%s&height=%s' % (artwork, width, height)
             artwork = ('%s/photo/:/transcode?width=1920&height=1920&'
                        'minSize=1&upscale=0&url=%s'
-                       % (app.CONN.server, quote(artwork)))
+                       % (app.CONN.server, utils.quote(artwork)))
             artwork = self.attach_plex_token_to_url(artwork)
         return artwork
 
@@ -1297,9 +1279,9 @@ class API(object):
     def library_section_id(self):
         """
         Returns the id of the Plex library section (for e.g. a movies section)
-        or None
+        as an int or None
         """
-        return self.item.get('librarySectionID')
+        return cast(int, self.item.get('librarySectionID'))
 
     def collections_match(self, section_id):
         """
@@ -1345,7 +1327,7 @@ class API(object):
         Returns True if the item's 'optimizedForStreaming' is set, False other-
         wise
         """
-        return self.item[0].get('optimizedForStreaming') == '1'
+        return cast(bool, self.item[0].get('optimizedForStreaming')) or False
 
     def mediastream_number(self):
         """
@@ -1371,16 +1353,16 @@ class API(object):
             for entry in self.item.iterfind('./Media'):
                 # Get additional info (filename / languages)
                 if 'file' in entry[0].attrib:
-                    option = utils.try_decode(entry[0].attrib['file'])
-                    option = path_ops.path.basename(option)
+                    option = entry[0].get('file')
+                    option = path_ops.basename(option)
                 else:
                     option = self.title() or ''
                 # Languages of audio streams
                 languages = []
                 for stream in entry[0]:
-                    if (stream.attrib['streamType'] == '1' and
+                    if (cast(int, stream.get('streamType')) == 1 and
                             'language' in stream.attrib):
-                        language = utils.try_decode(stream.attrib['language'])
+                        language = stream.get('language')
                         languages.append(language)
                 languages = ', '.join(languages)
                 if languages:
@@ -1391,19 +1373,19 @@ class API(object):
                 else:
                     option = '%s ' % option
                 if 'videoResolution' in entry.attrib:
-                    res = utils.try_decode(entry.attrib['videoResolution'])
+                    res = entry.get('videoResolution')
                     option = '%s%sp ' % (option, res)
                 if 'videoCodec' in entry.attrib:
-                    codec = utils.try_decode(entry.attrib['videoCodec'])
+                    codec = entry.get('videoCodec')
                     option = '%s%s' % (option, codec)
                 option = option.strip() + ' - '
                 if 'audioProfile' in entry.attrib:
-                    profile = utils.try_decode(entry.attrib['audioProfile'])
+                    profile = entry.get('audioProfile')
                     option = '%s%s ' % (option, profile)
                 if 'audioCodec' in entry.attrib:
-                    codec = utils.try_decode(entry.attrib['audioCodec'])
+                    codec = entry.get('audioCodec')
                     option = '%s%s ' % (option, codec)
-                option = utils.try_encode(option.strip())
+                option = cast(str, option.strip())
                 dialoglist.append(option)
             media = utils.dialog('select', 'Select stream', dialoglist)
             if media == -1:
@@ -1437,20 +1419,15 @@ class API(object):
         """
         if self.mediastream is None and self.mediastream_number() is None:
             return
-        if quality is None:
-            quality = {}
+        quality = {} if quality is None else quality
         xargs = clientinfo.getXArgsDeviceInfo()
         # For DirectPlay, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
-            path = self.item[self.mediastream][self.part].attrib['key']
+            path = self.item[self.mediastream][self.part].get('key')
             url = app.CONN.server + path
             # e.g. Trailers already feature an '?'!
-            if '?' in url:
-                url += '&' + urlencode(xargs)
-            else:
-                url += '?' + urlencode(xargs)
-            return url
+            return utils.extend_url(url, xargs)
 
         # For Transcoding
         headers = {
@@ -1460,7 +1437,7 @@ class API(object):
             'X-Plex-Version': '5.8.0.475'
         }
         # Path/key to VIDEO item of xml PMS response is needed, not part
-        path = self.item.attrib['key']
+        path = self.item.get('key')
         transcode_path = app.CONN.server + \
             '/video/:/transcode/universal/start.m3u8?'
         args = {
@@ -1469,7 +1446,7 @@ class API(object):
             'directPlay': 0,
             'directStream': 1,
             'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session': utils.window('plex_client_Id'),
+            'session': v.PKC_MACHINE_IDENTIFIER,  # TODO: create new unique id
             'fastSeek': 1,
             'path': path,
             'mediaIndex': self.mediastream,
@@ -1478,12 +1455,11 @@ class API(object):
             'location': 'lan',
             'subtitleSize': utils.settings('subtitleSize')
         }
-        # Look like Android to let the PMS use the transcoding profile
-        xargs.update(headers)
         LOG.debug("Setting transcode quality to: %s", quality)
-        args.update(quality)
-        url = transcode_path + urlencode(xargs) + '&' + urlencode(args)
-        return url
+        xargs.update(headers)
+        xargs.update(args)
+        xargs.update(quality)
+        return utils.extend_url(transcode_path, xargs)
 
     def cache_external_subs(self):
         """
@@ -1500,7 +1476,7 @@ class API(object):
         for stream in mediastreams:
             # Since plex returns all possible tracks together, have to pull
             # only external subtitles - only for these a 'key' exists
-            if stream.get('streamType') != "3":
+            if cast(int, stream.get('streamType')) != 3:
                 # Not a subtitle
                 continue
             # Only set for additional external subtitles NOT lying beside video
@@ -1510,11 +1486,11 @@ class API(object):
             if key:
                 # We do know the language - temporarily download
                 if stream.get('languageCode') is not None:
+                    language = stream.get('languageCode')
+                    codec = stream.get('codec')
                     path = self.download_external_subtitles(
                         "{server}%s" % key,
-                        "subtitle%02d.%s.%s" % (fileindex,
-                                                stream.attrib['languageCode'],
-                                                stream.attrib['codec']))
+                        "subtitle%02d.%s.%s" % (fileindex, language, codec))
                     fileindex += 1
                 # We don't know the language - no need to download
                 else:
@@ -1878,7 +1854,7 @@ class API(object):
             except ValueError:
                 pass
             else:
-                args = quote(args)
+                args = utils.quote(args)
                 path = '%s:%s:%s' % (protocol, hostname, args)
         if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
