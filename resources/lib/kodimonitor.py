@@ -567,4 +567,4 @@ class ContextMonitor(backgroundthread.KillableThread):
                 else:
                     # Different context menu is displayed
                     app.PLAYSTATE.resume_playback = False
-            app.APP.monitor.waitForAbort(0.1)
+            xbmc.sleep(100)
