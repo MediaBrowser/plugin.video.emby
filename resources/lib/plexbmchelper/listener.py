@@ -47,6 +47,12 @@ class MyHandler(BaseHTTPRequestHandler):
         self.serverlist = []
         BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
+    def log_message(self, format, *args):
+        '''
+        Mute all requests, don't log 'em
+        '''
+        pass
+
     def do_HEAD(self):
         LOG.debug("Serving HEAD request...")
         self.answer_request(0)
