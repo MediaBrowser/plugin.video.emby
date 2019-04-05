@@ -132,7 +132,8 @@ class PlexCompanion(backgroundthread.KillableThread):
             'key': '{server}%s' % data.get('key'),
             'offset': data.get('offset')
         }
-        executebuiltin('RunPlugin(plugin://%s)' % utils.extend_url(v.ADDON_ID, params))
+        handle = 'RunPlugin(plugin://%s)' % utils.extend_url(v.ADDON_ID, params)
+        executebuiltin(handle.encode('utf-8'))
 
     @staticmethod
     def _process_playlist(data):
