@@ -111,7 +111,9 @@ class Section(object):
         return (self.section_id == section.section_id and
                 self.name == section.name and
                 self.section_type == section.section_type)
-    __ne__ = not __eq__
+
+    def __ne__(self, section):
+        return not self == section
 
     @property
     def section_id(self):
