@@ -972,11 +972,6 @@ msgid "Customize Paths"
 msgstr ""
 
 # PKC Settings - Appearance Tweaks
-msgctxt "#39058"
-msgid "Extend Plex TV Series \"On Deck\" view to all shows"
-msgstr ""
-
-# PKC Settings - Appearance Tweaks
 msgctxt "#39059"
 msgid "Recently Added: Append show title to episode"
 msgstr ""

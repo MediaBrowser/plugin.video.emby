@@ -162,7 +162,6 @@
 		<setting id="fetch_pms_item_number" label="39077" type="number" default="50" option="int" />
         <setting type="sep" />
         <setting type="lsep" label="39074" /><!-- TV Shows -->
-        <setting id="OnDeckTVextended" type="bool" label="39058" default="true" /><!-- Extend Plex TV Series "On Deck" view to all shows -->
         <setting id="OnDeckTvAppendShow" type="bool" label="39047" default="false" /><!--On Deck view: Append show title to episode-->
         <setting id="OnDeckTvAppendSeason" type="bool" label="39048" default="false" /><!--On Deck view: Append season number to episode-->
         <setting id="TVShowWatched" type="bool" label="39064" default="true" /><!--Recently Added: Also show already watched episodes-->
