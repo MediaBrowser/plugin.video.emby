@@ -1008,7 +1008,7 @@ msgstr ""
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39066"
-msgid "Recently Added: Also show already watched movies (Refresh Plex playlist/nodes!)"
+msgid "Recently Added: Also show already watched movies"
 msgstr ""
 
 # PKC Settings - Connection
