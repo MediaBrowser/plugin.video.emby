@@ -252,6 +252,13 @@ def node_recent(section, node_name):
     rule = etree.SubElement(xml, 'rule', attrib={'field': 'tag',
                                                  'operator': 'is'})
     etree.SubElement(rule, 'value').text = section.name
+    if (section.section_type == v.PLEX_TYPE_SHOW and
+            utils.settings('TVShowWatched') == 'false'):
+        # Adds an additional rule if user deactivated the PKC setting
+        # "Recently Added: Also show already watched episodes"
+        rule = etree.SubElement(xml, 'rule', attrib={'field': 'playcount',
+                                                     'operator': 'is'})
+        etree.SubElement(rule, 'value').text = '0'
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
