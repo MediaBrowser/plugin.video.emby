@@ -653,7 +653,22 @@ def clear_window_vars():
     """
     Removes all references to sections stored in window vars 'Plex.nodes...'
     """
+    LOG.info('Clearing all the Plex video node variables')
     number_of_nodes = int(utils.window('Plex.nodes.total') or 0)
     utils.window('Plex.nodes.total', clear=True)
     for index in range(number_of_nodes):
         _clear_window_vars(index)
+
+
+def delete_videonode_files():
+    """
+    Removes all the PKC video node files under userdata/library/video that
+    start with 'Plex-'
+    """
+    for root, dirs, _ in path_ops.walk(LIBRARY_PATH):
+        for directory in dirs:
+            if directory.startswith('Plex-'):
+                abs_path = path_ops.path.join(root, directory)
+                LOG.info('Removing video node directory %s', abs_path)
+                path_ops.rmtree(abs_path, ignore_errors=True)
+        break
