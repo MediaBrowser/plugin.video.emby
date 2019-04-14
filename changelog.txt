@@ -1,3 +1,11 @@
+version 2.7.13 (beta only):
+- Fix transcoding not working
+- Fix 4k H265 not being transcoded
+- Fix some appearance tweak settings
+- Fix music and picture nodes pointing to video library
+- Fix unequality when comparing sections
+- Fix Plex Companion logging error messages
+
 version 2.7.12 (beta only):
 - Fix UnicodeEncodeError on playback startup for direct paths
 - Attempt to fix rare Kodi crash on PKC exit
