@@ -124,8 +124,11 @@ class PlayUtils():
         try:
             resolution = int(videoCodec['resolution'])
         except (TypeError, ValueError):
-            LOG.info('No video resolution from PMS, not transcoding.')
-            return False
+            if videoCodec['resolution'] == '4k':
+                resolution = 2160
+            else:
+                LOG.info('No video resolution from PMS, not transcoding.')
+                return False
         if 'h265' in codec or 'hevc' in codec:
             if resolution >= self.getH265():
                 LOG.info('Option to transcode h265/HEVC enabled. Resolution '
