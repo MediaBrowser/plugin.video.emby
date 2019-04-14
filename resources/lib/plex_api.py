@@ -1439,7 +1439,7 @@ class API(object):
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.item.get('key')
         transcode_path = app.CONN.server + \
-            '/video/:/transcode/universal/start.m3u8?'
+            '/video/:/transcode/universal/start.m3u8'
         args = {
             'audioBoost': utils.settings('audioBoost'),
             'autoAdjustQuality': 0,
