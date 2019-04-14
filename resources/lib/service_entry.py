@@ -302,6 +302,35 @@ class Service(object):
         finally:
             app.APP.resume_threads()
 
+    def reset_playlists_and_nodes(self):
+        """
+        Resets the Kodi playlists and nodes for all the PKC libraries by
+        deleting all of them first, then rewriting everything
+        """
+        app.APP.suspend_threads()
+        from .library_sync import sections
+        try:
+            sections.clear_window_vars()
+            sections.delete_videonode_files()
+            # Get newest sections from the PMS
+            if not sections.sync_from_pms(self, pick_libraries=False):
+                LOG.warn('We could not successfully reset the playlists!')
+                # "Plex playlists/nodes refresh failed"
+                utils.dialog('notification',
+                             utils.lang(29999),
+                             utils.lang(39406),
+                             icon='{plex}',
+                             sound=False)
+                return
+            # "Plex playlists/nodes refreshed"
+            utils.dialog('notification',
+                         utils.lang(29999),
+                         utils.lang(39405),
+                         icon='{plex}',
+                         sound=False)
+        finally:
+            app.APP.resume_threads()
+
     def _do_auth(self):
         LOG.info('Authenticating user')
         if app.ACCOUNT.plex_username and not app.ACCOUNT.force_login:            # Found a user in the settings, try to authenticate
@@ -449,6 +478,8 @@ class Service(object):
                     app.SYNC.run_lib_scan = 'textures'
                 elif plex_command == 'select-libraries':
                     self.choose_plex_libraries()
+                elif plex_command == 'refreshplaylist':
+                    self.reset_playlists_and_nodes()
                 elif plex_command == 'RESET-PKC':
                     utils.reset()
                 elif plex_command == 'EXIT-PKC':

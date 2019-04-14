@@ -1102,6 +1102,11 @@ msgctxt "#39084"
 msgid "Enter PMS port"
 msgstr ""
 
+# PKC settings - Appearance Tweaks
+msgctxt "#39085"
+msgid "Reload Kodi node files to apply all the settings below"
+msgstr ""
+
 msgctxt "#39200"
 msgid "Log-out Plex Home User "
 msgstr ""

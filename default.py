@@ -138,6 +138,10 @@ class Main():
             LOG.info('User requested to select Plex libraries')
             transfer.plex_command('select-libraries')
 
+        elif mode == 'refreshplaylist':
+            LOG.info('User requested to refresh Kodi playlists and nodes')
+            transfer.plex_command('refreshplaylist')
+
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))
 

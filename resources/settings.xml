@@ -157,6 +157,8 @@
 	-->
 
 	<category label="39073"><!-- Appearance Tweaks -->
+        <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39085][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=refreshplaylist)" option="close" /><!-- Reload Kodi node files to apply all the settings below -->
+        <setting type="lsep" />
 		<setting id="fetch_pms_item_number" label="39077" type="number" default="50" option="int" />
         <setting type="sep" />
         <setting type="lsep" label="39074" /><!-- TV Shows -->
