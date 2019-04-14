@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import urllib
 import copy
 
 from . import nodes
@@ -264,8 +263,16 @@ class Section(object):
         utils.window('%s.type' % self.node, value=self.content)
         utils.window('%s.content' % self.node, value=path)
         # .path leads to all elements of this library
-        utils.window('%s.path' % self.node,
-                     value='ActivateWindow(Videos,%s,return)' % path)
+        if self.section_type in v.PLEX_VIDEOTYPES:
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(videos,%s,return)' % path)
+        elif self.section_type == v.PLEX_TYPE_ARTIST:
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(music,%s,return)' % path)
+        else:
+            # Pictures
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(pictures,%s,return)' % path)
         utils.window('%s.id' % self.node, value=str(self.section_id))
         # To let the user navigate into this node when selecting widgets
         utils.window('%s.addon_index' % self.node, value=addon_index)
