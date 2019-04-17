@@ -330,6 +330,7 @@ class Service(object):
                          sound=False)
         finally:
             app.APP.resume_threads()
+            xbmc.executebuiltin('ReloadSkin()')
 
     def _do_auth(self):
         LOG.info('Authenticating user')
