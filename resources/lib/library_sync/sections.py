@@ -626,6 +626,9 @@ def _sync_from_pms(pick_libraries):
             # Remove the section itself
             old_section.remove()
 
+    # Clear all existing window vars because we did NOT remove them with the
+    # command section.remove()
+    clear_window_vars()
     # Time to write the sections to Kodi
     for section in sections:
         section.to_kodi()
@@ -638,22 +641,25 @@ def _sync_from_pms(pick_libraries):
 
 def _clear_window_vars(index):
     node = 'Plex.nodes.%s' % index
+    utils.window('%s.index' % node, clear=True)
     utils.window('%s.title' % node, clear=True)
     utils.window('%s.type' % node, clear=True)
     utils.window('%s.content' % node, clear=True)
     utils.window('%s.path' % node, clear=True)
     utils.window('%s.id' % node, clear=True)
-    utils.window('%s.addon_path' % node, clear=True)
-    for kind in WINDOW_ARGS:
-        node = 'Plex.nodes.%s.%s' % (index, kind)
-        utils.window(node, clear=True)
+    utils.window('%s.addon_index' % node, clear=True)
+    # Just clear everything here, ignore the plex_type
+    for typus in (x[0] for y in nodes.NODE_TYPES.values() for x in y):
+        for kind in WINDOW_ARGS:
+            node = 'Plex.nodes.%s.%s.%s' % (index, typus, kind)
+            utils.window(node, clear=True)
 
 
 def clear_window_vars():
     """
     Removes all references to sections stored in window vars 'Plex.nodes...'
     """
-    LOG.info('Clearing all the Plex video node variables')
+    LOG.debug('Clearing all the Plex video node variables')
     number_of_nodes = int(utils.window('Plex.nodes.total') or 0)
     utils.window('Plex.nodes.total', clear=True)
     for index in range(number_of_nodes):
