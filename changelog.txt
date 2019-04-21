@@ -1,3 +1,9 @@
+version 2.7.14:
+- Correctly clear window variables e.g. on user switch
+- Reload skin on resetting PKC video nodes
+- Fix last-played node value to ensure a playcount greater than zero
+- 2.7.11-2.7.13 for everyone
+
 version 2.7.13 (beta only):
 - Fix transcoding not working
 - Fix 4k H265 not being transcoded
