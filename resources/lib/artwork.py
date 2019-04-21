@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from urllib import quote_plus, unquote
 import requests
 
 from .kodi_db import KodiVideoDB, KodiMusicDB, KodiTextureDB
@@ -20,11 +19,11 @@ BATCH_SIZE = 500
 
 
 def double_urlencode(text):
-    return quote_plus(quote_plus(text))
+    return utils.quote_plus(utils.quote_plus(text))
 
 
 def double_urldecode(text):
-    return unquote(unquote(text))
+    return utils.unquote(utils.unquote(text))
 
 
 class ImageCachingThread(backgroundthread.KillableThread):
@@ -89,7 +88,7 @@ class ImageCachingThread(backgroundthread.KillableThread):
 
 
 def cache_url(url):
-    url = double_urlencode(utils.try_encode(url))
+    url = double_urlencode(url)
     sleeptime = 0
     while True:
         try:

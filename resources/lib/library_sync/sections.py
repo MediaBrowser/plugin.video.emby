@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import urllib
 import copy
 
 from . import nodes
@@ -111,7 +110,9 @@ class Section(object):
         return (self.section_id == section.section_id and
                 self.name == section.name and
                 self.section_type == section.section_type)
-    __ne__ = not __eq__
+
+    def __ne__(self, section):
+        return not self == section
 
     @property
     def section_id(self):
@@ -226,7 +227,7 @@ class Section(object):
         args = copy.deepcopy(args)
         for key, value in args.iteritems():
             args[key] = value.format(self=self)
-        return 'plugin://plugin.video.plexkodiconnect?%s' % urllib.urlencode(args)
+        return utils.extend_url('plugin://%s' % v.ADDON_ID, args)
 
     def to_kodi(self):
         """
@@ -262,8 +263,16 @@ class Section(object):
         utils.window('%s.type' % self.node, value=self.content)
         utils.window('%s.content' % self.node, value=path)
         # .path leads to all elements of this library
-        utils.window('%s.path' % self.node,
-                     value='ActivateWindow(Videos,%s,return)' % path)
+        if self.section_type in v.PLEX_VIDEOTYPES:
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(videos,%s,return)' % path)
+        elif self.section_type == v.PLEX_TYPE_ARTIST:
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(music,%s,return)' % path)
+        else:
+            # Pictures
+            utils.window('%s.path' % self.node,
+                         value='ActivateWindow(pictures,%s,return)' % path)
         utils.window('%s.id' % self.node, value=str(self.section_id))
         # To let the user navigate into this node when selecting widgets
         utils.window('%s.addon_index' % self.node, value=addon_index)
@@ -617,6 +626,9 @@ def _sync_from_pms(pick_libraries):
             # Remove the section itself
             old_section.remove()
 
+    # Clear all existing window vars because we did NOT remove them with the
+    # command section.remove()
+    clear_window_vars()
     # Time to write the sections to Kodi
     for section in sections:
         section.to_kodi()
@@ -629,22 +641,40 @@ def _sync_from_pms(pick_libraries):
 
 def _clear_window_vars(index):
     node = 'Plex.nodes.%s' % index
+    utils.window('%s.index' % node, clear=True)
     utils.window('%s.title' % node, clear=True)
     utils.window('%s.type' % node, clear=True)
     utils.window('%s.content' % node, clear=True)
     utils.window('%s.path' % node, clear=True)
     utils.window('%s.id' % node, clear=True)
-    utils.window('%s.addon_path' % node, clear=True)
-    for kind in WINDOW_ARGS:
-        node = 'Plex.nodes.%s.%s' % (index, kind)
-        utils.window(node, clear=True)
+    utils.window('%s.addon_index' % node, clear=True)
+    # Just clear everything here, ignore the plex_type
+    for typus in (x[0] for y in nodes.NODE_TYPES.values() for x in y):
+        for kind in WINDOW_ARGS:
+            node = 'Plex.nodes.%s.%s.%s' % (index, typus, kind)
+            utils.window(node, clear=True)
 
 
 def clear_window_vars():
     """
     Removes all references to sections stored in window vars 'Plex.nodes...'
     """
+    LOG.debug('Clearing all the Plex video node variables')
     number_of_nodes = int(utils.window('Plex.nodes.total') or 0)
     utils.window('Plex.nodes.total', clear=True)
     for index in range(number_of_nodes):
         _clear_window_vars(index)
+
+
+def delete_videonode_files():
+    """
+    Removes all the PKC video node files under userdata/library/video that
+    start with 'Plex-'
+    """
+    for root, dirs, _ in path_ops.walk(LIBRARY_PATH):
+        for directory in dirs:
+            if directory.startswith('Plex-'):
+                abs_path = path_ops.path.join(root, directory)
+                LOG.info('Removing video node directory %s', abs_path)
+                path_ops.rmtree(abs_path, ignore_errors=True)
+        break

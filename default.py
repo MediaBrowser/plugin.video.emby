@@ -29,9 +29,13 @@ class Main():
     def __init__(self):
         LOG.debug('Full sys.argv received: %s', argv)
         # Parse parameters
-        path = unicode_paths.decode(argv[0])
+        params = dict(parse_qsl(argv[2][1:]))
         arguments = unicode_paths.decode(argv[2])
-        params = dict(parse_qsl(arguments[1:]))
+        path = unicode_paths.decode(argv[0])
+        # Ensure unicode
+        for key, value in params.iteritems():
+            params[key.decode('utf-8')] = params.pop(key)
+            params[key] = value.decode('utf-8')
         mode = params.get('mode', '')
         itemid = params.get('id', '')
 
@@ -133,6 +137,10 @@ class Main():
         elif mode == 'select-libraries':
             LOG.info('User requested to select Plex libraries')
             transfer.plex_command('select-libraries')
+
+        elif mode == 'refreshplaylist':
+            LOG.info('User requested to refresh Kodi playlists and nodes')
+            transfer.plex_command('refreshplaylist')
 
         else:
             entrypoint.show_main_menu(content_type=params.get('content_type'))

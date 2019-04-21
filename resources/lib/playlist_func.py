@@ -5,8 +5,6 @@ Collection of functions associated with Kodi and Plex playlists and playqueues
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import urllib
-from urlparse import parse_qsl, urlsplit
 
 from .plex_api import API
 from .plex_db import PlexDB
@@ -328,12 +326,16 @@ def playlist_item_from_kodi(kodi_item):
             item.plex_uuid = db_item['plex_id']  # we dont need the uuid yet :-)
     item.file = kodi_item.get('file')
     if item.plex_id is None and item.file is not None:
-        query = dict(parse_qsl(urlsplit(item.file).query))
+        try:
+            query = item.file.split('?', 1)[1]
+        except IndexError:
+            query = ''
+        query = dict(utils.parse_qsl(query))
         item.plex_id = utils.cast(int, query.get('plex_id'))
         item.plex_type = query.get('itemType')
     if item.plex_id is None and item.file is not None:
         item.uri = ('library://whatever/item/%s'
-                    % urllib.quote(utils.try_encode(item.file), safe=''))
+                    % utils.quote(item.file, safe=''))
     else:
         # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
         item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %

@@ -148,7 +148,8 @@ class ContextMenu(object):
         playqueue.clear()
         app.PLAYSTATE.context_menu_play = True
         handle = self.api.path(force_first_media=False, force_addon=True)
-        xbmc.executebuiltin('RunPlugin(%s)' % handle)
+        handle = 'RunPlugin(%s)' % handle
+        xbmc.executebuiltin(handle.encode('utf-8'))
 
     def _extras(self):
         """

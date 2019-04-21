@@ -6,13 +6,12 @@ manipulate playlists
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-import urllib
 
 from .common import PlaylistError
 
 from ..plex_api import API
 from ..downloadutils import DownloadUtils as DU
-from .. import app, variables as v
+from .. import utils, app, variables as v
 ###############################################################################
 LOG = getLogger('PLEX.playlists.pms')
 
@@ -56,8 +55,8 @@ def initialize(playlist, plex_id):
         'type': v.PLEX_PLAYLIST_TYPE_FROM_KODI[playlist.kodi_type],
         'title': playlist.plex_name,
         'smart': 0,
-        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
-                                                         % plex_id, safe='')))
+        'uri': ('library://None/item/%s' % (utils.quote('/library/metadata/%s'
+                                                        % plex_id, safe='')))
     }
     xml = DU().downloadUrl(url='{server}/playlists',
                            action_type='POST',
@@ -80,8 +79,8 @@ def add_item(playlist, plex_id):
     Raises PlaylistError if that did not work out.
     """
     params = {
-        'uri': ('library://None/item/%s' % (urllib.quote('/library/metadata/%s'
-                                                         % plex_id, safe='')))
+        'uri': ('library://None/item/%s' % (utils.quote('/library/metadata/%s'
+                                                        % plex_id, safe='')))
     }
     xml = DU().downloadUrl(url='{server}/playlists/%s/items' % playlist.plex_id,
                            action_type='PUT',

@@ -10,9 +10,11 @@ from datetime import datetime
 from unicodedata import normalize
 from threading import Lock
 import urllib
+import urlparse as _urlparse
 # Originally tried faster cElementTree, but does NOT work reliably with Kodi
 import xml.etree.ElementTree as etree
-import defusedxml.ElementTree as defused_etree  # etree parse unsafe
+# etree parse unsafe; make sure we're always receiving unicode
+from . import defused_etree
 from xml.etree.ElementTree import ParseError
 from functools import wraps
 import hashlib
@@ -24,8 +26,6 @@ import xbmcaddon
 import xbmcgui
 
 from . import path_ops, variables as v
-
-###############################################################################
 
 LOG = getLogger('PLEX.utils')
 
@@ -48,9 +48,6 @@ REGEX_TVDB = re.compile(r'''thetvdb:\/\/(.+?)\?''')
 REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
 # Grab Plex id from an URL-encoded string
 REGEX_PLEX_ID_FROM_URL = re.compile(r'''metadata%2F(\d+)''')
-
-###############################################################################
-# Main methods
 
 
 def garbageCollect():
@@ -323,6 +320,73 @@ def encode_dict(dictionary):
         if isinstance(value, unicode):
             dictionary[key] = value.encode('utf-8')
     return dictionary
+
+
+def parse_qs(qs, keep_blank_values=0, strict_parsing=0):
+    """
+    unicode-safe way to use urlparse.parse_qs(). Pass in the query string qs
+    either as str or unicode
+    Returns a dict with lists as values; all entires unicode
+    """
+    if isinstance(qs, unicode):
+        qs = qs.encode('utf-8')
+    qs = _urlparse.parse_qs(qs, keep_blank_values, strict_parsing)
+    return {k.decode('utf-8'): [e.decode('utf-8') for e in v]
+            for k, v in qs.iteritems()}
+
+
+def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
+    """
+    unicode-safe way to use urlparse.parse_qsl(). Pass in either str or unicode
+    Returns a list of unicode tuples
+    """
+    if isinstance(qs, unicode):
+        qs = qs.encode('utf-8')
+    qs = _urlparse.parse_qsl(qs, keep_blank_values, strict_parsing)
+    return [(x.decode('utf-8'), y.decode('utf-8')) for (x, y) in qs]
+
+
+def urlparse(url, scheme='', allow_fragments=True):
+    """
+    unicode-safe way to use urlparse.urlparse(). Pass in either str or unicode
+    CAREFUL: returns an encoded urlparse.ParseResult()!
+    """
+    if isinstance(url, unicode):
+        url = url.encode('utf-8')
+    return _urlparse.urlparse(url, scheme, allow_fragments)
+
+
+def quote(s, safe='/'):
+    """
+    unicode-safe way to use urllib.quote(). Pass in either str or unicode
+    Returns unicode
+    """
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    s = urllib.quote(s, safe)
+    return s.decode('utf-8')
+
+
+def quote_plus(s, safe=''):
+    """
+    unicode-safe way to use urllib.quote(). Pass in either str or unicode
+    Returns unicode
+    """
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    s = urllib.quote_plus(s, safe)
+    return s.decode('utf-8')
+
+
+def unquote(s):
+    """
+    unicode-safe way to use urllib.unquote(). Pass in either str or unicode
+    Returns unicode
+    """
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    s = urllib.unquote(s)
+    return s.decode('utf-8')
 
 
 def try_encode(input_str, encoding='utf-8'):
