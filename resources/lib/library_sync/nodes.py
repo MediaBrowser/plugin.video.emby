@@ -373,7 +373,7 @@ def node_lastplayed(section, node_name):
     etree.SubElement(rule, 'value').text = section.name
     rule = etree.SubElement(xml, 'rule', attrib={'field': 'playcount',
                                                  'operator': 'greaterthan'})
-    etree.SubElement(rule, 'value').text = 0
+    etree.SubElement(rule, 'value').text = '0'
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
