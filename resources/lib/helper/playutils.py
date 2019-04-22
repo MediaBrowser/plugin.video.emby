@@ -196,6 +196,7 @@ class PlayUtils(object):
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
+            source['Protocol'] = 'File'
 
         if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
 
@@ -282,7 +283,7 @@ class PlayUtils(object):
             server = source['Path'].lower().split('/livetv')[0]
             self.info['Path'] = source['Path'].replace(server, self.info['ServerAddress'])
 
-        elif self.info['Item']['Type'] == "Audio":
+        elif self.info['Item']['Type'] == 'Audio':
             self.info['Path'] = ("%s/emby/Audio/%s/stream.%s?static=true&api_key=%s" %
                                 (self.info['ServerAddress'], self.info['Item']['Id'],
                                  source.get('Container', "mp4").split(',')[0],
@@ -759,6 +760,7 @@ class PlayUtilsStrm(PlayUtils):
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
+            source['Protocol'] = "File"
 
         if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
 
