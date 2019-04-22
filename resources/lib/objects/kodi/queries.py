@@ -288,7 +288,7 @@ add_movie =     		"""	INSERT INTO	movie(idMovie, idFile, c00, c01, c02, c03, c04
 add_movie_obj =             [   "{MovieId}","{FileId}","{Title}","{Plot}","{ShortPlot}","{Tagline}",
                                 "{Votes}","{RatingId}","{Writers}","{Year}","{Unique}","{SortTitle}",
                                 "{Runtime}","{Mpaa}","{Genre}","{Directors}","{Title}","{Studio}",
-                                "{Trailer}","{Country}","{CriticRating}","{Year}"
+                                "{Trailer}","{Country}","{CriticRating}","{Premiered}"
                             ]
 add_rating =    		"""	INSERT INTO rating(rating_id, media_id, media_type, rating_type, rating, votes) 
     						VALUES 		(?, ?, ?, ?, ?, ?) 
@@ -401,7 +401,7 @@ update_movie =  		"""	UPDATE 	movie
 update_movie_obj =          [   "{Title}","{Plot}","{ShortPlot}","{Tagline}","{Votes}","{RatingId}",
                                 "{Writers}","{Year}","{Unique}","{SortTitle}","{Runtime}",
                                 "{Mpaa}","{Genre}","{Directors}","{Title}","{Studio}","{Trailer}",
-                                "{Country}","{CriticRating}","{Year}","{MovieId}"
+                                "{Country}","{CriticRating}","{Premiered}","{MovieId}"
                             ]
 update_rating =     	"""	UPDATE 	rating 
     						SET 	media_id = ?, media_type = ?, rating_type = ?, rating = ?, votes = ? 
