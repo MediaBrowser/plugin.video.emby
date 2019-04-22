@@ -192,13 +192,19 @@ class Library(threading.Thread):
                 set_screensaver(value=self.screensaver)
                 self.screensaver = None
 
-            if xbmc.getCondVisibility('Container.Content(musicvideos)'): # Prevent cursor from moving
-                xbmc.executebuiltin('Container.Refresh')
-            else: # Update widgets
+            if not xbmc.getCondVisibility('Window.IsMedia'):
                 xbmc.executebuiltin('UpdateLibrary(video)')
+            else: # Prevent cursor from moving
+                xbmc.executebuiltin('Container.Refresh')
+                window('emby.updatewidgets.bool', True)
 
-                if xbmc.getCondVisibility('Window.IsMedia'):
-                    xbmc.executebuiltin('Container.Refresh')
+        elif window('emby.updatewidgets.bool') and not xbmc.getCondVisibility('Window.IsMedia'):
+
+            ''' In case an update happened but we were not on the homescreen and 
+                now we are, force widget to update.
+            '''
+            window('emby.updatewidgets', clear=True)
+            xbmc.executebuiltin('UpdateLibrary(video)')
 
     def stop_client(self):
         self.stop_thread = True
