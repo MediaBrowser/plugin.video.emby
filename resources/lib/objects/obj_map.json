@@ -30,6 +30,7 @@
 		"LocalTrailer": "LocalTrailerCount",
 		"Trailer": "RemoteTrailers/0/Url",
 		"DateAdded": "DateCreated",
+		"Premiered": "PremiereDate",
 		"Played": "UserData/Played",
 		"PlayCount": "UserData/PlayCount",
 		"DatePlayed": "UserData/LastPlayedDate",
