@@ -762,7 +762,10 @@ class PlayUtilsStrm(PlayUtils):
             source['SupportsDirectStream'] = False
             source['Protocol'] = "File"
 
-        if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
+        if source['Protocol'] == 'Http':
+            source['SupportsDirectPlay'] = False
+
+        if not settings('playFromStream.bool') and source['SupportsDirectPlay'] and (self.is_strm(source) or self.is_file_exists(source)):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
