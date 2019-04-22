@@ -272,9 +272,7 @@ class API(object):
         if settings('compressArt.bool'):
             query = "&Quality=90"
 
-        if not settings('enableCoverArt.bool'):
-            query += "&EnableImageEnhancers=false"
-
+        query += "&EnableImageEnhancers=%s" % ('false' if not settings('enableCoverArt.bool') else 'true')
         all_artwork['Backdrop'] = self.get_backdrops(obj['Id'], obj['BackdropTags'] or [], query)
 
         for artwork in (obj['Tags'] or []):
