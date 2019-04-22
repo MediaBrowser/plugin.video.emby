@@ -207,7 +207,7 @@ class Service(xbmc.Monitor):
             kodi = xbmc.getInfoLabel('System.BuildVersion')
 
         try:
-            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/objects.json').json()
+            versions = requests.get('https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby.objects/master/objects.json').json()
             build = find(versions, kodi)
 
             if not build:
