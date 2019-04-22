@@ -23,7 +23,7 @@ from views import Views, verify_kodi_defaults
 from helper import _, window, settings, event, dialog, find, compare_version
 from downloader import get_objects
 from emby import Emby
-from database import Database, emby_db, reset
+from database import Database, emby_db, reset, test_databases
 
 #################################################################################################
 
@@ -84,8 +84,10 @@ class Service(xbmc.Monitor):
         except Exception as error:
             LOG.error(error)
 
-        window('emby.connected.bool', True)
         self.check_update()
+        test_databases()
+
+        window('emby.connected.bool', True)
         settings('groupedSets.bool', objects.utils.get_grouped_set())
         xbmc.Monitor.__init__(self)
 
@@ -548,7 +550,7 @@ class Service(xbmc.Monitor):
         properties = [ # TODO: review
             "emby_state", "emby_serverStatus", "emby_currUser",
 
-            "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup",
+            "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup", "emby.updatewidgets",
             "emby.external", "emby.external_check", "emby_deviceId", "emby_db_check", "emby_pathverified",
             "emby_sync"
         ]

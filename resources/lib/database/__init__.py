@@ -22,6 +22,14 @@ LOG = logging.getLogger("EMBY."+__name__)
 #################################################################################################
 
 
+def test_databases():
+
+    ''' Open the databases to test if the file exists.
+    '''
+    with Database('video') as kodidb:
+        with Database('music') as musicdb:
+            pass
+
 class Database(object):
 
     ''' This should be called like a context.

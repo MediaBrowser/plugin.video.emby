@@ -121,14 +121,6 @@ class Library(threading.Thread):
 
         LOG.warn("---<[ library ]")
 
-    def test_databases(self):
-
-        ''' Open the databases to test if the file exists.
-        '''
-        with Database('video') as kodidb:
-            with Database('music') as musicdb:
-                pass
-
     @stop()
     def service(self):
         
@@ -329,8 +321,6 @@ class Library(threading.Thread):
             Check databases. 
             Check for the server plugin.
         '''
-        self.test_databases()
-
         Views().get_views()
         Views().get_nodes()
 
