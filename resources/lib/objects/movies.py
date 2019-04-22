@@ -91,6 +91,7 @@ class Movies(KodiDb):
         obj['People'] = API.get_people_artwork(obj['People'])
         obj['DateAdded'] = Local(obj['DateAdded']).split('.')[0].replace('T', " ")
         obj['DatePlayed'] = None if not obj['DatePlayed'] else Local(obj['DatePlayed']).split('.')[0].replace('T', " ")
+        obj['Premiered'] = Local(obj['Year']) if not obj['Premiered'] else Local(obj['Premiered']).replace(" ", "T").split('T')[0]
         obj['PlayCount'] = API.get_playcount(obj['Played'], obj['PlayCount'])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'Artwork'))
         obj['Video'] = API.video_streams(obj['Video'] or [], obj['Container'])
