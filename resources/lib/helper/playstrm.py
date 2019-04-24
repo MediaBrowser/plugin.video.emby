@@ -50,11 +50,6 @@ class PlayStrm(object):
         self._detect_play()
         LOG.info("[ play strm ]")
 
-        if window('emby.playlist.audio.bool'):
-
-            LOG.info("[ audio playlist detected ]")
-            self.info['KodiPlaylist'] = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-
     def add_to_playlist(self, media_type, db_id, index=None, playlist_id=None):
 
         playlist = playlist_id or self.info['KodiPlaylist'].getPlayListId()

@@ -83,8 +83,6 @@ class Events(object):
                 LOG.info("[ playback started ]")
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
-            window('emby.playlist.play', clear=True)
-            window('emby.playlist.ready', clear=True)
             window('emby.playlist.aborted', clear=True)
 
         elif mode == 'playsimple':

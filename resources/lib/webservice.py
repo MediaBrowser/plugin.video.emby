@@ -14,7 +14,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-from helper import settings, window, playstrm
+from helper import settings, window, playstrm, JSONRPC
 
 #################################################################################################
 
@@ -297,6 +297,7 @@ class QueuePlay(threading.Thread):
         play = None
         start_position = None
         position = None
+        playlist_audio = False
 
         xbmc.sleep(200) # Let Kodi catch up
 
@@ -325,6 +326,11 @@ class QueuePlay(threading.Thread):
                             LOG.info("[ start play ]")
                             xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
                             play.start_playback()
+                        elif playlist_audio:
+
+                            window('emby.playlist.play.bool', True)
+                            xbmc.sleep(200)
+                            play.start_playback()
                         else:
                             window('emby.playlist.play.bool', True)
 
@@ -336,9 +342,16 @@ class QueuePlay(threading.Thread):
                 play = playstrm.PlayStrm(params, params.get('ServerId'))
 
                 if start_position is None:
+                    if window('emby.playlist.audio.bool'):
+
+                        LOG.info("[ relaunch playlist ]")
+                        xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
+                        xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+                        playlist_audio = True
+                        window('emby.playlist.ready.bool', True)
 
                     start_position = max(play.info['KodiPlaylist'].getposition(), 0)
-                    position = start_position + 1
+                    position = start_position + int(not playlist_audio)
 
                 if play_folder:
                     position = play.play_folder(position)
@@ -368,6 +381,11 @@ class QueuePlay(threading.Thread):
 
             self.server.queue.task_done()
 
+        self.stop()
+
+    def stop(self):
+
+        window('emby.playlist.play', clear=True)
         window('emby.playlist.ready', clear=True)
         window('emby.playlist.start', clear=True)
         window('emby.playlist.audio', clear=True)

@@ -32,13 +32,13 @@ class Monitor(xbmc.Monitor):
 
     servers = []
     sleep = False
-    playlistid = 0
+    playlistid = None
 
     def __init__(self):
 
-        self.player = player.Player()
+        self.player = player.Player(monitor=self)
         self.device_id = get_device_id()
-        self.listener = Listener(self)
+        self.listener = Listener(monitor=self)
         self.listener.start()
 
         self.workers_threads = []
@@ -445,11 +445,7 @@ class Monitor(xbmc.Monitor):
         on_play(data, server)
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
-
-        if self.playlistid == data['playlistid']:
-
-            LOG.info("[ reset autoplay ]")
-            window('emby.autoplay', clear=True)
+        pass
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
         on_update(data, server)
@@ -459,6 +455,10 @@ class Monitor(xbmc.Monitor):
         ''' Detect widget playback. Widget for some reason, use audio playlists.
         '''
         if data['position'] == 0:
+            if self.playlistid == data['playlistid']:
+
+                LOG.info("[ reset autoplay ]")
+                window('emby.autoplay', clear=True)
 
             if data['playlistid'] == 0:
                 window('emby.playlist.audio.bool', True)
