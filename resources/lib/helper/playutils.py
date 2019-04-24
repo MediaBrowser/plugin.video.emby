@@ -657,8 +657,9 @@ class PlayUtilsStrm(PlayUtils):
             'ServerId': server['auth/server-id'],
             'ServerAddress': server['auth/server-address'],
             'Server': server,
-            'ForceTranscode': force_transcode,
-            'Token': server['auth/token']
+            'Token': server['auth/token'],
+            'ForceHttp': settings('playFromStream.bool'),
+            'ForceTranscode': force_transcode
         }
 
     def get_sources(self, source_id=None):
@@ -765,7 +766,7 @@ class PlayUtilsStrm(PlayUtils):
         if source['Protocol'] == 'Http':
             source['SupportsDirectPlay'] = False
 
-        if not settings('playFromStream.bool') and source['SupportsDirectPlay'] and (self.is_strm(source) or self.is_file_exists(source)):
+        if not self.info['ForceHttp'] and source['SupportsDirectPlay'] and (self.is_strm(source) or self.is_file_exists(source)):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
