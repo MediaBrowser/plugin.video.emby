@@ -90,50 +90,12 @@ class Database(object):
 
         return path
 
-    def _discover_database(self, database):
-        
-        ''' Use UpdateLibrary(video) to update the date modified
-            on the database file used by Kodi.
-        '''
-        if database == 'video':
-
-            xbmc.executebuiltin('UpdateLibrary(video)')
-            xbmc.sleep(200)
-
-        databases = xbmc.translatePath("special://database/").decode('utf-8')
-        types = {
-            'video': "MyVideos",
-            'music': "MyMusic",
-            'texture': "Textures"
-        }
-        database = types[database]
-        dirs, files = xbmcvfs.listdir(databases)
-        modified = {'file': None, 'time': 0}
-
-        for file in reversed(files):
-
-            if (file.startswith(database) and not file.endswith('-wal') and
-                not file.endswith('-shm') and not file.endswith('db-journal')):
-
-                st = xbmcvfs.Stat(databases + file.decode('utf-8'))
-                modified_int = st.st_mtime()
-                LOG.debug("Database detected: %s time: %s", file.decode('utf-8'), modified_int)
-
-                if modified_int > modified['time']:
-
-                    modified['time'] = modified_int
-                    modified['file'] = file.decode('utf-8')
-
-        LOG.info("Discovered database: %s", modified)
-        self.discovered_file = modified['file']
-
-        return xbmc.translatePath("special://database/%s" % modified['file']).decode('utf-8')
-
     def _sql(self, file):
 
         ''' Get the database path based on the file objects/obj_map.json
             Compatible check, in the event multiple db version are supported with the same Kodi version.
-            Discover by file as a last resort.
+            Load video, music, texture databases from the log file. Will only run once per service thread.
+            Running database version lines
         '''
         from objects import obj
 
@@ -142,35 +104,34 @@ class Database(object):
         if file not in ('video', 'music', 'texture') or databases.get('database_set%s' % file):
             return self._get_database(databases[file], True)
 
-        discovered = self._discover_database(file) if not databases.get('database_set%s' % file) else None
+        folder = xbmc.translatePath("special://database/").decode('utf-8')
+        files = {
+            'Textures': "texture",
+            'MyMusic': "music",
+            'MyVideos': "video"
+        }
 
-        try:
-            loaded = self._get_database(databases[file]) if file in databases else file
-        except Exception as error:
+        with open(xbmc.translatePath('special://logpath/kodi.log').decode('utf-8'), 'r') as log:
+            found_lines = len(files)
 
-            for i in range(1, 10):
-                alt_file = "%s-%s" % (file, i)
+            for line in log:
+                if 'Running database version' in line:
 
-                try:
-                    loaded = self._get_database(databases[alt_file])
+                    filename = line.rsplit('version ', 1)[1].strip()
+                    filename = "%s.db" % filename
 
+                    for database in files:
+                        if database in line:
+
+                            key = files[database]
+                            databases[key] = os.path.join(folder, filename.decode('utf-8')).decode('utf-8')
+                            databases['database_set%s' % key] = True
+                            found_lines -= 1
+
+                            break
+
+                elif not found_lines:
                     break
-                except KeyError: # No other db options
-                    loaded = None
-
-                    break
-                except Exception:
-                    pass
-
-        if discovered and discovered != loaded:
-
-            databases[file] = discovered
-            self.discovered = True
-        else:
-            databases[file] = loaded
-
-        databases['database_set%s' % file] = True
-        LOG.info("Database locked in: %s", databases[file])
 
         return databases[file]
 
