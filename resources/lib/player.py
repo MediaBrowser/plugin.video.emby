@@ -322,7 +322,7 @@ class Player(xbmc.Player):
     def report_playback(self, report=True):
 
         ''' Report playback progress to emby server.
-            Check if the user seek.
+            Check if the user seek or any other basic changes happened.
         '''
         current_file = self.get_playing_file()
 
@@ -330,6 +330,7 @@ class Player(xbmc.Player):
             return
 
         item = self.get_file_info(current_file)
+        orig_item = dict(item)
 
         if window('emby.external.bool'):
             return
@@ -342,6 +343,12 @@ class Player(xbmc.Player):
         item['Volume'] = result.get('volume')
         item['Muted'] = result.get('muted')
         self.detect_audio_subs(item)
+
+        if (not report and orig_item['AudioStreamIndex'] != item['AudioStreamIndex'] or 
+            orig_item['SubtitleStreamIndex'] != item['SubtitleStreamIndex'] or
+            orig_item['Muted'] != item['Muted']) or orig_item['Volume'] != item['Volume']:
+
+            report = True
 
         if not report:
 

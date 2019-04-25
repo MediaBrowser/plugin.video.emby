@@ -117,7 +117,7 @@ class Service(xbmc.Monitor):
                 if player.isPlaying() and player.is_playing_file(player.get_playing_file()):
                     difference = datetime.today() - self.settings['last_progress']
 
-                    if difference.seconds > 10:
+                    if difference.seconds > 4:
                         self.settings['last_progress'] = datetime.today()
 
                         update = (datetime.today() - self.settings['last_progress_report']).seconds > 250
