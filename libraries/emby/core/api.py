@@ -2,6 +2,14 @@
 
 #################################################################################################
 
+import logging
+
+#################################################################################################
+
+LOG = logging.getLogger('Emby.'+__name__)
+
+#################################################################################################
+
 def emby_url(client, handler):
     return  "%s/emby/%s" % (client.config['auth.server'], handler)
 
@@ -149,6 +157,13 @@ class API(object):
         return  self.users("/Suggestions", {
                     'Type': media,
                     'Limit': limit
+                })
+
+    def search(self, term, media=None):
+        return  self._get("Search/Hints", {
+                    'UserId': "{UserId}",
+                    'SearchTerm': term.encode('utf-8'),
+                    'IncludeItemTypes': media
                 })
 
     def get_recently_added(self, media=None, parent_id=None, limit=20):
@@ -358,25 +373,65 @@ class API(object):
 
         return [x for x in result['Items'] if x['Id'] == item_id]
 
-    def is_valid_series(self, parent_id, name, show_id):
+    def is_valid_series(self, parent_id, name, item_id):
 
         ''' Special function to detect if series is displayed or pooled.
             Use series name. I coudln't find another way.
-
             Returns main series id found.
         '''
-        result = self.users("/Items", params={
-                    'ParentId': parent_id,
-                    'Recursive': True,
-                    'IncludeItemTypes': "Series",
-                    'NameStartsWith': name
-                })
-
         try:
-            for item in result['Items']:
-                if item['Id'] == show_id:
+            result = self.search(name, "Series")['SearchHints']
+
+            for item in result:
+                if item['Id'] == item_id:
                     return item['Id']
 
-            return result['Items'][0]['Id']
+            for item in result:
+                try:
+                    if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
+                        return item['Id']
+                except Exception:
+                    pass
+            else:
+                raise Exception("NotFound")
+
+        except Exception as error:
+            return item_id
+
+    def is_valid_movie(self, parent_id, name, item_id):
+
+        ''' Special function to detect if movies should be displayed.
+            Returns movie id found or itself.
+        '''
+        try:
+            result = self.search(name, "Movie")['SearchHints']
+
+            for item in result:
+                if item['Id'] == item_id:
+                    return item['Id']
+
+            for item in result:
+                try:
+                    if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
+                        return item['Id']
+                except Exception as error:
+                    pass
+            else:
+                raise Exception("NotFound")
+
         except Exception:
-            return show_id
+            return item_id
+
+    def get_library_by_item_id(self, item_id):
+
+        ''' Only applies for video content. Music content has no ancestors.
+            Return the library dictionary {'Id': string, 'Name': string}
+        '''
+        ancestors = self.get_ancestors(item_id)
+
+        if not ancestors:
+            raise Exception("EmptyAncestors")
+
+        for ancestor in ancestors:
+            if ancestor['Type'] == 'CollectionFolder':
+                return ancestor
