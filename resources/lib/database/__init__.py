@@ -359,8 +359,10 @@ def save_credentials(credentials):
     if not xbmcvfs.exists(path):
         xbmcvfs.mkdirs(path)
 
+    credentials = json.dumps(credentials, sort_keys=True, indent=4, ensure_ascii=False)
+
     with open(os.path.join(path, 'data.json'), 'w') as outfile:
-        json.dump(credentials, outfile, sort_keys=True, indent=4, ensure_ascii=False)
+        outfile.write(credentials.encode('utf-8'))
 
 def get_item(kodi_id, media):
 
