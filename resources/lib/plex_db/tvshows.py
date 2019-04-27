@@ -5,8 +5,8 @@ from .. import variables as v
 
 
 class TVShows(object):
-    def add_show(self, plex_id, checksum, section_id, kodi_id, kodi_pathid,
-                 last_sync):
+    def add_show(self, plex_id, checksum, section_id, section_uuid, kodi_id,
+                 kodi_pathid, last_sync):
         """
         Appends or replaces tv show entry into the plex table
         """
@@ -16,22 +16,24 @@ class TVShows(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 kodi_id,
                 kodi_pathid,
                 fanart_synced,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              kodi_id,
              kodi_pathid,
              0,
              last_sync))
 
-    def add_season(self, plex_id, checksum, section_id, show_id, parent_id,
-                   kodi_id, last_sync):
+    def add_season(self, plex_id, checksum, section_id, section_uuid, show_id,
+                   parent_id, kodi_id, last_sync):
         """
         Appends or replaces an entry into the plex table
         """
@@ -41,23 +43,25 @@ class TVShows(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 show_id,
                 parent_id,
                 kodi_id,
                 fanart_synced,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              show_id,
              parent_id,
              kodi_id,
              0,
              last_sync))
 
-    def add_episode(self, plex_id, checksum, section_id, show_id,
+    def add_episode(self, plex_id, checksum, section_id, section_uuid, show_id,
                     grandparent_id, season_id, parent_id, kodi_id, kodi_fileid,
                     kodi_fileid_2, kodi_pathid, last_sync):
         """
@@ -69,6 +73,7 @@ class TVShows(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 show_id,
                 grandparent_id,
                 season_id,
@@ -79,11 +84,12 @@ class TVShows(object):
                 kodi_pathid,
                 fanart_synced,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              show_id,
              grandparent_id,
              season_id,
@@ -101,6 +107,7 @@ class TVShows(object):
             plex_id INTEGER PRIMARY KEY ASC,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
+            section_uuid TEXT,
             kodi_id INTEGER,
             kodi_pathid INTEGER,
             fanart_synced INTEGER,
@@ -118,6 +125,7 @@ class TVShows(object):
             plex_id INTEGER PRIMARY KEY,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
+            section_uuid TEXT,
             show_id INTEGER,  # plex_id of the parent show
             parent_id INTEGER,  # kodi_id of the parent show
             kodi_id INTEGER,
@@ -147,16 +155,17 @@ class TVShows(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'show_id': entry[3],
-            'grandparent_id': entry[4],
-            'season_id': entry[5],
-            'parent_id': entry[6],
-            'kodi_id': entry[7],
-            'kodi_fileid': entry[8],
-            'kodi_fileid_2': entry[9],
-            'kodi_pathid': entry[10],
-            'fanart_synced': entry[11],
-            'last_sync': entry[12]
+            'section_uuid': entry[3],
+            'show_id': entry[4],
+            'grandparent_id': entry[5],
+            'season_id': entry[6],
+            'parent_id': entry[7],
+            'kodi_id': entry[8],
+            'kodi_fileid': entry[9],
+            'kodi_fileid_2': entry[10],
+            'kodi_pathid': entry[11],
+            'fanart_synced': entry[12],
+            'last_sync': entry[13]
         }
 
     @staticmethod
@@ -169,10 +178,11 @@ class TVShows(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'kodi_id': entry[3],
-            'kodi_pathid': entry[4],
-            'fanart_synced': entry[5],
-            'last_sync': entry[6]
+            'section_uuid': entry[3],
+            'kodi_id': entry[4],
+            'kodi_pathid': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
         }
 
     @staticmethod
@@ -185,11 +195,12 @@ class TVShows(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'show_id': entry[3],
-            'parent_id': entry[4],
-            'kodi_id': entry[5],
-            'fanart_synced': entry[6],
-            'last_sync': entry[7]
+            'section_uuid': entry[3],
+            'show_id': entry[4],
+            'parent_id': entry[5],
+            'kodi_id': entry[6],
+            'fanart_synced': entry[7],
+            'last_sync': entry[8]
         }
 
     def season_has_episodes(self, plex_id):

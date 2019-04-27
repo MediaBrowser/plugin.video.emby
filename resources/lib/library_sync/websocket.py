@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
+from . import sections
 from .common import update_kodi_library, PLAYLIST_SYNC_ENABLED
 from .fanart import SYNC_FANART, FanartTask
 from ..plex_api import API
@@ -122,10 +123,16 @@ def process_new_item_message(message):
         LOG.error('Could not download metadata for %s', message['plex_id'])
         return False, False, False
     LOG.debug("Processing new/updated PMS item: %s", message['plex_id'])
+    section_id = utils.cast(int, xml.get('librarySectionID'))
+    for section in sections.SECTIONS:
+        if section.id == section_id:
+            break
+    else:
+        LOG.error('Section id %s not yet encountered', section_id)
+        return False, False, False
     with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
         typus.add_update(xml[0],
-                         section_name=xml.get('librarySectionTitle'),
-                         section_id=xml.get('librarySectionID'))
+                         section=section)
     cache_artwork(message['plex_id'], plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 

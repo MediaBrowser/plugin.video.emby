@@ -41,10 +41,12 @@ class Section(object):
     """
     def __init__(self, index=None, xml_element=None, section_db_element=None):
         # Unique Plex id of this Plex library section
-        self._section_id = None  # int
+        self._id = None  # int
+        # Plex librarySectionUUID, unique for this section
+        self.uuid = None
         # Building block for window variable
         self._node = None  # unicode
-        # Index of this section (as section_id might not be subsequent)
+        # Index of this section (as id might not be subsequent)
         # This follows 1:1 the sequence in with the PMS returns the sections
         self._index = None  # Codacy-bug
         self.index = index  # int
@@ -58,9 +60,6 @@ class Section(object):
         # Do we sync all items of this section to the Kodi DB?
         # This will be set with section_type!!
         self.sync_to_kodi = None  # bool
-        # For sections to be synched, the section name will be recorded as a
-        # tag. This is the corresponding id for this tag
-        self.kodi_tagid = None  # int
         # When was this section last successfully/completely synched to the
         # Kodi database?
         self.last_sync = None  # int
@@ -90,24 +89,28 @@ class Section(object):
         elif section_db_element:
             self.from_db_element(section_db_element)
 
-    def __repr__(self):
+    def __unicode__(self):
         return ("{{"
                 "'index': {self.index}, "
                 "'name': '{self.name}', "
-                "'section_id': {self.section_id}, "
+                "'id': {self.id}, "
                 "'section_type': '{self.section_type}', "
                 "'sync_to_kodi': {self.sync_to_kodi}, "
-                "'last_sync': {self.last_sync}"
-                "}}").format(self=self).encode('utf-8')
-    __str__ = __repr__
+                "'last_sync': {self.last_sync}, "
+                "'uuid': {self.uuid}"
+                "}}").format(self=self)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+    __repr__ = __str__
 
     def __nonzero__(self):
-        return (self.section_id is not None and
+        return (self.id is not None and
                 self.name is not None and
                 self.section_type is not None)
 
     def __eq__(self, section):
-        return (self.section_id == section.section_id and
+        return (self.id == section.id and
                 self.name == section.name and
                 self.section_type == section.section_type)
 
@@ -115,12 +118,12 @@ class Section(object):
         return not self == section
 
     @property
-    def section_id(self):
-        return self._section_id
+    def id(self):
+        return self._id
 
-    @section_id.setter
-    def section_id(self, value):
-        self._section_id = value
+    @id.setter
+    def id(self, value):
+        self._id = value
         self._path = path_ops.path.join(LIBRARY_PATH, 'Plex-%s' % value, '')
         self._playlist_path = path_ops.path.join(PLAYLISTS_PATH,
                                                  'Plex %s.xsp' % value)
@@ -163,10 +166,10 @@ class Section(object):
         return self._playlist_path
 
     def from_db_element(self, section_db_element):
-        self.section_id = section_db_element['section_id']
+        self.id = section_db_element['section_id']
+        self.uuid = section_db_element['uuid']
         self.name = section_db_element['section_name']
         self.section_type = section_db_element['plex_type']
-        self.kodi_tagid = section_db_element['kodi_tagid']
         self.sync_to_kodi = section_db_element['sync_to_kodi']
         self.last_sync = section_db_element['last_sync']
 
@@ -175,7 +178,8 @@ class Section(object):
         Reads section from a PMS xml (Plex id, name, Plex type)
         """
         api = API(xml_element)
-        self.section_id = utils.cast(int, xml_element.get('key'))
+        self.id = utils.cast(int, xml_element.get('key'))
+        self.uuid = xml_element.get('uuid')
         self.name = api.title()
         self.section_type = api.plex_type()
         self.icon = api.one_artwork('composite')
@@ -203,18 +207,18 @@ class Section(object):
         if not self:
             raise RuntimeError('Section not clearly defined: %s' % self)
         if plexdb:
-            plexdb.add_section(self.section_id,
+            plexdb.add_section(self.id,
+                               self.uuid,
                                self.name,
                                self.section_type,
-                               self.kodi_tagid,
                                self.sync_to_kodi,
                                self.last_sync)
         else:
             with PlexDB(lock=False) as plexdb:
-                plexdb.add_section(self.section_id,
+                plexdb.add_section(self.id,
+                                   self.uuid,
                                    self.name,
                                    self.section_type,
-                                   self.kodi_tagid,
                                    self.sync_to_kodi,
                                    self.last_sync)
 
@@ -241,21 +245,21 @@ class Section(object):
         # nodes as "submenus" once the user navigates into this section
         args = {
             'mode': 'browseplex',
-            'key': '/library/sections/%s' % self.section_id,
+            'key': '/library/sections/%s' % self.id,
             'plex_type': self.section_type,
-            'section_id': unicode(self.section_id)
+            'section_id': unicode(self.id)
         }
         if not self.sync_to_kodi:
             args['synched'] = 'false'
         addon_index = self.addon_path(args)
         if self.sync_to_kodi and self.section_type in v.PLEX_VIDEOTYPES:
             path = 'library://video/Plex-{0}/{0}_all.xml'
-            path = path.format(self.section_id)
-            index = 'library://video/Plex-%s' % self.section_id
+            path = path.format(self.id)
+            index = 'library://video/Plex-%s' % self.id
         else:
             # No xmls to link to - let's show the listings on the fly
             index = addon_index
-            args['key'] = '/library/sections/%s/all' % self.section_id
+            args['key'] = '/library/sections/%s/all' % self.id
             path = self.addon_path(args)
         # .index will list all possible nodes for this library
         utils.window('%s.index' % self.node, value=index)
@@ -273,7 +277,7 @@ class Section(object):
             # Pictures
             utils.window('%s.path' % self.node,
                          value='ActivateWindow(pictures,%s,return)' % path)
-        utils.window('%s.id' % self.node, value=str(self.section_id))
+        utils.window('%s.id' % self.node, value=str(self.id))
         # To let the user navigate into this node when selecting widgets
         utils.window('%s.addon_index' % self.node, value=addon_index)
         if not self.sync_to_kodi:
@@ -291,7 +295,7 @@ class Section(object):
             path_ops.makedirs(self.path)
         # Create a tag just like the section name in the Kodi DB
         with kodi_db.KodiVideoDB(lock=False) as kodidb:
-            self.kodi_tagid = kodidb.create_tag(self.name)
+            kodidb.create_tag(self.name)
         # The xmls are numbered in order of appearance
         self.order = 0
         if not path_ops.exists(path_ops.path.join(self.path, 'index.xml')):
@@ -312,7 +316,7 @@ class Section(object):
     def _build_node(self, node_type, node_name, args, content, pms_node):
         self.content = content
         node_name = node_name.format(self=self)
-        xml_name = '%s_%s.xml' % (self.section_id, node_type)
+        xml_name = '%s_%s.xml' % (self.id, node_type)
         path = path_ops.path.join(self.path, xml_name)
         if not path_ops.exists(path):
             if pms_node:
@@ -323,7 +327,7 @@ class Section(object):
                 xml = getattr(nodes, 'node_%s' % node_type)(self, node_name)
             self._write_xml(xml, xml_name)
         self.order += 1
-        path = 'library://video/Plex-%s/%s' % (self.section_id, xml_name)
+        path = 'library://video/Plex-%s/%s' % (self.id, xml_name)
         self._window_node(path, node_name, node_type, pms_node)
 
     def _write_xml(self, xml, xml_name):
@@ -362,13 +366,13 @@ class Section(object):
         # if node_type == 'all':
         #     var = self.node
         #     utils.window('%s.index' % var,
-        #                  value=path.replace('%s_all.xml' % self.section_id, ''))
+        #                  value=path.replace('%s_all.xml' % self.id, ''))
         #     utils.window('%s.title' % var, value=self.name)
         # else:
         var = '%s.%s' % (self.node, node_type)
         utils.window('%s.index' % var, value=path)
         utils.window('%s.title' % var, value=node_name)
-        utils.window('%s.id' % var, value=str(self.section_id))
+        utils.window('%s.id' % var, value=str(self.id))
         utils.window('%s.path' % var, value=window_path)
         utils.window('%s.type' % var, value=self.content)
         utils.window('%s.content' % var, value=path)
@@ -403,10 +407,10 @@ class Section(object):
         Removes this sections completely from the Plex DB
         """
         if plexdb:
-            plexdb.remove_section(self.section_id)
+            plexdb.remove_section(self.id)
         else:
             with PlexDB(lock=False) as plexdb:
-                plexdb.remove_section(self.section_id)
+                plexdb.remove_section(self.id)
 
     def remove(self):
         """
@@ -441,7 +445,6 @@ def _retrieve_old_settings(sections, old_sections):
 
     Thus sets to the old values:
         section.last_sync
-        section.kodi_tagid
         section.sync_to_kodi
         section.last_sync
     """
@@ -449,7 +452,6 @@ def _retrieve_old_settings(sections, old_sections):
         for old_section in old_sections:
             if section == old_section:
                 section.last_sync = old_section.last_sync
-                section.kodi_tagid = old_section.kodi_tagid
                 section.sync_to_kodi = old_section.sync_to_kodi
                 section.last_sync = old_section.last_sync
 
@@ -471,7 +473,7 @@ def _delete_kodi_db_items(section):
     for plex_type, context in types:
         while True:
             with PlexDB() as plexdb:
-                plex_ids = list(plexdb.plexid_by_sectionid(section.section_id,
+                plex_ids = list(plexdb.plexid_by_sectionid(section.id,
                                                            plex_type,
                                                            BATCH_SIZE))
                 with kodi_context(texture_db=True) as kodidb:

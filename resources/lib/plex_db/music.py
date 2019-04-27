@@ -5,7 +5,8 @@ from .. import variables as v
 
 
 class Music(object):
-    def add_artist(self, plex_id, checksum, section_id, kodi_id, last_sync):
+    def add_artist(self, plex_id, checksum, section_id, section_uuid, kodi_id,
+                   last_sync):
         """
         Appends or replaces music artist entry into the plex table
         """
@@ -14,20 +15,22 @@ class Music(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 kodi_id,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
         '''
         self.cursor.execute(
             query,
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              kodi_id,
              last_sync))
 
-    def add_album(self, plex_id, checksum, section_id, artist_id, parent_id,
-                  kodi_id, last_sync):
+    def add_album(self, plex_id, checksum, section_id, section_uuid, artist_id,
+                  parent_id, kodi_id, last_sync):
         """
         Appends or replaces an entry into the plex table
         """
@@ -36,24 +39,27 @@ class Music(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 artist_id,
                 parent_id,
                 kodi_id,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         '''
         self.cursor.execute(
             query,
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              artist_id,
              parent_id,
              kodi_id,
              last_sync))
 
-    def add_song(self, plex_id, checksum, section_id, artist_id, grandparent_id,
-                 album_id, parent_id, kodi_id, kodi_pathid, last_sync):
+    def add_song(self, plex_id, checksum, section_id, section_uuid, artist_id,
+                 grandparent_id, album_id, parent_id, kodi_id, kodi_pathid,
+                 last_sync):
         """
         Appends or replaces an entry into the plex table
         """
@@ -62,6 +68,7 @@ class Music(object):
                 plex_id,
                 checksum,
                 section_id,
+                section_uuid,
                 artist_id,
                 grandparent_id,
                 album_id,
@@ -69,13 +76,14 @@ class Music(object):
                 kodi_id,
                 kodi_pathid,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.cursor.execute(
             query,
             (plex_id,
              checksum,
              section_id,
+             section_uuid,
              artist_id,
              grandparent_id,
              album_id,
@@ -90,6 +98,7 @@ class Music(object):
             plex_id INTEGER PRIMARY KEY,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
+            section_uuid TEXT,
             kodi_id INTEGER,
             last_sync INTEGER
         """
@@ -105,6 +114,7 @@ class Music(object):
             plex_id INTEGER PRIMARY KEY,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
+            section_uuid TEXT,
             artist_id INTEGER,  # plex_id of the parent artist
             parent_id INTEGER,  # kodi_id of the parent artist
             kodi_id INTEGER,
@@ -122,6 +132,7 @@ class Music(object):
             plex_id INTEGER PRIMARY KEY,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
+            section_uuid TEXT,
             artist_id INTEGER,  # plex_id of the parent artist
             grandparent_id INTEGER,  # kodi_id of the parent artist
             album_id INTEGER,  # plex_id of the parent album
@@ -146,13 +157,14 @@ class Music(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'artist_id': entry[3],
-            'grandparent_id': entry[4],
-            'album_id': entry[5],
-            'parent_id': entry[6],
-            'kodi_id': entry[7],
-            'kodi_pathid': entry[8],
-            'last_sync': entry[9]
+            'section_uuid': entry[3],
+            'artist_id': entry[4],
+            'grandparent_id': entry[5],
+            'album_id': entry[6],
+            'parent_id': entry[7],
+            'kodi_id': entry[8],
+            'kodi_pathid': entry[9],
+            'last_sync': entry[10]
         }
 
     @staticmethod
@@ -165,10 +177,11 @@ class Music(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'artist_id': entry[3],
-            'parent_id': entry[4],
-            'kodi_id': entry[5],
-            'last_sync': entry[6]
+            'section_uuid': entry[3],
+            'artist_id': entry[4],
+            'parent_id': entry[5],
+            'kodi_id': entry[6],
+            'last_sync': entry[7]
         }
 
     @staticmethod
@@ -181,8 +194,9 @@ class Music(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'kodi_id': entry[3],
-            'last_sync': entry[4]
+            'section_uuid': entry[3],
+            'kodi_id': entry[4],
+            'last_sync': entry[5]
         }
 
     def album_has_songs(self, plex_id):

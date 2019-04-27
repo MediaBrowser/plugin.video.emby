@@ -194,9 +194,9 @@ def initialize():
             plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sections(
                     section_id INTEGER PRIMARY KEY,
+                    uuid TEXT,
                     section_name TEXT,
                     plex_type TEXT,
-                    kodi_tagid INTEGER,
                     sync_to_kodi INTEGER,
                     last_sync INTEGER)
             ''')
@@ -205,6 +205,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     kodi_id INTEGER,
                     kodi_fileid INTEGER,
                     kodi_pathid INTEGER,
@@ -216,6 +217,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     kodi_id INTEGER,
                     kodi_pathid INTEGER,
                     fanart_synced INTEGER,
@@ -226,6 +228,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     show_id INTEGER,
                     parent_id INTEGER,
                     kodi_id INTEGER,
@@ -237,6 +240,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     show_id INTEGER,
                     grandparent_id INTEGER,
                     season_id INTEGER,
@@ -253,6 +257,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     kodi_id INTEGER,
                     last_sync INTEGER)
             ''')
@@ -261,6 +266,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     artist_id INTEGER,
                     parent_id INTEGER,
                     kodi_id INTEGER,
@@ -271,6 +277,7 @@ def initialize():
                     plex_id INTEGER PRIMARY KEY,
                     checksum INTEGER UNIQUE,
                     section_id INTEGER,
+                    section_uuid TEXT,
                     artist_id INTEGER,
                     grandparent_id INTEGER,
                     album_id INTEGER,
