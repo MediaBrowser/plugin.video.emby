@@ -210,6 +210,7 @@ class Artist(MusicMixin, ItemBase):
         self.plexdb.add_artist(plex_id,
                                api.checksum(),
                                section.id,
+                               section.uuid,
                                kodi_id,
                                self.last_sync)
 
@@ -361,6 +362,7 @@ class Album(MusicMixin, ItemBase):
         self.plexdb.add_album(plex_id,
                               api.checksum(),
                               section.id,
+                              section.uuid,
                               artist_id,
                               parent_id,
                               kodi_id,
@@ -653,6 +655,7 @@ class Song(MusicMixin, ItemBase):
         self.plexdb.add_song(plex_id,
                              api.checksum(),
                              section.id,
+                             section.uuid,
                              artist_id,
                              grandparent_id,
                              album_id,

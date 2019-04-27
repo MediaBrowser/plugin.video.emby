@@ -217,6 +217,7 @@ class Movie(ItemBase):
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
                               section_id=section.id,
+                              section_uuid=section.uuid,
                               kodi_id=kodi_id,
                               kodi_fileid=file_id,
                               kodi_pathid=kodi_pathid,
