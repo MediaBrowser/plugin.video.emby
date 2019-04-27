@@ -194,9 +194,9 @@ def initialize():
             plexdb.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sections(
                     section_id INTEGER PRIMARY KEY,
+                    uuid TEXT,
                     section_name TEXT,
                     plex_type TEXT,
-                    kodi_tagid INTEGER,
                     sync_to_kodi INTEGER,
                     last_sync INTEGER)
             ''')

@@ -42,6 +42,8 @@ class Section(object):
     def __init__(self, index=None, xml_element=None, section_db_element=None):
         # Unique Plex id of this Plex library section
         self._section_id = None  # int
+        # Plex librarySectionUUID, unique for this section
+        self.uuid = None
         # Building block for window variable
         self._node = None  # unicode
         # Index of this section (as section_id might not be subsequent)
@@ -58,9 +60,6 @@ class Section(object):
         # Do we sync all items of this section to the Kodi DB?
         # This will be set with section_type!!
         self.sync_to_kodi = None  # bool
-        # For sections to be synched, the section name will be recorded as a
-        # tag. This is the corresponding id for this tag
-        self.kodi_tagid = None  # int
         # When was this section last successfully/completely synched to the
         # Kodi database?
         self.last_sync = None  # int
@@ -90,16 +89,20 @@ class Section(object):
         elif section_db_element:
             self.from_db_element(section_db_element)
 
-    def __repr__(self):
+    def __unicode__(self):
         return ("{{"
                 "'index': {self.index}, "
                 "'name': '{self.name}', "
                 "'section_id': {self.section_id}, "
                 "'section_type': '{self.section_type}', "
                 "'sync_to_kodi': {self.sync_to_kodi}, "
-                "'last_sync': {self.last_sync}"
-                "}}").format(self=self).encode('utf-8')
-    __str__ = __repr__
+                "'last_sync': {self.last_sync}, "
+                "'uuid': {self.uuid}"
+                "}}").format(self=self)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+    __repr__ = __str__
 
     def __nonzero__(self):
         return (self.section_id is not None and
@@ -164,9 +167,9 @@ class Section(object):
 
     def from_db_element(self, section_db_element):
         self.section_id = section_db_element['section_id']
+        self.uuid = section_db_element['uuid']
         self.name = section_db_element['section_name']
         self.section_type = section_db_element['plex_type']
-        self.kodi_tagid = section_db_element['kodi_tagid']
         self.sync_to_kodi = section_db_element['sync_to_kodi']
         self.last_sync = section_db_element['last_sync']
 
@@ -176,6 +179,7 @@ class Section(object):
         """
         api = API(xml_element)
         self.section_id = utils.cast(int, xml_element.get('key'))
+        self.uuid = xml_element.get('uuid')
         self.name = api.title()
         self.section_type = api.plex_type()
         self.icon = api.one_artwork('composite')
@@ -204,17 +208,17 @@ class Section(object):
             raise RuntimeError('Section not clearly defined: %s' % self)
         if plexdb:
             plexdb.add_section(self.section_id,
+                               self.uuid,
                                self.name,
                                self.section_type,
-                               self.kodi_tagid,
                                self.sync_to_kodi,
                                self.last_sync)
         else:
             with PlexDB(lock=False) as plexdb:
                 plexdb.add_section(self.section_id,
+                                   self.uuid,
                                    self.name,
                                    self.section_type,
-                                   self.kodi_tagid,
                                    self.sync_to_kodi,
                                    self.last_sync)
 
@@ -291,7 +295,7 @@ class Section(object):
             path_ops.makedirs(self.path)
         # Create a tag just like the section name in the Kodi DB
         with kodi_db.KodiVideoDB(lock=False) as kodidb:
-            self.kodi_tagid = kodidb.create_tag(self.name)
+            kodidb.create_tag(self.name)
         # The xmls are numbered in order of appearance
         self.order = 0
         if not path_ops.exists(path_ops.path.join(self.path, 'index.xml')):
@@ -441,7 +445,6 @@ def _retrieve_old_settings(sections, old_sections):
 
     Thus sets to the old values:
         section.last_sync
-        section.kodi_tagid
         section.sync_to_kodi
         section.last_sync
     """
@@ -449,7 +452,6 @@ def _retrieve_old_settings(sections, old_sections):
         for old_section in old_sections:
             if section == old_section:
                 section.last_sync = old_section.last_sync
-                section.kodi_tagid = old_section.kodi_tagid
                 section.sync_to_kodi = old_section.sync_to_kodi
                 section.last_sync = old_section.last_sync
 
