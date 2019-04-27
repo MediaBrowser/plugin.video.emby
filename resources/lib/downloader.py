@@ -24,7 +24,6 @@ from emby.core.exceptions import HTTPException
 
 LOG = logging.getLogger("EMBY."+__name__)
 LIMIT = min(int(settings('limitIndex') or 50), 50)
-CACHE = xbmc.translatePath(os.path.join(xbmcaddon.Addon(id='plugin.video.emby').getAddonInfo('profile').decode('utf-8'), 'emby')).decode('utf-8')
 
 #################################################################################################
 
@@ -358,41 +357,3 @@ class TheVoid(object):
 
             xbmc.sleep(100)
             LOG.info("--[ void/%s ]", self.data['VoidName'])
-
-def get_objects(src, filename):
-
-    ''' Download objects dependency to temp cache folder.
-    '''
-    temp = CACHE
-    restart = not xbmcvfs.exists(os.path.join(temp, "objects") + '/')
-    path = os.path.join(temp, filename).encode('utf-8')
-
-    if restart and (settings('appliedPatch') or "") == filename:
-
-        LOG.warn("Something went wrong applying this patch %s previously.", filename)
-        restart = False
-
-    if not xbmcvfs.exists(path) or filename.startswith('DEV'):
-        delete_folder(CACHE)
-
-        LOG.info("From %s to %s", src, path.decode('utf-8'))
-        try:
-            response = requests.get(src, stream=True, verify=True)
-            response.raise_for_status()
-        except requests.exceptions.SSLError as error:
-
-            LOG.error(error)
-            response = requests.get(src, stream=True, verify=False)
-        except Exception as error:
-            raise
-
-        dl = xbmcvfs.File(path, 'w')
-        dl.write(response.content)
-        dl.close()
-        del response
-
-        settings('appliedPatch', filename)
-
-    unzip(path, temp, "objects")
-
-    return restart

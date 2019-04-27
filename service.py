@@ -75,7 +75,7 @@ class ServiceManager(threading.Thread):
             service.service()
         except Exception as error:
             self.exception = error
-
+            LOG.exception(error)
             if service is not None:
 
                 if not 'ExitService' in error:
