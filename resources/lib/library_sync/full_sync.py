@@ -140,8 +140,7 @@ class FullSync(common.fullsync_mixin):
                     self.queue.task_done()
                     if isinstance(item, dict):
                         context.add_update(item['xml'][0],
-                                           section_name=section.name,
-                                           section_id=section.id,
+                                           section=section,
                                            children=item['children'])
                         self.title = item['xml'][0].get('title')
                         self.processed += 1
@@ -233,8 +232,7 @@ class FullSync(common.fullsync_mixin):
                         if not itemtype.update_userdata(xml_item, section.plex_type):
                             # Somehow did not sync this item yet
                             itemtype.add_update(xml_item,
-                                                section_name=section.name,
-                                                section_id=section.section_id)
+                                                section=section)
                         itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
                                                          section.plex_type,
                                                          self.current_sync)

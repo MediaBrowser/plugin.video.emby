@@ -14,8 +14,7 @@ class Movie(ItemBase):
     """
     Used for plex library-type movies
     """
-    def add_update(self, xml, section_name=None, section_id=None,
-                   children=None):
+    def add_update(self, xml, section, children=None):
         """
         Process single movie
         """
@@ -174,7 +173,7 @@ class Movie(ItemBase):
 
         self.kodidb.modify_streams(file_id, api.mediastreams(), runtime)
         self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
-        tags = [section_name]
+        tags = [section.name]
         if collections:
             for plex_set_id, set_name in collections:
                 set_api = None
@@ -189,7 +188,7 @@ class Movie(ItemBase):
                     # e.g. when added via websocket
                     LOG.debug('Costly looking up Plex collection %s: %s',
                               plex_set_id, set_name)
-                    for index, coll_plex_id in api.collections_match(section_id):
+                    for index, coll_plex_id in api.collections_match(section.id):
                         # Get Plex artwork for collections - a pain
                         if index == plex_set_id:
                             set_xml = PF.GetPlexMetadata(coll_plex_id)
@@ -217,7 +216,7 @@ class Movie(ItemBase):
                                dateplayed)
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
-                              section_id=section_id,
+                              section_id=section.id,
                               kodi_id=kodi_id,
                               kodi_fileid=file_id,
                               kodi_pathid=kodi_pathid,
