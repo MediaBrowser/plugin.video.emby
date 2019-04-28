@@ -969,7 +969,7 @@ class PlayUtilsStrm(PlayUtils):
         '''
         default = xmls.default_settings_default()
         full_path = self.info['Path']
-        default['AudioStream'] = max(self.info['AudioStreamIndex'] - 1, -1)
+        default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
         default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
 
         if default['SubtitlesOn']:
