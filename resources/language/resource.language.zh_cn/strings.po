@@ -4,6 +4,7 @@
 # Addon Provider: angelblue05
 # Translators:
 # z cherry <chengweizhu.zjzs@gmail.com>, 2019
+# 张进出 <164980316@qq.com>, 2019
 # lei zhang <hazhanglei@gmail.com>, 2019
 # 
 msgid ""
@@ -21,7 +22,7 @@ msgstr ""
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
-msgstr "Emby for Kodi"
+msgstr "连接"
 
 msgctxt "#30000"
 msgid "Server address"
@@ -33,11 +34,11 @@ msgstr "服务器名称"
 
 msgctxt "#30002"
 msgid "Force HTTP playback"
-msgstr "强制HTTP回放"
+msgstr "强制HTTP直接推流播放"
 
 msgctxt "#30003"
 msgid "Login method"
-msgstr "登入方式"
+msgstr "登录方式"
 
 msgctxt "#30004"
 msgid "Log level"
@@ -61,15 +62,15 @@ msgstr "端口号"
 
 msgctxt "#30091"
 msgid "Confirm file deletion"
-msgstr "确认文件删除"
+msgstr "确认删除文件"
 
 msgctxt "#30114"
 msgid "Offer delete after playback"
-msgstr "回放后删除"
+msgstr "播放完后提示删除"
 
 msgctxt "#30115"
 msgid "For Episodes"
-msgstr ""
+msgstr "按季"
 
 msgctxt "#30116"
 msgid "For Movies"
@@ -77,7 +78,7 @@ msgstr "来自电影"
 
 msgctxt "#30157"
 msgid "Enable enhanced artwork (i.e. cover art)"
-msgstr "启用增强型封面图（即封面图）"
+msgstr "启用增强型封面图（例如：艺术图）"
 
 msgctxt "#30160"
 msgid "Video quality"
@@ -85,11 +86,11 @@ msgstr "视频质量"
 
 msgctxt "#30170"
 msgid "Recently Added TV Shows"
-msgstr "最近新增的剧集"
+msgstr "最近新增的节目"
 
 msgctxt "#30171"
 msgid "In Progress TV Shows"
-msgstr "正在观看的电视节目"
+msgstr "正在播出的节目"
 
 msgctxt "#30174"
 msgid "Recently Added Movies"
@@ -105,23 +106,23 @@ msgstr "正在观看的电影"
 
 msgctxt "#30178"
 msgid "In Progress Episodes"
-msgstr "正在观看章节"
+msgstr "正在观看的剧集"
 
 msgctxt "#30179"
 msgid "Next Episodes"
-msgstr "下一章节"
+msgstr "下一集"
 
 msgctxt "#30180"
 msgid "Favorite Movies"
-msgstr "收藏的电影"
+msgstr "喜欢的电影"
 
 msgctxt "#30181"
 msgid "Favorite Shows"
-msgstr "收藏的剧集"
+msgstr "喜欢的节目"
 
 msgctxt "#30182"
 msgid "Favorite Episodes"
-msgstr "收藏的剧集"
+msgstr "喜欢的剧集"
 
 msgctxt "#30185"
 msgid "Boxsets"
@@ -129,11 +130,11 @@ msgstr "合集"
 
 msgctxt "#30189"
 msgid "Unwatched Movies"
-msgstr "未观看电影"
+msgstr "未观看的电影"
 
 msgctxt "#30229"
 msgid "Random Items"
-msgstr "随机项目"
+msgstr "随机播放"
 
 msgctxt "#30230"
 msgid "Recommended Items"
@@ -145,11 +146,11 @@ msgstr "界面"
 
 msgctxt "#30239"
 msgid "Reset local Kodi database"
-msgstr "重置Kodi数据库"
+msgstr "重置本地Kodi数据库"
 
 msgctxt "#30249"
 msgid "Enable welcome message"
-msgstr "启用欢迎消息"
+msgstr "启用欢迎信息"
 
 msgctxt "#30251"
 msgid "Recently added Home Videos"
@@ -161,15 +162,15 @@ msgstr "最近添加的照片"
 
 msgctxt "#30253"
 msgid "Favourite Home Videos"
-msgstr "收藏的家庭视频"
+msgstr "喜欢的家庭视频"
 
 msgctxt "#30254"
 msgid "Favourite Photos"
-msgstr "收藏的照片"
+msgstr "喜欢的照片"
 
 msgctxt "#30255"
 msgid "Favourite Albums"
-msgstr "收藏的专辑"
+msgstr "喜欢的专辑"
 
 msgctxt "#30256"
 msgid "Recently added Music videos"
@@ -177,11 +178,11 @@ msgstr "最近添加的音乐视频"
 
 msgctxt "#30257"
 msgid "In progress Music videos"
-msgstr "正在播放的音乐"
+msgstr "正在播出的音乐视频"
 
 msgctxt "#30258"
 msgid "Unwatched Music videos"
-msgstr ""
+msgstr "未观看的音乐视频"
 
 msgctxt "#30302"
 msgid "Movies"
@@ -189,15 +190,15 @@ msgstr "电影"
 
 msgctxt "#30305"
 msgid "TV Shows"
-msgstr "剧集"
+msgstr "电视节目"
 
 msgctxt "#30401"
 msgid "Emby options"
-msgstr "Emby选项"
+msgstr "菜单"
 
 msgctxt "#30402"
 msgid "Emby transcode"
-msgstr "Emby转码"
+msgstr "Emby 转码"
 
 msgctxt "#30405"
 msgid "Add to favorites"
@@ -205,7 +206,7 @@ msgstr "添加到收藏夹"
 
 msgctxt "#30406"
 msgid "Remove from favorites"
-msgstr "从收藏夹删除"
+msgstr "从收藏夹中删除"
 
 msgctxt "#30408"
 msgid "Settings"
@@ -225,11 +226,11 @@ msgstr "转码"
 
 msgctxt "#30500"
 msgid "Verify connection"
-msgstr "验证链接"
+msgstr "验证连接"
 
 msgctxt "#30504"
 msgid "Use alternate device name"
-msgstr ""
+msgstr "自定义设备名称"
 
 msgctxt "#30506"
 msgid "Sync"
@@ -237,15 +238,15 @@ msgstr "同步"
 
 msgctxt "#30507"
 msgid "Enable notification if update count is greater than"
-msgstr "超过更新数量启用通知"
+msgstr "如果更新数量大于，则启用通知"
 
 msgctxt "#30508"
 msgid "Sync empty shows"
-msgstr "同步空剧集"
+msgstr "同步空的节目"
 
 msgctxt "#30509"
 msgid "Enable music library"
-msgstr "启用音乐库"
+msgstr "启用音乐媒体库"
 
 msgctxt "#30511"
 msgid "Playback mode"
@@ -253,7 +254,7 @@ msgstr "播放模式"
 
 msgctxt "#30512"
 msgid "Enable artwork caching"
-msgstr ""
+msgstr "启用艺术图缓存"
 
 msgctxt "#30515"
 msgid "Paging - max items requested (default: 15)"
@@ -261,11 +262,11 @@ msgstr "每页显示最大数量(默认值:15)"
 
 msgctxt "#30516"
 msgid "Playback"
-msgstr "回放"
+msgstr "播放"
 
 msgctxt "#30517"
 msgid "Network credentials"
-msgstr ""
+msgstr "网络凭据"
 
 msgctxt "#30518"
 msgid "Enable cinema mode"
@@ -277,19 +278,19 @@ msgstr "显示预告片"
 
 msgctxt "#30520"
 msgid "Skip the delete confirmation (use at your own risk)"
-msgstr "跳过删除确认（谨慎）"
+msgstr "跳过删除确认（需谨慎开启！）"
 
 msgctxt "#30521"
 msgid "Jump back on resume (in seconds)"
-msgstr ""
+msgstr "恢复时返回（秒）"
 
 msgctxt "#30522"
 msgid "Transcode H265/HEVC"
-msgstr "转码H265/HEVC"
+msgstr "转码 H.265/HEVC"
 
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"
-msgstr ""
+msgstr "忽略下一集Specials（例如动漫中的SP，OVA，OAD等）"
 
 msgctxt "#30528"
 msgid "Permanent users"
@@ -297,23 +298,23 @@ msgstr "永久用户"
 
 msgctxt "#30529"
 msgid "Startup delay (in seconds)"
-msgstr "启动延迟（秒）"
+msgstr "启动延迟（以秒为单位）"
 
 msgctxt "#30530"
 msgid "Enable server restart message"
-msgstr "启用服务器重启信息"
+msgstr "启用服务器重新启动通知"
 
 msgctxt "#30531"
 msgid "Enable new content"
-msgstr "启用新内容"
+msgstr "启用新的内容"
 
 msgctxt "#30532"
 msgid "Duration of the video library pop up"
-msgstr ""
+msgstr "弹出视频媒体库的持续时间"
 
 msgctxt "#30533"
 msgid "Duration of the music library pop up"
-msgstr ""
+msgstr "弹出音乐媒体库的持续时间"
 
 msgctxt "#30534"
 msgid "Notifications (in seconds)"
@@ -321,7 +322,7 @@ msgstr "通知（以秒为单位）"
 
 msgctxt "#30535"
 msgid "Generate a new device Id"
-msgstr "生成新设备ID"
+msgstr "生成新的设备ID"
 
 msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
@@ -329,11 +330,11 @@ msgstr "在同步期间允许屏幕保护程序"
 
 msgctxt "#30537"
 msgid "Transcode Hi10P"
-msgstr "转码Hi10P"
+msgstr "转码 H.264/Hi10P"
 
 msgctxt "#30539"
 msgid "Login"
-msgstr "注册"
+msgstr "登录"
 
 msgctxt "#30540"
 msgid "Manual login"
@@ -341,7 +342,7 @@ msgstr "手动登录"
 
 msgctxt "#30543"
 msgid "Username or email"
-msgstr "用户名或电子邮件"
+msgstr "用户名或电子邮箱"
 
 msgctxt "#30545"
 msgid "Enable server offline"
@@ -377,11 +378,11 @@ msgstr "用户名或密码不能为空"
 
 msgctxt "#30609"
 msgid "Unable to connect to the selected server"
-msgstr "无法连接到所选服务器"
+msgstr "无法连接到指定的服务器"
 
 msgctxt "#30610"
 msgid "Connect to"
-msgstr "连接至"
+msgstr "连接到"
 
 msgctxt "#30611"
 msgid "Manually add server"
@@ -421,7 +422,7 @@ msgstr "欢迎"
 
 msgctxt "#33006"
 msgid "Server is restarting"
-msgstr "服务器正在重启"
+msgstr "服务器正在重新启动"
 
 msgctxt "#33009"
 msgid "Invalid username or password"
@@ -429,11 +430,11 @@ msgstr "用户名或密码无效"
 
 msgctxt "#33013"
 msgid "Choose the audio stream"
-msgstr "选择音频"
+msgstr "选择音频流"
 
 msgctxt "#33014"
 msgid "Choose the subtitles stream"
-msgstr "选择字幕"
+msgstr "选择字幕流"
 
 msgctxt "#33015"
 msgid "Delete file from Emby?"
@@ -441,7 +442,7 @@ msgstr "从Emby删除文件？"
 
 msgctxt "#33016"
 msgid "Play trailers?"
-msgstr "启用预告片"
+msgstr "启用预告片？"
 
 msgctxt "#33018"
 msgid "Gathering boxsets"
@@ -455,7 +456,7 @@ msgctxt "#33022"
 msgid ""
 "Detected the database needs to be recreated for this version of Emby for "
 "Kodi. Proceed?"
-msgstr "检测到需要为此版本的Emby for Kodi重新创建数据库。"
+msgstr "检测到需要为此版本的Emby重新创建数据库，需要继续吗？"
 
 msgctxt "#33023"
 msgid "Emby for Kodi will not work correctly until the database is reset."
@@ -467,48 +468,46 @@ msgstr "完成于："
 
 msgctxt "#33033"
 msgid "A new device Id has been generated. Kodi will now restart."
-msgstr "已生成新设备ID!Kodi现在将重启!"
+msgstr "已生成新的设备ID！Kodi将要重新启动!"
 
 msgctxt "#33035"
 msgid ""
 "Caution! If you choose Native mode, certain Emby features will be missing, "
 "such as: Emby cinema mode, direct stream/transcode options and parental "
 "access schedule."
-msgstr ""
-"警告！\n"
-"如果您选择纯模式，则某些Emby功能将会丢失，例如：Emby影院模式，直接流/转码选项和家长访问时间表。"
+msgstr "注意！如果选择本地模式，某些Emby功能将不可用，例如：Emby影院模式、直接推流/转码选项和家长模式、访问计划等。"
 
 msgctxt "#33036"
 msgid "Add-on (default)"
-msgstr "添加组件（默认）"
+msgstr "插件（默认）"
 
 msgctxt "#33037"
 msgid "Native (direct paths)"
-msgstr "原生（直接路径）"
+msgstr "本地（直接路径）"
 
 msgctxt "#33039"
 msgid "Enable music library?"
-msgstr "启用音乐库？"
+msgstr "启用音乐媒体库？"
 
 msgctxt "#33042"
 msgid "Running the caching process may take some time. Continue anyway?"
-msgstr "同步过程可能需要一些时间。是否继续？"
+msgstr "运行缓存进程可能需要一些时间，是否要继续？"
 
 msgctxt "#33044"
 msgid "Reset existing artwork cache?"
-msgstr "重置现有的图片缓存？"
+msgstr "重置现有的艺术图缓存？"
 
 msgctxt "#33045"
 msgid "Updating artwork cache"
-msgstr "更新图片缓存"
+msgstr "更新艺术图缓存"
 
 msgctxt "#33046"
 msgid "Waiting for threads to exit"
-msgstr "等待退出"
+msgstr "等待进程退出"
 
 msgctxt "#33047"
 msgid "Kodi can't locate file:"
-msgstr "Kodi无法找到文件！"
+msgstr "Kodi无法找到文件："
 
 msgctxt "#33048"
 msgid ""
@@ -516,12 +515,12 @@ msgid ""
 "path is added to Kodi's file manager. For more information, check the FAQ in"
 " Emby for Kodi's github wiki. Stop syncing?"
 msgstr ""
-"使用Emby路径替换正确格式化路径或确保将路径添加到Kodi的文件管理器，有关更多信息，请查看Emby for Kodi的github "
-"wiki中的常见问题解答，是否停止同步？"
+"使用Emby相对路径替换绝对路径，或确保将路径添加到Kodi的文件管理器。 有关更多信息，请查看Emby for "
+"Kodi的github维基百科中的常见问题解答，是否停止同步？"
 
 msgctxt "#33049"
 msgid "New"
-msgstr "新"
+msgstr "新的"
 
 msgctxt "#33054"
 msgid "Add user to session"
@@ -533,7 +532,7 @@ msgstr "执行本地数据库重置"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr "缓存所有图片"
+msgstr "缓存所有艺术图"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -565,20 +564,20 @@ msgstr "添加"
 
 msgctxt "#33074"
 msgid "Are you sure you want to reset your local Kodi database?"
-msgstr "您确定要重置本地的Kodi数据库吗？"
+msgstr "确定要重置本地Kodi数据库吗？"
 
 msgctxt "#33086"
 msgid "Remove all cached artwork?"
-msgstr "移除所有缓存剧照？"
+msgstr "删除所有缓存剧照？"
 
 msgctxt "#33087"
 msgid "Reset all Emby add-on settings?"
-msgstr "重置所有Emby插件？"
+msgstr "重置所有Emby插件设置？"
 
 msgctxt "#33088"
 msgid ""
 "Database reset has completed, Kodi will now restart to apply the changes."
-msgstr "数据库重置已完成，Kodi现在将重新启动以应用更改！"
+msgstr "数据库重置已完成，Kodi现在将重新启动以应用更改。"
 
 msgctxt "#33089"
 msgid "Enter folder name for backup"
@@ -590,11 +589,11 @@ msgstr "替换现有备份？"
 
 msgctxt "#33091"
 msgid "Created backup at:"
-msgstr "创建备份："
+msgstr "创建备份的位置："
 
 msgctxt "#33092"
 msgid "Create a backup"
-msgstr "创建一个备份"
+msgstr "创建备份"
 
 msgctxt "#33093"
 msgid "Backup folder"
@@ -604,11 +603,11 @@ msgctxt "#33097"
 msgid ""
 "Important, cleanonupdate was removed in your advanced settings to prevent "
 "conflict with Emby for Kodi. Kodi will restart now."
-msgstr "重要的是，CleanOnUpdate已在高级设置中删除，以防止与Kodi的Emby发生冲突。Kodi将立即重新启动。"
+msgstr "更新已在高级设置中删除，为防止与Emby for Kodi发生冲突。Kodi将立即重新启动。"
 
 msgctxt "#33098"
 msgid "Refresh boxsets"
-msgstr ""
+msgstr "刷新合集"
 
 msgctxt "#33099"
 msgid ""
@@ -616,11 +615,11 @@ msgid ""
 " updates at startup. This setting can be found in the add-on settings > sync"
 " options > Enable Kodi Companion."
 msgstr ""
-"安装服务器插件Kodi Companion以在启动时自动应用emby库更新。此设置可在加载项设置>同步选项>启用Kodi Companion中找到。"
+"安装服务器插件Kodi Companion，以便在启动时自动应用Emby媒体库更新。此设置可以在插件>同步>启用Kodi Companion中找到。"
 
 msgctxt "#33100"
 msgid "Would you like to sync empty shows?"
-msgstr "你想同步空节目吗？"
+msgstr "是否要同步空的剧集？"
 
 msgctxt "#33101"
 msgid ""
@@ -630,16 +629,16 @@ msgstr "由于您在启用音乐的情况下使用本机播放模式，是否要
 
 msgctxt "#33102"
 msgid "Resume the previous sync?"
-msgstr "恢复以前的同步？"
+msgstr "恢复之前的同步?"
 
 msgctxt "#33103"
 msgid ""
 "Enable the webserver service in the Kodi settings to allow artwork caching."
-msgstr "在Kodi设置中启用Web服务器服务以允许图片缓存。"
+msgstr "在Kodi设置中启用Web服务以允许艺术图缓存。"
 
 msgctxt "#33104"
 msgid "Find more info in the github wiki/Create-and-restore-from-backup."
-msgstr "在github wiki / Create-and-restore-from-backup中查找更多信息。"
+msgstr "创建备份和还原/更多信息请访问 :github wiki"
 
 msgctxt "#33105"
 msgid "Enable the context menu"
@@ -651,31 +650,31 @@ msgstr "启用转码选项"
 
 msgctxt "#33107"
 msgid "Users added to the session"
-msgstr "用户已添加到会话中"
+msgstr "已添加的用户"
 
 msgctxt "#33108"
 msgid "Notifications are delayed during video playback (except live tv)."
-msgstr "视频播放期间通知会延迟（直播电视除外）。"
+msgstr "在视频播放过程中会延迟通知（直播电视除外）。"
 
 msgctxt "#33109"
 msgid "Plugin"
-msgstr "插件"
+msgstr "插入"
 
 msgctxt "#33110"
 msgid "Restart Kodi to take effect."
-msgstr "重启Kodi生效！"
+msgstr "重新启动Kodi以生效。"
 
 msgctxt "#33111"
 msgid "Reset the local database to apply the playback mode change."
-msgstr "重置本地数据库以应用播放模式更改！"
+msgstr "重置本地数据库以应用播放模式更改。"
 
 msgctxt "#33112"
 msgid "Applies to Native and Add-on playback mode"
-msgstr "适用于Native和Add-on播放模式"
+msgstr "适用于本机和插件播放模式"
 
 msgctxt "#33113"
 msgid "Applies to Add-on playback mode only"
-msgstr "仅适用于插件播放模式"
+msgstr "只适用于插件播放模式"
 
 msgctxt "#33114"
 msgid "Enable external subtitles"
@@ -687,35 +686,30 @@ msgstr "修改远程连接"
 
 msgctxt "#33116"
 msgid "Compress artwork (reduces quality)"
-msgstr "压缩图稿（降低质量）"
+msgstr "压缩艺术图（降低质量）"
 
 msgctxt "#33117"
 msgid ""
 "Enable artwork caching? If not, Kodi will still cache your artwork at a "
 "slower pace."
-msgstr "启用图片缓存？如果没有，Kodi仍然会以较慢的速度缓存您的作品。"
+msgstr "使用艺术图缓存吗？如果没有，Kodi仍将以较慢的速度缓存您的艺术图。"
 
 msgctxt "#33118"
 msgid ""
 "You've change the playback mode. Kodi needs to be reset to apply the change,"
 " would you like to do this now?"
-msgstr ""
-"您已经改变了播放模式。\n"
-"需要重置Kodi以应用更改，您现在想要这样做吗？"
+msgstr "您已更改播放模式，需要重启Kodi才能应用更改，是否现在执行此操作？"
 
 msgctxt "#33119"
 msgid ""
 "Something went wrong during the sync. You'll be able to restore progress "
 "when restarting Kodi. If the problem persists, please report on the Emby for"
 " Kodi forums, with your Kodi log."
-msgstr ""
-"同步过程中出错了。\n"
-"重启Kodi后，您将能够恢复进度。\n"
-"如果问题仍然存在，请使用您的Kodi日志报告Emby for Kodi论坛。"
+msgstr "同步过程中出错，重新启动Kodi时，您将能够恢复进度，如果问题仍然存在，请使用您的Kodi日志在Emby for Kodi论坛上报告。"
 
 msgctxt "#33120"
 msgid "Select the libraries to add"
-msgstr "选择要添加的库"
+msgstr "选择要添加的媒体库"
 
 msgctxt "#33121"
 msgid "All"
@@ -723,23 +717,21 @@ msgstr "所有"
 
 msgctxt "#33122"
 msgid "Restart Kodi to resume where you left off."
-msgstr ""
+msgstr "重新启动Kodi以恢复您停止的位置。"
 
 msgctxt "#33123"
 msgid "Sync library to Kodi"
-msgstr "将库同步到Kodi"
+msgstr "将媒体库同步到Kodi"
 
 msgctxt "#33124"
 msgid "Include people (slow)"
-msgstr "包括人（慢）"
+msgstr "同人画（缓慢）"
 
 msgctxt "#33125"
 msgid ""
 "Choose the Emby views to sync to Kodi. You can optionally sync libraries at "
 "a later time."
-msgstr ""
-"选择EMBY媒体库同步到Kodi。\n"
-"您可以选择稍后同步库。"
+msgstr "选择EMBY媒体库同步到Kodi，您可以选择稍后同步库。"
 
 msgctxt "#33126"
 msgid "Sync later"
@@ -747,19 +739,18 @@ msgstr "稍后同步"
 
 msgctxt "#33127"
 msgid "Proceed"
-msgstr "同步"
+msgstr "执行"
 
 msgctxt "#33128"
 msgid ""
 "Failed to retrieve latest content updates. No content updates will be "
 "applied until Kodi is restarted. If this issue persists, please report on "
 "the Emby for Kodi forums, with your Kodi log."
-msgstr ""
-"无法同步最新的内容更新，在重新启动Kodi之前，无任何内容更新。如果此问题仍然存在，请使用您的Kodi日志报告Emby for Kodi论坛。"
+msgstr "同步最新的内容更新出错，在重启Kodi之前无任何内容更新。重启后问题仍然存在，请使用您的Kodi日志报告Emby for Kodi论坛。"
 
 msgctxt "#33129"
 msgid "You can sync libraries by launching the Emby add-on > Add libraries."
-msgstr "您可以通过启动Emby加载项>添加库来同步库。"
+msgstr "您可以通过启动Emby插件>添加媒体库来同步。"
 
 msgctxt "#33130"
 msgid "Select the source"
@@ -767,15 +758,15 @@ msgstr "选择来源"
 
 msgctxt "#33131"
 msgid "Refreshing boxsets"
-msgstr ""
+msgstr "刷新合集"
 
 msgctxt "#33132"
 msgid "Repair library"
-msgstr "修复库"
+msgstr "修复媒体库"
 
 msgctxt "#33133"
 msgid "Remove library from Kodi"
-msgstr "从Kodi中移除库"
+msgstr "从Kodi中移除媒体库"
 
 msgctxt "#33134"
 msgid "Add server"
@@ -783,11 +774,11 @@ msgstr "添加服务器"
 
 msgctxt "#33135"
 msgid "Kodi will now restart to apply a small patch for your Kodi version."
-msgstr "Kodi现在将重启为您的Kodi版本启用补丁。"
+msgstr "重新启动Kodi，应用Kodi版本更新补丁"
 
 msgctxt "#33136"
 msgid "Update library"
-msgstr "更新库"
+msgstr "更新媒体库"
 
 msgctxt "#33137"
 msgid "Enable Kodi Companion (server plugin)"
@@ -798,15 +789,16 @@ msgid ""
 "You can update your library manually rather than rely on the server plugin "
 "Kodi companion. Launch the add-on and update libraries (or per library). To "
 "remove content, you'll need to repair the library."
-msgstr "您可以手动更新库，而不是依赖服务器插件Kodi插件。启动加载项和更新库（或每个库）。要删除内容，您需要修复库。"
+msgstr ""
+"您可以手动更新媒体库，而不是依赖Kodi Companion（服务器插件）。 启动插件选项和更新媒体库（或每个媒体库）。 要删除内容，您需要修复媒体库。"
 
 msgctxt "#33139"
 msgid "Update libraries"
-msgstr "更新库"
+msgstr "更新媒体库"
 
 msgctxt "#33140"
 msgid "Repair libraries"
-msgstr "修复库"
+msgstr "修复媒体库"
 
 msgctxt "#33141"
 msgid "Remove server"
@@ -814,7 +806,7 @@ msgstr "删除服务器"
 
 msgctxt "#33142"
 msgid "Something went wrong. Try again later."
-msgstr "发生错误！稍后再试！"
+msgstr "发生错误，稍后再试！"
 
 msgctxt "#33143"
 msgid "Enable the option to delete"
@@ -822,7 +814,7 @@ msgstr "启用删除选项"
 
 msgctxt "#33144"
 msgid "Removing library"
-msgstr "删除库"
+msgstr "删除媒体库"
 
 msgctxt "#33145"
 msgid ""
@@ -830,8 +822,7 @@ msgid ""
 "installation and that you have path substitution configured on your server. "
 "For more information, check the FAQ in Emby for Kodi's github wiki."
 msgstr ""
-"请确保您的Kodi可以访问您的Emby服务器库，并确保在服务器上配置了路径替换。\n"
-"有关更多信息，请查看Emby for Kodi的github wiki中的常见问题解答。"
+"请确保您的Emby服务器媒体库，可以在你访问的Kodi上安装，并且您的服务器上配置了路径替换。有关更多信息，请查看Emby中Kodi的Github维基百科的常见问题解答。"
 
 msgctxt "#33146"
 msgid "Unable to connect to Emby."
@@ -858,13 +849,11 @@ msgid ""
 "Reconnect to the same server that was previously loaded. If you want to use "
 "a different server, reset your local database, including your user "
 "information."
-msgstr ""
-"重新连接到之前添加的服务器。\n"
-"如果要使用其他服务器，请重置本地数据库，包括用户信息。"
+msgstr "重新连接到之前添加的服务器。如果要使用其他服务器，请重置本地数据库，包括用户信息。"
 
 msgctxt "#33152"
 msgid "Unable to locate TV Tunes in Kodi."
-msgstr "无法在Kodi找到TV Tunes!"
+msgstr "在Kodi中找不到电视节目。"
 
 msgctxt "#33153"
 msgid "Your Emby theme media has been synced to Kodi"
@@ -872,29 +861,26 @@ msgstr "您的Emby媒体库已同步到Kodi"
 
 msgctxt "#33154"
 msgid "Add libraries"
-msgstr "添加库"
+msgstr "添加媒体库"
 
 msgctxt "#33155"
 msgid ""
 "The currently applied patch for Emby for Kodi is corrupted! Please post to "
 "the Emby for Kodi forums if this issue persists. This will need to be fixed "
 "as soon as possible."
-msgstr ""
-"目前应用于Emby for Kodi的补丁已损坏！\n"
-"如果此问题仍然存在，请发布到Emby for Kodi论坛。\n"
-"这需要尽快修复。"
+msgstr "当前应用的Emby for Kodi补丁已损坏！如果这个问题仍然存在，请在Emby的Kodi论坛上发帖，这个问题需要尽快解决。"
 
 msgctxt "#33156"
 msgid "A patch has been applied!"
-msgstr "补丁已经启用！"
+msgstr "已应用修补程序！"
 
 msgctxt "#33157"
 msgid "Audio only"
-msgstr "仅限音频"
+msgstr "仅音频"
 
 msgctxt "#33158"
 msgid "Subtitles only"
-msgstr "仅限字幕"
+msgstr "仅字幕"
 
 msgctxt "#33159"
 msgid "Enable audio/subtitles selection"
@@ -910,7 +896,7 @@ msgstr "检查更新"
 
 msgctxt "#33162"
 msgid "Reset the music library?"
-msgstr "重置音乐库？"
+msgstr "重置音乐媒体库？"
 
 msgctxt "#33163"
 msgid "Support this project"
@@ -918,23 +904,23 @@ msgstr "支持这个项目"
 
 msgctxt "#33164"
 msgid "Mask sensitive information in log (does not apply to kodi logging)"
-msgstr "在日志中屏蔽敏感信息（不适用于kodi日志记录）"
+msgstr "在日志中屏蔽敏感信息（不适用于Kodi日志记录）"
 
 msgctxt "#33165"
 msgid "Failed to create backup"
-msgstr "无法创建备份"
+msgstr "创建备份失败"
 
 msgctxt "#33166"
 msgid "(dynamic)"
-msgstr "（动态）"
+msgstr "(动态)"
 
 msgctxt "#33167"
 msgid "Recently added"
-msgstr "最近添加的"
+msgstr "最近添加"
 
 msgctxt "#33168"
 msgid "Favourites"
-msgstr "喜欢"
+msgstr "收藏夹"
 
 msgctxt "#33169"
 msgid "In Progress"
@@ -946,7 +932,7 @@ msgstr "忽略"
 
 msgctxt "#33171"
 msgid "By first letter"
-msgstr "首字母"
+msgstr "按首字母"
 
 msgctxt "#33172"
 msgid ""
@@ -954,8 +940,7 @@ msgid ""
 "seeing new content. It might be faster to update your libraries via "
 "launching the Emby add-on > update libraries. Proceed anyway?"
 msgstr ""
-"您有{number}个更新待处理，在看到新内容之前，这可能需要一些时间。通过启动Emby加载项>更新库来更新库可能会更快。\n"
-"仍要继续？"
+"您有 {number} 个更新待处理，在看到新内容之前，这可能需要一些时间。通过启动Emby插件选项>更新媒体库，可能会更快的完成更新，仍要继续吗？"
 
 msgctxt "#33173"
 msgid "Forget about the previous sync? This is not recommended."
@@ -973,15 +958,15 @@ msgstr "分页提示：每个下载线程同时从Emby请求您的最大项目�
 
 msgctxt "#33176"
 msgid "Update or repair your libraries to apply the changes below."
-msgstr "更新或修复您的库以应用以下更改。"
+msgstr "更新或修复媒体库以应用以下更改。"
 
 msgctxt "#33177"
 msgid "Display the progress bar if update count greater than"
-msgstr "如果更新数量超过，则显示进度条"
+msgstr "如果更新数量大于，则显示进度条"
 
 msgctxt "#33178"
 msgid "Processing updates"
-msgstr "处理更新"
+msgstr "正在处理更新"
 
 msgctxt "#33179"
 msgid "Force transcode"
@@ -989,51 +974,49 @@ msgstr "强制转码"
 
 msgctxt "#33180"
 msgid "Restart Emby for Kodi"
-msgstr "重启Emby for Kodi"
+msgstr "为Kodi重新启动Emby"
 
 msgctxt "#33181"
 msgid "Restarting to apply the patch"
-msgstr "重新启动以应用补丁程序"
+msgstr "重新启动以应用修补程序"
 
 msgctxt "#33182"
 msgid "Play with cinema mode"
-msgstr "启用电影模式播放"
+msgstr "启用影院模式播放"
 
 msgctxt "#33183"
 msgid "Enable the option to play with cinema mode"
-msgstr "启用选项以使用电影模式"
+msgstr "启用选项以影院模式播放"
 
 msgctxt "#33184"
 msgid "Remove libraries"
-msgstr "删除库"
+msgstr "删除媒体库"
 
 msgctxt "#33185"
 msgid "Enable sync during playback (may cause some lag)"
-msgstr "播放期间启用同步（可能会导致一些滞后）"
+msgstr "在播放期间启用同步（可能会导致一些延迟）"
 
 msgctxt "#33186"
 msgid ""
 "The Kodi companion speeds up the start up sync. Other syncs are triggered by"
 " server events."
-msgstr ""
-"Kodi伴侣可加快启动同步速度。\n"
-"其他同步由服务器事件触发"
+msgstr "Kodi Companion可加快启动同步速度。 其他同步由服务器事件触发。"
 
 msgctxt "#33187"
 msgid "Sync Rotten Tomatoes ratings"
-msgstr "同步Rotten Tomatoes评级"
+msgstr "同步Tomatoes评分"
 
 msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
-msgstr "你想同步Rotten Tomatoes评级吗？"
+msgstr "是否要同步Tomatoes评分吗？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
-msgstr "重新启动Emby以便Kodi应用此更改？"
+msgstr "重新启动Emby for Kodi应用此更改？？"
 
 msgctxt "#33192"
 msgid "Restart Emby for Kodi"
-msgstr "重启Emby for Kodi"
+msgstr "为Kodi重新启动Emby"
 
 msgctxt "#33193"
 msgid "Restarting..."
@@ -1041,7 +1024,7 @@ msgstr "重新启动…"
 
 msgctxt "#33194"
 msgid "Manage libraries"
-msgstr "管理库"
+msgstr "管理媒体库"
 
 msgctxt "#33195"
 msgid "Enable Emby for Kodi"
@@ -1054,7 +1037,7 @@ msgstr "高级选项"
 msgctxt "#33197"
 msgid ""
 "A sync is already running, please wait until it completes and try again."
-msgstr "同步已在运行，请等待完成，然后重试。"
+msgstr "同步已经运行，请等待同步完成，然后重试。"
 
 msgctxt "#33199"
 msgid "Emby"
@@ -1062,11 +1045,11 @@ msgstr "Emby"
 
 msgctxt "#33201"
 msgid "Emby play"
-msgstr "Emby play"
+msgstr "Emby 播放"
 
 msgctxt "#33202"
 msgid "Music database rescan patch"
-msgstr "音乐数据库扫描补丁"
+msgstr "音乐数据库重新扫描修补程序"
 
 msgctxt "#33203"
 msgid "Task succeeded!"
@@ -1078,4 +1061,4 @@ msgstr "任务失败！"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
-msgstr "启用简单播放（外部播放器）"
+msgstr "启用简易播放（有助于外部播放器）"

@@ -1125,4 +1125,4 @@ msgstr "Task fallito!"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
-msgstr ""
+msgstr "Abilita la riproduzione semplice (indicato con player esterno)"
