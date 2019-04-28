@@ -812,14 +812,13 @@ class PlayUtilsStrm(PlayUtils):
     def get(self, source, audio=None, subtitle=None):
 
         ''' The server returns sources based on the MaxStreamingBitrate value and other filters.
-            prop: embyfilename for ?? I thought it was to pass the real path to subtitle add-ons but it's not working?
+            Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
+            Http stream
         '''
         self.info['MediaSourceId'] = source['Id']
 
         if source.get('RequiresClosing'):
 
-            ''' Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
-            '''
             self.info['LiveStreamId'] = source['LiveStreamId']
             source['SupportsDirectPlay'] = False
             source['Protocol'] = "LiveTV"
@@ -830,10 +829,8 @@ class PlayUtilsStrm(PlayUtils):
             source['SupportsDirectStream'] = False
             source['Protocol'] = "File"
 
-        if source['Protocol'] == 'Http':
-            source['SupportsDirectPlay'] = False
 
-        if not self.info['ForceHttp'] and source['SupportsDirectPlay'] and (self.is_strm(source) or self.is_file_exists(source)):
+        if self.is_strm(source) or not self.info['ForceHttp'] and source['SupportsDirectPlay'] and self.is_file_exists(source):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
