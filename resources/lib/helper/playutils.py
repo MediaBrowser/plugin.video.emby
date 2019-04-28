@@ -11,13 +11,15 @@ import xbmc
 import xbmcvfs
 
 import api
+import xmls
 import database
 import client
 import collections
 import requests
-from . import _, settings, window, dialog
+from . import _, settings, window, dialog, values, kodi_version
 from downloader import TheVoid
 from emby import Emby
+from objects.kodi import kodi, queries as QU
 
 #################################################################################################
 
@@ -196,6 +198,7 @@ class PlayUtils(object):
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
+            source['Protocol'] = 'File'
 
         if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
 
@@ -282,7 +285,7 @@ class PlayUtils(object):
             server = source['Path'].lower().split('/livetv')[0]
             self.info['Path'] = source['Path'].replace(server, self.info['ServerAddress'])
 
-        elif self.info['Item']['Type'] == "Audio":
+        elif self.info['Item']['Type'] == 'Audio':
             self.info['Path'] = ("%s/emby/Audio/%s/stream.%s?static=true&api_key=%s" %
                                 (self.info['ServerAddress'], self.info['Item']['Id'],
                                  source.get('Container', "mp4").split(',')[0],
@@ -464,7 +467,10 @@ class PlayUtils(object):
             Since Emby returns all possible tracks together, sort them.
             IsTextSubtitleStream if true, is available to download from server.
         '''
-        if not settings('enableExternalSubs.bool') or not source['MediaStreams']:
+        if kodi_version() > 17:
+            return self.set_external_subs_18(source, listitem)
+
+        if not source['MediaStreams']:
             return
 
         subs = []
@@ -486,22 +492,84 @@ class PlayUtils(object):
 
                 LOG.info("[ subtitles/%s ] %s", index, url)
 
-                if 'Language' in stream:
-                    filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
+                if settings('enableExternalSubs.bool'):
+                    if 'Language' in stream:
+                        filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
 
-                    try:
-                        subs.append(self.download_external_subs(url, filename))
-                    except Exception as error:
-                        LOG.error(error)
+                        try:
+                            subs.append(self.download_external_subs(url, filename))
+                        except Exception as error:
+                            LOG.error(error)
+                            subs.append(url)
+                    else:
                         subs.append(url)
-                else:
-                    subs.append(url)
 
                 mapping[kodi] = index
                 kodi += 1
 
-        listitem.setSubtitles(subs)
-        self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
+        if settings('enableExternalSubs.bool'):
+
+            listitem.setSubtitles(subs)
+            self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
+
+        else:
+            self.info['Item']['PlaybackInfo']['Subtitles'] = {}
+
+
+    def set_external_subs_18(self, source, listitem):
+
+        ''' Try to download external subs locally so we can label them.
+            Since Emby returns all possible tracks together, sort them.
+            IsTextSubtitleStream if true, is available to download from server.
+        '''
+        if not source['MediaStreams']:
+            return
+
+        subs = []
+        mapping = {}
+        kodi = 0
+
+        for stream in source['MediaStreams']:
+
+            if stream['Type'] == 'Subtitle' and stream['IsExternal']:
+                index = stream['Index']
+
+                if 'DeliveryUrl' in stream and stream['DeliveryUrl'].lower().startswith('/videos'):
+                    url = "%s/emby%s" % (self.info['ServerAddress'], stream['DeliveryUrl'])
+                else:
+                    url = self.get_subtitles(source, stream, index)
+
+                if url is None:
+                    continue
+
+                LOG.info("[ subtitles/%s ] %s", index, url)
+
+                if self.info['Method'] == 'DirectStream':
+                    if 'Language' in stream:
+                        filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
+
+                        try:
+                            subs.append(self.download_external_subs(url, filename))
+                        except Exception as error:
+                            LOG.error(error)
+                            subs.append(url)
+                    else:
+                        subs.append(url)
+
+                mapping[kodi] = index
+                kodi += 1
+
+        if settings('enableExternalSubs.bool'):
+
+            if self.info['Method'] == 'DirectStream':
+                listitem.setSubtitles(subs)
+            
+            self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
+        
+        elif self.info['Method'] == 'DirectStream':
+            self.info['Item']['PlaybackInfo']['Subtitles'] = {}
+
+        self._set_subtitles_in_database(source, mapping)
 
     @classmethod
     def download_external_subs(cls, src, filename):
@@ -656,8 +724,9 @@ class PlayUtilsStrm(PlayUtils):
             'ServerId': server['auth/server-id'],
             'ServerAddress': server['auth/server-address'],
             'Server': server,
-            'ForceTranscode': force_transcode,
-            'Token': server['auth/token']
+            'Token': server['auth/token'],
+            'ForceHttp': settings('playFromStream.bool'),
+            'ForceTranscode': force_transcode
         }
 
     def get_sources(self, source_id=None):
@@ -759,8 +828,12 @@ class PlayUtilsStrm(PlayUtils):
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
+            source['Protocol'] = "File"
 
-        if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
+        if source['Protocol'] == 'Http':
+            source['SupportsDirectPlay'] = False
+
+        if not self.info['ForceHttp'] and source['SupportsDirectPlay'] and (self.is_strm(source) or self.is_file_exists(source)):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
@@ -889,3 +962,62 @@ class PlayUtilsStrm(PlayUtils):
                 self.info['SubtitleStreamIndex'] = index
 
         return prefs
+
+    def _set_subtitles_in_database(self, source, mapping):
+
+        ''' Setup subtitles preferences in database for direct play and direct stream scenarios.
+            Check path, file, get idFile to assign settings to.
+
+            mapping originates from set_external_subs
+        '''
+        default = xmls.default_settings_default()
+        full_path = self.info['Path']
+        default['AudioStream'] = max(self.info['AudioStreamIndex'] - 1, -1)
+        default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
+
+        if default['SubtitlesOn']:
+            if mapping:
+
+                for sub in mapping:
+
+                    if mapping[sub] == self.info['SubtitleStreamIndex']:
+                        default['SubtitleStream'] = sub
+
+                        break
+                else:
+                    default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
+            else:
+                default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
+        else:
+            default['SubtitleStream'] = -1
+
+        if '\\' in full_path:
+            path, file = full_path.rsplit('\\', 1)
+            path += "\\"
+        else:
+            path, file = full_path.rsplit('/', 1)
+            path += "/"
+            file = file.split('?', 1)[0]
+
+        LOG.debug("Finding: %s / %s", path, file)
+        try:
+            with database.Database('video') as kodidb:
+
+                db = kodi.Kodi(kodidb.cursor)
+                default['PathId'] = db.add_path(path)
+                default['FileId'] = db.add_file(file, default['PathId'])
+                db.add_settings(*values(default, QU.update_settings_obj))
+                LOG.debug(default)
+
+        except Exception:
+            pass
+
+    def _get_streams(self, source):
+
+        streams_before_subs = 0
+
+        for stream in source['MediaStreams']:
+            if stream['Type'] in ('Video', 'Audio'):
+                streams_before_subs += 1
+            elif stream['Type'] == 'Subtitle':
+                return streams_before_subs

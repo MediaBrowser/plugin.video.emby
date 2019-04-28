@@ -149,7 +149,10 @@ class Connect(object):
         ''' Save user info.
         '''
         self.user = client['api'].get_user()
+        self.config = client['api'].get_system_info()
+
         settings('username', self.user['Name'])
+        settings('SeasonSpecials.bool', self.config.get('DisplaySpecialsWithinSeasons', True))
 
         if 'PrimaryImageTag' in self.user:
             window('EmbyUserImage', api.API(self.user, client['auth/server-address']).get_user_artwork(self.user['Id']))

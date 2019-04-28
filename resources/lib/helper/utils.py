@@ -112,12 +112,12 @@ def find(dict, item, beta=True):
     ''' Find value in dictionary.
     '''
     if item in dict:
-        return dict[item]
+        return dict[item], item
 
-    for key,value in sorted(dict.iteritems(), key=lambda (k,v): (v,k)):
+    for key, value in sorted(dict.iteritems(), key=lambda (k, v): (v, k)):
 
         if re.match(key, item, re.I):
-            return dict[key]
+            return dict[key], key
 
     if beta:
         return find(dict, item.replace('beta-', ""), False)

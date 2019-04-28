@@ -49,6 +49,11 @@ class ServiceManager(threading.Thread):
 
     ''' Service thread. 
         To allow to restart and reload modules internally.
+
+        Restart service
+        Delete lib and objects entries to reload them as if it were the first time.
+        Delete .pyo files to force Kodi to recreate them.
+        Finally, re-initialize modules that are used in __main__ to reload all our modules.
     '''
     exception = None
 
@@ -70,7 +75,7 @@ class ServiceManager(threading.Thread):
             service.service()
         except Exception as error:
             self.exception = error
-
+            LOG.exception(error)
             if service is not None:
 
                 if not 'ExitService' in error:
@@ -78,10 +83,6 @@ class ServiceManager(threading.Thread):
                 
                 if 'RestartService' in error:
 
-                    ''' Delete lib and objects entries to reload them as if it were the first time.
-                        Delete .pyo files to force Kodi to recreate them.
-                        Finally, re-initialize modules that are used in __main__ to reload all our modules.
-                    '''
                     for mod in dict(sys.modules):
                         module = sys.modules[mod]
 

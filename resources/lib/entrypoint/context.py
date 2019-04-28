@@ -71,11 +71,6 @@ class Context(object):
             elif self.select_menu():
                 self.action_menu()
 
-                if self._selected_option.decode('utf-8') in (OPTIONS['Delete'], OPTIONS['AddFav'], OPTIONS['RemoveFav']):
-
-                    xbmc.sleep(500)
-                    xbmc.executebuiltin('Container.Refresh')
-
     def get_media_type(self):
 
         ''' Get media type based on sys.listitem. If unfilled, base on visible window.
@@ -175,10 +170,7 @@ class Context(object):
 
     def play(self, transcode=False):
 
-        path = "http://127.0.0.1:57578/emby/play/file.strm?Id=%s" % self.item['Id']
-
-        if self.kodi_id:
-            path += "&KodiId=%s" % self.kodi_id
+        path = xbmc.getInfoLabel('ListItem.FileNameAndPath')
 
         if transcode:
             path += "&transcode=true"

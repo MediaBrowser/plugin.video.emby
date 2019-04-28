@@ -11,7 +11,7 @@ import xbmcgui
 import xbmcvfs
 
 from objects.obj import Objects
-from helper import _, api, window, settings, dialog, event, silent_catch, JSONRPC
+from helper import _, api, window, kodi_version, settings, dialog, event, silent_catch, JSONRPC
 from emby import Emby
 
 #################################################################################################
@@ -26,9 +26,9 @@ class Player(xbmc.Player):
     played = {}
     up_next = False
 
-    def __init__(self):
+    def __init__(self, monitor=None):
 
-        self.monitor = xbmc.Monitor()
+        self.monitor = monitor
         xbmc.Player.__init__(self)
 
     @silent_catch()
@@ -132,7 +132,7 @@ class Player(xbmc.Player):
         if self.monitor.waitForAbort(2):
             return
 
-        if item['PlayOption'] == 'Addon':
+        if item['PlayOption'] == 'Addon' and kodi_version() < 18:
             self.set_audio_subs(item['AudioStreamIndex'], item['SubtitleStreamIndex'])
 
         item['Track'] = True
@@ -211,7 +211,7 @@ class Player(xbmc.Player):
     def detect_audio_subs(self, item):
 
         params = {
-            'playerid': 1,
+            'playerid': self.monitor.playlistid,
             'properties': ["currentsubtitle","currentaudiostream","subtitleenabled"]
         }
         result = JSONRPC('Player.GetProperties').execute(params)
@@ -235,7 +235,7 @@ class Player(xbmc.Player):
         item['AudioStreamIndex'] = audio + 1
 
         if not subs_enabled or not len(self.getAvailableSubtitleStreams()):
-            item['SubtitleStreamIndex'] = None
+            item['SubtitleStreamIndex'] = -1
 
             return
 
@@ -322,7 +322,7 @@ class Player(xbmc.Player):
     def report_playback(self, report=True):
 
         ''' Report playback progress to emby server.
-            Check if the user seek.
+            Check if the user seek or any other basic changes happened.
         '''
         current_file = self.get_playing_file()
 
@@ -330,6 +330,7 @@ class Player(xbmc.Player):
             return
 
         item = self.get_file_info(current_file)
+        orig_item = dict(item)
 
         if window('emby.external.bool'):
             return
@@ -342,6 +343,12 @@ class Player(xbmc.Player):
         item['Volume'] = result.get('volume')
         item['Muted'] = result.get('muted')
         self.detect_audio_subs(item)
+
+        if (not report and orig_item['AudioStreamIndex'] != item['AudioStreamIndex'] or 
+            orig_item['SubtitleStreamIndex'] != item['SubtitleStreamIndex'] or
+            orig_item['Muted'] != item['Muted']) or orig_item['Volume'] != item['Volume']:
+
+            report = True
 
         if not report:
 

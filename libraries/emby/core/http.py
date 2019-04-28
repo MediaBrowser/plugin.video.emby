@@ -36,9 +36,11 @@ class HTTP(object):
         
         self.session = requests.Session()
 
+        """
         max_retries = self.config['http.max_retries']
         self.session.mount("http://", requests.adapters.HTTPAdapter(max_retries=max_retries))
         self.session.mount("https://", requests.adapters.HTTPAdapter(max_retries=max_retries))
+        """
 
     def stop_session(self):
         

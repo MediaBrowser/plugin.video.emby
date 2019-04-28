@@ -17,13 +17,13 @@ import client
 import library
 import setup
 import monitor
+import patch
 import requests
 import webservice
 from views import Views, verify_kodi_defaults
 from helper import _, window, settings, event, dialog, find, compare_version
-from downloader import get_objects
 from emby import Emby
-from database import Database, emby_db, reset
+from database import Database, emby_db, reset, test_databases
 
 #################################################################################################
 
@@ -39,6 +39,7 @@ class Service(xbmc.Monitor):
     monitor = None
     webservice = None
     play_event = None
+    patch = None
     warn = True
     settings = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
 
@@ -84,8 +85,11 @@ class Service(xbmc.Monitor):
         except Exception as error:
             LOG.error(error)
 
+        self.patch = patch.Patch()
+        self.patch.check_update()
+        test_databases()
+
         window('emby.connected.bool', True)
-        self.check_update()
         settings('groupedSets.bool', objects.utils.get_grouped_set())
         xbmc.Monitor.__init__(self)
 
@@ -115,7 +119,7 @@ class Service(xbmc.Monitor):
                 if player.isPlaying() and player.is_playing_file(player.get_playing_file()):
                     difference = datetime.today() - self.settings['last_progress']
 
-                    if difference.seconds > 10:
+                    if difference.seconds > 4:
                         self.settings['last_progress'] = datetime.today()
 
                         update = (datetime.today() - self.settings['last_progress_report']).seconds > 250
@@ -126,11 +130,8 @@ class Service(xbmc.Monitor):
 
             if self.webservice is not None and not self.webservice.is_alive():
                 
-                LOG.info("[ restarting webservice ]")
-                self.webservice.stop()
-
-                self.webservice = webservice.WebService()
-                self.webservice.start()
+                LOG.info("[ restarting due to socket disconnect ]")
+                window('emby.restart.bool', True)
 
             if window('emby.restart.bool'):
 
@@ -191,62 +192,6 @@ class Service(xbmc.Monitor):
                 reset()
 
                 raise Exception("Completed database reset")
-
-    def check_update(self, forced=False):
-
-        ''' Check for objects build version and compare.
-            This pulls a dict that contains all the information for the build needed.
-        '''
-        LOG.info("--[ check updates/%s ]", objects.version)
-        
-        if settings('devMode.bool'):
-            kodi = "DEV"
-        elif not self.settings['addon_version'].replace(".", "").isdigit():
-            LOG.info("[ objects/beta check ]")
-            kodi = "beta-%s" % xbmc.getInfoLabel('System.BuildVersion')
-        else:
-            kodi = xbmc.getInfoLabel('System.BuildVersion')
-
-        try:
-            versions = requests.get('http://kodi.emby.media/Public%20testing/Dependencies/objects.json').json()
-            build = find(versions, kodi)
-
-            if not build:
-                raise Exception("build %s incompatible?!" % kodi)
-
-            label, min_version, zipfile = build.split('-', 2)
-
-            if label == 'DEV' and forced:
-                LOG.info("--[ force/objects/%s ]", label)
-
-            elif label == objects.version:
-                LOG.info("--[ objects/%s ]", objects.version)
-
-                return False
-
-            elif compare_version(self.settings['addon_version'], min_version) < 0:
-
-                if objects.version[:2] == label[:2]:
-                    LOG.info("--[ min add-on version not met: %s ]", min_version)
-
-                    return False
-
-            get_objects(zipfile, label + '.zip')
-            self.reload_objects()
-
-            dialog("notification", heading="{emby}", message=_(33156), icon="{emby}")
-            LOG.info("--[ new objects/%s ]", objects.version)
-
-            try:
-                if compare_version(self.settings['addon_version'], objects.embyversion) < 0:
-                    dialog("ok", heading="{emby}", line1="%s %s" % (_(33160), objects.embyversion))
-            except Exception:
-                pass
-
-        except Exception as error:
-            LOG.exception(error)
-
-        return True
     
     def onNotification(self, sender, method, data):
 
@@ -463,7 +408,7 @@ class Service(xbmc.Monitor):
 
         elif method == 'CheckUpdate':
 
-            if not self.check_update(True):
+            if not self.patch.check_update(True):
                 dialog("notification", heading="{emby}", message=_(21341), icon="{emby}", sound=False)
             else:
                 dialog("notification", heading="{emby}", message=_(33181), icon="{emby}", sound=False)
@@ -514,35 +459,6 @@ class Service(xbmc.Monitor):
             if not self.settings['kodi_companion']:
                 dialog("ok", heading="{emby}", line1=_(33138))
 
-    def reload_objects(self):
-
-        ''' Reload objects which depends on the patch module.
-            This allows to see the changes in code without restarting the python interpreter.
-        '''
-        reload_modules = ['objects.movies', 'objects.musicvideos', 'objects.tvshows',
-                          'objects.music', 'objects.obj', 'objects.actions', 'objects.kodi.kodi',
-                          'objects.kodi.movies', 'objects.kodi.musicvideos', 'objects.kodi.tvshows',
-                          'objects.kodi.music', 'objects.kodi.artwork', 'objects.kodi.queries',
-                          'objects.kodi.queries_music', 'objects.kodi.queries_texture']
-
-        for mod in reload_modules:
-            del sys.modules[mod]
-
-        reload(objects.kodi)
-        reload(objects)
-        reload(library)
-        reload(monitor)
-
-        import webservice
-        from helper import playstrm
-
-        reload(webservice)
-        reload(playstrm)
-
-        objects.obj.Objects().mapping()
-
-        LOG.warn("---[ objects reloaded ]")
-
     def shutdown(self):
 
         LOG.warn("---<[ EXITING ]")
@@ -551,7 +467,7 @@ class Service(xbmc.Monitor):
         properties = [ # TODO: review
             "emby_state", "emby_serverStatus", "emby_currUser",
 
-            "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup",
+            "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup", "emby.updatewidgets",
             "emby.external", "emby.external_check", "emby_deviceId", "emby_db_check", "emby_pathverified",
             "emby_sync"
         ]
