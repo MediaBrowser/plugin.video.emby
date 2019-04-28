@@ -65,7 +65,7 @@ class Player(xbmc.Player):
                 raise Exception("FileNotFound")
 
     def onAVStarted(self):
-        LOG.info("[ onAVStarted ]")        
+        LOG.info("[ onAVStarted ]")
 
     def onPlayBackStarted(self):
 
@@ -344,7 +344,7 @@ class Player(xbmc.Player):
         item['Muted'] = result.get('muted')
         self.detect_audio_subs(item)
 
-        if (not report and orig_item['AudioStreamIndex'] != item['AudioStreamIndex'] or 
+        if (not report and orig_item['AudioStreamIndex'] != item['AudioStreamIndex'] or
             orig_item['SubtitleStreamIndex'] != item['SubtitleStreamIndex'] or
             orig_item['Muted'] != item['Muted']) or orig_item['Volume'] != item['Volume']:
 
@@ -391,22 +391,21 @@ class Player(xbmc.Player):
         item['Server']['api'].session_progress(data)
 
     def onPlayBackStopped(self):
-        
+
         ''' Will be called when user stops playing a file.
         '''
-        window('emby_play', clear=True)
         self.stop_playback()
         LOG.info("--<[ playback ]")
 
     def onPlayBackEnded(self):
-        
+
         ''' Will be called when kodi stops playing a file.
         '''
         self.stop_playback()
         LOG.info("--<<[ playback ]")
 
     def stop_playback(self):
-        
+
         ''' Stop all playback. Check for external player for positionticks.
         '''
         if not self.played:
@@ -478,7 +477,7 @@ class Player(xbmc.Player):
 
                         if dialog("yesno", heading=_(30091), line1=_(33015), autoclose=120000):
                             item['Server']['api'].delete_item(item['Id'])
-            
+
             except Exception as error:
                 LOG.error(error)
 

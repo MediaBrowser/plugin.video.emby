@@ -272,7 +272,7 @@ class QueuePlay(threading.Thread):
     def run(self):
 
         ''' Workflow for new playback:
-            
+
             Queue up strm playback that was called in the webservice.
             Called playstrm in default.py which will wait for our signal here.
             Downloads emby information.
@@ -308,6 +308,9 @@ class QueuePlay(threading.Thread):
                     params = self.server.queue.get(timeout=0.01)
                 except Queue.Empty:
                     count = 20
+
+                    if xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
+                    	xbmc.Player().stop()
 
                     while not window('emby.playlist.ready.bool'):
                         xbmc.sleep(50)
