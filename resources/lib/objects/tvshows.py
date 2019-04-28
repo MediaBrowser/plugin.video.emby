@@ -35,6 +35,7 @@ class TVShows(KodiDb):
         self.emby_db = emby_db.EmbyDatabase(embydb.cursor)
         self.objects = Objects()
         self.item_ids = []
+        self.display_specials = settings('SeasonSpecials.bool')
 
         KodiDb.__init__(self, videodb.cursor)
 
@@ -78,16 +79,16 @@ class TVShows(KodiDb):
 
             return False
 
-        elif pooling is None:
-            obj['Item']['Id'] = self.server['api'].is_valid_series(obj['LibraryId'], obj['Title'], obj['Id'])
-
-            if obj['Item']['Id'] != obj['Id']:
-                return self.tvshow(obj['Item'], library=obj['Library'], pooling=obj['Id'])
-
         try:
             obj['ShowId'] = e_item[0]
             obj['PathId'] = e_item[2]
         except TypeError as error:
+
+            if pooling is None:
+                obj['Item']['Id'] = self.server['api'].is_valid_series(obj['LibraryId'], obj['Title'], obj['Id'])
+
+                if str(obj['Item']['Id']) != obj['Id']:
+                    return self.tvshow(obj['Item'], library=obj['Library'], pooling=obj['Id'])
 
             update = False
             LOG.debug("ShowId %s not found", obj['Id'])
@@ -338,10 +339,14 @@ class TVShows(KodiDb):
             else:
                 obj['Season'] = 0
 
-        if obj['AirsAfterSeason']:
+        if self.display_specials and not obj['Season']: # Only add for special episodes
+            if obj['AirsAfterSeason']:
 
-            obj['AirsBeforeSeason'] = obj['AirsAfterSeason']
-            obj['AirsBeforeEpisode'] = 4096 # Kodi default number for afterseason ordering
+                obj['AirsBeforeSeason'] = obj['AirsAfterSeason']
+                obj['AirsBeforeEpisode'] = 4096 # Kodi default number for afterseason ordering
+        else:
+            obj['AirsBeforeSeason'] = None
+            obj['AirsBeforeEpisode'] = None
 
         if obj['MultiEpisode']:
             obj['Title'] = "| %02d | %s" % (obj['MultiEpisode'], obj['Title'])

@@ -111,7 +111,7 @@ update_path_obj =           [   "{Path}","{PathId}"
 update_role =   		"""	INSERT OR REPLACE INTO	role(idRole, strRole) 
 							VALUES 					(?, ?)
 						"""
-update_role_obj =           [   1,"Composer"
+update_role_obj =           [   1,"artist"
                             ]
 update_artist_name =	"""	UPDATE 	artist 
 							SET 	strArtist = ? 
