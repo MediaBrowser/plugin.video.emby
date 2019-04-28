@@ -20,7 +20,7 @@ class Music(Kodi):
     def __init__(self, cursor):
 
         self.cursor = cursor
-        Kodi.__init__(self)
+        Kodi.__init__(self, cursor)
 
     def create_entry(self):
 
