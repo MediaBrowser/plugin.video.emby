@@ -172,7 +172,7 @@ class PlayUtils(object):
 
     def is_strm(self, source):
 
-        if source.get('Container') == 'strm' or self.info['Item']['Path'].endswith('.strm'):
+        if source.get('Container') == 'strm' or source['Path'].endswith('.strm'):
             LOG.info("strm detected")
 
             return True
