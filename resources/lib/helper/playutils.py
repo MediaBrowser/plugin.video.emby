@@ -467,9 +467,6 @@ class PlayUtils(object):
             Since Emby returns all possible tracks together, sort them.
             IsTextSubtitleStream if true, is available to download from server.
         '''
-        if kodi_version() > 17:
-            return self.set_external_subs_18(source, listitem)
-
         if not source['MediaStreams']:
             return
 
@@ -514,62 +511,6 @@ class PlayUtils(object):
 
         else:
             self.info['Item']['PlaybackInfo']['Subtitles'] = {}
-
-
-    def set_external_subs_18(self, source, listitem):
-
-        ''' Try to download external subs locally so we can label them.
-            Since Emby returns all possible tracks together, sort them.
-            IsTextSubtitleStream if true, is available to download from server.
-        '''
-        if not source['MediaStreams']:
-            return
-
-        subs = []
-        mapping = {}
-        kodi = 0
-
-        for stream in source['MediaStreams']:
-
-            if stream['Type'] == 'Subtitle' and stream['IsExternal']:
-                index = stream['Index']
-
-                if 'DeliveryUrl' in stream and stream['DeliveryUrl'].lower().startswith('/videos'):
-                    url = "%s/emby%s" % (self.info['ServerAddress'], stream['DeliveryUrl'])
-                else:
-                    url = self.get_subtitles(source, stream, index)
-
-                if url is None:
-                    continue
-
-                LOG.info("[ subtitles/%s ] %s", index, url)
-
-                if self.info['Method'] == 'DirectStream':
-                    if 'Language' in stream:
-                        filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
-
-                        try:
-                            subs.append(self.download_external_subs(url, filename))
-                        except Exception as error:
-                            LOG.error(error)
-                            subs.append(url)
-                    else:
-                        subs.append(url)
-
-                mapping[kodi] = index
-                kodi += 1
-
-        if settings('enableExternalSubs.bool'):
-
-            if self.info['Method'] == 'DirectStream':
-                listitem.setSubtitles(subs)
-            
-            self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
-        
-        elif self.info['Method'] == 'DirectStream':
-            self.info['Item']['PlaybackInfo']['Subtitles'] = {}
-
-        self._set_subtitles_in_database(source, mapping)
 
     @classmethod
     def download_external_subs(cls, src, filename):
@@ -959,6 +900,62 @@ class PlayUtilsStrm(PlayUtils):
                 self.info['SubtitleStreamIndex'] = index
 
         return prefs
+
+    def set_external_subs(self, source, listitem):
+
+        ''' Try to download external subs locally so we can label them.
+            Since Emby returns all possible tracks together, sort them.
+            IsTextSubtitleStream if true, is available to download from server.
+        '''
+        if not source['MediaStreams']:
+            return
+
+        subs = []
+        mapping = {}
+        kodi = 0
+
+        for stream in source['MediaStreams']:
+
+            if stream['Type'] == 'Subtitle' and stream['IsExternal']:
+                index = stream['Index']
+
+                if 'DeliveryUrl' in stream and stream['DeliveryUrl'].lower().startswith('/videos'):
+                    url = "%s/emby%s" % (self.info['ServerAddress'], stream['DeliveryUrl'])
+                else:
+                    url = self.get_subtitles(source, stream, index)
+
+                if url is None:
+                    continue
+
+                LOG.info("[ subtitles/%s ] %s", index, url)
+
+                if self.info['Method'] == 'DirectStream':
+                    if 'Language' in stream:
+                        filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
+
+                        try:
+                            subs.append(self.download_external_subs(url, filename))
+                        except Exception as error:
+                            LOG.error(error)
+                            subs.append(url)
+                    else:
+                        subs.append(url)
+
+                mapping[kodi] = index
+                kodi += 1
+
+        if settings('enableExternalSubs.bool'):
+
+            if self.info['Method'] == 'DirectStream':
+                listitem.setSubtitles(subs)
+            
+            self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
+        
+        elif self.info['Method'] == 'DirectStream':
+            self.info['Item']['PlaybackInfo']['Subtitles'] = {}
+
+        if kodi_version() > 17:
+            self._set_subtitles_in_database(source, mapping)
 
     def _set_subtitles_in_database(self, source, mapping):
 
