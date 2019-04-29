@@ -661,7 +661,7 @@ class Actions(object):
         XML_PATH = (xbmcaddon.Addon('plugin.video.emby').getAddonInfo('path'), "default", "1080i")
 
         dialog = resume.ResumeDialog("script-emby-resume.xml", *XML_PATH)
-        dialog.set_resume_point(_(12022).replace("{0:s}", str(timedelta(seconds=seektime)).split(".")[0]))
+        dialog.set_resume_point(_(12022) % str(timedelta(seconds=seektime)).split(".")[0])
         dialog.doModal()
 
         if dialog.is_selected():
