@@ -332,6 +332,7 @@ class QueuePlay(threading.Thread):
                         elif playlist_audio:
 
                             window('emby.playlist.play.bool', True)
+                            window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
                             play.start_playback()
                         else:
@@ -369,11 +370,13 @@ class QueuePlay(threading.Thread):
                         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
 
             except Exception as error:
-
                 LOG.error(error)
-                play.info['KodiPlaylist'].clear()
-                xbmc.Player().stop()
-                self.server.queue.queue.clear()
+
+                if not xbmc.Player().isPlaying():
+
+                    play.info['KodiPlaylist'].clear()
+                    xbmc.Player().stop()
+                    self.server.queue.queue.clear()
 
                 if play_folder:
                     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
@@ -392,6 +395,7 @@ class QueuePlay(threading.Thread):
         window('emby.playlist.ready', clear=True)
         window('emby.playlist.start', clear=True)
         window('emby.playlist.audio', clear=True)
+        window('emby.play.cancel.bool', clear=True)
 
         self.server.threads.remove(self)
         self.server.pending = []

@@ -84,7 +84,7 @@ class Player(xbmc.Player):
             return
 
         self.stop_playback()
-        items = window('emby_play.json')
+        items = window('emby.play.json')
         item = None
         count = 0
 
@@ -93,11 +93,16 @@ class Player(xbmc.Player):
             if self.monitor.waitForAbort(2):
                 return
 
-            items = window('emby_play.json')
+            items = window('emby.play.json')
             count += 1
 
             if count == 20:
-                LOG.info("Could not find emby prop...")
+                LOG.info("<[ emby.play empty ]")
+
+                return
+
+            if window('emby.play.reset.bool'):
+                LOG.info("<[ reset play setup ]")
 
                 return
 
@@ -109,7 +114,7 @@ class Player(xbmc.Player):
         else:
             item = items.pop(0)
 
-        window('emby_play.json', items)
+        window('emby.play.json', items)
 
         self.set_item(current_file, item)
         data = {
@@ -363,16 +368,33 @@ class Player(xbmc.Player):
             except ZeroDivisionError: # Runtime is 0.
                 played = 0
 
-            if played > 2.0 and not self.up_next:
+            if not self.up_next and played > 2.0:
 
                 self.up_next = True
                 self.next_up()
 
             if (item['CurrentPosition'] - previous) < 30:
-
                 return
         else:
-            item['CurrentPosition'] = int(self.getTime())
+            current_time = int(self.getTime())
+
+            if not current_time:
+                count = 2
+
+                while count:
+                    file = self.get_playing_file()
+
+                    if file != current_file:
+                        LOG.info("<[ new play ]")
+
+                        return
+
+                    count -= 1
+
+                    if self.monitor.waitForAbort(1):
+                        return
+
+            item['CurrentPosition'] = current_time
 
         data = {
             'QueueableMediaTypes': "Video,Audio",

@@ -34,7 +34,7 @@ def set_properties(item, method, server_id=None):
     '''
     info = item.get('PlaybackInfo') or {}
 
-    current = window('emby_play.json') or []
+    current = window('emby.play.json') or []
     current.append({
         'Type': item['Type'],
         'Id': item['Id'],
@@ -54,7 +54,7 @@ def set_properties(item, method, server_id=None):
         'LiveStreamId': info.get('LiveStreamId')
     })
 
-    window('emby_play.json', current)
+    window('emby.play.json', current)
 
 class PlayUtils(object):
 
