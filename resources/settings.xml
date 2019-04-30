@@ -106,6 +106,16 @@
 		<setting label="33104" type="lsep"/>
 		<setting label="33093" type="folder" id="backupPath" option="writeable" />
 		<setting label="33092" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=backup)" visible="!eq(-1,)" option="close" />
+
+
+
+		<setting id="LastIncrementalSync" type="text" default="" visible="false" />
+		<setting id="MinimumSetup" type="text" default="" visible="false" />
+		<setting id="MusicRescan" type="bool" default="" visible="false" />
+		<setting id="SyncInstallRunDone" type="bool" default="" visible="false" />
+		<setting id="appliedPatch" type="text" default="" visible="false" />
+		<setting id="groupedSets" type="bool" default="" visible="false" />
+		<setting id="platformDetected" type="text" default="" visible="false" />
 	</category>
 
 </settings>
