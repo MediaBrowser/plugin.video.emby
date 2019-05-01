@@ -27,6 +27,8 @@ class App(object):
             self.stop_pkc = False
             # This will suspend the main thread also
             self.suspend = False
+            # Update Kodi widgets
+            self.update_widgets = False
             # Need to lock all methods and functions messing with Plex Companion subscribers
             self.lock_subscriber = RLock()
             # Need to lock everything messing with Kodi/PKC playqueues
