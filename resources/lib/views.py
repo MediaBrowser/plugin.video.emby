@@ -125,7 +125,13 @@ def verify_kodi_defaults():
 
         if xbmcvfs.exists(file):
 
-            xml = etree.parse(file).getroot()
+            try:
+                xml = etree.parse(file).getroot()
+            except Exception as error:
+                LOG.error(error) 
+
+                continue
+
             xml.set('order', str(17 + index))
             indent(xml)
             write_xml(etree.tostring(xml, 'UTF-8'), file)
