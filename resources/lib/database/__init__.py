@@ -30,6 +30,9 @@ def test_databases():
         with Database('music') as musicdb:
             pass
 
+    with Database('emby') as embydb:
+        emby_tables(embydb.cursor)
+
 class Database(object):
 
     ''' This should be called like a context.
@@ -61,12 +64,6 @@ class Database(object):
             self.conn.execute("PRAGMA journal_mode=WAL") # to avoid writing conflict with kodi
 
         LOG.debug("--->[ database: %s ] %s", self.db_file, id(self.conn))
-
-        if not window('emby_db_check.bool') and self.db_file == 'emby':
-
-            window('emby_db_check.bool', True)
-            emby_tables(self.cursor)
-            self.conn.commit()
 
         return self
 
