@@ -243,19 +243,23 @@ class API(object):
     def get_items_theme_video(self, parent_id):
         return  self.users("/Items", params={
                     'HasThemeVideo': True,
-                    'ParentId': parent_id
+                    'ParentId': parent_id,
+                    'Recursive': True
                 })
 
     def get_themes(self, item_id):
         return  self.items("/%s/ThemeMedia" % item_id, params={
                     'UserId': "{UserId}",
-                    'InheritFromParent': True
+                    'InheritFromParent': True,
+                    'EnableThemeSongs': True,
+                    'EnableThemeVideos': True
                 })
 
     def get_items_theme_song(self, parent_id):
         return  self.users("/Items", params={
                     'HasThemeSong': True,
-                    'ParentId': parent_id
+                    'ParentId': parent_id,
+                    'Recursive': True
                 })
 
     def get_plugins(self):
