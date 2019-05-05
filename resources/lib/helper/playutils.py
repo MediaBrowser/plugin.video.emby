@@ -136,22 +136,22 @@ class PlayUtils(object):
         ''' Do not allow source selection for.
         '''
         if self.info['Item']['MediaType'] != 'Video':
-            LOG.debug("MediaType is not a video.")
+            LOG.info("MediaType is not a video.")
 
             return False
 
-        elif self.info['Item']['Type'] == 'TvChannel':
-            LOG.debug("TvChannel detected.")
+        elif self.info['Item']['Type'] in ('TvChannel', 'Trailer'):
+            LOG.info("%s detected.", self.info['Item']['Type'])
 
             return False
 
         elif len(sources) == 1 and sources[0]['Type'] == 'Placeholder':
-            LOG.debug("Placeholder detected.")
+            LOG.info("Placeholder detected.")
 
             return False
 
         elif 'SourceType' in self.info['Item'] and self.info['Item']['SourceType'] != 'Library':
-            LOG.debug("SourceType not from library.")
+            LOG.info("SourceType not from library.")
 
             return False
 
