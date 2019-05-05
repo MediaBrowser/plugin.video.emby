@@ -79,6 +79,7 @@ class Service(xbmc.Monitor):
 
         self.check_version()
         verify_kodi_defaults()
+        test_databases()
 
         try:
             Views().get_nodes()
@@ -87,7 +88,6 @@ class Service(xbmc.Monitor):
 
         self.patch = patch.Patch()
         self.patch.check_update()
-        test_databases()
 
         window('emby.connected.bool', True)
         settings('groupedSets.bool', objects.utils.get_grouped_set())
@@ -134,8 +134,6 @@ class Service(xbmc.Monitor):
                 window('emby.restart.bool', True)
 
             if window('emby.restart.bool'):
-
-                window('emby.restart', clear=True)
                 dialog("notification", heading="{emby}", message=_(33193), icon="{emby}", time=1000, sound=False)
 
                 raise Exception('RestartService')
@@ -467,7 +465,7 @@ class Service(xbmc.Monitor):
         properties = [
             "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume", "emby_startup", 
             "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
-            "emby_pathverified", "emby_sync"
+            "emby_pathverified", "emby_sync", "emby.restart"
         ]
         for prop in properties:
             window(prop, clear=True)
