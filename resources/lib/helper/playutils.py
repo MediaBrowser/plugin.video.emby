@@ -442,6 +442,19 @@ class PlayUtils(object):
                     ]
                 }
             )
+            profile['CodecProfiles'].append(
+                {
+                    'Type': 'Video',
+                    'codec': 'h265',
+                    'Conditions': [
+                        {
+                            'Condition': "LessThanEqual",
+                            'Property': "VideoBitDepth",
+                            'Value': "8"
+                        }
+                    ]
+                }
+            )
 
         if self.info['ForceTranscode']:
             profile['DirectPlayProfiles'] = []
