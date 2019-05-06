@@ -334,7 +334,7 @@ class QueuePlay(threading.Thread):
                             LOG.info("[ start play ]")
                             objects.utils.disable_busy_dialog()
                             play.start_playback()
-                        elif playlist_audio:
+                        elif window('emby.playlist.audio.bool'):
 
                             window('emby.playlist.play.bool', True)
                             window('emby.play.reset.bool', True)
