@@ -309,11 +309,10 @@ class Player(xbmc.Player):
             'SubtitleStreamIndex': item['SubtitleStreamIndex']
         }
         item['Server']['api'].session_playing(data)
+        item['Track'] = True
 
         if self.monitor.waitForAbort(2):
             return
-
-        item['Track'] = True
 
         return item
 
