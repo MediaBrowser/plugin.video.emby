@@ -2,9 +2,20 @@
 
 #################################################################################################
 
+import logging
+import patch
+
+#################################################################################################
+
+LOG = logging.getLogger("EMBY."+__name__)
+PATCH = patch.Patch()
+
+patch.Patch().check_update()
+
+#################################################################################################
+
 import _strptime # Workaround for threads using datetime: _striptime is locked
 import json
-import logging
 import sys
 from datetime import datetime
 
@@ -16,18 +27,13 @@ import connect
 import client
 import library
 import setup
-import monitor
 import patch
 import requests
-import webservice
+from hooks import webservice
 from views import Views, verify_kodi_defaults
 from helper import _, window, settings, event, dialog, find, compare_version
 from emby import Emby
 from database import Database, emby_db, reset, test_databases
-
-#################################################################################################
-
-LOG = logging.getLogger("EMBY."+__name__)
 
 #################################################################################################
 
@@ -43,9 +49,7 @@ class Service(xbmc.Monitor):
     warn = True
     settings = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
 
-
     def __init__(self):
-
         window('emby_should_stop', clear=True)
 
         self.settings['addon_version'] = client.get_version()
@@ -79,15 +83,12 @@ class Service(xbmc.Monitor):
 
         self.check_version()
         verify_kodi_defaults()
+        test_databases()
 
         try:
             Views().get_nodes()
         except Exception as error:
             LOG.error(error)
-
-        self.patch = patch.Patch()
-        self.patch.check_update()
-        test_databases()
 
         window('emby.connected.bool', True)
         settings('groupedSets.bool', objects.utils.get_grouped_set())
@@ -101,12 +102,14 @@ class Service(xbmc.Monitor):
             if profile switch happens more than once, 
             Threads depending on abortRequest will not trigger.
         '''
-        self.monitor = monitor.Monitor()
-        player = self.monitor.player
+        self.monitor = objects.monitor.Monitor()
+        self.webservice = webservice.WebService()
+        self.webservice.start()
         self.connect = connect.Connect()
         self.start_default()
 
         self.settings['mode'] = settings('useDirectPaths')
+        player = self.monitor.player
 
         while self.running:
             if window('emby_online.bool'):
@@ -134,8 +137,6 @@ class Service(xbmc.Monitor):
                 window('emby.restart.bool', True)
 
             if window('emby.restart.bool'):
-
-                window('emby.restart', clear=True)
                 dialog("notification", heading="{emby}", message=_(33193), icon="{emby}", time=1000, sound=False)
 
                 raise Exception('RestartService')
@@ -234,11 +235,6 @@ class Service(xbmc.Monitor):
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
-
-                if self.webservice is None:
-
-                    self.webservice = webservice.WebService()
-                    self.webservice.start()
 
                 if self.library_thread is None:
 
@@ -408,7 +404,7 @@ class Service(xbmc.Monitor):
 
         elif method == 'CheckUpdate':
 
-            if not self.patch.check_update(True):
+            if not PATCH.check_update(True):
                 dialog("notification", heading="{emby}", message=_(21341), icon="{emby}", sound=False)
             else:
                 dialog("notification", heading="{emby}", message=_(33181), icon="{emby}", sound=False)
@@ -464,12 +460,10 @@ class Service(xbmc.Monitor):
         LOG.warn("---<[ EXITING ]")
         window('emby_should_stop.bool', True)
 
-        properties = [ # TODO: review
-            "emby_state", "emby_serverStatus", "emby_currUser",
-
-            "emby_play", "emby_online", "emby.connected", "emby.resume", "emby_startup", "emby.updatewidgets",
-            "emby.external", "emby.external_check", "emby_deviceId", "emby_db_check", "emby_pathverified",
-            "emby_sync"
+        properties = [
+            "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume", "emby_startup", 
+            "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
+            "emby_pathverified", "emby_sync", "emby.restart"
         ]
         for prop in properties:
             window(prop, clear=True)

@@ -14,7 +14,8 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-from helper import settings, window, playstrm, JSONRPC
+import objects
+from helper import settings, window, JSONRPC
 
 #################################################################################################
 
@@ -22,6 +23,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 PORT = 57578
 
 #################################################################################################
+
 
 class WebService(threading.Thread):
 
@@ -195,6 +197,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         ''' Return a dummy video and and queue real items.
         '''
+        if not window('emby_online.bool'):
+            raise Exception("ServerOffline")
+
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
@@ -327,11 +332,12 @@ class QueuePlay(threading.Thread):
                         if play_folder:
 
                             LOG.info("[ start play ]")
-                            xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                            objects.utils.disable_busy_dialog()
                             play.start_playback()
                         elif playlist_audio:
 
                             window('emby.playlist.play.bool', True)
+                            window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
                             play.start_playback()
                         else:
@@ -342,7 +348,7 @@ class QueuePlay(threading.Thread):
 
                     break
 
-                play = playstrm.PlayStrm(params, params.get('ServerId'))
+                play = objects.PlayStrm(params, params.get('ServerId'))
 
                 if start_position is None:
                     if window('emby.playlist.audio.bool'):
@@ -366,17 +372,19 @@ class QueuePlay(threading.Thread):
                     position = play.play(position)
 
                     if play_folder:
-                        xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+                        objects.utils.enable_busy_dialog()
 
             except Exception as error:
+                LOG.exception(error)
 
-                LOG.error(error)
-                play.info['KodiPlaylist'].clear()
-                xbmc.Player().stop()
-                self.server.queue.queue.clear()
+                if not xbmc.Player().isPlaying():
+
+                    play.info['KodiPlaylist'].clear()
+                    xbmc.Player().stop()
+                    self.server.queue.queue.clear()
 
                 if play_folder:
-                    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                    objects.utils.disable_busy_dialog()
                 else:
                     window('emby.playlist.aborted.bool', True)
 
@@ -392,6 +400,7 @@ class QueuePlay(threading.Thread):
         window('emby.playlist.ready', clear=True)
         window('emby.playlist.start', clear=True)
         window('emby.playlist.audio', clear=True)
+        window('emby.play.cancel.bool', clear=True)
 
         self.server.threads.remove(self)
         self.server.pending = []

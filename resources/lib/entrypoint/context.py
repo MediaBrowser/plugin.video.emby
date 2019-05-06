@@ -13,7 +13,6 @@ import database
 from dialogs import context
 from helper import _, settings, dialog
 from downloader import TheVoid
-from objects import Actions
 
 #################################################################################################
 
@@ -170,7 +169,13 @@ class Context(object):
 
     def play(self, transcode=False):
 
-        path = xbmc.getInfoLabel('ListItem.FileNameAndPath')
+        path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % self.item['Id']
+
+        if self.kodi_id:
+            path += "&KodiId=%s" % self.kodi_id
+
+        if self.media:
+            path += "&MediaType=%s" % self.media
 
         if transcode:
             path += "&transcode=true"

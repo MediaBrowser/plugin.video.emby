@@ -14,7 +14,7 @@ import xbmcgui
 from objects import Movies, TVShows, MusicVideos, Music
 from objects.kodi import Movies as kMovies, TVShows as kTVShows, MusicVideos as kMusicVideos, Music as kMusic, Kodi
 from database import Database, emby_db, get_sync, save_sync
-from full_sync import FullSync
+from sync import Sync
 from views import Views
 from downloader import GetItemWorker
 from helper import _, api, stop, settings, window, dialog, event, progress, LibraryException
@@ -328,7 +328,7 @@ class Library(threading.Thread):
             if get_sync()['Libraries']:
 
                 try:
-                    with FullSync(self, self.server) as sync:
+                    with self.info['Item'](self, self.server) as sync:
                         sync.libraries()
 
                     Views().get_nodes()
@@ -337,7 +337,7 @@ class Library(threading.Thread):
 
             elif not settings('SyncInstallRunDone.bool'):
                 
-                with FullSync(self, self.server) as sync:
+                with Sync(self, self.server) as sync:
                     sync.libraries()
 
                 Views().get_nodes()
@@ -519,7 +519,7 @@ class Library(threading.Thread):
     def run_library_task(self, task, notification=False):
 
         try:
-            with FullSync(self, server=self.server) as sync:
+            with Sync(self, server=self.server) as sync:
                 sync[task](notification)
         except Exception as error:
             LOG.exception(error)
@@ -531,7 +531,7 @@ class Library(threading.Thread):
     def add_library(self, library_id, update=False):
 
         try:
-            with FullSync(self, server=self.server) as sync:
+            with Sync(self, server=self.server) as sync:
                 sync.libraries(library_id, update)
         except Exception as error:
             LOG.exception(error)
@@ -545,7 +545,7 @@ class Library(threading.Thread):
     def remove_library(self, library_id):
 
         try:
-            with FullSync(self, self.server) as sync:
+            with Sync(self, self.server) as sync:
                 sync.remove_library(library_id)
 
             Views().remove_library(library_id)

@@ -3,22 +3,27 @@
 #################################################################################################
 
 import logging
+import sys
 
 import xbmc
 import xbmcvfs
 
 from helper import loghandler
-from emby import Emby
 
 #################################################################################################
 
-Emby.set_loghandler(loghandler.LogHandler, logging.DEBUG)
 loghandler.reset()
 loghandler.config()
 LOG = logging.getLogger('EMBY.entrypoint')
 
 #################################################################################################
 
-from default import Events
-from service import Service
+if 'service' in sys.argv:
+	from emby import Emby
+
+	Emby.set_loghandler(loghandler.LogHandler, logging.DEBUG)
+
+	from service import Service
+
 from context import Context
+from default import Events

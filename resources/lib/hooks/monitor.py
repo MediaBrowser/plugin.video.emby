@@ -13,11 +13,12 @@ import xbmc
 import xbmcgui
 
 import connect
+import database
 import downloader
-import player
+import objects
 from client import get_device_id
-from objects import Actions, PlaylistWorker, on_play, on_update, special_listener
-from helper import _, settings, window, dialog, event, api, JSONRPC
+#from objects import listener, player
+from helper import _, settings, window, dialog, event, playutils, api, JSONRPC
 from emby import Emby
 from webservice import WebService
 
@@ -36,8 +37,8 @@ class Monitor(xbmc.Monitor):
 
     def __init__(self):
 
-        self.player = player.Player(monitor=self)
         self.device_id = get_device_id()
+        self.player = objects.player.Player(monitor=self)
         self.listener = Listener(monitor=self)
         self.listener.start()
 
@@ -45,12 +46,6 @@ class Monitor(xbmc.Monitor):
         self.queue = Queue.Queue()
 
         xbmc.Monitor.__init__(self)
-
-    def onScanStarted(self, library):
-        LOG.info("-->[ kodi scan/%s ]", library)
-
-    def onScanFinished(self, library):
-        LOG.info("--<[ kodi scan/%s ]", library)
 
     def _get_server(self, method, data):
 
@@ -88,20 +83,43 @@ class Monitor(xbmc.Monitor):
             new_thread.start()
             self.workers_threads.append(new_thread)
 
+    def onScanStarted(self, library):
+
+        ''' Safe to replace in child class.
+        '''
+        LOG.info("-->[ kodi scan/%s ]", library)
+
+    def onScanFinished(self, library):
+
+        ''' Safe to replace in child class.
+        '''
+        LOG.info("--<[ kodi scan/%s ]", library)
+
+    def get_plugin_video_emby_method(self):
+        return ('GetItem', 'ReportProgressRequested', 'LoadServer', 'RandomItems', 'Recommended',
+                'GetServerAddress', 'GetPlaybackInfo', 'Browse', 'GetImages', 'GetToken',
+                'PlayPlaylist', 'Play', 'GetIntros', 'GetAdditionalParts', 'RefreshItem', 'Genres',
+                'FavoriteItem', 'DeleteItem', 'AddUser', 'GetSession', 'GetUsers', 'GetThemes',
+                'GetTheme', 'Playstate', 'GeneralCommand', 'GetTranscodeOptions', 'RecentlyAdded',
+                'BrowseSeason', 'LiveTV', 'GetLiveStream')
+
+    def get_xbmc_method(self):
+
+        ''' Safe to replace in child class.
+        '''
+        return ('Player.OnPlay', 'Playlist.OnAdd', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear')
+
     def onNotification(self, sender, method, data):
 
+        ''' Safe to replace in child class.
+        '''
         if sender.lower() not in ('plugin.video.emby', 'xbmc', 'upnextprovider.signal'):
             return
 
         if sender == 'plugin.video.emby':
             method = method.split('.')[1]
 
-            if method not in ('GetItem', 'ReportProgressRequested', 'LoadServer', 'RandomItems', 'Recommended',
-                              'GetServerAddress', 'GetPlaybackInfo', 'Browse', 'GetImages', 'GetToken',
-                              'PlayPlaylist', 'Play', 'GetIntros', 'GetAdditionalParts', 'RefreshItem', 'Genres',
-                              'FavoriteItem', 'DeleteItem', 'AddUser', 'GetSession', 'GetUsers', 'GetThemes',
-                              'GetTheme', 'Playstate', 'GeneralCommand', 'GetTranscodeOptions', 'RecentlyAdded',
-                              'BrowseSeason', 'LiveTV', 'GetLiveStream'):
+            if method not in self.get_plugin_video_emby_method():
                 return
 
             data = json.loads(data)[0]
@@ -116,7 +134,7 @@ class Monitor(xbmc.Monitor):
             data = json.loads(data)
             data = json.loads(binascii.unhexlify(data[0])) if data else data
         else:
-            if method not in ('Player.OnPlay', 'Playlist.OnAdd', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear'):
+            if method not in self._get_xbmc_method():
 
                 LOG.info("[ %s/%s ]", sender, method)
                 LOG.debug(data)
@@ -124,6 +142,10 @@ class Monitor(xbmc.Monitor):
                 return
 
             data = json.loads(data)
+
+        return self.on_notification(sender, method, data)
+
+    def on_notification(self, sender, method, data):
 
         LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data))
         data['MonitorMethod'] = method
@@ -136,8 +158,6 @@ class Monitor(xbmc.Monitor):
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
         self.add_worker()
-
-        return
 
     def void_responder(self, data, result):
 
@@ -319,25 +339,11 @@ class Monitor(xbmc.Monitor):
         server['api'].delete_item(data['Id'])        
 
     def PlayPlaylist(self, server, data, *args, **kwargs):
-
         server['api'].post_session(server['config/app.session'], "Playing", {
             'PlayCommand': "PlayNow",
             'ItemIds': data['Id'],
             'StartPositionTicks': 0
         })
-
-    def Play(self, server, data, *args, **kwargs):
-        items = server['api'].get_items(data['ItemIds'])
-
-        PlaylistWorker(data.get('ServerId'), items, data['PlayCommand'] == 'PlayNow',
-                       data.get('StartPositionTicks', 0), data.get('AudioStreamIndex'),
-                       data.get('SubtitleStreamIndex')).start()
-
-    def Player_OnAVChange(self, *args, **kwargs):
-        self.ReportProgressRequested(*args, **kwargs)
-
-    def ReportProgressRequested(self, server, data, *args, **kwargs):
-        self.player.report_playback(data.get('Report', True))
 
     def Playstate(self, server, data, *args, **kwargs):
 
@@ -441,21 +447,123 @@ class Monitor(xbmc.Monitor):
         server['api'].session_add_user(server['config/app.session'], data['Id'], data['Add'])
         self.additional_users(server)
 
+    def Player_OnAVChange(self, *args, **kwargs):
+
+        ''' Safe to replace in child class.
+        '''
+        self.ReportProgressRequested(*args, **kwargs)
+
+    def ReportProgressRequested(self, server, data, *args, **kwargs):
+
+        ''' Safe to replace in child class.
+        '''
+        self.player.report_playback(data.get('Report', True))
+
     def Player_OnPlay(self, server, data, *args, **kwargs):
-        on_play(data, server)
+        
+        ''' Safe to replace in child class.
+            Setup progress for emby playback.
+        '''
+        try:
+            kodi_id = None
+
+            if self.player.isPlayingVideo():
+
+                ''' Seems to misbehave when playback is not terminated prior to playing new content.
+                    The kodi id remains that of the previous title. Maybe onPlay happens before
+                    this information is updated. Added a failsafe further below.
+                '''
+                item = self.player.getVideoInfoTag()
+                kodi_id = item.getDbId()
+                media = item.getMediaType()
+
+            if kodi_id is None or int(kodi_id) == -1 or 'item' in data and 'id' in data['item'] and data['item']['id'] != kodi_id:
+
+                item = data['item']
+                kodi_id = item['id']
+                media = item['type']
+
+            LOG.info(" [ play ] kodi_id: %s media: %s", kodi_id, media)
+
+        except (KeyError, TypeError):
+            LOG.debug("Invalid playstate update")
+
+            return
+
+        if settings('useDirectPaths') == '1' or media == 'song':
+            item = database.get_item(kodi_id, media)
+
+            if item:
+
+                try:
+                    file = player.getPlayingFile()
+                except Exception as error:
+                    LOG.error(error)
+
+                    return
+
+                item = server['api'].get_item(item[0])
+                item['PlaybackInfo'] = {'Path': file}
+                playutils.set_properties(item, 'DirectStream' if settings('useDirectPaths') == '0' else 'DirectPlay')
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
+
+        ''' Safe to replace in child class.
+        '''
         pass
 
     def VideoLibrary_OnUpdate(self, server, data, *args, **kwargs):
-        on_update(data, server)
+
+        ''' Safe to replace in child class.
+            Only for manually marking as watched/unwatched
+        '''
+        reset_resume = False
+
+        try:
+            kodi_id = data['item']['id']
+            media = data['item']['type']
+            playcount = int(data.get('playcount', 0))
+            LOG.info(" [ update/%s ] kodi_id: %s media: %s", playcount, kodi_id, media)
+        except (KeyError, TypeError):
+
+            if 'id' in data and 'type' in data and window('emby.context.resetresume.bool'):
+
+                window('emby.context.resetresume', clear=True)
+                kodi_id = data['id']
+                media = data['type']
+                playcount = 0
+                reset_resume = True
+                LOG.info("reset position detected [ %s/%s ]", kodi_id, media)
+            else:
+                LOG.debug("Invalid playstate update")
+
+                return
+
+        item = database.get_item(kodi_id, media)
+
+        if item:
+
+            if reset_resume:
+                checksum = item[4]
+                server['api'].item_played(item[0], False)
+
+                if checksum:
+                    checksum = json.loads(checksum)
+                    if checksum['Played']:
+                        server['api'].item_played(item[0], True)
+            else:
+                if not window('emby.skip.%s.bool' % item[0]):
+                    server['api'].item_played(item[0], playcount)
+
+                window('emby.skip.%s' % item[0], clear=True)
 
     def Playlist_OnAdd(self, server, data, *args, **kwargs):
 
         ''' Detect widget playback. Widget for some reason, use audio playlists.
         '''
         if data['position'] == 0:
-            if self.playlistid == data['playlistid']:
+
+            if self.playlistid == data['playlistid'] and data['item']['type'] != 'unknown':
 
                 LOG.info("[ reset autoplay ]")
                 window('emby.autoplay', clear=True)
@@ -473,6 +581,7 @@ class Monitor(xbmc.Monitor):
             LOG.info("--[ playlist ready ]")
             window('emby.playlist.ready.bool', True)
             window('emby.playlist.start', clear=True)
+
 
 class MonitorWorker(threading.Thread):
 
@@ -499,12 +608,13 @@ class MonitorWorker(threading.Thread):
                 LOG.info("-->[ q:monitor/%s ]", data['MonitorMethod'])
                 func(server, data)
             except Exception as error:
-                LOG.error(error)
+                LOG.exception(error)
 
             self.queue.task_done()
 
             if window('emby_should_stop.bool'):
                 break
+
 
 class Listener(threading.Thread):
 
@@ -523,7 +633,7 @@ class Listener(threading.Thread):
         LOG.warn("--->[ listener ]")
 
         while not self.stop_thread:
-            special_listener()
+            objects.listener()
 
             if self.monitor.waitForAbort(0.5):
                 break

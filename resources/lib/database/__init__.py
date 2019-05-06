@@ -30,6 +30,9 @@ def test_databases():
         with Database('music') as musicdb:
             pass
 
+    with Database('emby') as embydb:
+        emby_tables(embydb.cursor)
+
 class Database(object):
 
     ''' This should be called like a context.
@@ -62,12 +65,6 @@ class Database(object):
 
         LOG.debug("--->[ database: %s ] %s", self.db_file, id(self.conn))
 
-        if not window('emby_db_check.bool') and self.db_file == 'emby':
-
-            window('emby_db_check.bool', True)
-            emby_tables(self.cursor)
-            self.conn.commit()
-
         return self
 
     def _get_database(self, path, silent=False):
@@ -97,9 +94,9 @@ class Database(object):
             Load video, music, texture databases from the log file. Will only run once per service thread.
             Running database version lines
         '''
-        from objects import obj
+        from objects import Objects
 
-        databases = obj.Objects().objects
+        databases = Objects().objects
 
         if file not in ('video', 'music', 'texture') or databases.get('database_set%s' % file):
             return self._get_database(databases[file], True)

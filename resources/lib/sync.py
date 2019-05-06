@@ -24,7 +24,7 @@ LOG = logging.getLogger("EMBY."+__name__)
 ##################################################################################################
 
 
-class FullSync(object):
+class Sync(object):
 
     ''' This should be called like a context.
         i.e. with FullSync('emby') as sync:
