@@ -309,6 +309,9 @@ class Service(xbmc.Monitor):
             if data.get('ServerId') or not window('emby_startup.bool'):
                 return
 
+            if data.get('UserId') != Emby()['auth/user-id']:
+                return
+
             LOG.info("[ UserDataChanged ] %s", data)
             self.library_thread.userdata(data['UserDataList'])
 
