@@ -17,8 +17,8 @@ import xbmcplugin
 import xbmcaddon
 
 import client
+import objects
 from database import reset, get_sync, Database, emby_db, get_credentials
-from objects import Objects, Actions
 from downloader import TheVoid
 from helper import _, event, settings, window, dialog, api, kodi_version, JSONRPC
 
@@ -67,8 +67,15 @@ class Events(object):
 
         elif mode == 'play':
 
-            item = TheVoid('GetItem', {'Id': params['id'], 'ServerId': server}).get()
-            Actions(server).play(item, params.get('dbid'), params.get('transcode') == 'true', playlist=params.get('playlist') == 'true')
+            try:
+                objects.PlayPlugin(params, server).play()
+            except Exception as error:
+                LOG.error(error)
+
+                if not xbmc.Player().IsPlaying():
+                    xbmc.Player().stop()
+
+                xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
         elif mode =='playstrm':
 
@@ -85,10 +92,17 @@ class Events(object):
 
             window('emby.playlist.aborted', clear=True)
 
-        elif mode == 'playsimple':
-            from helper import playsimple
+        elif mode == 'playsingle':
 
-            playsimple.PlaySimple(params, server).play()
+            try:
+                objects.PlaySingle(params, server).play()
+            except Exception as error:
+                LOG.error(error)
+
+                if not xbmc.Player().IsPlaying():
+                    xbmc.Player().stop()
+
+                xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
         elif mode == 'playlist':
             event('PlayPlaylist', {'Id': params['id'], 'ServerId': server})
@@ -351,7 +365,9 @@ def browse(media, view_id=None, folder=None, server_id=None):
 
     if listing:
 
-        actions = Actions(server_id)
+        server_address = TheVoid('GetServerAddress', {'ServerId': server_id}).get()
+
+        listitems = objects.ListItem(server_address)
         list_li = []
         listing = listing if type(listing) == list else listing.get('Items', [])
 
@@ -360,7 +376,7 @@ def browse(media, view_id=None, folder=None, server_id=None):
             li = xbmcgui.ListItem()
             li.setProperty('embyid', item['Id'])
             li.setProperty('embyserver', server_id)
-            actions.set_listitem(item, li)
+            li = listitems.set(item, li)
 
             if item.get('IsFolder'):
 
@@ -399,13 +415,10 @@ def browse(media, view_id=None, folder=None, server_id=None):
 
             else:
                 if item['Type'] not in ('Photo', 'PhotoAlbum'):
-                    params = {
-                        'id': item['Id'],
-                        'mode': "play",
-                        'server': server_id
-                    }
-                    path = "%s?%s" % ("plugin://plugin.video.emby/", urllib.urlencode(params))
+
+                    path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % item['Id']
                     li.setProperty('path', path)
+
                     context = [(_(13412), "RunPlugin(plugin://plugin.video.emby/?mode=playlist&id=%s&server=%s)" % (item['Id'], server_id))]
 
                     if item['UserData']['Played']:
@@ -525,7 +538,7 @@ def get_fanart(item_id, path, server_id=None):
         return
 
     LOG.info("[ extra fanart ] %s", item_id)
-    objects = Objects()
+    objects = objects.Objects()
     list_li = []
     directory = xbmc.translatePath("special://thumbnails/emby/%s/" % item_id).decode('utf-8')
     server = TheVoid('GetServerAddress', {'ServerId': server_id}).get()
@@ -951,7 +964,7 @@ def backup():
 
     copytree(addon_data, destination_data)
 
-    databases = Objects().objects
+    databases = objects.Objects().objects
 
     db = xbmc.translatePath(databases['emby']).decode('utf-8')
     xbmcvfs.copy(db, os.path.join(destination_databases, db.rsplit('\\', 1)[1]))

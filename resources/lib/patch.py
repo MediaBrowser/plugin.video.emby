@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import imp
 import logging
 import os
 import sys
@@ -25,12 +26,49 @@ OBJ = "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby.objects/
 #################################################################################################
 
 
+def test_versions():
+    return {
+                "17.*": {
+                    "desc": "Krypton objects",
+                    "objects": [
+                        "171076032-3.1.38-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/krypton.zip"
+                    ]
+                },
+                "beta-17.*": {
+                    "desc": "Krypton objects (beta)",
+                    "objects": [
+                        "171076040-4.0.15-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/171076040.zip",
+                        "171076038-4.0.13-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/171076038.zip"
+                    ]
+                },
+                "18.*": {
+                    "desc": "Leia objects",
+                    "objects": [
+                        "181167211-3.1.38-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/leia.zip"
+                    ]
+                },
+                "beta-18.*": {
+                    "desc": "Leia objects (beta)",
+                    "objects": [
+                        "181167226-4.0.17-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/develop.zip",
+                        "181167225-4.0.15-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/181167225.zip",
+                        "181167224-4.0.14-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/181167224.zip"
+                    ]
+                },
+                "DEV": {
+                    "desc": "Developer objects (unstable)",
+                    "objects": [
+                        "DEV-0.1-https://github.com/MediaBrowser/plugin.video.emby.objects/archive/develop.zip"
+                    ]
+                }
+            }
+
 class Patch(object):
 
     def __init__(self):
 
         self.addon_version = client.get_version()
-        LOG.info("---[ patch ]")
+        LOG.warn("--->[ patch ]")
 
     def get_objects(self, src, filename):
 
@@ -48,7 +86,7 @@ class Patch(object):
         if not xbmcvfs.exists(path) or filename.startswith('DEV'):
             delete_folder(CACHE)
 
-            LOG.info("From %s to %s", src, path.decode('utf-8'))
+            LOG.warn("From %s to %s", src, path.decode('utf-8'))
             try:
                 response = requests.get(src, stream=True, verify=True)
                 response.raise_for_status()
@@ -75,13 +113,13 @@ class Patch(object):
         ''' Check for objects build version and compare.
             This pulls a dict that contains all the information for the build needed.
         '''
-        LOG.info("--[ check updates/%s ]", objects.version)
+        LOG.warn("--[ check updates/%s ]", objects.version)
         
         if settings('devMode.bool'):
             kodi = "DEV"
         elif not self.addon_version.replace(".", "").isdigit():
 
-            LOG.info("[ objects/beta check ]")
+            LOG.warn("[ objects/beta check ]")
             kodi = "beta-%s" % xbmc.getInfoLabel('System.BuildVersion')
         else:
             kodi = xbmc.getInfoLabel('System.BuildVersion')
@@ -96,23 +134,23 @@ class Patch(object):
             label, min_version, zipfile = build['objects'][0].split('-', 2)
 
             if label == 'DEV' and forced:
-                LOG.info("--[ force/objects/%s ]", label)
+                LOG.warn("--[ force/objects/%s ]", label)
 
             elif compare_version(self.addon_version, min_version) < 0:
                 try:
                     build['objects'].pop(0)
                     versions[key]['objects'] = build['objects']
-                    LOG.info("<[ patch min not met: %s ]", min_version)
+                    LOG.warn("<[ patch min not met: %s ]", min_version)
 
                     return self.check_update(versions=versions)
 
                 except Exception as error:
-                    LOG.info("--<[ min add-on version not met: %s ]", min_version)
+                    LOG.warn("--<[ min add-on version not met: %s ]", min_version)
 
                     return False
 
             elif label == objects.version:
-                LOG.info("--<[ objects/%s ]", objects.version)
+                LOG.warn("--<[ objects/%s ]", objects.version)
 
                 return False
 
@@ -120,7 +158,7 @@ class Patch(object):
             self.reload_objects()
 
             dialog("notification", heading="{emby}", message=_(33156), icon="{emby}")
-            LOG.info("--<[ new objects/%s ]", objects.version)
+            LOG.warn("--<[ new objects/%s ]", objects.version)
 
             try:
                 if compare_version(self.addon_version, objects.embyversion) < 0:
@@ -138,28 +176,41 @@ class Patch(object):
         ''' Reload objects which depends on the patch module.
             This allows to see the changes in code without restarting the python interpreter.
         '''
-        reload_modules = ['objects.movies', 'objects.musicvideos', 'objects.tvshows',
-                          'objects.music', 'objects.obj', 'objects.actions', 'objects.kodi.kodi',
+        reload_modules = ['objects.core.movies', 'objects.core.musicvideos', 'objects.core.tvshows',
+                          'objects.core.music', 'objects.core.obj', 'objects.kodi.kodi',
                           'objects.kodi.movies', 'objects.kodi.musicvideos', 'objects.kodi.tvshows',
                           'objects.kodi.music', 'objects.kodi.artwork', 'objects.kodi.queries',
-                          'objects.kodi.queries_music', 'objects.kodi.queries_texture']
+                          'objects.kodi.queries_music', 'objects.kodi.queries_texture', 'objects.monitor',
+                          'objects.player', 'objects.core.listitem', 'objects.play.playlist', 'objects.play.strm',
+                          'objects.play.single', 'objects.play.plugin',
+
+                          'objects.movies', 'objects.musicvideos', 'objects.tvshows',
+                          'objects.music', 'objects.obj', 'objects.actions']
 
         for mod in reload_modules:
-            del sys.modules[mod]
+
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        import objects
+
+        imp.reload(objects)
+        imp.reload(objects.core)
+        imp.reload(objects.kodi)
+        imp.reload(objects.play)
+
+        objects.Objects().mapping()
+
+        from objects import monitor, player, utils
+
+        imp.reload(utils)
+        imp.reload(monitor)
+        imp.reload(player)
 
         import library
-        import monitor
-        import webservice
-        from helper import playstrm
+        from hooks import webservice
 
-        reload(objects.kodi)
-        reload(objects)
         reload(library)
-        reload(monitor)
-
         reload(webservice)
-        reload(playstrm)
-
-        objects.obj.Objects().mapping()
 
         LOG.warn("---[ objects reloaded ]")

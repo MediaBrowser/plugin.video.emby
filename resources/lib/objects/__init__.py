@@ -1,12 +1,5 @@
-version = "171076040"
+''' Basic objects package structure. 
+	Used to initially setup objects when it is the first time.
+'''
+version = "DEFAULT"
 
-from movies import Movies
-from musicvideos import MusicVideos
-from tvshows import TVShows
-from music import Music
-from obj import Objects
-from actions import Actions
-from actions import PlaylistWorker
-from actions import on_play, on_update, special_listener
-
-Objects().mapping()

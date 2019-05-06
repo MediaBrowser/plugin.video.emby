@@ -118,12 +118,12 @@ class PlayUtils(object):
 
             resp = dialog("select", _(33130), selection)
 
-            if resp > -1:
-                source = sources[resp]
-            else:
+            if resp < 0:
                 LOG.info("No media source selected.")
 
                 return False
+
+            source = sources[resp]
         else:
             source = sources[0]
 
@@ -714,55 +714,6 @@ class PlayUtilsStrm(PlayUtils):
 
         return sources
 
-    def select_source(self, sources, audio=None, subtitle=None):
-
-        if len(sources) > 1:
-            selection = []
-
-            for source in sources:
-                selection.append(source.get('Name', "na"))
-
-            resp = dialog("select", _(33130), selection)
-
-            if resp < 0:
-                LOG.info("No media source selected.")
-
-                return False
-
-            source = sources[resp]
-        else:
-            source = sources[0]
-
-        self.get(source, audio, subtitle)
-
-        return source
-
-    def is_selection(self, sources):
-
-        ''' Do not allow source selection for.
-        '''
-        if self.info['Item']['MediaType'] != 'Video':
-            LOG.info("MediaType is not a video.")
-
-            return False
-
-        elif self.info['Item']['Type'] == 'TvChannel':
-            LOG.info("TvChannel detected.")
-
-            return False
-
-        elif len(sources) == 1 and sources[0]['Type'] == 'Placeholder':
-            LOG.info("Placeholder detected.")
-
-            return False
-
-        elif 'SourceType' in self.info['Item'] and self.info['Item']['SourceType'] != 'Library':
-            LOG.info("SourceType not from library.")
-
-            return False
-
-        return True
-
     def get(self, source, audio=None, subtitle=None):
 
         ''' The server returns sources based on the MaxStreamingBitrate value and other filters.
@@ -967,10 +918,7 @@ class PlayUtilsStrm(PlayUtils):
         elif self.info['Method'] == 'DirectStream':
             self.info['Item']['PlaybackInfo']['Subtitles'] = {}
 
-        if kodi_version() > 17:
-            self._set_subtitles_in_database(source, mapping)
-
-    def _set_subtitles_in_database(self, source, mapping):
+    def set_subtitles_in_database(self, source, mapping):
 
         ''' Setup subtitles preferences in database for direct play and direct stream scenarios.
             Check path, file, get idFile to assign settings to.
