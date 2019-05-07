@@ -194,18 +194,7 @@ class Patch(object):
 
         import objects
 
-        imp.reload(objects.core)
-        imp.reload(objects.kodi)
-        imp.reload(objects.play)
         imp.reload(objects)
-
-        from objects import monitor, player, utils
-
-        imp.reload(utils)
-        imp.reload(monitor)
-        imp.reload(player)
-
-        objects.Objects().mapping()
 
         import library
         from hooks import webservice
