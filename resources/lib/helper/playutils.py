@@ -420,37 +420,38 @@ class PlayUtils(object):
         if settings('transcode_h265.bool'):
             profile['DirectPlayProfiles'][0]['VideoCodec'] = "h264,mpeg4,mpeg2video"
         else:
-            profile['TranscodingProfiles'].insert(0, {
-                "Container": "m3u8",
+        	profile['TranscodingProfiles'].insert(0, {
+        		"Container": "m3u8",
                 "Type": "Video",
                 "AudioCodec": "aac,mp3,ac3,opus,flac,vorbis",
                 "VideoCodec": "h264,h265,hevc,mpeg4,mpeg2video",
                 "MaxAudioChannels": "6"
-            })
+        	})
 
         if settings('transcodeHi10P.bool'):
             profile['CodecProfiles'].append(
                 {
-                    'Type': 'Video',
-                    'codec': 'h264',
-                    'Conditions': [
+                    "Type": "Video",
+                    "Codec": "h264",
+                    "Conditions": [
                         {
-                            'Condition': "LessThanEqual",
-                            'Property': "VideoBitDepth",
-                            'Value': "8"
+                            "Condition": "LessThanEqual",
+                            "Property": "VideoBitDepth",
+                            "Value": "8",
+                            "IsRequired": False
                         }
                     ]
                 }
             )
             profile['CodecProfiles'].append(
                 {
-                    'Type': 'Video',
-                    'codec': 'h265',
-                    'Conditions': [
+                    "Type": "Video",
+                    "Codec": "h265,hevc",
+                    "Conditions": [
                         {
-                            'Condition': "LessThanEqual",
-                            'Property': "VideoBitDepth",
-                            'Value': "8"
+                            "Condition": "EqualsAny",
+                            "Property": "VideoProfile",
+                            "Value": "main"
                         }
                     ]
                 }
@@ -463,7 +464,7 @@ class PlayUtils(object):
             profile['TranscodingProfiles'].insert(0, {
                 "Container": "ts",
                 "Type": "Video",
-                "AudioCodec": "mp3,aac",
+                "AudioCodec": "aac",
                 "VideoCodec": "h264",
                 "Context": "Streaming",
                 "Protocol": "hls",
