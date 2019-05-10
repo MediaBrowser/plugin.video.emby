@@ -344,22 +344,7 @@ class Library(threading.Thread):
 
                 return True
 
-            if settings('SyncInstallRunDone.bool'):
-                if settings('kodiCompanion.bool'):
-
-                    for plugin in self.server['api'].get_plugins():
-                        if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
-                            
-                            if not self.fast_sync():
-                                dialog("ok", heading="{emby}", line1=_(33128))
-
-                                raise Exception("Failed to retrieve latest updates")
-
-                            LOG.info("--<[ retrieve changes ]")
-
-                            break
-                    else:
-                        raise LibraryException('CompanionMissing')
+            self.get_fast_sync()
 
             return True
         except LibraryException as error:
@@ -386,6 +371,25 @@ class Library(threading.Thread):
             LOG.exception(error)
 
         return False
+
+    def get_fast_sync(self):
+
+        if settings('SyncInstallRunDone.bool'):
+            if settings('kodiCompanion.bool'):
+
+                for plugin in self.server['api'].get_plugins():
+                    if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
+                        
+                        if not self.fast_sync():
+                            dialog("ok", heading="{emby}", line1=_(33128))
+
+                            raise Exception("Failed to retrieve latest updates")
+
+                        LOG.info("--<[ retrieve changes ]")
+
+                        break
+                else:
+                    raise LibraryException('CompanionMissing')
 
     def fast_sync(self):
 
