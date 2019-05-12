@@ -72,7 +72,7 @@ class Events(object):
             except Exception as error:
                 LOG.error(error)
 
-                if not xbmc.Player().IsPlaying():
+                if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
@@ -99,7 +99,7 @@ class Events(object):
             except Exception as error:
                 LOG.error(error)
 
-                if not xbmc.Player().IsPlaying():
+                if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
