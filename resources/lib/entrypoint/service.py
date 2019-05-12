@@ -227,7 +227,8 @@ class Service(xbmc.Monitor):
 
                 if settings('connectMsg.bool'):
 
-                    users = [user for user in (settings('additionalUsers') or "").decode('utf-8').split(',') if user]
+                    users = Emby()['api'].get_device(window('emby_deviceId'))[0]['AdditionalUsers']
+                    users = [user['UserName'] for user in users]
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
