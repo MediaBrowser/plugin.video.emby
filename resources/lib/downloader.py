@@ -338,6 +338,7 @@ class TheVoid(object):
         self.data = data
 
     def get(self):
+        count = 300 #~approx 30sec
 
         while True:
 
@@ -350,10 +351,11 @@ class TheVoid(object):
 
                 return response
 
-            if window('emby_should_stop.bool'):
-                LOG.info("Abandon mission! A black hole just swallowed [ %s/%s ]", self.method, self.data['VoidName'])
+            if window('emby_should_stop.bool') or not count:
+                LOG.info("Too many aliens! ABORT MISSION [ %s/%s ]", self.method, self.data['VoidName'])
                 
                 return
 
             xbmc.sleep(100)
             LOG.info("--[ void/%s ]", self.data['VoidName'])
+            count -= 1
