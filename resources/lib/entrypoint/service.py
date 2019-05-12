@@ -166,11 +166,6 @@ class Service(xbmc.Monitor):
             self.library_thread.stop_client()
             self.library_thread = None
 
-        if self.webservice is not None:
-
-            self.webservice.stop()
-            self.webservice = None
-
     def check_version(self):
 
         ''' Check the database version to ensure we do not need to do a reset.
@@ -209,7 +204,8 @@ class Service(xbmc.Monitor):
                               'LibraryChanged', 'ServerOnline', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary',
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
-                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic'):
+                              'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic',
+                              'WebSocketRestarting'):
                 return
 
             data = json.loads(data)[0]
@@ -231,7 +227,8 @@ class Service(xbmc.Monitor):
 
                 if settings('connectMsg.bool'):
 
-                    users = [user for user in (settings('additionalUsers') or "").decode('utf-8').split(',') if user]
+                    users = Emby()['api'].get_device(window('emby_deviceId'))[0]['AdditionalUsers']
+                    users = [user['UserName'] for user in users]
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
@@ -322,6 +319,13 @@ class Service(xbmc.Monitor):
             LOG.info("[ LibraryChanged ] %s", data)
             self.library_thread.updated(data['ItemsUpdated'] + data['ItemsAdded'])
             self.library_thread.removed(data['ItemsRemoved'])
+
+        elif method == 'WebSocketRestarting':
+
+            try:
+                self.library_thread.get_fast_sync()
+            except Exception as error:
+                LOG.error(error)
 
         elif method == 'System.OnQuit':
             window('emby_should_stop.bool', True)

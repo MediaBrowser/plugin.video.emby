@@ -72,7 +72,7 @@ class Events(object):
             except Exception as error:
                 LOG.error(error)
 
-                if not xbmc.Player().IsPlaying():
+                if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
@@ -99,7 +99,7 @@ class Events(object):
             except Exception as error:
                 LOG.error(error)
 
-                if not xbmc.Player().IsPlaying():
+                if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
@@ -900,8 +900,8 @@ def get_themes():
 
     for item in items:
 
-        nfo_path = os.path.join(library, items[item])
-        nfo_file = os.path.join(nfo_path, "tvtunes.nfo")
+        nfo_path = os.path.join(library, items[item]).decode('utf-8')
+        nfo_file = os.path.join(nfo_path, "tvtunes.nfo").decode('utf-8')
 
         if not xbmcvfs.exists(nfo_path):
             xbmcvfs.mkdir(nfo_path)
@@ -913,9 +913,9 @@ def get_themes():
             putils = PlayUtils(theme, False, None, server, token)
 
             if play:
-                paths.append(putils.direct_play(theme['MediaSources'][0]).encode('utf-8'))
+                paths.append(putils.direct_play(theme['MediaSources'][0]))
             else:
-                paths.append(putils.direct_url(theme['MediaSources'][0]).encode('utf-8'))
+                paths.append(putils.direct_url(theme['MediaSources'][0]))
 
         tvtunes_nfo(nfo_file, paths)
 

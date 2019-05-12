@@ -116,6 +116,11 @@
 		<setting id="appliedPatch" type="text" default="" visible="false" />
 		<setting id="groupedSets" type="bool" default="" visible="false" />
 		<setting id="platformDetected" type="text" default="" visible="false" />
+		<setting id="webServerPort" type="text" default="" visible="false" />
+		<setting id="webServerPass" type="text" default="" visible="false" />
+		<setting id="webServerUser" type="text" default="" visible="false" />
+		<setting id="useWebServer" type="bool" default="true" visible="false" />
+		<setting id="SeasonSpecials" type="bool" default="" visible="false" />
 	</category>
 
 </settings>

@@ -11,7 +11,6 @@ import xbmc
 import xbmcvfs
 
 import api
-import xmls
 import database
 import client
 import collections
@@ -20,6 +19,7 @@ from . import _, settings, window, dialog, values, kodi_version
 from downloader import TheVoid
 from emby import Emby
 from objects.kodi import kodi, queries as QU
+from objects.utils import default_settings_default
 
 #################################################################################################
 
@@ -70,6 +70,7 @@ class PlayUtils(object):
             'ServerId': server_id,
             'ServerAddress': server,
             'ForceTranscode': force_transcode,
+            'ForceHttp': settings('playFromStream.bool'),
             'Token': token or TheVoid('GetToken', {'ServerId': server_id}).get()
         }
 
@@ -182,14 +183,13 @@ class PlayUtils(object):
     def get(self, source, audio=None, subtitle=None):
 
         ''' The server returns sources based on the MaxStreamingBitrate value and other filters.
-            prop: embyfilename for ?? I thought it was to pass the real path to subtitle add-ons but it's not working?
+            Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
+            Http stream
         '''
         self.info['MediaSourceId'] = source['Id']
 
         if source.get('RequiresClosing'):
 
-            ''' Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
-            '''
             self.info['LiveStreamId'] = source['LiveStreamId']
             source['SupportsDirectPlay'] = False
             source['Protocol'] = "LiveTV"
@@ -198,9 +198,11 @@ class PlayUtils(object):
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
-            source['Protocol'] = 'File'
+            source['Protocol'] = "File"
 
-        if source.get('Protocol') == 'Http' or source['SupportsDirectPlay'] and (self.is_strm(source) or not settings('playFromStream.bool') and self.is_file_exists(source)):
+
+        if (self.is_strm(source) or source['SupportsDirectPlay'] and 
+           (source['Protocol'] == 'Http' or not self.info['ForceHttp'] and self.is_file_exists(source))):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
@@ -217,9 +219,6 @@ class PlayUtils(object):
         self.info['AudioStreamIndex'] = self.info.get('AudioStreamIndex') or source.get('DefaultAudioStreamIndex')
         self.info['SubtitleStreamIndex'] = self.info.get('SubtitleStreamIndex') or source.get('DefaultSubtitleStreamIndex')
         self.info['Item']['PlaybackInfo'].update(self.info)
-
-        API = api.API(self.info['Item'], self.info['ServerAddress'])
-        window('embyfilename', value=API.get_file_path(source.get('Path')).encode('utf-8'))
 
     def live_stream(self, source):
 
@@ -420,37 +419,38 @@ class PlayUtils(object):
         if settings('transcode_h265.bool'):
             profile['DirectPlayProfiles'][0]['VideoCodec'] = "h264,mpeg4,mpeg2video"
         else:
-            profile['TranscodingProfiles'].insert(0, {
-                "Container": "m3u8",
+        	profile['TranscodingProfiles'].insert(0, {
+        		"Container": "m3u8",
                 "Type": "Video",
                 "AudioCodec": "aac,mp3,ac3,opus,flac,vorbis",
                 "VideoCodec": "h264,h265,hevc,mpeg4,mpeg2video",
                 "MaxAudioChannels": "6"
-            })
+        	})
 
         if settings('transcodeHi10P.bool'):
             profile['CodecProfiles'].append(
                 {
-                    'Type': 'Video',
-                    'codec': 'h264',
-                    'Conditions': [
+                    "Type": "Video",
+                    "Codec": "h264",
+                    "Conditions": [
                         {
-                            'Condition': "LessThanEqual",
-                            'Property': "VideoBitDepth",
-                            'Value': "8"
+                            "Condition": "LessThanEqual",
+                            "Property": "VideoBitDepth",
+                            "Value": "8",
+                            "IsRequired": False
                         }
                     ]
                 }
             )
             profile['CodecProfiles'].append(
                 {
-                    'Type': 'Video',
-                    'codec': 'h265',
-                    'Conditions': [
+                    "Type": "Video",
+                    "Codec": "h265,hevc",
+                    "Conditions": [
                         {
-                            'Condition': "LessThanEqual",
-                            'Property': "VideoBitDepth",
-                            'Value': "8"
+                            "Condition": "EqualsAny",
+                            "Property": "VideoProfile",
+                            "Value": "main"
                         }
                     ]
                 }
@@ -463,7 +463,7 @@ class PlayUtils(object):
             profile['TranscodingProfiles'].insert(0, {
                 "Container": "ts",
                 "Type": "Video",
-                "AudioCodec": "mp3,aac",
+                "AudioCodec": "aac",
                 "VideoCodec": "h264",
                 "Context": "Streaming",
                 "Protocol": "hls",
@@ -502,7 +502,7 @@ class PlayUtils(object):
 
                 LOG.info("[ subtitles/%s ] %s", index, url)
 
-                if settings('enableExternalSubs.bool'):
+                if self.info['Method'] == 'DirectStream':
                     if 'Language' in stream:
                         filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
 
@@ -519,10 +519,12 @@ class PlayUtils(object):
 
         if settings('enableExternalSubs.bool'):
 
-            listitem.setSubtitles(subs)
+            if self.info['Method'] == 'DirectStream':
+                listitem.setSubtitles(subs)
+            
             self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
-
-        else:
+        
+        elif self.info['Method'] == 'DirectStream':
             self.info['Item']['PlaybackInfo']['Subtitles'] = {}
 
     @classmethod
@@ -661,6 +663,65 @@ class PlayUtils(object):
 
         return url
 
+    def set_subtitles_in_database(self, source, mapping=None):
+
+        ''' Setup subtitles preferences in database for direct play and direct stream scenarios.
+            Check path, file, get idFile to assign settings to.
+
+            mapping originates from set_external_subs
+        '''
+        default = default_settings_default()
+        full_path = self.info['Path']
+        default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
+        default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
+
+        if default['SubtitlesOn']:
+            if mapping:
+
+                for sub in mapping:
+
+                    if mapping[sub] == self.info['SubtitleStreamIndex']:
+                        default['SubtitleStream'] = sub
+
+                        break
+                else:
+                    default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
+            else:
+                default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
+        else:
+            default['SubtitleStream'] = -1
+
+        if '\\' in full_path:
+            path, file = full_path.rsplit('\\', 1)
+            path += "\\"
+        else:
+            path, file = full_path.rsplit('/', 1)
+            path += "/"
+            file = file.split('?', 1)[0]
+
+        LOG.debug("Finding: %s / %s", path, file)
+        try:
+            with database.Database('video') as kodidb:
+
+                db = kodi.Kodi(kodidb.cursor)
+                default['PathId'] = db.add_path(path)
+                default['FileId'] = db.add_file(file, default['PathId'])
+                db.add_settings(*values(default, QU.update_settings_obj))
+                LOG.debug(default)
+
+        except Exception:
+            pass
+
+    def _get_streams(self, source):
+
+        streams_before_subs = 0
+
+        for stream in source['MediaStreams']:
+            if stream['Type'] in ('Video', 'Audio'):
+                streams_before_subs += 1
+            elif stream['Type'] == 'Subtitle':
+                return streams_before_subs
+
 
 class PlayUtilsStrm(PlayUtils):
 
@@ -713,45 +774,6 @@ class PlayUtilsStrm(PlayUtils):
             sources.extend([x for x in info['MediaSources']])
 
         return sources
-
-    def get(self, source, audio=None, subtitle=None):
-
-        ''' The server returns sources based on the MaxStreamingBitrate value and other filters.
-            Server returning live tv stream for direct play is hardcoded with 127.0.0.1.
-            Http stream
-        '''
-        self.info['MediaSourceId'] = source['Id']
-
-        if source.get('RequiresClosing'):
-
-            self.info['LiveStreamId'] = source['LiveStreamId']
-            source['SupportsDirectPlay'] = False
-            source['Protocol'] = "LiveTV"
-
-        if self.info['ForceTranscode']:
-
-            source['SupportsDirectPlay'] = False
-            source['SupportsDirectStream'] = False
-            source['Protocol'] = "File"
-
-
-        if self.is_strm(source) or not self.info['ForceHttp'] and source['SupportsDirectPlay'] and self.is_file_exists(source):
-
-            LOG.info("--[ direct play ]")
-            self.direct_play(source)
-
-        elif source['SupportsDirectStream']:
-
-            LOG.info("--[ direct stream ]")
-            self.direct_url(source)
-
-        else:
-            LOG.info("--[ transcode ]")
-            self.transcode(source, audio, subtitle)
-
-        self.info['AudioStreamIndex'] = self.info.get('AudioStreamIndex') or source.get('DefaultAudioStreamIndex')
-        self.info['SubtitleStreamIndex'] = self.info.get('SubtitleStreamIndex') or source.get('DefaultSubtitleStreamIndex')
-        self.info['Item']['PlaybackInfo'].update(self.info)
 
     def live_stream(self, source):
 
@@ -864,115 +886,3 @@ class PlayUtilsStrm(PlayUtils):
                 self.info['SubtitleStreamIndex'] = index
 
         return prefs
-
-    def set_external_subs(self, source, listitem):
-
-        ''' Try to download external subs locally so we can label them.
-            Since Emby returns all possible tracks together, sort them.
-            IsTextSubtitleStream if true, is available to download from server.
-        '''
-        if not source['MediaStreams']:
-            return
-
-        subs = []
-        mapping = {}
-        kodi = 0
-
-        for stream in source['MediaStreams']:
-
-            if stream['Type'] == 'Subtitle' and stream['IsExternal']:
-                index = stream['Index']
-
-                if 'DeliveryUrl' in stream and stream['DeliveryUrl'].lower().startswith('/videos'):
-                    url = "%s/emby%s" % (self.info['ServerAddress'], stream['DeliveryUrl'])
-                else:
-                    url = self.get_subtitles(source, stream, index)
-
-                if url is None:
-                    continue
-
-                LOG.info("[ subtitles/%s ] %s", index, url)
-
-                if self.info['Method'] == 'DirectStream':
-                    if 'Language' in stream:
-                        filename = "Stream.%s.%s" % (stream['Language'].encode('utf-8'), stream['Codec'].encode('utf-8'))
-
-                        try:
-                            subs.append(self.download_external_subs(url, filename))
-                        except Exception as error:
-                            LOG.error(error)
-                            subs.append(url)
-                    else:
-                        subs.append(url)
-
-                mapping[kodi] = index
-                kodi += 1
-
-        if settings('enableExternalSubs.bool'):
-
-            if self.info['Method'] == 'DirectStream':
-                listitem.setSubtitles(subs)
-            
-            self.info['Item']['PlaybackInfo']['Subtitles'] = mapping
-        
-        elif self.info['Method'] == 'DirectStream':
-            self.info['Item']['PlaybackInfo']['Subtitles'] = {}
-
-    def set_subtitles_in_database(self, source, mapping):
-
-        ''' Setup subtitles preferences in database for direct play and direct stream scenarios.
-            Check path, file, get idFile to assign settings to.
-
-            mapping originates from set_external_subs
-        '''
-        default = xmls.default_settings_default()
-        full_path = self.info['Path']
-        default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
-        default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
-
-        if default['SubtitlesOn']:
-            if mapping:
-
-                for sub in mapping:
-
-                    if mapping[sub] == self.info['SubtitleStreamIndex']:
-                        default['SubtitleStream'] = sub
-
-                        break
-                else:
-                    default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
-            else:
-                default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
-        else:
-            default['SubtitleStream'] = -1
-
-        if '\\' in full_path:
-            path, file = full_path.rsplit('\\', 1)
-            path += "\\"
-        else:
-            path, file = full_path.rsplit('/', 1)
-            path += "/"
-            file = file.split('?', 1)[0]
-
-        LOG.debug("Finding: %s / %s", path, file)
-        try:
-            with database.Database('video') as kodidb:
-
-                db = kodi.Kodi(kodidb.cursor)
-                default['PathId'] = db.add_path(path)
-                default['FileId'] = db.add_file(file, default['PathId'])
-                db.add_settings(*values(default, QU.update_settings_obj))
-                LOG.debug(default)
-
-        except Exception:
-            pass
-
-    def _get_streams(self, source):
-
-        streams_before_subs = 0
-
-        for stream in source['MediaStreams']:
-            if stream['Type'] in ('Video', 'Audio'):
-                streams_before_subs += 1
-            elif stream['Type'] == 'Subtitle':
-                return streams_before_subs

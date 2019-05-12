@@ -110,7 +110,6 @@ class Connect(object):
                     settings('serverName', client['config/auth.server-name'])
                     settings('server', client['config/auth.server'])
 
-                event('ServerOnline', {'ServerId': server_id})
                 event('LoadServer', {'ServerId': server_id})
 
                 return state['Credentials']

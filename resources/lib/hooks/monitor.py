@@ -17,7 +17,6 @@ import database
 import downloader
 import objects
 from client import get_device_id
-#from objects import listener, player
 from helper import _, settings, window, dialog, event, playutils, api, JSONRPC
 from emby import Emby
 from webservice import WebService
@@ -174,7 +173,7 @@ class Monitor(xbmc.Monitor):
         elif settings('addUsers'):
 
             users = settings('addUsers').split(',')
-            all_users = server['api'].get_users(hidden=True)
+            all_users = server['api'].get_users()
 
             for additional in users:
                 for user in all_users:
@@ -183,6 +182,7 @@ class Monitor(xbmc.Monitor):
                         server['api'].session_add_user(server['config/app.session'], user['Id'], True)
 
             self.additional_users(server)
+            event('ServerOnline', {'ServerId': server_id})
 
     def post_capabilities(self, server):
         LOG.info("--[ post capabilities/%s ]", server['auth/server-id'])
