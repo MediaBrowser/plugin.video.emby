@@ -182,7 +182,8 @@ class Monitor(xbmc.Monitor):
                         server['api'].session_add_user(server['config/app.session'], user['Id'], True)
 
             self.additional_users(server)
-            event('ServerOnline', {'ServerId': server_id})
+
+        event('ServerOnline', {'ServerId': server_id})
 
     def post_capabilities(self, server):
         LOG.info("--[ post capabilities/%s ]", server['auth/server-id'])
