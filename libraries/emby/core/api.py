@@ -114,7 +114,7 @@ class API(object):
 
     #################################################################################################
 
-    def get_users(self, disabled=False, hidden=False):
+    def get_users(self, disabled=False, hidden=None):
         return  self._get("Users", params={
                     'IsDisabled': disabled,
                     'IsHidden': hidden

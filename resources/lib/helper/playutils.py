@@ -14,12 +14,12 @@ import api
 import database
 import client
 import collections
+import objects
 import requests
 from . import _, settings, window, dialog, values, kodi_version
 from downloader import TheVoid
 from emby import Emby
 from objects.kodi import kodi, queries as QU
-from objects.utils import default_settings_default
 
 #################################################################################################
 
@@ -670,7 +670,7 @@ class PlayUtils(object):
 
             mapping originates from set_external_subs
         '''
-        default = default_settings_default()
+        default = objects.utils.default_settings_default()
         full_path = self.info['Path']
         default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
         default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
