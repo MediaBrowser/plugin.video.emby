@@ -671,6 +671,12 @@ class PlayUtils(object):
             mapping originates from set_external_subs
         '''
         default = objects.utils.default_settings_default()
+
+        if not default:
+            LOG.warn("Default values not found")
+
+            return
+
         full_path = self.info['Path']
         default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
         default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
