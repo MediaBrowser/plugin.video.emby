@@ -420,7 +420,7 @@ class Library(threading.Thread):
 
             total = len(updated) + len(userdata)
 
-            if total > int(settings('syncIndicator') or 99):
+            if total > int(settings('askSyncIndicator') or 9999):
 
                 ''' Inverse yes no, in case the dialog is forced closed by Kodi.
                 '''
