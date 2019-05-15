@@ -214,11 +214,33 @@ class Library(threading.Thread):
         '''
         total = 0
 
+        total += self._worker_update_size()
+        total += self._worker_userdata_size()
+        total += self._worker_removed_size()
+
+        return total
+
+    def _worker_update_size(self):
+
+        total = 0
+
         for queues in self.updated_output:
             total += self.updated_output[queues].qsize()
 
+        return total
+
+    def _worker_userdata_size(self):
+
+        total = 0
+
         for queues in self.userdata_output:
             total += self.userdata_output[queues].qsize()
+
+        return total
+
+    def _worker_removed_size(self):
+
+        total = 0
 
         for queues in self.removed_output:
             total += self.removed_output[queues].qsize()
@@ -250,6 +272,11 @@ class Library(threading.Thread):
 
         ''' Update items in the Kodi database.
         '''
+        if self._worker_removed_size():
+            LOG.info("[ DELAY UPDATES ]")
+
+            return
+
         for queues in self.updated_output:
             queue = self.updated_output[queues]
 
