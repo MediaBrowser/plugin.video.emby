@@ -365,17 +365,30 @@ class API(object):
     def delete_item(self, item_id):
         return  self.items("/%s" % item_id, "DELETE")
 
-    def is_valid_episode(self, show_id, item_id):
+    def is_valid_episode(self, parent_id, name, item_id):
 
         ''' Special function to detect if episodes are displayed in emby.
             Detect stacked versions, etc.
         '''
-        result = self.shows("/%s/Episodes" % show_id, {
-                    'UserId': "{UserId}",
-                    'AdjacentTo': item_id
-                })
+        try:
+            result = self.shows("/%s/Episodes" % parent_id, {
+                'UserId': "{UserId}",
+                'AdjacentTo': item_id
+            })
+            for item in result['Items']:
 
-        return [x for x in result['Items'] if x['Id'] == item_id]
+                if str(item['Id']) == item_id:
+                    return str(item['Id'])
+
+            for item in result['Items']:
+
+                if item['Name'] == name:
+                    return str(item['Id'])
+            else:
+                raise Exception("NotFound")
+
+        except Exception as error:
+            return item_id
 
     def is_valid_series(self, parent_id, name, item_id):
 
@@ -385,17 +398,20 @@ class API(object):
         '''
         try:
             result = self.search(name, "Series")['SearchHints']
-
             for item in result:
-                if item['Id'] == item_id:
-                    return item['Id']
 
+                if str(item['Id']) == item_id:
+                    return str(item['Id'])
+
+            parent_id = parent_id or self.get_library_by_item_id(item_id)['Id']
             for item in result:
-                try:
-                    if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
-                        return item['Id']
-                except Exception:
-                    pass
+
+                if item['Name'] == name:
+                    try:
+                        if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
+                            return str(item['Id'])
+                    except Exception:
+                        pass
             else:
                 raise Exception("NotFound")
 
@@ -409,21 +425,24 @@ class API(object):
         '''
         try:
             result = self.search(name, "Movie")['SearchHints']
-
             for item in result:
-                if item['Id'] == item_id:
-                    return item['Id']
 
+                if str(item['Id']) == item_id:
+                    return str(item['Id'])
+
+            parent_id = parent_id or self.get_library_by_item_id(item_id)['Id']
             for item in result:
-                try:
-                    if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
-                        return item['Id']
-                except Exception as error:
-                    pass
+
+                if item['Name'] == name:
+                    try:
+                        if self.get_library_by_item_id(item['Id'])['Id'] == parent_id:
+                            return str(item['Id'])
+                    except Exception as error:
+                        pass
             else:
                 raise Exception("NotFound")
 
-        except Exception:
+        except Exception as error:
             return item_id
 
     def get_library_by_item_id(self, item_id):
