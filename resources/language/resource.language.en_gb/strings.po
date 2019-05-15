@@ -322,10 +322,6 @@ msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
 msgstr ""
 
-msgctxt "#30537"
-msgid "Transcode Hi10P"
-msgstr ""
-
 msgctxt "#30539"
 msgid "Login"
 msgstr ""
@@ -1000,4 +996,12 @@ msgstr ""
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
+msgstr ""
+
+msgctxt "#33206"
+msgid "Transcode 10-bit"
+msgstr ""
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
 msgstr ""

@@ -21,7 +21,7 @@
 	<category label="30506"><!-- Sync Options -->
 		<setting label="33186" type="lsep" />
 		<setting label="33137" id="kodiCompanion" type="bool" default="true" />
-		<setting label="30507" id="syncIndicator" type="number" default="999" visible="eq(-1,true)" subsetting="true"/>
+		<setting label="33207" id="askSyncIndicator" type="number" default="9999" visible="eq(-1,true)" subsetting="true" />
 		<setting label="33185" id="syncDuringPlay" type="bool" default="true" />
 		<setting label="30536" id="dbSyncScreensaver" type="bool" default="true" />
 		<setting label="33111" type="lsep" />
@@ -47,7 +47,7 @@
 		<setting label="30002" id="playFromStream" type="bool" default="true" />
 		<setting label="33179" id="playFromTranscode" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
 	    <setting label="30522" id="transcode_h265" type="bool" default="false" visible="eq(-1,false)" />
-	    <setting label="30537" id="transcodeHi10P" type="bool" default="false" visible="eq(-2,false)" />
+	    <setting label="33206" id="transcodeHi10P" type="bool" default="false" visible="eq(-2,false)" />
 	    <setting label="33114" id="enableExternalSubs" type="bool" default="true" />
 	    <setting label="33159" id="skipDialogTranscode" type="enum" lvalues="305|33157|33158|13106" visible="true" default="3" />
 	    <setting label="33115" type="lsep" />

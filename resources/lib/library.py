@@ -214,11 +214,33 @@ class Library(threading.Thread):
         '''
         total = 0
 
+        total += self._worker_update_size()
+        total += self._worker_userdata_size()
+        total += self._worker_removed_size()
+
+        return total
+
+    def _worker_update_size(self):
+
+        total = 0
+
         for queues in self.updated_output:
             total += self.updated_output[queues].qsize()
 
+        return total
+
+    def _worker_userdata_size(self):
+
+        total = 0
+
         for queues in self.userdata_output:
             total += self.userdata_output[queues].qsize()
+
+        return total
+
+    def _worker_removed_size(self):
+
+        total = 0
 
         for queues in self.removed_output:
             total += self.removed_output[queues].qsize()
@@ -250,6 +272,11 @@ class Library(threading.Thread):
 
         ''' Update items in the Kodi database.
         '''
+        if self._worker_removed_size():
+            LOG.info("[ DELAY UPDATES ]")
+
+            return
+
         for queues in self.updated_output:
             queue = self.updated_output[queues]
 
@@ -420,7 +447,7 @@ class Library(threading.Thread):
 
             total = len(updated) + len(userdata)
 
-            if total > int(settings('syncIndicator') or 99):
+            if total > int(settings('askSyncIndicator') or 9999):
 
                 ''' Inverse yes no, in case the dialog is forced closed by Kodi.
                 '''
@@ -637,10 +664,7 @@ class UpdatedWorker(threading.Thread):
                         except Queue.Empty:
                             break
 
-                        if item['Type'] in ('Series', 'Season', 'Episode'):
-                            obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1], verify=True)[item['Type']]
-                        else:
-                            obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])[item['Type']]
+                        obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])[item['Type']]
 
                         try:
                             if obj(item) and self.notify:

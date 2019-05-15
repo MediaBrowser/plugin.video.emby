@@ -302,8 +302,8 @@ class Service(xbmc.Monitor):
             dialog("ok", heading="{emby}", line1=_(33151))
             self.connect.setup_manual_server()
 
-        elif method == 'UserDataChanged' and self.library_thread:
-            if data.get('ServerId') or not window('emby_startup.bool'):
+        elif method == 'UserDataChanged':
+            if not self.library_thread and data.get('ServerId') or not window('emby_startup.bool'):
                 return
 
             if data.get('UserId') != Emby()['auth/user-id']:

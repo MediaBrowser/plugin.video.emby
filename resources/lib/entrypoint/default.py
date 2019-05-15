@@ -70,7 +70,7 @@ class Events(object):
             try:
                 objects.PlayPlugin(params, server).play()
             except Exception as error:
-                LOG.error(error)
+                LOG.exception(error)
 
                 if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()
@@ -97,7 +97,7 @@ class Events(object):
             try:
                 objects.PlaySingle(params, server).play()
             except Exception as error:
-                LOG.error(error)
+                LOG.exception(error)
 
                 if not xbmc.Player().isPlaying():
                     xbmc.Player().stop()

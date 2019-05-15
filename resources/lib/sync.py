@@ -287,7 +287,7 @@ class Sync(object):
             with Database() as videodb:
                 with Database('emby') as embydb:
 
-                    obj = Movies(self.server, embydb, videodb, self.direct_path)
+                    obj = Movies(self.server, embydb, videodb, self.direct_path, True)
 
                     for items in server.get_items(library['Id'], "Movie", False, self.sync['RestorePoint'].get('params')):
                         

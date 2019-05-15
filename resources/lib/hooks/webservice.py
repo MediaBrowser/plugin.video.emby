@@ -170,7 +170,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Send headers and reponse
         '''
         try:
-            if 'extrafanart' in self.path or 'extrathumbs' in self.path:
+            if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path:
                 raise Exception("unsupported artwork request")
 
             if headers_only:
