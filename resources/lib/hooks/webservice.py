@@ -170,6 +170,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Send headers and reponse
         '''
         try:
+            if not window('emby_online.bool'):
+                raise Exception("ServerOffline")
+
             if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path:
                 raise Exception("unsupported artwork request")
 
@@ -197,9 +200,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         ''' Return a dummy video and and queue real items.
         '''
-        if not window('emby_online.bool'):
-            raise Exception("ServerOffline")
-
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()

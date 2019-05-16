@@ -14,7 +14,7 @@ import xbmcaddon
 import client
 import objects
 import requests
-from helper.utils import delete_folder
+from helper.utils import delete_folder, delete_pyo
 from helper import _, settings, dialog, find, compare_version, unzip
 
 #################################################################################################
@@ -181,8 +181,8 @@ class Patch(object):
                           'objects.kodi.movies', 'objects.kodi.musicvideos', 'objects.kodi.tvshows',
                           'objects.kodi.music', 'objects.kodi.artwork', 'objects.kodi.queries',
                           'objects.kodi.queries_music', 'objects.kodi.queries_texture', 'objects.monitor',
-                          'objects.player', 'objects.core.listitem', 'objects.play.playlist', 'objects.play.strm',
-                          'objects.play.single', 'objects.play.plugin',
+                          'objects.player', 'objects.utils', 'objects.core.listitem', 'objects.play.playlist', 
+                          'objects.play.strm', 'objects.play.single', 'objects.play.plugin',
 
                           'objects.movies', 'objects.musicvideos', 'objects.tvshows',
                           'objects.music', 'objects.obj', 'objects.actions']
@@ -193,6 +193,11 @@ class Patch(object):
                 del sys.modules[mod]
 
         import objects
+
+        try:
+            delete_pyo(CACHE)
+        except Exception:
+            pass
 
         imp.reload(objects)
 
