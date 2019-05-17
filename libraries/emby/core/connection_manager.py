@@ -603,6 +603,11 @@ class ConnectionManager(object):
         for found_server in found_servers:
             server = self._convert_endpoint_address_to_manual_address(found_server)
 
+            if not server and not found_server.get('Address'):
+                LOG.warn("Server %s has no address.", found_server)
+
+                continue
+
             info = {
                 'Id': found_server['Id'],
                 'LocalAddress': server or found_server['Address'],
