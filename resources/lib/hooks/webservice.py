@@ -170,9 +170,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''Send headers and reponse
         '''
         try:
-            if not window('emby_online.bool'):
-                raise Exception("ServerOffline")
-
             if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path:
                 raise Exception("unsupported artwork request")
 
@@ -188,6 +185,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.strm()
             else:
                 xbmc.log(str(self.path), xbmc.LOGWARNING)
+                raise Exception("UnknownRequest")
 
         except Exception as error:
             self.send_error(500, "[ webservice ] Exception occurred: %s" % error)
@@ -307,6 +305,9 @@ class QueuePlay(threading.Thread):
         xbmc.sleep(200) # Let Kodi catch up
 
         while True:
+
+            if not window('emby_online.bool'):
+                raise Exception("NotConnected")
 
             try:
                 try:
