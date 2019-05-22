@@ -172,6 +172,9 @@ class Views(object):
     def get_libraries(self):
 
         try:
+            if not self.server['connected']:
+                raise Exception("NotConnected")
+
             libraries = self.server['api'].get_media_folders()['Items']
             views = self.server['api'].get_views()['Items']
         except Exception as error:
@@ -698,7 +701,7 @@ class Views(object):
         try:
             self.media_folders = self.get_libraries()
         except IndexError as error:
-            LOG.error(error)
+            LOG.warn(error)
 
         for library in (libraries or []):
             view = {'Id': library[0], 'Name': library[1], 'Tag': library[1], 'Media': library[2]}
@@ -714,6 +717,7 @@ class Views(object):
 
                                 temp_view = dict(view)
                                 temp_view['Media'] = media
+                                temp_view['CleanName'] = view['Name']
                                 temp_view['Name'] = "%s (%s)" % (view['Name'], _(media))
                                 self.window_node(index, temp_view, *node)
                                 self.window_wnode(windex, temp_view, *node)
@@ -828,22 +832,26 @@ class Views(object):
 
         node_label = _(node_label) if type(node_label) == int else node_label
         node_label = node_label or view['Name']
+        clean_title = node_label or view.get('CleanName') or view['Name']
 
         if node == 'all':
 
             window_prop = "Emby.wnodes.%s" % index
             window('%s.index' % window_prop, path.replace('all.xml', "")) # dir
             window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
             window('%s.content' % window_prop, path)
 
         elif node == 'browse':
 
             window_prop = "Emby.wnodes.%s" % index
             window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
             window('%s.content' % window_prop, path)
         else:
             window_prop = "Emby.wnodes.%s.%s" % (index, node)
             window('%s.title' % window_prop, node_label.encode('utf-8'))
+            window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
             window('%s.content' % window_prop, path)
 
         window('%s.id' % window_prop, view['Id'])
@@ -904,10 +912,11 @@ class Views(object):
 
         ''' Clearing window prop setup for Views.
         '''
-        total = int(window((name or 'Emby.nodes') + '.total') or 0)
+        name = name or 'Emby.nodes'
+        total = int(window(name + '.total') or 0)
         props = [
 
-            "index","id","path","artwork","title","content","type"
+            "index","id","path","artwork","title","cleantitle","content","type"
             "inprogress.content","inprogress.title",
             "inprogress.content","inprogress.path",
             "nextepisodes.title","nextepisodes.content",
@@ -920,10 +929,10 @@ class Views(object):
         ]
         for i in range(total):
             for prop in props:
-                window('Emby.nodes.%s.%s' % (str(i), prop), clear=True)
+                window(name + '.%s.%s' % (str(i), prop), clear=True)
 
         for prop in props:
-            window('Emby.nodes.%s' % prop, clear=True)
+            window(name + '.%s' % prop, clear=True)
 
     def delete_playlist(self, path):
 
