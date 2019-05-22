@@ -442,6 +442,8 @@ class PlayUtils(object):
                     ]
                 }
             )
+
+        if settings('transcode10bit.bool'):
             profile['CodecProfiles'].append(
                 {
                     "Type": "Video",
