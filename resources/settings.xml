@@ -73,6 +73,7 @@
 
 	    <setting label="33107" type="lsep" />
 		<setting label="30528" id="addUsers" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=adduser&permanent=true)" option="close" />
+		<setting label="33210" id="addUsersHidden" type="bool" default="true" />
 
 		<setting type="sep"/>
 		<setting label="30534" type="lsep" />

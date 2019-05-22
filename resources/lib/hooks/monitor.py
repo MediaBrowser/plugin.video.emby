@@ -176,10 +176,12 @@ class Monitor(xbmc.Monitor):
             all_users = server['api'].get_users()
 
             for additional in users:
-                for user in all_users:
 
+                for user in all_users:
                     if user['Id'] == additional:
-                        server['api'].session_add_user(server['config/app.session'], user['Id'], True)
+
+                        hidden = None if settings('addUsersHidden.bool') else False
+                        server['api'].session_add_user(server['config/app.session'], user['Id'], hidden)
 
             self.additional_users(server)
 

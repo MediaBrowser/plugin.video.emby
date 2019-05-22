@@ -777,7 +777,8 @@ def add_user(permanent=False):
         return
 
     session = TheVoid('GetSession', {}).get()
-    users = TheVoid('GetUsers', {'IsDisabled': False, 'IsHidden': False}).get()
+    hidden = None if settings('addUsersHidden.bool') else False
+    users = TheVoid('GetUsers', {'IsDisabled': False, 'IsHidden': hidden}).get()
 
     for user in users:
 
