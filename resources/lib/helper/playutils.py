@@ -202,7 +202,7 @@ class PlayUtils(object):
 
 
         if (self.is_strm(source) or source['SupportsDirectPlay'] and 
-           (source['Protocol'] == 'Http' or not self.info['ForceHttp'] and self.is_file_exists(source))):
+           (source['Protocol'] == 'Http' and not settings('playUrlFromServer.bool') or not self.info['ForceHttp'] and self.is_file_exists(source))):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)

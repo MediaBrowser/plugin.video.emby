@@ -1009,3 +1009,7 @@ msgstr ""
 msgctxt "#33208"
 msgid "Transcode 10-bit (H265/HEVC)"
 msgstr ""
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr ""
