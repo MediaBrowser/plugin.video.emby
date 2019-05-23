@@ -51,7 +51,8 @@ def set_properties(item, method, server_id=None):
         'SubtitleStreamIndex': info.get('SubtitleStreamIndex'),
         'CurrentPosition': info.get('CurrentPosition'),
         'CurrentEpisode': info.get('CurrentEpisode'),
-        'LiveStreamId': info.get('LiveStreamId')
+        'LiveStreamId': info.get('LiveStreamId'),
+        'AutoSwitched': info.get('AutoSwitched')
     })
 
     window('emby.play.json', current)
@@ -673,9 +674,10 @@ class PlayUtils(object):
             mapping originates from set_external_subs
         '''
         default = objects.utils.default_settings_default()
-
         if not default:
+
             LOG.warn("Default values not found")
+            self.info['AutoSwitched'] = False
 
             return
 
@@ -717,8 +719,9 @@ class PlayUtils(object):
                 db.add_settings(*values(default, QU.update_settings_obj))
                 LOG.debug(default)
 
+            self.info['AutoSwitched'] = True
         except Exception:
-            pass
+            self.info['AutoSwitched'] = False
 
     def _get_streams(self, source):
 
