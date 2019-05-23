@@ -14,14 +14,17 @@ import xbmcaddon
 import client
 import objects
 import requests
-from helper.utils import delete_folder, delete_pyo
+from helper.utils import delete_folder, delete_pyo, copytree
 from helper import _, settings, dialog, find, compare_version, unzip
 
 #################################################################################################
 
-LOG = logging.getLogger("EMBY."+__name__)
-CACHE = xbmc.translatePath(os.path.join(xbmcaddon.Addon(id='plugin.video.emby').getAddonInfo('profile').decode('utf-8'), 'emby')).decode('utf-8')
+__addon__ = xbmcaddon.Addon(id='plugin.video.emby')
+__addon_path__ = __addon__.getAddonInfo('path').decode('utf-8')
+BASE = xbmc.translatePath(os.path.join(__addon_path__, 'resources', 'lib', 'objects')).decode('utf-8')
+CACHE = xbmc.translatePath(os.path.join(__addon__.getAddonInfo('profile').decode('utf-8'), 'emby')).decode('utf-8')
 OBJ = "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby.objects/master/objects.json"
+LOG = logging.getLogger("EMBY."+__name__)
 
 #################################################################################################
 
@@ -150,7 +153,9 @@ class Patch(object):
                     return False
 
             elif label == objects.version:
+
                 LOG.warn("--<[ objects/%s ]", objects.version)
+                settings('patchVersion', objects.version)
 
                 return False
 
@@ -159,6 +164,7 @@ class Patch(object):
 
             dialog("notification", heading="{emby}", message=_(33156), icon="{emby}")
             LOG.warn("--<[ new objects/%s ]", objects.version)
+            settings('patchVersion', objects.version)
 
             try:
                 if compare_version(self.addon_version, objects.embyversion) < 0:
@@ -204,7 +210,19 @@ class Patch(object):
         import library
         from hooks import webservice
 
-        reload(library)
-        reload(webservice)
+        imp.reload(library)
+        imp.reload(webservice)
 
         LOG.warn("---[ objects reloaded ]")
+
+    def reset(self):
+
+        ''' Delete /emby folder and retry download for patch.
+        '''
+        delete_folder(CACHE)
+        copytree(BASE, os.path.join(CACHE, 'objects'))
+
+        import objects
+        imp.reload(objects)
+
+        self.check_update()

@@ -1017,3 +1017,7 @@ msgstr ""
 msgctxt "#33210"
 msgid "Display hidden users in selection"
 msgstr ""
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr ""

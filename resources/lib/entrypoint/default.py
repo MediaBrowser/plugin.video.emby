@@ -148,6 +148,8 @@ class Events(object):
             add_user(params.get('permanent') == 'true')
         elif mode == 'checkupdate':
             event('CheckUpdate')
+        elif mode == 'resetupdate':
+            event('ResetUpdate')
         elif mode == 'updateserver':
             event('UpdateServer')
         elif mode == 'thememedia':
