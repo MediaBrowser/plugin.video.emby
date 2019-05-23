@@ -48,6 +48,8 @@
 		<setting label="33179" id="playFromTranscode" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
 	    <setting label="30522" id="transcode_h265" type="bool" default="false" visible="eq(-1,false)" />
 	    <setting label="33206" id="transcodeHi10P" type="bool" default="false" visible="eq(-2,false)" />
+	    <setting label="33208" id="transcode10bit" type="bool" default="false" visible="eq(-3,false)" />
+	    <setting label="33209" id="playUrlFromServer" type="bool" default="false" />
 	    <setting label="33114" id="enableExternalSubs" type="bool" default="true" />
 	    <setting label="33159" id="skipDialogTranscode" type="enum" lvalues="305|33157|33158|13106" visible="true" default="3" />
 	    <setting label="33115" type="lsep" />
@@ -71,6 +73,7 @@
 
 	    <setting label="33107" type="lsep" />
 		<setting label="30528" id="addUsers" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=adduser&permanent=true)" option="close" />
+		<setting label="33210" id="addUsersHidden" type="bool" default="true" />
 
 		<setting type="sep"/>
 		<setting label="30534" type="lsep" />
@@ -100,6 +103,7 @@
 		<setting label="33180" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=restartservice)" option="close" />
 		<setting label="30529" id="startupDelay" type="number" default="0" option="int" />
 		<setting label="33161" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=checkupdate)" option="close" />
+		<setting label="33211" id="patchVersion" type="action" action="RunPlugin(plugin://plugin.video.emby?mode=resetupdate)" option="close" />
 		<setting label="Developer mode" id="devMode" type="bool" default="false" />
 		
 		<setting type="sep" />

@@ -355,7 +355,7 @@ class Library(threading.Thread):
             if get_sync()['Libraries']:
 
                 try:
-                    with self.info['Item'](self, self.server) as sync:
+                    with Sync(self, self.server) as sync:
                         sync.libraries()
 
                     Views().get_nodes()

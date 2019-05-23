@@ -51,7 +51,8 @@ def set_properties(item, method, server_id=None):
         'SubtitleStreamIndex': info.get('SubtitleStreamIndex'),
         'CurrentPosition': info.get('CurrentPosition'),
         'CurrentEpisode': info.get('CurrentEpisode'),
-        'LiveStreamId': info.get('LiveStreamId')
+        'LiveStreamId': info.get('LiveStreamId'),
+        'AutoSwitched': info.get('AutoSwitched')
     })
 
     window('emby.play.json', current)
@@ -202,7 +203,7 @@ class PlayUtils(object):
 
 
         if (self.is_strm(source) or source['SupportsDirectPlay'] and 
-           (source['Protocol'] == 'Http' or not self.info['ForceHttp'] and self.is_file_exists(source))):
+           (source['Protocol'] == 'Http' and not settings('playUrlFromServer.bool') or not self.info['ForceHttp'] and self.is_file_exists(source))):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
@@ -442,6 +443,8 @@ class PlayUtils(object):
                     ]
                 }
             )
+
+        if settings('transcode10bit.bool'):
             profile['CodecProfiles'].append(
                 {
                     "Type": "Video",
@@ -671,9 +674,10 @@ class PlayUtils(object):
             mapping originates from set_external_subs
         '''
         default = objects.utils.default_settings_default()
-
         if not default:
+
             LOG.warn("Default values not found")
+            self.info['AutoSwitched'] = False
 
             return
 
@@ -715,8 +719,9 @@ class PlayUtils(object):
                 db.add_settings(*values(default, QU.update_settings_obj))
                 LOG.debug(default)
 
+            self.info['AutoSwitched'] = True
         except Exception:
-            pass
+            self.info['AutoSwitched'] = False
 
     def _get_streams(self, source):
 

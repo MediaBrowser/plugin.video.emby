@@ -10,7 +10,7 @@ import patch
 LOG = logging.getLogger("EMBY."+__name__)
 PATCH = patch.Patch()
 
-patch.Patch().check_update()
+PATCH.check_update()
 
 #################################################################################################
 
@@ -205,7 +205,7 @@ class Service(xbmc.Monitor):
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
                               'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic',
-                              'WebSocketRestarting'):
+                              'WebSocketRestarting', 'ResetUpdate'):
                 return
 
             data = json.loads(data)[0]
@@ -416,6 +416,9 @@ class Service(xbmc.Monitor):
             else:
                 dialog("notification", heading="{emby}", message=_(33181), icon="{emby}", sound=False)
                 window('emby.restart.bool', True)
+
+        elif method == 'ResetUpdate':
+            PATCH.reset()
 
         elif method == 'PatchMusic':
             self.library_thread.run_library_task(method, data.get('Notification', True))
