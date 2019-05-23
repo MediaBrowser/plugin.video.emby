@@ -71,6 +71,9 @@ def get_device_name():
         device_name = device_name.replace("\"", "_")
         device_name = device_name.replace("/", "_")
 
+    if not device_name:
+        device_name = "Kodi"
+
     return device_name
 
 def get_device_id(reset=False):
