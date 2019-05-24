@@ -211,7 +211,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif 'kodi/tvshows' in self.path:
             params['MediaType'] = "episode"
 
-        if settings('pluginSingle.bool'):
+        if settings('pluginSimple.bool'):
             path = "plugin://plugin.video.emby?mode=playsingle&id=%s" % params['Id']
 
             if params.get('server'):
