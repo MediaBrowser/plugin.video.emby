@@ -173,15 +173,14 @@ class Monitor(xbmc.Monitor):
         elif settings('addUsers'):
 
             users = settings('addUsers').split(',')
-            all_users = server['api'].get_users()
+            hidden = None if settings('addUsersHidden.bool') else False
+            all_users = server['api'].get_users(hidden=hidden)
 
             for additional in users:
-
                 for user in all_users:
-                    if user['Id'] == additional:
 
-                        hidden = None if settings('addUsersHidden.bool') else False
-                        server['api'].session_add_user(server['config/app.session'], user['Id'], hidden)
+                    if user['Id'] == additional:
+                        server['api'].session_add_user(server['config/app.session'], user['Id'])
 
             self.additional_users(server)
 
@@ -278,7 +277,7 @@ class Monitor(xbmc.Monitor):
 
     def GetUsers(self, server, data, *args, **kwargs):
 
-        users = server['api'].get_users(data.get('IsDisabled', True), data.get('IsHidden', True))
+        users = server['api'].get_users(data.get('IsDisabled', False), data.get('IsHidden'))
         self.void_responder(data, users)
 
     def GetTranscodeOptions(self, server, data, *args, **kwargs):
