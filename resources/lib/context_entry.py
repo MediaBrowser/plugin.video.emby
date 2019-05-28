@@ -60,11 +60,6 @@ class ContextMenu(object):
             self.api = API(xml[0])
         if self._select_menu():
             self._action_menu()
-            if self._selected_option in (OPTIONS['Delete'],
-                                         OPTIONS['Refresh']):
-                LOG.info("refreshing container")
-                app.APP.monitor.waitForAbort(0.5)
-                xbmc.executebuiltin('Container.Refresh')
 
     @staticmethod
     def _get_plex_id(kodi_id, kodi_type):
