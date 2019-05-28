@@ -486,6 +486,8 @@ class Service(object):
                 elif plex_command == 'EXIT-PKC':
                     LOG.info('Received command from another instance to quit')
                     app.APP.stop_pkc = True
+                else:
+                    raise RuntimeError('Unknown command: %s', plex_command)
                 if task:
                     backgroundthread.BGThreader.addTasksToFront([task])
                 continue
@@ -493,6 +495,15 @@ class Service(object):
             if app.APP.suspend:
                 xbmc.sleep(100)
                 continue
+
+            if app.APP.update_widgets and not xbmc.getCondVisibility('Window.IsMedia'):
+                '''
+                In case an update happened but we were not on the homescreen
+                and now we are, force widgets to update. Prevents cursor from
+                moving/jumping in libraries
+                '''
+                app.APP.update_widgets = False
+                xbmc.executebuiltin('UpdateLibrary(video)')
 
             # Before proceeding, need to make sure:
             # 1. Server is online
