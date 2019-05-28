@@ -1,3 +1,8 @@
+version 2.7.15 (beta only):
+- Hopefully fix Kodi crashing on playback startup
+- Refresh widgets only on homescreen to prevent cursor from jumping within libraries
+- Don't refresh container when user chose to delete or refresh an item from the context menu 
+
 version 2.7.14:
 - Correctly clear window variables e.g. on user switch
 - Reload skin on resetting PKC video nodes
