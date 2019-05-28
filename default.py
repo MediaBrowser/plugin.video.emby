@@ -167,7 +167,7 @@ class Main():
                          time=3000)
             xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
         elif result is True:
-            pass
+            xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
         else:
             # Received a xbmcgui.ListItem()
             xbmcplugin.setResolvedUrl(HANDLE, True, result)
