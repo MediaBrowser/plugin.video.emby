@@ -5,8 +5,8 @@ from .. import variables as v
 
 
 class Movies(object):
-    def add_movie(self, plex_id, checksum, section_id, section_uuid, kodi_id,
-                  kodi_fileid, kodi_pathid, last_sync):
+    def add_movie(self, plex_id, checksum, section_id, kodi_id, kodi_fileid,
+                  kodi_pathid, last_sync):
         """
         Appends or replaces an entry into the plex table for movies
         """
@@ -15,20 +15,18 @@ class Movies(object):
                 plex_id,
                 checksum,
                 section_id,
-                section_uuid,
                 kodi_id,
                 kodi_fileid,
                 kodi_pathid,
                 fanart_synced,
                 last_sync)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             '''
         self.cursor.execute(
             query,
             (plex_id,
              checksum,
              section_id,
-             section_uuid,
              kodi_id,
              kodi_fileid,
              kodi_pathid,
@@ -41,7 +39,6 @@ class Movies(object):
             plex_id INTEGER PRIMARY KEY ASC,
             checksum INTEGER UNIQUE,
             section_id INTEGER,
-            section_uuid TEXT,
             kodi_id INTEGER,
             kodi_fileid INTEGER,
             kodi_pathid INTEGER,
@@ -64,10 +61,9 @@ class Movies(object):
             'plex_id': entry[0],
             'checksum': entry[1],
             'section_id': entry[2],
-            'section_uuid': entry[3],
-            'kodi_id': entry[4],
-            'kodi_fileid': entry[5],
-            'kodi_pathid': entry[6],
-            'fanart_synced': entry[7],
-            'last_sync': entry[8]
+            'kodi_id': entry[3],
+            'kodi_fileid': entry[4],
+            'kodi_pathid': entry[5],
+            'fanart_synced': entry[6],
+            'last_sync': entry[7]
         }

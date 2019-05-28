@@ -143,7 +143,8 @@ class Show(TvShowMixin, ItemBase):
     """
     For Plex library-type TV shows
     """
-    def add_update(self, xml, section, children=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process a single show
         """
@@ -273,20 +274,20 @@ class Show(TvShowMixin, ItemBase):
         # Process studios
         self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_SHOW, studios)
         # Process tags: view, PMS collection tags
-        tags = [section.name]
+        tags = [section_name]
         tags.extend([i for _, i in api.collection_list()])
         self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
         self.plexdb.add_show(plex_id=plex_id,
                              checksum=api.checksum(),
-                             section_id=section.id,
-                             section_uuid=section.uuid,
+                             section_id=section_id,
                              kodi_id=kodi_id,
                              kodi_pathid=kodi_pathid,
                              last_sync=self.last_sync)
 
 
 class Season(TvShowMixin, ItemBase):
-    def add_update(self, xml, section, children=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process a single season of a certain tv show
         """
@@ -314,7 +315,8 @@ class Season(TvShowMixin, ItemBase):
             Show(self.last_sync,
                  plexdb=self.plexdb,
                  kodidb=self.kodidb).add_update(show_xml[0],
-                                                section=section)
+                                                section_name,
+                                                section_id)
             show = self.plexdb.show(show_id)
             if not show:
                 LOG.error('Still could not find parent tv show %s', show_id)
@@ -344,8 +346,7 @@ class Season(TvShowMixin, ItemBase):
                                         v.KODI_TYPE_SEASON)
         self.plexdb.add_season(plex_id=plex_id,
                                checksum=api.checksum(),
-                               section_id=section.id,
-                               section_uuid=section.uuid,
+                               section_id=section_id,
                                show_id=show_id,
                                parent_id=parent_id,
                                kodi_id=kodi_id,
@@ -353,7 +354,8 @@ class Season(TvShowMixin, ItemBase):
 
 
 class Episode(TvShowMixin, ItemBase):
-    def add_update(self, xml, section, children=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process single episode
         """
@@ -400,7 +402,8 @@ class Episode(TvShowMixin, ItemBase):
             Show(self.last_sync,
                  plexdb=self.plexdb,
                  kodidb=self.kodidb).add_update(show_xml[0],
-                                                section=section)
+                                                section_name,
+                                                section_id)
             show = self.plexdb.show(show_id)
             if not show:
                 LOG.error('Still could not find grandparent tv show %s', show_id)
@@ -420,7 +423,8 @@ class Episode(TvShowMixin, ItemBase):
             Season(self.last_sync,
                    plexdb=self.plexdb,
                    kodidb=self.kodidb).add_update(season_xml[0],
-                                                  section=section)
+                                                  section_name,
+                                                  section_id)
             season = self.plexdb.season(season_id)
             if not season:
                 LOG.error('Still could not find parent season %s', season_id)
@@ -539,8 +543,7 @@ class Episode(TvShowMixin, ItemBase):
                                        userdata['LastPlayedDate'])
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
-                                    section_id=section.id,
-                                    section_uuid=section.uuid,
+                                    section_id=section_id,
                                     show_id=show_id,
                                     grandparent_id=grandparent_id,
                                     season_id=season_id,
@@ -616,8 +619,7 @@ class Episode(TvShowMixin, ItemBase):
                                        userdata['LastPlayedDate'])
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
-                                    section_id=section.id,
-                                    section_uuid=section.uuid,
+                                    section_id=section_id,
                                     show_id=show_id,
                                     grandparent_id=grandparent_id,
                                     season_id=season_id,

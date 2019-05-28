@@ -25,16 +25,18 @@ UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
 
 
-class InitNewSection(sections.Section):
+class InitNewSection(object):
     """
     Throw this into the queue used for ProcessMetadata to tell it which
     Plex library section we're looking at
     """
-    def __init__(self, total_number_of_items, section):
-        super(InitNewSection, self).__init__()
-        # Copy all section attributes to this instance
-        self.__dict__.update(section.__dict__)
+    def __init__(self, context, total_number_of_items, section_name,
+                 section_id, plex_type):
+        self.context = context
         self.total = total_number_of_items
+        self.name = section_name
+        self.id = section_id
+        self.plex_type = plex_type
 
 
 class FullSync(common.fullsync_mixin):
@@ -138,7 +140,8 @@ class FullSync(common.fullsync_mixin):
                     self.queue.task_done()
                     if isinstance(item, dict):
                         context.add_update(item['xml'][0],
-                                           section=section,
+                                           section_name=section.name,
+                                           section_id=section.id,
                                            children=item['children'])
                         self.title = item['xml'][0].get('title')
                         self.processed += 1
@@ -165,7 +168,12 @@ class FullSync(common.fullsync_mixin):
             # Sync new, updated and deleted items
             iterator = section.iterator
             # Tell the processing thread about this new section
-            queue_info = InitNewSection(iterator.total, section)
+            queue_info = InitNewSection(section.context,
+                                        iterator.total,
+                                        iterator.get('librarySectionTitle',
+                                                     iterator.get('title1')),
+                                        section.section_id,
+                                        section.plex_type)
             self.queue.put(queue_info)
             last = True
             # To keep track of the item-number in order to kill while loops
@@ -203,7 +211,11 @@ class FullSync(common.fullsync_mixin):
             # Sync new, updated and deleted items
             iterator = section.iterator
             # Tell the processing thread about this new section
-            queue_info = InitNewSection(iterator.total, section)
+            queue_info = InitNewSection(section.context,
+                                        iterator.total,
+                                        section.name,
+                                        section.section_id,
+                                        section.plex_type)
             self.queue.put(queue_info)
             self.total = iterator.total
             self.section_name = section.name
@@ -221,7 +233,8 @@ class FullSync(common.fullsync_mixin):
                         if not itemtype.update_userdata(xml_item, section.plex_type):
                             # Somehow did not sync this item yet
                             itemtype.add_update(xml_item,
-                                                section=section)
+                                                section_name=section.name,
+                                                section_id=section.section_id)
                         itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
                                                          section.plex_type,
                                                          self.current_sync)
@@ -261,7 +274,7 @@ class FullSync(common.fullsync_mixin):
                         updated_at = section.last_sync - UPDATED_AT_SAFETY \
                             if section.last_sync else None
                     try:
-                        element.iterator = PF.SectionItems(section.id,
+                        element.iterator = PF.SectionItems(section.section_id,
                                                            plex_type=element.plex_type,
                                                            updated_at=updated_at,
                                                            last_viewed_at=None)
@@ -318,7 +331,7 @@ class FullSync(common.fullsync_mixin):
                 # some items from the PMS
                 with PlexDB() as plexdb:
                     # Set the new time mark for the next delta sync
-                    plexdb.update_section_last_sync(section.id,
+                    plexdb.update_section_last_sync(section.section_id,
                                                     self.current_sync)
         common.update_kodi_library(video=True, music=True)
         # In order to not delete all your songs again
