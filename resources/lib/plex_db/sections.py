@@ -15,9 +15,9 @@ class Sections(object):
         """
         For section_id, returns the dict
             section_id INTEGER PRIMARY KEY,
-            uuid TEXT,
             section_name TEXT,
             plex_type TEXT,
+            kodi_tagid INTEGER,
             sync_to_kodi BOOL,
             last_sync INTEGER
         """
@@ -31,9 +31,9 @@ class Sections(object):
             return
         return {
             'section_id': entry[0],
-            'uuid': entry[1],
-            'section_name': entry[2],
-            'plex_type': entry[3],
+            'section_name': entry[1],
+            'plex_type': entry[2],
+            'kodi_tagid': entry[3],
             'sync_to_kodi': entry[4] == 1,
             'last_sync': entry[5]
         }
@@ -49,7 +49,7 @@ class Sections(object):
         except TypeError:
             pass
 
-    def add_section(self, section_id, uuid, section_name, plex_type,
+    def add_section(self, section_id, section_name, plex_type, kodi_tagid,
                     sync_to_kodi, last_sync):
         """
         Appends a Plex section to the Plex sections table
@@ -58,18 +58,18 @@ class Sections(object):
         query = '''
             INSERT OR REPLACE INTO sections(
                 section_id,
-                uuid,
                 section_name,
                 plex_type,
+                kodi_tagid,
                 sync_to_kodi,
                 last_sync)
             VALUES (?, ?, ?, ?, ?, ?)
             '''
         self.cursor.execute(query,
                             (section_id,
-                             uuid,
                              section_name,
                              plex_type,
+                             kodi_tagid,
                              sync_to_kodi,
                              last_sync))
 

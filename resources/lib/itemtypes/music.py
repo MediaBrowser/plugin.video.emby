@@ -154,7 +154,8 @@ class Artist(MusicMixin, ItemBase):
     """
     For Plex library-type artists
     """
-    def add_update(self, xml, section, children=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None):
         """
         Process a single artist
         """
@@ -209,14 +210,14 @@ class Artist(MusicMixin, ItemBase):
                                        v.KODI_TYPE_ARTIST)
         self.plexdb.add_artist(plex_id,
                                api.checksum(),
-                               section.id,
-                               section.uuid,
+                               section_id,
                                kodi_id,
                                self.last_sync)
 
 
 class Album(MusicMixin, ItemBase):
-    def add_update(self, xml, section, children=None, scan_children=True):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None, scan_children=True):
         """
         Process a single album
         scan_children: set to False if you don't want to add children, e.g. to
@@ -249,7 +250,8 @@ class Album(MusicMixin, ItemBase):
             Artist(self.last_sync,
                    plexdb=self.plexdb,
                    kodidb=self.kodidb).add_update(artist_xml[0],
-                                                  section=section)
+                                                  section_name,
+                                                  section_id)
             artist = self.plexdb.artist(parent_id)
             if not artist:
                 LOG.error('Adding artist %s failed for %s',
@@ -361,8 +363,7 @@ class Album(MusicMixin, ItemBase):
                                        v.KODI_TYPE_ALBUM)
         self.plexdb.add_album(plex_id,
                               api.checksum(),
-                              section.id,
-                              section.uuid,
+                              section_id,
                               artist_id,
                               parent_id,
                               kodi_id,
@@ -374,7 +375,8 @@ class Album(MusicMixin, ItemBase):
                            kodidb=self.kodidb)
             for song in children:
                 context.add_update(song,
-                                   section=section,
+                                   section_name=section_name,
+                                   section_id=section_id,
                                    album_xml=xml,
                                    genres=genres,
                                    genre=genre,
@@ -382,8 +384,9 @@ class Album(MusicMixin, ItemBase):
 
 
 class Song(MusicMixin, ItemBase):
-    def add_update(self, xml, section, children=None, album_xml=None,
-                   genres=None, genre=None, compilation=None):
+    def add_update(self, xml, section_name=None, section_id=None,
+                   children=None, album_xml=None, genres=None, genre=None,
+                   compilation=None):
         """
         Process single song/track
         """
@@ -418,7 +421,8 @@ class Song(MusicMixin, ItemBase):
             Artist(self.last_sync,
                    plexdb=self.plexdb,
                    kodidb=self.kodidb).add_update(artist_xml[0],
-                                                  section=section)
+                                                  section_name,
+                                                  section_id)
             artist = self.plexdb.artist(artist_id)
             if not artist:
                 LOG.error('Still could not find grandparent artist %s for %s',
@@ -473,7 +477,8 @@ class Song(MusicMixin, ItemBase):
                 Album(self.last_sync,
                       plexdb=self.plexdb,
                       kodidb=self.kodidb).add_update(album_xml[0],
-                                                     section=section,
+                                                     section_name,
+                                                     section_id,
                                                      children=[xml],
                                                      scan_children=False)
                 album = self.plexdb.album(album_id)
@@ -654,8 +659,7 @@ class Song(MusicMixin, ItemBase):
                                            v.KODI_TYPE_ALBUM)
         self.plexdb.add_song(plex_id,
                              api.checksum(),
-                             section.id,
-                             section.uuid,
+                             section_id,
                              artist_id,
                              grandparent_id,
                              album_id,
