@@ -1,3 +1,6 @@
+version 2.7.16 (beta only):
+- Hopefully fix Kodi crashing on playback startup for good
+
 version 2.7.15 (beta only):
 - Hopefully fix Kodi crashing on playback startup
 - Refresh widgets only on homescreen to prevent cursor from jumping within libraries
