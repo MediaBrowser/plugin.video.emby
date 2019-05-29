@@ -368,6 +368,7 @@ class Library(threading.Thread):
                     sync.libraries()
 
                 Views().get_nodes()
+                xbmc.executebuiltin('ReloadSkin()')
 
                 return True
 
