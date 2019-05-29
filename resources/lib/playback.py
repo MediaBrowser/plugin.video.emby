@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from threading import Thread
 
+import xbmc
+
 from .plex_api import API
 from .plex_db import PlexDB
 from . import plex_functions as PF
@@ -163,11 +165,21 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     Playback setup if Kodi starts playing an item for the first time.
     """
     LOG.info('Initializing PKC playback')
+    # Stop playback so we don't get an error message that the last item of the
+    # queue failed to play
+    app.APP.player.stop()
     xml = PF.GetPlexMetadata(plex_id, reraise=True)
     if xml in (None, 401):
         LOG.error('Could not get a PMS xml for plex id %s', plex_id)
         _ensure_resolve(abort=True)
         return
+    if (xbmc.getCondVisibility('Window.IsVisible(Home.xml)') and
+            plex_type in v.PLEX_VIDEOTYPES and
+            playqueue.kodi_pl.size() > 1):
+        LOG.debug('Detected widget playback for videos')
+        # Need to clear playlist because playqueue.kodi_pl.size() could return
+        # more than one - since playback was initiated from the audio queue!
+        playqueue.clear()
     if playqueue.kodi_pl.size() > 1:
         # Special case - we already got a filled Kodi playqueue
         try:
