@@ -14,7 +14,8 @@ import xbmcgui
 LOG = getLogger('PLEX.transfer')
 MONITOR = xbmc.Monitor()
 WINDOW = xbmcgui.Window(10000)
-WINDOW_RESULT = 'plexkodiconnect.result'.encode('utf-8')
+WINDOW_UPSTREAM = 'plexkodiconnect.result.upstream'.encode('utf-8')
+WINDOW_DOWNSTREAM = 'plexkodiconnect.result.downstream'.encode('utf-8')
 WINDOW_COMMAND = 'plexkodiconnect.command'.encode('utf-8')
 
 
@@ -90,7 +91,7 @@ def de_serialize(answ):
         raise NotImplementedError('Not implemented: %s' % answ)
 
 
-def send(pkc_listitem):
+def send(pkc_listitem, target='default'):
     """
     Pickles the obj to the window variable. Use to transfer Python
     objects between different PKC python instances (e.g. if default.py is
@@ -98,18 +99,27 @@ def send(pkc_listitem):
 
     obj can be pretty much any Python object. However, classes and
     functions won't work. See the Pickle documentation
+
+    Set target='default' if you send data TO another Python default.py
+    instance, 'main' if your default.py needs to send to the main thread
     """
+    window = WINDOW_DOWNSTREAM if target == 'default' else WINDOW_UPSTREAM
     LOG.debug('Sending: %s', pkc_listitem)
-    kodi_window(WINDOW_RESULT,
+    kodi_window(window,
                 value=json.dumps(serialize(pkc_listitem)))
 
 
-def wait_for_transfer():
+def wait_for_transfer(source='main'):
+    """
+    Set source='default' if you wait for data FROM another Python default.py
+    instance, 'main' if your default.py needs to wait for the main thread
+    """
+    window = WINDOW_DOWNSTREAM if source == 'main' else WINDOW_UPSTREAM
     result = ''
     while not result:
-        result = kodi_window(WINDOW_RESULT)
+        result = kodi_window(window)
         if result:
-            kodi_window(WINDOW_RESULT, clear=True)
+            kodi_window(window, clear=True)
             LOG.debug('Received')
             result = json.loads(result)
             return de_serialize(result)

@@ -177,10 +177,10 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
             plex_type in v.PLEX_VIDEOTYPES and
             playqueue.kodi_pl.size() > 1):
         LOG.debug('Detected widget playback for videos')
-        # Need to clear playlist because playqueue.kodi_pl.size() could return
-        # more than one - since playback was initiated from the audio queue!
-        playqueue.clear()
-    if playqueue.kodi_pl.size() > 1:
+        # playqueue.kodi_pl.size() could return more than one - since playback
+        # was initiated from the audio queue!
+        pass
+    elif playqueue.kodi_pl.size() > 1:
         # Special case - we already got a filled Kodi playqueue
         try:
             _init_existing_kodi_playlist(playqueue, pos)
@@ -199,8 +199,7 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
         return
     # "Usual" case - consider trailers and parts and build both Kodi and Plex
     # playqueues
-    # Pass dummy PKC video with 0 length so Kodi immediately stops playback
-    # and we can build our own playqueue.
+    # Release default.py
     _ensure_resolve()
     api = API(xml[0])
     trailers = False
@@ -270,9 +269,14 @@ def _ensure_resolve(abort=False):
     if RESOLVE:
         # Releases the other Python thread without a ListItem
         transfer.send(True)
-        # Shows PKC error message
-        # transfer.send(None)
+        # Wait for default.py to have completed xbmcplugin.setResolvedUrl()
+        transfer.wait_for_transfer(source='default')
     if abort:
+        utils.dialog('notification',
+                     heading='{plex}',
+                     message=utils.lang(30128),
+                     icon='{error}',
+                     time=3000)
         # Reset some playback variables
         app.PLAYSTATE.context_menu_play = False
         app.PLAYSTATE.force_transcode = False
@@ -403,8 +407,7 @@ def _conclude_playback(playqueue, pos):
         playurl = item.file
     if not playurl:
         LOG.info('Did not get a playurl, aborting playback silently')
-        app.PLAYSTATE.resume_playback = False
-        transfer.send(True)
+        _ensure_resolve(abort=True)
         return
     listitem.setPath(utils.try_encode(playurl))
     if item.playmethod == 'DirectStream':

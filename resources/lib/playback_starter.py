@@ -29,6 +29,8 @@ class PlaybackTask(backgroundthread.Task):
             # E.g. other add-ons scanning for Extras folder
             LOG.debug('Detected 3rd party add-on call - ignoring')
             transfer.send(True)
+            # Wait for default.py to have completed xbmcplugin.setResolvedUrl()
+            transfer.wait_for_transfer(source='default')
             return
         params = dict(utils.parse_qsl(params))
         mode = params.get('mode')
