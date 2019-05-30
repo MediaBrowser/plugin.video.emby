@@ -157,17 +157,11 @@ class Main():
             # Handle -1 received, not waiting for main thread
             return
         # Wait for the result from the main PKC thread
-        result = transfer.wait_for_transfer()
-        if result is None:
-            LOG.error('Error encountered, aborting')
-            utils.dialog('notification',
-                         heading='{plex}',
-                         message=utils.lang(30128),
-                         icon='{error}',
-                         time=3000)
+        result = transfer.wait_for_transfer(source='main')
+        if result is True:
             xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
-        elif result is True:
-            xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
+            # Tell main thread that we're done
+            transfer.send(True, target='main')
         else:
             # Received a xbmcgui.ListItem()
             xbmcplugin.setResolvedUrl(HANDLE, True, result)
