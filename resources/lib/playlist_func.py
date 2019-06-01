@@ -167,6 +167,11 @@ class Playlist_Item(object):
         # If Plex video consists of several parts; part number
         self._part = 0
         self.force_transcode = False
+        # Shall we ask user to resume this item?
+        #   None: ask user to resume
+        #   False: do NOT resume, don't ask user
+        #   True: do resume, don't ask user
+        self.resume = None
 
     @property
     def plex_id(self):
