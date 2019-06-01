@@ -33,7 +33,6 @@ class HTTP(object):
         return
 
     def start_session(self):
-        
         self.session = requests.Session()
 
         """
@@ -198,7 +197,6 @@ class HTTP(object):
                 params[key] = self._replace_user_info(value)
 
     def _get_header(self, data):
-
         data['headers'] = data.setdefault('headers', {})
 
         if not data['headers']:

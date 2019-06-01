@@ -166,9 +166,12 @@ class Player(xbmc.Player):
 
         LOG.info("[ onAVStarted ]")
         self.up_next = False
-
         current_file = self.get_playing_file()
         item = self.set_item(current_file)
+
+        if not item:
+            return
+
         window('emby.skip.%s.bool' % item['Id'], True)
 
     def onPlayBackStarted(self):
@@ -245,6 +248,11 @@ class Player(xbmc.Player):
 
         ''' Call when playback start to setup play entry in player tracker.
         '''
+        if not file:
+            LOG.warn("Filename is invalid")
+
+            return
+
         try:
             items = self._get_items()
         except Exception as error:
@@ -271,6 +279,7 @@ class Player(xbmc.Player):
                 item['Runtime'] = self.get_total_time()
                 LOG.info("Runtime is missing, Kodi runtime: %s" % item['Runtime'])
             except Exception:
+
                 item['Runtime'] = 0
                 LOG.info("Runtime is missing, Using Zero")
 
@@ -280,7 +289,6 @@ class Player(xbmc.Player):
             return
 
         volume, muted = self.get_volume()
-
         item.update({
             'File': file,
             'CurrentPosition': item.get('CurrentPosition') or int(seektime),
@@ -290,7 +298,6 @@ class Player(xbmc.Player):
             'Paused': False,
             'Track': False
         })
-
         self.played[file] = item
         LOG.info("-->[ play/%s ] %s", item['Id'], item)
 
@@ -444,9 +451,6 @@ class Player(xbmc.Player):
 
         ''' Stop all playback. Check for external player for positionticks.
         '''
-        if not self.played:
-            return
-
         LOG.info("[ played info ] %s", self.played)
 
         for file in dict(self.played):
@@ -517,5 +521,5 @@ class Player(xbmc.Player):
             except Exception as error:
                 LOG.error(error)
 
-            window('emby.external_check', clear=True)
+        window('emby.external_check', clear=True)
         window('emby.sync.pause', clear=True)

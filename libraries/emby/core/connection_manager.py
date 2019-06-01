@@ -211,8 +211,8 @@ class ConnectionManager(object):
             LOG.error(error)
 
             return False
-        else:
-            self._on_authenticated(result, options)
+
+        self._on_authenticated(result, options)
         
         return result
 
