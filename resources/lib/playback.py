@@ -202,7 +202,8 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     _ensure_resolve()
     api = API(xml[0])
     trailers = False
-    if (plex_type == v.PLEX_TYPE_MOVIE and not api.resume_point() and
+    if (plex_type == v.PLEX_TYPE_MOVIE and
+            not app.PLAYSTATE.resume_playback and
             utils.settings('enableCinema') == "true"):
         if utils.settings('askCinema') == "true":
             # "Play trailers?"
