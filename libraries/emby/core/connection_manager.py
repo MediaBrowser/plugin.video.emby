@@ -12,6 +12,7 @@ from distutils.version import LooseVersion
 
 from credentials import Credentials
 from http import HTTP
+from exceptions import HTTPException
 
 #################################################################################################
 
@@ -51,13 +52,11 @@ class ConnectionManager(object):
     timeout = 10
 
     def __init__(self, client):
-
         LOG.debug("ConnectionManager initializing...")
 
         self.client = client
         self.config = client.config
         self.credentials = Credentials()
-
         self.http = HTTP(client)
 
     def __shortcuts__(self, key):
@@ -109,7 +108,6 @@ class ConnectionManager(object):
         return self.__shortcuts__(key)
 
     def clear_data(self):
-
         LOG.info("connection manager clearing data")
 
         self.user = None
@@ -118,20 +116,16 @@ class ConnectionManager(object):
         credentials['ConnectUserId'] = None
         credentials['Servers'] = list()
         self.credentials.get_credentials(credentials)
-
         self.config.auth(None, None)
 
     def revoke_token(self):
-
         LOG.info("revoking token")
 
         self['server']['AccessToken'] = None
         self.credentials.get_credentials(self.credentials.get_credentials())
-
         self.config['auth.token'] = None
 
     def get_available_servers(self):
-        
         LOG.info("Begin getAvailableServers")
 
         # Clone the credentials
@@ -147,7 +141,6 @@ class ConnectionManager(object):
         servers = list(credentials['Servers'])
         self._merge_servers(servers, found_servers)
         self._merge_servers(servers, connect_servers)
-
         servers = self._filter_servers(servers, connect_servers)
 
         try:
@@ -180,6 +173,7 @@ class ConnectionManager(object):
             })
         except Exception as error: # Failed to login
             LOG.error(error)
+
             return False
         else:
             credentials = self.credentials.get_credentials()
@@ -215,9 +209,10 @@ class ConnectionManager(object):
             result = self._request_url(request, False)
         except Exception as error: # Failed to login
             LOG.error(error)
+
             return False
-        else:
-            self._on_authenticated(result, options)
+
+        self._on_authenticated(result, options)
         
         return result
 
@@ -230,6 +225,7 @@ class ConnectionManager(object):
 
         def _on_fail():
             LOG.error("connectToAddress %s failed", address)
+
             return self._resolve_failure()
 
         try:
@@ -244,6 +240,7 @@ class ConnectionManager(object):
             }
             self._update_server_info(server, public_info)
             server = self.connect_to_server(server, options)
+
             if server is False:
                 return _on_fail()
 
@@ -252,9 +249,7 @@ class ConnectionManager(object):
     def connect_to_server(self, server, options={}):
 
         LOG.info("begin connectToServer")
-
         tests = []
-
 
         if server.get('LastConnectionMode') != CONNECTION_MODE['Remote'] and server.get('AccessToken'):
             tests.append(server['LastConnectionMode'])
@@ -267,13 +262,13 @@ class ConnectionManager(object):
             tests.append(CONNECTION_MODE['Remote'])
 
         # TODO: begin to wake server
-
         LOG.info("beginning connection tests")
+
         return self._test_next_connection_mode(tests, 0, server, options)
 
     def connect(self, options={}):
-
         LOG.info("Begin connect")
+
         return self._connect_to_servers(self.get_available_servers(), options)
 
     def connect_user(self):
@@ -295,11 +290,12 @@ class ConnectionManager(object):
 
         if server_id is None:
             LOG.info("server_id is empty")
+
             return {}
 
         servers = self.credentials.get_credentials()['Servers']
-        
         for server in servers:
+
             if server['Id'] == server_id:
                 return server
 
@@ -313,8 +309,8 @@ class ConnectionManager(object):
         return "%s/emby/%s" % (base, handler)
 
     def _request_url(self, request, headers=True):
-
         request['timeout'] = request.get('timeout') or self.timeout
+
         if headers:
             self._get_headers(request)
 
@@ -322,6 +318,7 @@ class ConnectionManager(object):
             return self.http.request(request)
         except Exception as error:
             LOG.error(error)
+
             raise
 
     def _add_app_info(self):
@@ -330,8 +327,8 @@ class ConnectionManager(object):
     def _get_headers(self, request):
         
         headers = request.setdefault('headers', {})
-
         if request.get('dataType') == "json":
+
             headers['Accept'] = "application/json"
             request.pop('dataType')
 
@@ -345,13 +342,8 @@ class ConnectionManager(object):
         result = {}
 
         if len(servers) == 1:
+
             result = self.connect_to_server(servers[0], options)
-
-            """
-            if result['State'] == CONNECTION_STATE['Unavailable']:
-                result['State'] = CONNECTION_STATE['ConnectSignIn'] if result['ConnectUser'] is None else CONNECTION_STATE['ServerSelection']
-            """
-
             LOG.debug("resolving connectToServers with result['State']: %s", result)
 
             return result
@@ -392,6 +384,7 @@ class ConnectionManager(object):
 
         if index >= len(tests):
             LOG.info("Tested all connection modes. Failing server connection.")
+
             return self._resolve_failure()
 
         mode = tests[index]
@@ -399,24 +392,27 @@ class ConnectionManager(object):
         enable_retry = False
         skip_test = False
         timeout = self.timeout
-
         LOG.info("testing connection mode %s with server %s", mode, server.get('Name'))
 
         if mode == CONNECTION_MODE['Local']:
+
             enable_retry = True
             timeout = 8
 
             if self._string_equals_ignore_case(address, server.get('ManualAddress')):
+
                 LOG.info("skipping LocalAddress test because it is the same as ManualAddress")
                 skip_test = True
 
         elif mode == CONNECTION_MODE['Manual']:
             if self._string_equals_ignore_case(address, server.get('LocalAddress')):
+
                 enable_retry = True
                 timeout = 8
 
         if skip_test or not address:
             LOG.info("skipping test at index: %s", index)
+
             return self._test_next_connection_mode(tests, index + 1, server, options)
 
         try:
@@ -433,20 +429,20 @@ class ConnectionManager(object):
         else:
             if self._compare_versions(self._get_min_server_version(), result['Version']) == 1:
                 LOG.warn("minServerVersion requirement not met. Server version: %s", result['Version'])
+
                 return {
                     'State': CONNECTION_STATE['ServerUpdateNeeded'],
                     'Servers': [server]
                 }
             else:
                 LOG.info("calling onSuccessfulConnection with connection mode %s with server %s", mode, server.get('Name'))
+
                 return self._on_successful_connection(server, result, mode, options)
 
     def _on_successful_connection(self, server, system_info, connection_mode, options):
-
         credentials = self.credentials.get_credentials()
 
         if credentials.get('ConnectAccessToken') and options.get('enableAutoLogin') is not False:
-            
             if self._ensure_connect_user(credentials) is not False:
 
                 if server.get('ExchangeToken'):
@@ -508,10 +504,8 @@ class ConnectionManager(object):
         
         MULTI_GROUP = ("<broadcast>", 7359)
         MESSAGE = "who is EmbyServer?"
-        
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(1.0) # This controls the socket.timeout exception
-
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
@@ -519,13 +513,13 @@ class ConnectionManager(object):
         
         LOG.debug("MultiGroup      : %s", str(MULTI_GROUP))
         LOG.debug("Sending UDP Data: %s", MESSAGE)
-
         servers = []
 
         try:
             sock.sendto(MESSAGE, MULTI_GROUP)
         except Exception as error:
             LOG.error(error)
+
             return servers
 
         while True:
@@ -535,10 +529,12 @@ class ConnectionManager(object):
             
             except socket.timeout:
                 LOG.info("Found Servers: %s", servers)
+
                 return servers
             
             except Exception as e:
                 LOG.error("Error trying to find servers: %s", e)
+
                 return servers
 
     def _get_connect_servers(self, credentials):
@@ -624,11 +620,14 @@ class ConnectionManager(object):
             if server.get('ExchangeToken') is None:
                 # It's not a connect server, so assume it's still valid
                 filtered.append(server)
+
                 continue
 
             for connect_server in connect_servers:
+
                 if server['Id'] == connect_server['Id']:
                     filtered.append(server)
+
                     break
 
         return filtered
@@ -637,14 +636,15 @@ class ConnectionManager(object):
         
         if info.get('Address') and info.get('EndpointAddress'):
             address = info['EndpointAddress'].split(':')[0]
-
             # Determine the port, if any
             parts = info['Address'].split(':')
+
             if len(parts) > 1:
                 port_string = parts[len(parts)-1]
 
                 try:
                     address += ":%s" % int(port_string)
+
                     return self._normalize_address(address)
                 except ValueError:
                     pass
@@ -662,14 +662,13 @@ class ConnectionManager(object):
         return address
 
     def _get_connect_password_hash(self, password):
-
         password = self._clean_connect_password(password)
+
         return hashlib.md5(password).hexdigest()
 
     def _clean_connect_password(self, password):
 
         password = password or ""
-
         password = password.replace("&", '&amp;')
         password = password.replace("/", '&#092;')
         password = password.replace("!", '&#33;')
@@ -737,12 +736,15 @@ class ConnectionManager(object):
                 }
             })
         except Exception:
+
             server['UserId'] = None
             server['AccessToken'] = None
+
             return False
         else:
             server['UserId'] = auth['LocalUserId']
             server['AccessToken'] = auth['AccessToken']
+
             return auth
 
     def _after_connect_validated(self, server, credentials, system_info, connection_mode, verify_authentication, options):
@@ -758,6 +760,7 @@ class ConnectionManager(object):
 
                 self.config['auth.user_id'] = server['UserId']
                 self.config['auth.token'] = server['AccessToken']
+
                 return self._after_connect_validated(server, credentials, system_info, connection_mode, False, options)
 
             return self._resolve_failure()
@@ -783,7 +786,6 @@ class ConnectionManager(object):
             'Servers': [server],
             'ConnectUser': self.connect_user()
         }
-
         result['State'] = CONNECTION_STATE['SignedIn'] if server.get('AccessToken') else CONNECTION_STATE['ServerSignIn']
         # Connected
         return result
@@ -801,12 +803,17 @@ class ConnectionManager(object):
                 }
             })
             self._update_server_info(server, system_info)
+
+            return True
+        except HTTPException as error:
+
+            if error.status == 'Unauthorized':
+                server['AccessToken'] = None
+
         except Exception as error:
+            LOG.error(error)
 
-            server['UserId'] = None
-            server['AccessToken'] = None
-
-            return False
+        return False
 
     def _update_server_info(self, server, system_info):
 
@@ -826,15 +833,17 @@ class ConnectionManager(object):
     def _on_authenticated(self, result, options={}):
 
         credentials = self.credentials.get_credentials()
-
         self.config['auth.user_id'] = result['User']['Id']
         self.config['auth.token'] = result['AccessToken']
 
         for server in credentials['Servers']:
+
             if server['Id'] == result['ServerId']:
                 found_server = server
+
                 break
-        else: return # No server found
+        else:
+            return # No server found
 
         if options.get('updateDateLastAccessed') is not False:
             found_server['DateLastAccessed'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')

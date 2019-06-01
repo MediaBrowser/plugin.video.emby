@@ -832,7 +832,7 @@ class Views(object):
 
         node_label = _(node_label) if type(node_label) == int else node_label
         node_label = node_label or view['Name']
-        clean_title = node_label or view.get('CleanName') or view['Name']
+        clean_title = view.get('CleanName', node_label)
 
         if node == 'all':
 

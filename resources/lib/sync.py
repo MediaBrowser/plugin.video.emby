@@ -89,9 +89,10 @@ class Sync(object):
         self.sync['RestorePoint'] = restore
         save_sync(self.sync)
 
-    def libraries(self, library_id=None, update=False):
+    def libraries(self, library_id=None, update=False, forced=False):
 
         ''' Map the syncing process and start the sync. Ensure only one sync is running.
+            force to resume any previous sync
         '''
         self.direct_path = settings('useDirectPaths') == "1"
         self.update_library = update
@@ -114,7 +115,7 @@ class Sync(object):
                     else:
                         self.sync['Libraries'].append(selected)
         else:
-            self.mapping()
+            self.mapping(forced)
 
         xmls.sources()
 
@@ -129,14 +130,13 @@ class Sync(object):
             else:
                 return emby_db.EmbyDatabase(embydb.cursor).get_view(library_id)
 
-    def mapping(self):
+    def mapping(self, forced=False):
 
         ''' Load the mapping of the full sync.
             This allows us to restore a previous sync.
         '''
         if self.sync['Libraries']:
-
-            if not dialog("yesno", heading="{emby}", line1=_(33102)):
+            if not forced and not dialog("yesno", heading="{emby}", line1=_(33102)):
 
                 if not dialog("yesno", heading="{emby}", line1=_(33173)):
                     dialog("ok", heading="{emby}", line1=_(33122))
@@ -261,8 +261,9 @@ class Sync(object):
                 media[library['CollectionType']](library)
         except LibraryException as error:
 
-            if error.status == 'StopCalled':
+            if error.status in ('StopCalled', 'StopWriteCalled'):
                 save_sync(self.sync)
+                LOG.info("hello %s %s", error.status, self.sync)
 
                 raise
 

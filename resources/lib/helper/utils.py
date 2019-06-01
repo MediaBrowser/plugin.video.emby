@@ -162,15 +162,15 @@ def should_stop():
 
     ''' Checkpoint during the sync process.
     '''
-    if xbmc.Monitor().waitForAbort(0.00001):
-        return True
-
-    if window('emby_should_stop.bool'):
+    if xbmc.Monitor().waitForAbort(0.00001) or window('emby_should_stop.bool') or not window('emby_online.bool'):
         LOG.info("exiiiiitttinggg")
-        return True
 
-    if not window('emby_online.bool'):
-        return True
+        raise Exception('StopCalled')
+
+    if window('emby.sync.pause.bool'):
+        LOG.info("Stopping db writing!")
+
+        raise Exception('StopWriteCalled')
 
     return False
 
@@ -296,7 +296,7 @@ def delete_folder(path=None):
     if delete_path:
         xbmcvfs.delete(path)
     
-    LOG.info("DELETE %s", path)
+    LOG.warn("DELETE %s", path)
 
 def delete_recursive(path, dirs):
 
@@ -332,7 +332,7 @@ def unzip(path, dest, folder=None):
     for file in files:
         unzip_file(os.path.join(root, file.decode('utf-8')), os.path.join(dest, file.decode('utf-8')))
 
-    LOG.info("Unzipped %s", path)
+    LOG.warn("Unzipped %s", path)
 
 def unzip_recursive(path, dirs, dest):
 
@@ -466,6 +466,8 @@ def convert_to_local(date):
 
         return date.strftime('%Y-%m-%dT%H:%M:%S')
     except Exception as error:
+
         LOG.error(error)
+        LOG.info("date: %s", str(date))
 
         return str(date)

@@ -73,43 +73,38 @@ class Patch(object):
         self.addon_version = client.get_version()
         LOG.warn("--->[ patch ]")
 
-    def get_objects(self, src, filename):
+    def get_objects(self, src, filename, dest=None):
 
         ''' Download objects dependency to temp cache folder.
         '''
-        temp = CACHE
-        restart = not xbmcvfs.exists(os.path.join(temp, "objects") + '/')
-        path = os.path.join(temp, filename).encode('utf-8')
+        dest = dest or CACHE
+        path = os.path.join(dest, filename).encode('utf-8')
 
-        if restart and (settings('appliedPatch') or "") == filename:
-
+        if (settings('appliedPatch') or "") == filename:
             LOG.warn("Something went wrong applying this patch %s previously.", filename)
-            restart = False
 
-        if not xbmcvfs.exists(path) or filename.startswith('DEV'):
-            delete_folder(CACHE)
+        delete_folder(dest if dest is CACHE else os.path.join(dest, "objects"))
+        LOG.warn("From %s to %s", src, path.decode('utf-8'))
 
-            LOG.warn("From %s to %s", src, path.decode('utf-8'))
-            try:
-                response = requests.get(src, stream=True, verify=True)
-                response.raise_for_status()
-            except requests.exceptions.SSLError as error:
+        try:
+            response = requests.get(src, stream=True, verify=True)
+            response.raise_for_status()
+        except requests.exceptions.SSLError as error:
 
-                LOG.error(error)
-                response = requests.get(src, stream=True, verify=False)
-            except Exception as error:
-                raise
+            LOG.error(error)
+            response = requests.get(src, stream=True, verify=False)
+        except Exception as error:
+            raise
 
-            dl = xbmcvfs.File(path, 'w')
-            dl.write(response.content)
-            dl.close()
-            del response
+        dl = xbmcvfs.File(path, 'w')
+        dl.write(response.content)
+        dl.close()
+        del response
 
-            settings('appliedPatch', filename)
+        settings('appliedPatch', filename)
+        unzip(path, dest, "objects")
 
-        unzip(path, temp, "objects")
-
-        return restart
+        return
 
     def check_update(self, forced=False, versions=None):
 
@@ -146,9 +141,10 @@ class Patch(object):
                     LOG.warn("<[ patch min not met: %s ]", min_version)
 
                     return self.check_update(versions=versions)
-
                 except Exception as error:
+
                     LOG.warn("--<[ min add-on version not met: %s ]", min_version)
+                    #dialog("ok", heading="{emby}", line1="%s %s" % (_(33160), min_version))
 
                     return False
 
@@ -161,16 +157,9 @@ class Patch(object):
 
             self.get_objects(zipfile, label + '.zip')
             self.reload_objects()
-
             dialog("notification", heading="{emby}", message=_(33156), icon="{emby}")
             LOG.warn("--<[ new objects/%s ]", objects.version)
             settings('patchVersion', objects.version)
-
-            try:
-                if compare_version(self.addon_version, objects.embyversion) < 0:
-                    dialog("ok", heading="{emby}", line1="%s %s" % (_(33160), objects.embyversion))
-            except Exception:
-                pass
 
         except Exception as error:
             LOG.exception(error)
@@ -198,13 +187,12 @@ class Patch(object):
             if mod in sys.modules:
                 del sys.modules[mod]
 
-        import objects
-
         try:
             delete_pyo(CACHE)
         except Exception:
             pass
 
+        import objects
         imp.reload(objects)
 
         import library

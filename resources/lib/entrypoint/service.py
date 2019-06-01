@@ -234,9 +234,7 @@ class Service(xbmc.Monitor):
                             icon="{emby}", time=1500, sound=False)
 
                 if self.library_thread is None:
-
                     self.library_thread = library.Library(self)
-                    self.library_thread.start()
 
         elif method in ('ServerUnreachable', 'ServerShuttingDown'):
 
@@ -303,7 +301,7 @@ class Service(xbmc.Monitor):
             self.connect.setup_manual_server()
 
         elif method == 'UserDataChanged':
-            if not self.library_thread and data.get('ServerId') or not window('emby_startup.bool'):
+            if not self.library_thread and data.get('ServerId') or not self.library_thread.started:
                 return
 
             if data.get('UserId') != Emby()['auth/user-id']:
@@ -312,8 +310,8 @@ class Service(xbmc.Monitor):
             LOG.info("[ UserDataChanged ] %s", data)
             self.library_thread.userdata(data['UserDataList'])
 
-        elif method == 'LibraryChanged' and self.library_thread:
-            if data.get('ServerId') or not window('emby_startup.bool'):
+        elif method == 'LibraryChanged' and self.library_thread.started:
+            if data.get('ServerId') or not self.library_thread.started:
                 return
 
             LOG.info("[ LibraryChanged ] %s", data)
@@ -339,7 +337,6 @@ class Service(xbmc.Monitor):
                 return
 
             self.library_thread.add_library(data['Id'], data.get('Update', False))
-            xbmc.executebuiltin("Container.Refresh")
 
         elif method == 'RepairLibrary':
             if not data.get('Id'):
@@ -348,22 +345,15 @@ class Service(xbmc.Monitor):
             libraries = data['Id'].split(',')
 
             for lib in libraries:
-
-                if not self.library_thread.remove_library(lib):
-                    return
+                self.library_thread.remove_library(lib)
             
             self.library_thread.add_library(data['Id'])
-            xbmc.executebuiltin("Container.Refresh")
 
         elif method == 'RemoveLibrary':
             libraries = data['Id'].split(',')
 
             for lib in libraries:
-                
-                if not self.library_thread.remove_library(lib):
-                    return
-
-            xbmc.executebuiltin("Container.Refresh")
+                self.library_thread.remove_library(lib)
 
         elif method == 'System.OnSleep':
             
@@ -471,9 +461,9 @@ class Service(xbmc.Monitor):
         window('emby_should_stop.bool', True)
 
         properties = [
-            "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume", "emby_startup", 
+            "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
             "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
-            "emby_pathverified", "emby_sync", "emby.restart"
+            "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause"
         ]
         for prop in properties:
             window(prop, clear=True)

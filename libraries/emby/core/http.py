@@ -33,7 +33,6 @@ class HTTP(object):
         return
 
     def start_session(self):
-        
         self.session = requests.Session()
 
         """
@@ -198,7 +197,6 @@ class HTTP(object):
                 params[key] = self._replace_user_info(value)
 
     def _get_header(self, data):
-
         data['headers'] = data.setdefault('headers', {})
 
         if not data['headers']:
@@ -216,12 +214,14 @@ class HTTP(object):
 
     def _authorization(self, data):
 
+        if not self.config['app.device_name']:
+            raise KeyError("Device name cannot be null")
+
         auth =  "MediaBrowser "
         auth += "Client=%s, " % self.config['app.name'].encode('utf-8')
         auth += "Device=%s, " % self.config['app.device_name'].encode('utf-8')
         auth += "DeviceId=%s, " % self.config['app.device_id'].encode('utf-8')
         auth += "Version=%s" % self.config['app.version'].encode('utf-8')
-
         data['headers'].update({'Authorization': auth})
 
         if self.config['auth.token'] and self.config['auth.user_id']:

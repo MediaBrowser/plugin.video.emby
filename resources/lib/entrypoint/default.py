@@ -66,6 +66,7 @@ class Events(object):
             get_video_extras(emby_id, emby_path, server)
 
         elif mode == 'play':
+            window('emby.sync.pause.bool', True)
 
             try:
                 objects.PlayPlugin(params, server).play()
@@ -77,7 +78,10 @@ class Events(object):
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
+            window('emby.sync.pause.bool', clear=True)
+
         elif mode =='playstrm':
+            window('emby.sync.pause.bool', True)
 
             while not window('emby.playlist.play.bool'):
                 xbmc.sleep(50)
@@ -91,9 +95,10 @@ class Events(object):
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
             window('emby.playlist.aborted', clear=True)
+            window('emby.sync.pause.bool', clear=True)
 
         elif mode == 'playsingle':
-
+            window('emby.sync.pause.bool', True)
             try:
                 objects.PlaySingle(params, server).play()
             except Exception as error:
@@ -103,6 +108,8 @@ class Events(object):
                     xbmc.Player().stop()
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
+
+            window('emby.sync.pause.bool', clear=True)
 
         elif mode == 'playlist':
             event('PlayPlaylist', {'Id': params['id'], 'ServerId': server})

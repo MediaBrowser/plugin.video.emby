@@ -14,8 +14,7 @@ import xbmcvfs
 import xbmcaddon
 
 import requests
-from helper.utils import should_stop, delete_folder
-from helper import settings, stop, event, window, kodi_version, unzip, create_id
+from helper import settings, stop, event, window, create_id
 from emby import Emby
 from emby.core import api
 from emby.core.exceptions import HTTPException
@@ -37,10 +36,8 @@ def get_embyserver_url(handler):
     return  "{server}/emby/%s" % handler
 
 def browse_info():
-    return  (  
-                "DateCreated,EpisodeCount,SeasonCount,Path,Genres,Studios,Taglines,MediaStreams,Overview,Etag,"
-                "ProductionLocations,Width,Height,RecursiveItemCount,ChildCount"
-            )
+    return  ("DateCreated,EpisodeCount,SeasonCount,Path,Genres,Studios,Taglines,MediaStreams,Overview,Etag,"
+             "ProductionLocations,Width,Height,RecursiveItemCount,ChildCount")
 
 def _http(action, url, request={}, server_id=None):
     request.update({'url': url, 'type': action})
@@ -272,6 +269,7 @@ class GetItemWorker(threading.Thread):
         self.queue = queue
         self.output = output
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 
