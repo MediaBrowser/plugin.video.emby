@@ -176,10 +176,9 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     if (xbmc.getCondVisibility('Window.IsVisible(Home.xml)') and
             plex_type in v.PLEX_VIDEOTYPES and
             playqueue.kodi_pl.size() > 1):
-        LOG.debug('Detected widget playback for videos')
         # playqueue.kodi_pl.size() could return more than one - since playback
         # was initiated from the audio queue!
-        pass
+        LOG.debug('Detected widget playback for videos')
     elif playqueue.kodi_pl.size() > 1:
         # Special case - we already got a filled Kodi playqueue
         try:
@@ -328,7 +327,7 @@ def _prep_playlist_stack(xml):
                 # Need to redirect again to PKC to conclude playback
                 path = api.path()
                 listitem = api.create_listitem()
-                listitem.setPath(utils.try_encode(path))
+                listitem.setPath(path.encode('utf-8'))
             else:
                 # Will add directly via the Kodi DB
                 path = None
@@ -409,7 +408,7 @@ def _conclude_playback(playqueue, pos):
         LOG.info('Did not get a playurl, aborting playback silently')
         _ensure_resolve(abort=True)
         return
-    listitem.setPath(utils.try_encode(playurl))
+    listitem.setPath(playurl.encode('utf-8'))
     if item.playmethod == 'DirectStream':
         listitem.setSubtitles(api.cache_external_subs())
     elif item.playmethod == 'Transcode':
