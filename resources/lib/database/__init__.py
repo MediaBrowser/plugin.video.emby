@@ -33,6 +33,76 @@ def test_databases():
     with Database('emby') as embydb:
         emby_tables(embydb.cursor)
 
+
+class KodiLock(object):
+
+    ''' Custom lock, based on built-in lock for database manipulation. 
+        Made for Kodi usage, to communicate across add-on instances. 
+        Use before starting db interactions.
+
+        with KodiLock('video'):
+            # do stuff
+    '''
+    def __init__(self, file, *args, **kwargs):
+
+        threading.Lock.__init__(self, *args, **kwargs)
+        self.file = file
+        self._locked = self._get_lock()
+
+    def _get_lock(self):
+        return window('kodidb.%s.bool' % self.file)
+
+    def _set_lock(self, lock):
+        window('kodidb.%s.bool' % self.file, lock)
+
+    def acquire(self, blocking=True, timeout=None):
+
+        if blocking:
+            delay = 0.0005
+
+            if timeout is None:
+
+                while self._locked:
+                    delay = wait(delay)
+            else:
+                end = time() + timeout
+                while time() < end:
+
+                    if not self._locked:
+                        break
+
+                    delay = wait(delay)
+                else:
+                    return False
+
+            self._locked = True
+            self._set_lock(True)
+
+            return True
+
+        elif timeout is not None:
+            raise ValueError("can't specify a timeout for a non-blocking call")
+
+        if self._locked:
+            return False
+
+        self._locked = True
+        self._set_lock(True)
+
+        return True
+
+    def release(self):
+
+        if not self._locked:
+            raise RuntimeError("release unlocked lock")
+
+        self._locked = False
+        self._set_lock(False)
+
+    def locked(self):
+        return self._locked
+
+
 class Database(object):
 
     ''' This should be called like a context.

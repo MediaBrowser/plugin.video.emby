@@ -518,3 +518,4 @@ class Player(xbmc.Player):
                 LOG.error(error)
 
             window('emby.external_check', clear=True)
+        window('emby.sync.pause', clear=True)

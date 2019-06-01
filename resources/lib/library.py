@@ -72,6 +72,8 @@ class Library(threading.Thread):
         self.userdata_output = self.__new_queues__()
         self.removed_output = self.__new_queues__()
         self.notify_output = Queue.Queue()
+        self.add_lib_queue = Queue.Queue()
+        self.remove_lib_queue = Queue.Queue()
 
         self.emby_threads = []
         self.download_threads = []
@@ -81,6 +83,7 @@ class Library(threading.Thread):
         self.music_database_lock = threading.Lock()
 
         threading.Thread.__init__(self)
+        self.start()
 
     def __new_queues__(self):
         return {
@@ -99,17 +102,23 @@ class Library(threading.Thread):
     def run(self):
 
         LOG.warn("--->[ library ]")
-
-        if not self.startup():
-            self.stop_client()
-
-        window('emby_startup.bool', True)
+        self.verify_libs = False
 
         while not self.stop_thread:
 
+            if self.monitor.waitForAbort(1):
+                break
+
             try:
+                if not self.started and not self.startup():
+                    self.stop_client()
+
                 self.service()
             except LibraryException as error:
+
+                if error.status in ('StopWriteCalled', 'ProgressStopped'):
+                    continue
+
                 break
             except Exception as error:
                 LOG.exception(error)
@@ -135,6 +144,16 @@ class Library(threading.Thread):
                     threads.remove(thread)
 
         if not self.player.isPlayingVideo() or settings('syncDuringPlay.bool') or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
+            if not self.player.isPlayingVideo() or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
+
+                if self.verify_libs:
+                    self.verify_libs = False
+
+                    if get_sync()['Libraries']:
+                        self.sync_libraries(True)
+
+                self.worker_remove_lib()
+                self.worker_add_lib()
 
             self.worker_downloads()
             self.worker_sort()
@@ -221,7 +240,6 @@ class Library(threading.Thread):
         return total
 
     def _worker_update_size(self):
-
         total = 0
 
         for queues in self.updated_output:
@@ -230,7 +248,6 @@ class Library(threading.Thread):
         return total
 
     def _worker_userdata_size(self):
-
         total = 0
 
         for queues in self.userdata_output:
@@ -239,7 +256,6 @@ class Library(threading.Thread):
         return total
 
     def _worker_removed_size(self):
-
         total = 0
 
         for queues in self.removed_output:
@@ -255,7 +271,6 @@ class Library(threading.Thread):
             if queue[0].qsize() and len(self.download_threads) < DTHREADS:
                 
                 new_thread = GetItemWorker(self.server, queue[0], queue[1])
-                new_thread.start()
                 LOG.info("-->[ q:download/%s ]", id(new_thread))
 
     def worker_sort(self):
@@ -265,7 +280,6 @@ class Library(threading.Thread):
         if self.removed_queue.qsize() and len(self.emby_threads) < 2:
 
             new_thread = SortWorker(self.removed_queue, self.removed_output)
-            new_thread.start()
             LOG.info("-->[ q:sort/%s ]", id(new_thread))
 
     def worker_updates(self):
@@ -287,7 +301,6 @@ class Library(threading.Thread):
                 else:
                     new_thread = UpdatedWorker(queue, self.notify_output, self.database_lock, "video", self.server, self.direct_path)
 
-                new_thread.start()
                 LOG.info("-->[ q:updated/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['updated'].append(new_thread)
                 self.enable_pending_refresh()
@@ -306,7 +319,6 @@ class Library(threading.Thread):
                 else:
                     new_thread = UserDataWorker(queue, self.database_lock, "video", self.server, self.direct_path)
 
-                new_thread.start()
                 LOG.info("-->[ q:userdata/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['userdata'].append(new_thread)
                 self.enable_pending_refresh()
@@ -324,8 +336,7 @@ class Library(threading.Thread):
                     new_thread = RemovedWorker(queue, self.music_database_lock, "music", self.server, self.direct_path)
                 else:
                     new_thread = RemovedWorker(queue, self.database_lock, "video", self.server, self.direct_path)
-                
-                new_thread.start()
+
                 LOG.info("-->[ q:removed/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['removed'].append(new_thread)
                 self.enable_pending_refresh()
@@ -337,10 +348,75 @@ class Library(threading.Thread):
         if self.notify_output.qsize() and not len(self.notify_threads):
 
             new_thread = NotifyWorker(self.notify_output, self.player)
-            new_thread.start()
             LOG.info("-->[ q:notify/%s ]", id(new_thread))
             self.notify_threads.append(new_thread)
 
+    def worker_remove_lib(self):
+        if self.remove_lib_queue.qsize():
+
+            while True:
+                try:
+                    library_id = self.remove_lib_queue.get(timeout=0.5)
+                except Queue.Empty:
+                    break
+
+                self._remove_libraries(library_id)
+                self.remove_lib_queue.task_done()
+
+            xbmc.executebuiltin("Container.Refresh")
+
+    def worker_add_lib(self):
+        if self.add_lib_queue.qsize():
+
+            while True:
+                try:
+                    library_id, update = self.add_lib_queue.get(timeout=0.5)
+                except Queue.Empty:
+                    break
+
+                self._add_libraries(library_id, update)
+                self.add_lib_queue.task_done()
+
+            xbmc.executebuiltin("Container.Refresh")
+
+    def sync_libraries(self, forced=False):
+
+        with Sync(self, self.server) as sync:
+            sync.libraries(forced=forced)
+
+        Views().get_nodes()
+
+    def _add_libraries(self, library_id, update=False):
+
+        try:
+            with Sync(self, server=self.server) as sync:
+                sync.libraries(library_id, update)
+
+        except LibraryException as error:
+
+            if error.status == 'StopWriteCalled':
+                self.verify_libs = True
+
+            raise
+
+        Views().get_nodes()
+
+    def _remove_libraries(self, library_id):
+
+        try:
+            with Sync(self, self.server) as sync:
+                sync.remove_library(library_id)
+
+        except LibraryException as error:
+
+            if error.status == 'StopWriteCalled':
+                self.verify_libs = True
+
+            raise
+
+        Views().remove_library(library_id)
+        Views().get_views()
+        Views().get_nodes()
 
     def startup(self):
 
@@ -348,19 +424,13 @@ class Library(threading.Thread):
             Check databases. 
             Check for the server plugin.
         '''
+        self.started = True
         Views().get_views()
         Views().get_nodes()
 
         try:
             if get_sync()['Libraries']:
-
-                try:
-                    with Sync(self, self.server) as sync:
-                        sync.libraries()
-
-                    Views().get_nodes()
-                except Exception as error:
-                    LOG.error(error)
+                self.sync_libraries()
 
             elif not settings('SyncInstallRunDone.bool'):
                 
@@ -394,6 +464,11 @@ class Library(threading.Thread):
                 settings('kodiCompanion.bool', False)
 
                 return True
+
+            elif error.status == 'StopWriteCalled':
+                self.verify_libs = True
+
+            raise
 
         except Exception as error:
             LOG.exception(error)
@@ -485,14 +560,8 @@ class Library(threading.Thread):
         return True
 
     def save_last_sync(self):
-        
-        try:
-            time_now = datetime.strptime(self.server['config/server-time'].split(', ', 1)[1], '%d %b %Y %H:%M:%S GMT') - timedelta(minutes=2)
-        except Exception as error:
 
-            LOG.error(error)
-            time_now = datetime.utcnow() - timedelta(minutes=2)
-
+        time_now = datetime.utcnow() - timedelta(minutes=2)
         last_sync = time_now.strftime('%Y-%m-%dT%H:%M:%Sz')
         settings('LastIncrementalSync', value=last_sync)
         LOG.info("--[ sync/%s ]", last_sync)
@@ -562,35 +631,13 @@ class Library(threading.Thread):
 
     def add_library(self, library_id, update=False):
 
-        try:
-            with Sync(self, server=self.server) as sync:
-                sync.libraries(library_id, update)
-        except Exception as error:
-            LOG.exception(error)
-
-            return False
-
-        Views().get_nodes()
-
-        return True
+        self.add_lib_queue.put((library_id, update))
+        LOG.info("---[ added library: %s ]", library_id)
 
     def remove_library(self, library_id):
 
-        try:
-            with Sync(self, self.server) as sync:
-                sync.remove_library(library_id)
-
-            Views().remove_library(library_id)
-        except Exception as error:
-            LOG.exception(error)
-
-            return False
-
-        Views().get_views()
-        Views().get_nodes()
-
-        return True
-
+        self.remove_lib_queue.put(library_id)
+        LOG.info("---[ removed library: %s ]", library_id)
 
     def userdata(self, data):
 
@@ -651,6 +698,7 @@ class UpdatedWorker(threading.Thread):
         self.database = Database(database)
         self.args = args
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 
@@ -671,7 +719,7 @@ class UpdatedWorker(threading.Thread):
                             if obj(item) and self.notify:
                                 self.notify_output.put((item['Type'], api.API(item).get_naming()))
                         except LibraryException as error:
-                            if error.status == 'StopCalled':
+                            if error.status in ('StopCalled', 'StopWriteCalled'):
                                 break
                         except Exception as error:
                             LOG.exception(error)
@@ -695,6 +743,7 @@ class UserDataWorker(threading.Thread):
         self.database = Database(database)
         self.args = args
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 
@@ -714,7 +763,7 @@ class UserDataWorker(threading.Thread):
                         try:
                             obj(item)
                         except LibraryException as error:
-                            if error.status == 'StopCalled':
+                            if error.status in ('StopCalled', 'StopWriteCalled'):
                                 break
                         except Exception as error:
                             LOG.exception(error)
@@ -737,6 +786,7 @@ class SortWorker(threading.Thread):
         self.output = output
         self.args = args
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 
@@ -781,6 +831,7 @@ class RemovedWorker(threading.Thread):
         self.database = Database(database)
         self.args = args
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 
@@ -800,7 +851,7 @@ class RemovedWorker(threading.Thread):
                         try:
                             obj(item['Id'])
                         except LibraryException as error:
-                            if error.status == 'StopCalled':
+                            if error.status in ('StopCalled', 'StopWriteCalled'):
                                 break
                         except Exception as error:
                             LOG.exception(error)

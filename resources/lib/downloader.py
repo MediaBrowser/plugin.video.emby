@@ -272,6 +272,7 @@ class GetItemWorker(threading.Thread):
         self.queue = queue
         self.output = output
         threading.Thread.__init__(self)
+        self.start()
 
     def run(self):
 

@@ -35,8 +35,13 @@ def progress(message=None):
             if item:
                 args = (item,) + args
 
-            result = func(self, dialog=dialog, *args, **kwargs)
-            dialog.close()
+            try:
+                result = func(self, dialog=dialog, *args, **kwargs)
+                dialog.close()
+            except Exception:
+                dialog.close()
+
+                raise
 
             return result
 
@@ -84,15 +89,13 @@ def stop(default=None):
         def wrapper(*args, **kwargs):
 
             try:
-                if should_stop():
-                    raise Exception
-
+                should_stop()
             except Exception as error:
 
                 if default is not None:
                     return default
 
-                raise LibraryException("StopCalled")
+                raise LibraryException(str(error))
 
             return func(*args, **kwargs)
 

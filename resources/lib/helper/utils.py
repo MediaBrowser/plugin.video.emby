@@ -162,15 +162,15 @@ def should_stop():
 
     ''' Checkpoint during the sync process.
     '''
-    if xbmc.Monitor().waitForAbort(0.00001):
-        return True
-
-    if window('emby_should_stop.bool'):
+    if xbmc.Monitor().waitForAbort(0.00001) or window('emby_should_stop.bool') or not window('emby_online.bool'):
         LOG.info("exiiiiitttinggg")
-        return True
 
-    if not window('emby_online.bool'):
-        return True
+        raise Exception('StopCalled')
+
+    if window('emby.sync.pause.bool'):
+        LOG.info("Stopping db writing!")
+
+        raise Exception('StopWriteCalled')
 
     return False
 
