@@ -556,23 +556,22 @@ def play_xml(playqueue, xml, offset=None, start_plex_id=None):
     Either supply the ratingKey of the starting Plex element. Or set
     playqueue.selectedItemID
     """
+    offset = int(offset) if offset else None
     LOG.info("play_xml called with offset %s, start_plex_id %s",
              offset, start_plex_id)
-    stack = _prep_playlist_stack(xml, offset=offset or 0)
+    start_item = start_plex_id if start_plex_id is not None \
+        else playqueue.selectedItemID
+    for startpos, video in enumerate(xml):
+        api = API(video)
+        if api.plex_id() == start_item:
+            break
+    else:
+        startpos = 0
+    stack = _prep_playlist_stack(xml, resume=False)
+    if offset:
+        stack[startpos]['resume'] = True
     _process_stack(playqueue, stack)
     LOG.debug('Playqueue after play_xml update: %s', playqueue)
-    if start_plex_id is not None:
-        for startpos, item in enumerate(playqueue.items):
-            if item.plex_id == start_plex_id:
-                break
-        else:
-            startpos = 0
-    else:
-        for startpos, item in enumerate(playqueue.items):
-            if item.id == playqueue.selectedItemID:
-                break
-        else:
-            startpos = 0
     thread = Thread(target=threaded_playback,
                     args=(playqueue.kodi_pl, startpos, offset))
     LOG.info('Done play_xml, starting Kodi player at position %s', startpos)
@@ -586,7 +585,7 @@ def threaded_playback(kodi_playlist, startpos, offset):
     app.APP.player.play(kodi_playlist, None, False, startpos)
     if offset and offset != '0':
         i = 0
-        while not app.APP.is_playing:
+        while not app.APP.is_playing or not js.get_player_ids():
             app.APP.monitor.waitForAbort(0.1)
             i += 1
             if i > 100:
