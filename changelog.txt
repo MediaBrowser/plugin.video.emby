@@ -1,3 +1,9 @@
+version 2.7.18 (beta only):
+- Fix Kodi always playing the same file version of a video if several are present
+- Also play trailers if user chose to resume movie from the beginning
+- Ask user whether to resume if using Direct Paths and user initiated playback via PMS
+- Fix video thrown by Plex Companion not resuming
+
 version 2.7.17 (beta only):
 - Another attempt to keep Kodi from crashing on playback startup
 
