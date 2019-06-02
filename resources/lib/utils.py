@@ -211,7 +211,8 @@ def dialog(typus, *args, **kwargs):
         'notification': dia.notification,
         'input': dia.input,
         'select': dia.select,
-        'numeric': dia.numeric
+        'numeric': dia.numeric,
+        'contextmenu': dia.contextmenu
     }
     return types[typus](*args, **kwargs)
 
