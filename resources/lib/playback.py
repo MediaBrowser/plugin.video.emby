@@ -353,6 +353,14 @@ def _prep_playlist_stack(xml, resume):
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
                 path = api.path(force_addon=True, force_first_media=True)
+                # Using different paths than the ones saved in the Kodi DB
+                # fixes Kodi immediately resuming the video if one restarts
+                # the same video again after playback
+                # WARNING: This fixes startup, but renders Kodi unstable
+                # path = path.replace('plugin.video.plexkodiconnect.tvshows',
+                #                     'plugin.video.plexkodiconnect', 1)
+                # path = path.replace('plugin.video.plexkodiconnect.movies',
+                #                     'plugin.video.plexkodiconnect', 1)
                 listitem = api.create_listitem()
                 listitem.setPath(path.encode('utf-8'))
             else:
