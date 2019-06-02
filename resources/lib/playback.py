@@ -53,7 +53,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         # playback
         app.PLAYSTATE.context_menu_play = False
         app.PLAYSTATE.force_transcode = False
-        app.PLAYSTATE.resume_playback = False
+        app.PLAYSTATE.resume_playback = None
 
 
 def _playback_triage(plex_id, plex_type, path, resolve):
@@ -132,6 +132,9 @@ def _playback_triage(plex_id, plex_type, path, resolve):
                 initiate = True
             else:
                 initiate = False
+        if not initiate and app.PLAYSTATE.resume_playback is not None:
+            LOG.debug('Detected re-playing of the same item')
+            initiate = True
         if initiate:
             _playback_init(plex_id, plex_type, playqueue, pos)
         else:
@@ -218,7 +221,7 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     elif app.SYNC.direct_paths:
         resume = False
     else:
-        resume = app.PLAYSTATE.resume_playback
+        resume = app.PLAYSTATE.resume_playback or False
     trailers = False
     if (not resume and plex_type == v.PLEX_TYPE_MOVIE and
             utils.settings('enableCinema') == "true"):
