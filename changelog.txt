@@ -1,3 +1,24 @@
+version 2.8.0:
+- Finally fix Kodi crashing on playback startup for add-on paths!
+- All the good stuff from 2.7.15-2.7.18 for everyone
+
+version 2.7.18 (beta only):
+- Fix Kodi always playing the same file version of a video if several are present
+- Also play trailers if user chose to resume movie from the beginning
+- Ask user whether to resume if using Direct Paths and user initiated playback via PMS
+- Fix video thrown by Plex Companion not resuming
+
+version 2.7.17 (beta only):
+- Another attempt to keep Kodi from crashing on playback startup
+
+version 2.7.16 (beta only):
+- Hopefully fix Kodi crashing on playback startup for good
+
+version 2.7.15 (beta only):
+- Hopefully fix Kodi crashing on playback startup
+- Refresh widgets only on homescreen to prevent cursor from jumping within libraries
+- Don't refresh container when user chose to delete or refresh an item from the context menu 
+
 version 2.7.14:
 - Correctly clear window variables e.g. on user switch
 - Reload skin on resetting PKC video nodes

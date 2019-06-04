@@ -1388,6 +1388,7 @@ class API(object):
                 option = cast(str, option.strip())
                 dialoglist.append(option)
             media = utils.dialog('select', 'Select stream', dialoglist)
+            LOG.info('User chose media stream number: %s', media)
             if media == -1:
                 LOG.info('User cancelled media stream selection')
                 return
