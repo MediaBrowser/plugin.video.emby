@@ -272,6 +272,7 @@ class Library(threading.Thread):
                 
                 new_thread = GetItemWorker(self.server, queue[0], queue[1])
                 LOG.info("-->[ q:download/%s ]", id(new_thread))
+                self.download_threads.append(new_thread)
 
     def worker_sort(self):
 
@@ -281,6 +282,7 @@ class Library(threading.Thread):
 
             new_thread = SortWorker(self.removed_queue, self.removed_output)
             LOG.info("-->[ q:sort/%s ]", id(new_thread))
+            self.emby_threads.append(new_thread)
 
     def worker_updates(self):
 
