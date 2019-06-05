@@ -202,6 +202,7 @@ class Player(xbmc.Player):
         ''' Safe to replace in child class.
             Will be called when user stops playing a file.
         '''
+        window('emby.sync.pause.bool', True)
         self.stop_playback()
         LOG.info("--<[ playback ]")
 
@@ -210,6 +211,7 @@ class Player(xbmc.Player):
         ''' Safe to replace in child class.
             Will be called when kodi stops playing a file.
         '''
+        window('emby.sync.pause.bool', True)
         self.stop_playback()
         LOG.info("--<<[ playback ]")
 

@@ -263,7 +263,6 @@ class Sync(object):
 
             if error.status in ('StopCalled', 'StopWriteCalled'):
                 save_sync(self.sync)
-                LOG.info("hello %s %s", error.status, self.sync)
 
                 raise
 
