@@ -106,8 +106,7 @@ class Monitor(xbmc.Monitor):
 
         ''' Safe to replace in child class.
         '''
-        return ('Player.OnPlay', 'Playlist.OnAdd', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear',
-                'Player.OnStop')
+        return ('Player.OnPlay', 'Playlist.OnAdd', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear')
 
     def onNotification(self, sender, method, data):
 
@@ -508,12 +507,6 @@ class Monitor(xbmc.Monitor):
                 item = server['api'].get_item(item[0])
                 item['PlaybackInfo'] = {'Path': file}
                 playutils.set_properties(item, 'DirectStream' if settings('useDirectPaths') == '0' else 'DirectPlay')
-
-    def Player_OnStop(self, server, data, *args, **kwargs):
-
-        ''' Stop any database writes to allow Kodi to write.
-        '''
-        window('emby.sync.pause.bool', True)
 
     def Playlist_OnClear(self, server, data, *args, **kwargs):
 
