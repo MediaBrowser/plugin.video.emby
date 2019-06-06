@@ -262,6 +262,7 @@ def _get_items(query, server_id=None):
 class GetItemWorker(threading.Thread):
 
     is_done = False
+    removed = []
 
     def __init__(self, server, queue, output):
 
@@ -272,6 +273,7 @@ class GetItemWorker(threading.Thread):
         self.start()
 
     def run(self):
+        count = 0
 
         with requests.Session() as s:
             while True:
@@ -281,21 +283,24 @@ class GetItemWorker(threading.Thread):
                 except Queue.Empty:
 
                     self.is_done = True
-                    LOG.info("--<[ q:download/%s ]", id(self))
+                    LOG.info("--<[ q:download/%s/%s ]", id(self), count)
+                    LOG.info("--[ q:download/remove ] %s", self.removed)
 
                     return
 
+                clean_list = [str(x) for x in item_ids]
                 request = {
                     'type': "GET",
                     'handler': "Users/{UserId}/Items",
                     'params': {
-                        'Ids': ','.join(str(x) for x in item_ids),
+                        'Ids': ','.join(clean_list),
                         'Fields': api.info()
                     }
                 }
 
                 try:
                     result = self.server['http/request'](request, s)
+                    self.removed.extend(list(set(clean_list) - set([str(x['Id']) for x in result['Items']])))
 
                     for item in result['Items']:
 
@@ -312,6 +317,7 @@ class GetItemWorker(threading.Thread):
                 except Exception as error:
                     LOG.exception(error)
 
+                count += len(clean_list)
                 self.queue.task_done()
 
                 if window('emby_should_stop.bool'):

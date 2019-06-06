@@ -137,8 +137,14 @@ class Library(threading.Thread):
             Start new "daemon threads" to process library updates.
             (actual daemon thread is not supported in Kodi)
         '''
-        for threads in (self.download_threads, self.writer_threads['updated'],
-                        self.writer_threads['userdata'], self.writer_threads['removed']):
+        for thread in self.download_threads:
+            if thread.is_done:
+
+                self.removed(thread.removed)
+                self.download_threads.remove(thread)
+
+        for threads in (self.writer_threads['updated'], self.writer_threads['userdata'],
+                        self.writer_threads['removed']):
             for thread in threads:
                 if thread.is_done:
                     threads.remove(thread)
