@@ -300,6 +300,7 @@ class QueuePlay(threading.Thread):
         play = None
         start_position = None
         position = None
+        playlist = None
         playlist_audio = False
 
         xbmc.sleep(200) # Let Kodi catch up
@@ -364,6 +365,7 @@ class QueuePlay(threading.Thread):
                     position = start_position + int(not playlist_audio)
 
                 if play_folder:
+                    play.info['KodiPlaylist'] = playlist
                     position = play.play_folder(position)
                 else:
                     if self.server.pending.count(params['Id']) != len(self.server.pending):
@@ -371,6 +373,7 @@ class QueuePlay(threading.Thread):
 
                     window('emby.playlist.start', str(start_position))
                     position = play.play(position)
+                    playlist = play.info['KodiPlaylist']
 
                     if play_folder:
                         objects.utils.enable_busy_dialog()
