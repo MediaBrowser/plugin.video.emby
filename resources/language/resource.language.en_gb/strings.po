@@ -1021,3 +1021,7 @@ msgstr ""
 msgctxt "#33211"
 msgid "Reset patch update"
 msgstr ""
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr ""

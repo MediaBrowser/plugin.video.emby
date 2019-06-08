@@ -154,7 +154,8 @@ def dialog(dialog_type, *args, **kwargs):
         'input': d.input,
         'select': d.select,
         'numeric': d.numeric,
-        'multi': d.multiselect
+        'multi': d.multiselect,
+        'textviewer': d.textviewer
     }
     return types[dialog_type](*args, **kwargs)
 
