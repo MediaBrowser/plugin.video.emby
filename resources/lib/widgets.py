@@ -8,18 +8,11 @@ e.g. plugin://... calls. Hence be careful to only rely on window variables.
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-try:
-    from multiprocessing.pool import ThreadPool
-    SUPPORTS_POOL = True
-except Exception:
-    SUPPORTS_POOL = False
 
 import xbmc
 import xbmcgui
 import xbmcvfs
 
-from .plex_api import API
-from .plex_db import PlexDB
 from . import json_rpc as js, utils, variables as v
 
 LOG = getLogger('PLEX.widget')
@@ -32,27 +25,6 @@ APPEND_SXXEXX = None
 SYNCHED = True
 # Need to chain the PMS keys
 KEY = None
-
-
-def process_method_on_list(method_to_run, items):
-    """
-    helper method that processes a method on each listitem with pooling if the
-    system supports it
-    """
-    all_items = []
-    if SUPPORTS_POOL:
-        pool = ThreadPool()
-        try:
-            all_items = pool.map(method_to_run, items)
-        except Exception:
-            # catch exception to prevent threadpool running forever
-            utils.ERROR(notify=True)
-        pool.close()
-        pool.join()
-    else:
-        all_items = [method_to_run(item) for item in items]
-    all_items = filter(None, all_items)
-    return all_items
 
 
 def get_clean_image(image):
@@ -82,7 +54,7 @@ def get_clean_image(image):
         return image.decode('utf-8')
 
 
-def generate_item(xml_element):
+def generate_item(api):
     """
     Meant to be consumed by metadatautils.kodidb.prepare_listitem(), and then
     subsequently by metadatautils.kodidb.create_listitem()
@@ -94,20 +66,19 @@ def generate_item(xml_element):
     The key 'file' needs to be set later with the item's path
     """
     try:
-        if xml_element.tag in ('Directory', 'Playlist', 'Hub'):
-            return _generate_folder(xml_element)
+        if api.tag in ('Directory', 'Playlist', 'Hub'):
+            return _generate_folder(api)
         else:
-            return _generate_content(xml_element)
+            return _generate_content(api)
     except Exception:
         # Usefull to catch everything here since we're using threadpool
         LOG.error('xml that caused the crash: "%s": %s',
-                  xml_element.tag, xml_element.attrib)
+                  api.tag, api.attrib)
         utils.ERROR(notify=True)
 
 
-def _generate_folder(xml_element):
+def _generate_folder(api):
     '''Generates "folder"/"directory" items that user can further navigate'''
-    api = API(xml_element)
     art = api.artwork()
     return {
         'title': api.title(),
@@ -128,60 +99,54 @@ def _generate_folder(xml_element):
     }
 
 
-def _generate_content(xml_element):
-    api = API(xml_element)
-    plex_type = api.plex_type()
-    kodi_type = v.KODITYPE_FROM_PLEXTYPE[plex_type]
-    userdata = api.userdata()
-    _, _, tvshowtitle, season_no, episode_no = api.episode_data()
-    db_item = xml_element.get('pkc_db_item')
-    if db_item:
+def _generate_content(api):
+    plex_type = api.plex_type
+    if api.kodi_id:
         # Item is synched to the Kodi db - let's use that info
         # (will thus e.g. include additional artwork or metadata)
-        item = js.item_details(db_item['kodi_id'], kodi_type)
+        item = js.item_details(api.kodi_id, api.kodi_type)
     else:
-        people = api.people()
         cast = [{
             'name': x[0],
             'thumbnail': x[1],
             'role': x[2],
             'order': x[3],
-        } for x in api.people_list()['actor']]
+        } for x in api.people()['actor']]
         item = {
             'cast': cast,
-            'country': api.country_list(),
+            'country': api.countries(),
             'dateadded': api.date_created(),  # e.g '2019-01-03 19:40:59'
-            'director': people['Director'],  # list of [str]
-            'duration': userdata['Runtime'],
-            'episode': episode_no,
+            'director': api.directors(),  # list of [str]
+            'duration': api.runtime(),
+            'episode': api.index(),
             # 'file': '',  # e.g. 'videodb://tvshows/titles/20'
-            'genre': api.genre_list(),
+            'genre': api.genres(),
             # 'imdbnumber': '',  # e.g.'341663'
             'label': api.title(),  # e.g. '1x05. Category 55 Emergency Doomsday Crisis'
-            'lastplayed': userdata['LastPlayedDate'],  # e.g. '2019-01-04 16:05:03'
+            'lastplayed': api.lastplayed(),  # e.g. '2019-01-04 16:05:03'
             'mpaa': api.content_rating(),  # e.g. 'TV-MA'
             'originaltitle': '',  # e.g. 'Titans (2018)'
-            'playcount': userdata['PlayCount'],  # [int]
+            'playcount': api.viewcount(),  # [int]
             'plot': api.plot(),  # [str]
             'plotoutline': api.tagline(),
             'premiered': api.premiere_date(),  # '2018-10-12'
-            'rating': api.audience_rating(),  # [float]
-            'season': season_no,
+            'rating': api.rating(),  # [float]
+            'season': api.season_number(),
             'sorttitle': api.sorttitle(),  # 'Titans (2018)'
-            'studio': api.music_studio_list(),  # e.g. 'DC Universe'
+            'studio': api.studios(),
             'tag': [],  # List of tags this item belongs to
             'tagline': api.tagline(),
             'thumbnail': '',  # e.g. 'image://https%3a%2f%2fassets.tv'
             'title': api.title(),  # 'Titans (2018)'
-            'type': kodi_type,
+            'type': api.kodi_type,
             'trailer': api.trailer(),
-            'tvshowtitle': tvshowtitle,
+            'tvshowtitle': api.show_title(),
             'uniqueid': {
                 'imdbnumber': api.provider('imdb') or '',
                 'tvdb_id': api.provider('tvdb') or ''
             },
             'votes': '0',  # [str]!
-            'writer': people['Writer'],  # list of [str]
+            'writer': api.writers(),  # list of [str]
             'year': api.year(),  # [int]
         }
 
@@ -206,18 +171,18 @@ def _generate_content(xml_element):
         if resume:
             item['resume'] = {
                 'position': resume,
-                'total': userdata['Runtime']
+                'total': api.runtime()
             }
 
     item['icon'] = v.ICON_FROM_PLEXTYPE[plex_type]
     # Some customization
     if plex_type == v.PLEX_TYPE_EPISODE:
         # Prefix to the episode's title/label
-        if season_no is not None and episode_no is not None:
+        if api.season_number() is not None and api.index() is not None:
             if APPEND_SXXEXX is True:
-                item['title'] = "S%.2dE%.2d - %s" % (season_no, episode_no, item['title'])
+                item['title'] = "S%.2dE%.2d - %s" % (api.season_number(), api.index(), item['title'])
         if APPEND_SHOW_TITLE is True:
-            item['title'] = "%s - %s " % (tvshowtitle, item['title'])
+            item['title'] = "%s - %s " % (api.show_title(), item['title'])
         item['label'] = item['title']
 
     # Determine the path for this item
@@ -226,34 +191,20 @@ def _generate_content(xml_element):
         params = {
             'mode': 'plex_node',
             'key': key,
-            'offset': xml_element.attrib.get('viewOffset', '0'),
+            'offset': api.resume_point_plex()
         }
         url = utils.extend_url('plugin://%s' % v.ADDON_ID, params)
     elif plex_type == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:
         url = api.path()
-    if not db_item and plex_type == v.PLEX_TYPE_EPISODE:
+    if not api.kodi_id and plex_type == v.PLEX_TYPE_EPISODE:
         # Hack - Item is not synched to the Kodi database
         # We CANNOT use paths that show up in the Kodi paths table!
         url = url.replace('plugin.video.plexkodiconnect.tvshows',
                           'plugin.video.plexkodiconnect')
     item['file'] = url
     return item
-
-
-def attach_kodi_ids(xml):
-    """
-    Attaches the kodi db_item to the xml's children, attribute 'pkc_db_item'
-    """
-    if not SYNCHED:
-        return
-    with PlexDB(lock=False) as plexdb:
-        for child in xml:
-            api = API(child)
-            db_item = plexdb.item_by_id(api.plex_id(), api.plex_type())
-            child.set('pkc_db_item', db_item)
-    return xml
 
 
 def prepare_listitem(item):
@@ -460,7 +411,8 @@ def prepare_listitem(item):
         LOG.error('item that caused crash: %s', item)
 
 
-def create_listitem(item, as_tuple=True, offscreen=True):
+def create_listitem(item, as_tuple=True, offscreen=True,
+                    listitem=xbmcgui.ListItem):
     """
     helper to create a kodi listitem from kodi compatible dict with mediainfo
 
@@ -472,13 +424,13 @@ def create_listitem(item, as_tuple=True, offscreen=True):
     """
     try:
         if v.KODIVERSION > 17:
-            liz = xbmcgui.ListItem(
+            liz = listitem(
                 label=item.get("label", ""),
                 label2=item.get("label2", ""),
                 path=item['file'],
                 offscreen=offscreen)
         else:
-            liz = xbmcgui.ListItem(
+            liz = listitem(
                 label=item.get("label", ""),
                 label2=item.get("label2", ""),
                 path=item['file'])
@@ -585,11 +537,9 @@ def create_listitem(item, as_tuple=True, offscreen=True):
         liz.setInfo(type=nodetype, infoLabels=infolabels)
 
         # artwork
-        liz.setArt(item.get("art", {}))
         if "icon" in item:
-            liz.setIconImage(item['icon'])
-        if "thumbnail" in item:
-            liz.setThumbnailImage(item['thumbnail'])
+            item['art']['icon'] = item['icon']
+        liz.setArt(item.get("art", {}))
 
         # contextmenu
         if item["type"] in ["episode", "season"] and "season" in item and "tvshowid" in item:
@@ -627,4 +577,3 @@ def create_main_entry(item):
         'type': '',
         'IsPlayable': 'false'
     }
-

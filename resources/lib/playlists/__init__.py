@@ -170,32 +170,32 @@ def _full_sync():
             return False
         api = API(xml_playlist)
         try:
-            old_plex_ids.remove(api.plex_id())
+            old_plex_ids.remove(api.plex_id)
         except ValueError:
             pass
         if not sync_plex_playlist(xml=xml_playlist):
             continue
-        playlist = db.get_playlist(plex_id=api.plex_id())
+        playlist = db.get_playlist(plex_id=api.plex_id)
         if not playlist:
             LOG.debug('New Plex playlist %s discovered: %s',
-                      api.plex_id(), api.title())
+                      api.plex_id, api.title())
             try:
-                kodi_pl.create(api.plex_id())
+                kodi_pl.create(api.plex_id)
             except PlaylistError:
-                LOG.info('Skipping creation of playlist %s', api.plex_id())
+                LOG.info('Skipping creation of playlist %s', api.plex_id)
         elif playlist.plex_updatedat != api.updated_at():
             LOG.debug('Detected changed Plex playlist %s: %s',
-                      api.plex_id(), api.title())
+                      api.plex_id, api.title())
             # Since we are DELETING a playlist, we need to catch with path!
             try:
                 kodi_pl.delete(playlist)
             except PlaylistError:
-                LOG.info('Skipping recreation of playlist %s', api.plex_id())
+                LOG.info('Skipping recreation of playlist %s', api.plex_id)
             else:
                 try:
-                    kodi_pl.create(api.plex_id())
+                    kodi_pl.create(api.plex_id)
                 except PlaylistError:
-                    LOG.info('Could not recreate playlist %s', api.plex_id())
+                    LOG.info('Could not recreate playlist %s', api.plex_id)
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
         if isCanceled():

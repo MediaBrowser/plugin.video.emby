@@ -20,6 +20,12 @@ from functools import wraps
 import hashlib
 import re
 import gc
+try:
+    from multiprocessing.pool import ThreadPool
+    SUPPORTS_POOL = True
+except Exception:
+    SUPPORTS_POOL = False
+
 
 import xbmc
 import xbmcaddon
@@ -928,6 +934,27 @@ def generate_file_md5(path):
                 break
             m.update(piece)
     return m.hexdigest().decode('utf-8')
+
+
+def process_method_on_list(method_to_run, items):
+    """
+    helper method that processes a method on each item with pooling if the
+    system supports it
+    """
+    all_items = []
+    if SUPPORTS_POOL:
+        pool = ThreadPool()
+        try:
+            all_items = pool.map(method_to_run, items)
+        except Exception:
+            # catch exception to prevent threadpool running forever
+            ERROR(notify=True)
+        pool.close()
+        pool.join()
+    else:
+        all_items = [method_to_run(item) for item in items]
+    all_items = filter(None, all_items)
+    return all_items
 
 
 ###############################################################################

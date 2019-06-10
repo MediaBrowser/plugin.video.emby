@@ -18,27 +18,26 @@ class TvShowMixin(object):
         """
         api = API(xml_element)
         # Get key and db entry on the Kodi db side
-        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        db_item = self.plexdb.item_by_id(api.plex_id, plex_type)
         if not db_item:
             LOG.info('Item not yet synced: %s', xml_element.attrib)
             return False
         # Grab the user's viewcount, resume points etc. from PMS' answer
-        userdata = api.userdata()
         self.kodidb.update_userrating(db_item['kodi_id'],
                                       db_item['kodi_type'],
-                                      userdata['UserRating'])
+                                      api.userrating())
         if plex_type == v.PLEX_TYPE_EPISODE:
             self.kodidb.set_resume(db_item['kodi_fileid'],
-                                   userdata['Resume'],
-                                   userdata['Runtime'],
-                                   userdata['PlayCount'],
-                                   userdata['LastPlayedDate'])
+                                   api.resume_point(),
+                                   api.runtime(),
+                                   api.viewcount(),
+                                   api.lastplayed())
             if db_item['kodi_fileid_2']:
                 self.kodidb.set_resume(db_item['kodi_fileid_2'],
-                                       userdata['Resume'],
-                                       userdata['Runtime'],
-                                       userdata['PlayCount'],
-                                       userdata['LastPlayedDate'])
+                                       api.resume_point(),
+                                       api.runtime(),
+                                       api.viewcount(),
+                                       api.lastplayed())
         return True
 
     def remove(self, plex_id, plex_type=None):
@@ -149,7 +148,7 @@ class Show(TvShowMixin, ItemBase):
         Process a single show
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
             return
@@ -162,16 +161,11 @@ class Show(TvShowMixin, ItemBase):
             kodi_id = show['kodi_id']
             kodi_pathid = show['kodi_pathid']
 
-        genres = api.genre_list()
-        genre = api.list_to_string(genres)
-        studios = api.music_studio_list()
-        studio = api.list_to_string(studios)
-
         # GET THE FILE AND PATH #####
         if app.SYNC.direct_paths:
             # Direct paths is set the Kodi way
             playurl = api.validate_playurl(api.tv_show_path(),
-                                           api.plex_type(),
+                                           api.plex_type,
                                            folder=True)
             if playurl is None:
                 return
@@ -197,7 +191,7 @@ class Show(TvShowMixin, ItemBase):
             self.kodidb.update_ratings(kodi_id,
                                        v.KODI_TYPE_SHOW,
                                        "default",
-                                       api.audience_rating(),
+                                       api.rating(),
                                        api.votecount(),
                                        rating_id)
             if api.provider('tvdb') is not None:
@@ -213,7 +207,7 @@ class Show(TvShowMixin, ItemBase):
                 uniqueid = -1
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_SHOW,
-                                      api.people_list())
+                                      api.people())
             if app.SYNC.artwork:
                 self.kodidb.modify_artwork(api.artwork(),
                                            kodi_id,
@@ -223,11 +217,11 @@ class Show(TvShowMixin, ItemBase):
                                     api.plot(),
                                     rating_id,
                                     api.premiere_date(),
-                                    genre,
+                                    api.list_to_string(api.genres()),
                                     api.title(),
                                     uniqueid,
                                     api.content_rating(),
-                                    studio,
+                                    api.list_to_string(api.studios()),
                                     api.sorttitle(),
                                     kodi_id)
         # OR ADD THE TVSHOW #####
@@ -240,7 +234,7 @@ class Show(TvShowMixin, ItemBase):
                                     kodi_id,
                                     v.KODI_TYPE_SHOW,
                                     "default",
-                                    api.audience_rating(),
+                                    api.rating(),
                                     api.votecount())
             if api.provider('tvdb'):
                 uniqueid = self.kodidb.add_uniqueid_id()
@@ -253,7 +247,7 @@ class Show(TvShowMixin, ItemBase):
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_SHOW,
-                                   api.people_list())
+                                   api.people())
             if app.SYNC.artwork:
                 self.kodidb.add_artwork(api.artwork(),
                                         kodi_id,
@@ -264,18 +258,18 @@ class Show(TvShowMixin, ItemBase):
                                  api.plot(),
                                  rating_id,
                                  api.premiere_date(),
-                                 genre,
+                                 api.list_to_string(api.genres()),
                                  api.title(),
                                  uniqueid,
                                  api.content_rating(),
-                                 studio,
+                                 api.list_to_string(api.studios()),
                                  api.sorttitle())
-        self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_SHOW, genres)
+        self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_SHOW, api.genres())
         # Process studios
-        self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_SHOW, studios)
+        self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_SHOW, api.studios())
         # Process tags: view, PMS collection tags
         tags = [section_name]
-        tags.extend([i for _, i in api.collection_list()])
+        tags.extend([i for _, i in api.collections()])
         self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_SHOW, tags)
         self.plexdb.add_show(plex_id=plex_id,
                              checksum=api.checksum(),
@@ -292,7 +286,7 @@ class Season(TvShowMixin, ItemBase):
         Process a single season of a certain tv show
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error('Error getting plex_id for season, skipping: %s',
                       xml.attrib)
@@ -339,7 +333,7 @@ class Season(TvShowMixin, ItemBase):
                                            v.KODI_TYPE_SEASON)
         else:
             LOG.info('ADD season plex_id %s - %s', plex_id, api.title())
-            kodi_id = self.kodidb.add_season(parent_id, api.season_number())
+            kodi_id = self.kodidb.add_season(parent_id, api.index())
             if app.SYNC.artwork:
                 self.kodidb.add_artwork(artwork,
                                         kodi_id,
@@ -360,7 +354,7 @@ class Episode(TvShowMixin, ItemBase):
         Process single episode
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error('Error getting plex_id for episode, skipping: %s',
                       xml.attrib)
@@ -376,58 +370,48 @@ class Episode(TvShowMixin, ItemBase):
             old_kodi_fileid_2 = episode['kodi_fileid_2']
             kodi_pathid = episode['kodi_pathid']
 
-        peoples = api.people()
-        director = api.list_to_string(peoples['Director'])
-        writer = api.list_to_string(peoples['Writer'])
-        userdata = api.userdata()
-        show_id, season_id, _, season_no, episode_no = api.episode_data()
-
-        if season_no is None:
-            season_no = -1
-        if episode_no is None:
-            episode_no = -1
         airs_before_season = "-1"
         airs_before_episode = "-1"
 
         # The grandparent TV show
-        show = self.plexdb.show(show_id)
+        show = self.plexdb.show(api.show_id())
         if not show:
-            LOG.warn('Grandparent TV show %s not found in DB, adding it', show_id)
-            show_xml = PF.GetPlexMetadata(show_id)
+            LOG.warn('Grandparent TV show %s not found in DB, adding it', api.show_id())
+            show_xml = PF.GetPlexMetadata(api.show_id())
             try:
                 show_xml[0].attrib
             except (TypeError, IndexError, AttributeError):
-                LOG.error("Grandparent tvshow %s xml download failed", show_id)
+                LOG.error("Grandparent tvshow %s xml download failed", api.show_id())
                 return False
             Show(self.last_sync,
                  plexdb=self.plexdb,
                  kodidb=self.kodidb).add_update(show_xml[0],
                                                 section_name,
                                                 section_id)
-            show = self.plexdb.show(show_id)
+            show = self.plexdb.show(api.show_id())
             if not show:
-                LOG.error('Still could not find grandparent tv show %s', show_id)
+                LOG.error('Still could not find grandparent tv show %s', api.show_id())
                 return
         grandparent_id = show['kodi_id']
 
         # The parent Season
-        season = self.plexdb.season(season_id)
-        if not season and season_id:
-            LOG.warn('Parent season %s not found in DB, adding it', season_id)
-            season_xml = PF.GetPlexMetadata(season_id)
+        season = self.plexdb.season(api.season_id())
+        if not season and api.season_id():
+            LOG.warn('Parent season %s not found in DB, adding it', api.season_id())
+            season_xml = PF.GetPlexMetadata(api.season_id())
             try:
                 season_xml[0].attrib
             except (TypeError, IndexError, AttributeError):
-                LOG.error("Parent season %s xml download failed", season_id)
+                LOG.error("Parent season %s xml download failed", api.season_id())
                 return False
             Season(self.last_sync,
                    plexdb=self.plexdb,
                    kodidb=self.kodidb).add_update(season_xml[0],
                                                   section_name,
                                                   section_id)
-            season = self.plexdb.season(season_id)
+            season = self.plexdb.season(api.season_id())
             if not season:
-                LOG.error('Still could not find parent season %s', season_id)
+                LOG.error('Still could not find parent season %s', api.season_id())
                 return
         parent_id = season['kodi_id'] if season else None
 
@@ -453,7 +437,7 @@ class Episode(TvShowMixin, ItemBase):
             # Set plugin path - do NOT use "intermediate" paths for the show
             # as with direct paths!
             filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, show_id)
+            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, api.show_id())
             filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
                         % (path, plex_id, v.PLEX_TYPE_EPISODE, filename))
             playurl = filename
@@ -491,7 +475,7 @@ class Episode(TvShowMixin, ItemBase):
             self.kodidb.update_ratings(kodi_id,
                                        v.KODI_TYPE_EPISODE,
                                        "default",
-                                       userdata['Rating'],
+                                       api.rating(),
                                        api.votecount(),
                                        ratingid)
             if api.provider('tvdb'):
@@ -507,7 +491,7 @@ class Episode(TvShowMixin, ItemBase):
                 uniqueid = -1
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_EPISODE,
-                                      api.people_list())
+                                      api.people())
             if app.SYNC.artwork:
                 self.kodidb.modify_artwork(api.artwork(),
                                            kodi_id,
@@ -515,12 +499,12 @@ class Episode(TvShowMixin, ItemBase):
             self.kodidb.update_episode(api.title(),
                                        api.plot(),
                                        ratingid,
-                                       writer,
+                                       api.list_to_string(api.writers()),
                                        api.premiere_date(),
                                        api.runtime(),
-                                       director,
-                                       season_no,
-                                       episode_no,
+                                       api.list_to_string(api.directors()),
+                                       api.season_number(),
+                                       api.index(),
                                        api.title(),
                                        airs_before_season,
                                        airs_before_episode,
@@ -528,25 +512,25 @@ class Episode(TvShowMixin, ItemBase):
                                        kodi_pathid,
                                        kodi_fileid,  # and NOT kodi_fileid_2
                                        parent_id,
-                                       userdata['UserRating'],
+                                       api.userrating(),
                                        kodi_id)
             self.kodidb.set_resume(kodi_fileid,
                                    api.resume_point(),
                                    api.runtime(),
-                                   userdata['PlayCount'],
-                                   userdata['LastPlayedDate'])
+                                   api.viewcount(),
+                                   api.lastplayed())
             if not app.SYNC.direct_paths:
                 self.kodidb.set_resume(kodi_fileid_2,
                                        api.resume_point(),
                                        api.runtime(),
-                                       userdata['PlayCount'],
-                                       userdata['LastPlayedDate'])
+                                       api.viewcount(),
+                                       api.lastplayed())
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
                                     section_id=section_id,
-                                    show_id=show_id,
+                                    show_id=api.show_id(),
                                     grandparent_id=grandparent_id,
-                                    season_id=season_id,
+                                    season_id=api.season_id(),
                                     parent_id=parent_id,
                                     kodi_id=kodi_id,
                                     kodi_fileid=kodi_fileid,
@@ -571,7 +555,7 @@ class Episode(TvShowMixin, ItemBase):
                                     kodi_id,
                                     v.KODI_TYPE_EPISODE,
                                     "default",
-                                    userdata['Rating'],
+                                    api.rating(),
                                     api.votecount())
             if api.provider('tvdb'):
                 uniqueid = self.kodidb.add_uniqueid_id()
@@ -582,7 +566,7 @@ class Episode(TvShowMixin, ItemBase):
                                          "tvdb")
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
-                                   api.people_list())
+                                   api.people())
             if app.SYNC.artwork:
                 self.kodidb.add_artwork(api.artwork(),
                                         kodi_id,
@@ -592,12 +576,12 @@ class Episode(TvShowMixin, ItemBase):
                                     api.title(),
                                     api.plot(),
                                     rating_id,
-                                    writer,
+                                    api.list_to_string(api.writers()),
                                     api.premiere_date(),
                                     api.runtime(),
-                                    director,
-                                    season_no,
-                                    episode_no,
+                                    api.list_to_string(api.directors()),
+                                    api.season_number(),
+                                    api.index(),
                                     api.title(),
                                     grandparent_id,
                                     airs_before_season,
@@ -605,24 +589,24 @@ class Episode(TvShowMixin, ItemBase):
                                     playurl,
                                     kodi_pathid,
                                     parent_id,
-                                    userdata['UserRating'])
+                                    api.userrating())
             self.kodidb.set_resume(kodi_fileid,
                                    api.resume_point(),
                                    api.runtime(),
-                                   userdata['PlayCount'],
-                                   userdata['LastPlayedDate'])
+                                   api.viewcount(),
+                                   api.lastplayed())
             if not app.SYNC.direct_paths:
                 self.kodidb.set_resume(kodi_fileid_2,
                                        api.resume_point(),
                                        api.runtime(),
-                                       userdata['PlayCount'],
-                                       userdata['LastPlayedDate'])
+                                       api.viewcount(),
+                                       api.lastplayed())
             self.plexdb.add_episode(plex_id=plex_id,
                                     checksum=api.checksum(),
                                     section_id=section_id,
-                                    show_id=show_id,
+                                    show_id=api.show_id(),
                                     grandparent_id=grandparent_id,
-                                    season_id=season_id,
+                                    season_id=api.season_id(),
                                     parent_id=parent_id,
                                     kodi_id=kodi_id,
                                     kodi_fileid=kodi_fileid,

@@ -56,7 +56,7 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
                 [(utils.cast(int, x.get('index')),
                   utils.cast(int, x.get('ratingKey'))) for x in COLLECTION_MATCH]
         item['children'] = {}
-        for plex_set_id, set_name in api.collection_list():
+        for plex_set_id, set_name in api.collections():
             if self.isCanceled():
                 return
             if plex_set_id not in COLLECTION_XMLS:

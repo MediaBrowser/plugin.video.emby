@@ -15,7 +15,7 @@ from xbmcgui import ListItem
 from . import utils
 from . import path_ops
 from .downloadutils import DownloadUtils as DU
-from .plex_api import API
+from .plex_api import API, mass_api
 from . import plex_functions as PF
 from . import variables as v
 # Be careful - your using app in another Python instance!
@@ -217,13 +217,13 @@ def show_listing(xml, plex_type=None, section_id=None, synched=True, key=None,
         # Need to chain keys for navigation
         widgets.KEY = key
     # Process all items to show
-    widgets.attach_kodi_ids(xml)
-    all_items = widgets.process_method_on_list(widgets.generate_item, xml)
-    all_items = widgets.process_method_on_list(widgets.prepare_listitem,
-                                               all_items)
+    all_items = mass_api(xml)
+    all_items = utils.process_method_on_list(widgets.generate_item, all_items)
+    all_items = utils.process_method_on_list(widgets.prepare_listitem,
+                                             all_items)
     # fill that listing...
-    all_items = widgets.process_method_on_list(widgets.create_listitem,
-                                               all_items)
+    all_items = utils.process_method_on_list(widgets.create_listitem,
+                                             all_items)
     xbmcplugin.addDirectoryItems(int(sys.argv[1]), all_items, len(all_items))
     # end directory listing
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -397,13 +397,13 @@ def hub(content_type):
     for entry in reversed(xml):
         api = API(entry)
         append = False
-        if content_type == 'video' and api.plex_type() in v.PLEX_VIDEOTYPES:
+        if content_type == 'video' and api.plex_type in v.PLEX_VIDEOTYPES:
             append = True
-        elif content_type == 'audio' and api.plex_type() in v.PLEX_AUDIOTYPES:
+        elif content_type == 'audio' and api.plex_type in v.PLEX_AUDIOTYPES:
             append = True
-        elif content_type == 'image' and api.plex_type() == v.PLEX_TYPE_PHOTO:
+        elif content_type == 'image' and api.plex_type == v.PLEX_TYPE_PHOTO:
             append = True
-        elif content_type != 'image' and api.plex_type() == v.PLEX_TYPE_PLAYLIST:
+        elif content_type != 'image' and api.plex_type == v.PLEX_TYPE_PLAYLIST:
             append = True
         elif content_type is None:
             # Needed for widgets, where no content_type is provided
