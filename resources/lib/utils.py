@@ -292,7 +292,16 @@ def cast(func, value):
             return value
         else:
             return value.encode('utf-8')
-    elif func in (int, float):
+    elif func == int:
+        try:
+            return func(value)
+        except ValueError:
+            try:
+                # Converting e.g. '8.0' fails; need to convert to float first
+                return int(float(value))
+            except ValueError:
+                return float('nan')
+    elif func == float:
         try:
             return func(value)
         except ValueError:
