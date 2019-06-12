@@ -138,12 +138,12 @@ class File(object):
                 return
         try:
             if force_first_media is False:
-                ans = cast(str, self.xml[self.mediastream][self.part].attrib['file'])
+                ans = self.xml[self.mediastream][self.part].attrib['file']
             else:
-                ans = cast(str, self.xml[0][self.part].attrib['file'])
+                ans = self.xml[0][self.part].attrib['file']
         except (TypeError, AttributeError, IndexError, KeyError):
             return
-        return utils.unquote(ans)
+        return ans
 
     def get_picture_path(self):
         """
