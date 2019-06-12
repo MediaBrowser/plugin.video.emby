@@ -313,9 +313,8 @@ def process_playing(data):
                           plex_id)
                 continue
             api = API(xml[0])
-            userdata = api.userdata()
-            session['duration'] = userdata['Runtime']
-            session['viewCount'] = userdata['PlayCount']
+            session['duration'] = api.runtime()
+            session['viewCount'] = api.viewcount()
         # Sometimes, Plex tells us resume points in milliseconds and
         # not in seconds - thank you very much!
         if message['viewOffset'] > session['duration']:

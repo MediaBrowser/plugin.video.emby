@@ -177,7 +177,7 @@ class Section(object):
         api = API(xml_element)
         self.section_id = utils.cast(int, xml_element.get('key'))
         self.name = api.title()
-        self.section_type = api.plex_type()
+        self.section_type = api.plex_type
         self.icon = api.one_artwork('composite')
         self.artwork = api.one_artwork('art')
         self.thumb = api.one_artwork('thumb')

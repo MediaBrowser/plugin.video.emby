@@ -66,7 +66,7 @@ class PlayUtils():
         if path is not None and path.endswith('.strm'):
             LOG.info('.strm file detected')
             playurl = self.api.validate_playurl(path,
-                                                self.api.plex_type(),
+                                                self.api.plex_type,
                                                 force_check=True)
             return playurl
         # set to either 'Direct Stream=1' or 'Transcode=2'
@@ -78,7 +78,7 @@ class PlayUtils():
         if self.mustTranscode():
             return
         return self.api.validate_playurl(path,
-                                         self.api.plex_type(),
+                                         self.api.plex_type,
                                          force_check=True)
 
     def mustTranscode(self):
@@ -93,7 +93,7 @@ class PlayUtils():
             - video bitrate above specified settings bitrate
         if the corresponding file settings are set to 'true'
         """
-        if self.api.plex_type() in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
+        if self.api.plex_type in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_SONG):
             LOG.info('Plex clip or music track, not transcoding')
             return False
         videoCodec = self.api.video_codec()
@@ -139,7 +139,7 @@ class PlayUtils():
 
     def isDirectStream(self):
         # Never transcode Music
-        if self.api.plex_type() == 'track':
+        if self.api.plex_type == 'track':
             return True
         # set to 'Transcode=2'
         if utils.settings('playType') == "2":

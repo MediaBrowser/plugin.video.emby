@@ -134,7 +134,8 @@ def convert_pkc_to_listitem(pkc_listitem):
     data = pkc_listitem.data
     listitem = xbmcgui.ListItem(label=data.get('label'),
                                 label2=data.get('label2'),
-                                path=data.get('path'))
+                                path=data.get('path'),
+                                offscreen=True)
     if data['info']:
         listitem.setInfo(**data['info'])
     for stream in data['stream_info']:
@@ -147,6 +148,8 @@ def convert_pkc_to_listitem(pkc_listitem):
         listitem.setProperty(key, cast(str, value))
     if data['subtitles']:
         listitem.setSubtitles(data['subtitles'])
+    if data['contextmenu']:
+        listitem.addContextMenuItems(data['contextmenu'])
     return listitem
 
 
@@ -157,7 +160,7 @@ class PKCListItem(object):
 
     WARNING: set/get path only via setPath and getPath! (not getProperty)
     """
-    def __init__(self, label=None, label2=None, path=None):
+    def __init__(self, label=None, label2=None, path=None, offscreen=True):
         self.data = {
             'stream_info': [],  # (type, values: dict { label: value })
             'art': {},  # dict
@@ -167,9 +170,10 @@ class PKCListItem(object):
             'path': path,  # string
             'property': {},  # (key, value)
             'subtitles': [],  # strings
+            'contextmenu': None
         }
 
-    def addContextMenuItems(self, items, replaceItems):
+    def addContextMenuItems(self, items):
         """
         Adds item(s) to the context menu for media lists.
 
@@ -187,7 +191,7 @@ class PKCListItem(object):
 
          Once you use a keyword, all following arguments require the keyword.
         """
-        raise NotImplementedError
+        self.data['contextmenu'] = items
 
     def addStreamInfo(self, type, values):
         """

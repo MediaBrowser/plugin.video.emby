@@ -332,11 +332,11 @@ def _prep_playlist_stack(xml, resume):
     for i, item in enumerate(xml):
         api = API(item)
         if (app.PLAYSTATE.context_menu_play is False and
-                api.plex_type() not in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_EPISODE)):
+                api.plex_type not in (v.PLEX_TYPE_CLIP, v.PLEX_TYPE_EPISODE)):
             # If user chose to play via PMS or force transcode, do not
             # use the item path stored in the Kodi DB
             with PlexDB(lock=False) as plexdb:
-                db_item = plexdb.item_by_id(api.plex_id(), api.plex_type())
+                db_item = plexdb.item_by_id(api.plex_id, api.plex_type)
             kodi_id = db_item['kodi_id'] if db_item else None
             kodi_type = db_item['kodi_type'] if db_item else None
         else:
@@ -349,7 +349,7 @@ def _prep_playlist_stack(xml, resume):
             kodi_id = None
             kodi_type = None
         for part, _ in enumerate(item[0]):
-            api.set_part_number(part)
+            api.part = part
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
                 path = api.path(force_addon=True, force_first_media=True)
@@ -361,7 +361,7 @@ def _prep_playlist_stack(xml, resume):
                 #                     'plugin.video.plexkodiconnect', 1)
                 # path = path.replace('plugin.video.plexkodiconnect.movies',
                 #                     'plugin.video.plexkodiconnect', 1)
-                listitem = api.create_listitem()
+                listitem = api.listitem()
                 listitem.setPath(path.encode('utf-8'))
             else:
                 # Will add directly via the Kodi DB
@@ -458,16 +458,16 @@ def _conclude_playback(playqueue, pos):
             return PKC listitem attached to result
     """
     LOG.info('Concluding playback for playqueue position %s', pos)
-    listitem = transfer.PKCListItem()
     item = playqueue.items[pos]
     if item.xml is not None:
         # Got a Plex element
         api = API(item.xml)
-        api.set_part_number(item.part)
-        api.create_listitem(listitem)
+        api.part = item.part or 0
+        listitem = api.listitem(listitem=transfer.PKCListItem)
         playutils = PlayUtils(api, item)
         playurl = playutils.getPlayUrl()
     else:
+        listitem = transfer.PKCListItem()
         api = None
         playurl = item.file
     if not playurl:
@@ -514,10 +514,9 @@ def process_indirect(key, offset, resolve=True):
         return
 
     api = API(xml[0])
-    listitem = transfer.PKCListItem()
-    api.create_listitem(listitem)
+    listitem = api.listitem(listitem=transfer.PKCListItem)
     playqueue = PQ.get_playqueue_from_type(
-        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
+        v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
     playqueue.clear()
     item = PL.Playlist_Item()
     item.xml = xml[0]
@@ -574,7 +573,7 @@ def play_xml(playqueue, xml, offset=None, start_plex_id=None):
         else playqueue.selectedItemID
     for startpos, video in enumerate(xml):
         api = API(video)
-        if api.plex_id() == start_item:
+        if api.plex_id == start_item:
             break
     else:
         startpos = 0

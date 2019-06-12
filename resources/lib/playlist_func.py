@@ -423,8 +423,8 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
     """
     item = Playlist_Item()
     api = API(xml_video_element)
-    item.plex_id = api.plex_id()
-    item.plex_type = api.plex_type()
+    item.plex_id = api.plex_id
+    item.plex_type = api.plex_type
     # item.id will only be set if you passed in an xml_video_element from e.g.
     # a playQueue
     item.id = api.item_id()
