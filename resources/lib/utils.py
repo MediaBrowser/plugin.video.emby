@@ -268,11 +268,13 @@ class AttributeDict(dict):
 
 def cast(func, value):
     """
-    Cast the specified value to the specified type (returned by func). Currently this
-    only support int, float, bool. Should be extended if needed.
+    Cast the specified value to the specified type (returned by func). Currently
+    this only support int, float, bool. Should be extended if needed.
     Parameters:
         func (func): Calback function to used cast to type (int, bool, float).
         value (any): value to be cast and returned.
+
+    Returns None if something goes wrong
     """
     if value is None:
         return value
@@ -294,18 +296,18 @@ def cast(func, value):
             return value.encode('utf-8')
     elif func == int:
         try:
-            return func(value)
+            return int(value)
         except ValueError:
             try:
                 # Converting e.g. '8.0' fails; need to convert to float first
                 return int(float(value))
             except ValueError:
-                return float('nan')
+                return
     elif func == float:
         try:
-            return func(value)
+            return float(value)
         except ValueError:
-            return float('nan')
+            return
     return func(value)
 
 

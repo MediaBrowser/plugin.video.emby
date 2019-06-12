@@ -21,32 +21,47 @@ WINDOW_COMMAND = 'plexkodiconnect.command'.encode('utf-8')
 
 def cast(func, value):
     """
-    Cast the specified value to the specified type (returned by func). Currently this
-    only support int, float, bool. Should be extended if needed.
+    Cast the specified value to the specified type (returned by func). Currently
+    this only support int, float, bool. Should be extended if needed.
     Parameters:
         func (func): Calback function to used cast to type (int, bool, float).
         value (any): value to be cast and returned.
+
+    Returns None if something goes wrong
     """
-    if value is not None:
-        if func == bool:
-            return bool(int(value))
-        elif func == unicode:
-            if isinstance(value, (int, long, float)):
-                return unicode(value)
-            else:
-                return value.decode('utf-8')
-        elif func == str:
-            if isinstance(value, (int, long, float)):
-                return str(value)
-            else:
-                return value.encode('utf-8')
-        elif func in (int, float):
+    if value is None:
+        return value
+    elif func == bool:
+        return bool(int(value))
+    elif func == unicode:
+        if isinstance(value, (int, long, float)):
+            return unicode(value)
+        elif isinstance(value, unicode):
+            return value
+        else:
+            return value.decode('utf-8')
+    elif func == str:
+        if isinstance(value, (int, long, float)):
+            return str(value)
+        elif isinstance(value, str):
+            return value
+        else:
+            return value.encode('utf-8')
+    elif func == int:
+        try:
+            return int(value)
+        except ValueError:
             try:
-                return func(value)
+                # Converting e.g. '8.0' fails; need to convert to float first
+                return int(float(value))
             except ValueError:
-                return float('nan')
-        return func(value)
-    return value
+                return
+    elif func == float:
+        try:
+            return float(value)
+        except ValueError:
+            return
+    return func(value)
 
 
 def kodi_window(property, value=None, clear=False):
