@@ -428,9 +428,13 @@ class FullSync(common.fullsync_mixin):
             if self.isCanceled() or not self.full_library_sync():
                 self.successful = False
                 return
-            if common.PLAYLIST_SYNC_ENABLED and not playlists.full_sync():
-                self.successful = False
-                return
+            if common.PLAYLIST_SYNC_ENABLED:
+                if self.dialog:
+                    self.dialog.close()
+                    self.dialog = xbmcgui.DialogProgressBG()
+                    self.dialog.create(utils.lang(39715))
+                if not playlists.full_sync():
+                    self.successful = False
         finally:
             common.update_kodi_library(video=True, music=True)
             if self.dialog:
