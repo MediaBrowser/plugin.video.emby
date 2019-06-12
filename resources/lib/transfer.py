@@ -12,7 +12,6 @@ import xbmc
 import xbmcgui
 
 LOG = getLogger('PLEX.transfer')
-MONITOR = xbmc.Monitor()
 WINDOW = xbmcgui.Window(10000)
 WINDOW_UPSTREAM = 'plexkodiconnect.result.upstream'.encode('utf-8')
 WINDOW_DOWNSTREAM = 'plexkodiconnect.result.downstream'.encode('utf-8')
@@ -67,8 +66,7 @@ def plex_command(value):
     safe - let's hope the Kodi user can't click fast enough
     """
     while kodi_window(WINDOW_COMMAND):
-        if MONITOR.waitForAbort(20):
-            return
+        xbmc.sleep(50)
     kodi_window(WINDOW_COMMAND, value=value)
 
 
@@ -114,6 +112,7 @@ def wait_for_transfer(source='main'):
     Set source='default' if you wait for data FROM another Python default.py
     instance, 'main' if your default.py needs to wait for the main thread
     """
+    LOG.debug('Waiting for transfer from %s', source)
     window = WINDOW_DOWNSTREAM if source == 'main' else WINDOW_UPSTREAM
     result = ''
     while not result:
@@ -123,8 +122,7 @@ def wait_for_transfer(source='main'):
             LOG.debug('Received')
             result = json.loads(result)
             return de_serialize(result)
-        elif MONITOR.waitForAbort(0.05):
-            return
+        xbmc.sleep(50)
 
 
 def convert_pkc_to_listitem(pkc_listitem):
