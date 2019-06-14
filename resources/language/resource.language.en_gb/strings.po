@@ -1308,6 +1308,10 @@ msgctxt "#39501"
 msgid "Collections"
 msgstr ""
 
+msgctxt "#39502"
+msgid "PKC On Deck (faster)"
+msgstr ""
+
 msgctxt "#39600"
 msgid "Are you sure you want to reset your local Kodi database? A re-sync of the Plex data will take time afterwards."
 msgstr ""

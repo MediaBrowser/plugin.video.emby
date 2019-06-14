@@ -28,6 +28,11 @@ NODE_TYPES = {
          },
          'movies',
          True),
+        ('pkc_ondeck',
+         utils.lang(39502),  # "PKC On Deck (faster)"
+         {},
+         'movies',
+         False),
         ('recent',
          utils.lang(30174),  # "Recently Added"
          {
@@ -241,6 +246,29 @@ def node_pms(section, node_name, args):
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
     etree.SubElement(xml, 'path').text = section.addon_path(args)
+    return xml
+
+
+def node_pkc_ondeck(section, node_name):
+    """
+    For movies only - returns in-progress movies sorted by last played
+    """
+    xml = etree.Element('node', attrib={'order': unicode(section.order),
+                                        'type': 'filter'})
+    etree.SubElement(xml, 'match').text = 'all'
+    rule = etree.SubElement(xml, 'rule', attrib={'field': 'tag',
+                                                 'operator': 'is'})
+    etree.SubElement(rule, 'value').text = section.name
+    etree.SubElement(xml, 'rule', attrib={'field': 'inprogress',
+                                          'operator': 'true'})
+    etree.SubElement(xml, 'label').text = node_name
+    etree.SubElement(xml, 'icon').text = ICON_PATH
+    etree.SubElement(xml, 'content').text = section.content
+    etree.SubElement(xml, 'limit').text = utils.settings('widgetLimit')
+    etree.SubElement(xml,
+                     'order',
+                     attrib={'direction':
+                             'descending'}).text = 'lastplayed'
     return xml
 
 
