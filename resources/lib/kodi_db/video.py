@@ -611,8 +611,9 @@ class KodiVideoDB(common.KodiDBBase):
         # Delete existing resume point
         self.cursor.execute('DELETE FROM bookmark WHERE idFile = ?', (file_id,))
         # Set watched count
+        # Be careful to set playCount to None, NOT the int zero!
         self.cursor.execute('UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?',
-                            (playcount, dateplayed, file_id))
+                            (playcount or None, dateplayed, file_id))
         # Set the resume bookmark
         if resume_seconds:
             self.cursor.execute(
