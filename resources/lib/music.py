@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from .plex_api import API
+from .plex_api.media import Media
 from . import utils
 from . import variables as v
 
@@ -23,7 +23,7 @@ def excludefromscan_music_folders(sections):
     """
     paths = []
     reboot = False
-    api = API(item=None)
+    api = Media()
     for section in sections:
         if section.section_type != v.PLEX_TYPE_ARTIST:
             # Only look at music libraries
