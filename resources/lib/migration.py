@@ -36,4 +36,10 @@ def check_migration():
         from .library_sync.sections import delete_files
         delete_files()
 
+    if not utils.compare_version(last_migration, '2.8.3'):
+        LOG.info('Migrating to version 2.8.2')
+        from .library_sync import sections
+        sections.clear_window_vars()
+        sections.delete_videonode_files()
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
