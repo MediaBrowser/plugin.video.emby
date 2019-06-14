@@ -266,6 +266,7 @@ def node_recent(section, node_name):
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
+    etree.SubElement(xml, 'limit').text = utils.settings('widgetLimit')
     etree.SubElement(xml,
                      'order',
                      attrib={'direction':
@@ -303,6 +304,7 @@ def node_recommended(section, node_name):
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
+    etree.SubElement(xml, 'limit').text = utils.settings('widgetLimit')
     etree.SubElement(xml,
                      'order',
                      attrib={'direction':
@@ -357,6 +359,7 @@ def node_random(section, node_name):
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
+    etree.SubElement(xml, 'limit').text = utils.settings('widgetLimit')
     etree.SubElement(xml,
                      'order',
                      attrib={'direction':
@@ -377,6 +380,7 @@ def node_lastplayed(section, node_name):
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
+    etree.SubElement(xml, 'limit').text = utils.settings('widgetLimit')
     etree.SubElement(xml,
                      'order',
                      attrib={'direction':
