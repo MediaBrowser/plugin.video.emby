@@ -1,3 +1,6 @@
+version 2.8.3:
+- Versions 2.8.1-2.8.2 for everyone
+
 version 2.8.2 (beta only):
 - Add an additional, faster On Deck node for movies (for tv shows, this is impossible, unfortunately)
 - Introduce limits to the number of videos shown in PKC widgets to speed them up
