@@ -20,7 +20,7 @@ class Movie(ItemBase):
         Process single movie
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         # Cannot parse XML, abort
         if not plex_id:
             LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
@@ -35,20 +35,6 @@ class Movie(ItemBase):
             update_item = False
             kodi_id = self.kodidb.new_movie_id()
 
-        userdata = api.userdata()
-        playcount = userdata['PlayCount']
-        dateplayed = userdata['LastPlayedDate']
-        resume = userdata['Resume']
-        runtime = userdata['Runtime']
-        rating = userdata['Rating']
-
-        title = api.title()
-        people = api.people()
-        genres = api.genre_list()
-        collections = api.collection_list()
-        countries = api.country_list()
-        studios = api.music_studio_list()
-
         # GET THE FILE AND PATH #####
         do_indirect = not app.SYNC.direct_paths
         if app.SYNC.direct_paths:
@@ -58,7 +44,7 @@ class Movie(ItemBase):
                 # Something went wrong, trying to use non-direct paths
                 do_indirect = True
             else:
-                playurl = api.validate_playurl(playurl, api.plex_type())
+                playurl = api.validate_playurl(playurl, api.plex_type)
                 if playurl is None:
                     return False
                 if '\\' in playurl:
@@ -92,7 +78,7 @@ class Movie(ItemBase):
             self.kodidb.update_ratings(kodi_id,
                                        v.KODI_TYPE_MOVIE,
                                        "default",
-                                       rating,
+                                       api.rating(),
                                        api.votecount(),
                                        rating_id)
             # update new uniqueid Kodi 17
@@ -109,13 +95,13 @@ class Movie(ItemBase):
                 uniqueid = -1
             self.kodidb.modify_people(kodi_id,
                                       v.KODI_TYPE_MOVIE,
-                                      api.people_list())
+                                      api.people())
             if app.SYNC.artwork:
                 self.kodidb.modify_artwork(api.artwork(),
                                            kodi_id,
                                            v.KODI_TYPE_MOVIE)
         else:
-            LOG.info("ADD movie plex_id: %s - %s", plex_id, title)
+            LOG.info("ADD movie plex_id: %s - %s", plex_id, api.title())
             file_id = self.kodidb.add_file(filename,
                                            kodi_pathid,
                                            api.date_created())
@@ -124,7 +110,7 @@ class Movie(ItemBase):
                                     kodi_id,
                                     v.KODI_TYPE_MOVIE,
                                     "default",
-                                    rating,
+                                    api.rating(),
                                     api.votecount())
             if api.provider('imdb') is not None:
                 uniqueid = self.kodidb.add_uniqueid_id()
@@ -137,7 +123,7 @@ class Movie(ItemBase):
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_MOVIE,
-                                   api.people_list())
+                                   api.people())
             if app.SYNC.artwork:
                 self.kodidb.add_artwork(api.artwork(),
                                         kodi_id,
@@ -146,37 +132,39 @@ class Movie(ItemBase):
         # Update Kodi's main entry
         self.kodidb.add_movie(kodi_id,
                               file_id,
-                              title,
+                              api.title(),
                               api.plot(),
                               api.shortplot(),
                               api.tagline(),
                               api.votecount(),
                               rating_id,
-                              api.list_to_string(people['Writer']),
+                              api.list_to_string(api.writers()),
                               api.year(),
                               uniqueid,
                               api.sorttitle(),
-                              runtime,
+                              api.runtime(),
                               api.content_rating(),
-                              api.list_to_string(genres),
-                              api.list_to_string(people['Director']),
-                              title,
-                              api.list_to_string(studios),
+                              api.list_to_string(api.genres()),
+                              api.list_to_string(api.directors()),
+                              api.title(),
+                              api.list_to_string(api.studios()),
                               api.trailer(),
-                              api.list_to_string(countries),
+                              api.list_to_string(api.countries()),
                               playurl,
                               kodi_pathid,
                               api.premiere_date(),
-                              userdata['UserRating'])
+                              api.userrating())
 
-        self.kodidb.modify_countries(kodi_id, v.KODI_TYPE_MOVIE, countries)
-        self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, genres)
+        self.kodidb.modify_countries(kodi_id,
+                                     v.KODI_TYPE_MOVIE,
+                                     api.countries())
+        self.kodidb.modify_genres(kodi_id, v.KODI_TYPE_MOVIE, api.genres())
 
-        self.kodidb.modify_streams(file_id, api.mediastreams(), runtime)
-        self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, studios)
+        self.kodidb.modify_streams(file_id, api.mediastreams(), api.runtime())
+        self.kodidb.modify_studios(kodi_id, v.KODI_TYPE_MOVIE, api.studios())
         tags = [section_name]
-        if collections:
-            for plex_set_id, set_name in collections:
+        if api.collections():
+            for plex_set_id, set_name in api.collections():
                 set_api = None
                 tags.append(set_name)
                 # Add any sets from Plex collection tags
@@ -211,10 +199,10 @@ class Movie(ItemBase):
         self.kodidb.modify_tags(kodi_id, v.KODI_TYPE_MOVIE, tags)
         # Process playstate
         self.kodidb.set_resume(file_id,
-                               resume,
-                               runtime,
-                               playcount,
-                               dateplayed)
+                               api.resume_point(),
+                               api.runtime(),
+                               api.viewcount(),
+                               api.lastplayed())
         self.plexdb.add_movie(plex_id=plex_id,
                               checksum=api.checksum(),
                               section_id=section_id,
@@ -267,19 +255,17 @@ class Movie(ItemBase):
         """
         api = API(xml_element)
         # Get key and db entry on the Kodi db side
-        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        db_item = self.plexdb.item_by_id(api.plex_id, plex_type)
         if not db_item:
             LOG.info('Item not yet synced: %s', xml_element.attrib)
             return False
-        # Grab the user's viewcount, resume points etc. from PMS' answer
-        userdata = api.userdata()
         # Write to Kodi DB
         self.kodidb.set_resume(db_item['kodi_fileid'],
-                               userdata['Resume'],
-                               userdata['Runtime'],
-                               userdata['PlayCount'],
-                               userdata['LastPlayedDate'])
+                               api.resume_point(),
+                               api.runtime(),
+                               api.viewcount(),
+                               api.lastplayed())
         self.kodidb.update_userrating(db_item['kodi_id'],
                                       db_item['kodi_type'],
-                                      userdata['UserRating'])
+                                      api.userrating())
         return True

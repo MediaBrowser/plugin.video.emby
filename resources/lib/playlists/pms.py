@@ -68,7 +68,7 @@ def initialize(playlist, plex_id):
                   plex_id)
         raise PlaylistError('Could not initialize Plex playlist %s', plex_id)
     api = API(xml[0])
-    playlist.plex_id = api.plex_id()
+    playlist.plex_id = api.plex_id
     playlist.plex_updatedat = api.updated_at()
 
 
@@ -121,7 +121,7 @@ def add_items(playlist, plex_ids):
         raise PlaylistError('Could not add items to a new Plex playlist %s' %
                             playlist)
     api = API(xml[0])
-    playlist.plex_id = api.plex_id()
+    playlist.plex_id = api.plex_id
     playlist.plex_updatedat = api.updated_at()
 
 

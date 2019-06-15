@@ -42,18 +42,17 @@ class MusicMixin(object):
         """
         api = API(xml_element)
         # Get key and db entry on the Kodi db side
-        db_item = self.plexdb.item_by_id(api.plex_id(), plex_type)
+        db_item = self.plexdb.item_by_id(api.plex_id, plex_type)
         if not db_item:
             LOG.info('Item not yet synced: %s', xml_element.attrib)
             return False
         # Grab the user's viewcount, resume points etc. from PMS' answer
-        userdata = api.userdata()
         self.kodidb.update_userrating(db_item['kodi_id'],
                                       db_item['kodi_type'],
-                                      userdata['UserRating'])
+                                      api.userrating())
         if plex_type == v.PLEX_TYPE_SONG:
-            self.kodidb.set_playcount(userdata['PlayCount'],
-                                      userdata['LastPlayedDate'],
+            self.kodidb.set_playcount(api.viewcount(),
+                                      api.lastplayed(),
                                       db_item['kodi_id'],)
         return True
 
@@ -160,7 +159,7 @@ class Artist(MusicMixin, ItemBase):
         Process a single artist
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error('Cannot process artist %s', xml.attrib)
             return
@@ -198,7 +197,7 @@ class Artist(MusicMixin, ItemBase):
             # Kodi doesn't allow that. In case that happens we just merge the
             # artist entries.
             kodi_id = self.kodidb.add_artist(api.title(), musicBrainzId)
-        self.kodidb.update_artist(api.list_to_string(api.genre_list()),
+        self.kodidb.update_artist(api.list_to_string(api.genres()),
                                   api.plot(),
                                   thumb,
                                   fanart,
@@ -224,7 +223,7 @@ class Album(MusicMixin, ItemBase):
         avoid infinite loops
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error('Error processing album: %s', xml.attrib)
             return
@@ -274,11 +273,9 @@ class Album(MusicMixin, ItemBase):
                 compilation = 1
                 break
         name = api.title()
-        userdata = api.userdata()
         # Not yet implemented by Plex, let's use unique last.fm or gracenote
         musicBrainzId = None
-        genres = api.genre_list()
-        genre = api.list_to_string(genres)
+        genre = api.list_to_string(api.genres())
         if app.SYNC.artwork:
             artworks = api.artwork()
             if 'poster' in artworks:
@@ -300,8 +297,8 @@ class Album(MusicMixin, ItemBase):
                                          compilation,
                                          api.plot(),
                                          thumb,
-                                         api.music_studio(),
-                                         userdata['UserRating'],
+                                         api.list_to_string(api.studios()),
+                                         api.userrating(),
                                          timing.unix_date_to_kodi(self.last_sync),
                                          'album',
                                          kodi_id)
@@ -314,8 +311,8 @@ class Album(MusicMixin, ItemBase):
                                             compilation,
                                             api.plot(),
                                             thumb,
-                                            api.music_studio(),
-                                            userdata['UserRating'],
+                                            api.list_to_string(api.studios()),
+                                            api.userrating(),
                                             timing.unix_date_to_kodi(self.last_sync),
                                             'album',
                                             kodi_id)
@@ -333,8 +330,8 @@ class Album(MusicMixin, ItemBase):
                                       compilation,
                                       api.plot(),
                                       thumb,
-                                      api.music_studio(),
-                                      userdata['UserRating'],
+                                      api.list_to_string(api.studios()),
+                                      api.userrating(),
                                       timing.unix_date_to_kodi(self.last_sync),
                                       'album')
             else:
@@ -347,15 +344,15 @@ class Album(MusicMixin, ItemBase):
                                          compilation,
                                          api.plot(),
                                          thumb,
-                                         api.music_studio(),
-                                         userdata['UserRating'],
+                                         api.list_to_string(api.studios()),
+                                         api.userrating(),
                                          timing.unix_date_to_kodi(self.last_sync),
                                          'album')
         self.kodidb.add_albumartist(artist_id, kodi_id, api.artist_name())
         if v.KODIVERSION < 18:
             self.kodidb.add_discography(artist_id, name, api.year())
             self.kodidb.add_music_genres(kodi_id,
-                                         genres,
+                                         api.genres(),
                                          v.KODI_TYPE_ALBUM)
         if app.SYNC.artwork:
             self.kodidb.modify_artwork(artworks,
@@ -378,7 +375,7 @@ class Album(MusicMixin, ItemBase):
                                    section_name=section_name,
                                    section_id=section_id,
                                    album_xml=xml,
-                                   genres=genres,
+                                   genres=api.genres(),
                                    genre=genre,
                                    compilation=compilation)
 
@@ -391,7 +388,7 @@ class Song(MusicMixin, ItemBase):
         Process single song/track
         """
         api = API(xml)
-        plex_id = api.plex_id()
+        plex_id = api.plex_id
         if not plex_id:
             LOG.error('Error processing song: %s', xml.attrib)
             return
@@ -492,11 +489,6 @@ class Song(MusicMixin, ItemBase):
         # Not yet implemented by Plex
         musicBrainzId = None
         comment = None
-        userdata = api.userdata()
-        playcount = userdata['PlayCount']
-        if playcount is None:
-            # This is different to Video DB!
-            playcount = 0
         # Getting artists name is complicated
         if compilation is not None:
             if compilation == 0:
@@ -506,7 +498,7 @@ class Song(MusicMixin, ItemBase):
         else:
             # compilation not set
             artists = xml.get('originalTitle', api.grandparent_title())
-        tracknumber = api.track_number() or 0
+        tracknumber = api.index() or 0
         disc = api.disc_number() or 1
         if disc == 1:
             track = tracknumber
@@ -532,7 +524,7 @@ class Song(MusicMixin, ItemBase):
                 # Something went wrong, trying to use non-direct paths
                 do_indirect = True
             else:
-                playurl = api.validate_playurl(playurl, api.plex_type())
+                playurl = api.validate_playurl(playurl, api.plex_type)
                 if playurl is None:
                     return False
                 if "\\" in playurl:
@@ -562,12 +554,12 @@ class Song(MusicMixin, ItemBase):
                                         genre,
                                         title,
                                         track,
-                                        userdata['Runtime'],
+                                        api.runtime(),
                                         year,
                                         filename,
-                                        playcount,
-                                        userdata['LastPlayedDate'],
-                                        userdata['UserRating'],
+                                        api.viewcount(),
+                                        api.lastplayed(),
+                                        api.userrating(),
                                         comment,
                                         mood,
                                         api.date_created(),
@@ -578,12 +570,12 @@ class Song(MusicMixin, ItemBase):
                                            genre,
                                            title,
                                            track,
-                                           userdata['Runtime'],
+                                           api.runtime(),
                                            year,
                                            filename,
-                                           playcount,
-                                           userdata['LastPlayedDate'],
-                                           userdata['UserRating'],
+                                           api.viewcount(),
+                                           api.lastplayed(),
+                                           api.userrating(),
                                            comment,
                                            mood,
                                            api.date_created(),
@@ -603,13 +595,13 @@ class Song(MusicMixin, ItemBase):
                                      genre,
                                      title,
                                      track,
-                                     userdata['Runtime'],
+                                     api.runtime(),
                                      year,
                                      filename,
                                      musicBrainzId,
-                                     playcount,
-                                     userdata['LastPlayedDate'],
-                                     userdata['UserRating'],
+                                     api.viewcount(),
+                                     api.lastplayed(),
+                                     api.userrating(),
                                      0,
                                      0,
                                      mood,
@@ -622,13 +614,13 @@ class Song(MusicMixin, ItemBase):
                                         genre,
                                         title,
                                         track,
-                                        userdata['Runtime'],
+                                        api.runtime(),
                                         year,
                                         filename,
                                         musicBrainzId,
-                                        playcount,
-                                        userdata['LastPlayedDate'],
-                                        userdata['UserRating'],
+                                        api.viewcount(),
+                                        api.lastplayed(),
+                                        api.userrating(),
                                         0,
                                         0,
                                         mood,
@@ -639,7 +631,7 @@ class Song(MusicMixin, ItemBase):
                                           parent_id,
                                           track,
                                           title,
-                                          userdata['Runtime'])
+                                          api.runtime())
         # Link song to artists
         artist_name = api.grandparent_title()
         # Do the actual linking

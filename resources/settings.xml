@@ -158,6 +158,7 @@
 
 	<category label="39073"><!-- Appearance Tweaks -->
         <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 39085][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=refreshplaylist)" option="close" /><!-- Reload Kodi node files to apply all the settings below -->
+        <setting id="widgetLimit" type="slider" label="39077" default="30" range="10,10,100" option="int" /><!-- Maximum number of videos to show in widgets -->
         <setting type="lsep" />
 		<setting id="fetch_pms_item_number" label="39077" type="number" default="50" option="int" visible="false" />
         <setting type="lsep" label="39074" /><!-- TV Shows -->

@@ -12,7 +12,6 @@ import xbmc
 import xbmcgui
 
 LOG = getLogger('PLEX.transfer')
-MONITOR = xbmc.Monitor()
 WINDOW = xbmcgui.Window(10000)
 WINDOW_UPSTREAM = 'plexkodiconnect.result.upstream'.encode('utf-8')
 WINDOW_DOWNSTREAM = 'plexkodiconnect.result.downstream'.encode('utf-8')
@@ -21,32 +20,47 @@ WINDOW_COMMAND = 'plexkodiconnect.command'.encode('utf-8')
 
 def cast(func, value):
     """
-    Cast the specified value to the specified type (returned by func). Currently this
-    only support int, float, bool. Should be extended if needed.
+    Cast the specified value to the specified type (returned by func). Currently
+    this only support int, float, bool. Should be extended if needed.
     Parameters:
         func (func): Calback function to used cast to type (int, bool, float).
         value (any): value to be cast and returned.
+
+    Returns None if something goes wrong
     """
-    if value is not None:
-        if func == bool:
-            return bool(int(value))
-        elif func == unicode:
-            if isinstance(value, (int, long, float)):
-                return unicode(value)
-            else:
-                return value.decode('utf-8')
-        elif func == str:
-            if isinstance(value, (int, long, float)):
-                return str(value)
-            else:
-                return value.encode('utf-8')
-        elif func in (int, float):
+    if value is None:
+        return value
+    elif func == bool:
+        return bool(int(value))
+    elif func == unicode:
+        if isinstance(value, (int, long, float)):
+            return unicode(value)
+        elif isinstance(value, unicode):
+            return value
+        else:
+            return value.decode('utf-8')
+    elif func == str:
+        if isinstance(value, (int, long, float)):
+            return str(value)
+        elif isinstance(value, str):
+            return value
+        else:
+            return value.encode('utf-8')
+    elif func == int:
+        try:
+            return int(value)
+        except ValueError:
             try:
-                return func(value)
+                # Converting e.g. '8.0' fails; need to convert to float first
+                return int(float(value))
             except ValueError:
-                return float('nan')
-        return func(value)
-    return value
+                return
+    elif func == float:
+        try:
+            return float(value)
+        except ValueError:
+            return
+    return func(value)
 
 
 def kodi_window(property, value=None, clear=False):
@@ -67,8 +81,7 @@ def plex_command(value):
     safe - let's hope the Kodi user can't click fast enough
     """
     while kodi_window(WINDOW_COMMAND):
-        if MONITOR.waitForAbort(20):
-            return
+        xbmc.sleep(50)
     kodi_window(WINDOW_COMMAND, value=value)
 
 
@@ -114,6 +127,7 @@ def wait_for_transfer(source='main'):
     Set source='default' if you wait for data FROM another Python default.py
     instance, 'main' if your default.py needs to wait for the main thread
     """
+    LOG.debug('Waiting for transfer from %s', source)
     window = WINDOW_DOWNSTREAM if source == 'main' else WINDOW_UPSTREAM
     result = ''
     while not result:
@@ -123,8 +137,7 @@ def wait_for_transfer(source='main'):
             LOG.debug('Received')
             result = json.loads(result)
             return de_serialize(result)
-        elif MONITOR.waitForAbort(0.05):
-            return
+        xbmc.sleep(50)
 
 
 def convert_pkc_to_listitem(pkc_listitem):
@@ -134,7 +147,8 @@ def convert_pkc_to_listitem(pkc_listitem):
     data = pkc_listitem.data
     listitem = xbmcgui.ListItem(label=data.get('label'),
                                 label2=data.get('label2'),
-                                path=data.get('path'))
+                                path=data.get('path'),
+                                offscreen=True)
     if data['info']:
         listitem.setInfo(**data['info'])
     for stream in data['stream_info']:
@@ -147,6 +161,8 @@ def convert_pkc_to_listitem(pkc_listitem):
         listitem.setProperty(key, cast(str, value))
     if data['subtitles']:
         listitem.setSubtitles(data['subtitles'])
+    if data['contextmenu']:
+        listitem.addContextMenuItems(data['contextmenu'])
     return listitem
 
 
@@ -157,7 +173,7 @@ class PKCListItem(object):
 
     WARNING: set/get path only via setPath and getPath! (not getProperty)
     """
-    def __init__(self, label=None, label2=None, path=None):
+    def __init__(self, label=None, label2=None, path=None, offscreen=True):
         self.data = {
             'stream_info': [],  # (type, values: dict { label: value })
             'art': {},  # dict
@@ -167,9 +183,10 @@ class PKCListItem(object):
             'path': path,  # string
             'property': {},  # (key, value)
             'subtitles': [],  # strings
+            'contextmenu': None
         }
 
-    def addContextMenuItems(self, items, replaceItems):
+    def addContextMenuItems(self, items):
         """
         Adds item(s) to the context menu for media lists.
 
@@ -187,7 +204,7 @@ class PKCListItem(object):
 
          Once you use a keyword, all following arguments require the keyword.
         """
-        raise NotImplementedError
+        self.data['contextmenu'] = items
 
     def addStreamInfo(self, type, values):
         """

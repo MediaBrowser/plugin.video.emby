@@ -88,10 +88,10 @@ class PlexCompanion(backgroundthread.KillableThread):
             LOG.error('Could not download Plex metadata for: %s', data)
             return
         api = API(xml[0])
-        if api.plex_type() == v.PLEX_TYPE_ALBUM:
+        if api.plex_type == v.PLEX_TYPE_ALBUM:
             LOG.debug('Plex music album detected')
             PQ.init_playqueue_from_plex_children(
-                api.plex_id(),
+                api.plex_id,
                 transient_token=data.get('token'))
         elif data['containerKey'].startswith('/playQueues/'):
             _, container_key, _ = PF.ParseContainerKey(data['containerKey'])
@@ -104,7 +104,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                              icon='{error}')
                 return
             playqueue = PQ.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
             playqueue.clear()
             PL.get_playlist_details_from_xml(playqueue, xml)
             playqueue.plex_transient_token = data.get('token')
@@ -117,8 +117,8 @@ class PlexCompanion(backgroundthread.KillableThread):
             app.CONN.plex_transient_token = data.get('token')
             if data.get('offset') != '0':
                 app.PLAYSTATE.resume_playback = True
-            playback.playback_triage(api.plex_id(),
-                                     api.plex_type(),
+            playback.playback_triage(api.plex_id,
+                                     api.plex_type,
                                      resolve=False)
 
     @staticmethod
@@ -153,7 +153,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                 return
             api = API(xml[0])
             playqueue = PQ.get_playqueue_from_type(
-                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type()])
+                v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
         update_playqueue_from_PMS(playqueue,
                                   playqueue_id=container_key,
                                   repeat=query.get('repeat'),

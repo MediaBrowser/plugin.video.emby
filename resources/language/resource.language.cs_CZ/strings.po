@@ -1049,11 +1049,6 @@ msgid "Customize Paths"
 msgstr "Přizpůsobit cesty"
 
 # PKC Settings - Appearance Tweaks
-msgctxt "#39058"
-msgid "Extend Plex TV Series \"On Deck\" view to all shows"
-msgstr "Rozšířit seriály na obrazovce \"Aktuální\" na všechny seriály"
-
-# PKC Settings - Appearance Tweaks
 msgctxt "#39059"
 msgid "Recently Added: Append show title to episode"
 msgstr "Naposledy přidané: Připojit název seriálu k epizodě"
@@ -1092,12 +1087,8 @@ msgstr "Vynutit obnovení vzhledu Kodi po skončení přehrávání"
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39066"
-msgid ""
-"Recently Added: Also show already watched movies (Refresh Plex "
-"playlist/nodes!)"
+msgid "Recently Added: Also show already watched movies"
 msgstr ""
-"Naposledy přidané: Zobrazovat také už shlédnuté filmy (Obnovte playlisty "
-"Plexu!)"
 
 # PKC Settings - Connection
 msgctxt "#39067"
@@ -1151,8 +1142,8 @@ msgstr ""
 
 # PKC Settings - Appearance Tweaks
 msgctxt "#39077"
-msgid "Number of PMS items to show in widgets (e.g. \"On Deck\")"
-msgstr "Počet položek pro zobrazení ve widgetech (např. \"Aktuální\")"
+msgid "Maximum number of videos to show in widgets"
+msgstr ""
 
 # PKC Settings - Plex
 msgctxt "#39078"
@@ -1198,6 +1189,11 @@ msgstr "Zadejte IP adresu, nebo URL PMS"
 msgctxt "#39084"
 msgid "Enter PMS port"
 msgstr "Zadejte port PMS"
+
+# PKC settings - Appearance Tweaks
+msgctxt "#39085"
+msgid "Reload Kodi node files to apply all the settings below"
+msgstr ""
 
 msgctxt "#39200"
 msgid "Log-out Plex Home User "
@@ -1443,6 +1439,10 @@ msgctxt "#39501"
 msgid "Collections"
 msgstr "Kolekce"
 
+msgctxt "#39502"
+msgid "PKC On Deck (faster)"
+msgstr ""
+
 msgctxt "#39600"
 msgid ""
 "Are you sure you want to reset your local Kodi database? A re-sync of the "
@@ -1559,8 +1559,8 @@ msgstr "Synchronizuji"
 
 # Shown during sync process
 msgctxt "#39715"
-msgid "items"
-msgstr "položek"
+msgid "Synching playlists"
+msgstr ""
 
 # Error message if an xml, e.g. advancedsettings.xml cannot be parsed (xml is
 # screwed up; formated the wrong way). Do NOT replace {0} and {1}!

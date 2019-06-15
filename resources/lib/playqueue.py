@@ -86,7 +86,7 @@ def init_playqueue_from_plex_children(plex_id, transient_token=None):
     playqueue.clear()
     for i, child in enumerate(xml):
         api = API(child)
-        PL.add_item_to_playlist(playqueue, i, plex_id=api.plex_id())
+        PL.add_item_to_playlist(playqueue, i, plex_id=api.plex_id)
     playqueue.plex_transient_token = transient_token
     LOG.debug('Firing up Kodi player')
     app.APP.player.play(playqueue.kodi_pl, None, False, 0)

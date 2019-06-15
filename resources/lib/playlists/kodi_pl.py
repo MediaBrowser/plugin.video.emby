@@ -35,7 +35,7 @@ def create(plex_id):
         raise PlaylistError('Could not get Plex playlist %s' % plex_id)
     api = API(xml_metadata[0])
     playlist = Playlist()
-    playlist.plex_id = api.plex_id()
+    playlist.plex_id = api.plex_id
     playlist.kodi_type = v.KODI_PLAYLIST_TYPE_FROM_PLEX[api.playlist_type()]
     playlist.plex_name = api.title()
     playlist.plex_updatedat = api.updated_at()
@@ -104,24 +104,16 @@ def _write_playlist_to_file(playlist, xml):
     text = '#EXTCPlayListM3U::M3U\n'
     for element in xml:
         api = API(element)
-        append_season_episode = False
-        if api.plex_type() == v.PLEX_TYPE_EPISODE:
-            _, _, show, season_no, episode_no = api.episode_data()
-            try:
-                season_no = int(season_no)
-                episode_no = int(episode_no)
-            except ValueError:
-                pass
-            else:
-                append_season_episode = True
-            if append_season_episode:
+        if api.plex_type == v.PLEX_TYPE_EPISODE:
+            if api.season_number() is not None and api.index() is not None:
                 text += ('#EXTINF:%s,%s S%.2dE%.2d - %s\n%s\n'
-                         % (api.runtime(), show, season_no, episode_no,
+                         % (api.runtime(), api.show_title(),
+                            api.season_number(), api.index(),
                             api.title(), api.path()))
             else:
                 # Only append the TV show name
                 text += ('#EXTINF:%s,%s - %s\n%s\n'
-                         % (api.runtime(), show, api.title(), api.path()))
+                         % (api.runtime(), api.show_title(), api.title(), api.path()))
         else:
             text += ('#EXTINF:%s,%s\n%s\n'
                      % (api.runtime(), api.title(), api.path()))

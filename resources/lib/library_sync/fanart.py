@@ -129,7 +129,7 @@ def process_fanart(plex_id, plex_type, refresh=False):
                                db_item['kodi_type'])
         # Additional fanart for sets/collections
         if plex_type == v.PLEX_TYPE_MOVIE:
-            for _, setname in api.collection_list():
+            for _, setname in api.collections():
                 LOG.debug('Getting artwork for movie set %s', setname)
                 with KodiVideoDB() as kodidb:
                     setid = kodidb.create_collection(setname)

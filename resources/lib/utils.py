@@ -20,6 +20,12 @@ from functools import wraps
 import hashlib
 import re
 import gc
+try:
+    from multiprocessing.pool import ThreadPool
+    SUPPORTS_POOL = True
+except Exception:
+    SUPPORTS_POOL = False
+
 
 import xbmc
 import xbmcaddon
@@ -262,11 +268,13 @@ class AttributeDict(dict):
 
 def cast(func, value):
     """
-    Cast the specified value to the specified type (returned by func). Currently this
-    only support int, float, bool. Should be extended if needed.
+    Cast the specified value to the specified type (returned by func). Currently
+    this only support int, float, bool. Should be extended if needed.
     Parameters:
         func (func): Calback function to used cast to type (int, bool, float).
         value (any): value to be cast and returned.
+
+    Returns None if something goes wrong
     """
     if value is None:
         return value
@@ -286,11 +294,20 @@ def cast(func, value):
             return value
         else:
             return value.encode('utf-8')
-    elif func in (int, float):
+    elif func == int:
         try:
-            return func(value)
+            return int(value)
         except ValueError:
-            return float('nan')
+            try:
+                # Converting e.g. '8.0' fails; need to convert to float first
+                return int(float(value))
+            except ValueError:
+                return
+    elif func == float:
+        try:
+            return float(value)
+        except ValueError:
+            return
     return func(value)
 
 
@@ -928,6 +945,27 @@ def generate_file_md5(path):
                 break
             m.update(piece)
     return m.hexdigest().decode('utf-8')
+
+
+def process_method_on_list(method_to_run, items):
+    """
+    helper method that processes a method on each item with pooling if the
+    system supports it
+    """
+    all_items = []
+    if SUPPORTS_POOL:
+        pool = ThreadPool()
+        try:
+            all_items = pool.map(method_to_run, items)
+        except Exception:
+            # catch exception to prevent threadpool running forever
+            ERROR(notify=True)
+        pool.close()
+        pool.join()
+    else:
+        all_items = [method_to_run(item) for item in items]
+    all_items = filter(None, all_items)
+    return all_items
 
 
 ###############################################################################
