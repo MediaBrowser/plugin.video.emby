@@ -1,3 +1,8 @@
+version 2.8.4:
+- Fix for Kodi 17 Krypton TypeError on playback start: 'offscreen' is an invalid keyword argument for this function
+- Fix widgets not being populated after very first PlexKodiConnect library sync without a restart of Kodi
+- Don't restart Kodi if user chose to enter PKC settings on install 
+
 version 2.8.3:
 - Versions 2.8.1-2.8.2 for everyone
 
