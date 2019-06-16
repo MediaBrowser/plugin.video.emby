@@ -693,14 +693,12 @@ class InitialSetup(object):
             # Open Settings page now? You will need to restart!
             goto_settings = utils.yesno_dialog(utils.lang(29999),
                                                utils.lang(39017))
+        # New installation - make sure we start with a clean slate
+        utils.wipe_database(reboot=False)
         if goto_settings:
+            LOG.info('User chose to go to the PKC settings - suspending PKC')
             app.APP.stop_pkc = True
             executebuiltin(
                 'Addon.OpenSettings(plugin.video.plexkodiconnect)')
-        # New installation - make sure we start with a clean slate
-        # Will trigger a reboot, usually
-        utils.wipe_database()
-        # Reload relevant settings if that is not the case
-        app.CONN.load()
-        app.ACCOUNT.load()
-        app.SYNC.load()
+            return
+        utils.reboot_kodi()
