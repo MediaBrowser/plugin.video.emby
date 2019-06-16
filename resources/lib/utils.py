@@ -539,7 +539,7 @@ def create_kodi_db_indicees():
     conn.close()
 
 
-def wipe_database():
+def wipe_database(reboot=True):
     """
     Deletes all Plex playlists as well as video nodes, then clears Kodi as well
     as Plex databases completely.
@@ -585,10 +585,11 @@ def wipe_database():
     settings('sections_asked_for_machine_identifier', value='')
     init_dbs()
     LOG.info('Wiping done')
-    if settings('kodi_db_has_been_wiped_clean') != 'true':
+    no_reboot = settings('kodi_db_has_been_wiped_clean') == 'true' or not reboot
+    settings('kodi_db_has_been_wiped_clean', value='true')
+    if not no_reboot:
         # Root cause is sqlite WAL mode - Kodi might still have DB access open
         LOG.warn('Need to restart Kodi before filling Kodi DB again')
-        settings('kodi_db_has_been_wiped_clean', value='true')
         reboot_kodi()
 
 

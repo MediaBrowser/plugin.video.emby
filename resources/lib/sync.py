@@ -184,6 +184,9 @@ class Sync(backgroundthread.KillableThread):
                     install_sync_done = True
                     initial_sync_done = True
                     utils.settings('dbCreatedWithVersion', v.ADDON_VERSION)
+                    # Reload skin in order to ensure items showing up on Kodi
+                    # Homescreen
+                    xbmc.executebuiltin('ReloadSkin()')
                     if library_sync.PLAYLIST_SYNC_ENABLED:
                         playlist_monitor = playlists.kodi_playlist_monitor()
                     self.start_fanart_download(refresh=False)
