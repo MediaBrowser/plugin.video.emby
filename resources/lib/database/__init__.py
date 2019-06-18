@@ -172,14 +172,39 @@ class Database(object):
             return self._get_database(databases[file], True)
 
         folder = xbmc.translatePath("special://database/").decode('utf-8')
-        files = {
+        dirs, files = xbmcvfs.listdir(folder)
+        dbs = {
             'Textures': "texture",
             'MyMusic': "music",
             'MyVideos': "video"
         }
+        for db in dbs:
+
+            count = 0
+            filename = None
+
+            for name in files:
+
+                if (name.startswith(db) and not name.endswith('-wal') and
+                    not name.endswith('-shm') and not name.endswith('db-journal')):
+
+                    count += 1
+                    filename = name
+
+            if count == 1:
+
+                key = dbs[db]
+                databases[key] = os.path.join(folder, filename.decode('utf-8')).decode('utf-8')
+                databases['database_set%s' % key] = True
+
+                continue
+
+            break
+        else:
+            return databases[file]
 
         with open(xbmc.translatePath('special://logpath/kodi.log').decode('utf-8'), 'r') as log:
-            found_lines = len(files)
+            found_lines = len(dbs)
 
             for line in log:
                 if 'Running database version' in line:
@@ -187,10 +212,10 @@ class Database(object):
                     filename = line.rsplit('version ', 1)[1].strip()
                     filename = "%s.db" % filename
 
-                    for database in files:
+                    for database in dbs:
                         if database in line:
 
-                            key = files[database]
+                            key = dbs[database]
                             databases[key] = os.path.join(folder, filename.decode('utf-8')).decode('utf-8')
                             databases['database_set%s' % key] = True
                             found_lines -= 1
@@ -201,6 +226,35 @@ class Database(object):
                     break
 
         return databases[file]
+
+    def find_databases(self, databases):
+
+        dbs = {
+            'Textures': "texture",
+            'MyMusic': "music",
+            'MyVideos': "video"
+        }
+        for db in dbs:
+
+            count = 0
+            filename = None
+
+            for name in files:
+
+                if (name.startswith(db) and not name.endswith('-wal') and
+                    not name.endswith('-shm') and not name.endswith('db-journal')):
+
+                    count += 1
+                    filename = name
+
+            if count == 1:
+
+                key = dbs[db]
+                databases[key] = os.path.join(folder, filename.decode('utf-8')).decode('utf-8')
+                databases['database_set%s' % key] = True
+
+                continue
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
