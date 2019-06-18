@@ -449,6 +449,33 @@ class Player(xbmc.Player):
         }
         item['Server']['api'].session_progress(data)
 
+    def onPlayBackError(self):
+
+        LOG.warn("Playback error occured")
+        self.stop_playback()
+
+        try:
+            items = self._get_items()
+        except Exception as error:
+            LOG.error(error)
+
+            return
+
+        item = items.pop(0)
+        self._set_items(items)
+
+        item['Server'] = Emby(item['ServerId']).get_client()
+
+        if item.get('LiveStreamId'):
+
+            LOG.info("<[ livestream/%s ]", item['LiveStreamId'])
+            item['Server']['api'].close_live_stream(item['LiveStreamId'])
+
+        elif item['PlayMethod'] == 'Transcode':
+
+            LOG.info("<[ transcode/%s ]", item['Id'])
+            item['Server']['api'].close_transcode(item['DeviceId'])
+
     def stop_playback(self):
 
         ''' Stop all playback. Check for external player for positionticks.
