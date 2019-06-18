@@ -454,9 +454,17 @@ def browse(media, view_id=None, folder=None, server_id=None):
             else:
                 if item['Type'] not in ('Photo', 'PhotoAlbum'):
 
-                    path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % item['Id']
+                    if kodi_version() > 17:
+                        path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s&server=%s" % (item['Id'], server_id)
+                    else:
+                        params = {
+                            'id': item['Id'],
+                            'mode': "play",
+                            'server': server_id
+                        }
+                        path = "%s?%s" % ("plugin://plugin.video.emby/", urllib.urlencode(params))
+                    
                     li.setProperty('path', path)
-
                     context = [(_(13412), "RunPlugin(plugin://plugin.video.emby/?mode=playlist&id=%s&server=%s)" % (item['Id'], server_id))]
 
                     if item['UserData']['Played']:

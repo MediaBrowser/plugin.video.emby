@@ -11,7 +11,7 @@ import xbmcaddon
 
 import database
 from dialogs import context
-from helper import _, settings, dialog
+from helper import _, settings, dialog, kodi_version
 from downloader import TheVoid
 
 #################################################################################################
@@ -169,15 +169,21 @@ class Context(object):
 
     def play(self, transcode=False):
 
-        path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % self.item['Id']
+        if kodi_version() > 17:
+            path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % self.item['Id']
 
-        if self.kodi_id:
-            path += "&KodiId=%s" % self.kodi_id
+            if self.kodi_id:
+                path += "&KodiId=%s" % self.kodi_id
 
-        if self.media:
-            path += "&MediaType=%s" % self.media
+            if self.media:
+                path += "&MediaType=%s" % self.media
+        else:
+            path = "plugin://plugin.video.emby?mode=play&id=%s" % self.item['Id']
 
         if transcode:
             path += "&transcode=true"
+
+        if self.server:
+            path += "&server=%s" % self.server
 
         xbmc.executebuiltin("PlayMedia(%s)" % path)
