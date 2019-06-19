@@ -294,6 +294,9 @@ def changelog():
     version = client.get_version()
     resp = dialog("select", heading="{emby}", list=[version, _(33212)])
 
+    if resp < 0:
+        return
+
     if resp:
         src = "https://api.github.com/repos/MediaBrowser/plugin.video.emby/releases/latest"
     else:

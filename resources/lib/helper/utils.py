@@ -461,7 +461,7 @@ def convert_to_local(date):
     ''' Convert the local datetime to local.
     '''
     try:
-        date = parser.parse(date) if type(date) in (unicode, str) else date
+        date = parser.parse(date.encode('utf-8')) if type(date) in (unicode, str) else date
         date = date.replace(tzinfo=tz.tzutc())
         date = date.astimezone(tz.tzlocal())
 
