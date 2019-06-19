@@ -87,6 +87,15 @@ class HTTP(object):
         LOG.debug("--->[ http ] %s", json.dumps(data, indent=4))
         retry = data.pop('retry', 5)
 
+        def _retry(current):
+
+            if current:
+
+                current -= 1
+                time.sleep(1)
+
+            return current
+
         while True:
 
             try:
@@ -99,11 +108,9 @@ class HTTP(object):
                 r.raise_for_status()
 
             except requests.exceptions.ConnectionError as error:
+
+                retry = _retry(retry)
                 if retry:
-
-                    retry -= 1
-                    time.sleep(1)
-
                     continue
 
                 LOG.error(error)
@@ -112,11 +119,9 @@ class HTTP(object):
                 raise HTTPException("ServerUnreachable", error)
 
             except requests.exceptions.ReadTimeout as error:
+
+                retry = _retry(retry)
                 if retry:
-
-                    retry -= 1
-                    time.sleep(1)
-
                     continue
 
                 LOG.error(error)
@@ -144,11 +149,9 @@ class HTTP(object):
                     return
 
                 elif r.status_code == 502:
+
+                    retry = _retry(retry)
                     if retry:
-
-                        retry -= 1
-                        time.sleep(1)
-
                         continue
 
                 raise HTTPException(r.status_code, error)

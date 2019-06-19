@@ -18,18 +18,18 @@ def basic_info():
 
 def info():
     return  (
-                "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,"
-                "OfficialRating,CumulativeRunTimeTicks,ItemCounts,"
-                "Metascore,AirTime,DateCreated,People,Overview,"
+                "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,"
+                "OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,"
+                "Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,"
                 "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
-                "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,"
-                "MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio"
+                "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,"
+                "MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder"
             )
 
 def music_info():
     return  (
-                "Etag,Genres,SortName,Studios,Writer,"
-                "OfficialRating,CumulativeRunTimeTicks,Metascore,"
+                "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,"
+                "OfficialRating,CumulativeRunTimeTicks,Metascore,CommunityRating,"
                 "AirTime,DateCreated,MediaStreams,People,ProviderIds,Overview,ItemCounts"
             )
 

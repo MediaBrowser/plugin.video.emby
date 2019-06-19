@@ -31,6 +31,7 @@
 		<setting label="30515" id="limitIndex" type="number" default="15" option="int" />
 		<setting label="33174" id="limitThreads" type="number" default="3" option="int" />
 		<setting label="33176" type="lsep" />
+		<setting label="33213" id="displayMultiEpLabel" type="bool" default="true" />
 		<setting label="30512" id="enableTextureCache" type="bool" default="true" />
 		<setting label="30157" id="enableCoverArt" type="bool" default="true" />
 		<setting label="33116" id="compressArt" type="bool" default="false" />
@@ -113,18 +114,21 @@
 
 
 
-		<setting id="LastIncrementalSync" type="text" default="" visible="false" />
-		<setting id="MinimumSetup" type="text" default="" visible="false" />
-		<setting id="MusicRescan" type="bool" default="" visible="false" />
-		<setting id="SyncInstallRunDone" type="bool" default="" visible="false" />
-		<setting id="appliedPatch" type="text" default="" visible="false" />
-		<setting id="groupedSets" type="bool" default="" visible="false" />
-		<setting id="platformDetected" type="text" default="" visible="false" />
-		<setting id="webServerPort" type="text" default="" visible="false" />
-		<setting id="webServerPass" type="text" default="" visible="false" />
-		<setting id="webServerUser" type="text" default="" visible="false" />
+		<setting id="LastIncrementalSync" type="text" visible="false" />
+		<setting id="MinimumSetup" type="text" visible="false" />
+		<setting id="MusicRescan" type="bool" visible="false" />
+		<setting id="SyncInstallRunDone" type="bool" visible="false" />
+		<setting id="appliedPatch" type="text" visible="false" />
+		<setting id="groupedSets" type="bool" visible="false" />
+		<setting id="platformDetected" type="text" visible="false" />
+		<setting id="webServerPort" type="text" visible="false" />
+		<setting id="webServerPass" type="text" visible="false" />
+		<setting id="webServerUser" type="text" visible="false" />
 		<setting id="useWebServer" type="bool" default="true" visible="false" />
-		<setting id="SeasonSpecials" type="bool" default="" visible="false" />
+		<setting id="SeasonSpecials" type="bool" visible="false" />
+		<setting id="changelog" type="bool" visible="false" />
+		<setting id="lowPowered" type="bool" visible="false" />
+		<setting id="distroDetected" type="bool" visible="false" />
 	</category>
 
 </settings>

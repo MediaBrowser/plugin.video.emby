@@ -5,6 +5,7 @@
 import json
 import datetime
 import logging
+import urllib
 
 from . import settings
 
@@ -243,7 +244,7 @@ class API(object):
 
             if 'PrimaryImageTag' in person:
 
-                query = "&MaxWidth=400&MaxHeight=400&Index=0"
+                query = [('MaxWidth', 400),('MaxHeight', 400),('Index', 0)]
                 person['imageurl'] = self.get_artwork(person['Id'], "Primary", person['PrimaryImageTag'], query)
             else:
                 person['imageurl'] = None
@@ -257,7 +258,7 @@ class API(object):
 
             obj is from objects.Objects().map(item, 'Artwork')
         '''
-        query = ""
+        query = []
         all_artwork = {
             'Primary': "",
             'BoxRear': "",
@@ -270,9 +271,9 @@ class API(object):
         }
 
         if settings('compressArt.bool'):
-            query = "&Quality=90"
+            query.append(('Quality', 70))
 
-        query += "&EnableImageEnhancers=%s" % ('false' if not settings('enableCoverArt.bool') else 'true')
+        query.append(('EnableImageEnhancers', settings('enableCoverArt.bool')))
         all_artwork['Backdrop'] = self.get_backdrops(obj['Id'], obj['BackdropTags'] or [], query)
 
         for artwork in (obj['Tags'] or []):
@@ -302,6 +303,7 @@ class API(object):
 
         ''' Get backdrops based of "BackdropImageTags" in the emby object.
         '''
+        query = query or []
         backdrops = []
 
         if item_id is None:
@@ -309,7 +311,8 @@ class API(object):
 
         for index, tag in enumerate(tags):
 
-            artwork = "%s/emby/Items/%s/Images/Backdrop/%s?Format=original&Tag=%s%s" % (self.server, item_id, index, tag, (query or ""))
+            query.append(('Tag', tag))
+            artwork = "%s/emby/Items/%s/Images/Backdrop/%s?%s" % (self.server, item_id, index, urllib.urlencode(query))
             backdrops.append(artwork)
 
         return backdrops
@@ -318,15 +321,12 @@ class API(object):
 
         ''' Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
         '''
+        query = query or []
+
         if item_id is None:
             return ""
 
-        url = "%s/emby/Items/%s/Images/%s/0?Format=original" % (self.server, item_id, image)
-
         if tag is not None:
-            url += "&Tag=%s" % tag
+            query.append(('Tag', tag))
 
-        if query is not None:
-            url += query or ""
-
-        return url
+        return "%s/emby/Items/%s/Images/%s/0?%s" % (self.server, item_id, image, urllib.urlencode(query))

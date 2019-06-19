@@ -18,6 +18,7 @@ import xbmcaddon
 
 import client
 import objects
+import requests
 from database import reset, get_sync, Database, emby_db, get_credentials
 from downloader import TheVoid
 from helper import _, event, settings, window, dialog, api, kodi_version, JSONRPC
@@ -69,7 +70,7 @@ class Events(object):
             window('emby.sync.pause.bool', True)
 
             try:
-                objects.PlayPlugin(params, server).play()
+                objects.PlayPlugin(params, server).play('trailer' in base_url)
             except Exception as error:
                 LOG.exception(error)
 
@@ -171,6 +172,8 @@ class Events(object):
             window('emby.restart.bool', True)
         elif mode == 'patchmusic':
             event('PatchMusic', {'Notification': True})
+        elif mode == 'changelog':
+            changelog()
         else:
             listing()
 
@@ -243,6 +246,7 @@ def listing():
     if settings('backupPath'):
         directory(_(33092), "plugin://plugin.video.emby/?mode=backup", False)
 
+    directory("Changelog", "plugin://plugin.video.emby/?mode=changelog", False)
     directory(_(33163), None, False, artwork="special://home/addons/plugin.video.emby/donations.png")
 
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -284,6 +288,34 @@ def manage_libraries():
 
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def changelog():
+    
+    version = client.get_version()
+    resp = dialog("select", heading="{emby}", list=[version, _(33212)])
+
+    if resp < 0:
+        return
+
+    if resp:
+        src = "https://api.github.com/repos/MediaBrowser/plugin.video.emby/releases/latest"
+    else:
+        src = "https://api.github.com/repos/MediaBrowser/plugin.video.emby/releases/tags/%s" % version
+
+    try:
+        response = requests.get(src)
+        response.raise_for_status()
+        response.encoding = 'utf-8'
+        response = response.json()
+        response['body'] = "[B]%s[/B]\n\n%s" % (response['name'], response['body'])
+        response['body'] = response['body'].replace('**:', '[/B]').replace('**', '[B]').replace('*', '-')
+        dialog("textviewer", heading="{emby}", text=response['body'])
+    except Exception as error:
+
+        LOG.error(error)
+        dialog("notification", heading="{emby}", message=_(33204), icon="{emby}", time=1000, sound=False)
+
+    return
 
 def browse(media, view_id=None, folder=None, server_id=None):
 
@@ -425,9 +457,17 @@ def browse(media, view_id=None, folder=None, server_id=None):
             else:
                 if item['Type'] not in ('Photo', 'PhotoAlbum'):
 
-                    path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s" % item['Id']
+                    if kodi_version() > 17:
+                        path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s&server=%s" % (item['Id'], server_id)
+                    else:
+                        params = {
+                            'id': item['Id'],
+                            'mode': "play",
+                            'server': server_id
+                        }
+                        path = "%s?%s" % ("plugin://plugin.video.emby/", urllib.urlencode(params))
+                    
                     li.setProperty('path', path)
-
                     context = [(_(13412), "RunPlugin(plugin://plugin.video.emby/?mode=playlist&id=%s&server=%s)" % (item['Id'], server_id))]
 
                     if item['UserData']['Played']:

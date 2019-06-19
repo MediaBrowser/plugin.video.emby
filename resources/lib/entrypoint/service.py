@@ -205,7 +205,7 @@ class Service(xbmc.Monitor):
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
                               'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic',
-                              'WebSocketRestarting', 'ResetUpdate'):
+                              'WebSocketRestarting', 'ResetUpdate', 'UserPolicyUpdated'):
                 return
 
             data = json.loads(data)[0]
@@ -394,7 +394,7 @@ class Service(xbmc.Monitor):
             if self.library_thread is not None:
                 self.library_thread.fast_sync()
 
-        elif method == 'UserConfigurationUpdated':
+        elif method in ('UserConfigurationUpdated', 'UserPolicyUpdated'):
 
             if data.get('ServerId') is None:
                 Views().get_views()

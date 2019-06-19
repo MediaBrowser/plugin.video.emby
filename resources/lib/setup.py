@@ -81,6 +81,8 @@ class Setup(object):
             LOG.info("Sync empty shows: %s", settings('syncEmptyShows.bool'))
             self._is_rotten_tomatoes()
             LOG.info("Sync rotten tomatoes: %s", settings('syncRottenTomatoes.bool'))
+            self._is_multiep()
+            LOG.info("Enable multi episode label: %s", settings('displayMultiEpLabel.bool'))
 
         """
         if compare_version(cached or minimum, "3.0.24") <= 0:
@@ -133,3 +135,8 @@ class Setup(object):
 
         value = dialog("yesno", heading="{emby}", line1=_(33039))
         settings('enableMusic.bool', value=value)
+
+    def _is_multiep(self):
+
+        value = dialog("yesno", heading="{emby}", line1=_(33213))
+        settings('displayMultiEpLabel.bool', value=value)

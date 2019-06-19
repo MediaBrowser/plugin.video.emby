@@ -79,6 +79,13 @@ class PlayUtils(object):
 
         ''' Return sources based on the optional source_id or the device profile.
         '''
+        if self.info['Item']['MediaType'] != 'Video':
+            LOG.info("MediaType is not a video")
+            try:
+                return [self.info['Item']['MediaSources'][0]]
+            except Exception:
+                return []
+
         params = {
             'ServerId': self.info['ServerId'],
             'Id': self.info['Item']['Id'],
@@ -137,12 +144,7 @@ class PlayUtils(object):
 
         ''' Do not allow source selection for.
         '''
-        if self.info['Item']['MediaType'] != 'Video':
-            LOG.info("MediaType is not a video.")
-
-            return False
-
-        elif self.info['Item']['Type'] in ('TvChannel', 'Trailer'):
+        if self.info['Item']['Type'] in ('TvChannel', 'Trailer'):
             LOG.info("%s detected.", self.info['Item']['Type'])
 
             return False
@@ -195,7 +197,7 @@ class PlayUtils(object):
             source['SupportsDirectPlay'] = False
             source['Protocol'] = "LiveTV"
 
-        if self.info['ForceTranscode']:
+        if self.info['ForceTranscode'] and self.info['Item']['MediaType'] == 'Video':
 
             source['SupportsDirectPlay'] = False
             source['SupportsDirectStream'] = False
@@ -674,32 +676,26 @@ class PlayUtils(object):
             mapping originates from set_external_subs
         '''
         default = objects.utils.default_settings_default()
-        if not default:
-
-            LOG.warn("Default values not found")
-            self.info['AutoSwitched'] = False
-
-            return
-
         full_path = self.info['Path']
-        default['AudioStream'] = max((self.info['AudioStreamIndex'] or -1) - 1, -1)
-        default['SubtitlesOn'] = int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
-
-        if default['SubtitlesOn']:
+        stream = {
+            'AudioStream': max((self.info['AudioStreamIndex'] or -1) - 1, -1),
+            'SubtitlesOn': int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
+        }
+        if stream['SubtitlesOn']:
             if mapping:
 
                 for sub in mapping:
 
                     if mapping[sub] == self.info['SubtitleStreamIndex']:
-                        default['SubtitleStream'] = sub
+                        stream['SubtitleStream'] = sub
 
                         break
                 else:
-                    default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
+                    stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
             else:
-                default['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
+                stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
         else:
-            default['SubtitleStream'] = -1
+            stream['SubtitleStream'] = -1
 
         if '\\' in full_path:
             path, file = full_path.rsplit('\\', 1)
@@ -714,10 +710,24 @@ class PlayUtils(object):
             with database.Database('video') as kodidb:
 
                 db = kodi.Kodi(kodidb.cursor)
-                default['PathId'] = db.add_path(path)
-                default['FileId'] = db.add_file(file, default['PathId'])
-                db.add_settings(*values(default, QU.update_settings_obj))
-                LOG.debug(default)
+                stream['PathId'] = db.add_path(path)
+                stream['FileId'] = db.add_file(file, stream['PathId'])
+                current = db.get_settings(stream['FileId'])
+
+                if current:
+                    current = list(current)
+                    current.pop(6)
+                    current.insert(6, stream['AudioStream'])
+                    current.pop(7)
+                    current.insert(7, stream['SubtitleStream'])
+                    current.pop(9)
+                    current.insert(9, stream['SubtitlesOn'])
+                    db.add_settings(*current)
+                elif not default:
+                    raise Exception("Default values not found")
+                else:
+                    default.update(stream)
+                    db.add_settings(*values(default, QU.update_settings_obj))
 
             self.info['AutoSwitched'] = True
         except Exception:
@@ -759,6 +769,13 @@ class PlayUtilsStrm(PlayUtils):
 
         ''' Return sources based on the optional source_id or the device profile.
         '''
+        if self.info['Item']['MediaType'] != 'Video':
+            LOG.info("MediaType is not a video")
+            try:
+                return [self.info['Item']['MediaSources'][0]]
+            except Exception:
+                return []
+
         info = self.info['Server']['api'].get_play_info(self.info['Item']['Id'], self.get_device_profile())
         LOG.info(info)
 

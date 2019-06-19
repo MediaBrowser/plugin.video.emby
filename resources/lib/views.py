@@ -215,15 +215,25 @@ class Views(object):
         with Database('emby') as embydb:
 
             views = emby_db.EmbyDatabase(embydb.cursor).get_views()
+            sorted_views = self.sync['SortedViews']
+            whitelist = self.sync['Whitelist']
             removed = []
 
             for view in views:
 
-                if view[0] not in self.sync['SortedViews']:
+                if view[0] not in sorted_views:
                     removed.append(view[0])
 
-            if removed:
-                event('RemoveLibrary', {'Id': ','.join(removed)})
+        if removed:
+
+            event('RemoveLibrary', {'Id': ','.join(removed)})
+            for library_id in removed:
+
+                if library_id in sorted_views:
+                    sorted_views.remove(library_id)
+
+                if library_id in whitelist:
+                    whitelist.remove(library_id)
 
         save_sync(self.sync)
 
