@@ -70,7 +70,7 @@ class Events(object):
             window('emby.sync.pause.bool', True)
 
             try:
-                objects.PlayPlugin(params, server).play()
+                objects.PlayPlugin(params, server).play('trailer' in base_url)
             except Exception as error:
                 LOG.exception(error)
 
