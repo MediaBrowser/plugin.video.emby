@@ -200,7 +200,7 @@ class Show(TvShowMixin, ItemBase):
                 self.kodidb.update_uniqueid(kodi_id,
                                             v.KODI_TYPE_SHOW,
                                             api.provider('tvdb'),
-                                            "unknown",
+                                            'tvdb',
                                             uniqueid)
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
@@ -242,7 +242,7 @@ class Show(TvShowMixin, ItemBase):
                                          kodi_id,
                                          v.KODI_TYPE_SHOW,
                                          api.provider('tvdb'),
-                                         "unknown")
+                                         'tvdb')
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
