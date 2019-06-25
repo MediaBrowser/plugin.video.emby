@@ -561,7 +561,7 @@ class Base(object):
         Returns None if no extras are found
         """
         extras = self.xml.find('Extras')
-        if not extras:
+        if extras is None:
             return
         return (x for x in extras)
 
