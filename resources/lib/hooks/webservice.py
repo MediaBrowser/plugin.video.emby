@@ -372,7 +372,7 @@ class QueuePlay(threading.Thread):
                         play_folder = True
 
                     window('emby.playlist.start', str(start_position))
-                    position = play.play(position)
+                    position = play.play(start_position=position)
                     playlist = play.info['KodiPlaylist']
 
                     if play_folder:

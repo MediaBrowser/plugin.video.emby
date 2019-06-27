@@ -100,7 +100,7 @@ class PlayUtils(object):
             LOG.info("No MediaSources found.")
 
         elif source_id:
-            for source in info:
+            for source in info['MediaSources']:
 
                 if source['Id'] == source_id:
                     sources.append(source)
@@ -209,11 +209,15 @@ class PlayUtils(object):
 
             LOG.info("--[ direct play ]")
             self.direct_play(source)
+            self.info['AudioStreamIndex'] = audio
+            self.info['SubtitleStreamIndex'] = subtitle
 
         elif source['SupportsDirectStream']:
 
             LOG.info("--[ direct stream ]")
             self.direct_url(source)
+            self.info['AudioStreamIndex'] = audio
+            self.info['SubtitleStreamIndex'] = subtitle
 
         else:
             LOG.info("--[ transcode ]")
@@ -786,7 +790,7 @@ class PlayUtilsStrm(PlayUtils):
             LOG.info("No MediaSources found.")
 
         elif source_id:
-            for source in info:
+            for source in info['MediaSources']:
 
                 if source['Id'] == source_id:
                     sources.append(source)
