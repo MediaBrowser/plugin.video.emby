@@ -47,15 +47,13 @@ def update_playlist(playlist, delete=False):
             plexdb.add_playlist(playlist)
 
 
-def get_playlist(path=None, kodi_hash=None, plex_id=None):
+def get_playlist(path=None, plex_id=None):
     """
-    Returns the playlist as a Playlist for either the plex_id, path or
-    kodi_hash. kodi_hash will be more reliable as it includes path and file
-    content.
+    Returns the playlist as a Playlist for either the plex_id or path
     """
     playlist = Playlist()
     with PlexDB() as plexdb:
-        playlist = plexdb.playlist(playlist, plex_id, path, kodi_hash)
+        playlist = plexdb.playlist(playlist, plex_id, path)
     return playlist
 
 

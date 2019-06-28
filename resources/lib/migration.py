@@ -42,4 +42,13 @@ def check_migration():
         sections.clear_window_vars()
         sections.delete_videonode_files()
 
+    if not utils.compare_version(last_migration, '2.8.7'):
+        LOG.info('Migrating to version 2.8.6')
+        # Need to delete the UNIQUE index that prevents creating several
+        # playlist entries with the same kodi_hash
+        from .plex_db import PlexDB
+        with PlexDB() as plexdb:
+            plexdb.cursor.execute('DROP INDEX IF EXISTS ix_playlists_3')
+            # Index will be automatically recreated on next PKC startup
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)

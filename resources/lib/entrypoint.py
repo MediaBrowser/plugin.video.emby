@@ -483,7 +483,7 @@ def extras(plex_id):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         return
     extras = API(xml[0]).extras()
-    if not extras:
+    if extras is None:
         return
     for child in xml:
         xml.remove(child)
