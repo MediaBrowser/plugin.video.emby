@@ -305,7 +305,7 @@ def initialize():
                 'CREATE INDEX IF NOT EXISTS ix_track_1 ON track (last_sync)',
                 'CREATE UNIQUE INDEX IF NOT EXISTS ix_track_2 ON track (kodi_id)',
                 'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_2 ON playlists (kodi_path)',
-                'CREATE UNIQUE INDEX IF NOT EXISTS ix_playlists_3 ON playlists (kodi_hash)',
+                'CREATE INDEX IF NOT EXISTS ix_playlists_3 ON playlists (kodi_hash)',
             )
             for cmd in commands:
                 plexdb.cursor.execute(cmd)
