@@ -463,7 +463,7 @@ class Service(xbmc.Monitor):
         properties = [
             "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
             "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
-            "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause"
+            "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause", "emby.playlist.clear"
         ]
         for prop in properties:
             window(prop, clear=True)
