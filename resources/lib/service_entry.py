@@ -87,8 +87,6 @@ class Service(object):
             utils.window(prop, clear=True)
 
         clientinfo.getDeviceId()
-        # Init time-offset between Kodi and Plex
-        timing.KODI_PLEX_TIME_OFFSET = float(utils.settings('kodiplextimeoffset') or 0.0)
 
         self.startup_completed = False
         self.server_has_been_online = True

@@ -82,7 +82,6 @@
         <setting label="[COLOR yellow]$ADDON[plugin.video.plexkodiconnect 30517][/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.plexkodiconnect?mode=passwords)" option="close" /><!-- Set network credentials for Direct Paths and direct play -->
 
         <setting id="streamMusic" type="bool" label="30510" default="false" visible="false" subsetting="true"/> <!-- Direct stream Music library -->
-        <setting id="kodiplextimeoffset" type="number" label="Time difference in seconds (Koditime - Plextime)" default="0" visible="false" option="int" />
         <setting id="themoviedbAPIKey" type="text" default="19c90103adb9e98f2172c6a6a3d85dc4" visible="false"/>
         <setting id="FanArtTVAPIKey" type="text" default="639191cb0774661597f28a47e7e2bad5" visible="false"/>
         <setting id="syncEmptyShows" type="bool" label="30508" default="false" visible="false"/>
