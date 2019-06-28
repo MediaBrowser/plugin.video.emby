@@ -57,20 +57,17 @@ class Playlists(object):
              playlist.kodi_type,
              playlist.kodi_hash))
 
-    def playlist(self, playlist, plex_id=None, path=None, kodi_hash=None):
+    def playlist(self, playlist, plex_id=None, path=None):
         """
-        Returns a complete Playlist (empty one passed in via playlist)
-        for the entry with plex_id OR kodi_hash OR kodi_path.
+        Returns a complete Playlist (empty one passed in via playlist) for the
+        entry with plex_id OR kodi_path.
         Returns None if not found
         """
         query = 'SELECT * FROM playlists WHERE %s = ? LIMIT 1'
         if plex_id:
             query = query % 'plex_id'
             var = plex_id
-        elif kodi_hash:
-            query = query % 'kodi_hash'
-            var = kodi_hash
-        else:
+        elif path:
             query = query % 'kodi_path'
             var = path
         self.cursor.execute(query, (var, ))
