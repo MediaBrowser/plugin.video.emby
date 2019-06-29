@@ -6,9 +6,6 @@ from time import localtime, strftime
 
 EPOCH = datetime.utcfromtimestamp(0)
 
-# What's the time offset between the PMS and Kodi?
-KODI_PLEX_TIME_OFFSET = 0.0
-
 
 def unix_timestamp(seconds_into_the_future=None):
     """
@@ -37,27 +34,23 @@ def unix_date_to_kodi(unix_kodi_time):
 
 def plex_date_to_kodi(plex_timestamp):
     """
-    converts a Unix time stamp (seconds passed sinceJanuary 1 1970) to a
-    propper, human-readable time stamp used by Kodi
+    converts a PMS epoch time stamp (seconds passed since January 1 1970, Plex
+    sends timezone-independent epoch) to a propper, human-readable time stamp
+    used by Kodi (varies per time-zone!)
 
     Output: Y-m-d h:m:s = 2009-04-05 23:16:04
 
     Returns None if plex_timestamp is not valid (e.g. -1))
     """
     try:
-        return strftime('%Y-%m-%d %H:%M:%S',
-                        localtime(float(plex_timestamp) + KODI_PLEX_TIME_OFFSET))
+        return unix_date_to_kodi(plex_timestamp)
     except ValueError:
         # the PMS can return -1 as plex_timestamp - great!
-        return
-
-
-def kodi_date_to_plex(kodi_timestamp):
-    return float(kodi_timestamp) - KODI_PLEX_TIME_OFFSET
+        pass
 
 
 def plex_now():
-    return kodi_date_to_plex(unix_timestamp())
+    return unix_timestamp()
 
 
 def kodi_timestamp(plex_timestamp):

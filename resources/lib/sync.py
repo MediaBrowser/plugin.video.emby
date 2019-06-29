@@ -137,7 +137,6 @@ class Sync(backgroundthread.KillableThread):
         playlist_monitor = None
         initial_sync_done = False
         last_websocket_processing = 0
-        last_time_sync = 0
         one_day_in_seconds = 60 * 60 * 24
         # Link to Websocket queue
         queue = app.APP.websocket_queue
@@ -171,8 +170,6 @@ class Sync(backgroundthread.KillableThread):
                 return
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
-                # Initialize time offset Kodi - PMS
-                library_sync.sync_pms_time()
                 last_time_sync = timing.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
@@ -227,10 +224,6 @@ class Sync(backgroundthread.KillableThread):
                         not app.APP.is_playing_video):
                     LOG.info('Doing scheduled full library scan')
                     self.start_library_sync()
-                elif now - last_time_sync > one_day_in_seconds:
-                    LOG.info('Starting daily time sync')
-                    library_sync.sync_pms_time()
-                    last_time_sync = now
                 elif not app.SYNC.background_sync_disabled:
                     # Check back whether we should process something Only do
                     # this once a while (otherwise, potentially many screen
