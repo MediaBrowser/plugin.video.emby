@@ -125,7 +125,7 @@ class Service(xbmc.Monitor):
                     if difference.seconds > 4:
                         self.settings['last_progress'] = datetime.today()
 
-                        update = (datetime.today() - self.settings['last_progress_report']).seconds > 55
+                        update = (datetime.today() - self.settings['last_progress_report']).seconds > 40
                         event('ReportProgressRequested', {'Report': update})
 
                         if update:
