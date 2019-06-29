@@ -41,7 +41,7 @@ The add-on supports a hybrid approach. You can decide which Emby libraries to sy
 Get started with the [wiki guide](https://github.com/MediaBrowser/plugin.video.emby/wiki)
 
 ### Known limitations
-- Chapter images are missing unless native playback mode is used.
+- ~~Chapter images are missing unless native playback mode is used.~~
 - Certain add-ons that depend on seeing where your content is located will not work unless native playback mode is selected.
 
 ___
