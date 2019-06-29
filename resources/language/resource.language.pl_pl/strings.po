@@ -326,10 +326,6 @@ msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
 msgstr "Pozwól na wygaszenie ekranu podczas synchronizacji"
 
-msgctxt "#30537"
-msgid "Transcode Hi10P"
-msgstr "Transkoduj Hi10P"
-
 msgctxt "#30539"
 msgid "Login"
 msgstr "Logowanie"
@@ -1110,4 +1106,36 @@ msgstr "Zadanie nie powiodło się!"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
+msgstr ""
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr ""
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr ""
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr ""
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr ""
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr ""
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr ""
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr ""
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
 msgstr ""
