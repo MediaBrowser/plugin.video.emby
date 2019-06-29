@@ -1,3 +1,6 @@
+version 2.8.7:
+- Fix PKC potentially marking a video as watched on startup; don't sync time by toggling a video watch status but use PMS epoch time
+
 version 2.8.6:
 - Fix PKC creating thousands of playlists if a single Kodi playlist wasn't unique
 - Fix FutureWarning
