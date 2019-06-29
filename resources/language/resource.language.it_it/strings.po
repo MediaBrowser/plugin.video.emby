@@ -326,10 +326,6 @@ msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
 msgstr "Abilita salvaschermo durante la sinconizzazione"
 
-msgctxt "#30537"
-msgid "Transcode Hi10P"
-msgstr "Transcodifica Hi10P"
-
 msgctxt "#30539"
 msgid "Login"
 msgstr "Accedi"
@@ -1126,3 +1122,35 @@ msgstr "Task fallito!"
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
 msgstr "Abilita la riproduzione semplice (indicato con player esterno)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "Transcodifica 10-bit (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Chiedi se procedere con la sincronizzazione se più grande di"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "Transcodifica 10-bit (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Riproduci gli url remoti usando Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Mostra gli utenti nascosti nella selezione"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Reset patch update"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Ultima release"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Attiva etichetta per più episodi. i.e. | # | titolo"

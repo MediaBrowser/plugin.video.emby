@@ -186,7 +186,7 @@ class API(object):
         return  self.shows("/%s/Episodes" % show_id, {
                     'UserId': "{UserId}",
                     'AdjacentTo': item_id,
-                    'Fields': "Overview"
+                    'Fields': info()
                 })
 
     def get_genres(self, parent_id=None):

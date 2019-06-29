@@ -4,15 +4,16 @@
 # Addon Provider: angelblue05
 # Translators:
 # z cherry <chengweizhu.zjzs@gmail.com>, 2019
-# 张进出 <164980316@qq.com>, 2019
 # lei zhang <hazhanglei@gmail.com>, 2019
+# 無情天 X <kofzhanganguo@126.com>, 2019
+# Noisy✘ <164980316@qq.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: lei zhang <hazhanglei@gmail.com>, 2019\n"
+"Last-Translator: Noisy✘ <164980316@qq.com>, 2019\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/emby-for-kodi/teams/91090/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -70,11 +71,11 @@ msgstr "播放完后提示删除"
 
 msgctxt "#30115"
 msgid "For Episodes"
-msgstr "按季"
+msgstr "按剧集"
 
 msgctxt "#30116"
 msgid "For Movies"
-msgstr "来自电影"
+msgstr "按电影"
 
 msgctxt "#30157"
 msgid "Enable enhanced artwork (i.e. cover art)"
@@ -86,7 +87,7 @@ msgstr "视频质量"
 
 msgctxt "#30170"
 msgid "Recently Added TV Shows"
-msgstr "最近新增的节目"
+msgstr "最近添加的电视节目"
 
 msgctxt "#30171"
 msgid "In Progress TV Shows"
@@ -94,11 +95,11 @@ msgstr "正在播出的节目"
 
 msgctxt "#30174"
 msgid "Recently Added Movies"
-msgstr "最近新增的电影"
+msgstr "最近添加的电影"
 
 msgctxt "#30175"
 msgid "Recently Added Episodes"
-msgstr "最近新增季"
+msgstr "最近添加的剧集"
 
 msgctxt "#30177"
 msgid "In Progress Movies"
@@ -118,7 +119,7 @@ msgstr "喜欢的电影"
 
 msgctxt "#30181"
 msgid "Favorite Shows"
-msgstr "喜欢的节目"
+msgstr "喜欢的电视节目"
 
 msgctxt "#30182"
 msgid "Favorite Episodes"
@@ -258,7 +259,7 @@ msgstr "启用艺术图缓存"
 
 msgctxt "#30515"
 msgid "Paging - max items requested (default: 15)"
-msgstr "每页显示最大数量(默认值:15)"
+msgstr "分页 - 显示最大数量（默认值：15）"
 
 msgctxt "#30516"
 msgid "Playback"
@@ -290,7 +291,7 @@ msgstr "转码 H.265/HEVC"
 
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"
-msgstr "忽略下一集Specials（例如动漫中的SP，OVA，OAD等）"
+msgstr "忽略下一集 Specials（例如动漫中的SP，OVA，OAD等）"
 
 msgctxt "#30528"
 msgid "Permanent users"
@@ -327,10 +328,6 @@ msgstr "生成新的设备ID"
 msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
 msgstr "在同步期间允许屏幕保护程序"
-
-msgctxt "#30537"
-msgid "Transcode Hi10P"
-msgstr "转码 H.264/Hi10P"
 
 msgctxt "#30539"
 msgid "Login"
@@ -442,15 +439,15 @@ msgstr "从Emby删除文件？"
 
 msgctxt "#33016"
 msgid "Play trailers?"
-msgstr "启用预告片？"
+msgstr "播放预告片？"
 
 msgctxt "#33018"
 msgid "Gathering boxsets"
-msgstr "搜索剧集"
+msgstr "搜集合集"
 
 msgctxt "#33021"
 msgid "Gathering:"
-msgstr "搜索"
+msgstr "搜集"
 
 msgctxt "#33022"
 msgid ""
@@ -625,7 +622,7 @@ msgctxt "#33101"
 msgid ""
 "Since you are using native playback mode with music enabled, do you want to "
 "import music rating from files?"
-msgstr "由于您在启用音乐的情况下使用本机播放模式，是否要从文件导入音乐评级？"
+msgstr "由于您在启用音乐的情况下使用本机播放模式，是否要从文件导入音乐评分？"
 
 msgctxt "#33102"
 msgid "Resume the previous sync?"
@@ -658,7 +655,7 @@ msgstr "在视频播放过程中会延迟通知（直播电视除外）。"
 
 msgctxt "#33109"
 msgid "Plugin"
-msgstr "插入"
+msgstr "插件"
 
 msgctxt "#33110"
 msgid "Restart Kodi to take effect."
@@ -725,7 +722,7 @@ msgstr "将媒体库同步到Kodi"
 
 msgctxt "#33124"
 msgid "Include people (slow)"
-msgstr "同人画（缓慢）"
+msgstr "包括人物（较慢）"
 
 msgctxt "#33125"
 msgid ""
@@ -888,7 +885,7 @@ msgstr "启用音频/字幕选择"
 
 msgctxt "#33160"
 msgid "To avoid errors, please update Emby for Kodi to version: "
-msgstr "为避免错误，请将Emby for Kodi更新为版本："
+msgstr "为避免错误，请将Emby for Kodi更新版本为："
 
 msgctxt "#33161"
 msgid "Check for updates"
@@ -928,7 +925,7 @@ msgstr "进行中"
 
 msgctxt "#33170"
 msgid "Unwatched"
-msgstr "忽略"
+msgstr "未观看"
 
 msgctxt "#33171"
 msgid "By first letter"
@@ -948,13 +945,13 @@ msgstr "取消之前的同步？不建议这样做！"
 
 msgctxt "#33174"
 msgid "Paging - download threads (default: 3)"
-msgstr "分页 - 下载线程（默认值：3）"
+msgstr "每页显示 - 下载线程（默认值：3）"
 
 msgctxt "#33175"
 msgid ""
 "Paging tip: Each download thread requests your max items value from Emby at "
 "the same time."
-msgstr "分页提示：每个下载线程同时从Emby请求您的最大项目值。"
+msgstr "每页显示：每个下载线程同时从Emby请求您的最大项目值。"
 
 msgctxt "#33176"
 msgid "Update or repair your libraries to apply the changes below."
@@ -1000,15 +997,15 @@ msgctxt "#33186"
 msgid ""
 "The Kodi companion speeds up the start up sync. Other syncs are triggered by"
 " server events."
-msgstr "Kodi Companion可加快启动同步速度。 其他同步由服务器事件触发。"
+msgstr "Kodi Companion可加快启动同步速度。 其他同步由服务端事件触发。"
 
 msgctxt "#33187"
 msgid "Sync Rotten Tomatoes ratings"
-msgstr "同步Tomatoes评分"
+msgstr "同步Rotten Tomatoes评分"
 
 msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
-msgstr "是否要同步Tomatoes评分吗？"
+msgstr "是否要同步Rotten Tomatoes评分？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
@@ -1049,7 +1046,7 @@ msgstr "Emby 播放"
 
 msgctxt "#33202"
 msgid "Music database rescan patch"
-msgstr "音乐数据库重新扫描修补程序"
+msgstr "音乐媒体库重新扫描"
 
 msgctxt "#33203"
 msgid "Task succeeded!"
@@ -1061,4 +1058,36 @@ msgstr "任务失败！"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
-msgstr "启用简易播放（有助于外部播放器）"
+msgstr "启用简易播放（对外部播放器提供支持）"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "转码(H264)10-bit"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "如果计数大于，则要求继续同步"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "转码(H265/HEVC)10-bit"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "使用Emby播放远程URL"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "在选择中显示隐藏用户"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "重置补丁更新"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr ""
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr ""
