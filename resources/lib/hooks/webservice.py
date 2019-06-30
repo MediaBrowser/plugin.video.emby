@@ -352,13 +352,17 @@ class QueuePlay(threading.Thread):
                 play = objects.PlayStrm(params, params.get('ServerId'))
 
                 if start_position is None:
+
                     if window('emby.playlist.audio.bool'):
 
-                        LOG.info("[ relaunch playlist ]")
-                        xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
-                        xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
-                        playlist_audio = True
-                        window('emby.playlist.ready.bool', True)
+                        while not window('emby.playlist.plugin.bool'): # ensure plugin called before clearing playlists
+                            xbmc.sleep(50)
+                        else:
+                            LOG.info("[ relaunch playlist ]")
+                            xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
+                            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+                            playlist_audio = True
+                            window('emby.playlist.ready.bool', True)
 
                     start_position = max(play.info['KodiPlaylist'].getposition(), 0)
                     position = start_position + int(not playlist_audio)
