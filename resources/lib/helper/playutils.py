@@ -165,12 +165,12 @@ class PlayUtils(object):
 
         path = self.direct_play(source)
 
-        if xbmcvfs.exists(self.info['Path']):
+        if self.info['ServerId'] is None and xbmcvfs.exists(self.info['Path']):
             LOG.info("Path exists.")
 
             return True
 
-        LOG.info("Failed to find file.")
+        LOG.info("Failed to find file, server: %s.", self.info['ServerId'])
 
         return False
 

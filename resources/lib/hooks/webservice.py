@@ -332,24 +332,25 @@ class QueuePlay(threading.Thread):
 
                         if play_folder:
 
-                            LOG.info("[ start play ]")
+                            LOG.info("[ start play/folder ]")
                             objects.utils.disable_busy_dialog()
                             play.start_playback()
                         elif window('emby.playlist.audio.bool'):
 
+                            LOG.info("[ start play/relaunch ]")
                             window('emby.playlist.play.bool', True)
                             window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
                             play.start_playback()
                         else:
+                            LOG.info("[ start play ]")
                             window('emby.playlist.play.bool', True)
-
                             xbmc.sleep(1000)
                             play.remove_from_playlist(start_position)
 
                     break
 
-                play = objects.PlayStrm(params, params.get('ServerId'))
+                play = objects.PlayStrm(params, params.get('server'))
 
                 if start_position is None:
 
