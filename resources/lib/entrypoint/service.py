@@ -4,12 +4,14 @@
 
 import logging
 import patch
+from hooks import webservice
 
 #################################################################################################
 
+WEBSERVICE = webservice.WebService()
+WEBSERVICE.start()
 LOG = logging.getLogger("EMBY."+__name__)
 PATCH = patch.Patch()
-
 PATCH.check_update()
 
 #################################################################################################
@@ -29,7 +31,6 @@ import library
 import setup
 import patch
 import requests
-from hooks import webservice
 from views import Views, verify_kodi_defaults
 from helper import _, window, settings, event, dialog, find, compare_version
 from emby import Emby
@@ -43,7 +44,6 @@ class Service(xbmc.Monitor):
     running = True
     library_thread = None
     monitor = None
-    webservice = None
     play_event = None
     patch = None
     warn = True
@@ -103,8 +103,6 @@ class Service(xbmc.Monitor):
             Threads depending on abortRequest will not trigger.
         '''
         self.monitor = objects.monitor.Monitor()
-        self.webservice = webservice.WebService()
-        self.webservice.start()
         self.connect = connect.Connect()
         self.start_default()
 
@@ -131,7 +129,7 @@ class Service(xbmc.Monitor):
                         if update:
                             self.settings['last_progress_report'] = datetime.today()
 
-            if self.webservice is not None and not self.webservice.is_alive():
+            if not WEBSERVICE.is_alive():
                 
                 LOG.info("[ restarting due to socket disconnect ]")
                 window('emby.restart.bool', True)
@@ -468,13 +466,11 @@ class Service(xbmc.Monitor):
         for prop in properties:
             window(prop, clear=True)
 
+        WEBSERVICE.stop()
         Emby.close_all()
 
         if self.library_thread is not None:
             self.library_thread.stop_client()
-
-        if self.webservice is not None:
-            self.webservice.stop()
 
         if self.monitor is not None:
             self.monitor.listener.stop()

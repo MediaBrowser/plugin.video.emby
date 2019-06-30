@@ -14,7 +14,6 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-import objects
 from helper import settings, window, JSONRPC
 
 #################################################################################################
@@ -37,9 +36,9 @@ class WebService(threading.Thread):
         ''' Called to see if the webservice is still responding.
         '''
         alive = True
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(('127.0.0.1', PORT))
             s.sendall("")
         except Exception as error:
@@ -67,7 +66,9 @@ class WebService(threading.Thread):
 
         ''' Called to start the webservice.
         '''
-        LOG.info("--->[ webservice/%s ]", PORT)
+        LOG.warn("--->[ webservice/%s ]", PORT)
+        self.stop()
+
         server = HttpServer(('127.0.0.1', PORT), RequestHandler)
 
         try:
@@ -77,7 +78,7 @@ class WebService(threading.Thread):
             if '10053' not in error: # ignore host diconnected errors
                 LOG.exception(error)
 
-        LOG.info("---<[ webservice ]")
+        LOG.warn("---<[ webservice ]")
 
 
 class HttpServer(BaseHTTPServer.HTTPServer):
@@ -273,7 +274,7 @@ class QueuePlay(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-
+        import objects
         ''' Workflow for new playback:
 
             Queue up strm playback that was called in the webservice.
@@ -302,15 +303,13 @@ class QueuePlay(threading.Thread):
         position = None
         playlist = None
         playlist_audio = False
-
         xbmc.sleep(200) # Let Kodi catch up
 
         while True:
-
-            if not window('emby_online.bool'):
-                raise Exception("NotConnected")
-
             try:
+                if not window('emby_online.bool'):
+                    raise Exception("NotConnected")
+
                 try:
                     params = self.server.queue.get(timeout=0.01)
                 except Queue.Empty:
@@ -383,8 +382,10 @@ class QueuePlay(threading.Thread):
 
                 if not xbmc.Player().isPlaying():
 
-                    play.info['KodiPlaylist'].clear()
-                    xbmc.Player().stop()
+                    if play:
+                        play.info['KodiPlaylist'].clear()
+
+                    xbmc.Player().stop() # mute failed playback pop up
                     self.server.queue.queue.clear()
 
                 if play_folder:

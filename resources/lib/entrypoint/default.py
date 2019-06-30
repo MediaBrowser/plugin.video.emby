@@ -88,7 +88,7 @@ class Events(object):
                 xbmc.sleep(50)
 
                 if window('emby.playlist.aborted.bool'):
-                    LOG.info("[ playback aborted ]")
+                    LOG.warn("[ playback aborted ]")
 
                     break
             else:
