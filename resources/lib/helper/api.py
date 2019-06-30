@@ -303,7 +303,7 @@ class API(object):
 
         ''' Get backdrops based of "BackdropImageTags" in the emby object.
         '''
-        query = query or []
+        query = list(query) if query else []
         backdrops = []
 
         if item_id is None:
@@ -321,7 +321,7 @@ class API(object):
 
         ''' Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
         '''
-        query = query or []
+        query = list(query) if query else []
 
         if item_id is None:
             return ""

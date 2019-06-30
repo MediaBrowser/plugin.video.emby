@@ -67,7 +67,9 @@ class Events(object):
             get_video_extras(emby_id, emby_path, server)
 
         elif mode == 'play':
+
             window('emby.sync.pause.bool', True)
+            window('emby.playlist.plugin.bool', True)
 
             try:
                 objects.PlayPlugin(params, server).play('trailer' in base_url)
@@ -80,15 +82,18 @@ class Events(object):
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
             window('emby.sync.pause.bool', clear=True)
+            window('emby.playlist.plugin', clear=True)
 
         elif mode =='playstrm':
+
             window('emby.sync.pause.bool', True)
+            window('emby.playlist.plugin.bool', True)
 
             while not window('emby.playlist.play.bool'):
                 xbmc.sleep(50)
 
                 if window('emby.playlist.aborted.bool'):
-                    LOG.info("[ playback aborted ]")
+                    LOG.warn("[ playback aborted ]")
 
                     break
             else:
@@ -96,10 +101,14 @@ class Events(object):
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
             window('emby.playlist.aborted', clear=True)
-            window('emby.sync.pause.bool', clear=True)
+            window('emby.sync.pause', clear=True)
+            window('emby.playlist.plugin', clear=True)
 
         elif mode == 'playsingle':
+
             window('emby.sync.pause.bool', True)
+            window('emby.playlist.plugin.bool', True)
+
             try:
                 objects.PlaySingle(params, server).play()
             except Exception as error:
@@ -110,7 +119,8 @@ class Events(object):
 
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
 
-            window('emby.sync.pause.bool', clear=True)
+            window('emby.sync.pause', clear=True)
+            window('emby.playlist.plugin', clear=True)
 
         elif mode == 'playlist':
             event('PlayPlaylist', {'Id': params['id'], 'ServerId': server})

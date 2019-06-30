@@ -128,7 +128,7 @@
 		<setting id="SeasonSpecials" type="bool" visible="false" />
 		<setting id="changelog" type="bool" visible="false" />
 		<setting id="lowPowered" type="bool" visible="false" />
-		<setting id="distroDetected" type="bool" visible="false" />
+		<setting id="distroDetected" type="text" visible="false" />
 	</category>
 
 </settings>
