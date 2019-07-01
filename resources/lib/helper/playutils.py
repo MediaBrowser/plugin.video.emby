@@ -757,11 +757,10 @@ class PlayUtilsStrm(PlayUtils):
             holds all the playback information.
         '''
         PlayUtils.__init__(self, item, force_transcode, server_id, server['auth/server-address'], server['auth/token'])
-
         item['PlaybackInfo'] = {}
         self.info = {
             'Item': item,
-            'ServerId': server['auth/server-id'],
+            'ServerId': server_id,
             'ServerAddress': server['auth/server-address'],
             'Server': server,
             'Token': server['auth/token'],
