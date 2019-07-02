@@ -733,9 +733,9 @@ class PlayUtils(object):
                     default.update(stream)
                     db.add_settings(*values(default, QU.update_settings_obj))
 
-            self.info['AutoSwitched'] = True
+            self.info['Item']['PlaybackInfo']['AutoSwitched'] = True
         except Exception:
-            self.info['AutoSwitched'] = False
+            self.info['Item']['PlaybackInfo']['AutoSwitched'] = False
 
     def _get_streams(self, source):
 
