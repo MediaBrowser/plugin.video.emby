@@ -17,7 +17,7 @@ from database import Database, emby_db, get_sync, save_sync
 from sync import Sync
 from views import Views
 from downloader import GetItemWorker
-from helper import _, api, stop, settings, window, dialog, event, progress, LibraryException
+from helper import _, api, stop, settings, window, dialog, event, progress, compare_version, LibraryException
 from helper.utils import split_list, set_screensaver, get_screensaver
 from emby import Emby
 
@@ -484,6 +484,7 @@ class Library(threading.Thread):
         return False
 
     def get_fast_sync(self):
+        new_fast_sync = compare_version(self.server['auth/server-version'],"4.2.0.23")
 
         if settings('SyncInstallRunDone.bool'):
             if settings('kodiCompanion.bool'):
@@ -491,7 +492,13 @@ class Library(threading.Thread):
                 for plugin in self.server['api'].get_plugins():
                     if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
                         
-                        if not self.fast_sync():
+                        if new_fast_sync > 0:
+                            if not self.fast_sync():
+                                dialog("ok", heading="{emby}", line1=_(33128))
+
+                                raise Exception("Failed to retrieve latest updates")
+
+                        elif not self.fast_sync_plugin():
                             dialog("ok", heading="{emby}", line1=_(33128))
 
                             raise Exception("Failed to retrieve latest updates")
@@ -507,16 +514,46 @@ class Library(threading.Thread):
         ''' Movie and userdata not provided by server yet.
         '''
         last_sync = settings('LastIncrementalSync')
+        sync = get_sync()
+        LOG.info("--[ retrieve changes ] %s", last_sync)
+
+
+        for library in sync['Whitelist']:
+
+            data = self.server['api'].get_date_modified(last_sync, library.replace('Mixed:', ""), "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio")
+            for query in data['Items']:
+
+                if query['Type'] in self.updated_output:
+                    self.updated_output[query['Type']].put(query)
+
+            data = self.server['api'].get_userdata_date_modified(last_sync, library.replace('Mixed:', ""), "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio")
+            for query in data['Items']:
+
+                if query['Type'] in self.userdata_output:
+                    self.userdata_output[query['Type']].put(query)
+
+        try:
+            removed = []
+            result = self.server['api'].get_sync_queue(last_sync)
+            removed.extend(result['ItemsRemoved'])
+            self.removed(removed)
+
+        except Exception as error:
+            LOG.exception(error)
+
+            return False
+
+        return True
+
+    def fast_sync_plugin(self):
+
+        ''' Movie and userdata not provided by server yet.
+        '''
+        last_sync = settings('LastIncrementalSync')
         filters = ["tvshows", "boxsets", "musicvideos", "music", "movies"]
         sync = get_sync()
         LOG.info("--[ retrieve changes ] %s", last_sync)
 
-        """
-        for library in sync['Whitelist']:
-
-            data = self.server['api'].get_date_modified(last_sync, library.replace('Mixed:', ""), "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio")
-            [self.updated_output[query['Type']].put(query) for query in data['Items']]
-        """
         try:
             updated = []
             userdata = []
@@ -543,22 +580,6 @@ class Library(threading.Thread):
             self.updated(updated)
             self.userdata(userdata)
             self.removed(removed)
-
-            """
-            result = self.server['api'].get_sync_queue(last_sync)
-            self.userdata(result['UserDataChanged'])
-            self.removed(result['ItemsRemoved'])
-
-            
-            filters.extend(["tvshows", "boxsets", "musicvideos", "music"])
-
-            # Get only movies.
-            result = self.server['api'].get_sync_queue(last_sync, ",".join(filters))
-            self.updated(result['ItemsAdded'])
-            self.updated(result['ItemsUpdated'])
-            self.userdata(result['UserDataChanged'])
-            self.removed(result['ItemsRemoved'])
-            """
 
         except Exception as error:
             LOG.exception(error)
