@@ -231,7 +231,7 @@ class Player(xbmc.Player):
             items = window('emby.play.json')
             count += 1
 
-            if count == 20:
+            if count == 5:
                 LOG.info("<[ emby.play empty ]")
 
                 raise Exception('TimedOut')
@@ -258,21 +258,26 @@ class Player(xbmc.Player):
         try:
             items = self._get_items()
         except Exception as error:
-            LOG.error(error)
+            if file in self.played:
 
-            return
+                LOG.warn("[ reusing played item ]")
+                item = self.played[file]
+            else:
+                LOG.error(error)
 
-        item = None
-
-        for item in items:
-            if item['Path'] == file.decode('utf-8'):
-                items.pop(items.index(item))
-
-                break
+                return
         else:
-            item = items.pop(0)
+            item = None
 
-        self._set_items(items)
+            for item in items:
+                if item['Path'] == file.decode('utf-8'):
+                    items.pop(items.index(item))
+
+                    break
+            else:
+                item = items.pop(0)
+
+            self._set_items(items)
 
         try:
             item['Runtime'] = int(item['Runtime'])
@@ -482,7 +487,7 @@ class Player(xbmc.Player):
         '''
         LOG.info("[ played info ] %s", self.played)
 
-        for file in dict(self.played):
+        for file in self.played:
 
             try:
                 item = self.get_file_info(file)
@@ -492,7 +497,8 @@ class Player(xbmc.Player):
 
                     continue
 
-                self.played.pop(file, None)
+                item['Track'] = False
+                self.played[file] = item
                 window('emby.skip.%s.bool' % item['Id'], True)
 
                 if window('emby.external.bool'):
