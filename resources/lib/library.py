@@ -488,32 +488,35 @@ class Library(threading.Thread):
         return False
 
     def get_fast_sync(self):
+
         new_fast_sync = compare_version(self.server['auth/server-version'],"4.2.0.23")
+        enable_fast_sync = False
 
         if settings('SyncInstallRunDone.bool'):
+
             if settings('kodiCompanion.bool'):
-
                 for plugin in self.server['api'].get_plugins():
+
                     if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
-                        
-                        if new_fast_sync > 0:
-                            if not self.fast_sync():
-                                dialog("ok", heading="{emby}", line1=_(33128))
-
-                                raise Exception("Failed to retrieve latest updates")
-
-                        elif not self.fast_sync_plugin():
-                            dialog("ok", heading="{emby}", line1=_(33128))
-
-                            raise Exception("Failed to retrieve latest updates")
-
-                        LOG.info("--<[ retrieve changes ]")
+                        enable_fast_sync = True
 
                         break
+
+                if new_fast_sync > 0:
+                    self.fast_sync(enable_fast_sync)
+
+                elif enable_fast_sync:
+
+                    if not self.fast_sync_plugin():
+                        dialog("ok", heading="{emby}", line1=_(33128))
+
+                        raise Exception("Failed to retrieve latest updates")
                 else:
                     raise LibraryException('CompanionMissing')
 
-    def fast_sync(self):
+                LOG.info("--<[ retrieve changes ]")
+
+    def fast_sync(self, plugin):
 
         ''' Movie and userdata not provided by server yet.
         '''
@@ -536,16 +539,13 @@ class Library(threading.Thread):
                 if query['Type'] in self.userdata_output:
                     self.userdata_output[query['Type']].put(query)
 
-        try:
-            removed = []
-            result = self.server['api'].get_sync_queue(last_sync)
-            removed.extend(result['ItemsRemoved'])
-            self.removed(removed)
+        if plugin:
+            try:
+                result = self.server['api'].get_sync_queue(last_sync)
+                self.removed(result['ItemsRemoved'])
 
-        except Exception as error:
-            LOG.exception(error)
-
-            return False
+            except Exception as error:
+                LOG.exception(error)
 
         return True
 
