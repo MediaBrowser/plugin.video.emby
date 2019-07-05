@@ -81,6 +81,7 @@ class Library(threading.Thread):
         self.writer_threads = {'updated': [], 'userdata': [], 'removed': []}
         self.database_lock = threading.Lock()
         self.music_database_lock = threading.Lock()
+        self.sync = Sync
 
         threading.Thread.__init__(self)
         self.start()
@@ -112,6 +113,9 @@ class Library(threading.Thread):
             try:
                 if not self.started and not self.startup():
                     self.stop_client()
+
+                if self.sync.running:
+                    continue
 
                 self.service()
             except LibraryException as error:
@@ -389,7 +393,7 @@ class Library(threading.Thread):
 
     def sync_libraries(self, forced=False):
 
-        with Sync(self, self.server) as sync:
+        with self.sync(self, self.server) as sync:
             sync.libraries(forced=forced)
 
         Views().get_nodes()
@@ -397,7 +401,7 @@ class Library(threading.Thread):
     def _add_libraries(self, library_id, update=False):
 
         try:
-            with Sync(self, server=self.server) as sync:
+            with self.sync(self, server=self.server) as sync:
                 sync.libraries(library_id, update)
 
         except LibraryException as error:
@@ -412,7 +416,7 @@ class Library(threading.Thread):
     def _remove_libraries(self, library_id):
 
         try:
-            with Sync(self, self.server) as sync:
+            with self.sync(self, self.server) as sync:
                 sync.remove_library(library_id)
 
         except LibraryException as error:
@@ -442,7 +446,7 @@ class Library(threading.Thread):
 
             elif not settings('SyncInstallRunDone.bool'):
                 
-                with Sync(self, self.server) as sync:
+                with self.sync(self, self.server) as sync:
                     sync.libraries()
 
                 Views().get_nodes()
@@ -649,7 +653,7 @@ class Library(threading.Thread):
     def run_library_task(self, task, notification=False):
 
         try:
-            with Sync(self, server=self.server) as sync:
+            with self.sync(self, server=self.server) as sync:
                 sync[task](notification)
         except Exception as error:
             LOG.exception(error)
