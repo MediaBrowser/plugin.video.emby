@@ -106,6 +106,15 @@ class Patch(object):
 
         return
 
+    def get_objects_versions(self):
+
+        try:
+            return requests.get(OBJ).json()
+        except Exception as error:
+            LOG.error(error)
+
+            return requests.get(OBJ, verify=False).json()
+
     def check_update(self, forced=False, versions=None):
 
         ''' Check for objects build version and compare.
@@ -123,7 +132,7 @@ class Patch(object):
             kodi = xbmc.getInfoLabel('System.BuildVersion')
 
         try:
-            versions = versions or requests.get(OBJ).json()
+            versions = versions or self.get_objects_versions()
             build, key = find(versions, kodi)
 
             if not build:
