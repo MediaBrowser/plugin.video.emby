@@ -51,4 +51,10 @@ def check_migration():
             plexdb.cursor.execute('DROP INDEX IF EXISTS ix_playlists_3')
             # Index will be automatically recreated on next PKC startup
 
+    if not utils.compare_version(last_migration, '2.8.9'):
+        LOG.info('Migrating to version 2.8.8')
+        from .library_sync import sections
+        sections.clear_window_vars()
+        sections.delete_videonode_files()
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
