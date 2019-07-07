@@ -91,9 +91,10 @@ class File(object):
                 key = '/library/sections/%s/%s' % (section_id, key)
         params = {
             'mode': 'browseplex',
-            'key': key,
-            'plex_type': plex_type or self.plex_type
+            'key': key
         }
+        if plex_type or self.plex_type:
+            params['plex_type'] = plex_type or self.plex_type
         if not synched:
             # No item to be found in the Kodi DB
             params['synched'] = 'false'

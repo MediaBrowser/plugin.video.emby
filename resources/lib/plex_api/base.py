@@ -72,6 +72,13 @@ class Base(object):
         return cast(int, self.xml.get('ratingKey'))
 
     @property
+    def fast_key(self):
+        """
+        Returns the 'fastKey' as unicode or None
+        """
+        return self.xml.get('fastKey')
+
+    @property
     def plex_type(self):
         """
         Returns the type of media, e.g. 'movie' or 'clip' for trailers as

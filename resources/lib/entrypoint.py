@@ -20,11 +20,13 @@ from . import plex_functions as PF
 from . import variables as v
 # Be careful - your using app in another Python instance!
 from . import app, widgets
+from .library_sync.nodes import NODE_TYPES
+
 
 LOG = getLogger('PLEX.entrypoint')
 
 
-def guess_content_type():
+def guess_video_or_audio():
     """
     Returns either 'video', 'audio' or 'image', based how the user navigated to
     the current view.
@@ -102,9 +104,9 @@ def show_main_menu(content_type=None):
     """
     Shows the main PKC menu listing with all libraries, Channel, settings, etc.
     """
-    content_type = content_type or guess_content_type()
-    LOG.debug('Do main listing for content_type: %s', content_type)
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    content_type = content_type or guess_video_or_audio()
+    LOG.debug('Do main listing for %s', content_type)
+    xbmcplugin.setContent(int(sys.argv[1]), v.CONTENT_TYPE_FILE)
     # Get nodes from the window props
     totalnodes = int(utils.window('Plex.nodes.total') or 0)
     for i in range(totalnodes):
@@ -133,14 +135,6 @@ def show_main_menu(content_type=None):
             # Should only be called if the user selects widgets
             LOG.info('Detected user selecting widgets')
             directory_item(label, path)
-            if not path.startswith('library://'):
-                # Already using add-on paths (e.g. section not synched)
-                continue
-            # Add ANOTHER menu item that uses add-on paths instead of direct
-            # paths in order to let the user navigate into all submenus
-            addon_index = utils.window('Plex.nodes.%s.addon_index' % i)
-            # Append "(More...)" to the label
-            directory_item('%s (%s)' % (label, utils.lang(22082)), addon_index)
     # Playlists
     if content_type != 'image':
         path = 'plugin://%s?mode=playlists' % v.ADDON_ID
@@ -169,32 +163,64 @@ def show_main_menu(content_type=None):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def show_listing(xml, plex_type=None, section_id=None, synched=True, key=None,
-                 content_type=None):
+def show_section(section_index):
+    """
+    Displays menu for an entire Plex section. We're using add-on paths instead
+    of Kodi video library xmls to be able to use type="filter" library xmls
+    and thus set the "content"
+
+    Only used for synched Plex sections - otherwise, PMS xml for the section
+    is used directly
+    """
+    LOG.debug('Do section listing for section index %s', section_index)
+    xbmcplugin.setContent(int(sys.argv[1]), v.CONTENT_TYPE_FILE)
+    # Get nodes from the window props
+    node = 'Plex.nodes.%s' % section_index
+    content = utils.window('%s.type' % node)
+    plex_type = v.PLEX_TYPE_MOVIE if content == v.CONTENT_TYPE_MOVIE \
+        else v.PLEX_TYPE_SHOW
+    for node_type, _, _, _, _ in NODE_TYPES[plex_type]:
+        label = utils.window('%s.%s.title' % (node, node_type))
+        path = utils.window('%s.%s.index' % (node, node_type))
+        directory_item(label, path)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+
+def show_listing(xml, plex_type=None, section_id=None, synched=True, key=None):
     """
     Pass synched=False if the items have not been synched to the Kodi DB
+
+    Kodi content type will be set using the very first item returned by the PMS
     """
-    content_type = content_type or guess_content_type()
-    LOG.debug('show_listing: content_type %s, section_id %s, synched %s, '
-              'key %s, plex_type %s', content_type, section_id, synched, key,
-              plex_type)
     try:
         xml[0]
     except IndexError:
-        LOG.info('xml received from the PMS is empty: %s', xml.attrib)
-        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        LOG.info('xml received from the PMS is empty: %s, %s',
+                 xml.tag, xml.attrib)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
         return
-    if content_type == 'video':
-        xbmcplugin.setContent(int(sys.argv[1]), 'videos')
-    elif content_type == 'audio':
-        xbmcplugin.setContent(int(sys.argv[1]), 'artists')
-    elif plex_type in (v.PLEX_TYPE_PLAYLIST, v.PLEX_TYPE_CHANNEL):
-        xbmcplugin.setContent(int(sys.argv[1]), 'videos')
-    elif plex_type:
-        xbmcplugin.setContent(int(sys.argv[1]),
-                              v.MEDIATYPE_FROM_PLEX_TYPE[plex_type])
+    api = API(xml[0])
+    # Determine content type for Kodi's Container.content
+    if key == '/hubs/home/continueWatching':
+        # Mix of movies and episodes
+        plex_type = v.PLEX_TYPE_VIDEO
+    elif key == '/hubs/home/recentlyAdded?type=2':
+        # "Recently Added TV", potentially a mix of Seasons and Episodes
+        plex_type = v.PLEX_TYPE_VIDEO
+    elif api.plex_type is None and api.fast_key and '?collection=' in api.fast_key:
+        # Collections/Kodi sets
+        plex_type = v.PLEX_TYPE_SET
+    elif api.plex_type is None and plex_type:
+        # e.g. browse by folder - folders will be listed first
+        # Retain plex_type
+        pass
     else:
-        xbmcplugin.setContent(int(sys.argv[1]), 'files')
+        plex_type = api.plex_type
+    content_type = v.CONTENT_FROM_PLEX_TYPE[plex_type]
+    LOG.debug('show_listing: section_id %s, synched %s, key %s, plex_type %s, '
+              'content type %s',
+              section_id, synched, key, plex_type, content_type)
+    xbmcplugin.setContent(int(sys.argv[1]), content_type)
     # Initialization
     widgets.PLEX_TYPE = plex_type
     widgets.SYNCHED = synched
@@ -204,11 +230,15 @@ def show_listing(xml, plex_type=None, section_id=None, synched=True, key=None,
     if plex_type == v.PLEX_TYPE_SHOW and key and 'recentlyAdded' in key:
         widgets.APPEND_SHOW_TITLE = utils.settings('RecentTvAppendShow') == 'true'
         widgets.APPEND_SXXEXX = utils.settings('RecentTvAppendSeason') == 'true'
-    if content_type and xml[0].tag == 'Playlist':
-        # Certain views mix playlist types audio and video
-        for entry in reversed(xml):
-            if entry.get('playlistType') != content_type:
-                xml.remove(entry)
+    if api.tag == 'Playlist':
+        # Only show video playlists if navigation started for videos
+        # and vice-versa for audio playlists
+        content = guess_video_or_audio()
+        if content:
+            for entry in reversed(xml):
+                tmp_api = API(entry)
+                if tmp_api.playlist_type() != content:
+                    xml.remove(entry)
     if xml.get('librarySectionID'):
         widgets.SECTION_ID = utils.cast(int, xml.get('librarySectionID'))
     elif section_id:
@@ -355,15 +385,14 @@ def playlists(content_type):
     Lists all Plex playlists of the media type plex_playlist_type
     content_type: 'audio', 'video'
     """
-    content_type = content_type or guess_content_type()
-    LOG.debug('Listing Plex %s playlists', content_type)
+    LOG.debug('Listing Plex playlists for content type %s', content_type)
     if not _wait_for_auth():
         return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
     app.init(entrypoint=True)
     from .playlists.pms import all_playlists
     xml = all_playlists()
     if xml is None:
-        return
+        return xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     if content_type is not None:
         # This will be skipped if user selects a widget
         # Buggy xml.remove(child) requires reversed()
@@ -371,7 +400,7 @@ def playlists(content_type):
             api = API(entry)
             if not api.playlist_type() == content_type:
                 xml.remove(entry)
-    show_listing(xml, content_type=content_type)
+    show_listing(xml)
 
 
 def hub(content_type):
@@ -380,7 +409,7 @@ def hub(content_type):
     content_type:
         audio, video, image
     """
-    content_type = content_type or guess_content_type()
+    content_type = content_type or guess_video_or_audio()
     LOG.debug('Showing Plex Hub entries for %s', content_type)
     if not _wait_for_auth():
         return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
@@ -410,7 +439,7 @@ def hub(content_type):
             append = True
         if not append:
             xml.remove(entry)
-    show_listing(xml, content_type=content_type)
+    show_listing(xml)
 
 
 def watchlater():
@@ -447,7 +476,8 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
     LOG.debug('Browsing to key %s, section %s, plex_type: %s, synched: %s, '
               'prompt "%s"', key, section_id, plex_type, synched, prompt)
     if not _wait_for_auth():
-        return xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
+        return
     app.init(entrypoint=True)
     if prompt:
         prompt = utils.dialog('input', prompt)
