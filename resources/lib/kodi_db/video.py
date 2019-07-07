@@ -349,7 +349,13 @@ class KodiVideoDB(common.KodiDBBase):
         if kind == 'actor':
             for person in people_list:
                 # Make sure the person entry in table actor exists
-                actor_id = self._get_actor_id(person[0], art_url=person[1])
+                actor_id, new = self._get_actor_id(person[0],
+                                                   art_url=person[1])
+                if not new and person[1]:
+                    # Person might have shown up as a director or writer first
+                    # WITHOUT an art url from the Plex side!
+                    # Check here if we need to set the actor's art url
+                    self._check_actor_art(actor_id, person[1])
                 # Link the person with the media element
                 try:
                     self.cursor.execute('INSERT INTO actor_link VALUES (?, ?, ?, ?, ?)',
@@ -361,7 +367,7 @@ class KodiVideoDB(common.KodiDBBase):
         else:
             for person in people_list:
                 # Make sure the person entry in table actor exists:
-                actor_id = self._get_actor_id(person[0])
+                actor_id, _ = self._get_actor_id(person[0])
                 # Link the person with the media element
                 try:
                     self.cursor.execute('INSERT INTO %s_link VALUES (?, ?, ?)' % kind,
@@ -450,8 +456,11 @@ class KodiVideoDB(common.KodiDBBase):
 
     def _get_actor_id(self, name, art_url=None):
         """
-        Returns the actor_id [int] for name [unicode] in table actor (without
-        ensuring that the name matches).
+        Returns the tuple
+            (actor_id [int], new_entry [bool])
+        for name [unicode] in table actor (without ensuring that the name
+        matches)."new_entry" will be True if a new DB entry has just been
+        created.
         If not, will create a new record with actor_id, name, art_url
 
         Uses Plex ids and thus assumes that Plex person id is unique!
@@ -459,9 +468,21 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('SELECT actor_id FROM actor WHERE name=? LIMIT 1',
                             (name,))
         try:
-            return self.cursor.fetchone()[0]
+            return (self.cursor.fetchone()[0], False)
         except TypeError:
-            return self._new_actor_id(name, art_url)
+            return (self._new_actor_id(name, art_url), True)
+
+    def _check_actor_art(self, actor_id, url):
+        """
+        Sets the actor's art url [unicode] for actor_id [int]
+        """
+        self.cursor.execute('''
+            SELECT EXISTS(SELECT 1 FROM art
+                          WHERE media_id = ? AND media_type = 'actor'
+                          LIMIT 1)''', (actor_id, ))
+        if not self.cursor.fetchone()[0]:
+            # We got a new artwork url for this actor!
+            self.add_art(url, actor_id, 'actor', 'thumb')
 
     def get_art(self, kodi_id, kodi_type):
         """
