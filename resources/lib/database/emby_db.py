@@ -148,6 +148,15 @@ class EmbyDatabase():
     def remove_media_by_parent_id(self, *args):
         self.cursor.execute(QU.delete_media_by_parent_id, args)
 
+    def get_stack(self, *args):
+
+        try:
+            self.cursor.execute(QU.get_presentation_key, args)
+
+            return self.cursor.fetchone()[0]
+        except Exception as error:
+            return
+
     def get_version(self, version=None):
 
         if version is not None:

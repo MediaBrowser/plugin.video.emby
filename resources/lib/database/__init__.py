@@ -290,10 +290,17 @@ def emby_tables(cursor):
     cursor.execute("CREATE TABLE IF NOT EXISTS version(idVersion TEXT)")
 
     columns = cursor.execute("SELECT * FROM emby")
-    if 'emby_parent_id' not in [description[0] for description in columns.description]:
+    descriptions = [description[0] for description in columns.description]
+
+    if 'emby_parent_id' not in descriptions:
         
         LOG.info("Add missing column emby_parent_id")
         cursor.execute("ALTER TABLE emby ADD COLUMN emby_parent_id 'TEXT'")
+
+    if 'presentation_key' not in descriptions:
+
+        LOG.info("Add missing column presentation_key")
+        cursor.execute("ALTER TABLE emby ADD COLUMN presentation_key 'TEXT'")
 
 def reset():
 
