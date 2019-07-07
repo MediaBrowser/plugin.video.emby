@@ -398,6 +398,10 @@ class API(object):
         '''
         try:
             result = self.search(name, "Series")['SearchHints']
+
+            if len(result) == 1:
+                return str(result[0]['Id'])
+
             for item in result:
 
                 if str(item['Id']) == item_id:
@@ -425,6 +429,10 @@ class API(object):
         '''
         try:
             result = self.search(name, "Movie")['SearchHints']
+
+            if len(result) == 1:
+                return str(result[0]['Id'])
+
             for item in result:
 
                 if str(item['Id']) == item_id:
