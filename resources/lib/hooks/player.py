@@ -143,7 +143,7 @@ class Player(xbmc.Player):
             if audio and len(self.get_available_audio_streams()) > 1:
                 self.set_audio_stream(audio - 1)
 
-            if subtitle == -1 or subtitle is None:
+            if subtitle is None or subtitle == -1:
                 self.set_subtitle(False)
 
                 return
@@ -246,7 +246,7 @@ class Player(xbmc.Player):
     def _set_items(self, items):
         window('emby.play.json', items)
 
-    def set_item(self, file):
+    def set_item(self, file, track=True):
 
         ''' Call when playback start to setup play entry in player tracker.
         '''
@@ -323,7 +323,9 @@ class Player(xbmc.Player):
             'SubtitleStreamIndex': item['SubtitleStreamIndex']
         }
         item['Server']['api'].session_playing(data)
-        item['Track'] = True
+
+        if track:
+            item['Track'] = True
 
         if self.monitor.waitForAbort(2):
             return
