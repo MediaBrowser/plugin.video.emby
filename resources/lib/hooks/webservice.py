@@ -14,7 +14,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
-from helper import settings, window, JSONRPC
+from helper import settings, window, dialog, JSONRPC
 
 #################################################################################################
 
@@ -307,9 +307,6 @@ class QueuePlay(threading.Thread):
 
         while True:
             try:
-                if not window('emby_online.bool'):
-                    raise Exception("NotConnected")
-
                 try:
                     params = self.server.queue.get(timeout=0.01)
                 except Queue.Empty:
@@ -333,8 +330,10 @@ class QueuePlay(threading.Thread):
                         if play_folder:
 
                             LOG.info("[ start play/folder ]")
+                            window('emby.playlist.play.bool', True)
                             objects.utils.disable_busy_dialog()
                             play.start_playback()
+
                         elif window('emby.playlist.audio.bool'):
 
                             LOG.info("[ start play/relaunch ]")
@@ -350,7 +349,12 @@ class QueuePlay(threading.Thread):
 
                     break
 
-                play = objects.PlayStrm(params, params.get('server'))
+                server = params.get('server')
+
+                if not server and not window('emby_online.bool'):
+                    raise Exception("NotConnected")
+
+                play = objects.PlayStrm(params, server)
 
                 if start_position is None:
 
@@ -376,7 +380,7 @@ class QueuePlay(threading.Thread):
                         play_folder = True
 
                     window('emby.playlist.start', str(start_position))
-                    position = play.play(start_position=position)
+                    position = play.play(play_folder, position)
                     playlist = play.info['KodiPlaylist']
 
                     if play_folder:
