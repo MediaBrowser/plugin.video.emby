@@ -81,6 +81,7 @@ class Library(threading.Thread):
         self.writer_threads = {'updated': [], 'userdata': [], 'removed': []}
         self.database_lock = threading.Lock()
         self.music_database_lock = threading.Lock()
+        self.sync = Sync
 
         threading.Thread.__init__(self)
         self.start()
@@ -112,6 +113,9 @@ class Library(threading.Thread):
             try:
                 if not self.started and not self.startup():
                     self.stop_client()
+
+                if self.sync.running:
+                    continue
 
                 self.service()
             except LibraryException as error:
@@ -389,7 +393,7 @@ class Library(threading.Thread):
 
     def sync_libraries(self, forced=False):
 
-        with Sync(self, self.server) as sync:
+        with self.sync(self, self.server) as sync:
             sync.libraries(forced=forced)
 
         Views().get_nodes()
@@ -397,7 +401,7 @@ class Library(threading.Thread):
     def _add_libraries(self, library_id, update=False):
 
         try:
-            with Sync(self, server=self.server) as sync:
+            with self.sync(self, server=self.server) as sync:
                 sync.libraries(library_id, update)
 
         except LibraryException as error:
@@ -412,7 +416,7 @@ class Library(threading.Thread):
     def _remove_libraries(self, library_id):
 
         try:
-            with Sync(self, self.server) as sync:
+            with self.sync(self, self.server) as sync:
                 sync.remove_library(library_id)
 
         except LibraryException as error:
@@ -442,7 +446,7 @@ class Library(threading.Thread):
 
             elif not settings('SyncInstallRunDone.bool'):
                 
-                with Sync(self, self.server) as sync:
+                with self.sync(self, self.server) as sync:
                     sync.libraries()
 
                 Views().get_nodes()
@@ -484,32 +488,35 @@ class Library(threading.Thread):
         return False
 
     def get_fast_sync(self):
+
         new_fast_sync = compare_version(self.server['auth/server-version'],"4.2.0.23")
+        enable_fast_sync = False
 
         if settings('SyncInstallRunDone.bool'):
+
             if settings('kodiCompanion.bool'):
-
                 for plugin in self.server['api'].get_plugins():
+
                     if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
-                        
-                        if new_fast_sync > 0:
-                            if not self.fast_sync():
-                                dialog("ok", heading="{emby}", line1=_(33128))
-
-                                raise Exception("Failed to retrieve latest updates")
-
-                        elif not self.fast_sync_plugin():
-                            dialog("ok", heading="{emby}", line1=_(33128))
-
-                            raise Exception("Failed to retrieve latest updates")
-
-                        LOG.info("--<[ retrieve changes ]")
+                        enable_fast_sync = True
 
                         break
+
+                if new_fast_sync > 0:
+                    self.fast_sync(enable_fast_sync)
+
+                elif enable_fast_sync:
+
+                    if not self.fast_sync_plugin():
+                        dialog("ok", heading="{emby}", line1=_(33128))
+
+                        raise Exception("Failed to retrieve latest updates")
                 else:
                     raise LibraryException('CompanionMissing')
 
-    def fast_sync(self):
+                LOG.info("--<[ retrieve changes ]")
+
+    def fast_sync(self, plugin):
 
         ''' Movie and userdata not provided by server yet.
         '''
@@ -532,16 +539,13 @@ class Library(threading.Thread):
                 if query['Type'] in self.userdata_output:
                     self.userdata_output[query['Type']].put(query)
 
-        try:
-            removed = []
-            result = self.server['api'].get_sync_queue(last_sync)
-            removed.extend(result['ItemsRemoved'])
-            self.removed(removed)
+        if plugin:
+            try:
+                result = self.server['api'].get_sync_queue(last_sync)
+                self.removed(result['ItemsRemoved'])
 
-        except Exception as error:
-            LOG.exception(error)
-
-            return False
+            except Exception as error:
+                LOG.exception(error)
 
         return True
 
@@ -649,7 +653,7 @@ class Library(threading.Thread):
     def run_library_task(self, task, notification=False):
 
         try:
-            with Sync(self, server=self.server) as sync:
+            with self.sync(self, server=self.server) as sync:
                 sync[task](notification)
         except Exception as error:
             LOG.exception(error)

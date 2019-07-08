@@ -1158,8 +1158,8 @@ msgstr "Patch Update zurücksetzen"
 
 msgctxt "#33212"
 msgid "Latest release"
-msgstr ""
+msgstr "Letzte Version"
 
 msgctxt "#33213"
 msgid "Enable label for multi-episodes. i.e. | # | title"
-msgstr ""
+msgstr "Aktiviere Markierung für Multi Episoden zB. | # | titel"
