@@ -240,12 +240,17 @@ class Section(object):
         # Main list entry for this section - which will show the different
         # nodes as "submenus" once the user navigates into this section
         if self.sync_to_kodi and self.section_type in v.PLEX_VIDEOTYPES:
+            # Node showing a menu for this section
             args = {
                 'mode': 'show_section',
                 'section_index': self.index
             }
-            path = utils.extend_url('plugin://%s' % v.ADDON_ID, args)
+            index = utils.extend_url('plugin://%s' % v.ADDON_ID, args)
+            # Node directly displaying all content
+            path = 'library://video/Plex-{0}/{0}_all.xml'
+            path = path.format(self.section_id)
         else:
+            # Node showing a menu for this section
             args = {
                 'mode': 'browseplex',
                 'key': '/library/sections/%s/all' % self.section_id,
@@ -255,12 +260,20 @@ class Section(object):
                 args['synched'] = 'false'
             # No library xmls to speed things up
             # Immediately show the PMS options for this section
+            index = self.addon_path(args)
+            # Node directly displaying all content
+            args = {
+                'mode': 'browseplex',
+                'key': '/library/sections/%s/all' % self.section_id,
+                'section_id': unicode(self.section_id)
+            }
+            if not self.sync_to_kodi:
+                args['synched'] = 'false'
             path = self.addon_path(args)
-        index = path
         utils.window('%s.index' % self.node, value=index)
         utils.window('%s.title' % self.node, value=self.name)
         utils.window('%s.type' % self.node, value=self.content)
-        utils.window('%s.content' % self.node, value=path)
+        utils.window('%s.content' % self.node, value=index)
         # .path leads to all elements of this library
         if self.section_type in v.PLEX_VIDEOTYPES:
             utils.window('%s.path' % self.node,
