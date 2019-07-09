@@ -272,6 +272,9 @@ class PlayUtils(object):
         else:
             self.info['Path'] = "%s/emby%s" % (self.info['ServerAddress'], source['TranscodingUrl'])
 
+        if self.info['ServerAddress'].startswith('https') and not settings('sslverify.bool'):
+            self.info['Path'] += "|verifypeer=false"
+
         return self.info['Path']
 
     def direct_play(self, source):
@@ -299,6 +302,9 @@ class PlayUtils(object):
         else:
             self.info['Path'] = ("%s/emby/Videos/%s/stream?static=true&MediaSourceId=%s&api_key=%s" %
                                 (self.info['ServerAddress'], self.info['Item']['Id'], source['Id'], self.info['Token']))
+
+        if self.info['ServerAddress'].startswith('https') and not settings('sslverify.bool'):
+            self.info['Path'] += "|verifypeer=false"
 
         return self.info['Path']
 
@@ -519,8 +525,15 @@ class PlayUtils(object):
                             subs.append(self.download_external_subs(url, filename))
                         except Exception as error:
                             LOG.error(error)
+
+                            if self.info['ServerAddress'].startswith('https') and not settings('sslverify.bool'):
+                                url += "|verifypeer=false"
+
                             subs.append(url)
                     else:
+                        if self.info['ServerAddress'].startswith('https') and not settings('sslverify.bool'):
+                            url += "|verifypeer=false"
+
                         subs.append(url)
 
                 mapping[kodi] = index
@@ -669,6 +682,9 @@ class PlayUtils(object):
         else:
             url = ("%s/emby/Videos/%s/%s/Subtitles/%s/Stream.%s?api_key=%s" %
                   (self.info['ServerAddress'], self.info['Item']['Id'], source['Id'], index, stream['Codec'], self.info['Token']))
+
+        if self.info['ServerAddress'].startswith('https') and not settings('sslverify.bool'):
+            url += "|verifypeer=false"
 
         return url
 
