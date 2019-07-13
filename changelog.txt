@@ -1,3 +1,6 @@
+version 2.8.10 (beta only):
+- Fix broken PKC update
+
 version 2.8.9 (beta only):
 - Fix sections that are not synced not displaying menu but entire library 
 - Provide more metadata for unsynced directory-like items like a tv show
