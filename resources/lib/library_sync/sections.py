@@ -248,7 +248,7 @@ class Section(object):
         else:
             args = {
                 'mode': 'browseplex',
-                'key': '/library/sections/%s/all' % self.section_id,
+                'key': '/library/sections/%s' % self.section_id,
                 'section_id': unicode(self.section_id)
             }
             if not self.sync_to_kodi:
