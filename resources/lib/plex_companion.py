@@ -33,7 +33,8 @@ def update_playqueue_from_PMS(playqueue,
                               playqueue_id=None,
                               repeat=None,
                               offset=None,
-                              transient_token=None):
+                              transient_token=None,
+                              start_plex_id=None):
     """
     Completely updates the Kodi playqueue with the new Plex playqueue. Pass
     in playqueue_id if we need to fetch a new playqueue
@@ -42,7 +43,8 @@ def update_playqueue_from_PMS(playqueue,
     offset = time offset in Plextime (milliseconds)
     """
     LOG.info('New playqueue %s received from Plex companion with offset '
-             '%s, repeat %s', playqueue_id, offset, repeat)
+             '%s, repeat %s, start_plex_id %s',
+             playqueue_id, offset, repeat, start_plex_id)
     # Safe transient token from being deleted
     if transient_token is None:
         transient_token = playqueue.plex_transient_token
@@ -61,7 +63,10 @@ def update_playqueue_from_PMS(playqueue,
             return
         playqueue.repeat = 0 if not repeat else int(repeat)
         playqueue.plex_transient_token = transient_token
-        playback.play_xml(playqueue, xml, offset)
+        playback.play_xml(playqueue,
+                          xml,
+                          offset=offset,
+                          start_plex_id=start_plex_id)
 
 
 class PlexCompanion(backgroundthread.KillableThread):
@@ -154,11 +159,15 @@ class PlexCompanion(backgroundthread.KillableThread):
             api = API(xml[0])
             playqueue = PQ.get_playqueue_from_type(
                 v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
+        key = data.get('key')
+        if key:
+            _, key, _ = PF.ParseContainerKey(key)
         update_playqueue_from_PMS(playqueue,
                                   playqueue_id=container_key,
                                   repeat=query.get('repeat'),
                                   offset=data.get('offset'),
-                                  transient_token=data.get('token'))
+                                  transient_token=data.get('token'),
+                                  key=key)
 
     @staticmethod
     def _process_streams(data):
