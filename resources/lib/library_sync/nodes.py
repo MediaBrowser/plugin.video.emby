@@ -19,7 +19,7 @@ RECOMMENDED_SCORE_LOWER_BOUND = 7
 #  )
 NODE_TYPES = {
     v.PLEX_TYPE_MOVIE: (
-        ('ondeck',
+        ('plex_ondeck',
          utils.lang(39500),  # "On Deck"
          {
               'mode': 'browseplex',
@@ -28,10 +28,10 @@ NODE_TYPES = {
          },
          v.CONTENT_TYPE_MOVIE,
          True),
-        ('pkc_ondeck',
+        ('ondeck',
          utils.lang(39502),  # "PKC On Deck (faster)"
          {},
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('recent',
          utils.lang(30174),  # "Recently Added"
@@ -245,7 +245,7 @@ def node_pms(section, node_name, args):
     return xml
 
 
-def node_pkc_ondeck(section, node_name):
+def node_ondeck(section, node_name):
     """
     For movies only - returns in-progress movies sorted by last played
     """
