@@ -1,3 +1,8 @@
+version 2.8.11 (beta only):
+- Support for the Up Next Kodi add-on
+- Fix casting to PlexKodiConnect always starting the first episode
+- Rename video nodes for ondeck
+
 version 2.8.10 (beta only):
 - Fix broken PKC update
 
