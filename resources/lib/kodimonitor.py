@@ -7,10 +7,13 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 from json import loads
 import copy
+import json
+import binascii
 
 import xbmc
 import xbmcgui
 
+from .plex_api import API
 from .plex_db import PlexDB
 from . import kodi_db
 from .downloadutils import DownloadUtils as DU
@@ -143,6 +146,8 @@ class KodiMonitor(xbmc.Monitor):
         elif method == "System.OnQuit":
             LOG.info('Kodi OnQuit detected - shutting down')
             app.APP.stop_pkc = True
+        elif method == 'Other.plugin.video.plexkodiconnect_play_action':
+            self._start_next_episode(data)
 
     @staticmethod
     def _hack_addon_paths_replay_video():
@@ -283,6 +288,18 @@ class KodiMonitor(xbmc.Monitor):
                 json_item.get('type'),
                 json_item.get('file'))
 
+    @staticmethod
+    def _start_next_episode(data):
+        """
+        Used for the add-on Upnext to start playback of the next episode
+        """
+        LOG.info('Upnext: Start playback of the next episode')
+        play_info = binascii.unhexlify(data[0])
+        play_info = json.loads(play_info)
+        app.APP.player.stop()
+        handle = 'RunPlugin(%s)' % play_info.get('handle')
+        xbmc.executebuiltin(handle.encode('utf-8'))
+
     def PlayBackStart(self, data):
         """
         Called whenever playback is started. Example data:
@@ -415,6 +432,8 @@ class KodiMonitor(xbmc.Monitor):
         status['playmethod'] = item.playmethod
         status['playcount'] = item.playcount
         LOG.debug('Set the player state: %s', status)
+        if not app.SYNC.direct_paths:
+            _notify_upnext(item)
 
 
 def _playback_cleanup(ended=False):
@@ -535,6 +554,85 @@ def _clean_file_table():
         LOG.debug('Database was locked, unable to clean file table')
     else:
         LOG.debug('Done cleaning up Kodi file table')
+
+
+def _next_episode(current_api):
+    """
+    Returns the xml for the next episode after the current one
+    Returns None if something went wrong or there is no next episode
+    """
+    xml = PF.show_episodes(current_api.grandparent_id())
+    if xml is None:
+        return
+    for counter, episode in enumerate(xml):
+        api = API(episode)
+        if api.plex_id == current_api.plex_id:
+            break
+    else:
+        LOG.error('Did not find the episode with Plex id %s for show %s: %s',
+                  current_api.plex_id, current_api.grandparent_id(),
+                  current_api.grandparent_title())
+        return
+    try:
+        next_api = API(xml[counter + 1])
+    except IndexError:
+        # Was the last episode
+        return
+    return next_api
+
+
+def _complete_artwork_keys(info):
+    """
+    Make sure that the minimum set of keys is present in the info dict
+    """
+    for key in ('tvshow.poster',
+                'tvshow.fanart',
+                'tvshow.landscape',
+                'tvshow.clearart',
+                'tvshow.clearlogo',
+                'thumb'):
+        if key not in info['art']:
+            info['art'][key] = ''
+
+
+def _notify_upnext(item):
+    """
+    Signals to the Kodi add-on Upnext that there is another episode after this
+    one.
+    Needed for add-on paths in order to prevent crashes when Upnext does this
+    by itself
+    """
+    if not item.plex_type == v.PLEX_TYPE_EPISODE:
+        return
+    this_api = API(item.xml)
+    next_api = _next_episode(this_api)
+    if next_api is None:
+        return
+    info = {}
+    for key, api in (('current_episode', this_api),
+                     ('next_episode', next_api)):
+        info[key] = {
+            'episodeid': api.plex_id,
+            'tvshowid': api.grandparent_id(),
+            'title': api.title(),
+            'showtitle': api.grandparent_title(),
+            'plot': api.plot(),
+            'playcount': api.viewcount(),
+            'season': api.season_number(),
+            'episode': api.index(),
+            'firstaired': api.year(),
+            'rating': api.rating(),
+            'art': api.artwork(kodi_id=api.kodi_id,
+                               kodi_type=api.kodi_type,
+                               full_artwork=True)
+        }
+        _complete_artwork_keys(info[key])
+    info['play_info'] = {'handle': next_api.path(force_addon=True)}
+    sender = v.ADDON_ID.encode('utf-8')
+    method = 'upnext_data'.encode('utf-8')
+    data = binascii.hexlify(json.dumps(info))
+    data = '\\"[\\"{0}\\"]\\"'.format(data)
+    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % (sender, method, data))
 
 
 class ContextMonitor(backgroundthread.KillableThread):
