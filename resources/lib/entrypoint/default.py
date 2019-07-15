@@ -19,6 +19,7 @@ import xbmcaddon
 import client
 import objects
 import requests
+from emby import Emby
 from database import reset, get_sync, Database, emby_db, get_credentials
 from downloader import TheVoid
 from helper import _, event, settings, window, dialog, api, kodi_version, JSONRPC
@@ -49,8 +50,14 @@ class Events(object):
         mode = params.get('mode')
         server = params.get('server')
 
-        if server == 'None':
+        if server == 'None' or not server:
+
             server = None
+            client = Emby().get_client()
+            client.set_state(window('emby.server.pickle'))
+        else:
+            client = Emby(server).get_client()
+            client.set_state(window('emby.server.%s.pickle' % server))
 
         LOG.warn("path: %s params: %s", path, json.dumps(params, indent=4))
 

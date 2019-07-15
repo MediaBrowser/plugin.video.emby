@@ -44,7 +44,6 @@ class Connect(object):
             credentials['Servers'] = [credentials['Servers'][0]]
         
         elif credentials['Servers']:
-
             for server in credentials['Servers']:
 
                 if server['Id'] == server_id:
@@ -54,6 +53,7 @@ class Connect(object):
         new_credentials = self.register_client(credentials, options, server_id, server_select)
 
         for server in servers:
+
             if server['Id'] == new_credentials['Servers'][0]['Id']:
                 server = new_credentials['Servers'][0]
 

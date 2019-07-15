@@ -7,8 +7,6 @@ import logging
 import threading
 import time
 
-import xbmc
-
 import websocket
 
 ##################################################################################################
@@ -48,7 +46,6 @@ class WSClient(threading.Thread):
 
     def run(self):
 
-        monitor = xbmc.Monitor()
         token = self.client['config/auth.token']
         device_id = self.client['config/app.device_id']
         server = self.client['config/auth.server']
@@ -63,12 +60,12 @@ class WSClient(threading.Thread):
         self.wsc.on_open = self.on_open
 
         while not self.stop:
-
             self.wsc.run_forever(ping_interval=10)
 
-            if not self.stop and monitor.waitForAbort(5):
+            if self.stop:
                 break
 
+            time.sleep(5)
             self.client['callback_ws']('WebSocketRestarting')
 
         LOG.info("---<[ websocket ]")
