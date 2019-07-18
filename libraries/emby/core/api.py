@@ -375,7 +375,10 @@ class API(object):
         try:
             result = self.shows("/%s/Episodes" % parent_id, {
                 'UserId': "{UserId}",
-                'AdjacentTo': item_id
+                'AdjacentTo': item_id,
+                'EnableImages': False,
+                'EnableUserData': False,
+                'EnableTotalRecordCount': False
             })
             for item in result['Items']:
 
