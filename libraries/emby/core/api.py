@@ -277,7 +277,7 @@ class API(object):
     def get_date_modified(self, date, parent_id, media=None):
         return  self.users("/Items", params={
                     'ParentId': parent_id,
-                    'Recursive': False,
+                    'Recursive': True,
                     'IsMissing': False,
                     'IsVirtualUnaired': False,
                     'IncludeItemTypes': media or None,
