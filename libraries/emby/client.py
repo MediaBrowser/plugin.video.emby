@@ -3,6 +3,10 @@
 #################################################################################################
 
 import logging
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 import core.api as api
 from core.configuration import Config
@@ -25,7 +29,27 @@ def callback(message, data):
     pass
 
 
-class EmbyClient(object):
+class ClientState(object):
+
+    def set_state(self, state):
+        state = pickle.loads(state)
+
+        if state.get('config'):
+            self.config = state['config']
+
+        if state.get('credentials'):
+
+            self.logged_in = True
+            self.set_credentials(state['credentials'])
+            self.auth.server_id = state['credentials']['Servers'][0]['Id']
+
+    def get_state(self):
+        state = pickle.dumps({'config': self.config, 'credentials': self.get_credentials()})
+
+        return state
+
+
+class EmbyClient(ClientState):
 
     logged_in = False
 
@@ -54,8 +78,8 @@ class EmbyClient(object):
         if state['State'] == CONNECTION_STATE['SignedIn']:
 
             LOG.info("User is authenticated.")
+            self['callback']('ServerOnline', {'Id': None if self['config/app.default'] else self['auth/server-id']})
             self.logged_in = True
-            self.callback("ServerOnline", {'Id': self['auth/server-id']})
 
         state['Credentials'] = self.get_credentials()
 
@@ -79,6 +103,7 @@ class EmbyClient(object):
 
     def stop(self):
 
+        self['callback']('StopServer', {'ServerId': None if self['config/app.default'] else self['auth/server-id']})
         self.wsc.stop_client()
         self.http.stop_session()
 

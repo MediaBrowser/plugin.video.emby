@@ -100,7 +100,7 @@ class Monitor(xbmc.Monitor):
                 'PlayPlaylist', 'Play', 'GetIntros', 'GetAdditionalParts', 'RefreshItem', 'Genres',
                 'FavoriteItem', 'DeleteItem', 'AddUser', 'GetSession', 'GetUsers', 'GetThemes',
                 'GetTheme', 'Playstate', 'GeneralCommand', 'GetTranscodeOptions', 'RecentlyAdded',
-                'BrowseSeason', 'LiveTV', 'GetLiveStream')
+                'BrowseSeason', 'LiveTV', 'GetLiveStream', 'StopServer')
 
     def get_xbmc_method(self):
 
@@ -165,7 +165,7 @@ class Monitor(xbmc.Monitor):
 
     def server_instance(self, server_id=None):
 
-        server = Emby(server_id)
+        server = Emby(server_id).get_client()
         self.post_capabilities(server)
 
         if server_id is not None:
@@ -443,6 +443,18 @@ class Monitor(xbmc.Monitor):
 
     def LoadServer(self, server, data, *args, **kwargs):
         self.server_instance(data['ServerId'])
+
+        if not data['ServerId']:
+            window('emby.server.pickle', server.get_state())
+        else:
+            window('emby.server.%s.pickle' % data['ServerId'], server.get_state())
+
+    def StopServer(self, server, data, *args, **kwargs):
+
+        if not data['ServerId']:
+            window('emby.server.pickle', clear=True)
+        else:
+            window('emby.server.%s.pickle' % data['ServerId'], clear=True)
 
     def AddUser(self, server, data, *args, **kwargs):
 

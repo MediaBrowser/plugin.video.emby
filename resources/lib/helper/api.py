@@ -26,6 +26,10 @@ class API(object):
         '''
         self.item = item
         self.server = server
+        self.verify_ssl = True
+
+        if server and server.startswith('https') and not settings('sslverify.bool'):
+            self.verify_ssl = False
 
     def get_playcount(self, played, playcount):
 
@@ -313,6 +317,10 @@ class API(object):
 
             query.append(('Tag', tag))
             artwork = "%s/emby/Items/%s/Images/Backdrop/%s?%s" % (self.server, item_id, index, urllib.urlencode(query))
+
+            if not self.verify_ssl:
+                artwork += "|verifypeer=false"
+
             backdrops.append(artwork)
 
         return backdrops
@@ -329,4 +337,9 @@ class API(object):
         if tag is not None:
             query.append(('Tag', tag))
 
-        return "%s/emby/Items/%s/Images/%s/0?%s" % (self.server, item_id, image, urllib.urlencode(query))
+        artwork = "%s/emby/Items/%s/Images/%s/0?%s" % (self.server, item_id, image, urllib.urlencode(query))
+
+        if not self.verify_ssl:
+            artwork += "|verifypeer=false"
+
+        return artwork

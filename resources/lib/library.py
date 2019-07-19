@@ -147,9 +147,10 @@ class Library(threading.Thread):
                 self.removed(thread.removed)
                 self.download_threads.remove(thread)
 
-        for threads in (self.writer_threads['updated'], self.writer_threads['userdata'],
+        for threads in (self.emby_threads, self.writer_threads['updated'], self.writer_threads['userdata'],
                         self.writer_threads['removed']):
             for thread in threads:
+
                 if thread.is_done:
                     threads.remove(thread)
 

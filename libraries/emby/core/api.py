@@ -277,7 +277,7 @@ class API(object):
     def get_date_modified(self, date, parent_id, media=None):
         return  self.users("/Items", params={
                     'ParentId': parent_id,
-                    'Recursive': False,
+                    'Recursive': True,
                     'IsMissing': False,
                     'IsVirtualUnaired': False,
                     'IncludeItemTypes': media or None,
@@ -375,7 +375,10 @@ class API(object):
         try:
             result = self.shows("/%s/Episodes" % parent_id, {
                 'UserId': "{UserId}",
-                'AdjacentTo': item_id
+                'AdjacentTo': item_id,
+                'EnableImages': False,
+                'EnableUserData': False,
+                'EnableTotalRecordCount': False
             })
             for item in result['Items']:
 
