@@ -50,6 +50,9 @@
 	    <setting label="30522" id="transcode_h265" type="bool" default="false" visible="eq(-1,false)" />
 	    <setting label="33206" id="transcodeHi10P" type="bool" default="false" visible="eq(-2,false)" />
 	    <setting label="33208" id="transcode10bit" type="bool" default="false" visible="eq(-3,false)" />
+	    <setting label="33214" id="transcodeDivx" type="bool" default="false" visible="eq(-4,false)" />
+	    <setting label="33215" id="transcodeXvid" type="bool" default="false" visible="eq(-5,false)" />
+	    <setting label="33216" id="transcodeMpeg2" type="bool" default="false" visible="eq(-6,false)" />
 	    <setting label="33209" id="playUrlFromServer" type="bool" default="false" />
 	    <setting label="33114" id="enableExternalSubs" type="bool" default="true" />
 	    <setting label="33159" id="skipDialogTranscode" type="enum" lvalues="305|33157|33158|13106" visible="true" default="3" />
