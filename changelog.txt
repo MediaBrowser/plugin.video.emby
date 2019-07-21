@@ -1,3 +1,9 @@
+version 2.9.0:
+WARNING: You might have to manually select your PKC widgets again
+- versions 2.8.8 - 2.8.11 for everyone
+- Fix AttributeError: 'NoneType' object has no attribute 'attrib' on playback startup
+- Add new Lithuanian translations (thanks @egidusm)
+
 version 2.8.11 (beta only):
 - Support for the Up Next Kodi add-on
 - Fix casting to PlexKodiConnect always starting the first episode
