@@ -1029,3 +1029,15 @@ def GetUserArtworkURL(username):
             url = user.thumb
     LOG.debug("Avatar url for user %s is: %s", username, url)
     return url
+
+
+def show_episodes(plex_id):
+    """
+    Returns all episodes for the tv show with plex_id
+    """
+    url = "{server}/library/metadata/%s/allLeaves" % plex_id
+    arguments = {
+        'checkFiles': 0,
+        'skipRefresh': 1,
+    }
+    return DownloadChunks(utils.extend_url(url, arguments))

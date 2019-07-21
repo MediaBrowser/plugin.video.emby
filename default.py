@@ -52,6 +52,9 @@ class Main():
                                    synched=params.get('synched') != 'false',
                                    prompt=params.get('prompt'))
 
+        elif mode == 'show_section':
+            entrypoint.show_section(params.get('section_index'))
+
         elif mode == 'watchlater':
             entrypoint.watchlater()
 

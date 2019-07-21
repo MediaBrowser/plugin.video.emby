@@ -1,3 +1,27 @@
+version 2.9.0:
+WARNING: You might have to manually select your PKC widgets again
+- versions 2.8.8 - 2.8.11 for everyone
+- Fix AttributeError: 'NoneType' object has no attribute 'attrib' on playback startup
+- Add new Lithuanian translations (thanks @egidusm)
+
+version 2.8.11 (beta only):
+- Support for the Up Next Kodi add-on
+- Fix casting to PlexKodiConnect always starting the first episode
+- Rename video nodes for ondeck
+
+version 2.8.10 (beta only):
+- Fix broken PKC update
+
+version 2.8.9 (beta only):
+- Fix sections that are not synced not displaying menu but entire library 
+- Provide more metadata for unsynced directory-like items like a tv show
+- Fix 'Plex.nodes.<id>.path' not linking directly to entire library
+
+version 2.8.8 (beta only):
+WARNING: You might have to manually select your PKC widgets again
+- Ensure correct Kodi Container.Type is set for PKC widgets
+- Fix missing cast artwork if an actor also acted as director or writer for another movie. You will have to manually reset the Kodi DB.
+
 version 2.8.7:
 - Fix PKC potentially marking a video as watched on startup; don't sync time by toggling a video watch status but use PMS epoch time
 

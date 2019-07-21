@@ -234,13 +234,14 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     playqueue.clear()
     if plex_type != v.PLEX_TYPE_CLIP:
         # Post to the PMS to create a playqueue - in any case due to Companion
+        section_uuid = xml.attrib.get('librarySectionUUID')
         xml = PF.init_plex_playqueue(plex_id,
-                                     xml.attrib.get('librarySectionUUID'),
+                                     section_uuid,
                                      mediatype=plex_type,
                                      trailers=trailers)
         if xml is None:
             LOG.error('Could not get a playqueue xml for plex id %s, UUID %s',
-                      plex_id, xml.attrib.get('librarySectionUUID'))
+                      plex_id, section_uuid)
             # "Play error"
             utils.dialog('notification',
                          utils.lang(29999),

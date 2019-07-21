@@ -132,7 +132,7 @@ class Section(object):
     @section_type.setter
     def section_type(self, value):
         self._section_type = value
-        self.content = v.MEDIATYPE_FROM_PLEX_TYPE[value]
+        self.content = v.CONTENT_FROM_PLEX_TYPE[value]
         # Default values whether we sync or not based on the Plex type
         if value == v.PLEX_TYPE_PHOTO:
             self.sync_to_kodi = False
@@ -239,29 +239,41 @@ class Section(object):
             raise RuntimeError('Index not initialized')
         # Main list entry for this section - which will show the different
         # nodes as "submenus" once the user navigates into this section
-        args = {
-            'mode': 'browseplex',
-            'key': '/library/sections/%s' % self.section_id,
-            'plex_type': self.section_type,
-            'section_id': unicode(self.section_id)
-        }
-        if not self.sync_to_kodi:
-            args['synched'] = 'false'
-        addon_index = self.addon_path(args)
         if self.sync_to_kodi and self.section_type in v.PLEX_VIDEOTYPES:
+            # Node showing a menu for this section
+            args = {
+                'mode': 'show_section',
+                'section_index': self.index
+            }
+            index = utils.extend_url('plugin://%s' % v.ADDON_ID, args)
+            # Node directly displaying all content
             path = 'library://video/Plex-{0}/{0}_all.xml'
             path = path.format(self.section_id)
-            index = 'library://video/Plex-%s' % self.section_id
         else:
-            # No xmls to link to - let's show the listings on the fly
-            index = addon_index
-            args['key'] = '/library/sections/%s/all' % self.section_id
+            # Node showing a menu for this section
+            args = {
+                'mode': 'browseplex',
+                'key': '/library/sections/%s' % self.section_id,
+                'section_id': unicode(self.section_id)
+            }
+            if not self.sync_to_kodi:
+                args['synched'] = 'false'
+            # No library xmls to speed things up
+            # Immediately show the PMS options for this section
+            index = self.addon_path(args)
+            # Node directly displaying all content
+            args = {
+                'mode': 'browseplex',
+                'key': '/library/sections/%s/all' % self.section_id,
+                'section_id': unicode(self.section_id)
+            }
+            if not self.sync_to_kodi:
+                args['synched'] = 'false'
             path = self.addon_path(args)
-        # .index will list all possible nodes for this library
         utils.window('%s.index' % self.node, value=index)
         utils.window('%s.title' % self.node, value=self.name)
         utils.window('%s.type' % self.node, value=self.content)
-        utils.window('%s.content' % self.node, value=path)
+        utils.window('%s.content' % self.node, value=index)
         # .path leads to all elements of this library
         if self.section_type in v.PLEX_VIDEOTYPES:
             utils.window('%s.path' % self.node,
@@ -274,8 +286,6 @@ class Section(object):
             utils.window('%s.path' % self.node,
                          value='ActivateWindow(pictures,%s,return)' % path)
         utils.window('%s.id' % self.node, value=str(self.section_id))
-        # To let the user navigate into this node when selecting widgets
-        utils.window('%s.addon_index' % self.node, value=addon_index)
         if not self.sync_to_kodi:
             self.remove_files_from_kodi()
             return
@@ -312,18 +322,22 @@ class Section(object):
     def _build_node(self, node_type, node_name, args, content, pms_node):
         self.content = content
         node_name = node_name.format(self=self)
-        xml_name = '%s_%s.xml' % (self.section_id, node_type)
-        path = path_ops.path.join(self.path, xml_name)
-        if not path_ops.exists(path):
-            if pms_node:
-                # Even the xml will point back to the PKC add-on
-                xml = nodes.node_pms(self, node_name, args)
-            else:
+        if pms_node:
+            # Do NOT write a Kodi video library xml - can't use type="filter"
+            # to point back to plugin://plugin.video.plexkodiconnect
+            xml = nodes.node_pms(self, node_name, args)
+            args.pop('folder', None)
+            path = self.addon_path(args)
+        else:
+            # Write a Kodi video library xml
+            xml_name = '%s_%s.xml' % (self.section_id, node_type)
+            path = path_ops.path.join(self.path, xml_name)
+            if not path_ops.exists(path):
                 # Let's use Kodi's logic to sort/filter the Kodi library
                 xml = getattr(nodes, 'node_%s' % node_type)(self, node_name)
-            self._write_xml(xml, xml_name)
+                self._write_xml(xml, xml_name)
+            path = 'library://video/Plex-%s/%s' % (self.section_id, xml_name)
         self.order += 1
-        path = 'library://video/Plex-%s/%s' % (self.section_id, xml_name)
         self._window_node(path, node_name, node_type, pms_node)
 
     def _write_xml(self, xml, xml_name):
@@ -337,7 +351,7 @@ class Section(object):
         LOG.debug('Creating smart playlist for section %s: %s',
                   self.name, self.playlist_path)
         xml = etree.Element('smartplaylist',
-                            attrib={'type': v.MEDIATYPE_FROM_PLEX_TYPE[self.section_type]})
+                            attrib={'type': v.CONTENT_FROM_PLEX_TYPE[self.section_type]})
         etree.SubElement(xml, 'name').text = self.name
         etree.SubElement(xml, 'match').text = 'all'
         rule = etree.SubElement(xml, 'rule', attrib={'field': 'tag',
@@ -647,7 +661,6 @@ def _clear_window_vars(index):
     utils.window('%s.content' % node, clear=True)
     utils.window('%s.path' % node, clear=True)
     utils.window('%s.id' % node, clear=True)
-    utils.window('%s.addon_index' % node, clear=True)
     # Just clear everything here, ignore the plex_type
     for typus in (x[0] for y in nodes.NODE_TYPES.values() for x in y):
         for kind in WINDOW_ARGS:

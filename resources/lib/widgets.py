@@ -79,24 +79,49 @@ def generate_item(api):
 
 def _generate_folder(api):
     '''Generates "folder"/"directory" items that user can further navigate'''
-    art = api.artwork()
-    return {
-        'title': api.title(),
-        'label': api.title(),
-        'file': api.directory_path(section_id=SECTION_ID,
-                                   plex_type=PLEX_TYPE,
-                                   old_key=KEY),
-        'icon': 'DefaultFolder.png',
-        'art': {
-            'thumb': art['thumb'] if 'thumb' in art else
-                     (art['poster'] if 'poster' in art else
-                      'special://home/addons/%s/icon.png' % v.ADDON_ID),
-            'fanart': art['fanart'] if 'fanart' in art else
-                      'special://home/addons/%s/fanart.jpg' % v.ADDON_ID},
-        'isFolder': True,
-        'type': '',
-        'IsPlayable': 'false',
-    }
+    typus = ''
+    if api.plex_type == v.PLEX_TYPE_GENRE:
+        # Unfortunately, 'genre' is not yet supported by Kodi
+        # typus = v.KODI_TYPE_GENRE
+        pass
+    elif api.plex_type == v.PLEX_TYPE_SHOW:
+        typus = v.KODI_TYPE_SHOW
+    elif api.plex_type == v.PLEX_TYPE_SEASON:
+        typus = v.KODI_TYPE_SEASON
+    elif api.plex_type == v.PLEX_TYPE_ARTIST:
+        typus = v.KODI_TYPE_ARTIST
+    elif api.plex_type == v.PLEX_TYPE_ALBUM:
+        typus = v.KODI_TYPE_ALBUM
+    elif api.fast_key and '?collection=' in api.fast_key:
+        typus = v.KODI_TYPE_SET
+    if typus and typus != v.KODI_TYPE_SET:
+        content = _generate_content(api)
+        content['type'] = typus
+        content['file'] = api.directory_path(section_id=SECTION_ID,
+                                             plex_type=PLEX_TYPE,
+                                             old_key=KEY)
+        content['isFolder'] = True
+        content['IsPlayable'] = 'false'
+        return content
+    else:
+        art = api.artwork()
+        return {
+            'title': api.title(),
+            'label': api.title(),
+            'file': api.directory_path(section_id=SECTION_ID,
+                                       plex_type=PLEX_TYPE,
+                                       old_key=KEY),
+            'icon': 'DefaultFolder.png',
+            'art': {
+                'thumb': art['thumb'] if 'thumb' in art else
+                         (art['poster'] if 'poster' in art else
+                          'special://home/addons/%s/icon.png' % v.ADDON_ID),
+                'fanart': art['fanart'] if 'fanart' in art else
+                          'special://home/addons/%s/fanart.jpg' % v.ADDON_ID},
+            'isFolder': True,
+            'type': typus,
+            'IsPlayable': 'false',
+        }
 
 
 def _generate_content(api):

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 import urllib
+import copy
 
 from ..utils import etree
 from .. import variables as v, utils
@@ -18,40 +19,37 @@ RECOMMENDED_SCORE_LOWER_BOUND = 7
 #  )
 NODE_TYPES = {
     v.PLEX_TYPE_MOVIE: (
-        ('ondeck',
+        ('plex_ondeck',
          utils.lang(39500),  # "On Deck"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/onDeck',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          True),
-        ('pkc_ondeck',
+        ('ondeck',
          utils.lang(39502),  # "PKC On Deck (faster)"
          {},
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('recent',
          utils.lang(30174),  # "Recently Added"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/recentlyAdded',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('all',
          '{self.name}',  # We're using this section's name
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/all',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('recommended',
          utils.lang(30230),  # "Recommended"
@@ -59,30 +57,27 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': ('/library/sections/{self.section_id}&%s'
                       % urllib.urlencode({'sort': 'rating:desc'})),
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('genres',
          utils.lang(135),  # "Genres"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/genre',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('sets',
          utils.lang(39501),  # "Collections"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/collection',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('random',
          utils.lang(30227),  # "Random"
@@ -90,20 +85,18 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': ('/library/sections/{self.section_id}&%s'
                       % urllib.urlencode({'sort': 'random'})),
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('lastplayed',
          utils.lang(568),  # "Last played"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/recentlyViewed',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          False),
         ('browse',
          utils.lang(39702),  # "Browse by folder"
@@ -111,19 +104,20 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/folder',
               'plex_type': '{self.section_type}',
-              'section_id': '{self.section_id}'
+              'section_id': '{self.section_id}',
+              'folder': True
          },
-         'movies',
+         v.CONTENT_TYPE_MOVIE,
          True),
         ('more',
          utils.lang(22082),  # "More..."
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}',
-              'plex_type': '{self.section_type}',
-              'section_id': '{self.section_id}'
+              'section_id': '{self.section_id}',
+              'folder': True
          },
-         'movies',
+         v.CONTENT_TYPE_FILE,
          True),
     ),
     ###########################################################
@@ -133,30 +127,27 @@ NODE_TYPES = {
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/onDeck',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'episodes',
+         v.CONTENT_TYPE_EPISODE,
          True),
         ('recent',
          utils.lang(30174),  # "Recently Added"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/recentlyAdded',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'episodes',
+         v.CONTENT_TYPE_EPISODE,
          False),
         ('all',
          '{self.name}',  # We're using this section's name
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/all',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'tvshows',
+         v.CONTENT_TYPE_SHOW,
          False),
         ('recommended',
          utils.lang(30230),  # "Recommended"
@@ -164,30 +155,27 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': ('/library/sections/{self.section_id}&%s'
                       % urllib.urlencode({'sort': 'rating:desc'})),
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'tvshows',
+         v.CONTENT_TYPE_SHOW,
          False),
         ('genres',
          utils.lang(135),  # "Genres"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/genre',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'tvshows',
+         v.CONTENT_TYPE_SHOW,
          False),
         ('sets',
          utils.lang(39501),  # "Collections"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/collection',
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'tvshows',
+         v.CONTENT_TYPE_SHOW,
          True),  # There are no sets/collections for shows with Kodi
         ('random',
          utils.lang(30227),  # "Random"
@@ -195,10 +183,9 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': ('/library/sections/{self.section_id}&%s'
                       % urllib.urlencode({'sort': 'random'})),
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'tvshows',
+         v.CONTENT_TYPE_SHOW,
          False),
         ('lastplayed',
          utils.lang(568),  # "Last played"
@@ -206,30 +193,29 @@ NODE_TYPES = {
               'mode': 'browseplex',
               'key': ('/library/sections/{self.section_id}/recentlyViewed&%s'
                       % urllib.urlencode({'type': v.PLEX_TYPE_NUMBER_FROM_PLEX_TYPE[v.PLEX_TYPE_EPISODE]})),
-              'plex_type': '{self.section_type}',
               'section_id': '{self.section_id}'
          },
-         'episodes',
+         v.CONTENT_TYPE_EPISODE,
          False),
         ('browse',
          utils.lang(39702),  # "Browse by folder"
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}/folder',
-              'plex_type': '{self.section_type}',
-              'section_id': '{self.section_id}'
+              'section_id': '{self.section_id}',
+              'folder': True
          },
-         'episodes',
+         v.CONTENT_TYPE_EPISODE,
          True),
         ('more',
          utils.lang(22082),  # "More..."
          {
               'mode': 'browseplex',
               'key': '/library/sections/{self.section_id}',
-              'plex_type': '{self.section_type}',
-              'section_id': '{self.section_id}'
+              'section_id': '{self.section_id}',
+              'folder': True
          },
-         'episodes',
+         v.CONTENT_TYPE_FILE,
          True),
     ),
 }
@@ -239,9 +225,19 @@ def node_pms(section, node_name, args):
     """
     Nodes where the logic resides with the PMS - we're NOT building an
     xml that filters and sorts, but point to PKC add-on path
+
+    Be sure to set args['folder'] = True if the listing is a folder and does
+    not contain playable elements like movies, episodes or tracks
     """
-    xml = etree.Element('node', attrib={'order': unicode(section.order),
-                                        'type': 'folder'})
+    if 'folder' in args:
+        args = copy.deepcopy(args)
+        args.pop('folder')
+        folder = True
+    else:
+        folder = False
+    xml = etree.Element('node',
+                        attrib={'order': unicode(section.order),
+                                'type': 'folder' if folder else 'filter'})
     etree.SubElement(xml, 'label').text = node_name
     etree.SubElement(xml, 'icon').text = ICON_PATH
     etree.SubElement(xml, 'content').text = section.content
@@ -249,7 +245,7 @@ def node_pms(section, node_name, args):
     return xml
 
 
-def node_pkc_ondeck(section, node_name):
+def node_ondeck(section, node_name):
     """
     For movies only - returns in-progress movies sorted by last played
     """
