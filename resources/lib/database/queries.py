@@ -131,10 +131,10 @@ add_version =           """ INSERT OR REPLACE INTO  version(idVersion)
 
 
 update_reference =      """	UPDATE 	emby 
-    						SET 	checksum = ? 
+    						SET 	checksum = ?, presentation_key = ? 
     						WHERE 	emby_id = ?
     					"""
-update_reference_obj =      [   "{Checksum}", "{Id}"
+update_reference_obj =      [   "{Checksum}","{PresentationKey}","{Id}"
                             ]
 update_parent =     	"""	UPDATE 	emby 
     						SET 	parent_id = ? 
