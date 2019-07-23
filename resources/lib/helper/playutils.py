@@ -334,14 +334,14 @@ class PlayUtils(object):
             "TimelineOffsetSeconds": 5,
             "TranscodingProfiles": [
                 {
-                    "Type": "Audio"
-                },
-                {
                     "Container": "m3u8",
                     "Type": "Video",
                     "AudioCodec": "aac,mp3,ac3,opus,flac,vorbis",
                     "VideoCodec": "h264,mpeg4,mpeg2video",
                     "MaxAudioChannels": "6"
+                },
+                {
+                    "Type": "Audio"
                 },
                 {
                     "Container": "jpeg",
@@ -429,16 +429,24 @@ class PlayUtils(object):
                 }
             ]
         }
-        if settings('transcode_h265.bool'):
-            profile['DirectPlayProfiles'][0]['VideoCodec'] = "h264,mpeg4,mpeg2video"
-        else:
-        	profile['TranscodingProfiles'].insert(0, {
-        		"Container": "m3u8",
-                "Type": "Video",
-                "AudioCodec": "aac,mp3,ac3,opus,flac,vorbis",
-                "VideoCodec": "h264,h265,hevc,mpeg4,mpeg2video",
-                "MaxAudioChannels": "6"
-        	})
+        video_codecs = ['h264']
+
+        if not settings('transcode_h265.bool'):
+
+            video_codecs.append('h265')
+            video_codecs.append('hevc')
+
+        if not settings('transcodeXvid.bool'):
+            video_codecs.append('mpeg4')
+
+        if not settings('transcodeMpeg2.bool'):
+            video_codecs.append('mpeg2video')
+
+        if not settings('transcodeDvix.bool'):
+            video_codecs.append('msmpeg4v3')
+
+        profile['DirectPlayProfiles'][0]['VideoCodec'] = ",".join(video_codecs)
+        profile['TranscodingProfiles'][0]['VideoCodec'] = ",".join(video_codecs)
 
         if settings('transcodeHi10P.bool'):
             profile['CodecProfiles'].append(
