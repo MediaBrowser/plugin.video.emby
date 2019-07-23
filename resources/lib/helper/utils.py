@@ -206,7 +206,7 @@ class JSONRPC(object):
         self.method = method
 
         for arg in kwargs:
-            self.arg = arg
+            self.arg = kwargs[arg]
 
     def _query(self):
 
