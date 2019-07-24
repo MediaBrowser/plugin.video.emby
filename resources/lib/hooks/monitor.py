@@ -445,16 +445,16 @@ class Monitor(xbmc.Monitor):
         self.server_instance(data['ServerId'])
 
         if not data['ServerId']:
-            window('emby.server.pickle', server.get_state())
+            window('emby.server.state', server.get_state())
         else:
-            window('emby.server.%s.pickle' % data['ServerId'], server.get_state())
+            window('emby.server.%s.state' % data['ServerId'], server.get_state())
 
     def StopServer(self, server, data, *args, **kwargs):
 
         if not data['ServerId']:
-            window('emby.server.pickle', clear=True)
+            window('emby.server.state', clear=True)
         else:
-            window('emby.server.%s.pickle' % data['ServerId'], clear=True)
+            window('emby.server.%s.state' % data['ServerId'], clear=True)
 
     def AddUser(self, server, data, *args, **kwargs):
 

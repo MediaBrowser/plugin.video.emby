@@ -3,10 +3,7 @@
 #################################################################################################
 
 import logging
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import json
 
 import core.api as api
 from core.configuration import Config
@@ -32,7 +29,7 @@ def callback(message, data):
 class ClientState(object):
 
     def set_state(self, state):
-        state = pickle.loads(state)
+        state = json.loads(state)
 
         if state.get('config'):
             self.config = state['config']
@@ -44,7 +41,7 @@ class ClientState(object):
             self.auth.server_id = state['credentials']['Servers'][0]['Id']
 
     def get_state(self):
-        state = pickle.dumps({'config': self.config, 'credentials': self.get_credentials()})
+        state = json.dumps({'config': self.config, 'credentials': self.get_credentials()})
 
         return state
 
