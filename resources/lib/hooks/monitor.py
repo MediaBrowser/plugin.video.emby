@@ -444,17 +444,21 @@ class Monitor(xbmc.Monitor):
     def LoadServer(self, server, data, *args, **kwargs):
         self.server_instance(data['ServerId'])
 
+        """
         if not data['ServerId']:
             window('emby.server.state', server.get_state())
         else:
             window('emby.server.%s.state' % data['ServerId'], server.get_state())
+        """
 
     def StopServer(self, server, data, *args, **kwargs):
-
+        pass
+        """
         if not data['ServerId']:
             window('emby.server.state', clear=True)
         else:
             window('emby.server.%s.state' % data['ServerId'], clear=True)
+        """
 
     def AddUser(self, server, data, *args, **kwargs):
 
