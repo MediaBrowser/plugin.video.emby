@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon  id="plugin.video.emby"
         name="Emby" 
-        version="4.1.6"
+        version="4.1.7"
         provider-name="angelblue05, sualfred">
   <requires>
     <import addon="xbmc.python" version="2.25.0"/>
