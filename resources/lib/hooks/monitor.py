@@ -338,7 +338,7 @@ class Monitor(xbmc.Monitor):
         server['api'].favorite(data['Id'], data['Favorite'])
 
     def DeleteItem(self, server, data, *args, **kwargs):
-        server['api'].delete_item(data['Id'])        
+        server['api'].delete_item(data['Id'])
 
     def PlayPlaylist(self, server, data, *args, **kwargs):
         server['api'].post_session(server['config/app.session'], "Playing", {
