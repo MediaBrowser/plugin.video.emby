@@ -1,3 +1,6 @@
+version 2.9.1:
+- Fix On Deck and Recently Added Episodes for shows not appending showname and season and episode number
+
 version 2.9.0:
 WARNING: You might have to manually select your PKC widgets again
 - versions 2.8.8 - 2.8.11 for everyone
