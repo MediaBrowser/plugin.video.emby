@@ -37,15 +37,20 @@ class Config(object):
 
         return
 
-    def __getitem__(self, key):
-        return self.data.get(key, self.__shortcuts__(key))
+    def __setstate__(self, data):
+        self.data = data
+
+    def __getstate__(self):
+        return self.data
 
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def __getitem__(self, key):
+        return self.data.get(key, self.__shortcuts__(key))
+
     def app(self, name, version, device_name, device_id, capabilities=None, device_pixel_ratio=None):
-        
-        LOG.info("Begin app constructor.")
+        LOG.info("Begin app constructor")
 
         self.data['app.name'] = name
         self.data['app.version'] = version
@@ -56,8 +61,7 @@ class Config(object):
         self.data['app.default'] = False
 
     def auth(self, server, user_id, token=None, ssl=None):
-
-        LOG.info("Begin auth constructor.")
+        LOG.info("Begin auth constructor")
 
         self.data['auth.server'] = server
         self.data['auth.user_id'] = user_id
@@ -65,8 +69,7 @@ class Config(object):
         self.data['auth.ssl'] = ssl
 
     def http(self, user_agent=None, max_retries=DEFAULT_HTTP_MAX_RETRIES, timeout=DEFAULT_HTTP_TIMEOUT):
-
-        LOG.info("Begin http constructor.")
+        LOG.info("Begin http constructor")
 
         self.data['http.max_retries'] = max_retries
         self.data['http.timeout'] = timeout

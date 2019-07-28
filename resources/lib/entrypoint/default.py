@@ -50,17 +50,8 @@ class Events(object):
         mode = params.get('mode')
         server = params.get('server')
 
-        """
         if server == 'None' or not server:
-
             server = None
-            client = Emby().get_client()
-            client.set_state(window('emby.server.state'))
-        else:
-            client = Emby(server).get_client()
-            client.set_state(window('emby.server.%s.state' % server))
-        """
-
 
         LOG.warn("path: %s params: %s", path, json.dumps(params, indent=4))
 
