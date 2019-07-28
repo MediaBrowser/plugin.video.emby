@@ -338,11 +338,13 @@ class API(object):
     def get_server_time(self):
         return  self._get("Emby.Kodi.SyncQueue/GetServerDateTime")
 
-    def get_play_info(self, item_id, profile):
+    def get_play_info(self, item_id, profile, source_id=None, is_playback=False):
         return  self.items("/%s/PlaybackInfo" % item_id, "POST", json={
                     'UserId': "{UserId}",
                     'DeviceProfile': profile,
-                    'AutoOpenLiveStream': True
+                    'AutoOpenLiveStream': is_playback,
+                    'IsPlayback': is_playback,
+                    'MediaSourceId': source_id
                 })
 
     def get_live_stream(self, item_id, play_id, token, profile):

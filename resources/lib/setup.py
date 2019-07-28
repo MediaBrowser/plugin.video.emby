@@ -79,17 +79,8 @@ class Setup(object):
             LOG.info("Artwork caching: %s", settings('enableTextureCache.bool'))
             self._is_empty_shows()
             LOG.info("Sync empty shows: %s", settings('syncEmptyShows.bool'))
-            self._is_rotten_tomatoes()
-            LOG.info("Sync rotten tomatoes: %s", settings('syncRottenTomatoes.bool'))
             self._is_multiep()
             LOG.info("Enable multi episode label: %s", settings('displayMultiEpLabel.bool'))
-
-        """
-        if compare_version(cached or minimum, "3.0.24") <= 0:
-
-            self._is_rotten_tomatoes()
-            LOG.info("Sync rotten tomatoes: %s", settings('syncRottenTomatoes.bool'))
-        """
 
         # Setup completed
         settings('MinimumSetup', minimum)
@@ -125,11 +116,6 @@ class Setup(object):
 
         value = dialog("yesno", heading="{emby}", line1=_(33100))
         settings('syncEmptyShows.bool', value)
-
-    def _is_rotten_tomatoes(self):
-
-        value = dialog("yesno", heading="{emby}", line1=_(33188))
-        settings('syncRottenTomatoes.bool', value)
 
     def _is_music(self):
 

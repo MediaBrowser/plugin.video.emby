@@ -11,7 +11,7 @@ import xbmcaddon
 
 import database
 from dialogs import context
-from helper import _, settings, dialog, kodi_version
+from helper import _, settings, dialog, kodi_version, event
 from downloader import TheVoid
 
 #################################################################################################
@@ -166,6 +166,7 @@ class Context(object):
 
         if delete:
             TheVoid('DeleteItem', {'ServerId': self.server, 'Id': self.item['Id']})
+            event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
     def play(self, transcode=False):
 

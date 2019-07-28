@@ -28,11 +28,23 @@ def callback(message, data):
 
 class ClientState(object):
 
+    ''' To restore the state of the emby client to avoid retesting connections, etc.
+        For example, for default.py which is a different python instance.
+
+        state = Emby(),get_state()
+
+        # diff instance
+        Emby().set_state(state)
+    '''
     def set_state(self, state):
-        state = json.loads(state)
+
+        if not state:
+            LOG.warn("state cannot be empty")
+
+            return
 
         if state.get('config'):
-            self.config = state['config']
+            self.config.__setstate__(state['config'])
 
         if state.get('credentials'):
 
@@ -41,13 +53,12 @@ class ClientState(object):
             self.auth.server_id = state['credentials']['Servers'][0]['Id']
 
     def get_state(self):
-        state = json.dumps({'config': self.config, 'credentials': self.get_credentials()})
+        state = {'config': self.config.__getstate__(), 'credentials': self.get_credentials()}
 
         return state
 
 
 class EmbyClient(ClientState):
-
     logged_in = False
 
     def __init__(self):
