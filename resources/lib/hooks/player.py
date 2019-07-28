@@ -487,7 +487,7 @@ class Player(xbmc.Player):
 
         ''' Stop all playback. Check for external player for positionticks.
         '''
-        LOG.info("[ played info ] %s", self.played)
+        LOG.debug("[ played info ] %s", self.played)
 
         for file in self.played:
 
@@ -499,6 +499,7 @@ class Player(xbmc.Player):
 
                     continue
 
+                LOG.info("[ played info ] %s", item)
                 item['Track'] = False
                 self.played[file] = item
                 window('emby.skip.%s.bool' % item['Id'], True)
