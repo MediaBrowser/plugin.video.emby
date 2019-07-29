@@ -65,7 +65,7 @@ class PlayUtils(object):
         item['PlaybackInfo'] = {}
         self.info = {
             'Item': item,
-            'ServerId': server['auth/server-id'] if server['config/app.default'] else None,
+            'ServerId': None if server['config/app.default'] else server['auth/server-id'],
             'ServerAddress': server['auth/server-address'],
             'Server': server,
             'Token': server['auth/token'],
@@ -327,7 +327,7 @@ class PlayUtils(object):
                     "Container": "m3u8",
                     "Type": "Video",
                     "AudioCodec": "aac,mp3,ac3,opus,flac,vorbis",
-                    "VideoCodec": "h264,mpeg4,mpeg2video",
+                    "VideoCodec": "h264,h265,hevc,mpeg4,mpeg2video",
                     "MaxAudioChannels": "6"
                 },
                 {
@@ -419,24 +419,40 @@ class PlayUtils(object):
                 }
             ]
         }
-        video_codecs = ['h264']
+        if self.info['Item']['Type'] == 'TvChannel':
+            profile['TranscodingProfiles'].insert(0, {
+                "Container": "ts",
+                "Type": "Video",
+                "AudioCodec": "aac",
+                "VideoCodec": "h264",
+                "Context": "Streaming",
+                "Protocol": "hls",
+                "MaxAudioChannels": "2",
+                "MinSegments": "1",
+                "BreakOnNonKeyFrames": True
+            })
 
-        if not settings('transcode_h265.bool'):
+        filter_codecs = []
+        codecs = ['h264', 'h265', 'hevc', 'mpeg4', 'mpeg2video']  # basic
 
-            video_codecs.append('h265')
-            video_codecs.append('hevc')
+        if settings('transcode_h265.bool'):
 
-        if not settings('transcodeXvid.bool'):
-            video_codecs.append('mpeg4')
+            filter_codecs.append('h265')
+            filter_codecs.append('hevc')
 
-        if not settings('transcodeMpeg2.bool'):
-            video_codecs.append('mpeg2video')
+        if settings('transcodeXvid.bool'):
+            filter_codecs.append('mpeg4')
 
-        if not settings('transcodeDvix.bool'):
-            video_codecs.append('msmpeg4v3')
+        if settings('transcodeMpeg2.bool'):
+            filter_codecs.append('mpeg2video')
 
-        profile['DirectPlayProfiles'][0]['VideoCodec'] = ",".join(video_codecs)
-        profile['TranscodingProfiles'][0]['VideoCodec'] = ",".join(video_codecs)
+        if settings('transcodeDvix.bool'):
+            filter_codecs.append('msmpeg4v3')
+
+        if filter_codecs:
+
+            profile['DirectPlayProfiles'][0]['VideoCodec'] = "-%s" % ",".join(filter_codecs)
+            profile['TranscodingProfiles'][0]['VideoCodec'] = ",".join([x for x in codecs if x not in filter_codecs])
 
         if settings('transcodeHi10P.bool'):
             profile['CodecProfiles'].append(
@@ -471,19 +487,6 @@ class PlayUtils(object):
 
         if self.info['ForceTranscode']:
             profile['DirectPlayProfiles'] = []
-
-        if self.info['Item']['Type'] == 'TvChannel':
-            profile['TranscodingProfiles'].insert(0, {
-                "Container": "ts",
-                "Type": "Video",
-                "AudioCodec": "aac",
-                "VideoCodec": "h264",
-                "Context": "Streaming",
-                "Protocol": "hls",
-                "MaxAudioChannels": "2",
-                "MinSegments": "1",
-                "BreakOnNonKeyFrames": True
-            })
 
         return profile
 

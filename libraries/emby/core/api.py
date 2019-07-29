@@ -11,7 +11,7 @@ LOG = logging.getLogger('Emby.'+__name__)
 #################################################################################################
 
 def emby_url(client, handler):
-    return  "%s/emby/%s" % (client.config['auth.server'], handler)
+    return  "%s/emby/%s" % (client['config/auth.server'], handler)
 
 def basic_info():
     return  "Etag,PresentationUniqueKey"

@@ -315,6 +315,7 @@ class Service(xbmc.Monitor):
             LOG.info("[ LibraryChanged ] %s", data)
             self.library_thread.updated(data['ItemsUpdated'] + data['ItemsAdded'])
             self.library_thread.removed(data['ItemsRemoved'])
+            self.library_thread.delay_verify(data.get('ItemsVerify', []))
 
         elif method == 'WebSocketRestarting':
 

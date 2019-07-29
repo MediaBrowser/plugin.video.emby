@@ -74,6 +74,7 @@ class Library(threading.Thread):
         self.notify_output = Queue.Queue()
         self.add_lib_queue = Queue.Queue()
         self.remove_lib_queue = Queue.Queue()
+        self.verify_queue = Queue.Queue()
 
         self.emby_threads = []
         self.download_threads = []
@@ -166,6 +167,7 @@ class Library(threading.Thread):
                 self.worker_remove_lib()
                 self.worker_add_lib()
 
+            self.worker_verify()
             self.worker_downloads()
             self.worker_sort()
 
@@ -273,6 +275,35 @@ class Library(threading.Thread):
             total += self.removed_output[queues].qsize()
 
         return total
+
+    def worker_verify(self):
+
+        ''' Wait 60 seconds to verify the item by moving it to the updated queue to
+            verify item is still available to user.
+            Used for internal deletion--callback takes too long
+            Used for parental control--server does not send a new event when item has been blocked.
+        '''
+        if self.verify_queue.qsize():
+
+            ready = []
+            not_ready = []
+
+            while True:
+
+                try:
+                    time_set, item_id = self.verify_queue.get(timeout=1)
+                except Queue.Empty:
+                    break
+
+                if time_set <= datetime.today():
+                    ready.append(item_id)
+                elif item_id not in list(self.removed_queue.queue):
+                    not_ready.append((time_set, item_id,))
+                
+                self.verify_queue.task_done()
+
+            self.updated(ready)
+            map(self.verify_queue.put, not_ready) # re-add items that are not ready yet
 
     def worker_downloads(self):
 
@@ -718,6 +749,19 @@ class Library(threading.Thread):
         self.total_updates += len(data)
         LOG.info("---[ removed:%s ]", len(data))
 
+    def delay_verify(self, data):
+
+        ''' Setup a 1 minute delay for items to be verified.
+        '''
+        if not data:
+            return
+
+        time_set = datetime.today() + timedelta(seconds=60)
+        for item in data:
+            self.verify_queue.put((time_set, item,))
+
+        LOG.info("---[ verify:%s ]", len(data))
+
 
 class UpdatedWorker(threading.Thread):
 
@@ -753,7 +797,10 @@ class UpdatedWorker(threading.Thread):
                             if obj(item) and self.notify:
                                 self.notify_output.put((item['Type'], api.API(item).get_naming()))
                         except LibraryException as error:
+
                             if error.status in ('StopCalled', 'StopWriteCalled'):
+                                self.queue.put(item)
+
                                 break
                         except Exception as error:
                             LOG.exception(error)
@@ -797,7 +844,10 @@ class UserDataWorker(threading.Thread):
                         try:
                             obj(item)
                         except LibraryException as error:
+
                             if error.status in ('StopCalled', 'StopWriteCalled'):
+                                self.queue.put(item)
+
                                 break
                         except Exception as error:
                             LOG.exception(error)
@@ -885,7 +935,10 @@ class RemovedWorker(threading.Thread):
                         try:
                             obj(item['Id'])
                         except LibraryException as error:
+
                             if error.status in ('StopCalled', 'StopWriteCalled'):
+                                self.queue.put(item)
+
                                 break
                         except Exception as error:
                             LOG.exception(error)

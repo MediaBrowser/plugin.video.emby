@@ -157,17 +157,18 @@ class HTTP(object):
                 raise HTTPException(r.status_code, error)
 
             except requests.exceptions.MissingSchema as error:
-                raise HTTPException("MissingSchema", {'Id': self.config['auth.server']})
+                raise HTTPException("MissingSchema", {'ServerId': self.config['auth.server']})
 
             except Exception as error:
                 raise
 
             else:
+                elapsed = int(r.elapsed.total_seconds() * 1000)
+                LOG.debug("---<[ http ][%s ms]", elapsed)
+
                 try:
                     self.config['server-time'] = r.headers['Date']
-                    elapsed = int(r.elapsed.total_seconds() * 1000)
                     response = r.json()
-                    LOG.debug("---<[ http ][%s ms]", elapsed)
                     LOG.debug(json.dumps(response, indent=4))
 
                     return response

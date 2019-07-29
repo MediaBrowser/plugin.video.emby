@@ -282,11 +282,10 @@ class GetItemWorker(threading.Thread):
                     item_ids = self.queue.get(timeout=1)
                 except Queue.Empty:
 
-                    self.is_done = True
                     LOG.info("--<[ q:download/%s/%s ]", id(self), count)
                     LOG.info("--[ q:download/remove ] %s", self.removed)
 
-                    return
+                    break
 
                 clean_list = [str(x) for x in item_ids]
                 request = {
@@ -297,7 +296,6 @@ class GetItemWorker(threading.Thread):
                         'Fields': api.info()
                     }
                 }
-
                 try:
                     result = self.server['http/request'](request, s)
                     self.removed.extend(list(set(clean_list) - set([str(x['Id']) for x in result['Items']])))
@@ -310,7 +308,7 @@ class GetItemWorker(threading.Thread):
                     LOG.error("--[ http status: %s ]", error.status)
 
                     if error.status in ('ServerUnreachable', 'ReadTimeout', 503):
-                        self.is_done = True
+                        self.queue.put(item_ids)
 
                         break
 
@@ -322,6 +320,8 @@ class GetItemWorker(threading.Thread):
 
                 if window('emby_should_stop.bool'):
                     break
+
+            self.is_done = True
 
 class TheVoid(object):
 
