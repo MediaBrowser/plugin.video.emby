@@ -555,7 +555,7 @@ class Player(xbmc.Player):
 
                         if dialog("yesno", heading=_(30091), line1=_(33015), autoclose=120000):
                             item['Server']['api'].delete_item(item['Id'])
-                            event("LibraryChanged", {'ItemsRemoved': [item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
+                            event("LibraryChanged", {'ItemsRemoved': [item['Id']], 'ItemsVerify': [item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
             except Exception as error:
                 LOG.error(error)

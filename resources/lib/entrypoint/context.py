@@ -166,7 +166,7 @@ class Context(object):
 
         if delete:
             TheVoid('DeleteItem', {'ServerId': self.server, 'Id': self.item['Id']})
-            event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
+            event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
     def play(self, transcode=False):
 
