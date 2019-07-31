@@ -1171,3 +1171,15 @@ msgstr ""
 msgctxt "#33213"
 msgid "Enable label for multi-episodes. i.e. | # | title"
 msgstr ""
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
