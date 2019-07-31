@@ -19,6 +19,7 @@ PATCH.check_update()
 import _strptime # Workaround for threads using datetime: _striptime is locked
 import json
 import sys
+import threading
 from datetime import datetime
 
 import xbmc
@@ -42,34 +43,33 @@ from database import Database, emby_db, reset, test_databases
 class Service(xbmc.Monitor):
 
     running = True
-    library_thread = None
+    library = None
     monitor = None
-    play_event = None
-    patch = None
-    warn = True
-    settings = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
+    connect = None
+    player = None
+    data = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
 
     def __init__(self):
         window('emby_should_stop', clear=True)
 
-        self.settings['addon_version'] = client.get_version()
-        self.settings['profile'] = xbmc.translatePath('special://profile')
-        self.settings['mode'] = settings('useDirectPaths')
-        self.settings['log_level'] = settings('logLevel') or "1"
-        self.settings['auth_check'] = True
-        self.settings['enable_context'] = settings('enableContext.bool')
-        self.settings['enable_context_transcode'] = settings('enableContextTranscode.bool')
-        self.settings['kodi_companion'] = settings('kodiCompanion.bool')
-        window('emby_logLevel', value=str(self.settings['log_level']))
-        window('emby_kodiProfile', value=self.settings['profile'])
+        self['addon_version'] = client.get_version()
+        self['profile'] = xbmc.translatePath('special://profile')
+        self['mode'] = settings('useDirectPaths')
+        self['log_level'] = settings('logLevel') or "1"
+        self['auth_check'] = True
+        self['enable_context'] = settings('enableContext.bool')
+        self['enable_context_transcode'] = settings('enableContextTranscode.bool')
+        self['kodi_companion'] = settings('kodiCompanion.bool')
+        window('emby_logLevel', value=str(self['log_level']))
+        window('emby_kodiProfile', value=self['profile'])
         settings('platformDetected', client.get_platform())
         settings('distroDetected', client.get_distro())
         memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
         settings('lowPowered.bool', int(memory or 2961) < 2961) # Use shield (~3GB) as cutoff
 
-        if self.settings['enable_context']:
+        if self['enable_context']:
             window('emby_context.bool', True)
-        if self.settings['enable_context_transcode']:
+        if self['enable_context_transcode']:
             window('emby_context_transcode.bool', True)
 
         LOG.warn("--->>>[ %s ]", client.get_addon_name())
@@ -79,7 +79,7 @@ class Service(xbmc.Monitor):
         LOG.warn("OS: %s/%sMB", settings('distroDetected'), memory)
         LOG.warn("Python Version: %s", sys.version)
         LOG.warn("Using dynamic paths: %s", settings('useDirectPaths') == "0")
-        LOG.warn("Log Level: %s", self.settings['log_level'])
+        LOG.warn("Log Level: %s", self['log_level'])
 
         self.check_version()
         verify_kodi_defaults()
@@ -94,6 +94,25 @@ class Service(xbmc.Monitor):
         settings('groupedSets.bool', objects.utils.get_grouped_set())
         xbmc.Monitor.__init__(self)
 
+    def __shortcuts__(self, key):
+
+        if key == 'player':
+            return self.player
+        elif key == 'library':
+            return self.library
+        elif key == 'monitor':
+            return self.monitor
+        elif key == 'connect':
+            return self.connect
+
+        return
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __getitem__(self, key):
+        return self.data.get(key, self.__shortcuts__(key))
+
     def service(self):
 
         ''' Keeps the service monitor going.
@@ -103,31 +122,32 @@ class Service(xbmc.Monitor):
             Threads depending on abortRequest will not trigger.
         '''
         self.monitor = objects.monitor.Monitor()
+        self.monitor.service = self
         self.connect = connect.Connect()
-        self.start_default()
+        StartDefaultServer(self)
 
-        self.settings['mode'] = settings('useDirectPaths')
-        player = self.monitor.player
+        self['mode'] = settings('useDirectPaths')
+        self.player = self['monitor'].player
 
         while self.running:
             if window('emby_online.bool'):
 
-                if self.settings['profile'] != window('emby_kodiProfile'):
-                    LOG.info("[ profile switch ] %s", self.settings['profile'])
+                if self['profile'] != window('emby_kodiProfile'):
+                    LOG.info("[ profile switch ] %s", self['profile'])
 
                     break
 
-                if player.isPlaying() and player.is_playing_file(player.get_playing_file()):
-                    difference = datetime.today() - self.settings['last_progress']
+                if self['player'].isPlaying() and self['player'].is_playing_file(self['player'].get_playing_file()):
+                    difference = datetime.today() - self['last_progress']
 
                     if difference.seconds > 4:
-                        self.settings['last_progress'] = datetime.today()
+                        self['last_progress'] = datetime.today()
 
-                        update = (datetime.today() - self.settings['last_progress_report']).seconds > 40
+                        update = (datetime.today() - self['last_progress_report']).seconds > 40
                         event('ReportProgressRequested', {'Report': update})
 
                         if update:
-                            self.settings['last_progress_report'] = datetime.today()
+                            self['last_progress_report'] = datetime.today()
 
             if not WEBSERVICE.is_alive():
                 
@@ -145,24 +165,6 @@ class Service(xbmc.Monitor):
         self.shutdown()
 
         raise Exception("ExitService")
-
-    def start_default(self):
-
-        try:
-            self.connect.register()
-            setup.Setup()
-        except Exception as error:
-            LOG.error(error)
-
-    def stop_default(self):
-
-        window('emby_online', clear=True)
-        Emby().close()
-
-        if self.library_thread is not None:
-
-            self.library_thread.stop_client()
-            self.library_thread = None
 
     def check_version(self):
 
@@ -203,7 +205,7 @@ class Service(xbmc.Monitor):
                               'EmbyConnect', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddServer',
                               'Unauthorized', 'UpdateServer', 'UserConfigurationUpdated', 'ServerRestarting',
                               'RemoveServer', 'AddLibrarySelection', 'CheckUpdate', 'RemoveLibrarySelection', 'PatchMusic',
-                              'WebSocketRestarting', 'ResetUpdate', 'UserPolicyUpdated'):
+                              'WebSocketRestarting', 'ResetUpdate', 'UserPolicyUpdated', 'SetServerSSL'):
                 return
 
             data = json.loads(data)[0]
@@ -213,15 +215,15 @@ class Service(xbmc.Monitor):
 
             data = json.loads(data)
 
-        LOG.debug("[ onNotification/%s/%s ]", sender, method)
+        LOG.info("[ onNotification/%s/%s ]", sender, method)
         LOG.debug("[ %s: %s ] %s", sender, method, json.dumps(data, indent=4))
 
         if method == 'ServerOnline':
             if data.get('ServerId') is None:
 
                 window('emby_online.bool', True)
-                self.settings['auth_check'] = True
-                self.warn = True
+                self['auth_check'] = True
+                self['warn'] = True
 
                 if settings('connectMsg.bool'):
 
@@ -231,36 +233,26 @@ class Service(xbmc.Monitor):
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
 
-                if self.library_thread is None:
-                    self.library_thread = library.Library(self)
+                if self['library'] is None:
+                    self['library'] = library.Library(self)
 
         elif method in ('ServerUnreachable', 'ServerShuttingDown'):
 
-            if self.warn or data.get('ServerId'):
+            if self['warn'] or data.get('ServerId'):
 
-                self.warn = data.get('ServerId') is not None
+                self['warn'] = data.get('ServerId') is not None
                 dialog("notification", heading="{emby}", message=_(33146) if data.get('ServerId') is None else _(33149), icon=xbmcgui.NOTIFICATION_ERROR)
 
             if data.get('ServerId') is None:
-                self.stop_default()
-
-                if self.waitForAbort(20):
-                    return
-                
-                self.start_default()
+                StartDefaultServer(self, 20)
 
         elif method == 'Unauthorized':
             dialog("notification", heading="{emby}", message=_(33147) if data['ServerId'] is None else _(33148), icon=xbmcgui.NOTIFICATION_ERROR)
 
-            if data.get('ServerId') is None and self.settings['auth_check']:
+            if data.get('ServerId') is None and self['auth_check']:
 
-                self.settings['auth_check'] = False
-                self.stop_default()
-
-                if self.waitForAbort(5):
-                    return
-                
-                self.start_default()
+                self['auth_check'] = False
+                StartDefaultServer(self, 120)
 
         elif method == 'ServerRestarting':
             if data.get('ServerId'):
@@ -269,58 +261,53 @@ class Service(xbmc.Monitor):
             if settings('restartMsg.bool'):
                 dialog("notification", heading="{emby}", message=_(33006), icon="{emby}")
 
-            self.stop_default()
-
-            if self.waitForAbort(15):
-                return
-                
-            self.start_default()
+            StartDefaultServer(self, 20)
 
         elif method == 'ServerConnect':
-            self.connect.register(data['Id'])
+            self['connect'].register(data['Id'])
             xbmc.executebuiltin("Container.Refresh")
 
         elif method == 'EmbyConnect':
-            self.connect.setup_login_connect()
+            self['connect'].setup_login_connect()
 
         elif method == 'AddServer':
 
-            self.connect.setup_manual_server()
+            self['connect'].setup_manual_server()
             xbmc.executebuiltin("Container.Refresh")
 
         elif method == 'RemoveServer':
 
-            self.connect.remove_server(data['Id'])
+            self['connect'].remove_server(data['Id'])
             xbmc.executebuiltin("Container.Refresh")
 
         elif method == 'UpdateServer':
 
             dialog("ok", heading="{emby}", line1=_(33151))
-            self.connect.setup_manual_server()
+            self['connect'].setup_manual_server()
 
         elif method == 'UserDataChanged':
-            if not self.library_thread and data.get('ServerId') or not self.library_thread.started:
+            if not self['library'] and data.get('ServerId') or not self['library'].started:
                 return
 
             if data.get('UserId') != Emby()['auth/user-id']:
                 return
 
             LOG.info("[ UserDataChanged ] %s", data)
-            self.library_thread.userdata(data['UserDataList'])
+            self['library'].userdata(data['UserDataList'])
 
-        elif method == 'LibraryChanged' and self.library_thread.started:
-            if data.get('ServerId') or not self.library_thread.started:
+        elif method == 'LibraryChanged' and self['library'].started:
+            if data.get('ServerId') or not self['library'].started:
                 return
 
             LOG.info("[ LibraryChanged ] %s", data)
-            self.library_thread.updated(data['ItemsUpdated'] + data['ItemsAdded'])
-            self.library_thread.removed(data['ItemsRemoved'])
-            self.library_thread.delay_verify(data.get('ItemsVerify', []))
+            self['library'].updated(data['ItemsUpdated'] + data['ItemsAdded'])
+            self['library'].removed(data['ItemsRemoved'])
+            self['library'].delay_verify(data.get('ItemsVerify', []))
 
         elif method == 'WebSocketRestarting':
 
             try:
-                self.library_thread.get_fast_sync()
+                self['library'].get_fast_sync()
             except Exception as error:
                 LOG.error(error)
 
@@ -329,13 +316,13 @@ class Service(xbmc.Monitor):
             self.running = False
 
         elif method in ('SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection'):
-            self.library_thread.select_libraries(method)
+            self['library'].select_libraries(method)
 
         elif method == 'SyncLibrary':
             if not data.get('Id'):
                 return
 
-            self.library_thread.add_library(data['Id'], data.get('Update', False))
+            self['library'].add_library(data['Id'], data.get('Update', False))
 
         elif method == 'RepairLibrary':
             if not data.get('Id'):
@@ -344,54 +331,46 @@ class Service(xbmc.Monitor):
             libraries = data['Id'].split(',')
 
             for lib in libraries:
-                self.library_thread.remove_library(lib)
+                self['library'].remove_library(lib)
             
-            self.library_thread.add_library(data['Id'])
+            self['library'].add_library(data['Id'])
 
         elif method == 'RemoveLibrary':
             libraries = data['Id'].split(',')
 
             for lib in libraries:
-                self.library_thread.remove_library(lib)
+                self['library'].remove_library(lib)
 
         elif method == 'System.OnSleep':
             
             LOG.info("-->[ sleep ]")
             window('emby_should_stop.bool', True)
-
-            if self.library_thread is not None:
-
-                self.library_thread.stop_client()
-                self.library_thread = None
+            StartDefaultServer(self, close=True)
 
             Emby.close_all()
-            self.monitor.server = []
-            self.monitor.sleep = True
+            self['monitor'].server = []
+            self['monitor'].sleep = True
 
         elif method == 'System.OnWake':
 
-            if not self.monitor.sleep:
+            if not self['monitor'].sleep:
                 LOG.warn("System.OnSleep was never called, skip System.OnWake")
 
                 return
 
             LOG.info("--<[ sleep ]")
             xbmc.sleep(10000)# Allow network to wake up
-            self.monitor.sleep = False
+            self['monitor'].sleep = False
             window('emby_should_stop', clear=True)
-
-            try:
-                self.connect.register()
-            except Exception as error:
-                LOG.error(error)
+            StartDefaultServer(self, None)
 
         elif method == 'GUI.OnScreensaverDeactivated':
 
             LOG.info("--<[ screensaver ]")
             xbmc.sleep(5000)
 
-            if self.library_thread is not None:
-                self.library_thread.fast_sync()
+            if self['library'] is not None:
+                self['library'].fast_sync()
 
         elif method in ('UserConfigurationUpdated', 'UserPolicyUpdated'):
 
@@ -410,7 +389,10 @@ class Service(xbmc.Monitor):
             PATCH.reset()
 
         elif method == 'PatchMusic':
-            self.library_thread.run_library_task(method, data.get('Notification', True))
+            self['library'].run_library_task(method, data.get('Notification', True))
+
+        elif method == 'SetServerSSL':
+            self['connect'].set_ssl(data['Id'])
 
     def onSettingsChanged(self):
 
@@ -419,39 +401,39 @@ class Service(xbmc.Monitor):
         if window('emby_should_stop.bool'):
             return
 
-        if settings('logLevel') != self.settings['log_level']:
+        if settings('logLevel') != self['log_level']:
 
             log_level = settings('logLevel')
             window('emby_logLevel', str(log_level))
-            self.settings['logLevel'] = log_level
+            self['logLevel'] = log_level
             LOG.warn("New log level: %s", log_level)
 
-        if settings('enableContext.bool') != self.settings['enable_context']:
+        if settings('enableContext.bool') != self['enable_context']:
 
             window('emby_context', settings('enableContext'))
-            self.settings['enable_context'] = settings('enableContext.bool')
-            LOG.warn("New context setting: %s", self.settings['enable_context'])
+            self['enable_context'] = settings('enableContext.bool')
+            LOG.warn("New context setting: %s", self['enable_context'])
 
-        if settings('enableContextTranscode.bool') != self.settings['enable_context_transcode']:
+        if settings('enableContextTranscode.bool') != self['enable_context_transcode']:
 
             window('emby_context_transcode', settings('enableContextTranscode'))
-            self.settings['enable_context_transcode'] = settings('enableContextTranscode.bool')
-            LOG.warn("New context transcode setting: %s", self.settings['enable_context_transcode'])
+            self['enable_context_transcode'] = settings('enableContextTranscode.bool')
+            LOG.warn("New context transcode setting: %s", self['enable_context_transcode'])
 
-        if settings('useDirectPaths') != self.settings['mode'] and self.library_thread.started:
+        if settings('useDirectPaths') != self['mode'] and self['library'].started:
 
-            self.settings['mode'] = settings('useDirectPaths')
-            LOG.warn("New playback mode setting: %s", self.settings['mode'])
+            self['mode'] = settings('useDirectPaths')
+            LOG.warn("New playback mode setting: %s", self['mode'])
 
-            if not self.settings.get('mode_warn'):
+            if not self['mode_warn']:
 
-                self.settings['mode_warn'] = True
+                self['mode_warn'] = True
                 dialog("yesno", heading="{emby}", line1=_(33118))
 
-        if settings('kodiCompanion.bool') != self.settings['kodi_companion']:
-            self.settings['kodi_companion'] = settings('kodiCompanion.bool')
+        if settings('kodiCompanion.bool') != self['kodi_companion']:
+            self['kodi_companion'] = settings('kodiCompanion.bool')
 
-            if not self.settings['kodi_companion']:
+            if not self['kodi_companion']:
                 dialog("ok", heading="{emby}", line1=_(33138))
 
     def shutdown(self):
@@ -474,10 +456,45 @@ class Service(xbmc.Monitor):
         WEBSERVICE.stop()
         Emby.close_all()
 
-        if self.library_thread is not None:
-            self.library_thread.stop_client()
+        if self['library'] is not None:
+            self['library'].stop_client()
 
-        if self.monitor is not None:
-            self.monitor.listener.stop()
+        if self['monitor'] is not None:
+            self['monitor'].listener.stop()
 
         LOG.warn("---<<<[ %s ]", client.get_addon_name())
+
+
+class StartDefaultServer(threading.Thread):
+
+    def __init__(self, service, retry=None, close=False):
+
+        self.service = service
+        self.retry = retry
+        self.close = close
+        threading.Thread.__init__(self)
+        self.start()
+
+    def run(self):
+
+        if 'default' in Emby.client:
+
+            window('emby_online', clear=True)
+            Emby().close()
+
+            if self.service['library'] is not None:
+
+                self.service['library'].stop_client()
+                self.service['library'] = None
+
+            if self.close:
+                return
+
+        if self.retry and self.service['monitor'].waitForAbort(self.retry) or not self.service.running:
+            return
+        
+        try:
+            self.service['connect'].register()
+            setup.Setup()
+        except Exception as error:
+            LOG.debug(error) # we don't really care

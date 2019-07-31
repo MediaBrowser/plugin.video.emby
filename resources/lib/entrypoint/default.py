@@ -19,14 +19,15 @@ import xbmcaddon
 import client
 import objects
 import requests
+import downloader
 from emby import Emby
 from database import reset, get_sync, Database, emby_db, get_credentials
-from downloader import TheVoid
 from helper import _, event, settings, window, dialog, api, kodi_version, JSONRPC
 
 #################################################################################################
 
 LOG = logging.getLogger("EMBY."+__name__)
+EMBY = None
 
 #################################################################################################
 
@@ -185,9 +186,41 @@ class Events(object):
             event('PatchMusic', {'Notification': True})
         elif mode == 'changelog':
             changelog()
+        elif mode == 'setssl':
+            event('SetServerSSL', {'Id': server})
         else:
             listing()
 
+def get_server(server=None):
+
+    try:
+        global EMBY
+        EMBY = Emby(server).get_client()
+    except KeyError: # Server never loaded.
+        event('ServerConnect', {'Id': server})
+
+        monitor = xbmc.Monitor()
+        for i in range(300):
+
+            if server is None and window('emby_online.bool'):
+                Emby().set_state(window('emby.server.state.json'))
+
+                break
+
+            if server is not None and server in window('emby.server.states.json') or []:
+                Emby(server).set_state(window('emby.server.%s.state.json' % server))
+
+                break
+
+            if monitor.waitForAbort(0.1):
+                raise Exception('ShutDownRequested')
+        else:
+            LOG.error("Server %s is not online", server)
+
+            raise Exception('ServerOffline')
+
+        global EMBY
+        EMBY = Emby(server).get_client()
 
 def listing():
 
@@ -238,6 +271,7 @@ def listing():
         context = []
 
         if server.get('ManualAddress'):
+            context.append((_(30500), "RunPlugin(plugin://plugin.video.emby/?mode=setssl&server=%s)" % server['Id']))
             context.append((_(33141), "RunPlugin(plugin://plugin.video.emby/?mode=removeserver&server=%s)" % server['Id']))
 
         if 'AccessToken' not in server:
@@ -333,20 +367,7 @@ def browse(media, view_id=None, folder=None, server_id=None):
     ''' Browse content dynamically.
     '''
     LOG.info("--[ v:%s/%s ] %s", view_id, media, folder)
-
-    if not window('emby_online.bool') and server_id is None:
-
-        monitor = xbmc.Monitor()
-
-        for i in range(300):
-            if window('emby_online.bool'):
-                break
-            elif monitor.waitForAbort(0.1):
-                return
-        else:
-            LOG.error("Default server is not online.")
-
-            return
+    get_server(server_id)
 
     folder = folder.lower() if folder else None
 
@@ -358,7 +379,7 @@ def browse(media, view_id=None, folder=None, server_id=None):
 
     if view_id:
 
-        view = TheVoid('GetItem', {'ServerId': server_id, 'Id': view_id}).get()
+        view = EMBY['api'].get_item(view_id)
         xbmcplugin.setPluginCategory(int(sys.argv[1]), view['Name'])
 
     content_type = "files"
@@ -374,52 +395,50 @@ def browse(media, view_id=None, folder=None, server_id=None):
 
 
     if folder == 'recentlyadded':
-        listing = TheVoid('RecentlyAdded', {'Id': view_id, 'ServerId': server_id}).get()
+        listing = EMBY['api'].get_recently_added(None, view_id, None)
     elif folder == 'genres':
-        listing = TheVoid('Genres', {'Id': view_id, 'ServerId': server_id}).get()
+        listing = EMBY['api'].get_genres(view_id)
     elif media == 'livetv':
-        listing = TheVoid('LiveTV', {'Id': view_id, 'ServerId': server_id}).get()
+        listing = EMBY['api'].get_channels()
     elif folder == 'unwatched':
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Filters': ['IsUnplayed']}).get()
+        listing = downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsUnplayed'], None, server_id)
     elif folder == 'favorite':
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Filters': ['IsFavorite']}).get()
+        listing = downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsFavorite'], None, server_id)
     elif folder == 'inprogress':
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Filters': ['IsResumable']}).get()
+        listing = downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsResumable'], None, server_id)
     elif folder == 'boxsets':
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Media': get_media_type('boxsets'), 'Recursive': True}).get()
+        listing = downloader.get_filtered_section(view_id, get_media_type('boxsets'), None, True, None, None, None, None, server_id)
     elif folder == 'random':
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Media': get_media_type(content_type), 'Sort': "Random", 'Limit': 25, 'Recursive': True}).get()
+        listing = downloader.get_filtered_section(view_id, get_media_type(content_type), 25, True, "Random", None, None, None, server_id)
     elif (folder or "").startswith('firstletter-'):
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Media': get_media_type(content_type), 'Params': {'NameStartsWith': folder.split('-')[1]}}).get()
+        listing = downloader.get_filtered_section(view_id, get_media_type(content_type), None, None, None, None, None, {'NameStartsWith': folder.split('-')[1]}, server_id)
     elif (folder or "").startswith('genres-'):
-        listing = TheVoid('Browse', {'Id': view_id, 'ServerId': server_id, 'Media': get_media_type(content_type), 'Params': {'GenreIds': folder.split('-')[1]}}).get()
+        listing = downloader.get_filtered_section(view_id, get_media_type(content_type), None, None, None, None, None, {'GenreIds': folder.split('-')[1]}, server_id)
     elif folder == 'favepisodes':
-        listing = TheVoid('Browse', {'Media': get_media_type(content_type), 'ServerId': server_id, 'Limit': 25, 'Filters': ['IsFavorite']}).get()
+        listing = downloader.get_filtered_section(None, get_media_type(content_type), 25, None, None, None, ['IsFavorite'], None, server_id)
     elif media == 'homevideos':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'Media': get_media_type(content_type), 'ServerId': server_id, 'Recursive': False}).get()
+        listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, False, None, None, None, None, server_id)
     elif media == 'movies':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'Media': get_media_type(content_type), 'ServerId': server_id, 'Recursive': True}).get()
+        listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, True, None, None, None, None, server_id)
     elif media in ('boxset', 'library'):
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'ServerId': server_id, 'Recursive': True}).get()
+        listing = downloader.get_filtered_section(folder or view_id, None, None, True, None, None, None, None, server_id)
     elif media == 'episodes':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'Media': get_media_type(content_type), 'ServerId': server_id, 'Recursive': True}).get()
+        listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, True, None, None, None, None, server_id)
     elif media == 'boxsets':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'ServerId': server_id, 'Recursive': False, 'Filters': ["Boxsets"]}).get()
+        listing = downloader.get_filtered_section(folder or view_id, None, None, False, None, None, ['Boxsets'], None, server_id)
     elif media == 'tvshows':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'ServerId': server_id, 'Recursive': True, 'Media': get_media_type(content_type)}).get()
+        listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, True, None, None, None, None, server_id)
     elif media == 'seasons':
-        listing = TheVoid('BrowseSeason', {'Id': folder, 'ServerId': server_id}).get()
+        listing = EMBY['api'].get_seasons(folder)
     elif media != 'files':
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'ServerId': server_id, 'Recursive': False, 'Media': get_media_type(content_type)}).get()
+        listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, False, None, None, None, None, server_id)
     else:
-        listing = TheVoid('Browse', {'Id': folder or view_id, 'ServerId': server_id, 'Recursive': False}).get()
+        listing = downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, server_id)
 
 
     if listing:
 
-        server_address = TheVoid('GetServerAddress', {'ServerId': server_id}).get()
-
-        listitems = objects.ListItem(server_address)
+        listitems = objects.ListItem(EMBY['auth/server-address'])
         list_li = []
         listing = listing if type(listing) == list else listing.get('Items', [])
 
@@ -508,7 +527,8 @@ def browse_subfolders(media, view_id, server_id=None):
     '''
     from views import DYNNODES
 
-    view = TheVoid('GetItem', {'ServerId': server_id, 'Id': view_id}).get()
+    get_server(server_id)
+    view = EMBY['api'].get_item(view_id)
     xbmcplugin.setPluginCategory(int(sys.argv[1]), view['Name'])
     nodes = DYNNODES[media]
 
@@ -533,7 +553,8 @@ def browse_letters(media, view_id, server_id=None):
     '''
     letters = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    view = TheVoid('GetItem', {'ServerId': server_id, 'Id': view_id}).get()
+    get_server(server_id)
+    view = EMBY['api'].get_item(view_id)
     xbmcplugin.setPluginCategory(int(sys.argv[1]), view['Name'])
 
     for node in letters:
@@ -598,17 +619,17 @@ def get_fanart(item_id, path, server_id=None):
         return
 
     LOG.info("[ extra fanart ] %s", item_id)
+    get_server(server_id)
     objects = objects.Objects()
     list_li = []
     directory = xbmc.translatePath("special://thumbnails/emby/%s/" % item_id).decode('utf-8')
-    server = TheVoid('GetServerAddress', {'ServerId': server_id}).get()
 
     if not xbmcvfs.exists(directory):
 
         xbmcvfs.mkdirs(directory)
-        item = TheVoid('GetItem', {'ServerId': server_id, 'Id': item_id}).get()
+        item = EMBY['api'].get_item(item_id)
         obj = objects.map(item, 'Artwork')
-        backdrops = api.API(item, server).get_all_artwork(obj)
+        backdrops = api.API(item, EMBY['auth/server-address']).get_all_artwork(obj)
         tags = obj['BackdropTags']
 
         for index, backdrop in enumerate(backdrops):
@@ -641,7 +662,8 @@ def get_video_extras(item_id, path, server_id=None):
     if not item_id:
         return
 
-    item = TheVoid('GetItem', {'ServerId': server_id, 'Id': item_id}).get()
+    get_server(server_id)
+    item = EMBY['api'].get_item(item_id)
     # TODO
 
     """
@@ -836,9 +858,10 @@ def add_user(permanent=False):
     if not window('emby_online.bool'):
         return
 
-    session = TheVoid('GetSession', {}).get()
+    get_server()
+    session = EMBY['api'].get_device(EMBY['config/app.device_id'])
     hidden = None if settings('addUsersHidden.bool') else False
-    users = TheVoid('GetUsers', {'IsDisabled': False, 'IsHidden': hidden}).get()
+    users = EMBY['api'].get_users(False, hidden)
 
     for user in users:
 
@@ -849,7 +872,7 @@ def add_user(permanent=False):
 
     while True:
 
-        session = TheVoid('GetSession', {}).get()
+        session = EMBY['api'].get_device(EMBY['config/app.device_id'])
         additional = current = session[0]['AdditionalUsers']
         add_session = True
 
@@ -939,20 +962,20 @@ def get_themes():
         all_views = emby_db.EmbyDatabase(embydb.cursor).get_views()
         views = [x[0] for x in all_views if x[2] in ('movies', 'tvshows', 'mixed')]
 
-
+    get_server()
     items = {}
-    server = TheVoid('GetServerAddress', {'ServerId': None}).get()
-    token = TheVoid('GetToken', {'ServerId': None}).get()
+    server = EMBY['auth/server-address']
+    token = EMBY['auth/token']
 
     for view in views:
-        result = TheVoid('GetThemes', {'Type': "Video", 'Id': view}).get()
+        result = EMBY['api'].get_items_theme_video(view)
 
         for item in result['Items']:
 
             folder = normalize_string(item['Name'].encode('utf-8'))
             items[item['Id']] = folder
 
-        result = TheVoid('GetThemes', {'Type': "Song", 'Id': view}).get()
+        result = EMBY['api'].get_items_theme_song(view)
 
         for item in result['Items']:
 
@@ -967,7 +990,7 @@ def get_themes():
         if not xbmcvfs.exists(nfo_path):
             xbmcvfs.mkdir(nfo_path)
 
-        themes = TheVoid('GetTheme', {'Id': item}).get()
+        themes = EMBY['api'].get_themes(item)
         paths = []
 
         for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:

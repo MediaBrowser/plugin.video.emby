@@ -27,6 +27,7 @@ XML_PATH = (xbmcaddon.Addon(addon_id()).getAddonInfo('path'), "default", "1080i"
 
 
 class Connect(object):
+    pending = []
 
     def __init__(self):
         self.info = client.get_info()
@@ -37,6 +38,13 @@ class Connect(object):
             If a server id is specified then only a login dialog will be shown for that server.
         '''
         LOG.info("--[ server/%s ]", server_id or 'default')
+
+        if (server_id or 'default') in self.pending:
+            LOG.info("[ server/%s ] is already being registered", server_id or 'default')
+
+            return
+
+        self.pending.append(server_id or 'default')
         credentials = dict(get_credentials())
         servers = credentials['Servers']
 
@@ -69,6 +77,8 @@ class Connect(object):
         except ValueError as error:
             LOG.error(error)
 
+        self.pending.remove(server_id or 'default')
+
     def get_ssl(self):
 
         ''' Returns boolean value.
@@ -76,20 +86,20 @@ class Connect(object):
         '''
         return settings('sslverify.bool')
 
-    def get_client(self, server_id=None):
+    def get_client(self, server, server_id=None):
 
         ''' Get Emby client.
         '''
         client = Emby(server_id)
         client['config/app']("Kodi", self.info['Version'], self.info['DeviceName'], self.info['DeviceId'])
         client['config']['http.user_agent'] = "Emby-Kodi/%s" % self.info['Version']
-        client['config']['auth.ssl'] = self.get_ssl()
+        client['config']['auth.ssl'] = server.get('verify', self.get_ssl())
 
         return client
 
     def register_client(self, credentials=None, options=None, server_id=None, server_selection=False):
         
-        client = self.get_client(server_id)
+        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {}, server_id)
         self.client = client
         self.connect_manager = client.auth
 
@@ -195,8 +205,9 @@ class Connect(object):
 
         ''' Setup manual servers
         '''
-        client = self.get_client()
-        client.set_credentials(get_credentials())
+        credentials = get_credentials()
+        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
+        client.set_credentials(credentials)
         manager = client.auth
 
         try:
@@ -225,8 +236,9 @@ class Connect(object):
 
         ''' Setup emby connect by itself.
         '''
-        client = self.get_client()
-        client.set_credentials(get_credentials())
+        credentials = get_credentials()
+        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
+        client.set_credentials(credentials)
         manager = client.auth
 
         try:
@@ -290,8 +302,9 @@ class Connect(object):
 
         ''' Setup manual login by itself for default server.
         '''
-        client = self.get_client()
-        client.set_credentials(get_credentials())
+        credentials = get_credentials()
+        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
+        client.set_credentials(credentials)
         manager = client.auth
 
         try:
@@ -330,4 +343,21 @@ class Connect(object):
 
         save_credentials(credentials)
         LOG.info("[ remove server ] %s", server_id)
+
+    def set_ssl(self, server_id):
+
+        ''' Allow user to setup ssl verification for additional servers.
+        '''
+        value = dialog("yesno", heading="{emby}", line1=_(33217))
+        LOG.info(type(value))
+        credentials = get_credentials()
+
+        for server in credentials['Servers']:
+            if server['Id'] == server_id:
+                server['verify'] = bool(value)
+
+                break
+
+        save_credentials(credentials)
+        LOG.info("[ ssl/%s/%s ]", server_id, server['verify'])
 
