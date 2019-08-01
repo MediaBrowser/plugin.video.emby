@@ -311,12 +311,16 @@ def initialize():
                 plexdb.cursor.execute(cmd)
 
 
-def wipe():
+def wipe(table=None):
     """
-    Completely resets the Plex database
+    Completely resets the Plex database.
+    If a table [unicode] name is provided, only that table will be dropped
     """
     with PlexDBBase() as plexdb:
-        plexdb.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-        tables = [i[0] for i in plexdb.cursor.fetchall()]
+        if table:
+            tables = [table]
+        else:
+            plexdb.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+            tables = [i[0] for i in plexdb.cursor.fetchall()]
         for table in tables:
             plexdb.cursor.execute('DROP table IF EXISTS %s' % table)
