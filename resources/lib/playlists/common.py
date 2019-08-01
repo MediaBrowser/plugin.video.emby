@@ -105,7 +105,7 @@ class Playlist(object):
             raise RuntimeError('Path not in unicode: %s' % path)
         f = path_ops.path.basename(path)
         try:
-            self.kodi_filename, self.kodi_extension = f.split('.', 1)
+            self.kodi_filename, self.kodi_extension = f.rsplit('.', 1)
         except ValueError:
             LOG.error('Trying to set invalid path: %s', path)
             raise PlaylistError('Invalid path: %s' % path)
