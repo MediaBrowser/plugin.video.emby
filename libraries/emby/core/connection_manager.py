@@ -126,7 +126,7 @@ class ConnectionManager(object):
         self.config['auth.token'] = None
 
     def get_available_servers(self):
-        LOG.info("Begin getAvailableServers")
+        LOG.debug("Begin getAvailableServers")
 
         # Clone the credentials
         credentials = self.credentials.get_credentials()
@@ -247,8 +247,8 @@ class ConnectionManager(object):
             return server
 
     def connect_to_server(self, server, options={}):
+        LOG.debug("Begin connectToServer")
 
-        LOG.info("begin connectToServer")
         tests = []
 
         if server.get('LastConnectionMode') != CONNECTION_MODE['Remote'] and server.get('AccessToken'):
@@ -262,8 +262,6 @@ class ConnectionManager(object):
             tests.append(CONNECTION_MODE['Remote'])
 
         # TODO: begin to wake server
-        LOG.info("beginning connection tests")
-
         return self._test_next_connection_mode(tests, 0, server, options)
 
     def connect(self, options={}):
@@ -538,8 +536,7 @@ class ConnectionManager(object):
                 return servers
 
     def _get_connect_servers(self, credentials):
-
-        LOG.info("Begin getConnectServers")
+        LOG.debug("Begin getConnectServers")
         
         servers = list()
 

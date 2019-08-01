@@ -12,7 +12,7 @@ import xbmcaddon
 import database
 from dialogs import context
 from helper import _, settings, dialog, kodi_version, event
-from downloader import TheVoid
+from emby import Emby
 
 #################################################################################################
 
@@ -36,14 +36,14 @@ class Context(object):
 
     def __init__(self, play=False, transcode=False, delete=False):
 
-        self.server = None
+        self.server_id = None
         self.kodi_id = None
         self.media = None
 
         try:
             self.kodi_id = max(sys.listitem.getVideoInfoTag().getDbId(), 0) or max(sys.listitem.getMusicInfoTag().getDbId(), 0) or None
             self.media = self.get_media_type()
-            self.server = sys.listitem.getProperty('embyserver') or None
+            self.server_id = sys.listitem.getProperty('embyserver') or None
             item_id = sys.listitem.getProperty('embyid')
         except AttributeError:
 
@@ -54,8 +54,10 @@ class Context(object):
                 self.media = xbmc.getInfoLabel('ListItem.DBTYPE')
                 item_id = None
 
-        if self.server or item_id:
-            self.item = TheVoid('GetItem', {'ServerId': self.server, 'Id': item_id}).get()
+        self.server = Emby(self.server_id).get_client()
+
+        if item_id:
+            self.item = self.server['api'].get_item(item_id)
         else:
             self.item = self.get_item_id()
 
@@ -141,13 +143,13 @@ class Context(object):
         selected = self._selected_option.decode('utf-8')
 
         if selected == OPTIONS['Refresh']:
-            TheVoid('RefreshItem', {'ServerId': self.server, 'Id': self.item['Id']})
+            self.server['api'].refresh_item(self.item['Id'])
 
         elif selected == OPTIONS['AddFav']:
-            TheVoid('FavoriteItem', {'ServerId': self.server, 'Id': self.item['Id'], 'Favorite': True})
+            self.server['api'].favorite(self.item['Id'], True)
 
         elif selected == OPTIONS['RemoveFav']:
-            TheVoid('FavoriteItem', {'ServerId': self.server, 'Id': self.item['Id'], 'Favorite': False})
+            self.server['api'].favorite(self.item['Id'], False)
 
         elif selected == OPTIONS['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby)')
@@ -156,7 +158,6 @@ class Context(object):
             self.delete_item()
 
     def delete_item(self):
-
         delete = True
 
         if not settings('skipContextMenu.bool'):
@@ -165,7 +166,8 @@ class Context(object):
                 delete = False
 
         if delete:
-            TheVoid('DeleteItem', {'ServerId': self.server, 'Id': self.item['Id']})
+
+            self.server['api'].delete_item(self.item['Id'])
             event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
     def play(self, transcode=False):

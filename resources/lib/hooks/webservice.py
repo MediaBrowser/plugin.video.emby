@@ -14,6 +14,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 
+from emby import Emby
 from helper import settings, window, dialog, JSONRPC
 
 #################################################################################################
@@ -180,6 +181,16 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
 
+            elif '/Audio' in self.path:
+                params = self.get_params()
+
+                self.send_response(301)
+                path = Redirect(self.path, params.get('server'))
+                path.start()
+                path.join() # Block until the thread exits.
+                self.send_header('Location', path.path)
+                self.end_headers()
+
             elif 'file.strm' not in self.path:
                 self.images()
             elif 'file.strm' in self.path:
@@ -208,7 +219,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if 'kodi/movies' in self.path:
             params['MediaType'] = "movie"
         elif 'kodi/musicvideos' in self.path:
-            params['MediaType'] = 'musicvideo'
+            params['MediaType'] = "musicvideo"
         elif 'kodi/tvshows' in self.path:
             params['MediaType'] = "episode"
 
@@ -419,3 +430,18 @@ class QueuePlay(threading.Thread):
         self.server.threads.remove(self)
         self.server.pending = []
         LOG.info("--<[ queue play ]")
+
+
+class Redirect(threading.Thread):
+    path = None
+
+    def __init__(self, redirect, server_id=None):
+
+        self.redirect = redirect
+        self.server = Emby(server_id).get_client()
+        threading.Thread.__init__(self)
+
+    def run(self):
+
+        self.path = "%s%s?api_key=%s" % (self.server['auth/server-address'], self.redirect, self.server['auth/token'])
+        LOG.info("path: %s", self.path)

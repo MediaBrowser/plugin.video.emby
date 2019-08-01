@@ -12,7 +12,6 @@ import sys
 import xbmc
 import xbmcgui
 
-import connect
 import database
 import downloader
 import objects
@@ -57,7 +56,7 @@ class Monitor(xbmc.Monitor):
             if method != 'LoadServer' and data['ServerId'] not in self.servers:
 
                 try:
-                    connect.Connect().register(data['ServerId'])
+                    self.service['connect'].register(data['ServerId'])
                     self.server_instance(data['ServerId'])
                 except Exception as error:
 
@@ -95,12 +94,7 @@ class Monitor(xbmc.Monitor):
         LOG.info("--<[ kodi scan/%s ]", library)
 
     def get_plugin_video_emby_method(self):
-        return ('GetItem', 'ReportProgressRequested', 'LoadServer', 'RandomItems', 'Recommended',
-                'GetServerAddress', 'GetPlaybackInfo', 'Browse', 'GetImages', 'GetToken',
-                'PlayPlaylist', 'Play', 'GetIntros', 'GetAdditionalParts', 'RefreshItem', 'Genres',
-                'FavoriteItem', 'DeleteItem', 'AddUser', 'GetSession', 'GetUsers', 'GetThemes',
-                'GetTheme', 'Playstate', 'GeneralCommand', 'GetTranscodeOptions', 'RecentlyAdded',
-                'BrowseSeason', 'LiveTV', 'GetLiveStream', 'StopServer')
+        return ('ReportProgressRequested', 'LoadServer', 'PlayPlaylist', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer')
 
     def get_xbmc_method(self):
 
@@ -157,11 +151,6 @@ class Monitor(xbmc.Monitor):
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
         self.add_worker()
-
-    def void_responder(self, data, result):
-
-        window('emby_%s.json' % data['VoidName'], result)
-        LOG.debug("--->[ nostromo/emby_%s.json ] sent", data['VoidName'])
 
     def server_instance(self, server_id=None):
 
@@ -229,116 +218,6 @@ class Monitor(xbmc.Monitor):
             image = api.API(info, server['config/auth.server']).get_user_artwork(user['UserId'])
             window('EmbyAdditionalUserImage.%s' % index, image)
             window('EmbyAdditionalUserPosition.%s' % user['UserId'], str(index))
-
-    def GetItem(self, server, data, *args, **kwargs):
-
-        item = server['api'].get_item(data['Id'])
-        self.void_responder(data, item)
-
-    def GetAdditionalParts(self, server, data, *args, **kwargs):
-
-        item = server['api'].get_additional_parts(data['Id'])
-        self.void_responder(data, item)
-
-    def GetIntros(self, server, data, *args, **kwargs):
-
-        item = server['api'].get_intros(data['Id'])
-        self.void_responder(data, item)
-
-    def GetImages(self, server, data, *args, **kwargs):
-
-        item = server['api'].get_images(data['Id'])
-        self.void_responder(data, item)
-
-    def GetServerAddress(self, server, data, *args, **kwargs):
-
-        server_address = server['auth/server-address']
-        self.void_responder(data, server_address)
-
-    def GetPlaybackInfo(self, server, data, *args, **kwargs):
-        
-        sources = server['api'].get_play_info(data['Id'], data['Profile'])
-        self.void_responder(data, sources)
-
-    def GetLiveStream(self, server, data, *args, **kwargs):
-
-        sources = server['api'].get_live_stream(data['Id'], data['PlaySessionId'], data['Token'], data['Profile'])
-        self.void_responder(data, sources)
-
-    def GetToken(self, server, data, *args, **kwargs):
-
-        token = server['auth/token']
-        self.void_responder(data, token)
-
-    def GetSession(self, server, data, *args, **kwargs):
-
-        session = server['api'].get_device(self.device_id)
-        self.void_responder(data, session)
-
-    def GetUsers(self, server, data, *args, **kwargs):
-
-        users = server['api'].get_users(data.get('IsDisabled', False), data.get('IsHidden'))
-        self.void_responder(data, users)
-
-    def GetTranscodeOptions(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_transcode_settings()
-        self.void_responder(data, result)
-
-    def GetThemes(self, server, data, *args, **kwargs):
-
-        if data['Type'] == 'Video':
-            theme = server['api'].get_items_theme_video(data['Id'])
-        else:
-            theme = server['api'].get_items_theme_song(data['Id'])
-
-        self.void_responder(data, theme)
-
-    def GetTheme(self, server, data, *args, **kwargs):
-
-        theme = server['api'].get_themes(data['Id'])
-        self.void_responder(data, theme)
-
-    def Browse(self, server, data, *args, **kwargs):
-
-        result = downloader.get_filtered_section(data.get('Id'), data.get('Media'), data.get('Limit'),
-                                                 data.get('Recursive'), data.get('Sort'), data.get('SortOrder'),
-                                                 data.get('Filters'), data.get('Params'), data.get('ServerId'))
-        self.void_responder(data, result)
-
-    def BrowseSeason(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_seasons(data['Id'])
-        self.void_responder(data, result)
-
-    def LiveTV(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_channels()
-        self.void_responder(data, result)
-
-    def RecentlyAdded(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_recently_added(data.get('Media'), data.get('Id'), data.get('Limit'))
-        self.void_responder(data, result)
-
-    def Genres(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_genres(data.get('Id'))
-        self.void_responder(data, result)
-
-    def Recommended(self, server, data, *args, **kwargs):
-
-        result = server['api'].get_recommendation(data.get('Id'), data.get('Limit'))
-        self.void_responder(data, result)
-
-    def RefreshItem(self, server, data, *args, **kwargs):
-        server['api'].refresh_item(data['Id'])
-
-    def FavoriteItem(self, server, data, *args, **kwargs):
-        server['api'].favorite(data['Id'], data['Favorite'])
-
-    def DeleteItem(self, server, data, *args, **kwargs):
-        server['api'].delete_item(data['Id'])
 
     def PlayPlaylist(self, server, data, *args, **kwargs):
         server['api'].post_session(server['config/app.session'], "Playing", {
@@ -461,11 +340,6 @@ class Monitor(xbmc.Monitor):
             current = window('emby.server.states.json')
             current.pop(current.index(data['ServerId']))
             window('emby.server.states.json', current)
-
-    def AddUser(self, server, data, *args, **kwargs):
-
-        server['api'].session_add_user(server['config/app.session'], data['Id'], data['Add'])
-        self.additional_users(server)
 
     def Player_OnAVChange(self, *args, **kwargs):
 

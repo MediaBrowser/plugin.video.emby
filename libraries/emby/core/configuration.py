@@ -50,7 +50,7 @@ class Config(object):
         return self.data.get(key, self.__shortcuts__(key))
 
     def app(self, name, version, device_name, device_id, capabilities=None, device_pixel_ratio=None):
-        LOG.info("Begin app constructor")
+        LOG.debug("Begin app constructor")
 
         self.data['app.name'] = name
         self.data['app.version'] = version
@@ -61,7 +61,7 @@ class Config(object):
         self.data['app.default'] = False
 
     def auth(self, server, user_id, token=None, ssl=None):
-        LOG.info("Begin auth constructor")
+        LOG.debug("Begin auth constructor")
 
         self.data['auth.server'] = server
         self.data['auth.user_id'] = user_id
@@ -69,7 +69,7 @@ class Config(object):
         self.data['auth.ssl'] = ssl
 
     def http(self, user_agent=None, max_retries=DEFAULT_HTTP_MAX_RETRIES, timeout=DEFAULT_HTTP_TIMEOUT):
-        LOG.info("Begin http constructor")
+        LOG.debug("Begin http constructor")
 
         self.data['http.max_retries'] = max_retries
         self.data['http.timeout'] = timeout

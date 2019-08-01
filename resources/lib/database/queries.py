@@ -76,7 +76,7 @@ get_views_by_media =    """ SELECT  *
                             FROM    view 
                             WHERE   media_type = ? 
                         """
-get_items_by_media =    """ SELECT  emby_id 
+get_items_by_media =    """ SELECT  emby_id, checksum  
                             FROM    emby 
                             WHERE   media_type = ?
                         """

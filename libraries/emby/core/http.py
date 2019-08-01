@@ -182,8 +182,14 @@ class HTTP(object):
 
         self._get_header(data)
         data['timeout'] = data.get('timeout') or self.config['http.timeout']
-        data['verify'] = data.get('verify') or self.config['auth.ssl'] or False
         data['url'] = self._replace_user_info(data['url'])
+
+        if data.get('verify') is None:
+            if self.config['auth.ssl'] is None:
+                data['verify'] = data['url'].startswith('https')
+            else:
+                data['verify'] = self.config['auth.ssl']
+
         self._process_params(data.get('params') or {})
         self._process_params(data.get('json') or {})
 

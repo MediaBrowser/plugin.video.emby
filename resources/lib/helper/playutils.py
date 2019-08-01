@@ -700,7 +700,7 @@ class PlayUtils(object):
         full_path = self.info['Path']
         stream = {
             'AudioStream': max((self.info['AudioStreamIndex'] or -1) - 1, -1),
-            'SubtitlesOn': int(self.info['SubtitleStreamIndex'] != -1 and self.info['SubtitleStreamIndex'] is not None)
+            'SubtitlesOn': int(self.info['SubtitleStreamIndex'] is not None and self.info['SubtitleStreamIndex'] != -1)
         }
         if stream['SubtitlesOn']:
             if mapping:
@@ -763,3 +763,5 @@ class PlayUtils(object):
                 streams_before_subs += 1
             elif stream['Type'] == 'Subtitle':
                 return streams_before_subs
+
+        return streams_before_subs

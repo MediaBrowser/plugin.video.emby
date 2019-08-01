@@ -2,6 +2,7 @@
 
 ##################################################################################################
 
+import json
 import logging
 import Queue
 import threading
@@ -11,12 +12,12 @@ from datetime import datetime, timedelta
 import xbmc
 import xbmcgui
 
+import downloader as server
 from objects import Movies, TVShows, MusicVideos, Music
 from objects.kodi import Movies as kMovies, TVShows as kTVShows, MusicVideos as kMusicVideos, Music as kMusic, Kodi
 from database import Database, emby_db, get_sync, save_sync
 from sync import Sync
 from views import Views
-from downloader import GetItemWorker
 from helper import _, api, stop, settings, window, dialog, event, progress, compare_version, LibraryException
 from helper.utils import split_list, set_screensaver, get_screensaver
 from emby import Emby
@@ -312,7 +313,7 @@ class Library(threading.Thread):
         for queue in ((self.updated_queue, self.updated_output), (self.userdata_queue, self.userdata_output)):
             if queue[0].qsize() and len(self.download_threads) < DTHREADS:
                 
-                new_thread = GetItemWorker(self.server, queue[0], queue[1])
+                new_thread = server.GetItemWorker(self.server, queue[0], queue[1])
                 LOG.info("-->[ q:download/%s ]", id(new_thread))
                 self.download_threads.append(new_thread)
 
@@ -570,6 +571,19 @@ class Library(threading.Thread):
 
                 if query['Type'] in self.userdata_output:
                     self.userdata_output[query['Type']].put(query)
+
+        # temp fix for boxsets
+        boxsets = {}
+        with Database('emby') as embydb:
+            boxsets = dict(emby_db.EmbyDatabase(embydb.cursor).get_items_by_media('set') or {})
+
+        for items in server.get_items(None, "BoxSet"):
+            for boxset in items['Items']:
+
+                if boxset['Id'] in boxsets and boxset['Etag'] == boxsets[boxset['Id']]:
+                    continue
+
+                self.updated_output['BoxSet'].put(boxset)
 
         if plugin:
             try:

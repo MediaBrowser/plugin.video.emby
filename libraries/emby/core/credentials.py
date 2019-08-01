@@ -22,7 +22,7 @@ class Credentials(object):
         LOG.debug("Credentials initializing...")
 
     def set_credentials(self, credentials):
-        self.credentials = credentials
+        self.credentials = dict(credentials)
 
     def get_credentials(self, data=None):
 

@@ -1041,3 +1041,7 @@ msgstr ""
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
 msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
