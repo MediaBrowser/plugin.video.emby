@@ -101,8 +101,6 @@ class Playlist(object):
 
     @kodi_path.setter
     def kodi_path(self, path):
-        if not isinstance(path, unicode):
-            raise RuntimeError('Path not in unicode: %s' % path)
         f = path_ops.path.basename(path)
         try:
             self.kodi_filename, self.kodi_extension = f.split('.', 1)
