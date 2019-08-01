@@ -14,7 +14,8 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from .common import Playlist, PlaylistError, PlaylistObserver
+from .common import Playlist, PlaylistError, PlaylistObserver, \
+    kodi_playlist_hash
 from . import pms, db, kodi_pl, plex_pl
 
 from ..watchdog import events
@@ -221,7 +222,7 @@ def _full_sync():
                 pass
             if not sync_kodi_playlist(path):
                 continue
-            kodi_hash = utils.generate_file_md5(path)
+            kodi_hash = kodi_playlist_hash(path)
             playlist = db.get_playlist(path=path)
             if playlist and playlist.kodi_hash == kodi_hash:
                 continue
@@ -387,7 +388,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
     def on_created(self, event):
         LOG.debug('on_created: %s', event.src_path)
         old_playlist = db.get_playlist(path=event.src_path)
-        kodi_hash = utils.generate_file_md5(event.src_path)
+        kodi_hash = kodi_playlist_hash(event.src_path)
         if old_playlist and old_playlist.kodi_hash == kodi_hash:
             LOG.debug('Playlist already in DB - skipping')
             return
@@ -406,7 +407,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
     def on_modified(self, event):
         LOG.debug('on_modified: %s', event.src_path)
         old_playlist = db.get_playlist(path=event.src_path)
-        kodi_hash = utils.generate_file_md5(event.src_path)
+        kodi_hash = kodi_playlist_hash(event.src_path)
         if old_playlist and old_playlist.kodi_hash == kodi_hash:
             LOG.debug('Nothing modified, playlist already in DB - skipping')
             return
@@ -425,7 +426,7 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
 
     def on_moved(self, event):
         LOG.debug('on_moved: %s to %s', event.src_path, event.dest_path)
-        kodi_hash = utils.generate_file_md5(event.dest_path)
+        kodi_hash = kodi_playlist_hash(event.dest_path)
         # First check whether we don't already have destination playlist in
         # our DB. Just in case....
         old_playlist = db.get_playlist(path=event.dest_path)

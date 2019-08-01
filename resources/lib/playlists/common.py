@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import Queue
 import time
+import os
+import hashlib
 
 from ..watchdog import events
 from ..watchdog.observers import Observer
@@ -119,6 +121,22 @@ class Playlist(object):
         if not self.plex_name:
             self.plex_name = self.kodi_filename
         self._kodi_path = path
+
+
+def kodi_playlist_hash(path):
+    """
+    Returns a md5 hash [unicode] using os.stat() st_size and st_mtime for the
+    playlist located at path [unicode]
+    (size of file in bytes and time of most recent content modification)
+
+    There are probably way more efficient ways out there to do this
+    """
+    stat = os.stat(path_ops.encode_path(path))
+    # stat.st_size is of type long; stat.st_mtime is of type float - hash both
+    m = hashlib.md5()
+    m.update(repr(stat.st_size))
+    m.update(repr(stat.st_mtime))
+    return m.hexdigest().decode('utf-8')
 
 
 class PlaylistQueue(OrderedSetQueue):
