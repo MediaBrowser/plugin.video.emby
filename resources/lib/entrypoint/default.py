@@ -994,7 +994,7 @@ def get_themes():
         paths = []
 
         for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:
-            putils = PlayUtils(theme, False, None, server, token)
+            putils = PlayUtils(theme, False, EMBY)
 
             if play:
                 paths.append(putils.direct_play(theme['MediaSources'][0]))
