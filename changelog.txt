@@ -3,6 +3,7 @@ version 2.9.2 (beta only):
 - Faster sync of playlists
 - Sync playlists immediately after synching new/changed items and show an info dialog
 - Fix potential playlist sync issues if there is a dot in the playlist name
+- Correctly detect whether we already synched a Kodi playlist
 - Remove obsolete check if path is indeed in unicode
 - Add unicode representation to Playlist() class
 - Separate function to wipe all synched Plex playlists
