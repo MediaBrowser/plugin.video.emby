@@ -192,9 +192,9 @@ class Events(object):
             listing()
 
 def get_server(server=None):
+    global EMBY
 
     try:
-        global EMBY
         EMBY = Emby(server).get_client()
     except KeyError: # Server never loaded.
         event('ServerConnect', {'Id': server})
@@ -219,7 +219,6 @@ def get_server(server=None):
 
             raise Exception('ServerOffline')
 
-        global EMBY
         EMBY = Emby(server).get_client()
 
 def listing():

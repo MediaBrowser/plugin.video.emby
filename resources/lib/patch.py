@@ -11,8 +11,12 @@ import xbmc
 import xbmcvfs
 import xbmcaddon
 
+try:
+    import objects
+except ImportError:
+    objects = None
+
 import client
-import objects
 import requests
 from helper.utils import delete_folder, delete_pyo, copytree
 from helper import _, settings, dialog, find, compare_version, unzip
@@ -120,7 +124,13 @@ class Patch(object):
         ''' Check for objects build version and compare.
             This pulls a dict that contains all the information for the build needed.
         '''
-        LOG.warn("--[ check updates/%s ]", objects.version)
+        if not objects:
+            forced = True
+            current_version = None
+        else:
+            current_version = objects.version
+
+        LOG.warn("--[ check updates/%s ]", current_version)
         
         if settings('devMode.bool'):
             kodi = "DEV"
@@ -157,10 +167,10 @@ class Patch(object):
 
                     return False
 
-            elif label == objects.version:
+            elif label == current_version:
 
-                LOG.warn("--<[ objects/%s ]", objects.version)
-                settings('patchVersion', objects.version)
+                LOG.warn("--<[ objects/%s ]", current_version)
+                settings('patchVersion', current_version)
 
                 return False
 
