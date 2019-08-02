@@ -334,15 +334,27 @@ class FullSync(common.fullsync_mixin):
                     plexdb.update_section_last_sync(section.section_id,
                                                     self.current_sync)
         common.update_kodi_library(video=True, music=True)
+
+        # Sync Plex playlists to Kodi and vice-versa
+        if common.PLAYLIST_SYNC_ENABLED:
+            if self.show_dialog:
+                if self.dialog:
+                    self.dialog.close()
+                self.dialog = xbmcgui.DialogProgressBG()
+                # "Synching playlists"
+                self.dialog.create(utils.lang(39715))
+            if not playlists.full_sync():
+                return False
+
+        # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
+        # were set to unwatched). Also mark all items on the PMS to be able
+        # to delete the ones still in Kodi
+        LOG.info('Start synching playstate and userdata for every item')
         # In order to not delete all your songs again
         if app.SYNC.enable_music:
             kinds.extend([
                 (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, True),
             ])
-        # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
-        # were set to unwatched). Also mark all items on the PMS to be able
-        # to delete the ones still in Kodi
-        LOG.info('Start synching playstate and userdata for every item')
         # Make sure we're not showing an item's title in the sync dialog
         self.title = ''
         self.threader.shutdown()
@@ -428,13 +440,6 @@ class FullSync(common.fullsync_mixin):
             if self.isCanceled() or not self.full_library_sync():
                 self.successful = False
                 return
-            if common.PLAYLIST_SYNC_ENABLED:
-                if self.dialog:
-                    self.dialog.close()
-                    self.dialog = xbmcgui.DialogProgressBG()
-                    self.dialog.create(utils.lang(39715))
-                if not playlists.full_sync():
-                    self.successful = False
         finally:
             common.update_kodi_library(video=True, music=True)
             if self.dialog:
