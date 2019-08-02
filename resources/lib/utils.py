@@ -639,7 +639,6 @@ def compare_version(current, minimum):
 
     Input strings: e.g. "1.2.3"; always with Major, Minor and Patch!
     """
-    LOG.info("current DB: %s minimum DB: %s", current, minimum)
     try:
         curr_major, curr_minor, curr_patch = current.split(".")
     except ValueError:
