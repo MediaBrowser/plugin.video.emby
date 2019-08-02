@@ -539,6 +539,29 @@ def create_kodi_db_indicees():
     conn.close()
 
 
+def wipe_synched_playlists():
+    """
+    Deletes all synched playlist files on the Kodi side; resets the Plex table
+    listing all synched Plex playlists
+    """
+    from . import plex_db
+    try:
+        with plex_db.PlexDB() as plexdb:
+            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
+            playlist_paths = [x[0] for x in plexdb.cursor]
+    except OperationalError:
+        # Plex DB completely empty yet
+        playlist_paths = []
+    for path in playlist_paths:
+        try:
+            path_ops.remove(path)
+            LOG.info('Removed playlist %s', path)
+        except (OSError, IOError):
+            LOG.warn('Could not remove playlist %s', path)
+    # Now wipe our database
+    plex_db.wipe(table='playlists')
+
+
 def wipe_database(reboot=True):
     """
     Deletes all Plex playlists as well as video nodes, then clears Kodi as well
@@ -550,8 +573,8 @@ def wipe_database(reboot=True):
     from . import kodi_db, plex_db
     # Clean up the playlists and video nodes
     delete_files()
-    # First get the paths to all synced playlists
-    playlist_paths = []
+    # Wipe all synched playlists
+    wipe_synched_playlists()
     try:
         with plex_db.PlexDB() as plexdb:
             if plexdb.songs_have_been_synced():
@@ -560,22 +583,12 @@ def wipe_database(reboot=True):
             else:
                 LOG.info('No music has been synced in the past - not wiping')
                 music = False
-            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
-            for entry in plexdb.cursor:
-                playlist_paths.append(entry[0])
     except OperationalError:
         # Plex DB completely empty yet. Wipe existing Kodi music only if we
         # expect to sync Plex music
         music = settings('enableMusic') == 'true'
     kodi_db.wipe_dbs(music)
     plex_db.wipe()
-    # Delete all synced playlists
-    for path in playlist_paths:
-        try:
-            path_ops.remove(path)
-            LOG.debug('Removed playlist %s', path)
-        except (OSError, IOError):
-            LOG.warn('Could not remove playlist %s', path)
 
     LOG.info("Resetting all cached artwork.")
     # Remove all cached artwork
