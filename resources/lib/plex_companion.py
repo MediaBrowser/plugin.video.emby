@@ -167,7 +167,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                                   repeat=query.get('repeat'),
                                   offset=data.get('offset'),
                                   transient_token=data.get('token'),
-                                  key=key)
+                                  start_plex_id=key)
 
     @staticmethod
     def _process_streams(data):
