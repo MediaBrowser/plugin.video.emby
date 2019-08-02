@@ -17,7 +17,6 @@ import xml.etree.ElementTree as etree
 from . import defused_etree
 from xml.etree.ElementTree import ParseError
 from functools import wraps
-import hashlib
 import re
 import gc
 try:
@@ -942,23 +941,6 @@ class XmlKodiSetting(object):
             for key, attribute in attrib.iteritems():
                 element.set(key, attribute)
         return element
-
-
-def generate_file_md5(path):
-    """
-    Generates the md5 hash value for the file located at path [unicode].
-    The hash does not include the path and filename and is thus identical for
-    a file that was moved/changed name.
-    Returns a unique unicode containing only hexadecimal digits
-    """
-    m = hashlib.md5()
-    with open(path_ops.encode_path(path), 'rb') as f:
-        while True:
-            piece = f.read(32768)
-            if not piece:
-                break
-            m.update(piece)
-    return m.hexdigest().decode('utf-8')
 
 
 def process_method_on_list(method_to_run, items):

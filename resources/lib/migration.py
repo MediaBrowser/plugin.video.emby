@@ -57,4 +57,9 @@ def check_migration():
         sections.clear_window_vars()
         sections.delete_videonode_files()
 
+    if not utils.compare_version(last_migration, '2.9.3'):
+        LOG.info('Migrating to version 2.9.2')
+        # Re-sync all playlists to Kodi
+        utils.wipe_synched_playlists()
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)

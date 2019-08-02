@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import re
 
-from .common import Playlist, PlaylistError
+from .common import Playlist, PlaylistError, kodi_playlist_hash
 from . import db, pms
 
 from ..plex_api import API
@@ -71,7 +71,7 @@ def create(plex_id):
     except Exception:
         IGNORE_KODI_PLAYLIST_CHANGE.remove(playlist.kodi_path)
         raise
-    playlist.kodi_hash = utils.generate_file_md5(path)
+    playlist.kodi_hash = kodi_playlist_hash(path)
     db.update_playlist(playlist)
     LOG.debug('Created Kodi playlist based on Plex playlist: %s', playlist)
 
