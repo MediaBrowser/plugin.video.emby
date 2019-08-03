@@ -202,6 +202,7 @@ class Player(xbmc.Player):
         ''' Safe to replace in child class.
             Will be called when user stops playing a file.
         '''
+        window('emby.play.reset.bool', True)
         window('emby.sync.pause.bool', True)
         self.stop_playback()
         LOG.info("--<[ playback ]")
@@ -211,6 +212,7 @@ class Player(xbmc.Player):
         ''' Safe to replace in child class.
             Will be called when kodi stops playing a file.
         '''
+        window('emby.play.reset.bool', True)
         window('emby.sync.pause.bool', True)
         self.stop_playback()
         LOG.info("--<<[ playback ]")
@@ -237,6 +239,8 @@ class Player(xbmc.Player):
                 raise Exception('TimedOut')
 
             if window('emby.play.reset.bool'):
+
+                window('emby.play.reset', clear=True)
                 LOG.info("<[ reset play setup ]")
 
                 raise Exception('InternalStop')
@@ -560,5 +564,6 @@ class Player(xbmc.Player):
             except Exception as error:
                 LOG.error(error)
 
+        window('emby.play.reset', clear=True)
         window('emby.external_check', clear=True)
         window('emby.sync.pause', clear=True)
