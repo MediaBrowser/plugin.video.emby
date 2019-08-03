@@ -17,7 +17,6 @@ import xml.etree.ElementTree as etree
 from . import defused_etree
 from xml.etree.ElementTree import ParseError
 from functools import wraps
-import hashlib
 import re
 import gc
 try:
@@ -539,6 +538,29 @@ def create_kodi_db_indicees():
     conn.close()
 
 
+def wipe_synched_playlists():
+    """
+    Deletes all synched playlist files on the Kodi side; resets the Plex table
+    listing all synched Plex playlists
+    """
+    from . import plex_db
+    try:
+        with plex_db.PlexDB() as plexdb:
+            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
+            playlist_paths = [x[0] for x in plexdb.cursor]
+    except OperationalError:
+        # Plex DB completely empty yet
+        playlist_paths = []
+    for path in playlist_paths:
+        try:
+            path_ops.remove(path)
+            LOG.info('Removed playlist %s', path)
+        except (OSError, IOError):
+            LOG.warn('Could not remove playlist %s', path)
+    # Now wipe our database
+    plex_db.wipe(table='playlists')
+
+
 def wipe_database(reboot=True):
     """
     Deletes all Plex playlists as well as video nodes, then clears Kodi as well
@@ -550,8 +572,8 @@ def wipe_database(reboot=True):
     from . import kodi_db, plex_db
     # Clean up the playlists and video nodes
     delete_files()
-    # First get the paths to all synced playlists
-    playlist_paths = []
+    # Wipe all synched playlists
+    wipe_synched_playlists()
     try:
         with plex_db.PlexDB() as plexdb:
             if plexdb.songs_have_been_synced():
@@ -560,22 +582,12 @@ def wipe_database(reboot=True):
             else:
                 LOG.info('No music has been synced in the past - not wiping')
                 music = False
-            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
-            for entry in plexdb.cursor:
-                playlist_paths.append(entry[0])
     except OperationalError:
         # Plex DB completely empty yet. Wipe existing Kodi music only if we
         # expect to sync Plex music
         music = settings('enableMusic') == 'true'
     kodi_db.wipe_dbs(music)
     plex_db.wipe()
-    # Delete all synced playlists
-    for path in playlist_paths:
-        try:
-            path_ops.remove(path)
-            LOG.debug('Removed playlist %s', path)
-        except (OSError, IOError):
-            LOG.warn('Could not remove playlist %s', path)
 
     LOG.info("Resetting all cached artwork.")
     # Remove all cached artwork
@@ -639,7 +651,6 @@ def compare_version(current, minimum):
 
     Input strings: e.g. "1.2.3"; always with Major, Minor and Patch!
     """
-    LOG.info("current DB: %s minimum DB: %s", current, minimum)
     try:
         curr_major, curr_minor, curr_patch = current.split(".")
     except ValueError:
@@ -929,23 +940,6 @@ class XmlKodiSetting(object):
             for key, attribute in attrib.iteritems():
                 element.set(key, attribute)
         return element
-
-
-def generate_file_md5(path):
-    """
-    Generates the md5 hash value for the file located at path [unicode].
-    The hash does not include the path and filename and is thus identical for
-    a file that was moved/changed name.
-    Returns a unique unicode containing only hexadecimal digits
-    """
-    m = hashlib.md5()
-    with open(path_ops.encode_path(path), 'rb') as f:
-        while True:
-            piece = f.read(32768)
-            if not piece:
-                break
-            m.update(piece)
-    return m.hexdigest().decode('utf-8')
 
 
 def process_method_on_list(method_to_run, items):
