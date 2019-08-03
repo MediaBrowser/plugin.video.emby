@@ -1,3 +1,6 @@
+version 2.9.3:
+- version 2.9.2 for everyone
+
 version 2.9.2 (beta only):
 - Fix Plex Companion casting from iOS and Android
 - Faster sync of playlists
