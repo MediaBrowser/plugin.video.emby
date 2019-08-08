@@ -487,6 +487,8 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     need to fetch a new playqueue
 
     If an xml is passed in, the playlist will be overwritten with its info
+
+    Raises PlaylistError if something went wront
     """
     if xml is None:
         xml = get_PMS_playlist(playlist, playlist_id)
@@ -523,6 +525,8 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
         xml = DU().downloadUrl(url="{server}/%ss" % playlist.kind,
                                action_type="POST",
                                parameters=params)
+        if xml in (None, 401):
+            raise PlaylistError('Did not receive a valid xml from the PMS')
         get_playlist_details_from_xml(playlist, xml)
         # Need to get the details for the playlist item
         item = playlist_item_from_xml(xml[0])
@@ -706,7 +710,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
     need to fetch a new playlist
 
-    Returns None if something went wrong
+    Raises PlaylistError if something went wrong
     """
     playlist_id = playlist_id if playlist_id else playlist.id
     if playlist.kind == 'playList':
@@ -716,7 +720,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     try:
         xml.attrib
     except AttributeError:
-        xml = None
+        raise PlaylistError('Did not get a valid xml')
     return xml
 
 
