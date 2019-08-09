@@ -130,7 +130,7 @@ class Playqueue_Object(object):
         LOG.debug('Playlist cleared: %s', self)
 
 
-class Playlist_Item(object):
+class PlaylistItem(object):
     """
     Object to fill our playqueues and playlists with.
 
@@ -319,7 +319,7 @@ def playlist_item_from_kodi(kodi_item):
     Supply with data['item'] as returned from Kodi JSON-RPC interface.
     kodi_item dict contains keys 'id', 'type', 'file' (if applicable)
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.kodi_id = kodi_item.get('id')
     item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
@@ -398,7 +398,7 @@ def playlist_item_from_plex(plex_id):
 
     Returns a Playlist_Item
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.plex_id = plex_id
     with PlexDB(lock=False) as plexdb:
         db_item = plexdb.item_by_id(plex_id)
@@ -421,7 +421,7 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
 
     xml_video_element: etree xml piece 1 level underneath <MediaContainer>
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     api = API(xml_video_element)
     item.plex_id = api.plex_id
     item.plex_type = api.plex_type
