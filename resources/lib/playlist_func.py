@@ -151,21 +151,20 @@ class PlaylistItem(object):
     force_transcode    [bool] defaults to False
     """
     def __init__(self):
-        self._id = None
+        self.id = None
         self._plex_id = None
         self.plex_type = None
-        self.plex_uuid = None
-        self._kodi_id = None
+        self.kodi_id = None
         self.kodi_type = None
         self.file = None
         self.uri = None
         self.guid = None
         self.xml = None
         self.playmethod = None
-        self._playcount = None
-        self._offset = None
+        self.playcount = None
+        self.offset = None
         # If Plex video consists of several parts; part number
-        self._part = 0
+        self.part = 0
         self.force_transcode = False
         # Shall we ask user to resume this item?
         #   None: ask user to resume
@@ -179,62 +178,10 @@ class PlaylistItem(object):
 
     @plex_id.setter
     def plex_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
         self._plex_id = value
 
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._id = value
-
-    @property
-    def kodi_id(self):
-        return self._kodi_id
-
-    @kodi_id.setter
-    def kodi_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._kodi_id = value
-
-    @property
-    def playcount(self):
-        return self._playcount
-
-    @playcount.setter
-    def playcount(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._playcount = value
-
-    @property
-    def offset(self):
-        return self._offset
-
-    @offset.setter
-    def offset(self, value):
-        if not isinstance(value, (int, float)) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._offset = value
-
-    @property
-    def part(self):
-        return self._part
-
-    @part.setter
-    def part(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._part = value
-
-    def __repr__(self):
-        answ = ("{{"
+    def __unicode__(self):
+        return ("{{"
                 "'id': {self.id}, "
                 "'plex_id': {self.plex_id}, "
                 "'plex_type': '{self.plex_type}', "
@@ -248,13 +195,10 @@ class PlaylistItem(object):
                 "'playcount': {self.playcount}, "
                 "'offset': {self.offset}, "
                 "'force_transcode': {self.force_transcode}, "
-                "'part': {self.part}, ".format(self=self))
-        answ = answ.encode('utf-8')
-        # etree xml.__repr__() could return string, not unicode
-        return answ + b"'xml': \"{self.xml}\"}}".format(self=self)
+                "'part': {self.part}".format(self=self))
 
-    def __str__(self):
-        return self.__repr__()
+    def __repr__(self):
+        return self.__unicode__().encode('utf-8')
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
