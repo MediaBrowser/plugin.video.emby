@@ -519,10 +519,8 @@ def process_indirect(key, offset, resolve=True):
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
     playqueue.clear()
-    item = PL.Playlist_Item()
-    item.xml = xml[0]
+    item = PL.playlist_item_from_xml(xml[0])
     item.offset = offset
-    item.plex_type = v.PLEX_TYPE_CLIP
     item.playmethod = 'DirectStream'
 
     # Need to get yet another xml to get the final playback url
