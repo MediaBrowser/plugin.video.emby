@@ -420,7 +420,7 @@ class Service(xbmc.Monitor):
             self['enable_context_transcode'] = settings('enableContextTranscode.bool')
             LOG.warn("New context transcode setting: %s", self['enable_context_transcode'])
 
-        if settings('useDirectPaths') != self['mode'] and self['library'].started:
+        if settings('useDirectPaths') != self['mode'] and self['library'] and self['library'].started:
 
             self['mode'] = settings('useDirectPaths')
             LOG.warn("New playback mode setting: %s", self['mode'])
