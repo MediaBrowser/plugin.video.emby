@@ -375,8 +375,8 @@ def verify_kodi_item(plex_id, kodi_item):
     if ((kodi_item['file'].startswith('plugin') and
          not kodi_item['file'].startswith('plugin://%s' % v.ADDON_ID)) or
             kodi_item['file'].startswith('http')):
-        LOG.info('kodi_item %s cannot be used for Plex playback', kodi_item)
-        raise PlaylistError
+        LOG.debug('kodi_item cannot be used for Plex playback: %s', kodi_item)
+        raise PlaylistError('kodi_item cannot be used for Plex playback')
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
     # Try the VIDEO DB first - will find both movies and episodes
