@@ -358,7 +358,8 @@ def verify_kodi_item(plex_id, kodi_item):
     set to None if unsuccessful.
 
     Will raise a PlaylistError if plex_id is None and kodi_item['file'] starts
-    with either 'plugin' or 'http'
+    with either 'plugin' or 'http'.
+    Will raise KeyError if neither plex_id nor kodi_id are found
     """
     if plex_id is not None or kodi_item.get('id') is not None:
         # Got all the info we need
@@ -388,6 +389,8 @@ def verify_kodi_item(plex_id, kodi_item):
                                                   db_type='music')
     kodi_item['id'] = kodi_id
     kodi_item['type'] = None if kodi_id is None else kodi_type
+    if plex_id is None and kodi_id is None:
+        raise KeyError('Neither Plex nor Kodi id found for %s' % kodi_item)
     LOG.debug('Research results for kodi_item: %s', kodi_item)
     return kodi_item
 
@@ -508,8 +511,8 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     Returns the first PKC playlist item or raises PlaylistError
     """
     LOG.debug('Initializing the playqueue on the Plex side: %s', playlist)
-    playlist.clear(kodi=False)
     verify_kodi_item(plex_id, kodi_item)
+    playlist.clear(kodi=False)
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)
