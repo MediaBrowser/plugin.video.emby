@@ -129,6 +129,21 @@ class Playqueue_Object(object):
         self.kodi_playlist_playback = False
         LOG.debug('Playlist cleared: %s', self)
 
+    def position_from_plex_id(self, plex_id):
+        """
+        Returns the position [int] for the very first item with plex_id [int]
+        (Plex seems uncapable of adding the same element multiple times to a
+        playqueue or playlist)
+
+        Raises KeyError if not found
+        """
+        for position, item in enumerate(self.items):
+            if item.plex_id == plex_id:
+                break
+        else:
+            raise KeyError('Did not find plex_id %s in %s', plex_id, self)
+        return position
+
 
 class PlaylistItem(object):
     """
@@ -137,11 +152,10 @@ class PlaylistItem(object):
     id = None          [int] Plex playlist/playqueue id, e.g. playQueueItemID
     plex_id = None     [int] Plex unique item id, "ratingKey"
     plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
-    plex_uuid = None   [str] Plex librarySectionUUID
     kodi_id = None     [int] Kodi unique kodi id (unique only within type!)
     kodi_type = None   [str] Kodi type: 'movie'
     file = None        [str] Path to the item's file. STRING!!
-    uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
+    uri = None         [str] PMS path to item; will be auto-set with plex_id
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
@@ -157,7 +171,7 @@ class PlaylistItem(object):
         self.kodi_id = None
         self.kodi_type = None
         self.file = None
-        self.uri = None
+        self._uri = None
         self.guid = None
         self.xml = None
         self.playmethod = None
@@ -179,17 +193,21 @@ class PlaylistItem(object):
     @plex_id.setter
     def plex_id(self, value):
         self._plex_id = value
+        self._uri = ('server://%s/com.plexapp.plugins.library/library/metadata/%s' %
+                     (app.CONN.machine_identifier, value))
+
+    @property
+    def uri(self):
+        return self._uri
 
     def __unicode__(self):
         return ("{{"
                 "'id': {self.id}, "
                 "'plex_id': {self.plex_id}, "
                 "'plex_type': '{self.plex_type}', "
-                "'plex_uuid': '{self.plex_uuid}', "
                 "'kodi_id': {self.kodi_id}, "
                 "'kodi_type': '{self.kodi_type}', "
                 "'file': '{self.file}', "
-                "'uri': '{self.uri}', "
                 "'guid': '{self.guid}', "
                 "'playmethod': '{self.playmethod}', "
                 "'playcount': {self.playcount}, "
@@ -272,7 +290,6 @@ def playlist_item_from_kodi(kodi_item):
         if db_item:
             item.plex_id = db_item['plex_id']
             item.plex_type = db_item['plex_type']
-            item.plex_uuid = db_item['plex_id']  # we dont need the uuid yet :-)
     item.file = kodi_item.get('file')
     if item.plex_id is None and item.file is not None:
         try:
@@ -282,13 +299,6 @@ def playlist_item_from_kodi(kodi_item):
         query = dict(utils.parse_qsl(query))
         item.plex_id = utils.cast(int, query.get('plex_id'))
         item.plex_type = query.get('itemType')
-    if item.plex_id is None and item.file is not None:
-        item.uri = ('library://whatever/item/%s'
-                    % utils.quote(item.file, safe=''))
-    else:
-        # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
-        item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                    (item.plex_uuid, item.plex_id))
     LOG.debug('Made playlist item from Kodi: %s', item)
     return item
 
@@ -352,9 +362,6 @@ def playlist_item_from_plex(plex_id):
         item.kodi_type = db_item['kodi_type']
     else:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
-    item.plex_uuid = plex_id
-    item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                (item.plex_uuid, plex_id))
     LOG.debug('Made playlist item from plex: %s', item)
     return item
 
@@ -432,6 +439,8 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     need to fetch a new playqueue
 
     If an xml is passed in, the playlist will be overwritten with its info
+
+    Raises PlaylistError if something went wront
     """
     if xml is None:
         xml = get_PMS_playlist(playlist, playlist_id)
@@ -468,6 +477,8 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
         xml = DU().downloadUrl(url="{server}/%ss" % playlist.kind,
                                action_type="POST",
                                parameters=params)
+        if xml in (None, 401):
+            raise PlaylistError('Did not receive a valid xml from the PMS')
         get_playlist_details_from_xml(playlist, xml)
         # Need to get the details for the playlist item
         item = playlist_item_from_xml(xml[0])
@@ -651,7 +662,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
     need to fetch a new playlist
 
-    Returns None if something went wrong
+    Raises PlaylistError if something went wrong
     """
     playlist_id = playlist_id if playlist_id else playlist.id
     if playlist.kind == 'playList':
@@ -661,7 +672,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     try:
         xml.attrib
     except AttributeError:
-        xml = None
+        raise PlaylistError('Did not get a valid xml')
     return xml
 
 
