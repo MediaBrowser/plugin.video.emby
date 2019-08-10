@@ -129,6 +129,21 @@ class Playqueue_Object(object):
         self.kodi_playlist_playback = False
         LOG.debug('Playlist cleared: %s', self)
 
+    def position_from_plex_id(self, plex_id):
+        """
+        Returns the position [int] for the very first item with plex_id [int]
+        (Plex seems uncapable of adding the same element multiple times to a
+        playqueue or playlist)
+
+        Raises KeyError if not found
+        """
+        for position, item in enumerate(self.items):
+            if item.plex_id == plex_id:
+                break
+        else:
+            raise KeyError('Did not find plex_id %s in %s', plex_id, self)
+        return position
+
 
 class Playlist_Item(object):
     """
