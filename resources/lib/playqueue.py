@@ -86,7 +86,11 @@ def init_playqueue_from_plex_children(plex_id, transient_token=None):
     playqueue.clear()
     for i, child in enumerate(xml):
         api = API(child)
-        PL.add_item_to_playlist(playqueue, i, plex_id=api.plex_id)
+        try:
+            PL.add_item_to_playlist(playqueue, i, plex_id=api.plex_id)
+        except PL.PlaylistError:
+            LOG.error('Could not add Plex item to our playlist: %s, %s',
+                      child.tag, child.attrib)
     playqueue.plex_transient_token = transient_token
     LOG.debug('Firing up Kodi player')
     app.APP.player.play(playqueue.kodi_pl, None, False, 0)
@@ -166,6 +170,14 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                 except PL.PlaylistError:
                     # Could not add the element
                     pass
+                except KeyError:
+                    # Catches KeyError from PL.verify_kodi_item()
+                    # Hack: Kodi already started playback of a new item and we
+                    # started playback already using kodimonitors
+                    # PlayBackStart(), but the Kodi playlist STILL only shows
+                    # the old element. Hence ignore playlist difference here
+                    LOG.debug('Detected an outdated Kodi playlist - ignoring')
+                    return
                 except IndexError:
                     # This is really a hack - happens when using Addon Paths
                     # and repeatedly  starting the same element. Kodi will then
