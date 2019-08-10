@@ -1,3 +1,11 @@
+version 2.9.4 (beta only):
+- Fix extras not playing when path substitution is enabled
+- Fix Plex Companion device restarting playback when reconnecting to PKC
+- Fix playback report not working after having played a non-Plex video file
+- Change how items are added to Plex playqueues by using PMS machine identifier
+- Optimize code for playqueue items
+- Fix rare AttributeError when shutting down Kodi
+
 version 2.9.3:
 - version 2.9.2 for everyone
 
