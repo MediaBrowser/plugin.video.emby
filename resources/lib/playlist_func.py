@@ -145,7 +145,7 @@ class Playqueue_Object(object):
         return position
 
 
-class Playlist_Item(object):
+class PlaylistItem(object):
     """
     Object to fill our playqueues and playlists with.
 
@@ -165,20 +165,20 @@ class Playlist_Item(object):
     force_transcode    [bool] defaults to False
     """
     def __init__(self):
-        self._id = None
+        self.id = None
         self._plex_id = None
         self.plex_type = None
-        self._kodi_id = None
+        self.kodi_id = None
         self.kodi_type = None
         self.file = None
         self._uri = None
         self.guid = None
         self.xml = None
         self.playmethod = None
-        self._playcount = None
-        self._offset = None
+        self.playcount = None
+        self.offset = None
         # If Plex video consists of several parts; part number
-        self._part = 0
+        self.part = 0
         self.force_transcode = False
         # Shall we ask user to resume this item?
         #   None: ask user to resume
@@ -192,8 +192,6 @@ class Playlist_Item(object):
 
     @plex_id.setter
     def plex_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
         self._plex_id = value
         self._uri = ('server://%s/com.plexapp.plugins.library/library/metadata/%s' %
                      (app.CONN.machine_identifier, value))
@@ -202,58 +200,8 @@ class Playlist_Item(object):
     def uri(self):
         return self._uri
 
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._id = value
-
-    @property
-    def kodi_id(self):
-        return self._kodi_id
-
-    @kodi_id.setter
-    def kodi_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._kodi_id = value
-
-    @property
-    def playcount(self):
-        return self._playcount
-
-    @playcount.setter
-    def playcount(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._playcount = value
-
-    @property
-    def offset(self):
-        return self._offset
-
-    @offset.setter
-    def offset(self, value):
-        if not isinstance(value, (int, float)) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._offset = value
-
-    @property
-    def part(self):
-        return self._part
-
-    @part.setter
-    def part(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._part = value
-
-    def __repr__(self):
-        answ = ("{{"
+    def __unicode__(self):
+        return ("{{"
                 "'id': {self.id}, "
                 "'plex_id': {self.plex_id}, "
                 "'plex_type': '{self.plex_type}', "
@@ -265,13 +213,10 @@ class Playlist_Item(object):
                 "'playcount': {self.playcount}, "
                 "'offset': {self.offset}, "
                 "'force_transcode': {self.force_transcode}, "
-                "'part': {self.part}, ".format(self=self))
-        answ = answ.encode('utf-8')
-        # etree xml.__repr__() could return string, not unicode
-        return answ + b"'xml': \"{self.xml}\"}}".format(self=self)
+                "'part': {self.part}".format(self=self))
 
-    def __str__(self):
-        return self.__repr__()
+    def __repr__(self):
+        return self.__unicode__().encode('utf-8')
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
@@ -336,7 +281,7 @@ def playlist_item_from_kodi(kodi_item):
     Supply with data['item'] as returned from Kodi JSON-RPC interface.
     kodi_item dict contains keys 'id', 'type', 'file' (if applicable)
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.kodi_id = kodi_item.get('id')
     item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
@@ -384,8 +329,8 @@ def verify_kodi_item(plex_id, kodi_item):
     if ((kodi_item['file'].startswith('plugin') and
          not kodi_item['file'].startswith('plugin://%s' % v.ADDON_ID)) or
             kodi_item['file'].startswith('http')):
-        LOG.info('kodi_item %s cannot be used for Plex playback', kodi_item)
-        raise PlaylistError
+        LOG.debug('kodi_item cannot be used for Plex playback: %s', kodi_item)
+        raise PlaylistError('kodi_item cannot be used for Plex playback')
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
     # Try the VIDEO DB first - will find both movies and episodes
@@ -407,7 +352,7 @@ def playlist_item_from_plex(plex_id):
 
     Returns a Playlist_Item
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.plex_id = plex_id
     with PlexDB(lock=False) as plexdb:
         db_item = plexdb.item_by_id(plex_id)
@@ -427,7 +372,7 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
 
     xml_video_element: etree xml piece 1 level underneath <MediaContainer>
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     api = API(xml_video_element)
     item.plex_id = api.plex_id
     item.plex_type = api.plex_type
@@ -437,9 +382,10 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
     if kodi_id is not None:
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
-    elif item.plex_id is not None and item.plex_type != v.PLEX_TYPE_CLIP:
+    elif item.plex_type != v.PLEX_TYPE_CLIP:
         with PlexDB(lock=False) as plexdb:
-            db_element = plexdb.item_by_id(item.plex_id)
+            db_element = plexdb.item_by_id(item.plex_id,
+                                           plex_type=item.plex_type)
         if db_element:
             item.kodi_id = db_element['kodi_id']
             item.kodi_type = db_element['kodi_type']
