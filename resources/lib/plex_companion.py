@@ -49,10 +49,9 @@ def update_playqueue_from_PMS(playqueue,
     if transient_token is None:
         transient_token = playqueue.plex_transient_token
     with app.APP.lock_playqueues:
-        xml = PL.get_PMS_playlist(playqueue, playqueue_id)
         try:
-            xml.attrib
-        except AttributeError:
+            xml = PL.get_PMS_playlist(playqueue, playqueue_id)
+        except PL.PlaylistError:
             LOG.error('Could now download playqueue %s', playqueue_id)
             return
         if playqueue.id == playqueue_id:
