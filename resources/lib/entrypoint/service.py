@@ -124,10 +124,9 @@ class Service(xbmc.Monitor):
         self.monitor = objects.monitor.Monitor()
         self.monitor.service = self
         self.connect = connect.Connect()
-        StartDefaultServer(self)
-
-        self['mode'] = settings('useDirectPaths')
         self.player = self['monitor'].player
+
+        StartDefaultServer(self)
 
         while self.running:
             if window('emby_online.bool'):
@@ -232,9 +231,6 @@ class Service(xbmc.Monitor):
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
-
-                if self['library'] is None:
-                    self['library'] = library.Library(self)
 
         elif method in ('ServerUnreachable', 'ServerShuttingDown'):
 
@@ -496,5 +492,9 @@ class StartDefaultServer(threading.Thread):
         try:
             self.service['connect'].register()
             setup.Setup()
+            self.service['mode'] = settings('useDirectPaths')
+
+            if self.service['library'] is None:
+                self.service['library'] = library.Library(self.service)
         except Exception as error:
-            LOG.debug(error) # we don't really care
+            LOG.error(error) # we don't really care
