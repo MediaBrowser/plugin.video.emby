@@ -9,13 +9,14 @@ import threading
 import urlparse
 import socket
 import Queue
+from datetime import datetime
 
 import xbmc
 import xbmcgui
 import xbmcvfs
 
 from emby import Emby
-from helper import settings, window, dialog, JSONRPC
+from helper import settings, window, dialog, date_object, JSONRPC
 
 #################################################################################################
 
@@ -308,6 +309,7 @@ class QueuePlay(threading.Thread):
             Can't use external players with this method.
         '''
         LOG.info("-->[ queue play ]")
+        play_widget = False
         play_folder = False
         play = None
         start_position = None
@@ -345,9 +347,16 @@ class QueuePlay(threading.Thread):
                             objects.utils.disable_busy_dialog()
                             play.start_playback()
 
+                        elif play_widget:
+
+                            LOG.info("[ start play/widget ]")
+                            window('emby.playlist.play.bool', True)
+                            xbmc.sleep(200)
+                            play.start_playback(start_position)
+
                         elif window('emby.playlist.audio.bool'):
 
-                            LOG.info("[ start play/relaunch ]")
+                            LOG.info("[ start play/launch ]")
                             window('emby.playlist.play.bool', True)
                             window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
@@ -379,6 +388,13 @@ class QueuePlay(threading.Thread):
                             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
                             playlist_audio = True
                             window('emby.playlist.ready.bool', True)
+
+                    if (datetime.today() - date_object(window('emby.playlist.add.event'))).seconds > 3:
+                        
+                        xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
+                        xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+                        play_widget = True
+                        window('emby.playlist.ready.bool', True)
 
                     start_position = max(play.info['KodiPlaylist'].getposition(), 0)
                     position = start_position + int(not playlist_audio)

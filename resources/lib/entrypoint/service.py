@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import logging
 import patch
 from hooks import webservice
@@ -16,7 +17,6 @@ PATCH.check_update()
 
 #################################################################################################
 
-import _strptime # Workaround for threads using datetime: _striptime is locked
 import json
 import sys
 import threading
@@ -60,8 +60,9 @@ class Service(xbmc.Monitor):
         self['enable_context'] = settings('enableContext.bool')
         self['enable_context_transcode'] = settings('enableContextTranscode.bool')
         self['kodi_companion'] = settings('kodiCompanion.bool')
-        window('emby_logLevel', value=str(self['log_level']))
-        window('emby_kodiProfile', value=self['profile'])
+        window('emby_logLevel', str(self['log_level']))
+        window('emby_kodiProfile', self['profile'])
+        window('emby.playlist.add.event', datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         settings('platformDetected', client.get_platform())
         settings('distroDetected', client.get_distro())
         memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
@@ -124,10 +125,9 @@ class Service(xbmc.Monitor):
         self.monitor = objects.monitor.Monitor()
         self.monitor.service = self
         self.connect = connect.Connect()
-        StartDefaultServer(self)
-
-        self['mode'] = settings('useDirectPaths')
         self.player = self['monitor'].player
+
+        StartDefaultServer(self)
 
         while self.running:
             if window('emby_online.bool'):
@@ -232,9 +232,6 @@ class Service(xbmc.Monitor):
                     users.insert(0, settings('username').decode('utf-8'))
                     dialog("notification", heading="{emby}", message="%s %s" % (_(33000), ", ".join(users)),
                             icon="{emby}", time=1500, sound=False)
-
-                if self['library'] is None:
-                    self['library'] = library.Library(self)
 
         elif method in ('ServerUnreachable', 'ServerShuttingDown'):
 
@@ -420,7 +417,7 @@ class Service(xbmc.Monitor):
             self['enable_context_transcode'] = settings('enableContextTranscode.bool')
             LOG.warn("New context transcode setting: %s", self['enable_context_transcode'])
 
-        if settings('useDirectPaths') != self['mode'] and self['library'].started:
+        if settings('useDirectPaths') != self['mode'] and self['library'] and self['library'].started:
 
             self['mode'] = settings('useDirectPaths')
             LOG.warn("New playback mode setting: %s", self['mode'])
@@ -496,5 +493,9 @@ class StartDefaultServer(threading.Thread):
         try:
             self.service['connect'].register()
             setup.Setup()
+            self.service['mode'] = settings('useDirectPaths')
+
+            if self.service['library'] is None:
+                self.service['library'] = library.Library(self.service)
         except Exception as error:
-            LOG.debug(error) # we don't really care
+            LOG.error(error) # we don't really care

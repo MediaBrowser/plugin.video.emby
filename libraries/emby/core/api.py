@@ -24,7 +24,7 @@ def info():
                 "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
                 "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,"
                 "MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,"
-                "PresentationUniqueKey"
+                "PresentationUniqueKey,OriginalTitle"
             )
 
 def music_info():

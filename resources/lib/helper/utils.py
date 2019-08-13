@@ -11,6 +11,7 @@ import unicodedata
 import urllib
 from uuid import uuid4
 from distutils.version import LooseVersion
+from datetime import datetime
 
 import xbmc
 import xbmcaddon
@@ -472,3 +473,10 @@ def convert_to_local(date):
         LOG.info("date: %s", str(date))
 
         return str(date)
+
+def date_object(date):
+    # Convert string to date
+    try:
+        return datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+    except Exception as error:
+        LOG.error(error)

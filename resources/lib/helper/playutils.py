@@ -696,38 +696,42 @@ class PlayUtils(object):
 
             mapping originates from set_external_subs
         '''
-        default = objects.utils.default_settings_default()
-        full_path = self.info['Path']
-        stream = {
-            'AudioStream': max((self.info['AudioStreamIndex'] or -1) - 1, -1),
-            'SubtitlesOn': int(self.info['SubtitleStreamIndex'] is not None and self.info['SubtitleStreamIndex'] != -1)
-        }
-        if stream['SubtitlesOn']:
-            if mapping:
-
-                for sub in mapping:
-
-                    if mapping[sub] == self.info['SubtitleStreamIndex']:
-                        stream['SubtitleStream'] = sub
-
-                        break
-                else:
-                    stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
-            else:
-                stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
-        else:
-            stream['SubtitleStream'] = -1
-
-        if '\\' in full_path:
-            path, file = full_path.rsplit('\\', 1)
-            path += "\\"
-        else:
-            path, file = full_path.rsplit('/', 1)
-            path += "/"
-            file = file.split('?', 1)[0]
-
-        LOG.debug("Finding: %s / %s", path, file)
         try:
+            if self.info['Method'] != 'DirectPlay':
+                raise Exception("Unsupported")
+
+            default = objects.utils.default_settings_default()
+            full_path = self.info['Path']
+            stream = {
+                'AudioStream': max((self.info['AudioStreamIndex'] or -1) - 1, -1),
+                'SubtitlesOn': int(self.info['SubtitleStreamIndex'] is not None and self.info['SubtitleStreamIndex'] != -1)
+            }
+            if stream['SubtitlesOn']:
+                if mapping:
+
+                    for sub in mapping:
+
+                        if mapping[sub] == self.info['SubtitleStreamIndex']:
+                            stream['SubtitleStream'] = sub
+
+                            break
+                    else:
+                        stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source) + len(mapping), -1)
+                else:
+                    stream['SubtitleStream'] = max(self.info['SubtitleStreamIndex'] - self._get_streams(source), -1)
+            else:
+                stream['SubtitleStream'] = -1
+
+            if '\\' in full_path:
+                path, file = full_path.rsplit('\\', 1)
+                path += "\\"
+            else:
+                path, file = full_path.rsplit('/', 1)
+                path += "/"
+                file = file.split('?', 1)[0]
+
+            LOG.debug("Finding: %s / %s", path, file)
+
             with database.Database('video') as kodidb:
 
                 db = kodi.Kodi(kodidb.cursor)
