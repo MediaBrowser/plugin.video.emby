@@ -2,6 +2,7 @@
 
 #################################################################################################
 
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import logging
 import patch
 from hooks import webservice
@@ -16,7 +17,6 @@ PATCH.check_update()
 
 #################################################################################################
 
-import _strptime # Workaround for threads using datetime: _striptime is locked
 import json
 import sys
 import threading
