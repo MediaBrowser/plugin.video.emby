@@ -963,7 +963,7 @@ msgstr ""
 
 # PKC Settings - Customize paths
 msgctxt "#39056"
-msgid "Used by Sync and when attempting to Direct Play"
+msgid "Used by Sync and when attempting to use Direct Paths"
 msgstr ""
 
 # PKC Settings, category name

@@ -29,10 +29,10 @@ class PlayUtils():
         """
         if self.api.mediastream_number() is None:
             return
-        playurl = self.isDirectPlay()
+        playurl = self.direct_path()
         if playurl is not None:
             LOG.info("File is direct playing.")
-            self.item.playmethod = 'DirectPlay'
+            self.item.playmethod = 'DirectPath'
         elif self.isDirectStream():
             LOG.info("File is direct streaming.")
             playurl = self.api.transcode_video_path('DirectStream')
@@ -53,9 +53,10 @@ class PlayUtils():
         self.item.file = playurl
         return playurl
 
-    def isDirectPlay(self):
+    def direct_path(self):
         """
-        Returns the path/playurl if we can direct play, None otherwise
+        Returns the path if we can use direct paths and the path is accessible
+        Returns None otherwise
         """
         # True for e.g. plex.tv watch later
         if self.api.should_stream() is True:
@@ -68,11 +69,11 @@ class PlayUtils():
             return self.api.validate_playurl(path,
                                              self.api.plex_type,
                                              force_check=True)
-        # set to either 'Direct Stream=1' or 'Transcode=2'
-        # and NOT to 'Direct Play=0'
+        # set to either 'Direct Play=1' or 'Transcode=2'
+        # and NOT to 'Try Direct Path=0'
         if utils.settings('playType') != "0":
             # User forcing to play via HTTP
-            LOG.info("User chose to not direct play")
+            LOG.info("User chose to not use direct paths")
             return
         if self.mustTranscode():
             return

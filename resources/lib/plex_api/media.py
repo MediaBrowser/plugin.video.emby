@@ -226,7 +226,7 @@ class Media(object):
             return
         quality = {} if quality is None else quality
         xargs = clientinfo.getXArgsDeviceInfo()
-        # For DirectPlay, path/key of PART is needed
+        # For DirectPath, path/key of PART is needed
         # trailers are 'clip' with PMS xmls
         if action == "DirectStream":
             path = self.xml[self.mediastream][self.part].get('key')

@@ -158,7 +158,7 @@ class PlaylistItem(object):
     uri = None         [str] PMS path to item; will be auto-set with plex_id
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
-    playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
+    playmethod = None  [str] either 'DirectPath', 'DirectStream', 'Transcode'
     playcount = None   [int] how many times the item has already been played
     offset = None      [int] the item's view offset UPON START in Plex time
     part = 0           [int] part number if Plex video consists of mult. parts
