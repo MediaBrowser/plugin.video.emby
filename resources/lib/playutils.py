@@ -65,10 +65,9 @@ class PlayUtils():
         path = self.api.file_path()
         if path is not None and path.endswith('.strm'):
             LOG.info('.strm file detected')
-            playurl = self.api.validate_playurl(path,
-                                                self.api.plex_type,
-                                                force_check=True)
-            return playurl
+            return self.api.validate_playurl(path,
+                                             self.api.plex_type,
+                                             force_check=True)
         # set to either 'Direct Stream=1' or 'Transcode=2'
         # and NOT to 'Direct Play=0'
         if utils.settings('playType') != "0":
