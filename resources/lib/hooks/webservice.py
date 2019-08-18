@@ -356,7 +356,7 @@ class QueuePlay(threading.Thread):
 
                         elif window('emby.playlist.audio.bool'):
 
-                            LOG.info("[ start play/launch ]")
+                            LOG.info("[ start play/relaunch ]")
                             window('emby.playlist.play.bool', True)
                             window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
@@ -372,6 +372,7 @@ class QueuePlay(threading.Thread):
                 server = params.get('server')
 
                 if not server and not window('emby_online.bool'):
+                    dialog("notification", heading="{emby}", message=_(33146), icon=xbmcgui.NOTIFICATION_ERROR)
                     raise Exception("NotConnected")
 
                 play = objects.PlayStrm(params, server)
@@ -383,7 +384,7 @@ class QueuePlay(threading.Thread):
                         while not window('emby.playlist.plugin.bool'): # ensure plugin called before clearing playlists
                             xbmc.sleep(50)
                         else:
-                            LOG.info("[ relaunch playlist ]")
+                            window('emby.autoplay', clear=True)
                             xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
                             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
                             playlist_audio = True

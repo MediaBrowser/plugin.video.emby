@@ -92,12 +92,19 @@ class Connect(object):
                     credentials['Servers'] = [server]
 
         server_select = True if server_id is None and not settings('SyncInstallRunDone.bool') else False
-        new_credentials = self.register_client(credentials, options, server_id, server_select)
-        credentials = self._save_servers(new_credentials['Servers'], server_id is None)
-        save_credentials(credentials)
 
         try:
+            new_credentials = self.register_client(credentials, options, server_id, server_select)
+            credentials = self._save_servers(new_credentials['Servers'], server_id is None)
+            save_credentials(credentials)
             Emby(server_id).start(not bool(server_id), True)
+        except HTTPException as error:
+
+            if error.status == 'ServerUnreachable':
+                self.pending.remove(server_id)
+
+                raise
+
         except ValueError as error:
             LOG.error(error)
 
@@ -173,6 +180,8 @@ class Connect(object):
 
             if error.status == 'ServerUnreachable':
                 event('ServerUnreachable', {'ServerId': server_id})
+
+                raise
 
             return client.get_credentials()
 
