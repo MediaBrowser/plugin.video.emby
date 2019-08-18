@@ -9,14 +9,13 @@ import threading
 import urlparse
 import socket
 import Queue
-from datetime import datetime
 
 import xbmc
 import xbmcgui
 import xbmcvfs
 
 from emby import Emby
-from helper import settings, window, dialog, date_object, JSONRPC
+from helper import settings, window, dialog, JSONRPC
 
 #################################################################################################
 
@@ -309,7 +308,6 @@ class QueuePlay(threading.Thread):
             Can't use external players with this method.
         '''
         LOG.info("-->[ queue play ]")
-        play_widget = False
         play_folder = False
         play = None
         start_position = None
@@ -347,16 +345,9 @@ class QueuePlay(threading.Thread):
                             objects.utils.disable_busy_dialog()
                             play.start_playback()
 
-                        elif play_widget:
-
-                            LOG.info("[ start play/widget ]")
-                            window('emby.playlist.play.bool', True)
-                            xbmc.sleep(200)
-                            play.start_playback(start_position)
-
                         elif window('emby.playlist.audio.bool'):
 
-                            LOG.info("[ start play/launch ]")
+                            LOG.info("[ start play/relaunch ]")
                             window('emby.playlist.play.bool', True)
                             window('emby.play.reset.bool', True)
                             xbmc.sleep(200)
@@ -372,6 +363,7 @@ class QueuePlay(threading.Thread):
                 server = params.get('server')
 
                 if not server and not window('emby_online.bool'):
+                    dialog("notification", heading="{emby}", message=_(33146), icon=xbmcgui.NOTIFICATION_ERROR)
                     raise Exception("NotConnected")
 
                 play = objects.PlayStrm(params, server)
@@ -383,18 +375,11 @@ class QueuePlay(threading.Thread):
                         while not window('emby.playlist.plugin.bool'): # ensure plugin called before clearing playlists
                             xbmc.sleep(50)
                         else:
-                            LOG.info("[ relaunch playlist ]")
+                            window('emby.autoplay', clear=True)
                             xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
                             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
                             playlist_audio = True
                             window('emby.playlist.ready.bool', True)
-
-                    if (datetime.today() - date_object(window('emby.playlist.add.event'))).seconds > 3:
-                        
-                        xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
-                        xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
-                        play_widget = True
-                        window('emby.playlist.ready.bool', True)
 
                     start_position = max(play.info['KodiPlaylist'].getposition(), 0)
                     position = start_position + int(not playlist_audio)

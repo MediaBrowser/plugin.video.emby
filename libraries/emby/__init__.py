@@ -88,7 +88,7 @@ class Emby(object):
     @classmethod
     def close_all(cls):
 
-        for client in cls.client:
+        for client in dict(cls.client):
             cls.client[client].stop()
 
         cls.client = {}
