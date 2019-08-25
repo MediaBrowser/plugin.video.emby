@@ -10,11 +10,12 @@ from .artwork import Artwork
 from .file import File
 from .media import Media
 from .user import User
+from .playback import Playback
 
 from ..plex_db import PlexDB
 
 
-class API(Base, Artwork, File, Media, User):
+class API(Base, Artwork, File, Media, User, Playback):
     pass
 
 

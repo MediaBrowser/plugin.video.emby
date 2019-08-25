@@ -177,6 +177,8 @@ class PlaylistItem(object):
         self.playmethod = None
         self.playcount = None
         self.offset = None
+        # Transcoding quality, if needed
+        self.quality = None
         # If Plex video consists of several parts; part number
         self.part = 0
         self.force_transcode = False

@@ -19,7 +19,7 @@ from . import playlist_func as PL
 from . import playqueue as PQ
 from . import json_rpc as js
 from . import transfer
-from .playutils import PlayUtils
+from .playback_decision import set_playurl
 from . import variables as v
 from . import app
 
@@ -460,17 +460,15 @@ def _conclude_playback(playqueue, pos):
         api = API(item.xml)
         api.part = item.part or 0
         listitem = api.listitem(listitem=transfer.PKCListItem)
-        playutils = PlayUtils(api, item)
-        playurl = playutils.getPlayUrl()
+        set_playurl(api, item)
     else:
         listitem = transfer.PKCListItem()
         api = None
-        playurl = item.file
-    if not playurl:
+    if not item.file:
         LOG.info('Did not get a playurl, aborting playback silently')
-        _ensure_resolve(abort=True)
+        _ensure_resolve()
         return
-    listitem.setPath(playurl.encode('utf-8'))
+    listitem.setPath(item.file.encode('utf-8'))
     if item.playmethod == 'DirectStream':
         listitem.setSubtitles(api.cache_external_subs())
     elif item.playmethod == 'Transcode':
