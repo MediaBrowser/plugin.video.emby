@@ -20,11 +20,12 @@ class Movie(ItemBase):
         Process single movie
         """
         api = API(xml)
-        plex_id = api.plex_id
-        # Cannot parse XML, abort
-        if not plex_id:
-            LOG.error('Cannot parse XML data for movie: %s', xml.attrib)
+        if not self.sync_this_item(api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      api.library_section_id())
             return
+        plex_id = api.plex_id
         movie = self.plexdb.movie(plex_id)
         if movie:
             update_item = True

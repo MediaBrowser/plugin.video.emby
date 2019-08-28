@@ -255,7 +255,7 @@ class FullSync(common.fullsync_mixin):
         """
         try:
             for kind in kinds:
-                for section in (x for x in sections.SECTIONS
+                for section in (x for x in app.SYNC.sections
                                 if x.section_type == kind[1]):
                     if self.isCanceled():
                         LOG.debug('Need to exit now')
