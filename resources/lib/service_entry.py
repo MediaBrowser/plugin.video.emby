@@ -198,7 +198,8 @@ class Service(object):
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
-        # Force a full sync
+        # Force a full sync of all items
+        library_sync.force_full_sync()
         app.SYNC.run_lib_scan = 'full'
         # Enable the main loop to continue
         app.APP.suspend = False
@@ -268,7 +269,8 @@ class Service(object):
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
-        # Force a full sync
+        # Force a full sync of all items
+        library_sync.force_full_sync()
         app.SYNC.run_lib_scan = 'full'
         # Enable the main loop to continue
         app.APP.suspend = False
@@ -295,7 +297,8 @@ class Service(object):
             # Get newest sections from the PMS
             if not sections.sync_from_pms(self, pick_libraries=True):
                 return
-            # Force a full sync
+            # Force a full sync of all items
+            library_sync.force_full_sync()
             app.SYNC.run_lib_scan = 'full'
         finally:
             app.APP.resume_threads()
