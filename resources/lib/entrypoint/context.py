@@ -187,6 +187,6 @@ class Context(object):
             path += "&transcode=true"
 
         if self.server:
-            path += "&server=%s" % self.server
+            path += "&server=%s" % self.server_id
 
         xbmc.executebuiltin("PlayMedia(%s)" % path)
