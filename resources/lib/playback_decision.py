@@ -54,11 +54,6 @@ def _initial_best_playback_method(api, item):
     Sets the highest available playback method without talking to the PMS
     Also sets self.path for a direct path, if available and accessible
     """
-    if api.should_stream():
-        # True for e.g. plex.tv watch later
-        LOG.info('Plex item optimized for DirectPlay')
-        item.playmethod = v.PLAYBACK_METHOD_DIRECT_PLAY
-        return
     item.file = api.file_path()
     item.file = api.validate_playurl(item.file, api.plex_type, force_check=True)
     # Check whether we have a strm file that we need to throw at Kodi 1:1

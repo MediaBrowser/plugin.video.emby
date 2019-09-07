@@ -12,7 +12,7 @@ LOG = getLogger('PLEX.api')
 
 
 class Media(object):
-    def should_stream(self):
+    def optimized_for_streaming(self):
         """
         Returns True if the item's 'optimizedForStreaming' is set, False other-
         wise
