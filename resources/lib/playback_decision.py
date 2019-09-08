@@ -249,6 +249,8 @@ def get_bitrate():
         '8': 12000,
         '9': 20000,
         '10': 40000,
+        '11': 35000,
+        '12': 50000
     }
     # max bit rate supported by server (max signed 32bit integer)
     return bitrate.get(videoQuality, MAX_SIGNED_INT)
@@ -271,6 +273,8 @@ def get_resolution():
         '8': '1920x1080',
         '9': '1920x1080',
         '10': '1920x1080',
+        '11': '3840x2160',
+        '12': '3840x2160'
     }
     return res[chosen]
 
