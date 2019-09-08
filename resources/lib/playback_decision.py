@@ -310,7 +310,8 @@ def _getH265():
         '0': MAX_SIGNED_INT,
         '1': 480,
         '2': 720,
-        '3': 1080
+        '3': 1080,
+        '4': 2160
     }
     return H265[utils.settings('transcodeH265')]
 
