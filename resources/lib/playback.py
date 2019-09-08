@@ -234,14 +234,9 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     playqueue.clear()
     if plex_type != v.PLEX_TYPE_CLIP:
         # Post to the PMS to create a playqueue - in any case due to Companion
-        section_uuid = xml.attrib.get('librarySectionUUID')
-        xml = PF.init_plex_playqueue(plex_id,
-                                     section_uuid,
-                                     mediatype=plex_type,
-                                     trailers=trailers)
+        xml = PF.init_plex_playqueue(plex_id, plex_type, trailers=trailers)
         if xml is None:
-            LOG.error('Could not get a playqueue xml for plex id %s, UUID %s',
-                      plex_id, section_uuid)
+            LOG.error('Could not get a playqueue xml for plex id %s', plex_id)
             # "Play error"
             utils.dialog('notification',
                          utils.lang(29999),
@@ -519,10 +514,8 @@ def process_indirect(key, offset, resolve=True):
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
     playqueue.clear()
-    item = PL.Playlist_Item()
-    item.xml = xml[0]
+    item = PL.playlist_item_from_xml(xml[0])
     item.offset = offset
-    item.plex_type = v.PLEX_TYPE_CLIP
     item.playmethod = 'DirectStream'
 
     # Need to get yet another xml to get the final playback url

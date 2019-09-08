@@ -129,19 +129,33 @@ class Playqueue_Object(object):
         self.kodi_playlist_playback = False
         LOG.debug('Playlist cleared: %s', self)
 
+    def position_from_plex_id(self, plex_id):
+        """
+        Returns the position [int] for the very first item with plex_id [int]
+        (Plex seems uncapable of adding the same element multiple times to a
+        playqueue or playlist)
 
-class Playlist_Item(object):
+        Raises KeyError if not found
+        """
+        for position, item in enumerate(self.items):
+            if item.plex_id == plex_id:
+                break
+        else:
+            raise KeyError('Did not find plex_id %s in %s', plex_id, self)
+        return position
+
+
+class PlaylistItem(object):
     """
     Object to fill our playqueues and playlists with.
 
     id = None          [int] Plex playlist/playqueue id, e.g. playQueueItemID
     plex_id = None     [int] Plex unique item id, "ratingKey"
     plex_type = None   [str] Plex type, e.g. 'movie', 'clip'
-    plex_uuid = None   [str] Plex librarySectionUUID
     kodi_id = None     [int] Kodi unique kodi id (unique only within type!)
     kodi_type = None   [str] Kodi type: 'movie'
     file = None        [str] Path to the item's file. STRING!!
-    uri = None         [str] Weird Plex uri path involving plex_uuid. STRING!
+    uri = None         [str] PMS path to item; will be auto-set with plex_id
     guid = None        [str] Weird Plex guid
     xml = None         [etree] XML from PMS, 1 lvl below <MediaContainer>
     playmethod = None  [str] either 'DirectPlay', 'DirectStream', 'Transcode'
@@ -151,21 +165,20 @@ class Playlist_Item(object):
     force_transcode    [bool] defaults to False
     """
     def __init__(self):
-        self._id = None
+        self.id = None
         self._plex_id = None
         self.plex_type = None
-        self.plex_uuid = None
-        self._kodi_id = None
+        self.kodi_id = None
         self.kodi_type = None
         self.file = None
-        self.uri = None
+        self._uri = None
         self.guid = None
         self.xml = None
         self.playmethod = None
-        self._playcount = None
-        self._offset = None
+        self.playcount = None
+        self.offset = None
         # If Plex video consists of several parts; part number
-        self._part = 0
+        self.part = 0
         self.force_transcode = False
         # Shall we ask user to resume this item?
         #   None: ask user to resume
@@ -179,82 +192,31 @@ class Playlist_Item(object):
 
     @plex_id.setter
     def plex_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
         self._plex_id = value
+        self._uri = ('server://%s/com.plexapp.plugins.library/library/metadata/%s' %
+                     (app.CONN.machine_identifier, value))
 
     @property
-    def id(self):
-        return self._id
+    def uri(self):
+        return self._uri
 
-    @id.setter
-    def id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._id = value
-
-    @property
-    def kodi_id(self):
-        return self._kodi_id
-
-    @kodi_id.setter
-    def kodi_id(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._kodi_id = value
-
-    @property
-    def playcount(self):
-        return self._playcount
-
-    @playcount.setter
-    def playcount(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._playcount = value
-
-    @property
-    def offset(self):
-        return self._offset
-
-    @offset.setter
-    def offset(self, value):
-        if not isinstance(value, (int, float)) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._offset = value
-
-    @property
-    def part(self):
-        return self._part
-
-    @part.setter
-    def part(self, value):
-        if not isinstance(value, int) and value is not None:
-            raise TypeError('Passed %s instead of int!' % type(value))
-        self._part = value
-
-    def __repr__(self):
-        answ = ("{{"
+    def __unicode__(self):
+        return ("{{"
                 "'id': {self.id}, "
                 "'plex_id': {self.plex_id}, "
                 "'plex_type': '{self.plex_type}', "
-                "'plex_uuid': '{self.plex_uuid}', "
                 "'kodi_id': {self.kodi_id}, "
                 "'kodi_type': '{self.kodi_type}', "
                 "'file': '{self.file}', "
-                "'uri': '{self.uri}', "
                 "'guid': '{self.guid}', "
                 "'playmethod': '{self.playmethod}', "
                 "'playcount': {self.playcount}, "
                 "'offset': {self.offset}, "
                 "'force_transcode': {self.force_transcode}, "
-                "'part': {self.part}, ".format(self=self))
-        answ = answ.encode('utf-8')
-        # etree xml.__repr__() could return string, not unicode
-        return answ + b"'xml': \"{self.xml}\"}}".format(self=self)
+                "'part': {self.part}".format(self=self))
 
-    def __str__(self):
-        return self.__repr__()
+    def __repr__(self):
+        return self.__unicode__().encode('utf-8')
 
     def plex_stream_index(self, kodi_stream_index, stream_type):
         """
@@ -319,7 +281,7 @@ def playlist_item_from_kodi(kodi_item):
     Supply with data['item'] as returned from Kodi JSON-RPC interface.
     kodi_item dict contains keys 'id', 'type', 'file' (if applicable)
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.kodi_id = kodi_item.get('id')
     item.kodi_type = kodi_item.get('type')
     if item.kodi_id:
@@ -328,7 +290,6 @@ def playlist_item_from_kodi(kodi_item):
         if db_item:
             item.plex_id = db_item['plex_id']
             item.plex_type = db_item['plex_type']
-            item.plex_uuid = db_item['plex_id']  # we dont need the uuid yet :-)
     item.file = kodi_item.get('file')
     if item.plex_id is None and item.file is not None:
         try:
@@ -338,13 +299,6 @@ def playlist_item_from_kodi(kodi_item):
         query = dict(utils.parse_qsl(query))
         item.plex_id = utils.cast(int, query.get('plex_id'))
         item.plex_type = query.get('itemType')
-    if item.plex_id is None and item.file is not None:
-        item.uri = ('library://whatever/item/%s'
-                    % utils.quote(item.file, safe=''))
-    else:
-        # TO BE VERIFIED - PLEX DOESN'T LIKE PLAYLIST ADDS IN THIS MANNER
-        item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                    (item.plex_uuid, item.plex_id))
     LOG.debug('Made playlist item from Kodi: %s', item)
     return item
 
@@ -358,7 +312,8 @@ def verify_kodi_item(plex_id, kodi_item):
     set to None if unsuccessful.
 
     Will raise a PlaylistError if plex_id is None and kodi_item['file'] starts
-    with either 'plugin' or 'http'
+    with either 'plugin' or 'http'.
+    Will raise KeyError if neither plex_id nor kodi_id are found
     """
     if plex_id is not None or kodi_item.get('id') is not None:
         # Got all the info we need
@@ -375,8 +330,8 @@ def verify_kodi_item(plex_id, kodi_item):
     if ((kodi_item['file'].startswith('plugin') and
          not kodi_item['file'].startswith('plugin://%s' % v.ADDON_ID)) or
             kodi_item['file'].startswith('http')):
-        LOG.info('kodi_item %s cannot be used for Plex playback', kodi_item)
-        raise PlaylistError
+        LOG.debug('kodi_item cannot be used for Plex playback: %s', kodi_item)
+        raise PlaylistError('kodi_item cannot be used for Plex playback')
     LOG.debug('Starting research for Kodi id since we didnt get one: %s',
               kodi_item)
     # Try the VIDEO DB first - will find both movies and episodes
@@ -388,6 +343,8 @@ def verify_kodi_item(plex_id, kodi_item):
                                                   db_type='music')
     kodi_item['id'] = kodi_id
     kodi_item['type'] = None if kodi_id is None else kodi_type
+    if plex_id is None and kodi_id is None:
+        raise KeyError('Neither Plex nor Kodi id found for %s' % kodi_item)
     LOG.debug('Research results for kodi_item: %s', kodi_item)
     return kodi_item
 
@@ -398,7 +355,7 @@ def playlist_item_from_plex(plex_id):
 
     Returns a Playlist_Item
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     item.plex_id = plex_id
     with PlexDB(lock=False) as plexdb:
         db_item = plexdb.item_by_id(plex_id)
@@ -408,9 +365,6 @@ def playlist_item_from_plex(plex_id):
         item.kodi_type = db_item['kodi_type']
     else:
         raise KeyError('Could not find plex_id %s in database' % plex_id)
-    item.plex_uuid = plex_id
-    item.uri = ('library://%s/item/library%%2Fmetadata%%2F%s' %
-                (item.plex_uuid, plex_id))
     LOG.debug('Made playlist item from plex: %s', item)
     return item
 
@@ -421,7 +375,7 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
 
     xml_video_element: etree xml piece 1 level underneath <MediaContainer>
     """
-    item = Playlist_Item()
+    item = PlaylistItem()
     api = API(xml_video_element)
     item.plex_id = api.plex_id
     item.plex_type = api.plex_type
@@ -431,9 +385,10 @@ def playlist_item_from_xml(xml_video_element, kodi_id=None, kodi_type=None):
     if kodi_id is not None:
         item.kodi_id = kodi_id
         item.kodi_type = kodi_type
-    elif item.plex_id is not None and item.plex_type != v.PLEX_TYPE_CLIP:
+    elif item.plex_type != v.PLEX_TYPE_CLIP:
         with PlexDB(lock=False) as plexdb:
-            db_element = plexdb.item_by_id(item.plex_id)
+            db_element = plexdb.item_by_id(item.plex_id,
+                                           plex_type=item.plex_type)
         if db_element:
             item.kodi_id = db_element['kodi_id']
             item.kodi_type = db_element['kodi_type']
@@ -487,6 +442,8 @@ def update_playlist_from_PMS(playlist, playlist_id=None, xml=None):
     need to fetch a new playqueue
 
     If an xml is passed in, the playlist will be overwritten with its info
+
+    Raises PlaylistError if something went wront
     """
     if xml is None:
         xml = get_PMS_playlist(playlist, playlist_id)
@@ -508,8 +465,8 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
     Returns the first PKC playlist item or raises PlaylistError
     """
     LOG.debug('Initializing the playqueue on the Plex side: %s', playlist)
-    playlist.clear(kodi=False)
     verify_kodi_item(plex_id, kodi_item)
+    playlist.clear(kodi=False)
     try:
         if plex_id:
             item = playlist_item_from_plex(plex_id)
@@ -523,6 +480,8 @@ def init_plex_playqueue(playlist, plex_id=None, kodi_item=None):
         xml = DU().downloadUrl(url="{server}/%ss" % playlist.kind,
                                action_type="POST",
                                parameters=params)
+        if xml in (None, 401):
+            raise PlaylistError('Did not receive a valid xml from the PMS')
         get_playlist_details_from_xml(playlist, xml)
         # Need to get the details for the playlist item
         item = playlist_item_from_xml(xml[0])
@@ -706,7 +665,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     Fetches the PMS playlist/playqueue as an XML. Pass in playlist_id if we
     need to fetch a new playlist
 
-    Returns None if something went wrong
+    Raises PlaylistError if something went wrong
     """
     playlist_id = playlist_id if playlist_id else playlist.id
     if playlist.kind == 'playList':
@@ -716,7 +675,7 @@ def get_PMS_playlist(playlist, playlist_id=None):
     try:
         xml.attrib
     except AttributeError:
-        xml = None
+        raise PlaylistError('Did not get a valid xml')
     return xml
 
 

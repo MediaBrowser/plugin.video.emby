@@ -362,7 +362,7 @@ KODI_PLAYLIST_TYPE_FROM_KODI_TYPE = {
 
 REMAP_TYPE_FROM_PLEXTYPE = {
     PLEX_TYPE_MOVIE: 'movie',
-    PLEX_TYPE_CLIP: 'clip',
+    PLEX_TYPE_CLIP: 'movie',
     PLEX_TYPE_SHOW: 'tv',
     PLEX_TYPE_SEASON: 'tv',
     PLEX_TYPE_EPISODE: 'tv',
@@ -399,20 +399,6 @@ TRANSLATION_FROM_PLEXTYPE = {
     PLEX_TYPE_ALBUM: 132,
     PLEX_TYPE_PHOTO: 1,
 }
-
-REMAP_TYPE_FROM_PLEXTYPE = {
-    'movie': 'movie',
-    'show': 'tv',
-    'season': 'tv',
-    'episode': 'tv',
-    'artist': 'music',
-    'album': 'music',
-    'song': 'music',
-    'track': 'music',
-    'clip': 'clip',
-    'photo': 'photo'
-}
-
 
 PLEX_TYPE_FROM_WEBSOCKET = {
     1: PLEX_TYPE_MOVIE,
