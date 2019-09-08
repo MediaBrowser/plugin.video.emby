@@ -89,6 +89,7 @@
 - Force a full sync of all items after choosing a new PMS, changing a PMS' address and changing which Plex libraries to sync
 - Only enforce advancedsettings.xml 'cleanonupdate' to be false for PKC add-on paths
 - Never give up trying to connect to the PMS or Alexa using websockets
+- Fix resume when force-transcoding
 
 version 2.9.5:
 - Version 2.9.4 for everyone

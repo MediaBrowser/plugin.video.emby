@@ -211,7 +211,8 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # Release default.py
     _ensure_resolve()
     api = API(xml[0])
-    if app.SYNC.direct_paths and api.resume_point():
+    if api.resume_point() and (app.SYNC.direct_paths or
+                               app.PLAYSTATE.context_menu_play):
         # Since Kodi won't ask if user wants to resume playback -
         # we need to ask ourselves
         resume = resume_dialog(int(api.resume_point()))
