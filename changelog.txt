@@ -1,3 +1,6 @@
+version 2.9.5:
+- Version 2.9.4 for everyone
+
 version 2.9.4 (beta only):
 - Fix extras not playing when path substitution is enabled
 - Fix Plex Companion device restarting playback when reconnecting to PKC
