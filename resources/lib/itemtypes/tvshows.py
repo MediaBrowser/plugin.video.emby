@@ -148,10 +148,12 @@ class Show(TvShowMixin, ItemBase):
         Process a single show
         """
         api = API(xml)
-        plex_id = api.plex_id
-        if not plex_id:
-            LOG.error("Cannot parse XML data for TV show: %s", xml.attrib)
+        if not self.sync_this_item(api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      api.library_section_id())
             return
+        plex_id = api.plex_id
         show = self.plexdb.show(plex_id)
         if not show:
             update_item = False
@@ -286,11 +288,12 @@ class Season(TvShowMixin, ItemBase):
         Process a single season of a certain tv show
         """
         api = API(xml)
-        plex_id = api.plex_id
-        if not plex_id:
-            LOG.error('Error getting plex_id for season, skipping: %s',
-                      xml.attrib)
+        if not self.sync_this_item(api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      api.library_section_id())
             return
+        plex_id = api.plex_id
         season = self.plexdb.season(plex_id)
         if not season:
             update_item = False
@@ -354,11 +357,12 @@ class Episode(TvShowMixin, ItemBase):
         Process single episode
         """
         api = API(xml)
-        plex_id = api.plex_id
-        if not plex_id:
-            LOG.error('Error getting plex_id for episode, skipping: %s',
-                      xml.attrib)
+        if not self.sync_this_item(api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      api.library_section_id())
             return
+        plex_id = api.plex_id
         episode = self.plexdb.episode(plex_id)
         if not episode:
             update_item = False
