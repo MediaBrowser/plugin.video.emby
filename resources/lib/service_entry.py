@@ -51,7 +51,6 @@ class Service(object):
             return
         # Initial logging
         LOG.info("======== START %s ========", v.ADDON_NAME)
-        LOG.info("Platform: %s", v.PLATFORM)
         LOG.info("KODI Version: %s", v.KODILONGVERSION)
         LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
         LOG.info("PKC Direct Paths: %s",

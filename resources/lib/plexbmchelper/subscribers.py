@@ -59,21 +59,14 @@ def params_pms():
     Returns the url parameters for communicating with the PMS
     """
     return {
-        # 'X-Plex-Client-Capabilities': 'protocols=shoutcast,http-video;'
-        #     'videoDecoders=h264{profile:high&resolution:2160&level:52};'
-        #     'audioDecoders=mp3,aac,dts{bitrate:800000&channels:2},'
-        #     'ac3{bitrate:800000&channels:2}',
         'X-Plex-Client-Identifier': v.PKC_MACHINE_IDENTIFIER,
         'X-Plex-Device': v.DEVICE,
         'X-Plex-Device-Name': v.DEVICENAME,
-        # 'X-Plex-Device-Screen-Resolution': '1916x1018,1920x1080',
         'X-Plex-Model': v.MODEL,
         'X-Plex-Platform': v.PLATFORM,
         'X-Plex-Platform-Version': v.PLATFORM_VERSION,
         'X-Plex-Product': v.ADDON_NAME,
         'X-Plex-Version': v.ADDON_VERSION,
-        'hasMDE': '1',
-        # 'X-Plex-Session-Identifier': ['vinuvirm6m20iuw9c4cx1dcx'],
     }
 
 

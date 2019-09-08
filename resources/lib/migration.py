@@ -62,4 +62,13 @@ def check_migration():
         # Re-sync all playlists to Kodi
         utils.wipe_synched_playlists()
 
+    if not utils.compare_version(last_migration, '2.9.7'):
+        LOG.info('Migrating to version 2.9.6')
+        # Allow for a new "Direct Stream" setting (number 2), so shift the
+        # last setting for "force transcoding"
+        current_playback_type = utils.cast(int, utils.settings('playType')) or 0
+        if current_playback_type == 2:
+            current_playback_type = 3
+        utils.settings('playType', value=str(current_playback_type))
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
