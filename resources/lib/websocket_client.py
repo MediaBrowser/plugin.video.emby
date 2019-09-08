@@ -19,6 +19,7 @@ class WebSocket(backgroundthread.KillableThread):
     def __init__(self):
         self.ws = None
         self.redirect_uri = None
+        self.sleeptime = 0
         super(WebSocket, self).__init__()
 
     def process(self, opcode, message):
@@ -45,6 +46,16 @@ class WebSocket(backgroundthread.KillableThread):
     def getUri(self):
         raise NotImplementedError
 
+    def __sleep(self):
+        """
+        Sleeps for 2^self.sleeptime where sleeping period will be doubled with
+        each unsuccessful connection attempt.
+        Will sleep at most 64 seconds
+        """
+        app.APP.monitor.waitForAbort(2**self.sleeptime)
+        if self.sleeptime < 6:
+            self.sleeptime += 1
+
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
         app.APP.register_thread(self)
@@ -58,7 +69,6 @@ class WebSocket(backgroundthread.KillableThread):
             LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
     def _run(self):
-        counter = 0
         while not self.isCanceled():
             # In the event the server goes offline
             if self.isSuspended():
@@ -68,8 +78,6 @@ class WebSocket(backgroundthread.KillableThread):
                     self.ws = None
                 if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
-                    LOG.info("##===---- %s Stopped ----===##",
-                             self.__class__.__name__)
                     return
             try:
                 self.process(*self.receive(self.ws))
@@ -77,8 +85,8 @@ class WebSocket(backgroundthread.KillableThread):
                 # No worries if read timed out
                 pass
             except websocket.WebSocketConnectionClosedException:
-                LOG.info("%s: connection closed, (re)connecting",
-                         self.__class__.__name__)
+                LOG.debug("%s: connection closed, (re)connecting",
+                          self.__class__.__name__)
                 uri, sslopt = self.getUri()
                 try:
                     # Low timeout - let's us shut this thread down!
@@ -89,41 +97,25 @@ class WebSocket(backgroundthread.KillableThread):
                         enable_multithread=True)
                 except IOError:
                     # Server is probably offline
-                    LOG.info("%s: Error connecting", self.__class__.__name__)
+                    LOG.debug("%s: IOError connecting", self.__class__.__name__)
                     self.ws = None
-                    counter += 1
-                    if counter >= 10:
-                        LOG.info('%s: Repeated IOError detected. Stopping now',
-                                 self.__class__.__name__)
-                        break
-                    app.APP.monitor.waitForAbort(1)
+                    self.__sleep()
                 except websocket.WebSocketTimeoutException:
-                    LOG.info("%s: Timeout while connecting, trying again",
-                             self.__class__.__name__)
+                    LOG.debug("%s: WebSocketTimeoutException", self.__class__.__name__)
                     self.ws = None
-                    app.APP.monitor.waitForAbort(1)
+                    self.__sleep()
                 except websocket.WebsocketRedirect as e:
-                    LOG.info('301 redirect detected')
-                    self.redirect_uri = e.headers.get('location', e.headers.get('Location'))
+                    LOG.debug('301 redirect detected: %s', e)
+                    self.redirect_uri = e.headers.get('location',
+                                                      e.headers.get('Location'))
                     if self.redirect_uri:
-                        self.redirect_uri.decode('utf-8')
-                    counter += 1
-                    if counter >= 10:
-                        LOG.info('%s: Repeated WebsocketRedirect detected. Stopping now',
-                                 self.__class__.__name__)
-                        break
-                except websocket.WebSocketException as e:
-                    LOG.info('%s: WebSocketException: %s',
-                             self.__class__.__name__, e)
-                    if ('Handshake Status 401' in e.args or
-                            'Handshake Status 403' in e.args):
-                        counter += 1
-                        if counter >= 5:
-                            LOG.info('%s: Error in handshake detected. '
-                                     'Stopping now', self.__class__.__name__)
-                            break
+                        self.redirect_uri = self.redirect_uri.decode('utf-8')
                     self.ws = None
-                    app.APP.monitor.waitForAbort(1)
+                    self.__sleep()
+                except websocket.WebSocketException as e:
+                    LOG.debug('%s: WebSocketException: %s', self.__class__.__name__, e)
+                    self.ws = None
+                    self.__sleep()
                 except Exception as e:
                     LOG.error('%s: Unknown exception encountered when '
                               'connecting: %s', self.__class__.__name__, e)
@@ -131,9 +123,9 @@ class WebSocket(backgroundthread.KillableThread):
                     LOG.error("%s: Traceback:\n%s",
                               self.__class__.__name__, traceback.format_exc())
                     self.ws = None
-                    app.APP.monitor.waitForAbort(1)
+                    self.__sleep()
                 else:
-                    counter = 0
+                    self.sleeptime = 0
             except Exception as e:
                 LOG.error("%s: Unknown exception encountered: %s",
                           self.__class__.__name__, e)
