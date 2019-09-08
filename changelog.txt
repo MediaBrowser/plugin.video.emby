@@ -1,3 +1,10 @@
+version 2.9.6:
+- Rework logic for using direct paths, direct play, direct streaming and transcoding, using the PMS StreamingBrain: Let PMS StreamingBrain decide on whether we need to force-transcode, New setting to choose "Direct Streaming", Allow for 4k transcoding and direct streaming, New setting to force transcode only 4K and above
+- Fix PKC background sync synching items to Kodi even though entire section should not be synched
+- Force a full sync of all items after choosing a new PMS, changing a PMS' address and changing which Plex libraries to sync
+- Only enforce advancedsettings.xml 'cleanonupdate' to be false for PKC add-on paths
+- Never give up trying to connect to the PMS or Alexa using websockets
+
 version 2.9.5:
 - Version 2.9.4 for everyone
 
