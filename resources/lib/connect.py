@@ -96,7 +96,8 @@ class Connect(object):
         try:
             new_credentials = self.register_client(credentials, options, server_id, server_select)
             credentials = self._save_servers(new_credentials['Servers'], server_id is None)
-            save_credentials(credentials)
+            new_credentials.update(credentials)
+            save_credentials(new_credentials)
             Emby(server_id).start(not bool(server_id), True)
         except HTTPException as error:
 
