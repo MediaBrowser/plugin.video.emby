@@ -137,7 +137,6 @@ class Sync(backgroundthread.KillableThread):
         playlist_monitor = None
         initial_sync_done = False
         last_websocket_processing = 0
-        one_day_in_seconds = 60 * 60 * 24
         # Link to Websocket queue
         queue = app.APP.websocket_queue
 
@@ -170,7 +169,6 @@ class Sync(backgroundthread.KillableThread):
                 return
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
-                last_time_sync = timing.unix_timestamp()
                 LOG.info('Initial start-up full sync starting')
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 # This call will block until scan is completed
