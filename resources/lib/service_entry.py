@@ -55,6 +55,7 @@ class Service(object):
         LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
         LOG.info("PKC Direct Paths: %s",
                  utils.settings('useDirectPaths') == '1')
+        LOG.info("Escape paths: %s", utils.settings('escapePath') == 'true')
         LOG.info("Synching Plex artwork to Kodi: %s",
                  utils.settings('usePlexArtwork') == 'true')
         LOG.info("Number of sync threads: %s",

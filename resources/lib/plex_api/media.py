@@ -332,13 +332,7 @@ class Media(object):
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if app.SYNC.escape_path:
-            try:
-                protocol, hostname, args = path.split(':', 2)
-            except ValueError:
-                pass
-            else:
-                args = utils.quote(args)
-                path = '%s:%s:%s' % (protocol, hostname, args)
+            path = utils.escape_path(path)
         if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
 
