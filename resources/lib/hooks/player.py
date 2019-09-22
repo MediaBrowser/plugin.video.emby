@@ -456,7 +456,8 @@ class Player(xbmc.Player):
             'IsMuted': item['Muted'],
             'PlaySessionId': item['PlaySessionId'],
             'AudioStreamIndex': item['AudioStreamIndex'],
-            'SubtitleStreamIndex': item['SubtitleStreamIndex']
+            'SubtitleStreamIndex': item['SubtitleStreamIndex'],
+            'RunTimeTicks': int(item['Runtime'] * 10000000)
         }
         item['Server']['api'].session_progress(data)
 
