@@ -13,10 +13,14 @@ LOG = getLogger('PLEX.migration')
 def check_migration():
     LOG.info('Checking whether we need to migrate something')
     last_migration = utils.settings('last_migrated_PKC_version')
-    if last_migration == v.ADDON_VERSION:
+    # Ensure later migration if user downgraded PKC!
+    utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
+
+    if last_migration == '':
+        LOG.info('New, clean PKC installation - no migration necessary')
+        return
+    elif last_migration == v.ADDON_VERSION:
         LOG.info('Already migrated to PKC version %s' % v.ADDON_VERSION)
-        # Ensure later migration if user downgraded PKC!
-        utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
         return
 
     if not utils.compare_version(last_migration, '1.8.2'):
