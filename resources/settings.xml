@@ -89,7 +89,7 @@
 	</category>
 
 	<category label="39057"><!-- Customize Paths -->
-		<setting type="lsep" label="39056" /><!-- Used by Sync and to attempt to direct play -->
+		<setting type="lsep" label="39056" /><!-- Used by sync and when attempting Direct Paths. Restart Kodi on changes! -->
 		<setting id="replaceSMB" type="bool" label="39034" default="true" /> <!-- replace all Plex paths with SMB paths -->
 		<setting id="remapSMB" type="bool" label="39035" default="false" /> <!-- replace Plex paths /volume1/media or \\myserver\media with a custom SMB path smb://NAS/mystuff -->
 		<setting id="remapSMBmovieOrg" type="text" label="39037" default="" visible="eq(-1,true)" subsetting="true" /> <!-- Original Plex MOVIE path to replace -->

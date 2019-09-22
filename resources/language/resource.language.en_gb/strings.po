@@ -973,7 +973,7 @@ msgstr ""
 
 # PKC Settings - Customize paths
 msgctxt "#39056"
-msgid "Used by Sync and when attempting to use Direct Paths"
+msgid "Used by sync and when attempting Direct Paths. Restart Kodi on changes!"
 msgstr ""
 
 # PKC Settings, category name
