@@ -5,7 +5,7 @@ import logging
 import sys
 import xbmc
 
-from . import utils, clientinfo, timing
+from . import utils, clientinfo
 from . import initialsetup
 from . import kodimonitor
 from . import sync, library_sync
