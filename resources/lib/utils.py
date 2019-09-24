@@ -938,8 +938,9 @@ class XmlKodiSetting(object):
         if not append:
             old = self.get_setting(node_list)
             if (old is not None and
-                    old.text.strip() == value and
-                    old.attrib == attrib):
+                    ((old.text is not None and old.text.strip() == value) or
+                     (old.text is None and value == '')) and
+                    (old.attrib or {}) == attrib):
                 # Already set exactly these values
                 return old
         LOG.debug('Adding etree to: %s, value: %s, attrib: %s, append: %s',
