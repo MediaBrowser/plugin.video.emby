@@ -820,10 +820,10 @@ def get_plex_sections():
     return xml
 
 
-def init_plex_playqueue(plex_id, plex_type, trailers=False):
+def init_plex_playqueue(plex_id, plex_type, section_uuid, trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
-   """
+    """
     url = "{server}/playQueues"
     args = {
         'type': plex_type,
@@ -839,8 +839,30 @@ def init_plex_playqueue(plex_id, plex_type, trailers=False):
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
-        LOG.error("Error retrieving metadata for %s", url)
-        return
+        LOG.warn('Need to initialize Plex playqueue the old fashioned way')
+        xml = init_plex_playqueue_old_fashioned(plex_id, section_uuid, url, args)
+    return xml
+
+
+def init_plex_playqueue_old_fashioned(plex_id, section_uuid, url, args):
+    """
+    In rare cases (old PMS version?), the PMS does not allow to add media using
+    an uri
+        server://<machineIdentifier>/com.plexapp.plugins.library/library...
+    We need to use
+        library://<librarySectionUUID>/item/...
+
+    This involves an extra step to grab the librarySectionUUID for plex_id
+    """
+    args['uri'] = 'library://{0}/item/%2Flibrary%2Fmetadata%2F{1}'.format(
+        section_uuid, plex_id)
+    xml = DU().downloadUrl(utils.extend_url(url, args), action_type="POST")
+    try:
+        xml[0].tag
+    except (IndexError, TypeError, AttributeError):
+        LOG.error('Error initializing the playqueue the old fashioned way %s',
+                  utils.extend_url(url, args))
+        xml = None
     return xml
 
 
