@@ -1,3 +1,8 @@
+version 2.9.8 (beta only):
+- Fix Play Error in scenarios (older PMS version?) where posting playqueues using an uri `server://` is not possible and `library://` is necessary
+- Fix rare AttributeError on PKC startup when modifying advancedsettings.xml
+- Update translations
+
 version 2.9.7 (beta only):
 - Correctly escape URLs for Direct Paths
 - Update settings to inform user that reboot is necessary
