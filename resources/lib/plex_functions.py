@@ -820,10 +820,10 @@ def get_plex_sections():
     return xml
 
 
-def init_plex_playqueue(plex_id, plex_type, trailers=False):
+def init_plex_playqueue(plex_id, plex_type, section_uuid, trailers=False):
     """
     Returns raw API metadata XML dump for a playlist with e.g. trailers.
-   """
+    """
     url = "{server}/playQueues"
     args = {
         'type': plex_type,
@@ -839,8 +839,30 @@ def init_plex_playqueue(plex_id, plex_type, trailers=False):
     try:
         xml[0].tag
     except (IndexError, TypeError, AttributeError):
-        LOG.error("Error retrieving metadata for %s", url)
-        return
+        LOG.warn('Need to initialize Plex playqueue the old fashioned way')
+        xml = init_plex_playqueue_old_fashioned(plex_id, section_uuid, url, args)
+    return xml
+
+
+def init_plex_playqueue_old_fashioned(plex_id, section_uuid, url, args):
+    """
+    In rare cases (old PMS version?), the PMS does not allow to add media using
+    an uri
+        server://<machineIdentifier>/com.plexapp.plugins.library/library...
+    We need to use
+        library://<librarySectionUUID>/item/...
+
+    This involves an extra step to grab the librarySectionUUID for plex_id
+    """
+    args['uri'] = 'library://{0}/item/%2Flibrary%2Fmetadata%2F{1}'.format(
+        section_uuid, plex_id)
+    xml = DU().downloadUrl(utils.extend_url(url, args), action_type="POST")
+    try:
+        xml[0].tag
+    except (IndexError, TypeError, AttributeError):
+        LOG.error('Error initializing the playqueue the old fashioned way %s',
+                  utils.extend_url(url, args))
+        xml = None
     return xml
 
 
@@ -1040,3 +1062,74 @@ def show_episodes(plex_id):
         'skipRefresh': 1,
     }
     return DownloadChunks(utils.extend_url(url, arguments))
+
+
+def transcoding_arguments(path, media, part, playmethod, args=None):
+    if playmethod == v.PLAYBACK_METHOD_DIRECT_PLAY:
+        direct_play = 1
+        direct_stream = 1
+    elif playmethod == v.PLAYBACK_METHOD_DIRECT_STREAM:
+        direct_play = 0
+        direct_stream = 1
+    elif playmethod == v.PLAYBACK_METHOD_TRANSCODE:
+        direct_play = 0
+        direct_stream = 0
+    arguments = {
+        # e.g. '/library/metadata/831399'
+        'path': path,
+        # 1 if you want to directPlay, 0 if you want to transcode
+        'directPlay': direct_play,
+        # 1 if you want to play a stream copy of data into a new container. This
+        # is unlikely to come up but it’s possible if you are playing something
+        # with a lot of tracks, a direct stream can result in lower bandwidth
+        # when a direct play would be over the limit.
+        # Assume Kodi can always handle any stream thrown at it!
+        'directStream': direct_stream,
+        # Same for audio - assume Kodi can play any audio stream passed in!
+        'directStreamAudio': direct_stream,
+        # This tells the server that you definitively know that the client can
+        # direct play (when you have directPlay=1) the content in spite of what
+        # client profiles may say about what the client can play. When this is
+        # set and directPlay=1, the server just checks bandwidth restrictions
+        # and gives you a reservation if bandwidth restrictions are met
+        'hasMDE': direct_play,
+        # where # is an integer, 0 indexed. If you specify directPlay, this is
+        # required. -1 indicates let the server choose.
+        'mediaIndex': media,
+        # Similar to mediaIndex but indicates which part you want to direct
+        # play. Really only comes into play with multi-part files which are
+        # uncommon. -1 here means concatenate the parts together but that
+        # requires the transcoder.
+        'partIndex': part,
+        # all the rest
+        'audioBoost': utils.settings('audioBoost'),
+        'autoAdjustQuality': 1,
+        'protocol': 'hls',   # seen in the wild: 'http', 'dash', 'http', 'hls'
+        'session': v.PKC_MACHINE_IDENTIFIER,  # TODO: create new unique id
+        'fastSeek': 1,
+        # none, embedded, sidecar
+        # Essentially indicating what you want to do with subtitles and state
+        # you aren’t want it to burn them into the video (requires transcoding)
+        'subtitles': 'none',
+        # 'subtitleSize': utils.settings('subtitleSize')
+        'copyts': 1
+    }
+    if args:
+        arguments.update(args)
+    return arguments
+
+
+def playback_decision(path, media, part, playmethod, video=True, args=None):
+    """
+    Let's the PMS decide how we should playback this file
+    """
+    arguments = transcoding_arguments(path, media, part, playmethod, args=args)
+    if video:
+        url = '{server}/video/:/transcode/universal/decision'
+    else:
+        url = '{server}/music/:/transcode/universal/decision'
+    LOG.debug('Asking the PMS if we can play this video with settings: %s',
+              arguments)
+    return DU().downloadUrl(utils.extend_url(url, arguments),
+                            headerOptions=v.STREAMING_HEADERS,
+                            reraise=True)

@@ -13,10 +13,14 @@ LOG = getLogger('PLEX.migration')
 def check_migration():
     LOG.info('Checking whether we need to migrate something')
     last_migration = utils.settings('last_migrated_PKC_version')
-    if last_migration == v.ADDON_VERSION:
+    # Ensure later migration if user downgraded PKC!
+    utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
+
+    if last_migration == '':
+        LOG.info('New, clean PKC installation - no migration necessary')
+        return
+    elif last_migration == v.ADDON_VERSION:
         LOG.info('Already migrated to PKC version %s' % v.ADDON_VERSION)
-        # Ensure later migration if user downgraded PKC!
-        utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
         return
 
     if not utils.compare_version(last_migration, '1.8.2'):
@@ -61,5 +65,22 @@ def check_migration():
         LOG.info('Migrating to version 2.9.2')
         # Re-sync all playlists to Kodi
         utils.wipe_synched_playlists()
+
+    if not utils.compare_version(last_migration, '2.9.7'):
+        LOG.info('Migrating to version 2.9.6')
+        # Allow for a new "Direct Stream" setting (number 2), so shift the
+        # last setting for "force transcoding"
+        current_playback_type = utils.cast(int, utils.settings('playType')) or 0
+        if current_playback_type == 2:
+            current_playback_type = 3
+        utils.settings('playType', value=str(current_playback_type))
+
+    if not utils.compare_version(last_migration, '2.9.8'):
+        LOG.info('Migrating to version 2.9.7')
+        # Force-scan every single item in the library - seems like we could
+        # loose some recently added items otherwise
+        # Caused by 65a921c3cc2068c4a34990d07289e2958f515156
+        from . import library_sync
+        library_sync.force_full_sync()
 
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)

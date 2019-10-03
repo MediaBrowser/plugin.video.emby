@@ -70,9 +70,6 @@ else:
     DEVICE = "Unknown"
 
 MODEL = platform.release() or 'Unknown'
-# Plex' own platform for e.g. Plex Media Player
-PLATFORM = 'Konvergo'
-PLATFORM_VERSION = '2.26.0.947-1e21fa2b'
 
 DEVICENAME = try_decode(_ADDON.getSetting('deviceName'))
 if not DEVICENAME:
@@ -137,6 +134,7 @@ EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
 
 # Multiply Plex time by this factor to receive Kodi time
 PLEX_TO_KODI_TIMEFACTOR = 1.0 / 1000.0
+
 
 # Playlist stuff
 PLAYLIST_PATH = os.path.join(KODI_PROFILE, 'playlists')
@@ -446,6 +444,58 @@ CONTENT_FROM_PLEX_TYPE = {
     'mixed': CONTENT_TYPE_SHOW,
     None: CONTENT_TYPE_FILE
 }
+
+
+# Plex profile for transcoding and direct streaming
+# Uses the empty Generic.xml at Plex Media Server/Resources/Profiles for any
+# Playback decisions
+PLATFORM = 'Generic'
+# Version seems to be irrelevant for the generic platform
+PLATFORM_VERSION = '1.0.0'
+# Overrides (replace=true) any existing entries in generic.xml
+STREAMING_HEADERS = {
+    'X-Plex-Client-Profile-Extra':
+        # Would allow to DirectStream anything, but seems to be rather faulty
+        # 'add-transcode-target('
+        #  'type=videoProfile&'
+        #  'context=streaming&'
+        #  'protocol=hls&'
+        #  'container=mpegts&'
+        #  'videoCodec=h264,*&'
+        #  'audioCodec=aac,*&'
+        #  'subtitleCodec=ass,pgs,vobsub,srt,*&'
+        #  'replace=true)'
+        ('add-transcode-target('
+         'type=videoProfile&'
+         'context=streaming&'
+         'protocol=hls&'
+         'container=mpegts&'
+         'videoCodec=h264,hevc,mpeg4,mpeg2video&'
+         'audioCodec=aac,flac,vorbis,opus,ac3,eac3,mp3,mp2,pcm&'
+         'subtitleCodec=ass,pgs,vobsub&'
+         'replace=true)'
+         '+add-direct-play-profile('
+         'type=videoProfile&'
+         'container=*&'
+         'videoCodec=*&'
+         'audioCodec=*&'
+         'subtitleCodec=*&'
+         'replace=true)')
+}
+
+PLAYBACK_METHOD_DIRECT_PATH = 0
+PLAYBACK_METHOD_DIRECT_PLAY = 1
+PLAYBACK_METHOD_DIRECT_STREAM = 2
+PLAYBACK_METHOD_TRANSCODE = 3
+
+EXPLICIT_PLAYBACK_METHOD = {
+    PLAYBACK_METHOD_DIRECT_PATH: 'DirectPath',
+    PLAYBACK_METHOD_DIRECT_PLAY: 'DirectPlay',
+    PLAYBACK_METHOD_DIRECT_STREAM: 'DirectStream',
+    PLAYBACK_METHOD_TRANSCODE: 'Transcode',
+    None: None
+}
+
 
 KODI_TO_PLEX_ARTWORK = {
     'poster': 'thumb',

@@ -54,6 +54,8 @@ REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
 # Grab Plex id from an URL-encoded string
 REGEX_PLEX_ID_FROM_URL = re.compile(r'''metadata%2F(\d+)''')
 
+SAFE_URL_CHARACTERS = "%/:=&?~#+!$,;'@()*[]".encode('utf-8')
+
 
 def garbageCollect():
     gc.collect(2)
@@ -373,6 +375,21 @@ def urlparse(url, scheme='', allow_fragments=True):
     return _urlparse.urlparse(url, scheme, allow_fragments)
 
 
+def escape_path(path):
+    """
+    Uses urllib.quote to escape to escape path [unicode]. See here for the
+    reasoning whether a character is safe or not and whether or not it should
+    be escaped:
+        https://bugs.python.org/issue918368
+    Letters, digits, and the characters '_.-' are never quoted. Choosing the
+    "wrong" characters for a password for USERNAME:PASSWORD@host.com will get
+    you in trouble (e.g. '@')
+    Returns the escaped path as unicode
+    """
+    return urllib.quote(path.encode('utf-8'),
+                        safe=SAFE_URL_CHARACTERS).decode('utf-8')
+
+
 def quote(s, safe='/'):
     """
     unicode-safe way to use urllib.quote(). Pass in either str or unicode
@@ -380,7 +397,7 @@ def quote(s, safe='/'):
     """
     if isinstance(s, unicode):
         s = s.encode('utf-8')
-    s = urllib.quote(s, safe)
+    s = urllib.quote(s, safe.encode('utf-8'))
     return s.decode('utf-8')
 
 
@@ -391,7 +408,7 @@ def quote_plus(s, safe=''):
     """
     if isinstance(s, unicode):
         s = s.encode('utf-8')
-    s = urllib.quote_plus(s, safe)
+    s = urllib.quote_plus(s, safe.encode('utf-8'))
     return s.decode('utf-8')
 
 
@@ -921,8 +938,9 @@ class XmlKodiSetting(object):
         if not append:
             old = self.get_setting(node_list)
             if (old is not None and
-                    old.text.strip() == value and
-                    old.attrib == attrib):
+                    ((old.text is not None and old.text.strip() == value) or
+                     (old.text is None and value == '')) and
+                    (old.attrib or {}) == attrib):
                 # Already set exactly these values
                 return old
         LOG.debug('Adding etree to: %s, value: %s, attrib: %s, append: %s',

@@ -509,9 +509,13 @@ class InitialSetup(object):
                 # (still used by Kodi, even though the Wiki says otherwise)
                 xml.set_setting(['musiclibrary', 'backgroundupdate'],
                                 value='true')
-                # Disable cleaning of library - not compatible with PKC
-                xml.set_setting(['videolibrary', 'cleanonupdate'],
-                                value='false')
+                cleanonupdate = xml.get_setting(
+                    ['videolibrary', 'cleanonupdate']) == 'true'
+                if utils.settings('useDirectPaths') != '1':
+                    # Disable cleaning of library - not compatible with PKC
+                    # Only do this for add-on paths
+                    xml.set_setting(['videolibrary', 'cleanonupdate'],
+                                    value='false')
                 # Set completely watched point same as plex (and not 92%)
                 xml.set_setting(['video', 'ignorepercentatend'], value='10')
                 xml.set_setting(['video', 'playcountminimumpercent'],
@@ -522,6 +526,7 @@ class InitialSetup(object):
         except utils.ParseError:
             cache = None
             reboot = False
+            cleanonupdate = False
         # Kodi default cache if no setting is set
         cache = str(cache.text) if cache is not None else '20971520'
         LOG.info('Current Kodi video memory cache in bytes: %s', cache)
@@ -644,6 +649,11 @@ class InitialSetup(object):
                               utils.lang(39081), utils.lang(39082)) == 1:
             LOG.debug("User opted to use direct paths.")
             utils.settings('useDirectPaths', value="1")
+            if cleanonupdate:
+                # Re-enable cleanonupdate
+                with utils.XmlKodiSetting('advancedsettings.xml') as xml:
+                    xml.set_setting(['videolibrary', 'cleanonupdate'],
+                                    value='true')
             # Are you on a system where you would like to replace paths
             # \\NAS\mymovie.mkv with smb://NAS/mymovie.mkv? (e.g. Windows)
             if utils.yesno_dialog(utils.lang(29999), utils.lang(39033)):

@@ -6,12 +6,13 @@ from logging import getLogger
 from ..utils import cast
 from ..downloadutils import DownloadUtils as DU
 from .. import utils, variables as v, app, path_ops, clientinfo
+from .. import plex_functions as PF
 
 LOG = getLogger('PLEX.api')
 
 
 class Media(object):
-    def should_stream(self):
+    def optimized_for_streaming(self):
         """
         Returns True if the item's 'optimizedForStreaming' is set, False other-
         wise
@@ -209,7 +210,9 @@ class Media(object):
         Transcode Video support; returns the URL to get a media started
 
         Input:
-            action      'DirectStream' or 'Transcode'
+            action      'DirectPlay'
+                        'DirectStream'
+                        'Transcode'
 
             quality:    {
                             'videoResolution': e.g. '1024x768',
@@ -224,47 +227,23 @@ class Media(object):
         """
         if self.mediastream is None and self.mediastream_number() is None:
             return
-        quality = {} if quality is None else quality
-        xargs = clientinfo.getXArgsDeviceInfo()
-        # For DirectPlay, path/key of PART is needed
-        # trailers are 'clip' with PMS xmls
-        if action == "DirectStream":
+        headers = clientinfo.getXArgsDeviceInfo()
+        if action == v.PLAYBACK_METHOD_DIRECT_PLAY:
             path = self.xml[self.mediastream][self.part].get('key')
-            url = app.CONN.server + path
             # e.g. Trailers already feature an '?'!
-            return utils.extend_url(url, xargs)
-
-        # For Transcoding
-        headers = {
-            'X-Plex-Platform': 'Android',
-            'X-Plex-Platform-Version': '7.0',
-            'X-Plex-Product': 'Plex for Android',
-            'X-Plex-Version': '5.8.0.475'
-        }
+            return utils.extend_url(app.CONN.server + path, headers)
+        # Direct Streaming and Transcoding
+        arguments = PF.transcoding_arguments(path=self.path_and_plex_id(),
+                                             media=self.mediastream,
+                                             part=self.part,
+                                             playmethod=action,
+                                             args=quality)
+        headers.update(arguments)
         # Path/key to VIDEO item of xml PMS response is needed, not part
         path = self.xml.get('key')
         transcode_path = app.CONN.server + \
             '/video/:/transcode/universal/start.m3u8'
-        args = {
-            'audioBoost': utils.settings('audioBoost'),
-            'autoAdjustQuality': 0,
-            'directPlay': 0,
-            'directStream': 1,
-            'protocol': 'hls',   # seen in the wild: 'dash', 'http', 'hls'
-            'session': v.PKC_MACHINE_IDENTIFIER,  # TODO: create new unique id
-            'fastSeek': 1,
-            'path': path,
-            'mediaIndex': self.mediastream,
-            'partIndex': self.part,
-            'hasMDE': 1,
-            'location': 'lan',
-            'subtitleSize': utils.settings('subtitleSize')
-        }
-        LOG.debug("Setting transcode quality to: %s", quality)
-        xargs.update(headers)
-        xargs.update(args)
-        xargs.update(quality)
-        return utils.extend_url(transcode_path, xargs)
+        return utils.extend_url(transcode_path, headers)
 
     def cache_external_subs(self):
         """
@@ -353,13 +332,7 @@ class Media(object):
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if app.SYNC.escape_path:
-            try:
-                protocol, hostname, args = path.split(':', 2)
-            except ValueError:
-                pass
-            else:
-                args = utils.quote(args)
-                path = '%s:%s:%s' % (protocol, hostname, args)
+            path = utils.escape_path(path)
         if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
 

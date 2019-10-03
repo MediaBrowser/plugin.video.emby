@@ -75,7 +75,23 @@ class Sync(object):
         # Could we access the paths?
         self.path_verified = False
 
+        # List of Section() items representing Plex library sections
+        self._sections = []
+        # List of section_ids we're synching to Kodi - will be automatically
+        # re-built if sections are set a-new
+        self.section_ids = set()
+
         self.load()
+
+    @property
+    def sections(self):
+        return self._sections
+
+    @sections.setter
+    def sections(self, sections):
+        self._sections = sections
+        # Sets are faster when using "in" test than lists
+        self.section_ids = set([x.section_id for x in sections if x.sync_to_kodi])
 
     def load(self):
         self.direct_paths = utils.settings('useDirectPaths') == '1'

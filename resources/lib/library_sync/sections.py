@@ -15,7 +15,6 @@ from ..utils import etree
 LOG = getLogger('PLEX.sync.sections')
 
 BATCH_SIZE = 500
-SECTIONS = []
 # Need a way to interrupt our synching process
 IS_CANCELED = None
 
@@ -590,11 +589,10 @@ def sync_from_pms(parent_self, pick_libraries=False):
         return _sync_from_pms(pick_libraries)
     finally:
         IS_CANCELED = None
-        LOG.info('Done synching sections from the PMS: %s', SECTIONS)
+        LOG.info('Done synching sections from the PMS: %s', app.SYNC.sections)
 
 
 def _sync_from_pms(pick_libraries):
-    global SECTIONS
     # Re-set value in order to make sure we got the lastest user input
     app.SYNC.enable_music = utils.settings('enableMusic') == 'true'
     xml = PF.get_plex_sections()
@@ -649,7 +647,7 @@ def _sync_from_pms(pick_libraries):
     # Counter that tells us how many sections we have - e.g. for skins and
     # listings
     utils.window('Plex.nodes.total', str(len(sections)))
-    SECTIONS = sections
+    app.SYNC.sections = sections
     return True
 
 

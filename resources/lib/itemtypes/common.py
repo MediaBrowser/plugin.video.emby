@@ -6,7 +6,7 @@ from ntpath import dirname
 
 from ..plex_db import PlexDB, PLEXDB_LOCK
 from ..kodi_db import KodiVideoDB, KODIDB_LOCK
-from .. import utils, timing
+from .. import utils, timing, app
 
 LOG = getLogger('PLEX.itemtypes.common')
 
@@ -136,3 +136,12 @@ class ItemBase(object):
                                    duration,
                                    view_count,
                                    timing.plex_date_to_kodi(lastViewedAt))
+
+    @staticmethod
+    def sync_this_item(section_id):
+        """
+        Returns False if we are NOT synching the corresponding Plex library
+        with section_id [int] to Kodi or if this sections has not yet been
+        encountered by PKC
+        """
+        return section_id in app.SYNC.section_ids

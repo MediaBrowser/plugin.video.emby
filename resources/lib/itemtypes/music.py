@@ -159,10 +159,12 @@ class Artist(MusicMixin, ItemBase):
         Process a single artist
         """
         api = API(xml)
-        plex_id = api.plex_id
-        if not plex_id:
-            LOG.error('Cannot process artist %s', xml.attrib)
+        if not self.sync_this_item(api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      api.library_section_id())
             return
+        plex_id = api.plex_id
         artist = self.plexdb.artist(plex_id)
         if not artist:
             update_item = False
@@ -224,9 +226,6 @@ class Album(MusicMixin, ItemBase):
         """
         api = API(xml)
         plex_id = api.plex_id
-        if not plex_id:
-            LOG.error('Error processing album: %s', xml.attrib)
-            return
         album = self.plexdb.album(plex_id)
         if album:
             update_item = True
@@ -389,9 +388,6 @@ class Song(MusicMixin, ItemBase):
         """
         api = API(xml)
         plex_id = api.plex_id
-        if not plex_id:
-            LOG.error('Error processing song: %s', xml.attrib)
-            return
         song = self.plexdb.song(plex_id)
         if song:
             update_item = True

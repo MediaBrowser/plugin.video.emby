@@ -5,7 +5,7 @@ import logging
 import sys
 import xbmc
 
-from . import utils, clientinfo, timing
+from . import utils, clientinfo
 from . import initialsetup
 from . import kodimonitor
 from . import sync, library_sync
@@ -51,11 +51,11 @@ class Service(object):
             return
         # Initial logging
         LOG.info("======== START %s ========", v.ADDON_NAME)
-        LOG.info("Platform: %s", v.PLATFORM)
         LOG.info("KODI Version: %s", v.KODILONGVERSION)
         LOG.info("%s Version: %s", v.ADDON_NAME, v.ADDON_VERSION)
         LOG.info("PKC Direct Paths: %s",
                  utils.settings('useDirectPaths') == '1')
+        LOG.info("Escape paths: %s", utils.settings('escapePath') == 'true')
         LOG.info("Synching Plex artwork to Kodi: %s",
                  utils.settings('usePlexArtwork') == 'true')
         LOG.info("Number of sync threads: %s",
@@ -198,7 +198,8 @@ class Service(object):
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
-        # Force a full sync
+        # Force a full sync of all items
+        library_sync.force_full_sync()
         app.SYNC.run_lib_scan = 'full'
         # Enable the main loop to continue
         app.APP.suspend = False
@@ -268,7 +269,8 @@ class Service(object):
         app.ACCOUNT.set_unauthenticated()
         self.server_has_been_online = False
         self.welcome_msg = False
-        # Force a full sync
+        # Force a full sync of all items
+        library_sync.force_full_sync()
         app.SYNC.run_lib_scan = 'full'
         # Enable the main loop to continue
         app.APP.suspend = False
@@ -295,7 +297,8 @@ class Service(object):
             # Get newest sections from the PMS
             if not sections.sync_from_pms(self, pick_libraries=True):
                 return
-            # Force a full sync
+            # Force a full sync of all items
+            library_sync.force_full_sync()
             app.SYNC.run_lib_scan = 'full'
         finally:
             app.APP.resume_threads()
