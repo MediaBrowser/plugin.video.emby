@@ -49,6 +49,7 @@ REGEX_PLEX_DIRECT = re.compile(r'''\.plex\.direct:\d+$''')
 # Plex API
 REGEX_IMDB = re.compile(r'''/(tt\d+)''')
 REGEX_TVDB = re.compile(r'''thetvdb:\/\/(.+?)\?''')
+REGEX_TMDB = re.compile(r'''themoviedb:\/\/(.+?)\?''')
 # Plex music
 REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
 # Grab Plex id from an URL-encoded string
