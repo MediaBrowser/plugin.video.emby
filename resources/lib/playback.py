@@ -19,7 +19,7 @@ from . import playlist_func as PL
 from . import playqueue as PQ
 from . import json_rpc as js
 from . import transfer
-from .playback_decision import set_playurl
+from .playback_decision import set_playurl, audio_subtitle_prefs
 from . import variables as v
 from . import app
 
@@ -477,7 +477,7 @@ def _conclude_playback(playqueue, pos):
         listitem.setSubtitles(api.cache_external_subs())
     elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
                              v.PLAYBACK_METHOD_TRANSCODE):
-        playutils.audio_subtitle_prefs(listitem)
+        audio_subtitle_prefs(api, listitem)
     _set_resume(listitem, item, api)
     transfer.send(listitem)
     LOG.info('Done concluding playback')
