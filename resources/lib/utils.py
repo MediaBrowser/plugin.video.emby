@@ -512,6 +512,19 @@ def escape_html(string):
     return string
 
 
+def delete_temporary_subtitles():
+    """
+    Permanently deletes all temporary subtitle files
+    """
+    for root, _, files in path_ops.walk(v.EXTERNAL_SUBTITLE_TEMP_PATH):
+        for file in files:
+            try:
+                path_ops.remove(path_ops.path.join(root, file))
+            except (OSError, IOError) as err:
+                LOG.error('Could not delete temporary subtitle: %s, %s: %s',
+                          root, file, err)
+
+
 def kodi_sql(media_type=None):
     """
     Open a connection to the Kodi database.

@@ -450,6 +450,7 @@ def _playback_cleanup(ended=False):
     # As all playback has halted, reset the players that have been active
     app.PLAYSTATE.active_players = set()
     app.PLAYSTATE.item = None
+    utils.delete_temporary_subtitles()
     LOG.info('Finished PKC playback cleanup')
 
 
