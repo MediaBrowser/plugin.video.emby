@@ -24,8 +24,7 @@ from . import backgroundthread, app, variables as v
 LOG = getLogger('PLEX.kodimonitor')
 
 # "Start from beginning", "Play from beginning"
-STRINGS = (utils.try_encode(utils.lang(12021)),
-           utils.try_encode(utils.lang(12023)))
+STRINGS = (utils.lang(12021).encode('utf-8'), utils.lang(12023).encode('utf-8'))
 
 
 class KodiMonitor(xbmc.Monitor):
