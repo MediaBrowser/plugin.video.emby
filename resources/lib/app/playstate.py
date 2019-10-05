@@ -53,6 +53,9 @@ class PlayState(object):
         }
         self.played_info = {}
 
+        # Currently playing PKC item, a PlaylistItem()
+        self.item = None
+
         # Set by SpecialMonitor - did user choose to resume playback or start from the
         # beginning?
         # Set to None if resume dialog has not been shown

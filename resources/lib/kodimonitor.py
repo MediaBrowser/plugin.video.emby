@@ -422,6 +422,8 @@ class KodiMonitor(xbmc.Monitor):
                 container_key = '/playQueues/%s' % playqueue.id
             else:
                 container_key = '/library/metadata/%s' % plex_id
+        # Remember the currently playing item
+        app.PLAYSTATE.item = item
         # Remember that this player has been active
         app.PLAYSTATE.active_players.add(playerid)
         status.update(info)
@@ -469,6 +471,7 @@ def _playback_cleanup(ended=False):
         app.PLAYSTATE.player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
     # As all playback has halted, reset the players that have been active
     app.PLAYSTATE.active_players = set()
+    app.PLAYSTATE.item = None
     LOG.info('Finished PKC playback cleanup')
 
 
