@@ -106,29 +106,7 @@ class KodiMonitor(xbmc.Monitor):
             with app.APP.lock_playqueues:
                 self._playlist_onclear(data)
         elif method == "VideoLibrary.OnUpdate":
-            # Manually marking as watched/unwatched
-            playcount = data.get('playcount')
-            item = data.get('item')
-            if playcount is None or item is None:
-                return
-            try:
-                kodi_id = item['id']
-                kodi_type = item['type']
-            except (KeyError, TypeError):
-                LOG.info("Item is invalid for playstate update.")
-                return
-            # Send notification to the server.
-            with PlexDB() as plexdb:
-                db_item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
-            if not db_item:
-                LOG.error("Could not find plex_id in plex database for a "
-                          "video library update")
-            else:
-                # notify the server
-                if playcount > 0:
-                    PF.scrobble(db_item['plex_id'], 'watched')
-                else:
-                    PF.scrobble(db_item['plex_id'], 'unwatched')
+            _videolibrary_onupdate(data)
         elif method == "VideoLibrary.OnRemove":
             pass
         elif method == "System.OnSleep":
@@ -639,6 +617,41 @@ def _notify_upnext(item):
     data = binascii.hexlify(json.dumps(info))
     data = '\\"[\\"{0}\\"]\\"'.format(data)
     xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % (sender, method, data))
+
+
+def _videolibrary_onupdate(data):
+    """
+    A specific Kodi library item has been updated. This seems to happen if the
+    user marks an item as watched/unwatched or if playback of the item just
+    stopped
+    """
+    playcount = data.get('playcount')
+    item = data.get('item')
+    if playcount is None or item is None:
+        return
+    try:
+        kodi_id = item['id']
+        kodi_type = item['type']
+    except (KeyError, TypeError):
+        LOG.info("Item is invalid for playstate update.")
+        return
+    if app.PLAYSTATE.item and kodi_id == app.PLAYSTATE.item.kodi_id and \
+            kodi_type == app.PLAYSTATE.item.kodi_type:
+        # Kodi updates an item immediately after playback. Hence we do NOT
+        # increase or decrease the viewcount
+        return
+    # Send notification to the server.
+    with PlexDB(lock=False) as plexdb:
+        db_item = plexdb.item_by_kodi_id(kodi_id, kodi_type)
+    if not db_item:
+        LOG.error("Could not find plex_id in plex database for a "
+                  "video library update")
+        return
+    # notify the server
+    if playcount > 0:
+        PF.scrobble(db_item['plex_id'], 'watched')
+    else:
+        PF.scrobble(db_item['plex_id'], 'unwatched')
 
 
 class ContextMonitor(backgroundthread.KillableThread):
