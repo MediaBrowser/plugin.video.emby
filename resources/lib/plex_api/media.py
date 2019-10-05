@@ -254,46 +254,33 @@ class Media(object):
         try:
             mediastreams = self.xml[0][self.part]
         except (TypeError, KeyError, IndexError):
-            return
-        kodiindex = 0
-        fileindex = 0
+            return externalsubs
         for stream in mediastreams:
             # Since plex returns all possible tracks together, have to pull
             # only external subtitles - only for these a 'key' exists
-            if cast(int, stream.get('streamType')) != 3:
-                # Not a subtitle
+            if int(stream.get('streamType')) != 3 or 'key' not in stream.attrib:
+                # Not a subtitle or not not an external subtitle
                 continue
-            # Only set for additional external subtitles NOT lying beside video
-            key = stream.get('key')
-            # Only set for dedicated subtitle files lying beside video
-            # ext = stream.attrib.get('format')
-            if key:
-                # We do know the language - temporarily download
-                if stream.get('languageCode') is not None:
-                    language = stream.get('languageCode')
-                    codec = stream.get('codec')
-                    path = self.download_external_subtitles(
-                        "{server}%s" % key,
-                        "subtitle%02d.%s.%s" % (fileindex, language, codec))
-                    fileindex += 1
-                # We don't know the language - no need to download
-                else:
-                    path = self.attach_plex_token_to_url(
-                        "%s%s" % (app.CONN.server, key))
+            path = self.download_external_subtitles(
+                '{server}%s' % stream.get('key'),
+                stream.get('displayTitle'),
+                stream.get('codec'))
+            if path:
                 externalsubs.append(path)
-                kodiindex += 1
         LOG.info('Found external subs: %s', externalsubs)
         return externalsubs
 
     @staticmethod
-    def download_external_subtitles(url, filename):
+    def download_external_subtitles(url, filename, extension):
         """
         One cannot pass the subtitle language for ListItems. Workaround; will
         download the subtitle at url to the Kodi PKC directory in a temp dir
 
         Returns the path to the downloaded subtitle or None
         """
-        path = path_ops.path.join(v.EXTERNAL_SUBTITLE_TEMP_PATH, filename)
+        path = path_ops.create_unique_path(v.EXTERNAL_SUBTITLE_TEMP_PATH,
+                                           filename,
+                                           extension)
         response = DU().downloadUrl(url, return_response=True)
         try:
             response.status_code
@@ -302,8 +289,8 @@ class Media(object):
             return
         else:
             LOG.debug('Writing temp subtitle to %s', path)
-            with open(path_ops.encode_path(path), 'wb') as filer:
-                filer.write(response.content)
+            with open(path_ops.encode_path(path), 'wb') as f:
+                f.write(response.content)
             return path
 
     def validate_playurl(self, path, typus, force_check=False, folder=False,
