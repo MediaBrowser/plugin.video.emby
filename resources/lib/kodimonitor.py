@@ -435,7 +435,7 @@ def _playback_cleanup(ended=False):
         # Remember the last played item later
         app.PLAYSTATE.old_player_states[playerid] = copy.deepcopy(status)
         # Stop transcoding
-        if status['playmethod'] == 'Transcode':
+        if status['playmethod'] == v.PLAYBACK_METHOD_TRANSCODE:
             LOG.debug('Tell the PMS to stop transcoding')
             DU().downloadUrl(
                 '{server}/video/:/transcode/universal/stop',
