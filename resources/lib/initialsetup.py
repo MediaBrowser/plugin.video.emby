@@ -85,8 +85,7 @@ class InitialSetup(object):
         if not port:
             return False
         url = '%s:%s' % (address, port)
-        # "Use HTTPS (SSL) connections? With Kodi 18 or later, HTTPS will likely
-        # not work!"
+        # "Use HTTPS (SSL) connections? Answer should probably be yes."
         https = utils.yesno_dialog(utils.lang(29999), utils.lang(39217))
         if https:
             url = 'https://%s' % url
