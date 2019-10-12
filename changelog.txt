@@ -1,3 +1,6 @@
+version 2.9.11:
+- version 2.9.10 for everyone
+
 version 2.9.10 (beta only):
 - Add tmdb provider sync
 - Fix external subtitles not being available
