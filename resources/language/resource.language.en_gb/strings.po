@@ -1164,7 +1164,7 @@ msgid "Enter your Plex Media Server's IP or URL, Examples are:"
 msgstr ""
 
 msgctxt "#39217"
-msgid "Use HTTPS (SSL) connections? With Kodi 18 or later, HTTPS will likely not work!"
+msgid "Use HTTPS (SSL) connections? Answer should probably be yes."
 msgstr ""
 
 msgctxt "#39218"

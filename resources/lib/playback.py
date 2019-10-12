@@ -19,7 +19,7 @@ from . import playlist_func as PL
 from . import playqueue as PQ
 from . import json_rpc as js
 from . import transfer
-from .playback_decision import set_playurl
+from .playback_decision import set_playurl, audio_subtitle_prefs
 from . import variables as v
 from . import app
 
@@ -473,10 +473,11 @@ def _conclude_playback(playqueue, pos):
         _ensure_resolve()
         return
     listitem.setPath(item.file.encode('utf-8'))
-    if item.playmethod == 'DirectStream':
+    if item.playmethod == v.PLAYBACK_METHOD_DIRECT_PLAY:
         listitem.setSubtitles(api.cache_external_subs())
-    elif item.playmethod == 'Transcode':
-        playutils.audio_subtitle_prefs(listitem)
+    elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
+                             v.PLAYBACK_METHOD_TRANSCODE):
+        audio_subtitle_prefs(api, listitem)
     _set_resume(listitem, item, api)
     transfer.send(listitem)
     LOG.info('Done concluding playback')
@@ -518,7 +519,7 @@ def process_indirect(key, offset, resolve=True):
     playqueue.clear()
     item = PL.playlist_item_from_xml(xml[0])
     item.offset = offset
-    item.playmethod = 'DirectStream'
+    item.playmethod = v.PLAYBACK_METHOD_DIRECT_PLAY
 
     # Need to get yet another xml to get the final playback url
     try:

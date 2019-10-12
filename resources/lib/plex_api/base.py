@@ -552,6 +552,9 @@ class Base(object):
         elif providername == 'tvdb':
             # originally e.g. com.plexapp.agents.thetvdb://276564?lang=en
             regex = utils.REGEX_TVDB
+        elif providername == 'tmdb':
+            # originally e.g. com.plexapp.agents.themoviedb://603?lang=en
+            regex = utils.REGEX_TMDB
         else:
             raise NotImplementedError('Not implemented: %s' % providername)
 

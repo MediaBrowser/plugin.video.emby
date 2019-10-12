@@ -351,12 +351,12 @@ def audio_subtitle_prefs(api, listitem):
     for stream in mediastreams:
         # Since Plex returns all possible tracks together, have to sort
         # them.
-        index = stream.attrib.get('id')
-        typus = stream.attrib.get('streamType')
+        index = stream.get('id')
+        typus = stream.get('streamType')
         # Audio
         if typus == "2":
-            codec = stream.attrib.get('codec')
-            channellayout = stream.attrib.get('audioChannelLayout', "")
+            codec = stream.get('codec')
+            channellayout = stream.get('audioChannelLayout', "")
             try:
                 track = "%s %s - %s %s" % (audio_numb + 1,
                                            stream.attrib['language'],
@@ -368,48 +368,42 @@ def audio_subtitle_prefs(api, listitem):
                                            codec,
                                            channellayout)
             audio_streams_list.append(index)
-            audio_streams.append(utils.try_encode(track))
+            audio_streams.append(track.encode('utf-8'))
             audio_numb += 1
 
         # Subtitles
         elif typus == "3":
             try:
-                track = "%s %s" % (sub_num + 1, stream.attrib['language'])
+                track = '{} {}'.format(sub_num, stream.attrib['displayTitle'])
             except KeyError:
-                track = "%s %s (%s)" % (sub_num + 1,
-                                        utils.lang(39707),  # unknown
-                                        stream.attrib.get('codec'))
-            default = stream.attrib.get('default')
-            forced = stream.attrib.get('forced')
-            downloadable = stream.attrib.get('key')
+                track = '{} {} ({})'.format(sub_num + 1,
+                                            utils.lang(39707),  # unknown
+                                            stream.get('codec'))
+            default = stream.get('default')
+            forced = stream.get('forced')
+            downloadable = stream.get('key')
 
             if default:
                 track = "%s - %s" % (track, utils.lang(39708))  # Default
             if forced:
                 track = "%s - %s" % (track, utils.lang(39709))  # Forced
             if downloadable:
-                # We do know the language - temporarily download
-                if 'language' in stream.attrib:
-                    path = api.download_external_subtitles(
-                        '{server}%s' % stream.attrib['key'],
-                        "subtitle.%s.%s" % (stream.attrib['languageCode'],
-                                            stream.attrib['codec']))
-                # We don't know the language - no need to download
-                else:
-                    path = api.attach_plex_token_to_url(
-                        "%s%s" % (app.CONN.server,
-                                  stream.attrib['key']))
-                downloadable_streams.append(index)
-                download_subs.append(utils.try_encode(path))
+                path = api.download_external_subtitles(
+                    '{{server}}{}'.format(stream.get('key')),
+                    stream.get('displayTitle'),
+                    stream.get('codec'))
+                if path:
+                    downloadable_streams.append(index)
+                    download_subs.append(path.encode('utf-8'))
             else:
                 track = "%s (%s)" % (track, utils.lang(39710))  # burn-in
-            if stream.attrib.get('selected') == '1' and downloadable:
+            if stream.get('selected') == '1' and downloadable:
                 # Only show subs without asking user if they can be
                 # turned off
                 default_sub = index
 
             subtitle_streams_list.append(index)
-            subtitle_streams.append(utils.try_encode(track))
+            subtitle_streams.append(track.encode('utf-8'))
             sub_num += 1
 
     if audio_numb > 1:

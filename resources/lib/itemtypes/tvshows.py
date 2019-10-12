@@ -204,6 +204,14 @@ class Show(TvShowMixin, ItemBase):
                                             api.provider('tvdb'),
                                             'tvdb',
                                             uniqueid)
+            elif api.provider('tmdb') is not None:
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_SHOW)
+                self.kodidb.update_uniqueid(kodi_id,
+                                            v.KODI_TYPE_SHOW,
+                                            api.provider('tmdb'),
+                                            'tmdb',
+                                            uniqueid)
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
                 uniqueid = -1
@@ -245,6 +253,13 @@ class Show(TvShowMixin, ItemBase):
                                          v.KODI_TYPE_SHOW,
                                          api.provider('tvdb'),
                                          'tvdb')
+            if api.provider('tmdb'):
+                uniqueid = self.kodidb.add_uniqueid_id()
+                self.kodidb.add_uniqueid(uniqueid,
+                                         kodi_id,
+                                         v.KODI_TYPE_SHOW,
+                                         api.provider('tmdb'),
+                                         'tmdb')
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
@@ -490,6 +505,14 @@ class Episode(TvShowMixin, ItemBase):
                                             api.provider('tvdb'),
                                             "tvdb",
                                             uniqueid)
+            elif api.provider('tmdb'):
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_EPISODE)
+                self.kodidb.update_uniqueid(kodi_id,
+                                            v.KODI_TYPE_EPISODE,
+                                            api.provider('tmdb'),
+                                            "tmdb",
+                                            uniqueid)
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
                 uniqueid = -1
@@ -568,6 +591,15 @@ class Episode(TvShowMixin, ItemBase):
                                          v.KODI_TYPE_EPISODE,
                                          api.provider('tvdb'),
                                          "tvdb")
+            elif api.provider('tmdb'):
+                uniqueid = self.kodidb.add_uniqueid_id()
+                self.kodidb.add_uniqueid(uniqueid,
+                                         kodi_id,
+                                         v.KODI_TYPE_EPISODE,
+                                         api.provider('tmdb'),
+                                         "tmdb")
+            else:
+                uniqueid = -1
             self.kodidb.add_people(kodi_id,
                                    v.KODI_TYPE_EPISODE,
                                    api.people())

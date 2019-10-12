@@ -49,6 +49,7 @@ REGEX_PLEX_DIRECT = re.compile(r'''\.plex\.direct:\d+$''')
 # Plex API
 REGEX_IMDB = re.compile(r'''/(tt\d+)''')
 REGEX_TVDB = re.compile(r'''thetvdb:\/\/(.+?)\?''')
+REGEX_TMDB = re.compile(r'''themoviedb:\/\/(.+?)\?''')
 # Plex music
 REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
 # Grab Plex id from an URL-encoded string
@@ -509,6 +510,19 @@ def escape_html(string):
     for key, value in escapes.iteritems():
         string = string.replace(key, value)
     return string
+
+
+def delete_temporary_subtitles():
+    """
+    Permanently deletes all temporary subtitle files
+    """
+    for root, _, files in path_ops.walk(v.EXTERNAL_SUBTITLE_TEMP_PATH):
+        for file in files:
+            try:
+                path_ops.remove(path_ops.path.join(root, file))
+            except (OSError, IOError) as err:
+                LOG.error('Could not delete temporary subtitle: %s, %s: %s',
+                          root, file, err)
 
 
 def kodi_sql(media_type=None):

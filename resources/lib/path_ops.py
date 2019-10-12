@@ -19,6 +19,8 @@ import shutil
 import os
 from os import path  # allows to use path_ops.path.join, for example
 from distutils import dir_util
+import re
+
 import xbmc
 import xbmcvfs
 
@@ -26,6 +28,7 @@ from .tools import unicode_paths
 
 # Kodi seems to encode in utf-8 in ALL cases (unlike e.g. the OS filesystem)
 KODI_ENCODING = 'utf-8'
+REGEX_FILE_NUMBERING = re.compile(r'''_(\d\d)\.\w+$''')
 
 
 def encode_path(path):
@@ -216,3 +219,25 @@ def basename(path):
             return path.rsplit('\\', 1)[1]
         except IndexError:
             return ''
+
+
+def create_unique_path(directory, filename, extension):
+    """
+    Checks whether 'directory/filename.extension' exists. If so, will start
+    numbering the filename until the file does not exist yet (up to 99)
+    """
+    res = path.join(directory, '.'.join((filename, extension)))
+    while exists(res):
+        occurance = REGEX_FILE_NUMBERING.search(res)
+        if not occurance:
+            filename = '{}_00'.format(filename[:min(len(filename),
+                                                    251 - len(extension))])
+            res = path.join(directory, '.'.join((filename, extension)))
+        else:
+            number = int(occurance.group(1)) + 1
+            if number > 99:
+                raise RuntimeError('Could not create unique file: {} {} {}'.format(
+                                   directory, filename, extension))
+            basename = re.sub(REGEX_FILE_NUMBERING, '', res)
+            res = '{}_{:02d}.{}'.format(basename, number, extension)
+    return res

@@ -91,6 +91,14 @@ class Movie(ItemBase):
                                             api.provider('imdb'),
                                             "imdb",
                                             uniqueid)
+            elif api.provider('tmdb') is not None:
+                uniqueid = self.kodidb.get_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_MOVIE)
+                self.kodidb.update_uniqueid(kodi_id,
+                                            v.KODI_TYPE_MOVIE,
+                                            api.provider('tmdb'),
+                                            "tmdb",
+                                            uniqueid)
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
                 uniqueid = -1
@@ -120,6 +128,13 @@ class Movie(ItemBase):
                                          v.KODI_TYPE_MOVIE,
                                          api.provider('imdb'),
                                          "imdb")
+            elif api.provider('tmdb') is not None:
+                uniqueid = self.kodidb.add_uniqueid_id()
+                self.kodidb.add_uniqueid(uniqueid,
+                                         kodi_id,
+                                         v.KODI_TYPE_MOVIE,
+                                         api.provider('tmdb'),
+                                         "tmdb")
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
