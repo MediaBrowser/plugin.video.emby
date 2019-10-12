@@ -279,6 +279,9 @@ class Player(xbmc.Player):
 
                     break
             else:
+                if items[0]['PlayOption'] != 'Addon' and not xbmc.getInfoLabel('VideoPlayer.DBID'): # prevent unknown files from picking up emby files
+                    return
+
                 item = items.pop(0)
 
             self._set_items(items)
