@@ -175,13 +175,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path:
                 raise Exception("unsupported artwork request")
 
-            if headers_only:
-
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-
-            elif '/Audio' in self.path:
+            if '/Audio' in self.path:
                 params = self.get_params()
 
                 self.send_response(301)
@@ -189,6 +183,12 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 path.start()
                 path.join() # Block until the thread exits.
                 self.send_header('Location', path.path)
+                self.end_headers()
+
+            elif headers_only:
+
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
 
             elif 'file.strm' not in self.path:
