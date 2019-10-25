@@ -549,7 +549,8 @@ class Library(threading.Thread):
 
                 LOG.info("--<[ retrieve changes ]")
 
-    def fast_sync(self, plugin):
+    @progress()
+    def fast_sync(self, plugin, dialog):
 
         ''' Movie and userdata not provided by server yet.
         '''
@@ -558,22 +559,31 @@ class Library(threading.Thread):
         LOG.info("--[ retrieve changes ] %s", last_sync)
 
 
-        for library in sync['Whitelist']:
+        for main_index, library in enumerate(sync['Whitelist']):
 
             # a for loop is needed here, because the 'get_items' method returns a generator
             for data in server.get_items(library.replace('Mixed:', ""),
                                          "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
                                          False,
                                          {'MinDateLastSavedForUser': last_sync}):
-                for query in data['Items']:
 
-                    if query['Type'] in self.updated_output:
-                        self.updated_output[query['Type']].put(query)
+                start_index = data['RestorePoint']['params']['StartIndex']
+
+                for index, item in enumerate(data['Items']):
+
+                    if item['Type'] in self.updated_output:
+                        self.updated_output[item['Type']].put(item)
 
                     # the 'get_userdata_date_modified' does actually the same as the 'get_date_modified' method; see 'libraries/emby/core/api.py'
                     # so for this call no separate server request is needed
-                    if query['Type'] in self.userdata_output:
-                        self.userdata_output[query['Type']].put(query)
+                    if item['Type'] in self.userdata_output:
+                        self.userdata_output[item['Type']].put(item)
+
+                    dialog.update(int(main_index * (50 / len(sync['Whitelist'])) +
+                                      (float(start_index + index) / float(data['TotalRecordCount'])) * 
+                                      (50 / len(sync['Whitelist']))),
+                                  heading="%s: %s" % (_('addon_name'), item['Type']),
+                                  message=item['Name'])
 
         # temp fix for boxsets
         boxsets = {}
@@ -581,12 +591,19 @@ class Library(threading.Thread):
             boxsets = dict(emby_db.EmbyDatabase(embydb.cursor).get_items_by_media('set') or {})
 
         for items in server.get_items(None, "BoxSet"):
-            for boxset in items['Items']:
 
-                if boxset['Id'] in boxsets and boxset['Etag'] == boxsets[boxset['Id']]:
-                    continue
+            start_index = items['RestorePoint']['params']['StartIndex']
 
-                self.updated_output['BoxSet'].put(boxset)
+            for index, boxset in enumerate(items['Items']):
+
+                if not (boxset['Id'] in boxsets and boxset['Etag'] == boxsets[boxset['Id']]):
+                    self.updated_output['BoxSet'].put(boxset)
+
+                dialog.update(int(50 +
+                                  (float(start_index + index) / float(items['TotalRecordCount'])) *
+                                  50),
+                              heading="%s: %s" % (_('addon_name'), boxset['Type']),
+                              message=boxset['Name'])
 
         if plugin:
             try:
