@@ -560,17 +560,20 @@ class Library(threading.Thread):
 
         for library in sync['Whitelist']:
 
-            data = self.server['api'].get_date_modified(last_sync, library.replace('Mixed:', ""), "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio")
-            for query in data['Items']:
+            # a for loop is needed here, because the 'get_items' method returns a generator
+            for data in server.get_items(library.replace('Mixed:', ""),
+                                         "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
+                                         False,
+                                         {'MinDateLastSavedForUser': last_sync}):
+                for query in data['Items']:
 
-                if query['Type'] in self.updated_output:
-                    self.updated_output[query['Type']].put(query)
+                    if query['Type'] in self.updated_output:
+                        self.updated_output[query['Type']].put(query)
 
-            data = self.server['api'].get_userdata_date_modified(last_sync, library.replace('Mixed:', ""), "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio")
-            for query in data['Items']:
-
-                if query['Type'] in self.userdata_output:
-                    self.userdata_output[query['Type']].put(query)
+                    # the 'get_userdata_date_modified' does actually the same as the 'get_date_modified' method; see 'libraries/emby/core/api.py'
+                    # so for this call no separate server request is needed
+                    if query['Type'] in self.userdata_output:
+                        self.userdata_output[query['Type']].put(query)
 
         # temp fix for boxsets
         boxsets = {}
