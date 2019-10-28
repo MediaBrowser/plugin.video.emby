@@ -563,9 +563,9 @@ def play_xml(playqueue, xml, offset=None, start_plex_id=None):
     Either supply the ratingKey of the starting Plex element. Or set
     playqueue.selectedItemID
     """
-    offset = int(offset) if offset else None
-    LOG.info("play_xml called with offset %s, start_plex_id %s",
-             offset, start_plex_id)
+    offset = int(offset) / 1000 if offset else None
+    LOG.debug("play_xml called with offset %s, start_plex_id %s",
+              offset, start_plex_id)
     start_item = start_plex_id if start_plex_id is not None \
         else playqueue.selectedItemID
     for startpos, video in enumerate(xml):
