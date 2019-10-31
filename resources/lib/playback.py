@@ -572,23 +572,25 @@ def threaded_playback(kodi_playlist, startpos, offset):
     LOG.debug('threaded_playback with startpos %s, offset %s',
               startpos, offset)
     app.APP.player.play(kodi_playlist, None, False, startpos)
-    if offset:
-        i = 0
-        while not app.APP.is_playing or not js.get_player_ids():
-            app.APP.monitor.waitForAbort(0.1)
-            i += 1
-            if i > 200:
-                LOG.error('Could not seek to %s', offset)
-                return
-        i = 0
+    offset = offset if offset else 0
+    i = 0
+    while not app.APP.is_playing or not js.get_player_ids():
+        if app.APP.monitor.waitForAbort(0.1):
+            # PKC needs to quit
+            return
+        i += 1
+        if i > 200:
+            LOG.error('Could not seek to %s', offset)
+            return
+    i = 0
+    answ = js.seek_to(offset * 1000)
+    while 'error' in answ:
+        # Kodi sometimes returns {u'message': u'Failed to execute method.',
+        # u'code': -32100} if user quickly switches videos
+        i += 1
+        if i > 10:
+            LOG.error('Failed to seek to %s', offset)
+            return
+        app.APP.monitor.waitForAbort(0.1)
         answ = js.seek_to(offset * 1000)
-        while 'error' in answ:
-            # Kodi sometimes returns {u'message': u'Failed to execute method.',
-            # u'code': -32100} if user quickly switches videos
-            i += 1
-            if i > 10:
-                LOG.error('Failed to seek to %s', offset)
-                return
-            app.APP.monitor.waitForAbort(0.1)
-            answ = js.seek_to(offset * 1000)
-        LOG.debug('Seek to offset %s successful', offset)
+    LOG.debug('Seek to offset %s successful', offset)
