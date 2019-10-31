@@ -61,6 +61,13 @@ class Main():
         elif mode == 'channels':
             entrypoint.browse_plex(key='/channels/all')
 
+        elif mode == 'search':
+            # "Search"
+            entrypoint.browse_plex(key='/hubs/search',
+                                   args={'includeCollections': 1,
+                                         'includeExternalMedia': 1},
+                                   prompt=utils.lang(137))
+
         elif mode == 'route_to_extras':
             # Hack so we can store this path in the Kodi DB
             handle = ('plugin://%s?mode=extras&plex_id=%s'

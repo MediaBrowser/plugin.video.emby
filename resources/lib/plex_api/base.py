@@ -57,6 +57,12 @@ class Base(object):
         """
         return self.xml.tag
 
+    def tag_label(self):
+        """
+        Returns the 'tag' attribute of the xml
+        """
+        return self.xml.get('tag')
+
     @property
     def attrib(self):
         """
