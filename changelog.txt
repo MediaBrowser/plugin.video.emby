@@ -1,3 +1,6 @@
+version 2.9.13 (beta only):
+- Fix PKC resuming instead of playing from the beginning
+
 version 2.9.12 (beta only):
 - Fix resume not working in some cases
 - Support Plex search across all media and Plex Media Servers: Navigate to the PlexKodiConnect Add-on, then "Search"
