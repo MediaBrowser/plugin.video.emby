@@ -3,6 +3,8 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
+import xbmc
+
 from . import utils
 from . import variables as v
 
@@ -31,7 +33,7 @@ def getXArgsDeviceInfo(options=None, include_token=True):
         'Connection': 'keep-alive',
         "Content-Type": "application/x-www-form-urlencoded",
         # "Access-Control-Allow-Origin": "*",
-        # 'X-Plex-Language': 'en',
+        'Accept-Language': xbmc.getLanguage(xbmc.ISO_639_1),
         'X-Plex-Device': v.DEVICE,
         'X-Plex-Model': v.MODEL,
         'X-Plex-Device-Name': v.DEVICENAME,
