@@ -151,11 +151,10 @@ class PlexCompanion(backgroundthread.KillableThread):
             playback.play_xml(playqueue, xml, offset)
         else:
             app.CONN.plex_transient_token = data.get('token')
-            if data.get('offset') != '0':
-                app.PLAYSTATE.resume_playback = True
             playback.playback_triage(api.plex_id,
                                      api.plex_type,
-                                     resolve=False)
+                                     resolve=False,
+                                     resume=data.get('offset') not in ('0', None))
 
     @staticmethod
     def _process_node(data):

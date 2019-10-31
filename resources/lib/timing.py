@@ -63,25 +63,21 @@ def kodi_now():
 
 def millis_to_kodi_time(milliseconds):
     """
-    Converts time in milliseconds to the time dict used by the Kodi JSON RPC:
+    Converts time in milliseconds [int or float] to the time dict used by the
+    Kodi JSON RPC:
     {
         'hours': [int],
         'minutes': [int],
         'seconds'[int],
         'milliseconds': [int]
     }
-    Pass in the time in milliseconds as an int
     """
     seconds = int(milliseconds / 1000)
     minutes = int(seconds / 60)
-    seconds = seconds % 60
-    hours = int(minutes / 60)
-    minutes = minutes % 60
-    milliseconds = milliseconds % 1000
-    return {'hours': hours,
-            'minutes': minutes,
-            'seconds': seconds,
-            'milliseconds': milliseconds}
+    return {'hours': int(minutes / 60),
+            'minutes': int(minutes % 60),
+            'seconds': int(seconds % 60),
+            'milliseconds': int(milliseconds % 1000)}
 
 
 def kodi_time_to_millis(time):

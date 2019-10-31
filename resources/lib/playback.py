@@ -30,7 +30,8 @@ RESOLVE = True
 ###############################################################################
 
 
-def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
+def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True,
+                    resume=False):
     """
     Hit this function for addon path playback, Plex trailers, etc.
     Will setup playback first, then on second call complete playback.
@@ -47,7 +48,7 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
     service.py Python instance
     """
     try:
-        _playback_triage(plex_id, plex_type, path, resolve)
+        _playback_triage(plex_id, plex_type, path, resolve, resume)
     finally:
         # Reset some playback variables the user potentially set to init
         # playback
@@ -56,10 +57,10 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True):
         app.PLAYSTATE.resume_playback = None
 
 
-def _playback_triage(plex_id, plex_type, path, resolve):
+def _playback_triage(plex_id, plex_type, path, resolve, resume):
     plex_id = utils.cast(int, plex_id)
-    LOG.info('playback_triage called with plex_id %s, plex_type %s, path %s, '
-             'resolve %s', plex_id, plex_type, path, resolve)
+    LOG.debug('playback_triage called with plex_id %s, plex_type %s, path %s, '
+              'resolve %s, resume %s', plex_id, plex_type, path, resolve, resume)
     global RESOLVE
     # If started via Kodi context menu, we never resolve
     RESOLVE = resolve if not app.PLAYSTATE.context_menu_play else False
@@ -85,12 +86,12 @@ def _playback_triage(plex_id, plex_type, path, resolve):
         except KeyError:
             # Kodi bug - Playlist plays (not Playqueue) will ALWAYS be audio for
             # add-on paths
-            LOG.info('No position returned from player! Assuming playlist')
+            LOG.debug('No position returned from player! Assuming playlist')
             playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_AUDIO)
             try:
                 pos = js.get_position(playqueue.playlistid)
             except KeyError:
-                LOG.info('Assuming video instead of audio playlist playback')
+                LOG.debug('Assuming video instead of audio playlist playback')
                 playqueue = PQ.get_playqueue_from_type(v.KODI_PLAYLIST_TYPE_VIDEO)
                 try:
                     pos = js.get_position(playqueue.playlistid)
@@ -108,12 +109,12 @@ def _playback_triage(plex_id, plex_type, path, resolve):
         try:
             item = items[pos]
         except IndexError:
-            LOG.info('Could not apply playlist hack! Probably Widget playback')
+            LOG.debug('Could not apply playlist hack! Probably Widget playback')
         else:
             if ('id' not in item and
                     item.get('type') == 'unknown' and item.get('title') == ''):
-                LOG.info('Kodi playlist play detected')
-                _playlist_playback(plex_id, plex_type)
+                LOG.debug('Kodi playlist play detected')
+                _playlist_playback(plex_id)
                 return
 
         # Can return -1 (as in "no playlist")
@@ -127,7 +128,7 @@ def _playback_triage(plex_id, plex_type, path, resolve):
             initiate = True
         else:
             if item.plex_id != plex_id:
-                LOG.debug('Received new plex_id %s, expected %s',
+                LOG.debug('Received new plex_id%s, expected %s',
                           plex_id, item.plex_id)
                 initiate = True
             else:
@@ -136,13 +137,14 @@ def _playback_triage(plex_id, plex_type, path, resolve):
             LOG.debug('Detected re-playing of the same item')
             initiate = True
         if initiate:
-            _playback_init(plex_id, plex_type, playqueue, pos)
+            _playback_init(plex_id, plex_type, playqueue, pos, resume)
         else:
-            # kick off playback on second pass
+            # kick off playback on second pass, resume was already set on first
+            # pass (threaded_playback will seek to resume)
             _conclude_playback(playqueue, pos)
 
 
-def _playlist_playback(plex_id, plex_type):
+def _playlist_playback(plex_id):
     """
     Really annoying Kodi behavior: Kodi will throw the ENTIRE playlist some-
     where, causing Playlist.onAdd to fire for each item like this:
@@ -175,11 +177,11 @@ def _playlist_playback(plex_id, plex_type):
     _conclude_playback(playqueue, pos=0)
 
 
-def _playback_init(plex_id, plex_type, playqueue, pos):
+def _playback_init(plex_id, plex_type, playqueue, pos, force_resume):
     """
     Playback setup if Kodi starts playing an item for the first time.
     """
-    LOG.info('Initializing PKC playback')
+    LOG.debug('Initializing PKC playback')
     # Stop playback so we don't get an error message that the last item of the
     # queue failed to play
     app.APP.player.stop()
@@ -210,19 +212,8 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # playqueues
     # Release default.py
     _ensure_resolve()
-    api = API(xml[0])
-    if api.resume_point() and (app.SYNC.direct_paths or
-                               app.PLAYSTATE.context_menu_play):
-        # Since Kodi won't ask if user wants to resume playback -
-        # we need to ask ourselves
-        resume = resume_dialog(int(api.resume_point()))
-        if resume is None:
-            LOG.info('User cancelled resume dialog')
-            return
-    elif app.SYNC.direct_paths:
-        resume = False
-    else:
-        resume = app.PLAYSTATE.resume_playback or False
+    LOG.debug('Using force_resume %s', force_resume)
+    resume = force_resume or False
     trailers = False
     if (not resume and plex_type == v.PLEX_TYPE_MOVIE and
             utils.settings('enableCinema') == "true"):
@@ -251,11 +242,17 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
         PL.get_playlist_details_from_xml(playqueue, xml)
     stack = _prep_playlist_stack(xml, resume)
     _process_stack(playqueue, stack)
+    offset = _use_kodi_db_offset(playqueue.items[pos].plex_id,
+                                 playqueue.items[pos].plex_type,
+                                 playqueue.items[pos].offset) if resume else 0
     # New thread to release this one sooner (e.g. harddisk spinning up)
     thread = Thread(target=threaded_playback,
-                    args=(playqueue.kodi_pl, pos, None))
+                    args=(playqueue.kodi_pl, pos, offset))
     thread.setDaemon(True)
-    LOG.info('Done initializing playback, starting Kodi player at pos %s', pos)
+    LOG.debug('Done initializing playback, starting Kodi player at pos %s and '
+              'offset %s', pos, offset)
+    # Ensure that PKC playqueue monitor ignores the changes we just made
+    playqueue.pkc_edit = True
     # By design, PKC will start Kodi playback using Player().play(). Kodi
     # caches paths like our plugin://pkc. If we use Player().play() between
     # 2 consecutive startups of exactly the same Kodi library item, Kodi's
@@ -263,8 +260,6 @@ def _playback_init(plex_id, plex_type, playqueue, pos):
     # plugin://pkc will be lost; Kodi will try to startup playback for an empty
     # path: log entry is "CGUIWindowVideoBase::OnPlayMedia <missing path>"
     thread.start()
-    # Ensure that PKC playqueue monitor ignores the changes we just made
-    playqueue.pkc_edit = True
 
 
 def _ensure_resolve(abort=False):
@@ -376,7 +371,7 @@ def _prep_playlist_stack(xml, resume):
                 'part': part,
                 'playcount': api.viewcount(),
                 'offset': api.resume_point(),
-                'resume': resume if i + 1 == len(xml) and part == 0 else False,
+                'resume': resume if part == 0 and i + 1 == len(xml) else None,
                 'id': api.item_id()
             })
     return stack
@@ -413,33 +408,20 @@ def _process_stack(playqueue, stack):
         pos += 1
 
 
-def _set_resume(listitem, item, api):
-    if item.plex_type in (v.PLEX_TYPE_SONG, v.PLEX_TYPE_CLIP):
-        return
-    if item.resume is True:
-        # Do NOT use item.offset directly but get it from the DB
-        # (user might have initiated same video twice)
-        with PlexDB(lock=False) as plexdb:
-            db_item = plexdb.item_by_id(item.plex_id, item.plex_type)
-        if db_item:
-            file_id = db_item['kodi_fileid']
-            with KodiVideoDB(lock=False) as kodidb:
-                item.offset = kodidb.get_resume(file_id)
-        LOG.info('Resuming playback at %s', item.offset)
-        if v.KODIVERSION >= 18 and api:
-            # Kodi 18 Alpha 3 broke StartOffset
-            try:
-                percent = (item.offset or api.resume_point()) / api.runtime() * 100.0
-            except ZeroDivisionError:
-                percent = 0.0
-            LOG.debug('Resuming at %s percent', percent)
-            listitem.setProperty('StartPercent', str(percent))
-        else:
-            listitem.setProperty('StartOffset', str(item.offset))
-            listitem.setProperty('resumetime', str(item.offset))
-    elif v.KODIVERSION >= 18:
-        # Make sure that the video starts from the beginning
-        listitem.setProperty('StartPercent', '0')
+def _use_kodi_db_offset(plex_id, plex_type, plex_offset):
+    """
+    Do NOT use item.offset directly but get it from the Kodi DB (Plex might not
+    have gotten the last resume point)
+    """
+    if plex_type not in (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_EPISODE):
+        return plex_offset
+    with PlexDB(lock=False) as plexdb:
+        db_item = plexdb.item_by_id(plex_id, plex_type)
+    if db_item:
+        with KodiVideoDB(lock=False) as kodidb:
+            return kodidb.get_resume(db_item['kodi_fileid'])
+    else:
+        return plex_offset
 
 
 def _conclude_playback(playqueue, pos):
@@ -457,19 +439,14 @@ def _conclude_playback(playqueue, pos):
             start playback
             return PKC listitem attached to result
     """
-    LOG.info('Concluding playback for playqueue position %s', pos)
+    LOG.debug('Concluding playback for playqueue position %s', pos)
     item = playqueue.items[pos]
-    if item.xml is not None:
-        # Got a Plex element
-        api = API(item.xml)
-        api.part = item.part or 0
-        listitem = api.listitem(listitem=transfer.PKCListItem)
-        set_playurl(api, item)
-    else:
-        listitem = transfer.PKCListItem()
-        api = None
+    api = API(item.xml)
+    api.part = item.part or 0
+    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
+    set_playurl(api, item)
     if not item.file:
-        LOG.info('Did not get a playurl, aborting playback silently')
+        LOG.debug('Did not get a playurl, aborting playback silently')
         _ensure_resolve()
         return
     listitem.setPath(item.file.encode('utf-8'))
@@ -478,9 +455,8 @@ def _conclude_playback(playqueue, pos):
     elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
                              v.PLAYBACK_METHOD_TRANSCODE):
         audio_subtitle_prefs(api, listitem)
-    _set_resume(listitem, item, api)
     transfer.send(listitem)
-    LOG.info('Done concluding playback')
+    LOG.debug('Done concluding playback')
 
 
 def process_indirect(key, offset, resolve=True):
@@ -494,8 +470,8 @@ def process_indirect(key, offset, resolve=True):
     Set resolve to False if playback should be kicked off directly, not via
     setResolvedUrl
     """
-    LOG.info('process_indirect called with key: %s, offset: %s, resolve: %s',
-             key, offset, resolve)
+    LOG.debug('process_indirect called with key: %s, offset: %s, resolve: %s',
+              key, offset, resolve)
     global RESOLVE
     RESOLVE = resolve
     offset = int(v.PLEX_TO_KODI_TIMEFACTOR * float(offset)) if offset != '0' else None
@@ -513,7 +489,7 @@ def process_indirect(key, offset, resolve=True):
         return
 
     api = API(xml[0])
-    listitem = api.listitem(listitem=transfer.PKCListItem)
+    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
     playqueue = PQ.get_playqueue_from_type(
         v.KODI_PLAYLIST_TYPE_FROM_PLEX_TYPE[api.plex_type])
     playqueue.clear()
@@ -552,7 +528,7 @@ def process_indirect(key, offset, resolve=True):
                         args={'item': utils.try_encode(playurl),
                               'listitem': listitem})
         thread.setDaemon(True)
-        LOG.info('Done initializing PKC playback, starting Kodi player')
+        LOG.debug('Done initializing PKC playback, starting Kodi player')
         thread.start()
 
 
@@ -563,9 +539,9 @@ def play_xml(playqueue, xml, offset=None, start_plex_id=None):
     Either supply the ratingKey of the starting Plex element. Or set
     playqueue.selectedItemID
     """
-    offset = int(offset) if offset else None
-    LOG.info("play_xml called with offset %s, start_plex_id %s",
-             offset, start_plex_id)
+    offset = int(offset) / 1000 if offset else None
+    LOG.debug("play_xml called with offset %s, start_plex_id %s",
+              offset, start_plex_id)
     start_item = start_plex_id if start_plex_id is not None \
         else playqueue.selectedItemID
     for startpos, video in enumerate(xml):
@@ -581,21 +557,38 @@ def play_xml(playqueue, xml, offset=None, start_plex_id=None):
     LOG.debug('Playqueue after play_xml update: %s', playqueue)
     thread = Thread(target=threaded_playback,
                     args=(playqueue.kodi_pl, startpos, offset))
-    LOG.info('Done play_xml, starting Kodi player at position %s', startpos)
+    LOG.debug('Done play_xml, starting Kodi player at position %s', startpos)
     thread.start()
 
 
 def threaded_playback(kodi_playlist, startpos, offset):
     """
-    Seek immediately after kicking off playback is not reliable.
+    Seek immediately after kicking off playback is not reliable. We even seek
+    to 0 (starting position) in case Kodi wants to resume but we want to start
+    over.
+
+    offset: resume position in seconds [int/float]
     """
+    LOG.debug('threaded_playback with startpos %s, offset %s',
+              startpos, offset)
     app.APP.player.play(kodi_playlist, None, False, startpos)
-    if offset and offset != '0':
+    if offset:
         i = 0
         while not app.APP.is_playing or not js.get_player_ids():
             app.APP.monitor.waitForAbort(0.1)
             i += 1
-            if i > 100:
+            if i > 200:
                 LOG.error('Could not seek to %s', offset)
                 return
-        js.seek_to(int(offset))
+        i = 0
+        answ = js.seek_to(offset * 1000)
+        while 'error' in answ:
+            # Kodi sometimes returns {u'message': u'Failed to execute method.',
+            # u'code': -32100} if user quickly switches videos
+            i += 1
+            if i > 10:
+                LOG.error('Failed to seek to %s', offset)
+                return
+            app.APP.monitor.waitForAbort(0.1)
+            answ = js.seek_to(offset * 1000)
+        LOG.debug('Seek to offset %s successful', offset)

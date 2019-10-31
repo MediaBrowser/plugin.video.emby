@@ -605,11 +605,16 @@ class Base(object):
                    % (v.ADDON_ID, url, v.PLEX_TYPE_CLIP))
         return url
 
-    def listitem(self, listitem=xbmcgui.ListItem):
+    def listitem(self, listitem=xbmcgui.ListItem, resume=True):
         """
         Returns a xbmcgui.ListItem() (or PKCListItem) for this Plex element
+
+        Pass resume=False in order to NOT set a resume point (but let Kodi
+        automatically handle it)
         """
         item = widgets.generate_item(self)
+        if not resume and 'resume' in item:
+            del item['resume']
         item = widgets.prepare_listitem(item)
         return widgets.create_listitem(item, as_tuple=False, listitem=listitem)
 
