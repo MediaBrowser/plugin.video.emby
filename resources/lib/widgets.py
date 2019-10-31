@@ -105,9 +105,10 @@ def _generate_folder(api):
         return content
     else:
         art = api.artwork()
+        title = api.title() if api.plex_type != v.PLEX_TYPE_TAG else api.tag_label()
         return {
-            'title': api.title(),
-            'label': api.title(),
+            'title': title,
+            'label': title,
             'file': api.directory_path(section_id=SECTION_ID,
                                        plex_type=PLEX_TYPE,
                                        old_key=KEY),

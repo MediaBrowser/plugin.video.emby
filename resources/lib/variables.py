@@ -181,6 +181,9 @@ PLEX_TYPE_PHOTO = 'photo'
 PLEX_TYPE_PLAYLIST = 'playlist'
 PLEX_TYPE_CHANNEL = 'channel'
 
+# E.g. PMS answer when hitting the PMS endpoint /hubs/search
+PLEX_TYPE_TAG = 'tag'
+
 # Used for /:/timeline XML messages
 PLEX_PLAYLIST_TYPE_VIDEO = 'video'
 PLEX_PLAYLIST_TYPE_AUDIO = 'music'

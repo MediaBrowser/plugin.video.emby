@@ -146,6 +146,8 @@ def show_main_menu(content_type=None):
     if content_type:
         path += '&content_type=%s' % content_type
     directory_item('Plex Hub', path)
+    # Plex Search "Search"
+    directory_item(utils.lang(137), "plugin://%s?mode=search" % v.ADDON_ID)
     # Plex Watch later
     if content_type not in ('image', 'audio'):
         directory_item(utils.lang(39211),
@@ -466,7 +468,7 @@ def watchlater():
 
 
 def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
-                prompt=None):
+                args=None, prompt=None):
     """
     Lists the content of a Plex folder, e.g. channels. Either pass in key (to
     be used directly for PMS url {server}<key>) or the section_id
@@ -474,28 +476,43 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
     Pass synched=False if the items have NOT been synched to the Kodi DB
     """
     LOG.debug('Browsing to key %s, section %s, plex_type: %s, synched: %s, '
-              'prompt "%s"', key, section_id, plex_type, synched, prompt)
+              'prompt "%s", args %s', key, section_id, plex_type, synched,
+              prompt, args)
     if not _wait_for_auth():
         xbmcplugin.endOfDirectory(int(sys.argv[1]), False)
         return
     app.init(entrypoint=True)
+    args = args or {}
     if prompt:
         prompt = utils.dialog('input', prompt)
         if prompt is None:
             # User cancelled
             return
         prompt = prompt.strip().decode('utf-8')
-        if '?' not in key:
-            key = '%s?query=%s' % (key, prompt)
-        else:
-            key = '%s&query=%s' % (key, prompt)
-    xml = DU().downloadUrl('{server}%s' % key)
+        args['query'] = prompt
+    xml = DU().downloadUrl(utils.extend_url('{server}%s' % key, args))
     try:
-        xml.attrib
-    except AttributeError:
+        xml[0].attrib
+    except (TypeError, IndexError, AttributeError):
         LOG.error('Could not browse to key %s, section %s',
                   key, section_id)
         return
+    if xml[0].tag == 'Hub':
+        # E.g. when hitting the endpoint '/hubs/search'
+        answ = utils.etree.Element(xml.tag, attrib=xml.attrib)
+        for hub in xml:
+            if not utils.cast(int, hub.get('size')):
+                # Empty category
+                continue
+            for entry in hub:
+                api = API(entry)
+                if api.plex_type == v.PLEX_TYPE_TAG:
+                    # Append the type before the actual element for all "tags"
+                    # like genres, actors, etc.
+                    entry.attrib['tag'] = '%s: %s' % (hub.get('title'),
+                                                      api.tag_label())
+                answ.append(entry)
+        xml = answ
     show_listing(xml, plex_type, section_id, synched, key)
 
 
