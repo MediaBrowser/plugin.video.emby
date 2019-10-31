@@ -1,3 +1,10 @@
+version 2.9.12 (beta only):
+- Fix resume not working in some cases
+- Support Plex search across all media and Plex Media Servers: Navigate to the PlexKodiConnect Add-on, then "Search"
+- Always use the current Kodi language when communicating with the PMS (restart Kodi when changing the language!)
+- Fix Kodi crashing when casting from e.g. Plex Web or Plex for Windows
+- Fix PKC throwing error if m3u playlist contains resume information
+
 version 2.9.11:
 - version 2.9.10 for everyone
 
