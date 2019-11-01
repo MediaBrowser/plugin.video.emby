@@ -54,7 +54,6 @@ def playback_triage(plex_id=None, plex_type=None, path=None, resolve=True,
         # playback
         app.PLAYSTATE.context_menu_play = False
         app.PLAYSTATE.force_transcode = False
-        app.PLAYSTATE.resume_playback = None
 
 
 def _playback_triage(plex_id, plex_type, path, resolve, resume):
@@ -133,9 +132,6 @@ def _playback_triage(plex_id, plex_type, path, resolve, resume):
                 initiate = True
             else:
                 initiate = False
-        if not initiate and app.PLAYSTATE.resume_playback is not None:
-            LOG.debug('Detected re-playing of the same item')
-            initiate = True
         if initiate:
             _playback_init(plex_id, plex_type, playqueue, pos, resume)
         else:

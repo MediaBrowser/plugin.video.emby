@@ -95,7 +95,6 @@ class Service(object):
         self.setup = None
         self.alexa = None
         self.playqueue = None
-        self.context_monitor = None
         # Flags for other threads
         self.connection_check_running = False
         self.auth_running = False
@@ -422,9 +421,6 @@ class Service(object):
         # Some plumbing
         app.init()
         app.APP.monitor = kodimonitor.KodiMonitor()
-        self.context_monitor = kodimonitor.ContextMonitor()
-        # Start immediately to catch user input even before auth
-        self.context_monitor.start()
         app.APP.player = xbmc.Player()
         # Initialize the PKC playqueues
         PQ.init_playqueues()
