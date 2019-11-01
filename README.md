@@ -1,5 +1,5 @@
 [![stable version](https://img.shields.io/badge/stable_version-2.9.11-blue.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/stable/repository.plexkodiconnect/repository.plexkodiconnect-1.0.2.zip) 
-[![beta version](https://img.shields.io/badge/beta_version-2.9.13-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
+[![beta version](https://img.shields.io/badge/beta_version-2.9.14-red.svg?maxAge=60&style=flat) ](https://github.com/croneter/binary_repo/raw/master/beta/repository.plexkodiconnectbeta/repository.plexkodiconnectbeta-1.0.2.zip)
 
 [![Installation](https://img.shields.io/badge/wiki-installation-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/Installation)
 [![FAQ](https://img.shields.io/badge/wiki-FAQ-brightgreen.svg?maxAge=60&style=flat)](https://github.com/croneter/PlexKodiConnect/wiki/faq)
@@ -50,6 +50,7 @@ Some people argue that PKC is 'hacky' because of the way it directly accesses th
 
 ### PKC Features
 
+- Kodi 19 is not yet supported (PKC is written in Python 2)
 - Support for Kodi 18 Leia
 - Support for Kodi 17 Krypton
 - [Amazon Alexa voice recognition](https://www.plex.tv/apps/streaming-devices/amazon-alexa)
