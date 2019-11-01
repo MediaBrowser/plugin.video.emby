@@ -6,7 +6,7 @@ from requests import exceptions
 
 from .downloadutils import DownloadUtils as DU
 from .plex_api import API
-from . import plex_functions as PF, utils, app, variables as v
+from . import plex_functions as PF, utils, variables as v
 
 
 LOG = getLogger('PLEX.playback_decision')
