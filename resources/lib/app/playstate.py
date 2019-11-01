@@ -56,12 +56,6 @@ class PlayState(object):
         # Currently playing PKC item, a PlaylistItem()
         self.item = None
 
-        # Set by SpecialMonitor - did user choose to resume playback or start from the
-        # beginning?
-        # Set to None if resume dialog has not been shown
-        # True if dialog has been shown and user selected to resume
-        # False if dialog has been shown and user chose to start from beginning
-        self.resume_playback = None
         # Was the playback initiated by the user using the Kodi context menu?
         self.context_menu_play = False
         # Set by context menu - shall we force-transcode the next playing item?
