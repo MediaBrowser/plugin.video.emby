@@ -463,13 +463,15 @@ def _clean_file_table():
     This function tries for at most 5 seconds to clean the file table.
     """
     LOG.debug('Start cleaning Kodi files table')
-    app.APP.monitor.waitForAbort(2)
+    if app.APP.monitor.waitForAbort(2):
+        # PKC should exit
+        return
     try:
-        with kodi_db.KodiVideoDB() as kodidb_1:
-            with kodi_db.KodiVideoDB(lock=False) as kodidb_2:
-                for file_id in kodidb_1.obsolete_file_ids():
-                    LOG.debug('Removing obsolete Kodi file_id %s', file_id)
-                    kodidb_2.remove_file(file_id, remove_orphans=False)
+        with kodi_db.KodiVideoDB() as kodidb:
+            obsolete_file_ids = list(kodidb.obsolete_file_ids())
+            for file_id in obsolete_file_ids:
+                LOG.debug('Removing obsolete Kodi file_id %s', file_id)
+                kodidb.remove_file(file_id, remove_orphans=False)
     except utils.OperationalError:
         LOG.debug('Database was locked, unable to clean file table')
     else:
