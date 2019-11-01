@@ -177,7 +177,7 @@ def _playlist_playback(plex_id):
     _conclude_playback(playqueue, pos=0)
 
 
-def _playback_init(plex_id, plex_type, playqueue, pos, force_resume):
+def _playback_init(plex_id, plex_type, playqueue, pos, resume):
     """
     Playback setup if Kodi starts playing an item for the first time.
     """
@@ -212,8 +212,18 @@ def _playback_init(plex_id, plex_type, playqueue, pos, force_resume):
     # playqueues
     # Release default.py
     _ensure_resolve()
-    LOG.debug('Using force_resume %s', force_resume)
-    resume = force_resume or False
+    api = API(xml[0])
+    if (app.PLAYSTATE.context_menu_play and
+            api.resume_point() and
+            api.plex_type in v.PLEX_VIDEOTYPES):
+        # User chose to either play via PMS or to force transcode
+        # Need to prompt whether we should resume_playback
+        resume = resume_dialog(int(api.resume_point()))
+        if resume is None:
+            # User cancelled dialog
+            return
+    LOG.debug('Using resume %s', resume)
+    resume = resume or False
     trailers = False
     if (not resume and plex_type == v.PLEX_TYPE_MOVIE and
             utils.settings('enableCinema') == "true"):
@@ -292,6 +302,7 @@ def resume_dialog(resume):
     # "Resume from {0:s}"
     # "Start from beginning"
     resume = datetime.timedelta(seconds=resume)
+    LOG.debug('Showing PKC resume dialog for resume: %s', resume)
     answ = utils.dialog('contextmenu',
                         [utils.lang(12022).replace('{0:s}', '{0}').format(unicode(resume)),
                          utils.lang(12021)])
