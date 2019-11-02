@@ -349,6 +349,11 @@ class KodiMonitor(xbmc.Monitor):
         status['plex_type'] = plex_type
         status['playmethod'] = item.playmethod
         status['playcount'] = item.playcount
+        try:
+            status['external_player'] = app.APP.player.isExternalPlayer() == 1
+        except AttributeError:
+            # Kodi version < 17
+            pass
         LOG.debug('Set the player state: %s', status)
         if not app.SYNC.direct_paths:
             _notify_upnext(item)
@@ -403,17 +408,22 @@ def _record_playstate(status, ended):
         LOG.debug('No playstate update due to Plex id not found: %s', status)
         return
     totaltime = float(timing.kodi_time_to_millis(status['totaltime'])) / 1000
-    if ended:
-        progress = 0.99
-        time = v.IGNORE_SECONDS_AT_START + 1
+    if status['external_player']:
+        _external_player_correct_plex_watch_count(db_item)
+        progress = 0.0
+        time = 0.0
     else:
-        time = float(timing.kodi_time_to_millis(status['time'])) / 1000
-        try:
-            progress = time / totaltime
-        except ZeroDivisionError:
-            progress = 0.0
-        LOG.debug('Playback progress %s (%s of %s seconds)',
-                  progress, time, totaltime)
+        if ended:
+            progress = 0.99
+            time = v.IGNORE_SECONDS_AT_START + 1
+        else:
+            time = float(timing.kodi_time_to_millis(status['time'])) / 1000
+            try:
+                progress = time / totaltime
+            except ZeroDivisionError:
+                progress = 0.0
+            LOG.debug('Playback progress %s (%s of %s seconds)',
+                      progress, time, totaltime)
     playcount = status['playcount']
     last_played = timing.kodi_now()
     if playcount is None:
@@ -453,6 +463,22 @@ def _record_playstate(status, ended):
         xbmc.executebuiltin('ReloadSkin()')
     task = backgroundthread.FunctionAsTask(_clean_file_table, None)
     backgroundthread.BGThreader.addTasksToFront([task])
+
+
+def _external_player_correct_plex_watch_count(db_item):
+    """
+    Kodi won't safe playstate at all for external players
+
+    There's currently no way to get a resumpoint if an external player is
+    in use  We are just checking whether we should mark video as
+    completely watched or completely unwatched (according to
+    playcountminimumtime set in playercorefactory.xml)
+    See https://kodi.wiki/view/External_players
+    """
+    with kodi_db.KodiVideoDB() as kodidb:
+        playcount = kodidb.get_playcount(db_item['kodi_fileid'])
+    LOG.debug('External player detected. Playcount: %s', playcount)
+    PF.scrobble(db_item['plex_id'], 'watched' if playcount else 'unwatched')
 
 
 def _clean_file_table():
