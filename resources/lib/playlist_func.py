@@ -213,6 +213,7 @@ class PlaylistItem(object):
                 "'guid': '{self.guid}', "
                 "'playmethod': '{self.playmethod}', "
                 "'playcount': {self.playcount}, "
+                "'resume': {self.resume},"
                 "'offset': {self.offset}, "
                 "'force_transcode': {self.force_transcode}, "
                 "'part': {self.part}".format(self=self))

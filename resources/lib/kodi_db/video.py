@@ -5,7 +5,7 @@ from logging import getLogger
 from sqlite3 import IntegrityError
 
 from . import common
-from .. import path_ops, timing, variables as v, app
+from .. import path_ops, timing, variables as v
 
 LOG = getLogger('PLEX.kodi_db.video')
 

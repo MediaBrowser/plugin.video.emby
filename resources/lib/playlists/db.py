@@ -64,7 +64,11 @@ def _m3u_iterator(text):
     lines = iter(text.split('\n'))
     for line in lines:
         if line.startswith('#EXTINF:'):
-            yield next(lines).strip()
+            next_line = next(lines).strip()
+            if next_line.startswith('#EXT-KX-OFFSET:'):
+                yield next(lines).strip()
+            else:
+                yield next_line
 
 
 def m3u_to_plex_ids(playlist):

@@ -11,20 +11,16 @@ import json
 import binascii
 
 import xbmc
-import xbmcgui
 
 from .plex_api import API
 from .plex_db import PlexDB
 from . import kodi_db
 from .downloadutils import DownloadUtils as DU
-from . import utils, timing, plex_functions as PF, playback
+from . import utils, timing, plex_functions as PF
 from . import json_rpc as js, playqueue as PQ, playlist_func as PL
 from . import backgroundthread, app, variables as v
 
 LOG = getLogger('PLEX.kodimonitor')
-
-# "Start from beginning", "Play from beginning"
-STRINGS = (utils.lang(12021).encode('utf-8'), utils.lang(12023).encode('utf-8'))
 
 
 class KodiMonitor(xbmc.Monitor):
@@ -33,7 +29,6 @@ class KodiMonitor(xbmc.Monitor):
     """
     def __init__(self):
         self._already_slept = False
-        self.hack_replay = None
         xbmc.Monitor.__init__(self)
         for playerid in app.PLAYSTATE.player_states:
             app.PLAYSTATE.player_states[playerid] = copy.deepcopy(app.PLAYSTATE.template)
@@ -57,9 +52,6 @@ class KodiMonitor(xbmc.Monitor):
         Monitor the PKC settings for changes made by the user
         """
         LOG.debug('PKC settings change detected')
-        # Assume that the user changed something so we can try to reconnect
-        # app.APP.suspend = False
-        # app.APP.resume_threads(block=False)
 
     def onNotification(self, sender, method, data):
         """
@@ -69,28 +61,12 @@ class KodiMonitor(xbmc.Monitor):
             data = loads(data, 'utf-8')
             LOG.debug("Method: %s Data: %s", method, data)
 
-        # Hack
-        if not method == 'Player.OnStop':
-            self.hack_replay = None
-
         if method == "Player.OnPlay":
             with app.APP.lock_playqueues:
                 self.PlayBackStart(data)
         elif method == "Player.OnStop":
-            # Should refresh our video nodes, e.g. on deck
-            # xbmc.executebuiltin('ReloadSkin()')
-            if (self.hack_replay and not data.get('end') and
-                    self.hack_replay == data['item']):
-                # Hack for add-on paths
-                self.hack_replay = None
-                with app.APP.lock_playqueues:
-                    self._hack_addon_paths_replay_video()
-            elif data.get('end'):
-                with app.APP.lock_playqueues:
-                    _playback_cleanup(ended=True)
-            else:
-                with app.APP.lock_playqueues:
-                    _playback_cleanup()
+            with app.APP.lock_playqueues:
+                _playback_cleanup(ended=data.get('end'))
         elif method == 'Playlist.OnAdd':
             if 'item' in data and data['item'].get('type') == v.KODI_TYPE_SHOW:
                 # Hitting the "browse" button on tv show info dialog
@@ -126,39 +102,6 @@ class KodiMonitor(xbmc.Monitor):
         elif method == 'Other.plugin.video.plexkodiconnect_play_action':
             self._start_next_episode(data)
 
-    @staticmethod
-    def _hack_addon_paths_replay_video():
-        """
-        Hack we need for RESUMABLE items because Kodi lost the path of the
-        last played item that is now being replayed (see playback.py's
-        Player().play()) Also see playqueue.py _compare_playqueues()
-
-        Needed if user re-starts the same video from the library using addon
-        paths. (Video is only added to playqueue, then immediately stoppen.
-        There is no playback initialized by Kodi.) Log excerpts:
-          Method: Playlist.OnAdd Data:
-              {u'item': {u'type': u'movie', u'id': 4},
-               u'playlistid': 1,
-               u'position': 0}
-          Now we would hack!
-          Method: Player.OnStop Data:
-              {u'item': {u'type': u'movie', u'id': 4},
-               u'end': False}
-        (within the same micro-second!)
-        """
-        LOG.info('Detected re-start of playback of last item')
-        old = app.PLAYSTATE.old_player_states[1]
-        kwargs = {
-            'plex_id': old['plex_id'],
-            'plex_type': old['plex_type'],
-            'path': old['file'],
-            'resolve': False
-        }
-        task = backgroundthread.FunctionAsTask(playback.playback_triage,
-                                               None,
-                                               **kwargs)
-        backgroundthread.BGThreader.addTasksToFront([task])
-
     def _playlist_onadd(self, data):
         """
         Called if an item is added to a Kodi playlist. Example data dict:
@@ -171,15 +114,7 @@ class KodiMonitor(xbmc.Monitor):
         }
         Will NOT be called if playback initiated by Kodi widgets
         """
-        if 'id' not in data['item']:
-            return
-        old = app.PLAYSTATE.old_player_states[data['playlistid']]
-        if (not app.SYNC.direct_paths and
-                data['position'] == 0 and data['playlistid'] == 1 and
-                not PQ.PLAYQUEUES[data['playlistid']].items and
-                data['item']['type'] == old['kodi_type'] and
-                data['item']['id'] == old['kodi_id']):
-            self.hack_replay = data['item']
+        pass
 
     def _playlist_onremove(self, data):
         """
@@ -451,7 +386,7 @@ def _playback_cleanup(ended=False):
     app.PLAYSTATE.active_players = set()
     app.PLAYSTATE.item = None
     utils.delete_temporary_subtitles()
-    LOG.info('Finished PKC playback cleanup')
+    LOG.debug('Finished PKC playback cleanup')
 
 
 def _record_playstate(status, ended):
@@ -528,13 +463,15 @@ def _clean_file_table():
     This function tries for at most 5 seconds to clean the file table.
     """
     LOG.debug('Start cleaning Kodi files table')
-    app.APP.monitor.waitForAbort(2)
+    if app.APP.monitor.waitForAbort(2):
+        # PKC should exit
+        return
     try:
-        with kodi_db.KodiVideoDB() as kodidb_1:
-            with kodi_db.KodiVideoDB(lock=False) as kodidb_2:
-                for file_id in kodidb_1.obsolete_file_ids():
-                    LOG.debug('Removing obsolete Kodi file_id %s', file_id)
-                    kodidb_2.remove_file(file_id, remove_orphans=False)
+        with kodi_db.KodiVideoDB() as kodidb:
+            obsolete_file_ids = list(kodidb.obsolete_file_ids())
+            for file_id in obsolete_file_ids:
+                LOG.debug('Removing obsolete Kodi file_id %s', file_id)
+                kodidb.remove_file(file_id, remove_orphans=False)
     except utils.OperationalError:
         LOG.debug('Database was locked, unable to clean file table')
     else:
@@ -653,36 +590,3 @@ def _videolibrary_onupdate(data):
         PF.scrobble(db_item['plex_id'], 'watched')
     else:
         PF.scrobble(db_item['plex_id'], 'unwatched')
-
-
-class ContextMonitor(backgroundthread.KillableThread):
-    """
-    Detect the resume dialog for widgets. Could also be used to detect
-    external players (see Emby implementation)
-
-    Let's not register this thread because it won't quit due to
-    xbmc.getCondVisibility
-    It should still exit at some point due to xbmc.abortRequested
-    """
-    def run(self):
-        LOG.info("----===## Starting ContextMonitor ##===----")
-        # app.APP.register_thread(self)
-        try:
-            self._run()
-        finally:
-            # app.APP.deregister_thread(self)
-            LOG.info("##===---- ContextMonitor Stopped ----===##")
-
-    def _run(self):
-        while not self.isCanceled():
-            # The following function will block if called while PKC should
-            # exit!
-            if xbmc.getCondVisibility('Window.IsVisible(DialogContextMenu.xml)'):
-                if xbmc.getInfoLabel('Control.GetLabel(1002)') in STRINGS:
-                    # Remember that the item IS indeed resumable
-                    control = int(xbmcgui.Window(10106).getFocusId())
-                    app.PLAYSTATE.resume_playback = True if control == 1001 else False
-                else:
-                    # Different context menu is displayed
-                    app.PLAYSTATE.resume_playback = False
-            xbmc.sleep(100)

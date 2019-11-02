@@ -1,3 +1,23 @@
+version 2.10.0:
+- version 2.9.12 - 2.9.14 for everyone
+- Get rid of some obsolete code for the ContextMonitor we dropped
+
+version 2.9.14 (beta only):
+- Fix resume when starting playback via PMS or when force transcoding
+- Get rid of ContextMonitor and the dedicated Python thread - with new resume mechanics, this is not needed anymore
+- Optimize clean-up of file table in the Kodi video database after stopping playback
+- Get rid of some obsolete imports
+
+version 2.9.13 (beta only):
+- Fix PKC resuming instead of playing from the beginning
+
+version 2.9.12 (beta only):
+- Fix resume not working in some cases
+- Support Plex search across all media and Plex Media Servers: Navigate to the PlexKodiConnect Add-on, then "Search"
+- Always use the current Kodi language when communicating with the PMS (restart Kodi when changing the language!)
+- Fix Kodi crashing when casting from e.g. Plex Web or Plex for Windows
+- Fix PKC throwing error if m3u playlist contains resume information
+
 version 2.9.11:
 - version 2.9.10 for everyone
 

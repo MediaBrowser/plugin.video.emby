@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.9.11" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.10.0" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
     <import addon="script.module.defusedxml" version="0.5.0"/>
-    <import addon="plugin.video.plexkodiconnect.movies" version="2.1.1" />
-    <import addon="plugin.video.plexkodiconnect.tvshows" version="2.1.1" />
+    <import addon="plugin.video.plexkodiconnect.movies" version="2.1.2" />
+    <import addon="plugin.video.plexkodiconnect.tvshows" version="2.1.2" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video audio image</provides>
@@ -83,7 +83,27 @@
     <summary lang="lt_LT">Natūralioji „Plex“ integracija į „Kodi“</summary>
     <description lang="lt_LT">Prijunkite „Kodi“ prie „Plex Medija Serverio“. Šiame papildinyje daroma prielaida, kad valdote visus savo vaizdo įrašus naudodami „Plex“ (ir nė vieno su „Kodi“). Galite prarasti jau saugomus „Kodi“ vaizdo įrašų ir muzikos duomenų bazių duomenis (kadangi šis papildinys juos tiesiogiai pakeičia). Naudokite savo pačių rizika!</description>
     <disclaimer lang="lt_LT">Naudokite savo pačių rizika</disclaimer>
-    <news>version 2.9.11:
+    <news>version 2.10.0:
+- version 2.9.12 - 2.9.14 for everyone
+- Get rid of some obsolete code for the ContextMonitor we dropped
+
+version 2.9.14 (beta only):
+- Fix resume when starting playback via PMS or when force transcoding
+- Get rid of ContextMonitor and the dedicated Python thread - with new resume mechanics, this is not needed anymore
+- Optimize clean-up of file table in the Kodi video database after stopping playback
+- Get rid of some obsolete imports
+
+version 2.9.13 (beta only):
+- Fix PKC resuming instead of playing from the beginning
+
+version 2.9.12 (beta only):
+- Fix resume not working in some cases
+- Support Plex search across all media and Plex Media Servers: Navigate to the PlexKodiConnect Add-on, then "Search"
+- Always use the current Kodi language when communicating with the PMS (restart Kodi when changing the language!)
+- Fix Kodi crashing when casting from e.g. Plex Web or Plex for Windows
+- Fix PKC throwing error if m3u playlist contains resume information
+
+version 2.9.11:
 - version 2.9.10 for everyone
 
 version 2.9.10 (beta only):

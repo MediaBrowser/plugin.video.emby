@@ -37,10 +37,15 @@ class PlaybackTask(backgroundthread.Task):
         resolve = False if params.get('handle') == '-1' else True
         LOG.debug('Received mode: %s, params: %s', mode, params)
         if mode == 'play':
+            if params.get('resume'):
+                resume = params.get('resume') == '1'
+            else:
+                resume = None
             playback.playback_triage(plex_id=params.get('plex_id'),
                                      plex_type=params.get('plex_type'),
                                      path=params.get('path'),
-                                     resolve=resolve)
+                                     resolve=resolve,
+                                     resume=resume)
         elif mode == 'plex_node':
             playback.process_indirect(params['key'],
                                       params['offset'],
