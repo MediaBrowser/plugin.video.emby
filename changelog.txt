@@ -1,3 +1,8 @@
+version 2.10.1:
+- Fix resume for Kodi on low powered devices, e.g. Raspberry Pi
+- Fix resume when using an external player
+- Fix UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal 
+
 version 2.10.0:
 - version 2.9.12 - 2.9.14 for everyone
 - Get rid of some obsolete code for the ContextMonitor we dropped
