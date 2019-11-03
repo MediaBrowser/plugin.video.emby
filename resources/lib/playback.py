@@ -27,6 +27,7 @@ from . import app
 LOG = getLogger('PLEX.playback')
 # Do we need to return ultimately with a setResolvedUrl?
 RESOLVE = True
+TRY_TO_SEEK_FOR = 300  # =30 seconds
 ###############################################################################
 
 
@@ -586,7 +587,7 @@ def threaded_playback(kodi_playlist, startpos, offset):
             # PKC needs to quit
             return
         i += 1
-        if i > 200:
+        if i > TRY_TO_SEEK_FOR:
             LOG.error('Could not seek to %s', offset)
             return
     i = 0
@@ -594,10 +595,12 @@ def threaded_playback(kodi_playlist, startpos, offset):
     while 'error' in answ:
         # Kodi sometimes returns {u'message': u'Failed to execute method.',
         # u'code': -32100} if user quickly switches videos
-        i += 1
-        if i > 10:
-            LOG.error('Failed to seek to %s', offset)
+        if app.APP.monitor.waitForAbort(0.1):
+            # PKC needs to quit
             return
-        app.APP.monitor.waitForAbort(0.1)
+        i += 1
+        if i > TRY_TO_SEEK_FOR:
+            LOG.error('Failed to seek to %s. Error: %s', offset, answ)
+            return
         answ = js.seek_to(offset * 1000)
     LOG.debug('Seek to offset %s successful', offset)
