@@ -35,7 +35,8 @@ class PlayState(object):
         'volume': 100,
         'muted': False,
         'playmethod': None,
-        'playcount': None
+        'playcount': None,
+        'external_player': False  # bool - xbmc.Player().isExternalPlayer()
     }
 
     def __init__(self):
