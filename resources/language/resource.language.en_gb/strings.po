@@ -250,6 +250,10 @@ msgctxt "#30160"
 msgid "Video Quality if Transcoding necessary"
 msgstr ""
 
+msgctxt "#30161"
+msgid "Auto-adjust transcoding quality (deactivate for Chromecast)"
+msgstr ""
+
 msgctxt "#30165"
 msgid "Direct Play"
 msgstr ""

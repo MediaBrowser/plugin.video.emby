@@ -1103,7 +1103,7 @@ def transcoding_arguments(path, media, part, playmethod, args=None):
         'partIndex': part,
         # all the rest
         'audioBoost': utils.settings('audioBoost'),
-        'autoAdjustQuality': 1,
+        'autoAdjustQuality': 1 if utils.settings('auto_adjust_transcode_quality') == 'true' else 0,
         'protocol': 'hls',   # seen in the wild: 'http', 'dash', 'http', 'hls'
         'session': v.PKC_MACHINE_IDENTIFIER,  # TODO: create new unique id
         'fastSeek': 1,
