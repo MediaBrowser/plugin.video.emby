@@ -28,6 +28,7 @@ LOG = getLogger('PLEX.playback')
 # Do we need to return ultimately with a setResolvedUrl?
 RESOLVE = True
 TRY_TO_SEEK_FOR = 300  # =30 seconds
+IGNORE_SECONDS_AT_START = 15
 ###############################################################################
 
 
@@ -590,6 +591,13 @@ def threaded_playback(kodi_playlist, startpos, offset):
         if i > TRY_TO_SEEK_FOR:
             LOG.error('Could not seek to %s', offset)
             return
+    try:
+        if offset == 0 and app.APP.player.getTime() < IGNORE_SECONDS_AT_START:
+            LOG.debug('Avoiding small jump to the very start of the video')
+            return
+    except RuntimeError:
+        # RuntimeError: XBMC is not playing any media file
+        pass
     i = 0
     answ = js.seek_to(offset * 1000)
     while 'error' in answ:
