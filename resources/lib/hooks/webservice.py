@@ -237,14 +237,27 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             if params.get('Name'):
                 path += "&filename=%s" % params['Name']
+        else:
+            path = "plugin://plugin.video.emby?mode=play&id=%s" % params['Id']
+            if params.get('server'):
+                path += "&server=%s" % params['server']
 
-            self.wfile.write(bytes(path))
+            if params.get('transcode'):
+                path += "&transcode=true"
 
-            return
+            if params.get('KodiId'):
+                path += "&dbid=%s" % params['KodiId']
 
-        path = "plugin://plugin.video.emby?mode=playstrm&id=%s" % params['Id']
+            if params.get('Name'):
+                path += "&filename=%s" % params['Name']
+
+        if self.server.pending.count(params['Id']) != len(self.server.pending):
+            play_folder = True
+
+        self.server.pending.append(params['Id'])
         self.wfile.write(bytes(path))
 
+        """
         if params['Id'] not in self.server.pending:
             xbmc.log("[ webservice/%s ] path: %s params: %s" % (str(id(self)), str(self.path), str(params)), xbmc.LOGWARNING)
 
@@ -256,6 +269,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 queue = QueuePlay(self.server)
                 queue.start()
                 self.server.threads.append(queue)
+        """
 
     def images(self):
 
