@@ -168,6 +168,9 @@ class HTTP(object):
 
                 try:
                     self.config['server-time'] = r.headers['Date']
+                    if r.status_code == 204:
+                        # return, because there is no response
+                        return
                     response = r.json()
                     LOG.debug(json.dumps(response, indent=4))
 
