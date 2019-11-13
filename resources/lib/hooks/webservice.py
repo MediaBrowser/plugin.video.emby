@@ -175,13 +175,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path:
                 raise Exception("unsupported artwork request")
 
-            if headers_only:
-
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-
-            elif '/Audio' in self.path:
+            if '/Audio' in self.path:
                 params = self.get_params()
 
                 self.send_response(301)
@@ -189,6 +183,12 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 path.start()
                 path.join() # Block until the thread exits.
                 self.send_header('Location', path.path)
+                self.end_headers()
+
+            elif headers_only:
+
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
 
             elif 'file.strm' not in self.path:
@@ -242,20 +242,20 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             return
 
-        path = "plugin://plugin.video.emby?mode=playstrm&id=%s" % params['Id']
+        path = "plugin://plugin.video.emby?mode=play&id=%s" % params['Id']
+        if params.get('server'):
+            path += "&server=%s" % params['server']
+
+        if params.get('transcode'):
+            path += "&transcode=true"
+
+        if params.get('KodiId'):
+            path += "&dbid=%s" % params['KodiId']
+
+        if params.get('Name'):
+            path += "&filename=%s" % params['Name']
+
         self.wfile.write(bytes(path))
-
-        if params['Id'] not in self.server.pending:
-            xbmc.log("[ webservice/%s ] path: %s params: %s" % (str(id(self)), str(self.path), str(params)), xbmc.LOGWARNING)
-
-            self.server.pending.append(params['Id'])
-            self.server.queue.put(params)
-
-            if not len(self.server.threads):
-
-                queue = QueuePlay(self.server)
-                queue.start()
-                self.server.threads.append(queue)
 
     def images(self):
 
@@ -276,161 +276,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.wfile.write(image.readBytes())
         image.close()
-
-class QueuePlay(threading.Thread):
-
-    def __init__(self, server):
-
-        self.server = server
-        threading.Thread.__init__(self)
-
-    def run(self):
-        import objects
-        ''' Workflow for new playback:
-
-            Queue up strm playback that was called in the webservice.
-            Called playstrm in default.py which will wait for our signal here.
-            Downloads emby information.
-            Add content to the playlist after the strm file that initiated playback from db.
-            Start playback by telling playstrm waiting. It will fail playback of the current strm and
-            move to the next entry for us. If play folder, playback starts here.
-
-            Required delay for widgets, custom skin containers and non library windows.
-            Otherwise Kodi will freeze if no artwork textures are cached yet in Textures13.db
-            Will be skipped if the player already has media and is playing.
-
-            Why do all this instead of using plugin?
-            Strms behaves better than plugin in database.
-            Allows to load chapter images with direct play.
-            Allows to have proper artwork for intros.
-            Faster than resolving using plugin, especially on low powered devices.
-            Cons:
-            Can't use external players with this method.
-        '''
-        LOG.info("-->[ queue play ]")
-        play_folder = False
-        play = None
-        start_position = None
-        position = None
-        playlist = None
-        playlist_audio = False
-        xbmc.sleep(200) # Let Kodi catch up
-
-        while True:
-            try:
-                try:
-                    params = self.server.queue.get(timeout=0.01)
-                except Queue.Empty:
-                    count = 20
-
-                    if xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
-                    	xbmc.Player().stop()
-
-                    while not window('emby.playlist.ready.bool'):
-                        xbmc.sleep(50)
-
-                        if not count:
-                            LOG.info("[ playback aborted ]")
-
-                            raise Exception("PlaybackAborted")
-
-                        count -= 1
-                    else:
-                        LOG.info("[ playback starting/%s ]", start_position)
-
-                        if play_folder:
-
-                            LOG.info("[ start play/folder ]")
-                            window('emby.playlist.play.bool', True)
-                            objects.utils.disable_busy_dialog()
-                            play.start_playback()
-
-                        elif window('emby.playlist.audio.bool'):
-
-                            LOG.info("[ start play/relaunch ]")
-                            window('emby.playlist.play.bool', True)
-                            window('emby.play.reset.bool', True)
-                            xbmc.sleep(200)
-                            play.start_playback()
-                        else:
-                            LOG.info("[ start play ]")
-                            window('emby.playlist.play.bool', True)
-                            xbmc.sleep(1000)
-                            play.remove_from_playlist(start_position)
-
-                    break
-
-                server = params.get('server')
-
-                if not server and not window('emby_online.bool'):
-                    dialog("notification", heading="{emby}", message=_(33146), icon=xbmcgui.NOTIFICATION_ERROR)
-                    raise Exception("NotConnected")
-
-                play = objects.PlayStrm(params, server)
-
-                if start_position is None:
-
-                    if window('emby.playlist.audio.bool'):
-
-                        while not window('emby.playlist.plugin.bool'): # ensure plugin called before clearing playlists
-                            xbmc.sleep(50)
-                        else:
-                            window('emby.autoplay', clear=True)
-                            xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
-                            xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
-                            playlist_audio = True
-                            window('emby.playlist.ready.bool', True)
-
-                    start_position = max(play.info['KodiPlaylist'].getposition(), 0)
-                    position = start_position + int(not playlist_audio)
-
-                if play_folder:
-                    play.info['KodiPlaylist'] = playlist
-                    position = play.play_folder(position)
-                else:
-                    if self.server.pending.count(params['Id']) != len(self.server.pending):
-                        play_folder = True
-
-                    window('emby.playlist.start', str(start_position))
-                    position = play.play(play_folder, position)
-                    playlist = play.info['KodiPlaylist']
-
-                    if play_folder:
-                        objects.utils.enable_busy_dialog()
-
-            except Exception as error:
-                LOG.exception(error)
-
-                if not xbmc.Player().isPlaying():
-
-                    if play:
-                        play.info['KodiPlaylist'].clear()
-
-                    xbmc.Player().stop() # mute failed playback pop up
-                    self.server.queue.queue.clear()
-
-                if play_folder:
-                    objects.utils.disable_busy_dialog()
-                else:
-                    window('emby.playlist.aborted.bool', True)
-
-                break
-
-            self.server.queue.task_done()
-
-        self.stop()
-
-    def stop(self):
-
-        window('emby.playlist.play', clear=True)
-        window('emby.playlist.ready', clear=True)
-        window('emby.playlist.start', clear=True)
-        window('emby.playlist.audio', clear=True)
-        window('emby.play.cancel.bool', clear=True)
-
-        self.server.threads.remove(self)
-        self.server.pending = []
-        LOG.info("--<[ queue play ]")
 
 
 class Redirect(threading.Thread):

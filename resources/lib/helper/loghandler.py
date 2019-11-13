@@ -52,7 +52,13 @@ class LogHandler(logging.StreamHandler):
     def emit(self, record):
 
         if self._get_log_level(record.levelno):
-            string = self.format(record)
+
+            try:
+                string = self.format(record)
+            except Exception as error:
+                xbmc.log("Error trying to format string for log", level=xbmc.LOGNOTICE)
+
+                return
 
             if self.mask_info:
                 for server in self.sensitive['Server']:

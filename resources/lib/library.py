@@ -134,6 +134,7 @@ class Library(threading.Thread):
             if self.monitor.waitForAbort(2):
                 break
 
+        window('emby_sync', clear=True)
         LOG.warn("---<[ library ]")
 
     @stop()
