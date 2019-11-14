@@ -1,3 +1,12 @@
+version 2.10.3 (beta only):
+- Fix a couple of issues with music when using direct paths: correctly escape music paths for Kodi regex matching
+- Fix Recently Added Albums sort order (you will have to reset the Kodi database manually)
+- Fix database being locked in rare cases
+- Increase batch size for library sync from 500 to 2000 to increase sync speed
+- Optimize some code
+- Fix KeyError when using Plex search capabilities
+- Check faster for available Plex Media Server to connect to
+
 version 2.10.2:
 - Fix Kodi playback jumping to the beginning of a video that just started
 - Fix transcoding quality degenerating quickly while playing with a new setting to deactivate auto quality for transcoding (applicable e.g. for Chromecast) 
