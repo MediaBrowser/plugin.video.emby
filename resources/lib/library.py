@@ -273,6 +273,8 @@ class Library(threading.Thread):
     def _worker_removed_size(self):
         total = 0
 
+        total += self.removed_queue.qsize()
+
         for queues in self.removed_output:
             total += self.removed_output[queues].qsize()
 
@@ -564,7 +566,7 @@ class Library(threading.Thread):
 
             # a for loop is needed here, because the 'get_items' method returns a generator
             for data in server.get_items(library.replace('Mixed:', ""),
-                                         "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
+                                         "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
                                          False,
                                          {'MinDateLastSavedForUser': last_sync}):
 
@@ -577,8 +579,9 @@ class Library(threading.Thread):
 
                     # the 'get_userdata_date_modified' does actually the same as the 'get_date_modified' method; see 'libraries/emby/core/api.py'
                     # so for this call no separate server request is needed
-                    if item['Type'] in self.userdata_output:
+                    '''if item['Type'] in self.userdata_output:
                         self.userdata_output[item['Type']].put(item)
+                    '''
 
                     dialog.update(int(main_index * (50 / len(sync['Whitelist'])) +
                                       (float(start_index + index) / float(data['TotalRecordCount'])) * 

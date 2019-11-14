@@ -760,7 +760,8 @@ class ConnectionManager(object):
 
                 return self._after_connect_validated(server, credentials, system_info, connection_mode, False, options)
 
-            return self._resolve_failure()
+            elif server.get('AccessToken'):
+                return self._resolve_failure()
 
         self._update_server_info(server, system_info)
         self.server_version = system_info['Version']
