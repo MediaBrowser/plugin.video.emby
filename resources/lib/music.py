@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+import re
 
 from .plex_api.media import Media
 from . import utils
@@ -85,7 +86,7 @@ def _turn_to_regex(path):
     else:
         if not path.endswith('\\'):
             path = '%s\\' % path
-    # Need to escape backslashes
-    path = path.replace('\\', '\\\\')
+    # Escape all characters that could cause problems
+    path = re.escape(path)
     # Beginning of path only needs to be similar
     return '^%s' % path
