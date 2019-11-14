@@ -427,7 +427,7 @@ def _poke_pms(pms, queue):
                            authenticate=False,
                            headerOptions={'X-Plex-Token': pms['token']},
                            verifySSL=True if v.KODIVERSION >= 18 else False,
-                           timeout=10)
+                           timeout=(3.0, 5.0))
     try:
         xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):
