@@ -102,14 +102,15 @@ class FullSync(common.fullsync_mixin):
         self.threader.addTask(GetMetadataTask(self.queue,
                                               plex_id,
                                               self.plex_type,
-                                              self.get_children))
+                                              self.get_children,
+                                              self.item_count))
         self.item_count += 1
 
     def update_library(self):
         LOG.debug('Writing changes to Kodi library now')
         i = 0
         if not self.section:
-            self.section = self.queue.get()
+            _, self.section = self.queue.get()
             self.queue.task_done()
         while not self.isCanceled() and self.item_count > 0:
             section = self.section
@@ -125,7 +126,7 @@ class FullSync(common.fullsync_mixin):
             with section.context(self.current_sync) as context:
                 while not self.isCanceled() and self.item_count > 0:
                     try:
-                        item = self.queue.get(block=False)
+                        _, item = self.queue.get(block=False)
                     except backgroundthread.Queue.Empty:
                         if self.threader.threader.working():
                             app.APP.monitor.waitForAbort(0.02)
@@ -174,7 +175,7 @@ class FullSync(common.fullsync_mixin):
                                                      iterator.get('title1')),
                                         section.section_id,
                                         section.plex_type)
-            self.queue.put(queue_info)
+            self.queue.put((-1, queue_info))
             last = True
             # To keep track of the item-number in order to kill while loops
             self.item_count = 0
@@ -216,7 +217,7 @@ class FullSync(common.fullsync_mixin):
                                         section.name,
                                         section.section_id,
                                         section.plex_type)
-            self.queue.put(queue_info)
+            self.queue.put((-1, queue_info))
             self.total = iterator.total
             self.section_name = section.name
             self.section_type_text = utils.lang(
@@ -268,6 +269,7 @@ class FullSync(common.fullsync_mixin):
                     element.section_type = element.plex_type
                     element.context = kind[2]
                     element.get_children = kind[3]
+                    element.Queue = kind[4]
                     if self.repair or all_items:
                         updated_at = None
                     else:
@@ -292,16 +294,22 @@ class FullSync(common.fullsync_mixin):
     def full_library_sync(self):
         """
         """
+        # structure:
+        #  (plex_type,
+        #   section_type,
+        #   context for itemtype,
+        #   download children items, e.g. songs for a specific album?,
+        #   Queue)
         kinds = [
-            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_MOVIE, itemtypes.Movie, False),
-            (v.PLEX_TYPE_SHOW, v.PLEX_TYPE_SHOW, itemtypes.Show, False),
-            (v.PLEX_TYPE_SEASON, v.PLEX_TYPE_SHOW, itemtypes.Season, False),
-            (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SHOW, itemtypes.Episode, False)
+            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_MOVIE, itemtypes.Movie, False, Queue.Queue),
+            (v.PLEX_TYPE_SHOW, v.PLEX_TYPE_SHOW, itemtypes.Show, False, Queue.Queue),
+            (v.PLEX_TYPE_SEASON, v.PLEX_TYPE_SHOW, itemtypes.Season, False, Queue.Queue),
+            (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SHOW, itemtypes.Episode, False, Queue.Queue)
         ]
         if app.SYNC.enable_music:
             kinds.extend([
-                (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST, itemtypes.Artist, False),
-                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True),
+                (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST, itemtypes.Artist, False, Queue.Queue),
+                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True, backgroundthread.OrderedQueue),
             ])
         # ADD NEW ITEMS
         # Already start setting up the iterators. We need to enforce
@@ -323,6 +331,7 @@ class FullSync(common.fullsync_mixin):
             self.section_type = section.section_type
             self.context = section.context
             self.get_children = section.get_children
+            self.queue = section.Queue()
             # Now do the heavy lifting
             if self.isCanceled() or not self.addupdate_section(section):
                 return False
@@ -352,8 +361,11 @@ class FullSync(common.fullsync_mixin):
         LOG.info('Start synching playstate and userdata for every item')
         # In order to not delete all your songs again
         if app.SYNC.enable_music:
+            # We don't need to enforce the album order now
+            kinds.pop(5)
             kinds.extend([
-                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, True),
+                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True, Queue.Queue),
+                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, True, Queue.Queue),
             ])
         # Make sure we're not showing an item's title in the sync dialog
         self.title = ''
@@ -429,7 +441,6 @@ class FullSync(common.fullsync_mixin):
             return
         self.successful = True
         try:
-            self.queue = backgroundthread.Queue.Queue()
             if self.show_dialog:
                 self.dialog = xbmcgui.DialogProgressBG()
                 self.dialog.create(utils.lang(39714))

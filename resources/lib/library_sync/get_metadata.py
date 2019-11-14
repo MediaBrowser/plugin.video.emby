@@ -36,11 +36,13 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
         queue               Queue.Queue() object where this thread will store
                             the downloaded metadata XMLs as etree objects
     """
-    def __init__(self, queue, plex_id, plex_type, get_children=False):
+    def __init__(self, queue, plex_id, plex_type, get_children=False,
+                 count=None):
         self.queue = queue
         self.plex_id = plex_id
         self.plex_type = plex_type
         self.get_children = get_children
+        self.count = count
         super(GetMetadataTask, self).__init__()
 
     def _collections(self, item):
@@ -120,4 +122,4 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
             else:
                 item['children'] = children_xml
         if not self.isCanceled():
-            self.queue.put(item)
+            self.queue.put((self.count, item))

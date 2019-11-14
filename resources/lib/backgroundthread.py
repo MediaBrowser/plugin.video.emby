@@ -140,6 +140,67 @@ class KillableThread(threading.Thread):
         return self._suspended
 
 
+class OrderedQueue(Queue.PriorityQueue, object):
+    """
+    Queue that enforces an order on the items it returns. An item you push
+    onto the queue must be a tuple
+        (index, item)
+    where index=-1 is the item that will be returned first. The Queue will block
+    until index=-1, 0, 1, 2, 3, ... is then made available
+    """
+    def __init__(self, maxsize=0):
+        super(OrderedQueue, self).__init__(maxsize)
+        self.smallest = -1
+        self.not_next_item = threading.Condition(self.mutex)
+
+    def _put(self, item, heappush=heapq.heappush):
+        heappush(self.queue, item)
+        if item[0] == self.smallest:
+            self.not_next_item.notify()
+
+    def get(self, block=True, timeout=None):
+        """Remove and return an item from the queue.
+
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until an item is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Empty exception if no item was available within that time.
+        Otherwise ('block' is false), return an item if one is immediately
+        available, else raise the Empty exception ('timeout' is ignored
+        in that case).
+        """
+        self.not_empty.acquire()
+        try:
+            if not block:
+                if not self._qsize() or self.queue[0][0] != self.smallest:
+                    raise Queue.Empty
+            elif timeout is None:
+                while not self._qsize():
+                    self.not_empty.wait()
+                while self.queue[0][0] != self.smallest:
+                    self.not_next_item.wait()
+            elif timeout < 0:
+                raise ValueError("'timeout' must be a non-negative number")
+            else:
+                endtime = Queue._time() + timeout
+                while not self._qsize():
+                    remaining = endtime - Queue._time()
+                    if remaining <= 0.0:
+                        raise Queue.Empty
+                    self.not_empty.wait(remaining)
+                while self.queue[0][0] != self.smallest:
+                    remaining = endtime - Queue._time()
+                    if remaining <= 0.0:
+                        raise Queue.Empty
+                    self.not_next_item.wait(remaining)
+            item = self._get()
+            self.smallest += 1
+            self.not_full.notify()
+            return item
+        finally:
+            self.not_empty.release()
+
+
 class Tasks(list):
     def add(self, task):
         for t in self:
