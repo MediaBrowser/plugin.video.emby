@@ -192,12 +192,10 @@ class FullSync(common.fullsync_mixin):
                         self.process_item(xml_item)
                         if self.item_count == BATCH_SIZE:
                             break
-                # Make sure Plex DB above is closed before adding/updating
-                if self.item_count == BATCH_SIZE:
-                    self.update_library()
+                # Make sure Plex DB above is closed before adding/updating!
+                self.update_library()
                 if last:
                     break
-            self.update_library()
             reset_collections()
             return True
         except RuntimeError:
@@ -252,7 +250,7 @@ class FullSync(common.fullsync_mixin):
 
     def threaded_get_iterators(self, kinds, queue, all_items=False):
         """
-        PF.SectionItems is costly, so let's do it asynchronous
+        Getting iterators is costly, so let's do it asynchronously
         """
         try:
             for kind in kinds:
@@ -276,10 +274,11 @@ class FullSync(common.fullsync_mixin):
                         updated_at = section.last_sync - UPDATED_AT_SAFETY \
                             if section.last_sync else None
                     try:
-                        element.iterator = PF.SectionItems(section.section_id,
-                                                           plex_type=element.plex_type,
-                                                           updated_at=updated_at,
-                                                           last_viewed_at=None)
+                        element.iterator = PF.get_section_iterator(
+                            section.section_id,
+                            plex_type=element.plex_type,
+                            updated_at=updated_at,
+                            last_viewed_at=None)
                     except RuntimeError:
                         LOG.warn('Sync at least partially unsuccessful')
                         self.successful = False
