@@ -8,7 +8,7 @@ from .video import KodiVideoDB
 from .music import KodiMusicDB
 from .texture import KodiTextureDB
 
-from .. import path_ops, utils, timing, variables as v
+from .. import path_ops, utils, variables as v
 
 LOG = getLogger('PLEX.kodi_db')
 
@@ -56,30 +56,7 @@ def setup_kodi_default_entries():
     """
     if utils.settings('enableMusic') == 'true':
         with KodiMusicDB() as kodidb:
-            kodidb.cursor.execute('''
-                INSERT OR REPLACE INTO artist(
-                    idArtist,
-                    strArtist,
-                    strMusicBrainzArtistID)
-                VALUES (?, ?, ?)
-            ''', (1, '[Missing Tag]', 'Artist Tag Missing'))
-            kodidb.cursor.execute('''
-                INSERT OR REPLACE INTO role(
-                    idRole,
-                    strRole)
-                VALUES (?, ?)
-            ''', (1, 'Artist'))
-            if v.KODIVERSION >= 18:
-                kodidb.cursor.execute('DELETE FROM versiontagscan')
-                kodidb.cursor.execute('''
-                    INSERT INTO versiontagscan(
-                        idVersion,
-                        iNeedsScan,
-                        lastscanned)
-                    VALUES (?, ?, ?)
-                ''', (v.DB_MUSIC_VERSION,
-                      0,
-                      timing.kodi_now()))
+            kodidb.setup_kodi_default_entries()
 
 
 def reset_cached_images():
@@ -98,10 +75,7 @@ def reset_cached_images():
             except OSError:
                 pass
     with KodiTextureDB() as kodidb:
-        for row in kodidb.cursor.execute('SELECT tbl_name FROM sqlite_master WHERE type=?',
-                                         ('table', )):
-            if row[0] != 'version':
-                kodidb.cursor.execute("DELETE FROM %s" % row[0])
+        kodidb.reset_cached_images()
 
 
 def wipe_dbs(music=True):
@@ -112,25 +86,13 @@ def wipe_dbs(music=True):
     DO NOT use context menu as we need to connect without WAL mode - if Kodi
     is still accessing the DB
     """
-    from sqlite3 import connect
     LOG.warn('Wiping Kodi databases!')
-    kinds = [v.DB_VIDEO_PATH, v.DB_TEXTURE_PATH]
+    kinds = [KodiVideoDB, KodiTextureDB]
     if music:
-        kinds.append(v.DB_MUSIC_PATH)
-    for path in kinds:
-        conn = connect(path, timeout=30.0)
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-        tables = cursor.fetchall()
-        tables = [i[0] for i in tables]
-        if 'version' in tables:
-            tables.remove('version')
-        if 'versiontagscan' in tables:
-            tables.remove('versiontagscan')
-        for table in tables:
-            cursor.execute('DELETE FROM %s' % table)
-        conn.commit()
-        conn.close()
+        kinds.insert(1, KodiMusicDB)
+    for kind in kinds:
+        with kind() as kodidb:
+            kodidb.wipe()
     setup_kodi_default_entries()
     # Delete SQLITE wal files
     import xbmc
@@ -138,6 +100,14 @@ def wipe_dbs(music=True):
     xbmc.executebuiltin('UpdateLibrary(video)')
     if utils.settings('enableMusic') == 'true':
         xbmc.executebuiltin('UpdateLibrary(music)')
+
+
+def create_kodi_db_indicees():
+    """
+    Index the "actors" because we got a TON - speed up SELECT and WHEN
+    """
+    with KodiVideoDB() as kodidb:
+        kodidb.create_kodi_db_indicees()
 
 
 KODIDB_FROM_PLEXTYPE = {

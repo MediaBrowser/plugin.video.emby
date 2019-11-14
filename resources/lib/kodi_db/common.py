@@ -2,56 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from threading import Lock
-from functools import wraps
 
-from .. import utils, path_ops, app
+from .. import db, path_ops
 
 KODIDB_LOCK = Lock()
-DB_WRITE_ATTEMPTS = 100
-
-
-class LockedKodiDatabase(Exception):
-    """
-    Dedicated class to make sure we're not silently catching locked DBs.
-    """
-    pass
-
-
-def catch_operationalerrors(method):
-    """
-    sqlite.OperationalError is raised immediately if another DB connection
-    is open, reading something that we're trying to change
-
-    So let's catch it and try again
-
-    Also see https://github.com/mattn/go-sqlite3/issues/274
-    """
-    @wraps(method)
-    def wrapper(self, *args, **kwargs):
-        attempts = DB_WRITE_ATTEMPTS
-        while True:
-            try:
-                return method(self, *args, **kwargs)
-            except utils.OperationalError as err:
-                if 'database is locked' not in err:
-                    # Not an error we want to catch, so reraise it
-                    raise
-                attempts -= 1
-                if attempts == 0:
-                    # Reraise in order to NOT catch nested OperationalErrors
-                    raise LockedKodiDatabase('Kodi database locked')
-                # Need to close the transactions and begin new ones
-                self.kodiconn.commit()
-                if self.artconn:
-                    self.artconn.commit()
-                if app.APP.monitor.waitForAbort(0.1):
-                    # PKC needs to quit
-                    return
-                # Start new transactions
-                self.kodiconn.execute('BEGIN')
-                if self.artconn:
-                    self.artconn.execute('BEGIN')
-    return wrapper
+# Names of tables we generally leave untouched and e.g. don't wipe
+UNTOUCHED_TABLES = ('version', 'versiontagscan')
 
 
 class KodiDBBase(object):
@@ -72,9 +28,9 @@ class KodiDBBase(object):
     def __enter__(self):
         if self.lock:
             KODIDB_LOCK.acquire()
-        self.kodiconn = utils.kodi_sql(self.db_kind)
+        self.kodiconn = db.connect(self.db_kind)
         self.cursor = self.kodiconn.cursor()
-        self.artconn = utils.kodi_sql('texture') if self._texture_db else None
+        self.artconn = db.connect('texture') if self._texture_db else None
         self.artcursor = self.artconn.cursor() if self._texture_db else None
         return self
 
@@ -110,7 +66,7 @@ class KodiDBBase(object):
         for kodi_art, url in artworks.iteritems():
             self.add_art(url, kodi_id, kodi_type, kodi_art)
 
-    @catch_operationalerrors
+    @db.catch_operationalerrors
     def add_art(self, url, kodi_id, kodi_type, kodi_art):
         """
         Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
@@ -129,7 +85,7 @@ class KodiDBBase(object):
         for kodi_art, url in artworks.iteritems():
             self.modify_art(url, kodi_id, kodi_type, kodi_art)
 
-    @catch_operationalerrors
+    @db.catch_operationalerrors
     def modify_art(self, url, kodi_id, kodi_type, kodi_art):
         """
         Adds or modifies the artwork of kind kodi_art (e.g. 'poster') in the
@@ -166,7 +122,7 @@ class KodiDBBase(object):
         for row in self.cursor.fetchall():
             self.delete_cached_artwork(row[0])
 
-    @catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_cached_artwork(self, url):
         try:
             self.artcursor.execute("SELECT cachedurl FROM texture WHERE url = ? LIMIT 1",
@@ -182,3 +138,16 @@ class KodiDBBase(object):
             if path_ops.exists(path):
                 path_ops.rmtree(path, ignore_errors=True)
             self.artcursor.execute("DELETE FROM texture WHERE url = ?", (url, ))
+
+    @db.catch_operationalerrors
+    def wipe(self):
+        """
+        Completely wipes the corresponding Kodi database
+        """
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        tables = [i[0] for i in self.cursor.fetchall()]
+        for table in UNTOUCHED_TABLES:
+            if table in tables:
+                tables.remove(table)
+        for table in tables:
+            self.cursor.execute('DELETE FROM %s' % table)

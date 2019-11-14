@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
 from . import common
-from .. import variables as v, app
+from .. import db, variables as v, app, timing
 
 LOG = getLogger('PLEX.kodi_db.music')
 
@@ -12,7 +12,7 @@ LOG = getLogger('PLEX.kodi_db.music')
 class KodiMusicDB(common.KodiDBBase):
     db_kind = 'music'
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_path(self, path):
         """
         Add the path (unicode) to the music DB, if it does not exist already.
@@ -34,7 +34,38 @@ class KodiMusicDB(common.KodiDBBase):
                                 (pathid, path, '123'))
         return pathid
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
+    def setup_kodi_default_entries(self):
+        """
+        Makes sure that we retain the Kodi standard databases. E.g. that there
+        is a dummy artist with ID 1
+        """
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO artist(
+                idArtist,
+                strArtist,
+                strMusicBrainzArtistID)
+            VALUES (?, ?, ?)
+        ''', (1, '[Missing Tag]', 'Artist Tag Missing'))
+        self.cursor.execute('''
+            INSERT OR REPLACE INTO role(
+                idRole,
+                strRole)
+            VALUES (?, ?)
+        ''', (1, 'Artist'))
+        if v.KODIVERSION >= 18:
+            self.cursor.execute('DELETE FROM versiontagscan')
+            self.cursor.execute('''
+                INSERT INTO versiontagscan(
+                    idVersion,
+                    iNeedsScan,
+                    lastscanned)
+                VALUES (?, ?, ?)
+            ''', (v.DB_MUSIC_VERSION,
+                  0,
+                  timing.kodi_now()))
+
+    @db.catch_operationalerrors
     def update_path(self, path, kodi_pathid):
         self.cursor.execute('''
             UPDATE path
@@ -62,7 +93,7 @@ class KodiMusicDB(common.KodiDBBase):
             return
         return song_ids[0][0]
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_song_from_song_artist(self, song_id):
         """
         Deletes son from song_artist table and possibly orphaned roles
@@ -79,7 +110,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM song_artist WHERE idSong = ?',
                             (song_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_album_from_discography(self, album_id):
         """
         Removes the album with id album_id from the table discography
@@ -99,7 +130,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM discography WHERE idArtist = ? AND strAlbum = ? AND strYear = ?',
                             (artist[0], name, year))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_song_from_song_genre(self, song_id):
         """
         Deletes the one entry with id song_id from the song_genre table.
@@ -120,7 +151,7 @@ class KodiMusicDB(common.KodiDBBase):
                 if not self.cursor.fetchone():
                     self.delete_genre(genre[0])
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_genre(self, genre_id):
         """
         Dedicated method in order to catch OperationalErrors correctly
@@ -128,7 +159,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM genre WHERE idGenre = ?',
                             (genre_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def delete_album_from_album_genre(self, album_id):
         """
         Deletes the one entry with id album_id from the album_genre table.
@@ -153,7 +184,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('SELECT COALESCE(MAX(idAlbum), 0) FROM album')
         return self.cursor.fetchone()[0] + 1
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_album_17(self, *args):
         """
         strReleaseType: 'album' or 'single'
@@ -196,7 +227,7 @@ class KodiMusicDB(common.KodiDBBase):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_album_17(self, *args):
         if app.SYNC.artwork:
             self.cursor.execute('''
@@ -234,7 +265,7 @@ class KodiMusicDB(common.KodiDBBase):
                 WHERE idAlbum = ?
             ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_album(self, *args):
         """
         strReleaseType: 'album' or 'single'
@@ -277,7 +308,7 @@ class KodiMusicDB(common.KodiDBBase):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_album(self, *args):
         if app.SYNC.artwork:
             self.cursor.execute('''
@@ -315,7 +346,7 @@ class KodiMusicDB(common.KodiDBBase):
                 WHERE idAlbum = ?
             ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_albumartist(self, artist_id, kodi_id, artistname):
         self.cursor.execute('''
             INSERT OR REPLACE INTO album_artist(
@@ -325,7 +356,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?)
         ''', (artist_id, kodi_id, artistname))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_discography(self, artist_id, albumname, year):
         self.cursor.execute('''
             INSERT OR REPLACE INTO discography(
@@ -335,7 +366,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?)
         ''', (artist_id, albumname, year))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_music_genres(self, kodiid, genres, mediatype):
         """
         Adds a list of genres (list of unicode) for a certain Kodi item
@@ -388,7 +419,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('SELECT COALESCE(MAX(idSong),0) FROM song')
         return self.cursor.fetchone()[0] + 1
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_song(self, *args):
         self.cursor.execute('''
             INSERT INTO song(
@@ -413,7 +444,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_song_17(self, *args):
         self.cursor.execute('''
             INSERT INTO song(
@@ -438,7 +469,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_song(self, *args):
         self.cursor.execute('''
             UPDATE song
@@ -459,7 +490,7 @@ class KodiMusicDB(common.KodiDBBase):
             WHERE idSong = ?
         ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def set_playcount(self, *args):
         self.cursor.execute('''
             UPDATE song
@@ -468,7 +499,7 @@ class KodiMusicDB(common.KodiDBBase):
             WHERE idSong = ?
         ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_song_17(self, *args):
         self.cursor.execute('''
             UPDATE song
@@ -497,7 +528,7 @@ class KodiMusicDB(common.KodiDBBase):
         except TypeError:
             pass
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_artist(self, name, musicbrainz):
         """
         Adds a single artist's name to the db
@@ -534,7 +565,7 @@ class KodiMusicDB(common.KodiDBBase):
                                     (name, artistid,))
         return artistid
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_artist(self, *args):
         if app.SYNC.artwork:
             self.cursor.execute('''
@@ -557,15 +588,15 @@ class KodiMusicDB(common.KodiDBBase):
                 WHERE idArtist = ?
             ''', (args))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def remove_song(self, kodi_id):
         self.cursor.execute('DELETE FROM song WHERE idSong = ?', (kodi_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def remove_path(self, path_id):
         self.cursor.execute('DELETE FROM path WHERE idPath = ?', (path_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_song_artist(self, artist_id, song_id, artist_name):
         self.cursor.execute('''
             INSERT OR REPLACE INTO song_artist(
@@ -577,7 +608,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?)
         ''', (artist_id, song_id, 1, 0, artist_name))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def add_albuminfosong(self, song_id, album_id, track_no, track_title,
                           runtime):
         """
@@ -593,7 +624,7 @@ class KodiMusicDB(common.KodiDBBase):
             VALUES (?, ?, ?, ?, ?)
         ''', (song_id, album_id, track_no, track_title, runtime))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def update_userrating(self, kodi_id, kodi_type, userrating):
         """
         Updates userrating for songs and albums
@@ -610,7 +641,7 @@ class KodiMusicDB(common.KodiDBBase):
                             % (kodi_type, column),
                             (userrating, identifier, kodi_id))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def remove_albuminfosong(self, kodi_id):
         """
         Kodi 17 only
@@ -618,7 +649,7 @@ class KodiMusicDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM albuminfosong WHERE idAlbumInfoSong = ?',
                             (kodi_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def remove_album(self, kodi_id):
         if v.KODIVERSION < 18:
             self.cursor.execute('DELETE FROM albuminfosong WHERE idAlbumInfo = ?',
@@ -627,7 +658,7 @@ class KodiMusicDB(common.KodiDBBase):
                             (kodi_id, ))
         self.cursor.execute('DELETE FROM album WHERE idAlbum = ?', (kodi_id, ))
 
-    @common.catch_operationalerrors
+    @db.catch_operationalerrors
     def remove_artist(self, kodi_id):
         self.cursor.execute('DELETE FROM album_artist WHERE idArtist = ?',
                             (kodi_id, ))
