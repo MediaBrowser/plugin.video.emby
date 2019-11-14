@@ -564,7 +564,7 @@ class Library(threading.Thread):
 
             # a for loop is needed here, because the 'get_items' method returns a generator
             for data in server.get_items(library.replace('Mixed:', ""),
-                                         "Series,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
+                                         "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
                                          False,
                                          {'MinDateLastSavedForUser': last_sync}):
 
