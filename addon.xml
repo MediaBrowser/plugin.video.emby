@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.10.2" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.10.3" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -83,7 +83,16 @@
     <summary lang="lt_LT">Natūralioji „Plex“ integracija į „Kodi“</summary>
     <description lang="lt_LT">Prijunkite „Kodi“ prie „Plex Medija Serverio“. Šiame papildinyje daroma prielaida, kad valdote visus savo vaizdo įrašus naudodami „Plex“ (ir nė vieno su „Kodi“). Galite prarasti jau saugomus „Kodi“ vaizdo įrašų ir muzikos duomenų bazių duomenis (kadangi šis papildinys juos tiesiogiai pakeičia). Naudokite savo pačių rizika!</description>
     <disclaimer lang="lt_LT">Naudokite savo pačių rizika</disclaimer>
-    <news>version 2.10.2:
+    <news>version 2.10.3 (beta only):
+- Fix a couple of issues with music when using direct paths: correctly escape music paths for Kodi regex matching
+- Fix Recently Added Albums sort order (you will have to reset the Kodi database manually)
+- Fix database being locked in rare cases
+- Increase batch size for library sync from 500 to 2000 to increase sync speed
+- Optimize some code
+- Fix KeyError when using Plex search capabilities
+- Check faster for available Plex Media Server to connect to
+
+version 2.10.2:
 - Fix Kodi playback jumping to the beginning of a video that just started
 - Fix transcoding quality degenerating quickly while playing with a new setting to deactivate auto quality for transcoding (applicable e.g. for Chromecast) 
 - Update translations
