@@ -1045,3 +1045,7 @@ msgstr ""
 msgctxt "#33217"
 msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
 msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
