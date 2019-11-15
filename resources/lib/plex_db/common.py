@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, unicode_literals
 from threading import Lock
 
-from .. import utils, variables as v
+from .. import db, variables as v
 
 PLEXDB_LOCK = Lock()
 
@@ -31,7 +31,7 @@ class PlexDBBase(object):
     def __enter__(self):
         if self.lock:
             PLEXDB_LOCK.acquire()
-        self.plexconn = utils.kodi_sql('plex')
+        self.plexconn = db.connect('plex')
         self.cursor = self.plexconn.cursor()
         return self
 

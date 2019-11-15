@@ -427,7 +427,7 @@ def _poke_pms(pms, queue):
                            authenticate=False,
                            headerOptions={'X-Plex-Token': pms['token']},
                            verifySSL=True if v.KODIVERSION >= 18 else False,
-                           timeout=10)
+                           timeout=(3.0, 5.0))
     try:
         xml.attrib['machineIdentifier']
     except (AttributeError, KeyError):
@@ -557,23 +557,7 @@ def GetAllPlexChildren(key):
     return DownloadChunks("{server}/library/metadata/%s/children" % key)
 
 
-def GetPlexSectionResults(viewId, args=None):
-    """
-    Returns a list (XML API dump) of all Plex items in the Plex
-    section with key = viewId.
-
-    Input:
-        args:       optional dict to be urlencoded
-
-    Returns None if something went wrong
-    """
-    url = "{server}/library/sections/%s/all" % viewId
-    if args:
-        url = utils.extend_url(url, args)
-    return DownloadChunks(url)
-
-
-class DownloadChunk(backgroundthread.Task):
+class ThreadedDownloadChunk(backgroundthread.Task):
     """
     This task will also be executed while library sync is suspended!
     """
@@ -581,7 +565,7 @@ class DownloadChunk(backgroundthread.Task):
         self.url = url
         self.args = args
         self.callback = callback
-        super(DownloadChunk, self).__init__()
+        super(ThreadedDownloadChunk, self).__init__()
 
     def run(self):
         xml = DU().downloadUrl(self.url, parameters=self.args)
@@ -601,14 +585,15 @@ class DownloadGen(object):
 
     Yields XML etree children or raises RuntimeError at the end
     """
-    def __init__(self, url, plex_type=None, last_viewed_at=None,
-                 updated_at=None, args=None):
+    def __init__(self, url, plex_type, last_viewed_at, updated_at, args,
+                 downloader):
+        self._downloader = downloader
         self.successful = True
-        self.args = args or {}
+        self.xml = None
+        self.args = args
         self.args.update({
-            'X-Plex-Container-Size': CONTAINERSIZE,
-            'sort': 'id',  # Entries are sorted by plex_id
-            'excludeAllLeaves': 1  # PMS wont attach a first summary child
+            'X-Plex-Container-Start': 0,
+            'X-Plex-Container-Size': CONTAINERSIZE
         })
         url += '?'
         if plex_type:
@@ -618,8 +603,8 @@ class DownloadGen(object):
         if updated_at:
             url = '%supdatedAt>=%s&' % (url, updated_at)
         self.url = url[:-1]
-        self._download_chunk(start=0)
-        self.attrib = deepcopy(self.xml.attrib)
+        _blocking_download_chunk(self.url, self.args, 0, self.set_xml)
+        self.attrib = self.xml.attrib
         self.current = 0
         self.total = int(self.attrib['totalSize'])
         self.cache_factor = 10
@@ -629,33 +614,23 @@ class DownloadGen(object):
                   self.total + CONTAINERSIZE - self.total % CONTAINERSIZE)
         for pos in range(CONTAINERSIZE, end, CONTAINERSIZE):
             self.pending_counter.append(None)
-            self._download_chunk(start=pos)
+            self._downloader(self.url, self.args, pos, self.on_chunk_downloaded)
 
-    def _download_chunk(self, start):
-        self.args['X-Plex-Container-Start'] = start
-        if start == 0:
-            # We need the result NOW
-            self.xml = DU().downloadUrl(self.url, parameters=self.args)
-            try:
-                self.xml.attrib
-            except AttributeError:
-                LOG.error('Error while downloading chunks: %s, args: %s',
-                          self.url, self.args)
-                raise RuntimeError('Error while downloading chunks for %s'
-                                   % self.url)
-        else:
-            task = DownloadChunk(self.url,
-                                 deepcopy(self.args),  # Beware!
-                                 self.on_chunk_downloaded)
-            backgroundthread.BGThreader.addTask(task)
+    def set_xml(self, xml):
+        self.xml = xml
 
     def on_chunk_downloaded(self, xml):
         if xml is not None:
-            for child in xml:
-                self.xml.append(child)
+            self.xml.extend(xml)
         else:
             self.successful = False
         self.pending_counter.pop()
+
+    def get(self, key, default=None):
+        """
+        Mimick etree xml's way to access xml.attrib via xml.get(key, default)
+        """
+        return self.attrib.get(key, default)
 
     def __iter__(self):
         return self
@@ -669,8 +644,11 @@ class DownloadGen(object):
                 if (self.current % CONTAINERSIZE == 0 and
                         self.current <= self.total - (self.cache_factor - 1) * CONTAINERSIZE):
                     self.pending_counter.append(None)
-                    self._download_chunk(
-                        start=self.current + (self.cache_factor - 1) * CONTAINERSIZE)
+                    self._downloader(
+                        self.url,
+                        self.args,
+                        self.current + (self.cache_factor - 1) * CONTAINERSIZE,
+                        self.on_chunk_downloaded)
                 return child
             except IndexError:
                 if not self.pending_counter and not len(self.xml):
@@ -679,46 +657,67 @@ class DownloadGen(object):
                     else:
                         raise StopIteration()
             LOG.debug('Waiting for download to finish')
-            app.APP.monitor.waitForAbort(0.1)
+            if app.APP.monitor.waitForAbort(0.1):
+                raise StopIteration('PKC needs to exit now')
 
     next = __next__
 
-    def get(self, key, default=None):
-        return self.attrib.get(key, default)
+
+def _blocking_download_chunk(url, args, start, callback):
+    """
+    callback will be called with the downloaded xml (fragment)
+    """
+    args['X-Plex-Container-Start'] = start
+    xml = DU().downloadUrl(url, parameters=args)
+    try:
+        xml.attrib
+    except AttributeError:
+        LOG.error('Error while downloading chunks: %s, args: %s',
+                  url, args)
+        raise RuntimeError('Error while downloading chunks for %s'
+                           % url)
+    callback(xml)
 
 
-class SectionItems(DownloadGen):
-    """
-    Iterator object to get all items of a Plex library section
-    """
-    def __init__(self, section_id, plex_type=None, last_viewed_at=None,
-                 updated_at=None, args=None):
-        if plex_type in (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SONG):
-            # Annoying Plex bug. You won't get all episodes otherwise
-            url = '{server}/library/sections/%s/allLeaves' % section_id
-            plex_type = None
-        else:
-            url = '{server}/library/sections/%s/all' % section_id
-        super(SectionItems, self).__init__(url, plex_type, last_viewed_at,
-                                           updated_at, args)
+def _async_download_chunk(url, args, start, callback):
+    args['X-Plex-Container-Start'] = start
+    task = ThreadedDownloadChunk(url,
+                                 deepcopy(args),  # Beware!
+                                 callback)
+    backgroundthread.BGThreader.addTask(task)
 
 
-class Children(DownloadGen):
-    """
-    Iterator object to get all items of a Plex library section
-    """
-    def __init__(self, plex_id):
-        super(Children, self).__init__(
-            '{server}/library/metadata/%s/children' % plex_id)
-
-
-class Leaves(DownloadGen):
-    """
-    Iterator object to get all items of a Plex library section
-    """
-    def __init__(self, section_id):
-        super(Leaves, self).__init__(
-            '{server}/library/sections/%s/allLeaves' % section_id)
+def get_section_iterator(section_id, plex_type=None, last_viewed_at=None,
+                         updated_at=None, args=None):
+    args = args or {}
+    args.update({
+        'checkFiles': 0,
+        'includeExtras': 0,         # Trailers and Extras => Extras
+        'includeReviews': 0,
+        'includeRelated': 0,        # Similar movies => Video -> Related
+        'skipRefresh': 1,  # don't scan
+        'excludeAllLeaves': 1  # PMS wont attach a first summary child
+    })
+    if plex_type == v.PLEX_TYPE_ALBUM:
+        # Kodi sorts Newest Albums by their position within the Kodi music
+        # database - great...
+        downloader = _blocking_download_chunk
+        args['sort'] = 'addedAt:asc'
+    else:
+        downloader = _async_download_chunk
+        args['sort'] = 'id'  # Entries are sorted by plex_id
+    if plex_type in (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SONG):
+        # Annoying Plex bug. You won't get all episodes otherwise
+        url = '{server}/library/sections/%s/allLeaves' % section_id
+        plex_type = None
+    else:
+        url = '{server}/library/sections/%s/all' % section_id
+    return DownloadGen(url,
+                       plex_type,
+                       last_viewed_at,
+                       updated_at,
+                       args,
+                       downloader)
 
 
 def DownloadChunks(url):
@@ -765,37 +764,6 @@ def DownloadChunks(url):
         LOG.error('Fatal error while downloading chunks for %s', url)
         return None
     return xml
-
-
-def GetAllPlexLeaves(viewId, lastViewedAt=None, updatedAt=None):
-    """
-    Returns a list (raw XML API dump) of all Plex subitems for the key.
-    (e.g. /library/sections/2/allLeaves pointing to all TV shows)
-
-    Input:
-        viewId              Id of Plex library, e.g. '2'
-        lastViewedAt        Unix timestamp; only retrieves PMS items viewed
-                            since that point of time until now.
-        updatedAt           Unix timestamp; only retrieves PMS items updated
-                            by the PMS since that point of time until now.
-
-    If lastViewedAt and updatedAt=None, ALL PMS items are returned.
-
-    Warning: lastViewedAt and updatedAt are combined with AND by the PMS!
-
-    Relevant "master time": PMS server. I guess this COULD lead to problems,
-    e.g. when server and client are in different time zones.
-    """
-    args = []
-    url = "{server}/library/sections/%s/allLeaves" % viewId
-
-    if lastViewedAt:
-        args.append('lastViewedAt>=%s' % lastViewedAt)
-    if updatedAt:
-        args.append('updatedAt>=%s' % updatedAt)
-    if args:
-        url += '?' + '&'.join(args)
-    return DownloadChunks(url)
 
 
 def GetPlexOnDeck(viewId):

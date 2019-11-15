@@ -5,7 +5,7 @@ Various functions and decorators for PKC
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from sqlite3 import connect, OperationalError
+from sqlite3 import OperationalError
 from datetime import datetime
 from unicodedata import normalize
 from threading import Lock
@@ -525,50 +525,6 @@ def delete_temporary_subtitles():
                           root, file, err)
 
 
-def kodi_sql(media_type=None):
-    """
-    Open a connection to the Kodi database.
-        media_type: 'video' (standard if not passed), 'plex', 'music', 'texture'
-    """
-    if media_type == "plex":
-        db_path = v.DB_PLEX_PATH
-    elif media_type == "music":
-        db_path = v.DB_MUSIC_PATH
-    elif media_type == "texture":
-        db_path = v.DB_TEXTURE_PATH
-    else:
-        db_path = v.DB_VIDEO_PATH
-    conn = connect(db_path, timeout=30.0)
-    conn.execute('PRAGMA journal_mode=WAL;')
-    conn.execute('PRAGMA cache_size = -8000;')
-    conn.execute('PRAGMA synchronous=NORMAL;')
-    conn.execute('BEGIN')
-    # Use transactions
-    return conn
-
-
-def create_kodi_db_indicees():
-    """
-    Index the "actors" because we got a TON - speed up SELECT and WHEN
-    """
-    conn = kodi_sql('video')
-    cursor = conn.cursor()
-    commands = (
-        'CREATE UNIQUE INDEX IF NOT EXISTS ix_actor_2 ON actor (actor_id);',
-        'CREATE UNIQUE INDEX IF NOT EXISTS ix_files_2 ON files (idFile);',
-    )
-    for cmd in commands:
-        cursor.execute(cmd)
-    # Already used in Kodi >=17: CREATE UNIQUE INDEX ix_actor_1 ON actor (name)
-    # try:
-    #     cursor.execute('CREATE UNIQUE INDEX ix_pkc_actor_index ON actor (name);')
-    # except OperationalError:
-    #     # Index already exists
-    #     pass
-    conn.commit()
-    conn.close()
-
-
 def wipe_synched_playlists():
     """
     Deletes all synched playlist files on the Kodi side; resets the Plex table
@@ -617,12 +573,10 @@ def wipe_database(reboot=True):
         # Plex DB completely empty yet. Wipe existing Kodi music only if we
         # expect to sync Plex music
         music = settings('enableMusic') == 'true'
+    LOG.info("Resetting all cached artwork.")
     kodi_db.wipe_dbs(music)
     plex_db.wipe()
 
-    LOG.info("Resetting all cached artwork.")
-    # Remove all cached artwork
-    kodi_db.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
     settings('sections_asked_for_machine_identifier', value='')
@@ -644,7 +598,7 @@ def init_dbs():
     # Ensure that Plex DB is set-up
     plex_db.initialize()
     # Hack to speed up look-ups for actors (giant table!)
-    create_kodi_db_indicees()
+    kodi_db.create_kodi_db_indicees()
     kodi_db.setup_kodi_default_entries()
     with kodi_db.KodiVideoDB() as kodidb:
         # Setup the paths for addon-paths (even when using direct paths)
