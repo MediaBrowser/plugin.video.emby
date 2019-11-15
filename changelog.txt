@@ -1,3 +1,7 @@
+version 2.10.4:
+- version 2.10.3 for everyone
+- Fix to correctly wipe Kodi databases
+
 version 2.10.3 (beta only):
 - Fix a couple of issues with music when using direct paths: correctly escape music paths for Kodi regex matching
 - Fix Recently Added Albums sort order (you will have to reset the Kodi database manually)
