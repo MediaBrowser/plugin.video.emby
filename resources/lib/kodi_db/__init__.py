@@ -61,7 +61,10 @@ def setup_kodi_default_entries():
 
 def reset_cached_images():
     LOG.info('Resetting cached artwork')
-    # Remove all existing textures first
+    LOG.debug('Resetting the Kodi texture DB')
+    with KodiTextureDB(wal_mode=False) as kodidb:
+        kodidb.wipe()
+    LOG.debug('Deleting all cached image files')
     path = path_ops.translate_path('special://thumbnails/')
     if path_ops.exists(path):
         path_ops.rmtree(path, ignore_errors=True)
@@ -72,10 +75,10 @@ def reset_cached_images():
             new_path = path_ops.translate_path('special://thumbnails/%s' % path)
             try:
                 path_ops.makedirs(path_ops.encode_path(new_path))
-            except OSError:
-                pass
-    with KodiTextureDB() as kodidb:
-        kodidb.reset_cached_images()
+            except OSError as err:
+                LOG.warn('Could not create thumbnail directory %s: %s',
+                         new_path, err)
+    LOG.info('Done resetting cached artwork')
 
 
 def wipe_dbs(music=True):
@@ -83,16 +86,18 @@ def wipe_dbs(music=True):
     Completely resets the Kodi databases 'video', 'texture' and 'music' (if
     music sync is enabled)
 
-    DO NOT use context menu as we need to connect without WAL mode - if Kodi
-    is still accessing the DB
+    We need to connect without sqlite WAL mode as Kodi might still be accessing
+    the dbs and we need to prevent that
     """
     LOG.warn('Wiping Kodi databases!')
-    kinds = [KodiVideoDB, KodiTextureDB]
+    LOG.info('Wiping Kodi video database')
+    with KodiVideoDB(wal_mode=False) as kodidb:
+        kodidb.wipe()
     if music:
-        kinds.insert(1, KodiMusicDB)
-    for kind in kinds:
-        with kind() as kodidb:
+        LOG.info('Wiping Kodi music database')
+        with KodiMusicDB(wal_mode=False) as kodidb:
             kodidb.wipe()
+    reset_cached_images()
     setup_kodi_default_entries()
     # Delete SQLITE wal files
     import xbmc
