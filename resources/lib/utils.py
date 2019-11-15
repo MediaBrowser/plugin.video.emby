@@ -573,12 +573,10 @@ def wipe_database(reboot=True):
         # Plex DB completely empty yet. Wipe existing Kodi music only if we
         # expect to sync Plex music
         music = settings('enableMusic') == 'true'
+    LOG.info("Resetting all cached artwork.")
     kodi_db.wipe_dbs(music)
     plex_db.wipe()
 
-    LOG.info("Resetting all cached artwork.")
-    # Remove all cached artwork
-    kodi_db.reset_cached_images()
     # reset the install run flag
     settings('SyncInstallRunDone', value="false")
     settings('sections_asked_for_machine_identifier', value='')
