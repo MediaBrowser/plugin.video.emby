@@ -494,6 +494,7 @@ class Player(xbmc.Player):
     def stop_playback(self):
 
         ''' Stop all playback. Check for external player for positionticks.
+            Immediately force an internal update for the item to remove the visual delay waiting on the callback from server.
         '''
         LOG.debug("[ played info ] %s", self.played)
 
@@ -525,6 +526,7 @@ class Player(xbmc.Player):
                     'PlaySessionId': item['PlaySessionId']
                 }
                 item['Server']['api'].session_stop(data)
+                event("LibraryChanged", {'ItemsRemoved': [], 'ItemsVerify': [], 'ItemsUpdated': [item['Id']], 'ItemsAdded': []})
 
                 if item.get('LiveStreamId'):
 
