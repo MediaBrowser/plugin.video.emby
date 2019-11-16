@@ -30,7 +30,10 @@ NODES = {
         ('nextepisodes', _(30179)),
         ('genres', 135),
         ('random', _(30229)),
-        ('recommended', _(30230))
+        ('recommended', _(30230)),
+        ('years', _(33218)),
+        ('actors', _(33219)),
+        ('tags', _(33220))
     ],
     'movies': [
         ('all', None),
@@ -41,7 +44,9 @@ NODES = {
         ('genres', 135),
         ('random', _(30229)),
         ('recommended', _(30230)),
-        ('years', _(33218))
+        ('years', _(33218)),
+        ('actors', _(33219)),
+        ('tags', _(33220))
     ],
     'musicvideos': [
         ('all', None),
@@ -507,6 +512,34 @@ class Views(object):
             break
         else:
             etree.SubElement(root, 'group').text = "years"
+
+    def node_actors(self, root):
+
+        for rule in root.findall('.//order'):
+            if rule.text == "title":
+                break
+        else:
+            etree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+
+        for rule in root.findall('.//group'):
+            rule.text = "actors"
+            break
+        else:
+            etree.SubElement(root, 'group').text = "actors"
+
+    def node_tags(self, root):
+
+        for rule in root.findall('.//order'):
+            if rule.text == "title":
+                break
+        else:
+            etree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+
+        for rule in root.findall('.//group'):
+            rule.text = "tags"
+            break
+        else:
+            etree.SubElement(root, 'group').text = "tags"
 
     def node_recent(self, root):
 
