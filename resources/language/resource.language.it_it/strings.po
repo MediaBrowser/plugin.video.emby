@@ -4,13 +4,14 @@
 # Addon Provider: angelblue05
 # Translators:
 # EffeF, 2019
+# angelblue05 <tamara.angel05@gmail.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: EffeF, 2019\n"
+"Last-Translator: angelblue05 <tamara.angel05@gmail.com>, 2019\n"
 "Language-Team: Italian (https://www.transifex.com/emby-for-kodi/teams/91090/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1154,3 +1155,35 @@ msgstr "Ultima release"
 msgctxt "#33213"
 msgid "Enable label for multi-episodes. i.e. | # | title"
 msgstr "Attiva etichetta per più episodi. i.e. | # | titolo"
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr "Transcodifica Divx (MSMPEG4V3)"
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr "Transcodifica Xvid (MPEG4)"
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr "Transcodifica Dvd (MPEG2)"
+
+msgctxt "#33217"
+msgid ""
+"Verify the connection? Recommended: Disable for self-signed certificate "
+"only."
+msgstr ""
+"Verifica la connessione? Consigliato: Disabilitare solo per il certificato "
+"autofirmato."
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
