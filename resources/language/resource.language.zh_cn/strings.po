@@ -8,13 +8,14 @@
 # Noisy✘ <164980316@qq.com>, 2019
 # jindaxia <jfk_jin@sina.com>, 2019
 # 無情天 X <kofzhanganguo@126.com>, 2019
+# angelblue05 <tamara.angel05@gmail.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: 無情天 X <kofzhanganguo@126.com>, 2019\n"
+"Last-Translator: angelblue05 <tamara.angel05@gmail.com>, 2019\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/emby-for-kodi/teams/91090/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1104,4 +1105,22 @@ msgstr ""
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid ""
+"Verify the connection? Recommended: Disable for self-signed certificate "
+"only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
 msgstr ""
