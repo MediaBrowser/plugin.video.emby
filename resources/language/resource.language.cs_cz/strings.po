@@ -4,13 +4,15 @@
 # Addon Provider: angelblue05
 # Translators:
 # DJ Sweder <djsweder@gmail.com>, 2019
+# Jaroslav Lichtblau <jlichtblau@seznam.cz>, 2019
+# angelblue05 <tamara.angel05@gmail.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: DJ Sweder <djsweder@gmail.com>, 2019\n"
+"Last-Translator: angelblue05 <tamara.angel05@gmail.com>, 2019\n"
 "Language-Team: Czech (https://www.transifex.com/emby-for-kodi/teams/91090/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1145,12 +1147,32 @@ msgstr "Povolit značku pro multi-epizody, např. | # | název"
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr ""
+msgstr "Překódování Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr ""
+msgstr "Překódování Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
+msgstr "Překódování Dvd (MPEG2)"
+
+msgctxt "#33217"
+msgid ""
+"Verify the connection? Recommended: Disable for self-signed certificate "
+"only."
+msgstr ""
+"Ověřit připojení? Doporučení: Vypnout pouze pro certifikáty podepsané sebou "
+"samým."
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr "Podle roku"
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
 msgstr ""
