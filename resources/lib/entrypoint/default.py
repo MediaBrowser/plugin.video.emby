@@ -952,6 +952,13 @@ def get_themes():
         tvtunes.setSetting('custom_path_enable', "true")
         tvtunes.setSetting('custom_path', library)
         LOG.info("TV Tunes custom path is enabled and set.")
+
+    elif xbmc.getCondVisibility('System.HasAddon(service.tvtunes)'):
+
+        tvtunes = xbmcaddon.Addon(id="service.tvtunes")
+        tvtunes.setSetting('custom_path_enable', "true")
+        tvtunes.setSetting('custom_path', library)
+        LOG.info("TV Tunes custom path is enabled and set.")
     else:
         dialog("ok", heading="{emby}", line1=_(33152))
 

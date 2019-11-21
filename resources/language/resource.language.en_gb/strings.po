@@ -1049,3 +1049,11 @@ msgstr ""
 msgctxt "#33218"
 msgid "By Year"
 msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""

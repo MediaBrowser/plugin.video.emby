@@ -539,7 +539,7 @@ class Library(threading.Thread):
                         break
 
                 if new_fast_sync > 0:
-                    self.fast_sync(enable_fast_sync)
+                    self.fast_sync(plugin=enable_fast_sync)
 
                 elif enable_fast_sync:
 

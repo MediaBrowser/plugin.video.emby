@@ -302,10 +302,11 @@ class Service(xbmc.Monitor):
 
         elif method == 'WebSocketRestarting':
 
-            try:
-                self['library'].get_fast_sync()
-            except Exception as error:
-                LOG.error(error)
+            if self['library']:
+                try:
+                    self['library'].get_fast_sync()
+                except Exception as error:
+                    LOG.error(error)
 
         elif method == 'System.OnQuit':
             window('emby_should_stop.bool', True)
