@@ -9,6 +9,7 @@ import threading
 import urlparse
 import socket
 import Queue
+#from uuid import uuid4
 
 import xbmc
 import xbmcgui
@@ -289,5 +290,9 @@ class Redirect(threading.Thread):
 
     def run(self):
 
-        self.path = "%s%s?api_key=%s" % (self.server['auth/server-address'], self.redirect, self.server['auth/token'])
+        self.path = "%s%s?api_key=%s&static=true" % (self.server['auth/server-address'], self.redirect, self.server['auth/token'])
+        """
+        self.path = ("%s?UserId=%s&DeviceId=%s&api_key=%s&MaxStreamingBitrate=1280000&Container=aac,mp3,opus,m4a,webma,webm,wav,ogg,mpa,wma,mp2,ogg,oga,ape&MaxSampleRate=48000",
+                     "&TranscodingProtocol=hls&TranscodingContainer=aac&AudioCodec=aac&EnableRedirection=true&EnableRemoteMedia=true&PlaySessionId=%s" % (self.server['auth/server-address'], self.server['auth/user-id'], self.server['config/app.device_id'], self.server['auth/token'], str(uuid4()).replace("-", "")))
+        """
         LOG.info("path: %s", self.path)
