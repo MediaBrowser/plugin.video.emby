@@ -148,10 +148,10 @@ class Show(TvShowMixin, ItemBase):
         Process a single show
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         show = self.plexdb.show(plex_id)
@@ -303,10 +303,10 @@ class Season(TvShowMixin, ItemBase):
         Process a single season of a certain tv show
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         season = self.plexdb.season(plex_id)
@@ -372,10 +372,10 @@ class Episode(TvShowMixin, ItemBase):
         Process single episode
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         episode = self.plexdb.episode(plex_id)
