@@ -9,6 +9,20 @@ PLAYLIST_SYNC_ENABLED = (v.DEVICE != 'Microsoft UWP' and
                          utils.settings('enablePlaylistSync') == 'true')
 
 
+class LibrarySyncMixin(object):
+    def suspend(self, block=False, timeout=None):
+        """
+        Let's NOT suspend sync threads but immediately terminate them
+        """
+        self.cancel()
+
+    def wait_while_suspended(self):
+        """
+        Return immediately
+        """
+        return self.should_cancel()
+
+
 def update_kodi_library(video=True, music=True):
     """
     Updates the Kodi library and thus refreshes the Kodi views and widgets
