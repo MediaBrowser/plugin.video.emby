@@ -102,6 +102,17 @@ class Library(threading.Thread):
             'Audio': Queue.Queue()
         }
 
+    def set_progress_dialog(self):
+
+        if self.progress_updates is None:
+            LOG.info("-->[ pdialog ]")
+            self.progress_updates = xbmcgui.DialogProgressBG()
+            self.progress_updates.create(_('addon_name'), _(33178))
+
+        queue_size = self.worker_queue_size()
+        self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
+        LOG.info("--[ pdialog (%s/%s) ]", queue_size, self.total_updates)
+
     def run(self):
 
         LOG.warn("--->[ library ]")
@@ -182,17 +193,7 @@ class Library(threading.Thread):
             window('emby_sync.bool', True)
 
             if self.total_updates > self.progress_display:
-                queue_size = self.worker_queue_size()
-
-                if self.progress_updates is None:
-
-                    self.progress_updates = xbmcgui.DialogProgressBG()
-                    self.progress_updates.create(_('addon_name'), _(33178))
-                    self.progress_updates.update(int((float(self.total_updates - queue_size) / float(self.total_updates))*100), message="%s: %s" % (_(33178), queue_size))
-                elif queue_size:
-                    self.progress_updates.update(int((float(self.total_updates - queue_size) / float(self.total_updates))*100), message="%s: %s" % (_(33178), queue_size))
-                else:
-                    self.progress_updates.update(int((float(self.total_updates - queue_size) / float(self.total_updates))*100), message=_(33178))
+                self.set_progress_dialog()
 
             if not settings('dbSyncScreensaver.bool') and self.screensaver is None:
 
@@ -209,6 +210,7 @@ class Library(threading.Thread):
 
             if self.progress_updates:
 
+                LOG.info("--<[ pdialog ]")
                 self.progress_updates.close()
                 self.progress_updates = None
 
@@ -326,7 +328,7 @@ class Library(threading.Thread):
         '''
         if self.removed_queue.qsize() and len(self.emby_threads) < 2:
 
-            new_thread = SortWorker(self.removed_queue, self.removed_output)
+            new_thread = SortWorker(self)
             LOG.info("-->[ q:sort/%s ]", id(new_thread))
             self.emby_threads.append(new_thread)
 
@@ -345,9 +347,9 @@ class Library(threading.Thread):
             if queue.qsize() and not len(self.writer_threads['updated']):
 
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UpdatedWorker(queue, self.notify_output, self.music_database_lock, "music", self.server, self.direct_path)
+                    new_thread = UpdatedWorker(queue, self, "music", self.music_database_lock)
                 else:
-                    new_thread = UpdatedWorker(queue, self.notify_output, self.database_lock, "video", self.server, self.direct_path)
+                    new_thread = UpdatedWorker(queue, self, "video", self.database_lock)
 
                 LOG.info("-->[ q:updated/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['updated'].append(new_thread)
@@ -357,15 +359,20 @@ class Library(threading.Thread):
 
         ''' Update userdata in the Kodi database.
         '''
+        if self._worker_removed_size():
+            LOG.info("[ DELAY UPDATES ]")
+
+            return
+
         for queues in self.userdata_output:
             queue = self.userdata_output[queues]
 
             if queue.qsize() and not len(self.writer_threads['userdata']):
 
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UserDataWorker(queue, self.music_database_lock, "music", self.server, self.direct_path)
+                    new_thread = UserDataWorker(queue, self, "music", self.music_database_lock)
                 else:
-                    new_thread = UserDataWorker(queue, self.database_lock, "video", self.server, self.direct_path)
+                    new_thread = UserDataWorker(queue, self, "video", self.database_lock)
 
                 LOG.info("-->[ q:userdata/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['userdata'].append(new_thread)
@@ -381,9 +388,9 @@ class Library(threading.Thread):
             if queue.qsize() and not len(self.writer_threads['removed']):
 
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = RemovedWorker(queue, self.music_database_lock, "music", self.server, self.direct_path)
+                    new_thread = RemovedWorker(queue, self, "music", self.music_database_lock)
                 else:
-                    new_thread = RemovedWorker(queue, self.database_lock, "video", self.server, self.direct_path)
+                    new_thread = RemovedWorker(queue, self, "video", self.database_lock)
 
                 LOG.info("-->[ q:removed/%s/%s ]", queues, id(new_thread))
                 self.writer_threads['removed'].append(new_thread)
@@ -395,7 +402,7 @@ class Library(threading.Thread):
         '''
         if self.notify_output.qsize() and not len(self.notify_threads):
 
-            new_thread = NotifyWorker(self.notify_output, self.player)
+            new_thread = NotifyWorker(self)
             LOG.info("-->[ q:notify/%s ]", id(new_thread))
             self.notify_threads.append(new_thread)
 
@@ -539,7 +546,7 @@ class Library(threading.Thread):
                         break
 
                 if new_fast_sync > 0:
-                    self.fast_sync(plugin=enable_fast_sync)
+                    self.fast_sync(enable_fast_sync)
 
                 elif enable_fast_sync:
 
@@ -552,8 +559,7 @@ class Library(threading.Thread):
 
                 LOG.info("--<[ retrieve changes ]")
 
-    @progress()
-    def fast_sync(self, plugin, dialog):
+    def fast_sync(self, plugin):
 
         ''' Movie and userdata not provided by server yet.
         '''
@@ -561,35 +567,28 @@ class Library(threading.Thread):
         sync = get_sync()
         LOG.info("--[ retrieve changes ] %s", last_sync)
 
-
         for main_index, library in enumerate(sync['Whitelist']):
 
-            # a for loop is needed here, because the 'get_items' method returns a generator
             for data in server.get_items(library.replace('Mixed:', ""),
                                          "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
                                          False,
-                                         {'MinDateLastSavedForUser': last_sync}):
-
-                start_index = data['RestorePoint']['params']['StartIndex']
+                                         {'MinDateLastSaved': last_sync}):
 
                 for index, item in enumerate(data['Items']):
-
                     if item['Type'] in self.updated_output:
                         self.updated_output[item['Type']].put(item)
+                        self.total_updates += 1
 
-                    # the 'get_userdata_date_modified' does actually the same as the 'get_date_modified' method; see 'libraries/emby/core/api.py'
-                    # so for this call no separate server request is needed
-                    """
+            for data in server.get_items(library.replace('Mixed:', ""),
+                                         "Episode,Movie,MusicVideo,Audio",
+                                         False,
+                                         {'MinDateLastSavedForUser': last_sync}):
+
+                for index, item in enumerate(data['Items']):
                     if item['Type'] in self.userdata_output:
                         self.userdata_output[item['Type']].put(item)
-                    """
-                    
+                        self.total_updates += 1
 
-                    dialog.update(int(main_index * (50 / len(sync['Whitelist'])) +
-                                      (float(start_index + index) / float(data['TotalRecordCount'])) * 
-                                      (50 / len(sync['Whitelist']))),
-                                  heading="%s: %s" % (_('addon_name'), item['Type']),
-                                  message=item['Name'])
         """
         # temp fix for boxsets
         boxsets = {}
@@ -808,14 +807,15 @@ class UpdatedWorker(threading.Thread):
 
     is_done = False
 
-    def __init__(self, queue, notify, lock, database, *args):
+    def __init__(self, queue, library, database, lock):
 
         self.queue = queue
-        self.notify_output = notify
+        self.notify_output = library.notify_output
         self.notify = settings('newContent.bool')
         self.lock = lock
         self.database = Database(database)
-        self.args = args
+        self.library = library
+        library.set_progress_dialog()
         threading.Thread.__init__(self)
         self.start()
 
@@ -832,7 +832,8 @@ class UpdatedWorker(threading.Thread):
                         except Queue.Empty:
                             break
 
-                        obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])[item['Type']]
+                        obj = MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path)[item['Type']]
+                        self.library.progress_updates.update(self.library.progress_percent, message="%s: %s" % (_(33178), item['Name']))
 
                         try:
                             if obj(item) and self.notify:
@@ -858,12 +859,13 @@ class UserDataWorker(threading.Thread):
 
     is_done = False
 
-    def __init__(self, queue, lock, database, *args):
+    def __init__(self, queue, library, database, lock):
 
         self.queue = queue
         self.lock = lock
         self.database = Database(database)
-        self.args = args
+        self.library = library
+        library.set_progress_dialog()
         threading.Thread.__init__(self)
         self.start()
 
@@ -880,7 +882,8 @@ class UserDataWorker(threading.Thread):
                         except Queue.Empty:
                             break
 
-                        obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])['UserData']
+                        obj = MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path)['UserData']
+                        self.library.progress_updates.update(self.library.progress_percent, message="%s: %s" % (_(33178), item['Name']))
 
                         try:
                             obj(item)
@@ -905,11 +908,10 @@ class SortWorker(threading.Thread):
 
     is_done = False
 
-    def __init__(self, queue, output, *args):
+    def __init__(self, library):
 
-        self.queue = queue
-        self.output = output
-        self.args = args
+        self.queue = library.removed_queue
+        self.output = library.removed_output
         threading.Thread.__init__(self)
         self.start()
 
@@ -949,12 +951,12 @@ class RemovedWorker(threading.Thread):
 
     is_done = False
 
-    def __init__(self, queue, lock, database, *args):
+    def __init__(self, queue, library, database, lock):
 
         self.queue = queue
         self.lock = lock
         self.database = Database(database)
-        self.args = args
+        self.library = library
         threading.Thread.__init__(self)
         self.start()
 
@@ -971,7 +973,7 @@ class RemovedWorker(threading.Thread):
                         except Queue.Empty:
                             break
 
-                        obj = MEDIA[item['Type']](self.args[0], embydb, kodidb, self.args[1])['Remove']
+                        obj = MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path)['Remove']
 
                         try:
                             obj(item['Id'])
@@ -996,12 +998,12 @@ class NotifyWorker(threading.Thread):
 
     is_done = False
 
-    def __init__(self, queue, player):
+    def __init__(self, library):
 
-        self.queue = queue
+        self.queue = library.notify_output
         self.video_time = int(settings('newvideotime')) * 1000
         self.music_time = int(settings('newmusictime')) * 1000
-        self.player = player
+        self.player = library.player
         threading.Thread.__init__(self)
 
     def run(self):
