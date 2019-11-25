@@ -209,7 +209,7 @@ class Service(xbmc.Monitor):
 
             data = json.loads(data)[0]
         else:
-            if method not in ('System.OnQuit', 'System.OnSleep', 'System.OnWake'):
+            if method not in ('System.OnQuit', 'System.OnSleep', 'System.OnWake', 'GUI.OnScreensaverDeactivated'):
                 return
 
             data = json.loads(data)
