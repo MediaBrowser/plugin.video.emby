@@ -126,6 +126,8 @@ class Events(object):
 
         elif mode == 'playlist':
             event('PlayPlaylist', {'Id': params['id'], 'ServerId': server})
+        elif mode == 'photoviewer':
+            xbmc.executebuiltin('ShowPicture(%s/emby/Items/%s/Images/Primary)' % (Emby(server)['auth/server-address'], params['id']))
         elif mode == 'deviceid':
             client.reset_device_id()
         elif mode == 'reset':
@@ -484,7 +486,10 @@ def browse(media, view_id=None, folder=None, server_id=None):
                 list_li.append((path, li, True))
 
             else:
-                if item['Type'] not in ('Photo', 'PhotoAlbum'):
+                if item['Type'] == 'Photo':
+                    path = "plugin://plugin.video.emby/?mode=photoviewer&id=%s" % item['Id']
+                    li.setProperty('path', path)
+                elif item['Type'] != 'PhotoAlbum':
 
                     if kodi_version() > 17:
                         path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s&server=%s" % (item['Id'], server_id)
