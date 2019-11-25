@@ -579,16 +579,18 @@ class Library(threading.Thread):
 
                     # the 'get_userdata_date_modified' does actually the same as the 'get_date_modified' method; see 'libraries/emby/core/api.py'
                     # so for this call no separate server request is needed
-                    '''if item['Type'] in self.userdata_output:
+                    """
+                    if item['Type'] in self.userdata_output:
                         self.userdata_output[item['Type']].put(item)
-                    '''
+                    """
+                    
 
                     dialog.update(int(main_index * (50 / len(sync['Whitelist'])) +
                                       (float(start_index + index) / float(data['TotalRecordCount'])) * 
                                       (50 / len(sync['Whitelist']))),
                                   heading="%s: %s" % (_('addon_name'), item['Type']),
                                   message=item['Name'])
-
+        """
         # temp fix for boxsets
         boxsets = {}
         with Database('emby') as embydb:
@@ -608,6 +610,7 @@ class Library(threading.Thread):
                                   50),
                               heading="%s: %s" % (_('addon_name'), boxset['Type']),
                               message=boxset['Name'])
+        """
 
         if plugin:
             try:
