@@ -367,7 +367,7 @@ class Service(xbmc.Monitor):
             xbmc.sleep(5000)
 
             if self['library'] is not None:
-                self['library'].fast_sync()
+                self['library'].get_fast_sync()
 
         elif method in ('UserConfigurationUpdated', 'UserPolicyUpdated'):
 
