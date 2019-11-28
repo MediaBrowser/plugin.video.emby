@@ -209,7 +209,7 @@ class Service(xbmc.Monitor):
 
             data = json.loads(data)[0]
         else:
-            if method not in ('System.OnQuit', 'System.OnSleep', 'System.OnWake'):
+            if method not in ('System.OnQuit', 'System.OnSleep', 'System.OnWake', 'GUI.OnScreensaverDeactivated'):
                 return
 
             data = json.loads(data)
@@ -367,7 +367,7 @@ class Service(xbmc.Monitor):
             xbmc.sleep(5000)
 
             if self['library'] is not None:
-                self['library'].fast_sync()
+                self['library'].get_fast_sync()
 
         elif method in ('UserConfigurationUpdated', 'UserPolicyUpdated'):
 
