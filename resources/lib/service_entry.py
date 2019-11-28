@@ -101,7 +101,7 @@ class Service(object):
         self._init_done = True
 
     @staticmethod
-    def isCanceled():
+    def should_cancel():
         return xbmc.abortRequested or app.APP.stop_pkc
 
     def on_connection_check(self, result):
@@ -437,7 +437,7 @@ class Service(object):
         self.playqueue = playqueue.PlayqueueMonitor()
 
         # Main PKC program loop
-        while not self.isCanceled():
+        while not self.should_cancel():
 
             # Check for PKC commands from other Python instances
             plex_command = utils.window('plexkodiconnect.command')

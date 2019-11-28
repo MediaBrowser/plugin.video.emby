@@ -120,7 +120,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                 # Ignore new media added by other addons
                 continue
             for j, old_item in enumerate(old):
-                if self.isCanceled():
+                if self.should_suspend() or self.should_cancel():
                     # Chances are that we got an empty Kodi playlist due to
                     # Kodi exit
                     return
@@ -189,7 +189,7 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                     for j in range(i, len(index)):
                         index[j] += 1
         for i in reversed(index):
-            if self.isCanceled():
+            if self.should_suspend() or self.should_cancel():
                 # Chances are that we got an empty Kodi playlist due to
                 # Kodi exit
                 return
@@ -212,9 +212,10 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
             LOG.info("----===## PlayqueueMonitor stopped ##===----")
 
     def _run(self):
-        while not self.isCanceled():
-            if self.wait_while_suspended():
-                return
+        while not self.should_cancel():
+            if self.should_suspend():
+                if self.wait_while_suspended():
+                    return
             with app.APP.lock_playqueues:
                 for playqueue in PLAYQUEUES:
                     kodi_pl = js.playlist_get_items(playqueue.playlistid)
@@ -228,4 +229,4 @@ class PlayqueueMonitor(backgroundthread.KillableThread):
                             # compare old and new playqueue
                             self._compare_playqueues(playqueue, kodi_pl)
                         playqueue.old_kodi_pl = list(kodi_pl)
-            app.APP.monitor.waitForAbort(0.2)
+            self.sleep(0.2)

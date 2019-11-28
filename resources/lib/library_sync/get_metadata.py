@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 
-from . import common
 from ..plex_api import API
 from .. import plex_functions as PF, backgroundthread, utils, variables as v
 
@@ -27,7 +26,7 @@ def reset_collections():
         COLLECTION_XMLS = {}
 
 
-class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
+class GetMetadataTask(backgroundthread.Task):
     """
     Threaded download of Plex XML metadata for a certain library item.
     Fills the queue with the downloaded etree XML objects
@@ -45,6 +44,12 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
         self.count = count
         super(GetMetadataTask, self).__init__()
 
+    def suspend(self, block=False, timeout=None):
+        """
+        Let's NOT suspend sync threads but immediately terminate them
+        """
+        self.cancel()
+
     def _collections(self, item):
         global COLLECTION_MATCH, COLLECTION_XMLS
         api = API(item['xml'][0])
@@ -59,7 +64,7 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
                   utils.cast(int, x.get('ratingKey'))) for x in COLLECTION_MATCH]
         item['children'] = {}
         for plex_set_id, set_name in api.collections():
-            if self.isCanceled():
+            if self.should_cancel():
                 return
             if plex_set_id not in COLLECTION_XMLS:
                 # Get Plex metadata for collections - a pain
@@ -84,7 +89,7 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
         """
         Do the work
         """
-        if self.isCanceled():
+        if self.should_cancel():
             return
         # Download Metadata
         item = {
@@ -101,7 +106,7 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
                       'Cancelling sync for now')
             utils.window('plex_scancrashed', value='401')
             return
-        if not self.isCanceled() and self.plex_type == v.PLEX_TYPE_MOVIE:
+        if not self.should_cancel() and self.plex_type == v.PLEX_TYPE_MOVIE:
             # Check for collections/sets
             collections = False
             for child in item['xml'][0]:
@@ -112,7 +117,7 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
                 global LOCK
                 with LOCK:
                     self._collections(item)
-        if not self.isCanceled() and self.get_children:
+        if not self.should_cancel() and self.get_children:
             children_xml = PF.GetAllPlexChildren(self.plex_id)
             try:
                 children_xml[0].attrib
@@ -121,5 +126,5 @@ class GetMetadataTask(common.fullsync_mixin, backgroundthread.Task):
                           self.plex_id)
             else:
                 item['children'] = children_xml
-        if not self.isCanceled():
+        if not self.should_cancel():
             self.queue.put((self.count, item))

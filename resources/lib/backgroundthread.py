@@ -13,131 +13,95 @@ LOG = getLogger('PLEX.threads')
 
 
 class KillableThread(threading.Thread):
-    '''A thread class that supports raising exception in the thread from
-       another thread.
-    '''
-    # def _get_my_tid(self):
-    #     """determines this (self's) thread id
-
-    #     CAREFUL : this function is executed in the context of the caller
-    #     thread, to get the identity of the thread represented by this
-    #     instance.
-    #     """
-    #     if not self.isAlive():
-    #         raise threading.ThreadError("the thread is not active")
-
-    #     return self.ident
-
-    # def _raiseExc(self, exctype):
-    #     """Raises the given exception type in the context of this thread.
-
-    #     If the thread is busy in a system call (time.sleep(),
-    #     socket.accept(), ...), the exception is simply ignored.
-
-    #     If you are sure that your exception should terminate the thread,
-    #     one way to ensure that it works is:
-
-    #         t = ThreadWithExc( ... )
-    #         ...
-    #         t.raiseExc( SomeException )
-    #         while t.isAlive():
-    #             time.sleep( 0.1 )
-    #             t.raiseExc( SomeException )
-
-    #     If the exception is to be caught by the thread, you need a way to
-    #     check that your thread has caught it.
-
-    #     CAREFUL : this function is executed in the context of the
-    #     caller thread, to raise an excpetion in the context of the
-    #     thread represented by this instance.
-    #     """
-    #     _async_raise(self._get_my_tid(), exctype)
-
-    def kill(self, force_and_wait=False):
-        pass
-    #     try:
-    #         self._raiseExc(KillThreadException)
-
-    #         if force_and_wait:
-    #             time.sleep(0.1)
-    #             while self.isAlive():
-    #                 self._raiseExc(KillThreadException)
-    #                 time.sleep(0.1)
-    #     except threading.ThreadError:
-    #         pass
-
-    # def onKilled(self):
-    #     pass
-
-    # def run(self):
-    #     try:
-    #         self._Thread__target(*self._Thread__args, **self._Thread__kwargs)
-    #     except KillThreadException:
-    #         self.onKilled()
-
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
         self._canceled = False
-        # Set to True to set the thread to suspended
         self._suspended = False
-        # Thread will return True only if suspended state is reached
-        self.suspend_reached = False
+        self._is_not_suspended = threading.Event()
+        self._is_not_suspended.set()
+        self._suspension_reached = threading.Event()
+        self._is_not_asleep = threading.Event()
+        self._is_not_asleep.set()
+        self.suspension_timeout = None
         super(KillableThread, self).__init__(group, target, name, args, kwargs)
 
-    def isCanceled(self):
+    def should_cancel(self):
         """
-        Returns True if the thread is stopped
+        Returns True if the thread should be stopped immediately
         """
-        if self._canceled or xbmc.abortRequested:
-            return True
-        return False
+        return self._canceled or app.APP.stop_pkc
 
-    def abort(self):
+    def cancel(self):
         """
-        Call to stop this thread
+        Call from another thread to stop this current thread
         """
         self._canceled = True
+        # Make sure thread is running in order to exit quickly
+        self._is_not_suspended.set()
+        self._is_not_asleep.set()
 
-    def suspend(self, block=False):
+    def should_suspend(self):
         """
-        Call to suspend this thread
+        Returns True if the current thread should be suspended immediately
         """
+        return self._suspended
+
+    def suspend(self, block=False, timeout=None):
+        """
+        Call from another thread to suspend the current thread. Provide a
+        timeout [float] in seconds optionally. block=True will block the caller
+        until the thread-to-be-suspended is indeed suspended
+        Will wake a thread that is asleep!
+        """
+        self.suspension_timeout = timeout
         self._suspended = True
+        self._is_not_suspended.clear()
+        # Make sure thread wakes up in order to suspend
+        self._is_not_asleep.set()
         if block:
-            while not self.suspend_reached:
-                LOG.debug('Waiting for thread to suspend: %s', self)
-                if app.APP.monitor.waitForAbort(0.1):
-                    return
+            self._suspension_reached.wait()
 
     def resume(self):
         """
-        Call to revive a suspended thread back to life
+        Call from another thread to revive a suspended or asleep current thread
+        back to life
         """
         self._suspended = False
+        self._is_not_suspended.set()
+        self._is_not_asleep.set()
 
     def wait_while_suspended(self):
         """
         Blocks until thread is not suspended anymore or the thread should
-        exit.
-        Returns True only if the thread should exit (=isCanceled())
+        exit or for a period of self.suspension_timeout (set by the caller of
+        suspend())
+        Returns the value of should_cancel()
         """
-        while self.isSuspended():
-            try:
-                self.suspend_reached = True
-                # Set in service.py
-                if self.isCanceled():
-                    # Abort was requested while waiting. We should exit
-                    return True
-                if app.APP.monitor.waitForAbort(0.1):
-                    return True
-            finally:
-                self.suspend_reached = False
-        return self.isCanceled()
+        self._suspension_reached.set()
+        self._is_not_suspended.wait(self.suspension_timeout)
+        self._suspension_reached.clear()
+        return self.should_cancel()
 
-    def isSuspended(self):
+    def is_suspended(self):
         """
-        Returns True if the thread is suspended
+        Check from another thread whether the current thread is suspended
         """
-        return self._suspended
+        return self._suspension_reached.is_set()
+
+    def sleep(self, timeout):
+        """
+        Only call from the current thread in order to sleep for a period of
+        timeout [float, seconds]. Will unblock immediately if thread should
+        cancel (should_cancel()) or the thread should_suspend
+        """
+        self._is_not_asleep.clear()
+        self._is_not_asleep.wait(timeout)
+        self._is_not_asleep.set()
+
+    def is_asleep(self):
+        """
+        Check from another thread whether the current thread is asleep
+        """
+        return not self._is_not_asleep.is_set()
 
 
 class OrderedQueue(Queue.PriorityQueue, object):
@@ -239,7 +203,7 @@ class Task(object):
     def cancel(self):
         self._canceled = True
 
-    def isCanceled(self):
+    def should_cancel(self):
         return self._canceled or xbmc.abortRequested
 
     def isValid(self):

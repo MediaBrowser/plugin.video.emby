@@ -16,7 +16,7 @@ LOG = getLogger('PLEX.sync.sections')
 
 BATCH_SIZE = 500
 # Need a way to interrupt our synching process
-IS_CANCELED = None
+SHOULD_CANCEL = None
 
 LIBRARY_PATH = path_ops.translate_path('special://profile/library/video/')
 # The video library might not yet exist for this user - create it
@@ -490,7 +490,7 @@ def _delete_kodi_db_items(section):
                 with kodi_context(texture_db=True) as kodidb:
                     typus = context(None, plexdb=plexdb, kodidb=kodidb)
                     for plex_id in plex_ids:
-                        if IS_CANCELED():
+                        if SHOULD_CANCEL():
                             return False
                         typus.remove(plex_id)
             if len(plex_ids) < BATCH_SIZE:
@@ -582,13 +582,13 @@ def sync_from_pms(parent_self, pick_libraries=False):
     pick_libraries=True will prompt the user the select the libraries he
     wants to sync
     """
-    global IS_CANCELED
+    global SHOULD_CANCEL
     LOG.info('Starting synching sections from the PMS')
-    IS_CANCELED = parent_self.isCanceled
+    SHOULD_CANCEL = parent_self.should_cancel
     try:
         return _sync_from_pms(pick_libraries)
     finally:
-        IS_CANCELED = None
+        SHOULD_CANCEL = None
         LOG.info('Done synching sections from the PMS: %s', app.SYNC.sections)
 
 

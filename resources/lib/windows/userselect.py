@@ -24,7 +24,7 @@ class UserThumbTask(backgroundthread.Task):
 
     def run(self):
         for user in self.users:
-            if self.isCanceled():
+            if self.should_cancel():
                 return
             thumb, back = user.thumb, ''
             self.callback(user, thumb, back)
