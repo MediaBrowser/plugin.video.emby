@@ -45,6 +45,11 @@ class API(object):
             if 'SeriesName' in self.item:
                 return "%s: %s" % (self.item['SeriesName'], self.item['Name'])
 
+        elif self.item['Type'] == 'Season':
+
+            if 'SeriesName' in self.item:
+                return "%s: %s" % (self.item['SeriesName'], self.item['Name'])
+
         elif self.item['Type'] == 'MusicAlbum':
 
             if 'AlbumArtist' in self.item:
