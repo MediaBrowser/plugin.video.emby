@@ -64,7 +64,8 @@ def check_migration():
     if not utils.compare_version(last_migration, '2.9.3'):
         LOG.info('Migrating to version 2.9.2')
         # Re-sync all playlists to Kodi
-        utils.wipe_synched_playlists()
+        from .playlists import remove_synced_playlists
+        remove_synced_playlists()
 
     if not utils.compare_version(last_migration, '2.9.7'):
         LOG.info('Migrating to version 2.9.6')

@@ -57,6 +57,23 @@ def get_playlist(path=None, plex_id=None):
     return playlist
 
 
+def get_all_kodi_playlist_paths():
+    """
+    Returns a list with all paths for the playlists on the Kodi side
+    """
+    with PlexDB() as plexdb:
+        paths = list(plexdb.all_kodi_paths())
+    return paths
+
+
+def wipe_table():
+    """
+    Deletes all playlists entries in the Plex DB
+    """
+    with PlexDB() as plexdb:
+        plexdb.wipe_playlists()
+
+
 def _m3u_iterator(text):
     """
     Yields e.g. plugin://plugin.video.plexkodiconnect.movies/?plex_id=xxx

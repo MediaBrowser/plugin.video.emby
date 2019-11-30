@@ -68,6 +68,18 @@ def kodi_playlist_monitor():
     return observer
 
 
+def remove_synced_playlists():
+    """
+    Deletes all synched playlists on the Kodi side, not on the Plex side
+    """
+    LOG.info('Removing all playlists that we synced to Kodi')
+    with app.APP.lock_playlists:
+        paths = db.get_all_kodi_playlist_paths()
+        kodi_pl.delete_kodi_playlists(paths)
+        db.wipe_table()
+    LOG.info('Done removing all synced playlists')
+
+
 def websocket(plex_id, status):
     """
     Call this function to process websocket messages from the PMS
@@ -370,19 +382,19 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         """
         path = event.dest_path if event.event_type == events.EVENT_TYPE_MOVED \
             else event.src_path
-        if not sync_kodi_playlist(path):
-            return
-        if path in kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE:
-            LOG.debug('Ignoring event %s', event)
-            kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE.remove(path)
-            return
-        _method_map = {
-            events.EVENT_TYPE_MODIFIED: self.on_modified,
-            events.EVENT_TYPE_MOVED: self.on_moved,
-            events.EVENT_TYPE_CREATED: self.on_created,
-            events.EVENT_TYPE_DELETED: self.on_deleted,
-        }
         with app.APP.lock_playlists:
+            if not sync_kodi_playlist(path):
+                return
+            if path in kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE:
+                LOG.debug('Ignoring event %s', event)
+                kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE.remove(path)
+                return
+            _method_map = {
+                events.EVENT_TYPE_MODIFIED: self.on_modified,
+                events.EVENT_TYPE_MOVED: self.on_moved,
+                events.EVENT_TYPE_CREATED: self.on_created,
+                events.EVENT_TYPE_DELETED: self.on_deleted,
+            }
             _method_map[event.event_type](event)
 
     def on_created(self, event):

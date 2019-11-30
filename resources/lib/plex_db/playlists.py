@@ -81,3 +81,16 @@ class Playlists(object):
         playlist.kodi_type = answ[4]
         playlist.kodi_hash = answ[5]
         return playlist
+
+    def all_kodi_paths(self):
+        """
+        Returns a generator for all kodi_paths of all synched playlists
+        """
+        self.cursor.execute('SELECT kodi_path FROM playlists')
+        return (x[0] for x in self.cursor)
+
+    def wipe_playlists(self):
+        """
+        Deletes all entries in the playlists table
+        """
+        self.cursor.execute('DELETE FROM playlists')

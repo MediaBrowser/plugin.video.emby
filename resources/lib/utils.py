@@ -525,29 +525,6 @@ def delete_temporary_subtitles():
                           root, file, err)
 
 
-def wipe_synched_playlists():
-    """
-    Deletes all synched playlist files on the Kodi side; resets the Plex table
-    listing all synched Plex playlists
-    """
-    from . import plex_db
-    try:
-        with plex_db.PlexDB() as plexdb:
-            plexdb.cursor.execute('SELECT kodi_path FROM playlists')
-            playlist_paths = [x[0] for x in plexdb.cursor]
-    except OperationalError:
-        # Plex DB completely empty yet
-        playlist_paths = []
-    for path in playlist_paths:
-        try:
-            path_ops.remove(path)
-            LOG.info('Removed playlist %s', path)
-        except (OSError, IOError):
-            LOG.warn('Could not remove playlist %s', path)
-    # Now wipe our database
-    plex_db.wipe(table='playlists')
-
-
 def wipe_database(reboot=True):
     """
     Deletes all Plex playlists as well as video nodes, then clears Kodi as well
@@ -557,10 +534,10 @@ def wipe_database(reboot=True):
     LOG.warn('Start wiping')
     from .library_sync.sections import delete_files
     from . import kodi_db, plex_db
+    from .playlists import remove_synced_playlists
     # Clean up the playlists and video nodes
     delete_files()
-    # Wipe all synched playlists
-    wipe_synched_playlists()
+    remove_synced_playlists()
     try:
         with plex_db.PlexDB() as plexdb:
             if plexdb.songs_have_been_synced():
