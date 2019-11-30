@@ -38,7 +38,7 @@ SUPPORTED_FILETYPES = (
 ###############################################################################
 
 
-def isCanceled():
+def should_cancel():
     return app.APP.stop_pkc or app.SYNC.stop_sync
 
 
@@ -179,7 +179,7 @@ def _full_sync():
     # before. If yes, make sure that hashes are identical. If not, sync it.
     old_plex_ids = db.plex_playlist_ids()
     for xml_playlist in xml:
-        if isCanceled():
+        if should_cancel():
             return False
         api = API(xml_playlist)
         try:
@@ -211,7 +211,7 @@ def _full_sync():
                     LOG.info('Could not recreate playlist %s', api.plex_id)
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
-        if isCanceled():
+        if should_cancel():
             return False
         playlist = db.get_playlist(plex_id=plex_id)
         LOG.debug('Removing outdated Plex playlist from Kodi: %s', playlist)
@@ -225,7 +225,7 @@ def _full_sync():
     old_kodi_paths = db.kodi_playlist_paths()
     for root, _, files in path_ops.walk(v.PLAYLIST_PATH):
         for f in files:
-            if isCanceled():
+            if should_cancel():
                 return False
             path = path_ops.path.join(root, f)
             try:
@@ -256,7 +256,7 @@ def _full_sync():
                 except PlaylistError:
                     LOG.info('Skipping Kodi playlist %s', path)
     for kodi_path in old_kodi_paths:
-        if isCanceled():
+        if should_cancel():
             return False
         playlist = db.get_playlist(path=kodi_path)
         if not playlist:

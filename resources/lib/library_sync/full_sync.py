@@ -39,7 +39,7 @@ class InitNewSection(object):
         self.plex_type = plex_type
 
 
-class FullSync(common.fullsync_mixin):
+class FullSync(backgroundthread.KillableThread):
     def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item
@@ -74,6 +74,12 @@ class FullSync(common.fullsync_mixin):
             worker=backgroundthread.NonstoppingBackgroundWorker,
             worker_count=self.worker_count)
         super(FullSync, self).__init__()
+
+    def suspend(self, block=False, timeout=None):
+        """
+        Let's NOT suspend sync threads but immediately terminate them
+        """
+        self.cancel()
 
     def update_progressbar(self):
         if self.dialog:
@@ -112,7 +118,7 @@ class FullSync(common.fullsync_mixin):
         if not self.section:
             _, self.section = self.queue.get()
             self.queue.task_done()
-        while not self.isCanceled() and self.item_count > 0:
+        while not self.should_cancel() and self.item_count > 0:
             section = self.section
             if not section:
                 break
@@ -124,12 +130,12 @@ class FullSync(common.fullsync_mixin):
             self.section_type_text = utils.lang(
                 v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
             with section.context(self.current_sync) as context:
-                while not self.isCanceled() and self.item_count > 0:
+                while not self.should_cancel() and self.item_count > 0:
                     try:
                         _, item = self.queue.get(block=False)
                     except backgroundthread.Queue.Empty:
                         if self.threader.threader.working():
-                            app.APP.monitor.waitForAbort(0.02)
+                            self.sleep(0.02)
                             continue
                         else:
                             # Try again, in case a thread just finished
@@ -187,7 +193,7 @@ class FullSync(common.fullsync_mixin):
                 # Check Plex DB to see what we need to add/update
                 with PlexDB() as self.plexdb:
                     for last, xml_item in loop:
-                        if self.isCanceled():
+                        if self.should_cancel():
                             return False
                         self.process_item(xml_item)
                         if self.item_count == BATCH_SIZE:
@@ -227,7 +233,7 @@ class FullSync(common.fullsync_mixin):
             while True:
                 with section.context(self.current_sync) as itemtype:
                     for i, (last, xml_item) in enumerate(loop):
-                        if self.isCanceled():
+                        if self.should_cancel():
                             return False
                         if not itemtype.update_userdata(xml_item, section.plex_type):
                             # Somehow did not sync this item yet
@@ -256,7 +262,7 @@ class FullSync(common.fullsync_mixin):
             for kind in kinds:
                 for section in (x for x in app.SYNC.sections
                                 if x.section_type == kind[1]):
-                    if self.isCanceled():
+                    if self.should_cancel():
                         LOG.debug('Need to exit now')
                         return
                     if not section.sync_to_kodi:
@@ -332,7 +338,7 @@ class FullSync(common.fullsync_mixin):
             self.get_children = section.get_children
             self.queue = section.Queue()
             # Now do the heavy lifting
-            if self.isCanceled() or not self.addupdate_section(section):
+            if self.should_cancel() or not self.addupdate_section(section):
                 return False
             if self.section_success:
                 # Need to check because a thread might have missed to get
@@ -391,7 +397,7 @@ class FullSync(common.fullsync_mixin):
             self.context = section.context
             self.get_children = section.get_children
             # Now do the heavy lifting
-            if self.isCanceled() or not self.playstate_per_section(section):
+            if self.should_cancel() or not self.playstate_per_section(section):
                 return False
 
         # Delete movies that are not on Plex anymore
@@ -416,7 +422,7 @@ class FullSync(common.fullsync_mixin):
                                                                     self.current_sync,
                                                                     BATCH_SIZE))
                     for plex_id in plex_ids:
-                        if self.isCanceled():
+                        if self.should_cancel():
                             return False
                         ctx.remove(plex_id, plex_type)
                 if len(plex_ids) < BATCH_SIZE:
@@ -436,7 +442,7 @@ class FullSync(common.fullsync_mixin):
     def _run(self):
         self.current_sync = timing.plex_now()
         # Get latest Plex libraries and build playlist and video node files
-        if self.isCanceled() or not sections.sync_from_pms(self):
+        if self.should_cancel() or not sections.sync_from_pms(self):
             return
         self.successful = True
         try:
@@ -447,7 +453,7 @@ class FullSync(common.fullsync_mixin):
             # Actual syncing - do only new items first
             LOG.info('Running full_library_sync with repair=%s',
                      self.repair)
-            if self.isCanceled() or not self.full_library_sync():
+            if self.should_cancel() or not self.full_library_sync():
                 self.successful = False
                 return
         finally:
@@ -457,7 +463,7 @@ class FullSync(common.fullsync_mixin):
             if self.threader:
                 self.threader.shutdown()
                 self.threader = None
-            if not self.successful and not self.isCanceled():
+            if not self.successful and not self.should_cancel():
                 # "ERROR in library sync"
                 utils.dialog('notification',
                              heading='{plex}',
@@ -468,4 +474,5 @@ class FullSync(common.fullsync_mixin):
 
 
 def start(show_dialog, repair=False, callback=None):
+    # Call run() and NOT start in order to not spawn another thread
     FullSync(repair, callback, show_dialog).run()

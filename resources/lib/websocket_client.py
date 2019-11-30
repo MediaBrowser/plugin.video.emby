@@ -19,7 +19,7 @@ class WebSocket(backgroundthread.KillableThread):
     def __init__(self):
         self.ws = None
         self.redirect_uri = None
-        self.sleeptime = 0
+        self.sleeptime = 0.0
         super(WebSocket, self).__init__()
 
     def process(self, opcode, message):
@@ -46,15 +46,15 @@ class WebSocket(backgroundthread.KillableThread):
     def getUri(self):
         raise NotImplementedError
 
-    def __sleep(self):
+    def _sleep_cycle(self):
         """
         Sleeps for 2^self.sleeptime where sleeping period will be doubled with
         each unsuccessful connection attempt.
         Will sleep at most 64 seconds
         """
-        app.APP.monitor.waitForAbort(2**self.sleeptime)
+        self.sleep(2 ** self.sleeptime)
         if self.sleeptime < 6:
-            self.sleeptime += 1
+            self.sleeptime += 1.0
 
     def run(self):
         LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
@@ -69,9 +69,9 @@ class WebSocket(backgroundthread.KillableThread):
             LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
     def _run(self):
-        while not self.isCanceled():
+        while not self.should_cancel():
             # In the event the server goes offline
-            if self.isSuspended():
+            if self.should_suspend():
                 # Set in service.py
                 if self.ws is not None:
                     self.ws.close()
@@ -99,11 +99,11 @@ class WebSocket(backgroundthread.KillableThread):
                     # Server is probably offline
                     LOG.debug("%s: IOError connecting", self.__class__.__name__)
                     self.ws = None
-                    self.__sleep()
+                    self._sleep_cycle()
                 except websocket.WebSocketTimeoutException:
                     LOG.debug("%s: WebSocketTimeoutException", self.__class__.__name__)
                     self.ws = None
-                    self.__sleep()
+                    self._sleep_cycle()
                 except websocket.WebsocketRedirect as e:
                     LOG.debug('301 redirect detected: %s', e)
                     self.redirect_uri = e.headers.get('location',
@@ -111,11 +111,11 @@ class WebSocket(backgroundthread.KillableThread):
                     if self.redirect_uri:
                         self.redirect_uri = self.redirect_uri.decode('utf-8')
                     self.ws = None
-                    self.__sleep()
+                    self._sleep_cycle()
                 except websocket.WebSocketException as e:
                     LOG.debug('%s: WebSocketException: %s', self.__class__.__name__, e)
                     self.ws = None
-                    self.__sleep()
+                    self._sleep_cycle()
                 except Exception as e:
                     LOG.error('%s: Unknown exception encountered when '
                               'connecting: %s', self.__class__.__name__, e)
@@ -123,9 +123,9 @@ class WebSocket(backgroundthread.KillableThread):
                     LOG.error("%s: Traceback:\n%s",
                               self.__class__.__name__, traceback.format_exc())
                     self.ws = None
-                    self.__sleep()
+                    self._sleep_cycle()
                 else:
-                    self.sleeptime = 0
+                    self.sleeptime = 0.0
             except Exception as e:
                 LOG.error("%s: Unknown exception encountered: %s",
                           self.__class__.__name__, e)
@@ -141,7 +141,7 @@ class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion
     """
-    def isSuspended(self):
+    def should_suspend(self):
         """
         Returns True if the thread is suspended
         """
@@ -206,7 +206,7 @@ class Alexa_Websocket(WebSocket):
     """
     Websocket connection to talk to Amazon Alexa.
     """
-    def isSuspended(self):
+    def should_suspend(self):
         """
         Overwrite method since we need to check for plex token
         """

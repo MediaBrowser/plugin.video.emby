@@ -124,19 +124,16 @@ class App(object):
         if block:
             while True:
                 for thread in self.threads:
-                    if not thread.suspend_reached:
+                    if not thread.is_suspended():
                         LOG.debug('Waiting for thread to suspend: %s', thread)
                         # Send suspend signal again in case self.threads
                         # changed
-                        thread.suspend()
-                        if self.monitor.waitForAbort(0.1):
-                            return True
-                        break
+                        thread.suspend(block=True)
                 else:
                     break
         return xbmc.abortRequested
 
-    def resume_threads(self, block=True):
+    def resume_threads(self):
         """
         Resume all thread activity with or without blocking.
         Returns True only if PKC shutdown requested
@@ -144,16 +141,6 @@ class App(object):
         LOG.debug('Resuming threads: %s', self.threads)
         for thread in self.threads:
             thread.resume()
-        if block:
-            while True:
-                for thread in self.threads:
-                    if thread.suspend_reached:
-                        LOG.debug('Waiting for thread to resume: %s', thread)
-                        if self.monitor.waitForAbort(0.1):
-                            return True
-                        break
-                else:
-                    break
         return xbmc.abortRequested
 
     def stop_threads(self, block=True):
@@ -163,7 +150,7 @@ class App(object):
         """
         LOG.debug('Killing threads: %s', self.threads)
         for thread in self.threads:
-            thread.abort()
+            thread.cancel()
         if block:
             while self.threads:
                 LOG.debug('Waiting for threads to exit: %s', self.threads)
