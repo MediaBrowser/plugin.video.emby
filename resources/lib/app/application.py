@@ -54,11 +54,11 @@ class App(object):
 
     @property
     def is_playing(self):
-        return self.player.isPlaying()
+        return self.player.isPlaying() == 1
 
     @property
     def is_playing_video(self):
-        return self.player.isPlayingVideo()
+        return self.player.isPlayingVideo() == 1
 
     def register_fanart_thread(self, thread):
         self.fanart_thread = thread
