@@ -159,10 +159,10 @@ class Artist(MusicMixin, ItemBase):
         Process a single artist
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         artist = self.plexdb.artist(plex_id)
@@ -225,6 +225,11 @@ class Album(MusicMixin, ItemBase):
         avoid infinite loops
         """
         api = API(xml)
+        if not self.sync_this_item(section_id or api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      section_id or api.library_section_id())
+            return
         plex_id = api.plex_id
         album = self.plexdb.album(plex_id)
         if album:
@@ -387,6 +392,11 @@ class Song(MusicMixin, ItemBase):
         Process single song/track
         """
         api = API(xml)
+        if not self.sync_this_item(section_id or api.library_section_id()):
+            LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
+                      'Kodi', api.plex_type, api.plex_id, api.title(),
+                      section_id or api.library_section_id())
+            return
         plex_id = api.plex_id
         song = self.plexdb.song(plex_id)
         if song:

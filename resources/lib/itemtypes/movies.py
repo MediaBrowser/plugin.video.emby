@@ -20,10 +20,10 @@ class Movie(ItemBase):
         Process single movie
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         movie = self.plexdb.movie(plex_id)
