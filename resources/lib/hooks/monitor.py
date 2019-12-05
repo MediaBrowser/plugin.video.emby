@@ -42,6 +42,8 @@ class Monitor(xbmc.Monitor):
 
         self.workers_threads = []
         self.queue = Queue.Queue()
+        self.playlist_threads = []
+        self.p_queue = Queue.Queue()
 
         xbmc.Monitor.__init__(self)
 
@@ -500,6 +502,14 @@ class MonitorWorker(threading.Thread):
 
             try:
                 LOG.info("-->[ q:monitor/%s ]", data['MonitorMethod'])
+
+                if data['MonitorMethod'] == 'Playlist.OnAdd':
+                    if not self.monitor.playlist_threads:
+                        thread = PlaylistListener(self.monitor.playlist_threads, self.monitor.p_queue)
+                        self.monitor.playlist_threads.append(thread)
+
+                    self.monitor.p_queue.put(data)
+
                 func(server, data)
             except Exception as error:
                 LOG.exception(error)
@@ -508,6 +518,28 @@ class MonitorWorker(threading.Thread):
 
             if window('emby_should_stop.bool'):
                 break
+
+
+class PlaylistListener(threading.Thread):
+
+    def __init__(self, threads, queue):
+        self.threads = threads
+        self.queue = queue
+        threading.Thread.__init__(self)
+        self.start()
+
+    def run(self):
+
+        while True:
+
+            try:
+                item = self.queue.get(timeout=0.02)
+            except Queue.Empty:
+                window('emby.webservice.last', clear=True)
+                self.threads.remove(self)
+                break
+
+            self.queue.task_done()
 
 
 class Listener(threading.Thread):

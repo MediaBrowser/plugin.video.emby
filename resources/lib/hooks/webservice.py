@@ -256,7 +256,24 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if params.get('Name'):
             path += "&filename=%s" % params['Name']
 
-        self.wfile.write(bytes(path))
+        if window('emby.webservice.last') != params['Id']:
+            self.wfile.write(bytes(path))
+        else:
+            self.wfile.write(bytes(""))
+
+            if params['Id'] not in self.server.pending:
+                xbmc.log("[ webservice/%s ] path: %s params: %s" % (str(id(self)), str(self.path), str(params)), xbmc.LOGWARNING)
+
+                self.server.pending.append(params['Id'])
+                self.server.queue.put(params)
+
+                if not len(self.server.threads):
+
+                    queue = WidgetPlay(self.server)
+                    queue.start()
+                    self.server.threads.append(queue)
+
+        window('emby.webservice.last', value=params['Id'])
 
     def images(self):
 
@@ -296,3 +313,54 @@ class Redirect(threading.Thread):
                      "&TranscodingProtocol=hls&TranscodingContainer=aac&AudioCodec=aac&EnableRedirection=true&EnableRemoteMedia=true&PlaySessionId=%s" % (self.server['auth/server-address'], self.server['auth/user-id'], self.server['config/app.device_id'], self.server['auth/token'], str(uuid4()).replace("-", "")))
         """
         LOG.info("path: %s", self.path)
+
+class WidgetPlay(threading.Thread):
+
+    def __init__(self, server):
+        self.server = server
+        threading.Thread.__init__(self)
+
+    def run(self):
+        import objects
+        ''' Workaround for widgets only playback.
+            Widgets start with a music playlist, this causes bugs in skin, etc.
+            Create a new video playlist for the item and play it.
+        '''
+        xbmc.sleep(200) # Let Kodi catch up
+        LOG.info("-->[ widget play ]")
+        play = None
+
+        xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
+        xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+
+        while True:
+            try:
+                try:
+                    params = self.server.queue.get(timeout=0.01)
+                except Queue.Empty:
+                    play.start_playback()
+
+                    break
+
+                server = params.get('server')
+
+                if not server and not window('emby_online.bool'):
+                    raise Exception("NotConnected")
+
+                play = objects.PlayStrm(params, server)
+                play.play()
+
+            except Exception as error:
+                LOG.exception(error)
+
+                xbmc.Player().stop() # mute failed playback pop up
+                xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+                self.server.queue.queue.clear()
+
+                break
+
+            self.server.queue.task_done()
+
+        self.server.threads.remove(self)
+        self.server.pending = []
+        LOG.info("--<[ widget play ]")

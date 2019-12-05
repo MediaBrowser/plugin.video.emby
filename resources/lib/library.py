@@ -62,7 +62,6 @@ class Library(threading.Thread):
         self.MEDIA = MEDIA
 
         self.direct_path = settings('useDirectPaths') == "1"
-        self.progress_display = int(settings('syncProgress') or 50)
         self.monitor = monitor
         self.player = monitor.monitor.player
         self.server = Emby().get_client()
@@ -104,14 +103,22 @@ class Library(threading.Thread):
 
     def set_progress_dialog(self):
 
+        queue_size = self.worker_queue_size()
+        self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
+        LOG.info("--[ pdialog (%s/%s) ]", queue_size, self.total_updates)
+
+        if self.total_updates < int(settings('syncProgress') or 50):
+            return
+
         if self.progress_updates is None:
             LOG.info("-->[ pdialog ]")
             self.progress_updates = xbmcgui.DialogProgressBG()
             self.progress_updates.create(_('addon_name'), _(33178))
 
-        queue_size = self.worker_queue_size()
-        self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
-        LOG.info("--[ pdialog (%s/%s) ]", queue_size, self.total_updates)
+    def update_progress_dialog(self, message):
+
+        if self.progress_updates:
+            self.progress_updates.update(self.progress_percent, message="%s: %s" % (_(33178), message))
 
     def run(self):
 
@@ -191,9 +198,7 @@ class Library(threading.Thread):
 
         if self.pending_refresh:
             window('emby_sync.bool', True)
-
-            if self.total_updates > self.progress_display:
-                self.set_progress_dialog()
+            self.set_progress_dialog()
 
             if not settings('dbSyncScreensaver.bool') and self.screensaver is None:
 
@@ -567,14 +572,14 @@ class Library(threading.Thread):
         sync = get_sync()
         LOG.info("--[ retrieve changes ] %s", last_sync)
 
-        for main_index, library in enumerate(sync['Whitelist']):
+        for library in  sync['Whitelist']:
 
             for data in server.get_items(library.replace('Mixed:', ""),
                                          "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio",
                                          False,
                                          {'MinDateLastSaved': last_sync}):
 
-                for index, item in enumerate(data['Items']):
+                for item in data['Items']:
                     if item['Type'] in self.updated_output:
                         self.updated_output[item['Type']].put(item)
                         self.total_updates += 1
@@ -584,7 +589,7 @@ class Library(threading.Thread):
                                          False,
                                          {'MinDateLastSavedForUser': last_sync}):
 
-                for index, item in enumerate(data['Items']):
+                for item in data['Items']:
                     if item['Type'] in self.userdata_output:
                         self.userdata_output[item['Type']].put(item)
                         self.total_updates += 1
@@ -833,7 +838,7 @@ class UpdatedWorker(threading.Thread):
                             break
 
                         obj = MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path)[item['Type']]
-                        self.library.progress_updates.update(self.library.progress_percent, message="%s: %s" % (_(33178), item['Name']))
+                        self.library.update_progress_dialog(api.API(item).get_naming())
 
                         try:
                             if obj(item) and self.notify:
@@ -883,7 +888,7 @@ class UserDataWorker(threading.Thread):
                             break
 
                         obj = MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path)['UserData']
-                        self.library.progress_updates.update(self.library.progress_percent, message="%s: %s" % (_(33178), item['Name']))
+                        self.library.update_progress_dialog(api.API(item).get_naming())
 
                         try:
                             obj(item)
