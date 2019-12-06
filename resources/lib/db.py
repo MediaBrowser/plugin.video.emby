@@ -58,9 +58,10 @@ def _initial_db_connection_setup(conn, wal_mode):
     before. Also start a transaction
     """
     if wal_mode:
-        conn.execute('PRAGMA journal_mode=WAL;')
-        conn.execute('PRAGMA cache_size = -8000;')
-        conn.execute('PRAGMA synchronous=NORMAL;')
+        pass
+        # conn.execute('PRAGMA journal_mode=WAL;')
+        # conn.execute('PRAGMA cache_size = -8000;')
+        # conn.execute('PRAGMA synchronous=NORMAL;')
     conn.execute('BEGIN')
 
 
