@@ -20,18 +20,19 @@ SUPPORTED_KODI_TYPES = (
 
 class PlexDBBase(object):
     """
-    Plex database methods used for all types of items
+    Plex database methods used for all types of items.
     """
-    def __init__(self, plexconn=None, lock=True):
+    def __init__(self, plexconn=None, lock=True, copy=False):
         # Allows us to use this class with a cursor instead of context mgr
         self.plexconn = plexconn
         self.cursor = self.plexconn.cursor() if self.plexconn else None
         self.lock = lock
+        self.copy = copy
 
     def __enter__(self):
         if self.lock:
             PLEXDB_LOCK.acquire()
-        self.plexconn = db.connect('plex')
+        self.plexconn = db.connect('plex-copy' if self.copy else 'plex')
         self.cursor = self.plexconn.cursor()
         return self
 

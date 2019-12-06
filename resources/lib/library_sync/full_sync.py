@@ -11,7 +11,7 @@ from .fill_metadata_queue import FillMetadataQueue
 from .process_metadata import ProcessMetadataThread
 from . import common, sections
 from .. import utils, timing, backgroundthread, variables as v, app
-from .. import plex_functions as PF, itemtypes
+from .. import plex_functions as PF, itemtypes, path_ops
 
 if common.PLAYLIST_SYNC_ENABLED:
     from .. import playlists
@@ -76,6 +76,16 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
         if app.APP.is_playing_video:
             self.dialog.close()
             self.dialog = None
+
+    @staticmethod
+    def copy_plex_db():
+        """
+        Takes the current plex.db file and copies it to plex-copy.db
+        This will allow us to have "concurrent" connections during adding/
+        updating items, increasing sync speed tremendously.
+        Using the same DB with e.g. WAL mode did not really work out...
+        """
+        path_ops.copyfile(v.DB_PLEX_PATH, v.DB_PLEX_COPY_PATH)
 
     @utils.log_time
     def processing_loop_new_and_changed_items(self):
@@ -267,6 +277,9 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
         LOG.info('Running library sync with repair=%s', self.repair)
         try:
             self.run_full_library_sync()
+        except Exception:
+            utils.ERROR(notify=True)
+            self.successful = False
         finally:
             app.APP.deregister_thread(self)
             LOG.info('Library sync done. successful: %s', self.successful)
@@ -277,9 +290,7 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             # Get latest Plex libraries and build playlist and video node files
             if self.should_cancel() or not sections.sync_from_pms(self):
                 return
-            if self.should_cancel():
-                self.successful = False
-                return
+            self.copy_plex_db()
             self.full_library_sync()
         finally:
             common.update_kodi_library(video=True, music=True)

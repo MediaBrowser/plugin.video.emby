@@ -74,6 +74,8 @@ def connect(media_type=None, wal_mode=True):
     """
     if media_type == "plex":
         db_path = v.DB_PLEX_PATH
+    elif media_type == 'plex-copy':
+        db_path = v.DB_PLEX_COPY_PATH
     elif media_type == "music":
         db_path = v.DB_MUSIC_PATH
     elif media_type == "texture":

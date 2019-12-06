@@ -127,6 +127,7 @@ DB_MUSIC_PATH = None
 DB_TEXTURE_VERSION = None
 DB_TEXTURE_PATH = None
 DB_PLEX_PATH = try_decode(xbmc.translatePath("special://database/plex.db"))
+DB_PLEX_COPY_PATH = try_decode(xbmc.translatePath("special://database/plex-copy.db"))
 
 EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
     "special://profile/addon_data/%s/temp/" % ADDON_ID))
