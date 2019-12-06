@@ -137,11 +137,11 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             LOG.error('Could not entirely process section %s', section)
             self.successful = False
 
-    def threaded_get_iterators(self, kinds, queue, all_items):
+    def get_generators(self, kinds, queue, all_items):
         """
         Getting iterators is costly, so let's do it asynchronously
         """
-        LOG.debug('Start threaded_get_iterators')
+        LOG.debug('Start get_generators')
         try:
             for kind in kinds:
                 for section in (x for x in app.SYNC.sections
@@ -179,7 +179,7 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             utils.ERROR(notify=True)
         finally:
             queue.put(None)
-            LOG.debug('Exiting threaded_get_iterators')
+            LOG.debug('Exiting get_generators')
 
     def full_library_sync(self):
         kinds = [
@@ -194,11 +194,8 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
                 (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST),
             ])
         # ADD NEW ITEMS
-        # Already start setting up the iterators. We need to enforce
-        # syncing e.g. show before season before episode
-        backgroundthread.KillableThread(
-            target=self.threaded_get_iterators,
-            args=(kinds, self.section_queue, False)).start()
+        # We need to enforce syncing e.g. show before season before episode
+        self.get_generators(kinds, self.section_queue, False)
         # Do the heavy lifting
         self.processing_loop_new_and_changed_items()
         common.update_kodi_library(video=True, music=True)
@@ -230,9 +227,7 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             # Close the progress indicator dialog
             self.dialog.close()
             self.dialog = None
-        backgroundthread.KillableThread(
-            target=self.threaded_get_iterators,
-            args=(kinds, self.section_queue, True)).start()
+        self.get_generators(kinds, self.section_queue, True)
         self.processing_loop_playstates()
         if self.should_cancel() or not self.successful:
             return
