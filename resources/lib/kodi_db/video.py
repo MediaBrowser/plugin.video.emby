@@ -40,19 +40,15 @@ class KodiVideoDB(common.KodiDBBase):
         """
         path_id = self.get_path(MOVIE_PATH)
         if path_id is None:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            path_id = self.cursor.fetchone()[0] + 1
             query = '''
-                INSERT INTO path(idPath,
-                                 strPath,
+                INSERT INTO path(strPath,
                                  strContent,
                                  strScraper,
                                  noUpdate,
                                  exclude)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
             '''
-            self.cursor.execute(query, (path_id,
-                                        MOVIE_PATH,
+            self.cursor.execute(query, (MOVIE_PATH,
                                         'movies',
                                         'metadata.local',
                                         1,
@@ -60,19 +56,15 @@ class KodiVideoDB(common.KodiDBBase):
         # And TV shows
         path_id = self.get_path(SHOW_PATH)
         if path_id is None:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            path_id = self.cursor.fetchone()[0] + 1
             query = '''
-                INSERT INTO path(idPath,
-                                 strPath,
+                INSERT INTO path(strPath,
                                  strContent,
                                  strScraper,
                                  noUpdate,
                                  exclude)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
             '''
-            self.cursor.execute(query, (path_id,
-                                        SHOW_PATH,
+            self.cursor.execute(query, (SHOW_PATH,
                                         'tvshows',
                                         'metadata.local',
                                         1,
@@ -89,13 +81,12 @@ class KodiVideoDB(common.KodiDBBase):
                                path_ops.decode_path(path_ops.path.pardir)))
         pathid = self.get_path(parentpath)
         if pathid is None:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            pathid = self.cursor.fetchone()[0] + 1
             self.cursor.execute('''
-                                INSERT INTO path(idPath, strPath, dateAdded)
-                                VALUES (?, ?, ?)
+                                INSERT INTO path(strPath, dateAdded)
+                                VALUES (?, ?)
                                 ''',
-                                (pathid, parentpath, timing.kodi_now()))
+                                (parentpath, timing.kodi_now()))
+            pathid = self.cursor.lastrowid
             if parentpath != path:
                 # In case we end up having media in the filesystem root, C:\
                 parent_id = self.parent_path_id(parentpath)
@@ -127,21 +118,19 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             pathid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            pathid = self.cursor.fetchone()[0] + 1
             self.cursor.execute('''
                                 INSERT INTO path(
-                                    idPath,
                                     strPath,
                                     dateAdded,
                                     idParentPath,
                                     strContent,
                                     strScraper,
                                     noUpdate)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                VALUES (?, ?, ?, ?, ?, ?)
                                 ''',
-                                (pathid, path, date_added, id_parent_path,
-                                 content, scraper, 1))
+                                (path, date_added, id_parent_path, content,
+                                 scraper, 1))
+            pathid = self.cursor.lastrowid
         return pathid
 
     def get_path(self, path):
@@ -161,18 +150,12 @@ class KodiVideoDB(common.KodiDBBase):
         Adds the filename [unicode] to the table files if not already added
         and returns the idFile.
         """
-        self.cursor.execute('SELECT COALESCE(MAX(idFile), 0) FROM files')
-        file_id = self.cursor.fetchone()[0] + 1
         self.cursor.execute('''
-                            INSERT INTO files(
-                                idFile,
-                                idPath,
-                                strFilename,
-                                dateAdded)
-                            VALUES (?, ?, ?, ?)
+                            INSERT INTO files(idPath, strFilename, dateAdded)
+                            VALUES (?, ?, ?)
                             ''',
-                            (file_id, path_id, filename, date_added))
-        return file_id
+                            (path_id, filename, date_added))
+        return self.cursor.lastrowid
 
     def modify_file(self, filename, path_id, date_added):
         self.cursor.execute('SELECT idFile FROM files WHERE idPath = ? AND strFilename = ?',
@@ -261,11 +244,9 @@ class KodiVideoDB(common.KodiDBBase):
             try:
                 entry_id = self.cursor.fetchone()[0]
             except TypeError:
-                self.cursor.execute('SELECT COALESCE(MAX(%s), %s) FROM %s'
-                                    % (key, first_id - 1, table))
-                entry_id = self.cursor.fetchone()[0] + 1
-                self.cursor.execute('INSERT INTO %s(%s, name) values(?, ?)'
-                                    % (table, key), (entry_id, entry))
+                self.cursor.execute('INSERT INTO %s(name) VALUES(?)' % table,
+                                    (entry, ))
+                entry_id = self.cursor.lastrowid
             finally:
                 entry_ids.append(entry_id)
         # Now process the ids obtained from the names
@@ -458,10 +439,8 @@ class KodiVideoDB(common.KodiDBBase):
     @db.catch_operationalerrors
     def _new_actor_id(self, name, art_url):
         # Not yet in actor DB, add person
-        self.cursor.execute('SELECT COALESCE(MAX(actor_id), 0) FROM actor')
-        actor_id = self.cursor.fetchone()[0] + 1
-        self.cursor.execute('INSERT INTO actor(actor_id, name) VALUES (?, ?)',
-                            (actor_id, name))
+        self.cursor.execute('INSERT INTO actor(name) VALUES (?)', (name, ))
+        actor_id = self.cursor.lastrowid
         if art_url:
             self.add_art(art_url, actor_id, 'actor', 'thumb')
         return actor_id
@@ -649,12 +628,8 @@ class KodiVideoDB(common.KodiDBBase):
                             (playcount or None, dateplayed, file_id))
         # Set the resume bookmark
         if resume_seconds:
-            self.cursor.execute(
-                'SELECT COALESCE(MAX(idBookmark), 0) FROM bookmark')
-            bookmark_id = self.cursor.fetchone()[0] + 1
             self.cursor.execute('''
             INSERT INTO bookmark(
-                idBookmark,
                 idFile,
                 timeInSeconds,
                 totalTimeInSeconds,
@@ -662,9 +637,8 @@ class KodiVideoDB(common.KodiDBBase):
                 player,
                 playerState,
                 type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (bookmark_id,
-                  file_id,
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (file_id,
                   resume_seconds,
                   total_seconds,
                   '',
@@ -682,10 +656,8 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             tag_id = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(tag_id), 0) FROM tag")
-            tag_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('INSERT INTO tag(tag_id, name) VALUES(?, ?)',
-                                (tag_id, name))
+            self.cursor.execute('INSERT INTO tag(name) VALUES(?)', (name, ))
+            tag_id = self.cursor.lastrowid
         return tag_id
 
     @db.catch_operationalerrors
@@ -717,10 +689,8 @@ class KodiVideoDB(common.KodiDBBase):
         try:
             setid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(idSet), 0) FROM sets")
-            setid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('INSERT INTO sets(idSet, strSet) VALUES(?, ?)',
-                                (setid, set_name))
+            self.cursor.execute('INSERT INTO sets(strSet) VALUES(?)', (set_name, ))
+            setid = self.cursor.lastrowid
         return setid
 
     @db.catch_operationalerrors
@@ -768,19 +738,14 @@ class KodiVideoDB(common.KodiDBBase):
         Adds a TV show season to the Kodi video DB or simply returns the ID,
         if there already is an entry in the DB
         """
-        self.cursor.execute("SELECT COALESCE(MAX(idSeason),0) FROM seasons")
-        seasonid = self.cursor.fetchone()[0] + 1
-        self.cursor.execute('''
-            INSERT INTO seasons(idSeason, idShow, season)
-            VALUES (?, ?, ?)
-        ''', (seasonid, showid, seasonnumber))
-        return seasonid
+        self.cursor.execute('INSERT INTO seasons(idShow, season) VALUES (?, ?)',
+                            (showid, seasonnumber))
+        return self.cursor.lastrowid
 
     @db.catch_operationalerrors
     def add_uniqueid(self, *args):
         """
         Feed with:
-            uniqueid_id: int
             media_id: int
             media_type: string
             value: string
@@ -788,39 +753,24 @@ class KodiVideoDB(common.KodiDBBase):
         """
         self.cursor.execute('''
             INSERT INTO uniqueid(
-                uniqueid_id,
                 media_id,
                 media_type,
                 value,
                 type)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?)
         ''', (args))
-
-    def add_uniqueid_id(self):
-        self.cursor.execute('SELECT COALESCE(MAX(uniqueid_id), 0) FROM uniqueid')
-        return self.cursor.fetchone()[0] + 1
-
-    def get_uniqueid(self, kodi_id, kodi_type):
-        """
-        Returns the uniqueid_id
-        """
-        self.cursor.execute('SELECT uniqueid_id FROM uniqueid WHERE media_id = ? AND media_type =?',
-                            (kodi_id, kodi_type))
-        try:
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_uniqueid_id()
+        return self.cursor.lastrowid
 
     @db.catch_operationalerrors
     def update_uniqueid(self, *args):
         """
-        Pass in media_id, media_type, value, type, uniqueid_id
+        Pass in value, media_id, media_type, type
         """
         self.cursor.execute('''
-            UPDATE uniqueid
-            SET media_id = ?, media_type = ?, value = ?, type = ?
-            WHERE uniqueid_id = ?
+            INSERT OR REPLACE INTO uniqueid(media_id, media_type, type, value)
+            VALUES(?, ?, ?, ?)
         ''', (args))
+        return self.cursor.lastrowid
 
     @db.catch_operationalerrors
     def remove_uniqueid(self, kodi_id, kodi_type):
@@ -830,54 +780,36 @@ class KodiVideoDB(common.KodiDBBase):
         self.cursor.execute('DELETE FROM uniqueid WHERE media_id = ? AND media_type = ?',
                             (kodi_id, kodi_type))
 
-    def add_ratingid(self):
-        self.cursor.execute('SELECT COALESCE(MAX(rating_id),0) FROM rating')
-        return self.cursor.fetchone()[0] + 1
-
-    def get_ratingid(self, kodi_id, kodi_type):
-        """
-        Create if needed and return the unique rating_id from rating table
-        """
-        self.cursor.execute('SELECT rating_id FROM rating WHERE media_id = ? AND media_type = ?',
-                            (kodi_id, kodi_type))
-        try:
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_ratingid()
-
     @db.catch_operationalerrors
     def update_ratings(self, *args):
         """
         Feed with media_id, media_type, rating_type, rating, votes, rating_id
         """
         self.cursor.execute('''
-            UPDATE rating
-            SET media_id = ?,
-                media_type = ?,
-                rating_type = ?,
-                rating = ?,
-                votes = ?
-            WHERE rating_id = ?
+            INSERT OR REPLACE INTO
+            rating(media_id, media_type, rating_type, rating, votes)
+            VALUES (?, ?, ?, ?, ?)
         ''', (args))
+        return self.cursor.lastrowid
 
     @db.catch_operationalerrors
     def add_ratings(self, *args):
         """
         feed with:
-            rating_id, media_id, media_type, rating_type, rating, votes
+            media_id, media_type, rating_type, rating, votes
 
         rating_type = 'default'
         """
         self.cursor.execute('''
             INSERT INTO rating(
-                rating_id,
                 media_id,
                 media_type,
                 rating_type,
                 rating,
                 votes)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         ''', (args))
+        return self.cursor.lastrowid
 
     @db.catch_operationalerrors
     def remove_ratings(self, kodi_id, kodi_type):
@@ -917,10 +849,11 @@ class KodiVideoDB(common.KodiDBBase):
                     c16,
                     c18,
                     c19,
+                    c20,
                     idSeason,
                     userrating)
                 VALUES
-                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (args))
 
     @db.catch_operationalerrors
@@ -942,6 +875,7 @@ class KodiVideoDB(common.KodiDBBase):
                     c16 = ?,
                     c18 = ?,
                     c19 = ?,
+                    c20 = ?,
                     idFile=?,
                     idSeason = ?,
                     userrating = ?
