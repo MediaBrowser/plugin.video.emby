@@ -425,7 +425,8 @@ class Service(xbmc.Monitor):
             if not self['mode_warn']:
 
                 self['mode_warn'] = True
-                dialog("yesno", heading="{emby}", line1=_(33118))
+                if dialog("yesno", heading="{emby}", line1=_(33118)):
+                    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.emby/?mode=reset)')
 
         if settings('kodiCompanion.bool') != self['kodi_companion']:
             self['kodi_companion'] = settings('kodiCompanion.bool')
