@@ -979,19 +979,17 @@ def get_themes():
     token = EMBY['auth/token']
 
     for view in views:
-        result = EMBY['api'].get_items_theme_video(view)
+        for result in downloader.get_items(view, params={'HasThemeVideo': True}):
+            for item in result['Items']:
 
-        for item in result['Items']:
+                folder = normalize_string(item['Name'].encode('utf-8'))
+                items[item['Id']] = folder
 
-            folder = normalize_string(item['Name'].encode('utf-8'))
-            items[item['Id']] = folder
+        for result in downloader.get_items(view, params={'HasThemeSong': True}):
+            for item in result['Items']:
 
-        result = EMBY['api'].get_items_theme_song(view)
-
-        for item in result['Items']:
-
-            folder = normalize_string(item['Name'].encode('utf-8'))
-            items[item['Id']] = folder
+                folder = normalize_string(item['Name'].encode('utf-8'))
+                items[item['Id']] = folder
 
     for item in items:
 
