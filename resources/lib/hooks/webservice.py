@@ -17,7 +17,7 @@ import xbmcgui
 import xbmcvfs
 
 from emby import Emby
-from helper import settings, window, dialog, JSONRPC
+from helper import _, settings, window, dialog, JSONRPC
 
 #################################################################################################
 
@@ -259,13 +259,15 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if params.get('Name'):
             path += "&filename=%s" % params['Name']
 
+
         if (datetime.today() - self.server.last_time).seconds > 2: # reset, assume new playlist
             self.server.last = None
 
-        if not self.server.last: #window('emby.webservice.last'):
+
+        if not self.server.last:
             self.wfile.write(bytes(path))
 
-        elif self.server.last == params['Id']: #window('emby.webservice.last') == params['Id']:
+        elif self.server.last == params['Id']:
             self.wfile.write(bytes(""))
 
             if params['Id'] not in self.server.pending:
@@ -288,7 +290,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     queue = PlayFolder(self.server)
                     self.server.threads.append(queue)
 
-        #window('emby.webservice.last', value=params['Id'])
         self.server.last = params['Id']
         self.server.last_time = datetime.today()
 
@@ -352,11 +353,14 @@ class PlayWidget(threading.Thread):
 
         xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
         xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+        objects.utils.enable_busy_dialog()
 
         try:
             server = self.params.get('server')
 
             if not server and not window('emby_online.bool'):
+                dialog("notification", heading="{emby}", message=_(33146), icon=xbmcgui.NOTIFICATION_ERROR)
+
                 raise Exception("NotConnected")
 
             play = objects.PlayStrm(self.params, server)
@@ -364,9 +368,11 @@ class PlayWidget(threading.Thread):
 
         except Exception as error:
             LOG.exception(error)
+            objects.utils.disable_busy_dialog()
             xbmc.Player().stop() # mute failed playback pop up
             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()        
         else:
+            objects.utils.disable_busy_dialog()
             play.start_playback()
 
         self.server.pending = []
@@ -384,39 +390,42 @@ class PlayFolder(threading.Thread):
         import objects
         ''' Workaround for playing folders only (context menu on a series/season folder > play)
             Due to plugin paths being returned within the strm, the entries are mislabelled.
-            This only proceeds ahead if play folder is indeed valid.
+            Queue items after the first item was setup and started playing via plugin above.
         '''
         xbmc.sleep(200) # Let Kodi catch up
         LOG.info("-->[ folder play ]")
         play = None
-        position = None
+        position = 1 # play folder should always create a new playlist.
+        player = xbmc.Player()
 
         while True:
-            try:
+            if not window('emby.playlist.plugin.bool'): # default.py wait for initial item to start up
                 try:
-                    params = self.server.queue.get(timeout=0.01)
-                except Queue.Empty:
+                    try:
+                        params = self.server.queue.get(timeout=0.01)
+                    except Queue.Empty:
+                        break
+
+                    server = params.get('server')
+
+                    if not server and not window('emby_online.bool'):
+                        dialog("notification", heading="{emby}", message=_(33146), icon=xbmcgui.NOTIFICATION_ERROR)
+
+                        raise Exception("NotConnected")
+
+                    play = objects.PlayStrm(params, server)
+                    position = play.play_folder(position)
+
+                except Exception as error:
+                    LOG.exception(error)
+
+                    xbmc.Player().stop() # mute failed playback pop up
+                    xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
+                    self.server.queue.queue.clear()
+
                     break
 
-                server = params.get('server')
-
-                if not server and not window('emby_online.bool'):
-                    raise Exception("NotConnected")
-
-                play = objects.PlayStrm(params, server)
-                play.play_folder()
-
-            except Exception as error:
-                LOG.exception(error)
-
-                xbmc.Player().stop() # mute failed playback pop up
-                xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
-                self.server.queue.queue.clear()
-
-                break
-
-            self.server.queue.task_done()
-
+                self.server.queue.task_done()
 
         self.server.threads.remove(self)
         self.server.pending = []
