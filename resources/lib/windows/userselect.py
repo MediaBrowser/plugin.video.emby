@@ -169,13 +169,13 @@ class UserSelectWindow(kodigui.BaseWindow):
             utils.settings('plexToken'),
             utils.settings('plex_machineIdentifier'))
         if self.user.authToken is None:
-            self.user = None
             item.setProperty('pin', item.dataSource.title)
             item.setProperty('editing.pin', '')
             # 'Error': 'Login failed with plex.tv for user'
             utils.messageDialog(utils.lang(30135),
-                                '%s %s' % (utils.lang(39229),
-                                           self.user.username))
+                                '{}{}'.format(utils.lang(39229),
+                                              self.user.username))
+            self.user = None
             return
         self.doClose()
 
