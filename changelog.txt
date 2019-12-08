@@ -1,3 +1,8 @@
+version 2.10.6 (beta only):
+- Fix AttributeError if user enters an invalid pin code
+- Fix OperationalError when starting with a fresh PKC installation
+- Fix IndexError
+
 version 2.10.5 (beta only):
 - Rewire library sync to speed it up and fix sync getting stuck in rare cases 
 - Optimize threads by using events instead of a polling mechanism. Fixes PKC becoming unresponsive, e.g. when switching users

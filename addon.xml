@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.10.5" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.10.6" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -83,7 +83,12 @@
     <summary lang="lt_LT">Natūralioji „Plex“ integracija į „Kodi“</summary>
     <description lang="lt_LT">Prijunkite „Kodi“ prie „Plex Medija Serverio“. Šiame papildinyje daroma prielaida, kad valdote visus savo vaizdo įrašus naudodami „Plex“ (ir nė vieno su „Kodi“). Galite prarasti jau saugomus „Kodi“ vaizdo įrašų ir muzikos duomenų bazių duomenis (kadangi šis papildinys juos tiesiogiai pakeičia). Naudokite savo pačių rizika!</description>
     <disclaimer lang="lt_LT">Naudokite savo pačių rizika</disclaimer>
-    <news>version 2.10.5 (beta only):
+    <news>version 2.10.6 (beta only):
+- Fix AttributeError if user enters an invalid pin code
+- Fix OperationalError when starting with a fresh PKC installation
+- Fix IndexError
+
+version 2.10.5 (beta only):
 - Rewire library sync to speed it up and fix sync getting stuck in rare cases 
 - Optimize threads by using events instead of a polling mechanism. Fixes PKC becoming unresponsive, e.g. when switching users
 - Optimize adding values to Kodi databases by not using sqlite COALESCE command
