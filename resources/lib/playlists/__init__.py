@@ -13,6 +13,7 @@
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+from sqlite3 import OperationalError
 
 from .common import Playlist, PlaylistError, PlaylistObserver, \
     kodi_playlist_hash
@@ -74,7 +75,11 @@ def remove_synced_playlists():
     """
     LOG.info('Removing all playlists that we synced to Kodi')
     with app.APP.lock_playlists:
-        paths = db.get_all_kodi_playlist_paths()
+        try:
+            paths = db.get_all_kodi_playlist_paths()
+        except OperationalError:
+            LOG.info('Playlists table has not yet been set-up')
+            return
         kodi_pl.delete_kodi_playlists(paths)
         db.wipe_table()
     LOG.info('Done removing all synced playlists')
