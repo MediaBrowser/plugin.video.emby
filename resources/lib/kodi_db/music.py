@@ -25,13 +25,9 @@ class KodiMusicDB(common.KodiDBBase):
         try:
             pathid = self.cursor.fetchone()[0]
         except TypeError:
-            self.cursor.execute("SELECT COALESCE(MAX(idPath),0) FROM path")
-            pathid = self.cursor.fetchone()[0] + 1
-            self.cursor.execute('''
-                                INSERT INTO path(idPath, strPath, strHash)
-                                VALUES (?, ?, ?)
-                                ''',
-                                (pathid, path, '123'))
+            self.cursor.execute('INSERT INTO path(strPath, strHash) VALUES (?, ?)',
+                                (path, '123'))
+            pathid = self.cursor.lastrowid
         return pathid
 
     @db.catch_operationalerrors
@@ -382,10 +378,9 @@ class KodiMusicDB(common.KodiDBBase):
                     genreid = self.cursor.fetchone()[0]
                 except TypeError:
                     # Create the genre
-                    self.cursor.execute('SELECT COALESCE(MAX(idGenre),0) FROM genre')
-                    genreid = self.cursor.fetchone()[0] + 1
-                    self.cursor.execute('INSERT INTO genre(idGenre, strGenre) VALUES(?, ?)',
-                                        (genreid, genre))
+                    self.cursor.execute('INSERT INTO genre(strGenre) VALUES(?)',
+                                        (genre, ))
+                    genreid = self.cursor.lastrowid
                 self.cursor.execute('''
                     INSERT OR REPLACE INTO album_genre(
                         idGenre,
@@ -403,10 +398,9 @@ class KodiMusicDB(common.KodiDBBase):
                     genreid = self.cursor.fetchone()[0]
                 except TypeError:
                     # Create the genre
-                    self.cursor.execute('SELECT COALESCE(MAX(idGenre),0) FROM genre')
-                    genreid = self.cursor.fetchone()[0] + 1
-                    self.cursor.execute('INSERT INTO genre(idGenre, strGenre) values(?, ?)',
-                                        (genreid, genre))
+                    self.cursor.execute('INSERT INTO genre(strGenre) VALUES (?)',
+                                        (genre, ))
+                    genreid = self.cursor.lastrowid
                 self.cursor.execute('''
                     INSERT OR REPLACE INTO song_genre(
                         idGenre,
@@ -550,15 +544,11 @@ class KodiMusicDB(common.KodiDBBase):
             except TypeError:
                 # Krypton has a dummy first entry idArtist: 1  strArtist:
                 # [Missing Tag] strMusicBrainzArtistID: Artist Tag Missing
-                self.cursor.execute('SELECT COALESCE(MAX(idArtist),1) FROM artist')
-                artistid = self.cursor.fetchone()[0] + 1
                 self.cursor.execute('''
-                    INSERT INTO artist(
-                        idArtist,
-                        strArtist,
-                        strMusicBrainzArtistID)
-                    VALUES (?, ?, ?)
-                ''', (artistid, name, musicbrainz))
+                    INSERT INTO artist(strArtist, strMusicBrainzArtistID)
+                    VALUES (?, ?)
+                ''', (name, musicbrainz))
+                artistid = self.cursor.lastrowid
         else:
             if artistname != name:
                 self.cursor.execute('UPDATE artist SET strArtist = ? WHERE idArtist = ?',
