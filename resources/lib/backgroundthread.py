@@ -284,7 +284,10 @@ class OrderedQueue(Queue.PriorityQueue, object):
         super(OrderedQueue, self).__init__(maxsize)
 
     def _qsize(self, len=len):
-        return len(self.queue) if self.queue[0][0] == self.next_index else 0
+        try:
+            return len(self.queue) if self.queue[0][0] == self.next_index else 0
+        except IndexError:
+            return 0
 
     def _get(self, heappop=heapq.heappop):
         self.next_index += 1
