@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+from time import time as _time
 import threading
 import Queue
 import heapq
+from collections import deque
+
 import xbmc
 
-from . import utils, app
+from . import utils, app, variables as v
 
 LOG = getLogger('PLEX.threads')
 
@@ -36,8 +39,8 @@ class KillableThread(threading.Thread):
         """
         self._canceled = True
         # Make sure thread is running in order to exit quickly
-        self._is_not_suspended.set()
         self._is_not_asleep.set()
+        self._is_not_suspended.set()
 
     def should_suspend(self):
         """
@@ -66,8 +69,8 @@ class KillableThread(threading.Thread):
         back to life
         """
         self._suspended = False
-        self._is_not_suspended.set()
         self._is_not_asleep.set()
+        self._is_not_suspended.set()
 
     def wait_while_suspended(self):
         """
@@ -104,6 +107,166 @@ class KillableThread(threading.Thread):
         return not self._is_not_asleep.is_set()
 
 
+class ProcessingQueue(Queue.Queue, object):
+    """
+    Queue of queues that processes a queue completely before moving on to the
+    next queue. There's one queue per Section(). You need to initialize each
+    section with add_section(section) first.
+    Put tuples (count, item) into this queue, with count being the respective
+    position of the item in the queue, starting with 0 (zero).
+    (None, None) is the sentinel for a single queue being exhausted, added by
+    put_sentinel()
+    """
+    def _init(self, maxsize):
+        self.queue = deque()
+        self._sections = deque()
+        self._queues = deque()
+        self._current_section = None
+        self._current_queue = None
+        self._counter = 0
+
+    def _qsize(self):
+        return self._current_queue._qsize() if self._current_queue else 0
+
+    def total_size(self):
+        """
+        Return the approximate total size of all queues (not reliable!)
+        """
+        self.mutex.acquire()
+        n = sum(q._qsize() for q in self._queues) if self._queues else 0
+        self.mutex.release()
+        return n
+
+    def put(self, item, block=True, timeout=None):
+        """Put an item into the queue.
+
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until a free slot is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Full exception if no free slot was available within that time.
+        Otherwise ('block' is false), put an item on the queue if a free slot
+        is immediately available, else raise the Full exception ('timeout'
+        is ignored in that case).
+        """
+        self.not_full.acquire()
+        try:
+            if self.maxsize > 0:
+                if not block:
+                    # Use >= instead of == due to OrderedQueue!
+                    if self._qsize() >= self.maxsize:
+                        raise Queue.Full
+                elif timeout is None:
+                    while self._qsize() >= self.maxsize:
+                        self.not_full.wait()
+                elif timeout < 0:
+                    raise ValueError("'timeout' must be a non-negative number")
+                else:
+                    endtime = _time() + timeout
+                    while self._qsize() >= self.maxsize:
+                        remaining = endtime - _time()
+                        if remaining <= 0.0:
+                            raise Queue.Full
+                        self.not_full.wait(remaining)
+            if self._put(item) == 0:
+                # Only notify one waiting thread if this item is put into the
+                # current queue
+                self.not_empty.notify()
+            else:
+                # Be sure to signal not_empty only once!
+                self._unlock_after_section_change()
+            self.unfinished_tasks += 1
+        finally:
+            self.not_full.release()
+
+    def _put(self, item):
+        """
+        Returns the index of the section in whose subqueue we need to put the
+        item into
+        """
+        for i, section in enumerate(self._sections):
+            if item[1]['section'] == section:
+                self._queues[i]._put(item)
+                break
+        else:
+            raise RuntimeError('Could not find section for item %s' % item[1])
+        return i
+
+    def _unlock_after_section_change(self):
+        """
+        Ugly work-around if we expected more items to be synced, but we had
+        to lower our section.number_of_items because PKC decided that nothing
+        changed and we don't need to sync the respective item(s).
+        get() thus might block indefinitely
+        """
+        while (self._current_section and
+               self._counter == self._current_section.number_of_items):
+            LOG.debug('Signaling completion of current section')
+            self._init_next_section()
+            if self._current_queue and self._current_queue._qsize():
+                LOG.debug('Signaling not_empty')
+                self.not_empty.notify()
+
+    def put_sentinel(self, section):
+        """
+        Adds a new empty section as a sentinel. Call with an empty Section()
+        object.
+        Once the get()-method returns None, you've received the sentinel and
+        you've thus exhausted the queue
+        """
+        self.not_empty.acquire()
+        try:
+            section.number_of_items = 1
+            self._add_section(section)
+            # Add the actual sentinel to the queue we just added
+            self._queues[-1]._put((None, None))
+            self.unfinished_tasks += 1
+            if len(self._queues) == 1:
+                # queue was already exhausted!
+                self._switch_queues()
+                self._counter = 0
+                self.not_empty.notify()
+            else:
+                self._unlock_after_section_change()
+        finally:
+            self.not_empty.release()
+
+    def add_section(self, section):
+        """
+        Be sure to add all sections first before starting to pop items off this
+        queue or adding them to the queue
+        """
+        self.mutex.acquire()
+        try:
+            self._add_section(section)
+        finally:
+            self.mutex.release()
+
+    def _add_section(self, section):
+        self._sections.append(section)
+        self._queues.append(
+            OrderedQueue() if section.plex_type == v.PLEX_TYPE_ALBUM
+            else Queue.Queue())
+        if self._current_section is None:
+            self._switch_queues()
+
+    def _init_next_section(self):
+        self._sections.popleft()
+        self._queues.popleft()
+        self._counter = 0
+        self._switch_queues()
+
+    def _switch_queues(self):
+        self._current_section = self._sections[0] if self._sections else None
+        self._current_queue = self._queues[0] if self._queues else None
+
+    def _get(self):
+        item = self._current_queue._get()
+        self._counter += 1
+        if self._counter == self._current_section.number_of_items:
+            self._init_next_section()
+        return item[1]
+
+
 class OrderedQueue(Queue.PriorityQueue, object):
     """
     Queue that enforces an order on the items it returns. An item you push
@@ -111,58 +274,21 @@ class OrderedQueue(Queue.PriorityQueue, object):
         (index, item)
     where index=-1 is the item that will be returned first. The Queue will block
     until index=-1, 0, 1, 2, 3, ... is then made available
+
+    maxsize will be rather fuzzy, as _qsize returns 0 if we're still waiting
+    for the next smalles index. put() thus might not block always when it
+    should.
     """
     def __init__(self, maxsize=0):
+        self.next_index = 0
         super(OrderedQueue, self).__init__(maxsize)
-        self.smallest = -1
-        self.not_next_item = threading.Condition(self.mutex)
 
-    def _put(self, item, heappush=heapq.heappush):
-        heappush(self.queue, item)
-        if item[0] == self.smallest:
-            self.not_next_item.notify()
+    def _qsize(self, len=len):
+        return len(self.queue) if self.queue[0][0] == self.next_index else 0
 
-    def get(self, block=True, timeout=None):
-        """Remove and return an item from the queue.
-
-        If optional args 'block' is true and 'timeout' is None (the default),
-        block if necessary until an item is available. If 'timeout' is
-        a non-negative number, it blocks at most 'timeout' seconds and raises
-        the Empty exception if no item was available within that time.
-        Otherwise ('block' is false), return an item if one is immediately
-        available, else raise the Empty exception ('timeout' is ignored
-        in that case).
-        """
-        self.not_empty.acquire()
-        try:
-            if not block:
-                if not self._qsize() or self.queue[0][0] != self.smallest:
-                    raise Queue.Empty
-            elif timeout is None:
-                while not self._qsize():
-                    self.not_empty.wait()
-                while self.queue[0][0] != self.smallest:
-                    self.not_next_item.wait()
-            elif timeout < 0:
-                raise ValueError("'timeout' must be a non-negative number")
-            else:
-                endtime = Queue._time() + timeout
-                while not self._qsize():
-                    remaining = endtime - Queue._time()
-                    if remaining <= 0.0:
-                        raise Queue.Empty
-                    self.not_empty.wait(remaining)
-                while self.queue[0][0] != self.smallest:
-                    remaining = endtime - Queue._time()
-                    if remaining <= 0.0:
-                        raise Queue.Empty
-                    self.not_next_item.wait(remaining)
-            item = self._get()
-            self.smallest += 1
-            self.not_full.notify()
-            return item
-        finally:
-            self.not_empty.release()
+    def _get(self, heappop=heapq.heappop):
+        self.next_index += 1
+        return heappop(self.queue)
 
 
 class Tasks(list):
