@@ -1,3 +1,12 @@
+version 2.10.5 (beta only):
+- Rewire library sync to speed it up and fix sync getting stuck in rare cases 
+- Optimize threads by using events instead of a polling mechanism. Fixes PKC becoming unresponsive, e.g. when switching users
+- Optimize adding values to Kodi databases by not using sqlite COALESCE command
+- Fix OperationalError when resetting PKC
+- Improve sync resiliance when certain items are not to be synced to Kodi or PKC skipped an item in the past
+- Make sure bool is returned instead of an int 
+- Don't use WAL mode for sqlite connections, it is not making any difference
+
 version 2.10.4:
 - version 2.10.3 for everyone
 - Fix to correctly wipe Kodi databases
