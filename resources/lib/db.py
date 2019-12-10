@@ -52,26 +52,21 @@ def catch_operationalerrors(method):
     return wrapper
 
 
-def _initial_db_connection_setup(conn, wal_mode):
+def _initial_db_connection_setup(conn):
     """
     Set-up DB e.g. for WAL journal mode, if that hasn't already been done
     before. Also start a transaction
     """
-    if wal_mode:
-        pass
-        # conn.execute('PRAGMA journal_mode=WAL;')
-        # conn.execute('PRAGMA cache_size = -8000;')
-        # conn.execute('PRAGMA synchronous=NORMAL;')
+    conn.execute('PRAGMA journal_mode = WAL;')
+    conn.execute('PRAGMA cache_size = -8000;')
+    conn.execute('PRAGMA synchronous = NORMAL;')
     conn.execute('BEGIN')
 
 
-def connect(media_type=None, wal_mode=True):
+def connect(media_type=None):
     """
     Open a connection to the Kodi database.
         media_type: 'video' (standard if not passed), 'plex', 'music', 'texture'
-    Pass wal_mode=False if you want the standard (and slower) sqlite
-    journal_mode, e.g. when wiping entire tables. Useful if you do NOT want
-    concurrent access to DB for both PKC and Kodi
     """
     if media_type == "plex":
         db_path = v.DB_PLEX_PATH
@@ -87,7 +82,7 @@ def connect(media_type=None, wal_mode=True):
     attempts = DB_WRITE_ATTEMPTS
     while True:
         try:
-            _initial_db_connection_setup(conn, wal_mode)
+            _initial_db_connection_setup(conn)
         except sqlite3.OperationalError as err:
             if 'database is locked' not in err:
                 # Not an error we want to catch, so reraise it

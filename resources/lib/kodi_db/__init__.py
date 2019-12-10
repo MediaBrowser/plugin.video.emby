@@ -62,7 +62,7 @@ def setup_kodi_default_entries():
 def reset_cached_images():
     LOG.info('Resetting cached artwork')
     LOG.debug('Resetting the Kodi texture DB')
-    with KodiTextureDB(wal_mode=False) as kodidb:
+    with KodiTextureDB() as kodidb:
         kodidb.wipe()
     LOG.debug('Deleting all cached image files')
     path = path_ops.translate_path('special://thumbnails/')
@@ -91,11 +91,11 @@ def wipe_dbs(music=True):
     """
     LOG.warn('Wiping Kodi databases!')
     LOG.info('Wiping Kodi video database')
-    with KodiVideoDB(wal_mode=False) as kodidb:
+    with KodiVideoDB() as kodidb:
         kodidb.wipe()
     if music:
         LOG.info('Wiping Kodi music database')
-        with KodiMusicDB(wal_mode=False) as kodidb:
+        with KodiMusicDB() as kodidb:
             kodidb.wipe()
     reset_cached_images()
     setup_kodi_default_entries()
