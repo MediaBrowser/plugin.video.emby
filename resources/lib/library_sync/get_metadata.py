@@ -5,7 +5,6 @@ from logging import getLogger
 from . import common
 from ..plex_api import API
 from .. import backgroundthread, plex_functions as PF, utils, variables as v
-from .. import app
 
 LOG = getLogger('PLEX.sync.get_metadata')
 LOCK = backgroundthread.threading.Lock()
@@ -68,15 +67,6 @@ class GetMetadataThread(common.LibrarySyncMixin,
         section.sync_successful = False
         # Add a "dummy" item so we're not skipping a beat
         self.processing_queue.put((count, {'section': section, 'xml': None}))
-
-    def run(self):
-        LOG.debug('Starting %s thread', self.__class__.__name__)
-        app.APP.register_thread(self)
-        try:
-            self._run()
-        finally:
-            app.APP.deregister_thread(self)
-            LOG.debug('##===---- %s Stopped ----===##', self.__class__.__name__)
 
     def _run(self):
         while True:

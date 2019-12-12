@@ -4,13 +4,13 @@ from logging import getLogger
 
 from . import common
 from ..plex_db import PlexDB
-from .. import backgroundthread, app
+from .. import backgroundthread
 
 LOG = getLogger('PLEX.sync.fill_metadata_queue')
 
 
 class FillMetadataQueue(common.LibrarySyncMixin,
-                        backgroundthread.KillableThread, ):
+                        backgroundthread.KillableThread):
     """
     Threaded download of Plex XML metadata for a certain library item.
     Fills the queue with the downloaded etree XML objects. Will use a COPIED
@@ -47,21 +47,12 @@ class FillMetadataQueue(common.LibrarySyncMixin,
         # Ensures that our queues finish
         section.number_of_items = count
 
-    def run(self):
-        LOG.debug('Starting %s thread', self.__class__.__name__)
-        app.APP.register_thread(self)
-        try:
-            while not self.should_cancel():
-                section = self.section_queue.get()
-                self.section_queue.task_done()
-                if section is None:
-                    break
-                self._process_section(section)
-        except Exception:
-            from .. import utils
-            utils.ERROR(notify=True)
-        finally:
-            # Signal the download metadata threads to stop with a sentinel
-            self.get_metadata_queue.put(None)
-            app.APP.deregister_thread(self)
-            LOG.debug('##===---- %s Stopped ----===##', self.__class__.__name__)
+    def _run(self):
+        while not self.should_cancel():
+            section = self.section_queue.get()
+            self.section_queue.task_done()
+            if section is None:
+                break
+            self._process_section(section)
+        # Signal the download metadata threads to stop with a sentinel
+        self.get_metadata_queue.put(None)

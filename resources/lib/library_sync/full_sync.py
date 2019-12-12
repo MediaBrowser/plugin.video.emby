@@ -272,20 +272,8 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
                     break
         LOG.debug('Done looking for items to delete')
 
-    def run(self):
-        app.APP.register_thread(self)
-        LOG.info('Running library sync with repair=%s', self.repair)
-        try:
-            self.run_full_library_sync()
-        except Exception:
-            utils.ERROR(notify=True)
-            self.successful = False
-        finally:
-            app.APP.deregister_thread(self)
-            LOG.info('Library sync done. successful: %s', self.successful)
-
     @utils.log_time
-    def run_full_library_sync(self):
+    def _run(self):
         try:
             # Get latest Plex libraries and build playlist and video node files
             if self.should_cancel() or not sections.sync_from_pms(self):

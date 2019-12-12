@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from logging import getLogger
 import xbmc
 
 from .. import utils, app, variables as v
+
+LOG = getLogger('PLEX.sync')
 
 PLAYLIST_SYNC_ENABLED = (v.DEVICE != 'Microsoft UWP' and
                          utils.settings('enablePlaylistSync') == 'true')
@@ -21,6 +24,18 @@ class LibrarySyncMixin(object):
         Return immediately
         """
         return self.should_cancel()
+
+    def run(self):
+        app.APP.register_thread(self)
+        LOG.debug('##===--- Starting %s ---===##', self.__class__.__name__)
+        try:
+            self._run()
+        except Exception as err:
+            LOG.error('Exception encountered: %s', err)
+            utils.ERROR(notify=True)
+        finally:
+            app.APP.deregister_thread(self)
+            LOG.debug('##===--- %s Stopped ---===##', self.__class__.__name__)
 
 
 def update_kodi_library(video=True, music=True):

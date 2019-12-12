@@ -57,18 +57,6 @@ class ProcessMetadataThread(common.LibrarySyncMixin,
             self.processing_queue.task_done()
         return item
 
-    def run(self):
-        LOG.debug('Starting %s thread', self.__class__.__name__)
-        app.APP.register_thread(self)
-        try:
-            self._run()
-        except Exception:
-            from .. import utils
-            utils.ERROR(notify=True)
-        finally:
-            app.APP.deregister_thread(self)
-            LOG.debug('##===---- %s Stopped ----===##', self.__class__.__name__)
-
     def _run(self):
         # There are 2 sentinels: None for aborting/ending this thread, the dict
         # {'section': section, 'xml': None} for skipped/invalid items
