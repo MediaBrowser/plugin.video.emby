@@ -78,7 +78,7 @@ def connect(media_type=None):
         db_path = v.DB_TEXTURE_PATH
     else:
         db_path = v.DB_VIDEO_PATH
-    conn = sqlite3.connect(db_path, timeout=30.0)
+    conn = sqlite3.connect(db_path, timeout=30.0, isolation_level=None)
     attempts = DB_WRITE_ATTEMPTS
     while True:
         try:
