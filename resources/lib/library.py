@@ -104,8 +104,12 @@ class Library(threading.Thread):
     def set_progress_dialog(self):
 
         queue_size = self.worker_queue_size()
-        self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
-        LOG.info("--[ pdialog (%s/%s) ]", queue_size, self.total_updates)
+        try:
+            self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
+        except Exception:
+            self.progress_percent = 0
+
+        LOG.debug("--[ pdialog (%s/%s) ]", queue_size, self.total_updates)
 
         if self.total_updates < int(settings('syncProgress') or 50):
             return
