@@ -6,6 +6,7 @@ from functools import wraps
 from . import variables as v, app
 
 DB_WRITE_ATTEMPTS = 100
+DB_CONNECTION_TIMEOUT = 10
 
 
 class LockedDatabase(Exception):
@@ -78,7 +79,9 @@ def connect(media_type=None):
         db_path = v.DB_TEXTURE_PATH
     else:
         db_path = v.DB_VIDEO_PATH
-    conn = sqlite3.connect(db_path, timeout=30.0, isolation_level=None)
+    conn = sqlite3.connect(db_path,
+                           timeout=DB_CONNECTION_TIMEOUT,
+                           isolation_level=None)
     attempts = DB_WRITE_ATTEMPTS
     while True:
         try:
