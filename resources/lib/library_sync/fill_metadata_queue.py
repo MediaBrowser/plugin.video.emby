@@ -12,10 +12,9 @@ LOG = getLogger('PLEX.sync.fill_metadata_queue')
 class FillMetadataQueue(common.LibrarySyncMixin,
                         backgroundthread.KillableThread):
     """
-    Threaded download of Plex XML metadata for a certain library item.
-    Fills the queue with the downloaded etree XML objects. Will use a COPIED
-    plex.db file (plex-copy.db) in order to read much faster without the
-    writing thread stalling
+    Determines which plex_ids we need to sync and puts these ids in a separate
+    queue. Will use a COPIED plex.db file (plex-copy.db) in order to read much
+    faster without the writing thread stalling
     """
     def __init__(self, repair, section_queue, get_metadata_queue):
         self.repair = repair
