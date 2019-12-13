@@ -65,6 +65,7 @@ class App(object):
         self.threads.append(thread)
 
     def deregister_fanart_thread(self, thread):
+        self.fanart_thread.unblock_callers()
         self.fanart_thread = None
         self.threads.remove(thread)
 
@@ -85,6 +86,7 @@ class App(object):
         self.threads.append(thread)
 
     def deregister_caching_thread(self, thread):
+        self.caching_thread.unblock_callers()
         self.caching_thread = None
         self.threads.remove(thread)
 
@@ -111,6 +113,7 @@ class App(object):
         """
         Sync thread has done it's work and is e.g. about to die
         """
+        thread.unblock_callers()
         self.threads.remove(thread)
 
     def suspend_threads(self, block=True):
