@@ -135,7 +135,7 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
                     context.plexdb.update_last_sync(int(xml.attrib['ratingKey']),
                                                     section.plex_type,
                                                     self.current_time)
-                    self.update_progressbar(section, '', section.count)
+                    self.update_progressbar(section, '', section.count - 1)
                     if section.count % PLAYSTATE_BATCH_SIZE == 0:
                         context.commit()
         except RuntimeError:
