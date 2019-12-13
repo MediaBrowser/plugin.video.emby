@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+from Queue import Empty
 
 from . import common
 from ..plex_db import PlexDB
 from .. import backgroundthread
 
 LOG = getLogger('PLEX.sync.fill_metadata_queue')
+
+QUEUE_TIMEOUT = 10  # seconds
 
 
 class FillMetadataQueue(common.LibrarySyncMixin,
@@ -40,7 +43,14 @@ class FillMetadataQueue(common.LibrarySyncMixin,
                 if (not self.repair and
                         plexdb.checksum(plex_id, section.plex_type) == checksum):
                     continue
-                self.get_metadata_queue.put((count, plex_id, section))
+                try:
+                    self.get_metadata_queue.put((count, plex_id, section),
+                                                timeout=QUEUE_TIMEOUT)
+                except Empty:
+                    LOG.error('Putting %s in get_metadata_queue timed out - '
+                              'aborting sync now', plex_id)
+                    section.sync_successful = False
+                    break
                 count += 1
         # We might have received LESS items from the PMS than anticipated.
         # Ensures that our queues finish
