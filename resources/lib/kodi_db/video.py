@@ -38,37 +38,22 @@ class KodiVideoDB(common.KodiDBBase):
         For some reason, Kodi ignores this if done via itemtypes while e.g.
         adding or updating items. (addPath method does NOT work)
         """
-        path_id = self.get_path(MOVIE_PATH)
-        if path_id is None:
-            query = '''
-                INSERT INTO path(strPath,
-                                 strContent,
-                                 strScraper,
-                                 noUpdate,
-                                 exclude)
-                VALUES (?, ?, ?, ?, ?)
-            '''
-            self.cursor.execute(query, (MOVIE_PATH,
-                                        'movies',
-                                        'metadata.local',
-                                        1,
-                                        0))
-        # And TV shows
-        path_id = self.get_path(SHOW_PATH)
-        if path_id is None:
-            query = '''
-                INSERT INTO path(strPath,
-                                 strContent,
-                                 strScraper,
-                                 noUpdate,
-                                 exclude)
-                VALUES (?, ?, ?, ?, ?)
-            '''
-            self.cursor.execute(query, (SHOW_PATH,
-                                        'tvshows',
-                                        'metadata.local',
-                                        1,
-                                        0))
+        for path, kind in ((MOVIE_PATH, 'movies'), (SHOW_PATH, 'tvshows')):
+            path_id = self.get_path(path)
+            if path_id is None:
+                query = '''
+                    INSERT INTO path(strPath,
+                                     strContent,
+                                     strScraper,
+                                     noUpdate,
+                                     exclude)
+                    VALUES (?, ?, ?, ?, ?)
+                '''
+                self.cursor.execute(query, (path,
+                                            kind,
+                                            'metadata.local',
+                                            1,
+                                            0))
 
     @db.catch_operationalerrors
     def parent_path_id(self, path):
