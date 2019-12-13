@@ -106,6 +106,13 @@ class KillableThread(threading.Thread):
         """
         return not self._is_not_asleep.is_set()
 
+    def unblock_callers(self):
+        """
+        Ensures that any other thread that requested this thread's suspension
+        is released
+        """
+        self._suspension_reached.set()
+
 
 class ProcessingQueue(Queue.Queue, object):
     """
