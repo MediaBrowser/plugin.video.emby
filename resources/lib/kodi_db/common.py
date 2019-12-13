@@ -15,11 +15,9 @@ class KodiDBBase(object):
     Kodi database methods used for all types of items
     """
     def __init__(self, texture_db=False, kodiconn=None, artconn=None,
-                 lock=True, wal_mode=True):
+                 lock=True):
         """
         Allows direct use with a cursor instead of context mgr
-        Pass wal_mode=False if you want the standard sqlite journal_mode, e.g.
-        when wiping entire tables
         """
         self._texture_db = texture_db
         self.lock = lock
@@ -27,14 +25,13 @@ class KodiDBBase(object):
         self.cursor = self.kodiconn.cursor() if self.kodiconn else None
         self.artconn = artconn
         self.artcursor = self.artconn.cursor() if self.artconn else None
-        self.wal_mode = wal_mode
 
     def __enter__(self):
         if self.lock:
             KODIDB_LOCK.acquire()
-        self.kodiconn = db.connect(self.db_kind, self.wal_mode)
+        self.kodiconn = db.connect(self.db_kind)
         self.cursor = self.kodiconn.cursor()
-        self.artconn = db.connect('texture', self.wal_mode) if self._texture_db \
+        self.artconn = db.connect('texture') if self._texture_db \
             else None
         self.artcursor = self.artconn.cursor() if self._texture_db else None
         return self
