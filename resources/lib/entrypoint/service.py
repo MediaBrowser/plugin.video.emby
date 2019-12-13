@@ -440,7 +440,7 @@ class Service(xbmc.Monitor):
         window('emby_should_stop.bool', True)
 
         properties = [
-            "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
+            "emby.play", "emby.play.widget", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
             "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
             "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause", "emby.playlist.clear",
             "emby.server.state", "emby.server.states"

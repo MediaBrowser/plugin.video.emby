@@ -148,6 +148,9 @@ class Monitor(xbmc.Monitor):
 
             return
 
+        if method == 'Playlist.OnClear' and data['playlistid'] == self.playlistid: # set in webservice.py
+            window('emby.play.widget', clear=True)
+
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
         self.add_worker()

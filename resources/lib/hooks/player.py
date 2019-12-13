@@ -27,6 +27,7 @@ class Player(xbmc.Player):
     '''
     played = {}
     up_next = False
+    playlist = None
 
     def __init__(self, monitor=None):
 
@@ -42,6 +43,9 @@ class Player(xbmc.Player):
 
     def is_current_file(self, file):
         return file == self.get_playing_file()
+
+    def is_widget_play(self):
+        return window('emby.play.widget.bool')
 
     @silent_catch()
     def get_playing_file(self):
@@ -199,9 +203,14 @@ class Player(xbmc.Player):
 
     def onPlayBackStopped(self):
 
-        ''' Safe to replace in child class.
-            Will be called when user stops playing a file.
+        ''' Will be called when user stops playing a file.
         '''
+        if self.is_widget_play():
+
+            LOG.info("stopped widget play, clear playlist.")
+            self.playlist.clear()
+            window('emby.play.widget', clear=True)
+
         window('emby.play.reset.bool', True)
         window('emby.sync.pause.bool', True)
         self.stop_playback()
@@ -209,9 +218,14 @@ class Player(xbmc.Player):
 
     def onPlayBackEnded(self):
 
-        ''' Safe to replace in child class.
-            Will be called when kodi stops playing a file.
+        ''' Will be called when kodi stops playing a file.
         '''
+        if self.is_widget_play() and self.playlist.getposition() == -1:
+
+            LOG.info("ended widget play, clear playlist.")
+            self.playlist.clear()
+            window('emby.play.widget', clear=True)
+
         window('emby.play.reset.bool', True)
         window('emby.sync.pause.bool', True)
         self.stop_playback()
@@ -254,6 +268,8 @@ class Player(xbmc.Player):
 
         ''' Call when playback start to setup play entry in player tracker.
         '''
+        self.playlist = xbmc.PlayList(self.monitor.playlistid)
+
         if not file:
             LOG.warn("Filename is invalid")
 
@@ -467,6 +483,7 @@ class Player(xbmc.Player):
     def onPlayBackError(self):
 
         LOG.warn("Playback error occured")
+        window('emby.play.widget', clear=True)
         self.stop_playback()
 
         try:

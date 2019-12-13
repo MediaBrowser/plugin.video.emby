@@ -373,6 +373,7 @@ class PlayWidget(threading.Thread):
             xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()        
         else:
             objects.utils.disable_busy_dialog()
+            window('emby.play.widget.bool', True)
             play.start_playback()
 
         self.server.pending = []
