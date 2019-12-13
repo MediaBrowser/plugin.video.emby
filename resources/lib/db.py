@@ -93,7 +93,7 @@ def connect(media_type=None):
                 raise LockedDatabase('Database is locked')
             if app.APP.monitor.waitForAbort(0.05):
                 # PKC needs to quit
-                return
+                raise LockedDatabase('Database was locked and we need to exit')
         else:
             break
     return conn
