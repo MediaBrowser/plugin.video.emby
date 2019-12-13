@@ -20,6 +20,7 @@ if common.PLAYLIST_SYNC_ENABLED:
 LOG = getLogger('PLEX.sync.full_sync')
 # How many items will be put through the processing chain at once?
 BATCH_SIZE = 250
+PLAYSTATE_BATCH_SIZE = 5000
 # Size of queue for xmls to be downloaded from PMS for/and before processing
 QUEUE_BUFFER = 50
 # Max number of xmls held in memory
@@ -123,26 +124,20 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
         LOG.debug('Processing %s playstates for library section %s',
                   section.number_of_items, section)
         try:
-            iterator = section.iterator
-            iterator = common.tag_last(iterator)
-            last = True
-            while not self.should_cancel():
-                with section.context(self.current_time) as itemtype:
-                    for last, xml_item in iterator:
-                        section.count += 1
-                        if not itemtype.update_userdata(xml_item, section.plex_type):
-                            # Somehow did not sync this item yet
-                            itemtype.add_update(xml_item,
-                                                section_name=section.name,
-                                                section_id=section.section_id)
-                        itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
-                                                         section.plex_type,
-                                                         self.current_time)
-                        self.update_progressbar(section, '', section.count)
-                        if section.count % (10 * BATCH_SIZE) == 0:
-                            break
-                if last:
-                    break
+            with section.context(self.current_time) as context:
+                for xml in section.iterator:
+                    section.count += 1
+                    if not context.update_userdata(xml, section.plex_type):
+                        # Somehow did not sync this item yet
+                        context.add_update(xml,
+                                           section_name=section.name,
+                                           section_id=section.section_id)
+                    context.plexdb.update_last_sync(int(xml.attrib['ratingKey']),
+                                                    section.plex_type,
+                                                    self.current_time)
+                    self.update_progressbar(section, '', section.count)
+                    if section.count % PLAYSTATE_BATCH_SIZE == 0:
+                        context.commit()
         except RuntimeError:
             LOG.error('Could not entirely process section %s', section)
             self.successful = False
