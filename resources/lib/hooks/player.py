@@ -32,7 +32,7 @@ class Player(xbmc.Player):
     def __init__(self, monitor=None):
 
         self.monitor = monitor
-        xbmc.Player.__init__(self, monitor)
+        xbmc.Player.__init__(self)
 
     @silent_catch()
     def get_file_info(self, file):

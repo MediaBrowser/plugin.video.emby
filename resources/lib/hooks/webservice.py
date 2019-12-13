@@ -397,7 +397,6 @@ class PlayFolder(threading.Thread):
         LOG.info("-->[ folder play ]")
         play = None
         position = 1 # play folder should always create a new playlist.
-        player = xbmc.Player()
 
         while True:
             if not window('emby.playlist.plugin.bool'): # default.py wait for initial item to start up

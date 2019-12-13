@@ -465,10 +465,12 @@ class Monitor(xbmc.Monitor):
                 LOG.info("[ reset autoplay ]")
                 window('emby.autoplay', clear=True)
 
+            """
             if data['playlistid'] == 0:
                 window('emby.playlist.audio.bool', True)
             else:
                 window('emby.playlist.audio', clear=True)
+            """
 
             self.playlistid = data['playlistid']
 
