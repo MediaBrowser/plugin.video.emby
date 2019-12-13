@@ -18,13 +18,13 @@ if common.PLAYLIST_SYNC_ENABLED:
 
 
 LOG = getLogger('PLEX.sync.full_sync')
-# How many items will be put through the processing chain at once?
-BATCH_SIZE = 250
+DELETION_BATCH_SIZE = 250
 PLAYSTATE_BATCH_SIZE = 5000
-# Size of queue for xmls to be downloaded from PMS for/and before processing
-QUEUE_BUFFER = 50
+
+# Max. number of plex_ids held in memory for later processing
+BACKLOG_QUEUE_SIZE = 10000
 # Max number of xmls held in memory
-MAX_QUEUE_SIZE = 500
+XML_QUEUE_SIZE = 500
 # Safety margin to filter PMS items - how many seconds to look into the past?
 UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
@@ -47,8 +47,8 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             self.dialog = None
 
         self.section_queue = Queue.Queue()
-        self.get_metadata_queue = Queue.Queue(maxsize=5000)
-        self.processing_queue = backgroundthread.ProcessingQueue(maxsize=500)
+        self.get_metadata_queue = Queue.Queue(maxsize=BACKLOG_QUEUE_SIZE)
+        self.processing_queue = backgroundthread.ProcessingQueue(maxsize=XML_QUEUE_SIZE)
         self.current_time = timing.plex_now()
         self.last_section = sections.Section()
 
@@ -264,12 +264,12 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
                     plex_ids = list(
                         ctx.plexdb.plex_id_by_last_sync(plex_type,
                                                         self.current_time,
-                                                        BATCH_SIZE))
+                                                        DELETION_BATCH_SIZE))
                     for plex_id in plex_ids:
                         if self.should_cancel():
                             return
                         ctx.remove(plex_id, plex_type)
-                if len(plex_ids) < BATCH_SIZE:
+                if len(plex_ids) < DELETION_BATCH_SIZE:
                     break
         LOG.debug('Done looking for items to delete')
 
