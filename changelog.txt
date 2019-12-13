@@ -1,3 +1,8 @@
+version 2.10.7 (beta only):
+- Fix PKC not starting up on iOS
+- Optimize the new sync process and fix some bugs that were introduced
+- Fix PKC becoming unresponsive e.g. when switching the PMS
+
 version 2.10.6 (beta only):
 - Fix AttributeError if user enters an invalid pin code
 - Fix OperationalError when starting with a fresh PKC installation
