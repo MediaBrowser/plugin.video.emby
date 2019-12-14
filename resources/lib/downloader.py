@@ -250,7 +250,13 @@ def _get_items(query, server_id=None):
 
             params['StartIndex'] = index
             params['Limit'] = LIMIT
-            result = _get(url, params, server_id=server_id) or {'Items': []}
+
+            try:
+                result = _get(url, params, server_id=server_id) or {'Items': []}
+            except Exception as error:
+                LOG.error(error)
+                LOG.error("Unable to retrieve index: %s with limit: %s", index, total)
+                result = {'Items': []}
             
             items['Items'].extend(result['Items'])
             items['RestorePoint'] = query

@@ -148,6 +148,9 @@ class Monitor(xbmc.Monitor):
 
             return
 
+        if method == 'Playlist.OnClear' and data['playlistid'] == self.playlistid: # set in webservice.py
+            window('emby.play.widget', clear=True)
+
         server = self._get_server(method, data)
         self.queue.put((getattr(self, method.replace('.', '_')), server, data,))
         self.add_worker()
@@ -462,10 +465,12 @@ class Monitor(xbmc.Monitor):
                 LOG.info("[ reset autoplay ]")
                 window('emby.autoplay', clear=True)
 
+            """
             if data['playlistid'] == 0:
                 window('emby.playlist.audio.bool', True)
             else:
                 window('emby.playlist.audio', clear=True)
+            """
 
             self.playlistid = data['playlistid']
 

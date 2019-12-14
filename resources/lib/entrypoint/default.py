@@ -28,6 +28,7 @@ from helper import _, event, settings, window, dialog, api, kodi_version, JSONRP
 
 LOG = logging.getLogger("EMBY."+__name__)
 EMBY = None
+CONTENT_TYPE = None
 
 #################################################################################################
 
@@ -36,7 +37,7 @@ class Events(object):
 
 
     def __init__(self):
-
+        global CONTENT_TYPE
         ''' Parse the parameters. Reroute to our service.py
             where user is fully identified already.
         '''
@@ -47,6 +48,13 @@ class Events(object):
             params = dict(urlparse.parse_qsl(path[1:]))
         except Exception:
             params = {}
+
+        if 'content_type' in params:
+
+            window('emby.plugin.content.type', params['content_type'])
+            CONTENT_TYPE = params['content_type']
+        else:
+            CONTENT_TYPE = window('emby.plugin.content.type') or None
 
         mode = params.get('mode')
         server = params.get('server')
@@ -486,10 +494,12 @@ def browse(media, view_id=None, folder=None, server_id=None):
                 list_li.append((path, li, True))
 
             else:
-                if item['Type'] == 'Photo':
+                if item['Type'] == 'Photo' and CONTENT_TYPE == 'video':
+
                     path = "plugin://plugin.video.emby/?mode=photoviewer&id=%s" % item['Id']
                     li.setProperty('path', path)
-                elif item['Type'] != 'PhotoAlbum':
+
+                elif item['Type'] not in ('PhotoAlbum', 'Photo'):
 
                     if kodi_version() > 17:
                         path = "http://127.0.0.1:57578/emby/play/file.strm?mode=play&Id=%s&server=%s" % (item['Id'], server_id)
@@ -979,19 +989,17 @@ def get_themes():
     token = EMBY['auth/token']
 
     for view in views:
-        result = EMBY['api'].get_items_theme_video(view)
+        for result in downloader.get_items(view, params={'HasThemeVideo': True}):
+            for item in result['Items']:
 
-        for item in result['Items']:
+                folder = normalize_string(item['Name'].encode('utf-8'))
+                items[item['Id']] = folder
 
-            folder = normalize_string(item['Name'].encode('utf-8'))
-            items[item['Id']] = folder
+        for result in downloader.get_items(view, params={'HasThemeSong': True}):
+            for item in result['Items']:
 
-        result = EMBY['api'].get_items_theme_song(view)
-
-        for item in result['Items']:
-
-            folder = normalize_string(item['Name'].encode('utf-8'))
-            items[item['Id']] = folder
+                folder = normalize_string(item['Name'].encode('utf-8'))
+                items[item['Id']] = folder
 
     for item in items:
 

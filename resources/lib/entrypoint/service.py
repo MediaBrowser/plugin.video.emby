@@ -47,6 +47,7 @@ class Service(xbmc.Monitor):
     monitor = None
     connect = None
     player = None
+    server_thread = []
     data = {'last_progress': datetime.today(), 'last_progress_report': datetime.today()}
 
     def __init__(self):
@@ -126,7 +127,7 @@ class Service(xbmc.Monitor):
         self.connect = connect.Connect()
         self.player = self['monitor'].player
 
-        StartDefaultServer(self)
+        self._server()
 
         while self.running:
             if window('emby_online.bool'):
@@ -187,6 +188,13 @@ class Service(xbmc.Monitor):
                 reset()
 
                 raise Exception("Completed database reset")
+
+    def _server(self, delay=None, close=False):
+
+        if not self.server_thread:
+
+            thread = StartDefaultServer(self, delay, close)
+            self.server_thread.append(thread)
     
     def onNotification(self, sender, method, data):
 
@@ -240,7 +248,7 @@ class Service(xbmc.Monitor):
                 dialog("notification", heading="{emby}", message=_(33146) if data.get('ServerId') is None else _(33149), icon=xbmcgui.NOTIFICATION_ERROR)
 
             if data.get('ServerId') is None:
-                StartDefaultServer(self, 20)
+                self._server(20)
 
         elif method == 'Unauthorized':
             dialog("notification", heading="{emby}", message=_(33147) if data['ServerId'] is None else _(33148), icon=xbmcgui.NOTIFICATION_ERROR)
@@ -248,7 +256,7 @@ class Service(xbmc.Monitor):
             if data.get('ServerId') is None and self['auth_check']:
 
                 self['auth_check'] = False
-                StartDefaultServer(self, 120)
+                self._server(120)
 
         elif method == 'ServerRestarting':
             if data.get('ServerId'):
@@ -257,7 +265,7 @@ class Service(xbmc.Monitor):
             if settings('restartMsg.bool'):
                 dialog("notification", heading="{emby}", message=_(33006), icon="{emby}")
 
-            StartDefaultServer(self, 20)
+            self._server(20)
 
         elif method == 'ServerConnect':
             self['connect'].register(data['Id'])
@@ -342,7 +350,7 @@ class Service(xbmc.Monitor):
             
             LOG.info("-->[ sleep ]")
             window('emby_should_stop.bool', True)
-            StartDefaultServer(self, close=True)
+            self._server(close=True)
 
             Emby.close_all()
             self['monitor'].server = []
@@ -359,7 +367,7 @@ class Service(xbmc.Monitor):
             xbmc.sleep(10000)# Allow network to wake up
             self['monitor'].sleep = False
             window('emby_should_stop', clear=True)
-            StartDefaultServer(self, None)
+            self._server()
 
         elif method == 'GUI.OnScreensaverDeactivated':
 
@@ -425,7 +433,8 @@ class Service(xbmc.Monitor):
             if not self['mode_warn']:
 
                 self['mode_warn'] = True
-                dialog("yesno", heading="{emby}", line1=_(33118))
+                if dialog("yesno", heading="{emby}", line1=_(33118)):
+                    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.emby/?mode=reset)')
 
         if settings('kodiCompanion.bool') != self['kodi_companion']:
             self['kodi_companion'] = settings('kodiCompanion.bool')
@@ -439,7 +448,7 @@ class Service(xbmc.Monitor):
         window('emby_should_stop.bool', True)
 
         properties = [
-            "emby.play", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
+            "emby.play", "emby.play.widget", "emby.autoplay", "emby_online", "emby.connected", "emby.resume",
             "emby.updatewidgets", "emby.external", "emby.external_check", "emby_deviceId",
             "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause", "emby.playlist.clear",
             "emby.server.state", "emby.server.states"
@@ -474,28 +483,34 @@ class StartDefaultServer(threading.Thread):
 
     def run(self):
 
-        if 'default' in Emby.client:
-
-            window('emby_online', clear=True)
-            Emby().close()
-
-            if self.service['library'] is not None:
-
-                self.service['library'].stop_client()
-                self.service['library'] = None
-
-            if self.close:
-                return
-
-        if self.retry and self.service['monitor'].waitForAbort(self.retry) or not self.service.running:
-            return
-        
+        ''' This is a thread to not block the main service thread.
+        '''
         try:
+            if 'default' in Emby.client:
+
+                window('emby_online', clear=True)
+                Emby().close()
+
+                if self.service['library'] is not None:
+
+                    self.service['library'].stop_client()
+                    self.service['library'] = None
+
+                if self.close:
+                    raise Exception("terminate default server thread")
+
+            if self.retry and self.service['monitor'].waitForAbort(self.retry) or not self.service.running:
+                raise Exception("abort default server thread")
+            
+
             self.service['connect'].register()
             setup.Setup()
             self.service['mode'] = settings('useDirectPaths')
 
             if self.service['library'] is None:
                 self.service['library'] = library.Library(self.service)
+
         except Exception as error:
-            LOG.error(error) # we don't really care
+            LOG.error(error) # we don't really case, event will retrigger if need be.
+        
+        self.service.server_thread.remove(self)
