@@ -10,7 +10,7 @@ from .get_metadata import GetMetadataThread
 from .fill_metadata_queue import FillMetadataQueue
 from .process_metadata import ProcessMetadataThread
 from . import common, sections
-from .. import utils, timing, backgroundthread, variables as v, app
+from .. import utils, timing, backgroundthread as bg, variables as v, app
 from .. import plex_functions as PF, itemtypes, path_ops
 
 if common.PLAYLIST_SYNC_ENABLED:
@@ -30,7 +30,7 @@ UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
 
 
-class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
+class FullSync(common.LibrarySyncMixin, bg.KillableThread):
     def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item
@@ -48,7 +48,7 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
 
         self.section_queue = Queue.Queue()
         self.get_metadata_queue = Queue.Queue(maxsize=BACKLOG_QUEUE_SIZE)
-        self.processing_queue = backgroundthread.ProcessingQueue(maxsize=XML_QUEUE_SIZE)
+        self.processing_queue = bg.ProcessingQueue(maxsize=XML_QUEUE_SIZE)
         self.current_time = timing.plex_now()
         self.last_section = sections.Section()
 
@@ -200,10 +200,9 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             ])
         # ADD NEW ITEMS
         # We need to enforce syncing e.g. show before season before episode
-        thread = backgroundthread.KillableThread(
-            target=self.threaded_get_generators,
-            args=(kinds, self.section_queue, False))
-        thread.start()
+        bg.FunctionAsTask(self.threaded_get_generators,
+                          None,
+                          kinds, self.section_queue, False).start()
         # Do the heavy lifting
         self.processing_loop_new_and_changed_items()
         common.update_kodi_library(video=True, music=True)
@@ -235,10 +234,9 @@ class FullSync(common.LibrarySyncMixin, backgroundthread.KillableThread):
             # Close the progress indicator dialog
             self.dialog.close()
             self.dialog = None
-        thread = backgroundthread.KillableThread(
-            target=self.threaded_get_generators,
-            args=(kinds, self.section_queue, True))
-        thread.start()
+        bg.FunctionAsTask(self.threaded_get_generators,
+                          None,
+                          kinds, self.section_queue, True).start()
         self.processing_loop_playstates()
         if self.should_cancel() or not self.successful:
             return
