@@ -37,6 +37,7 @@ RESOURCES_XML = ('%s<MediaContainer>\n'
                               v.PLATFORM,
                               v.PLATFORM_VERSION)
 
+
 class MyHandler(BaseHTTPRequestHandler):
     """
     BaseHTTPRequestHandler implementation of Plex Companion listener

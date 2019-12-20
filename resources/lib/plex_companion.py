@@ -293,7 +293,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                         subscription_manager,
                         ('', v.COMPANION_PORT),
                         listener.MyHandler)
-                    httpd.timeout = 0.95
+                    httpd.timeout = 10.0
                     break
                 except Exception:
                     LOG.error("Unable to start PlexCompanion. Traceback:")
