@@ -249,6 +249,15 @@ def ERROR(txt='', hide_tb=False, notify=False, cancel_sync=False):
     return short
 
 
+def rreplace(s, old, new, occurrence=-1):
+    """
+    Replaces the string old [str, unicode] with new from the RIGHT given a
+    string s.
+    """
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
+
+
 class AttributeDict(dict):
     """
     Turns an etree xml response's xml.attrib into an object with attributes
