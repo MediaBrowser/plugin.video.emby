@@ -1,3 +1,8 @@
+version 2.10.8 (beta only):
+- Improve thread pool management to render PKC snappier
+- Attempt to fix broken pipe error
+- Fix DirectPaths when a video's folder name is identical to a video's filename (you will need to manually reset the Kodi database) 
+
 version 2.10.7 (beta only):
 - Fix PKC not starting up on iOS
 - Optimize the new sync process and fix some bugs that were introduced
