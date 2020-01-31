@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import plex_functions as PF, app, variables as v
+from .. import plex_functions as PF, app, variables as v, utils
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -434,7 +434,7 @@ class Episode(TvShowMixin, ItemBase):
                 else:
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
-                path = playurl.replace(filename, "")
+                path = utils.rreplace(playurl, filename, "", 1)
                 parent_path_id = self.kodidb.parent_path_id(path)
                 kodi_pathid = self.kodidb.add_path(path,
                                                    id_parent_path=parent_path_id)

@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import app, variables as v, plex_functions as PF
+from .. import app, variables as v, plex_functions as PF, utils
 
 LOG = getLogger('PLEX.movies')
 
@@ -54,7 +54,7 @@ class Movie(ItemBase):
                 else:
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
-                path = playurl.replace(filename, "")
+                path = utils.rreplace(playurl, filename, "", 1)
                 kodi_pathid = self.kodidb.add_path(path,
                                                    content='movies',
                                                    scraper='metadata.local')
