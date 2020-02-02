@@ -50,7 +50,8 @@ class Main():
                                    plex_type=params.get('plex_type'),
                                    section_id=params.get('section_id'),
                                    synched=params.get('synched') != 'false',
-                                   prompt=params.get('prompt'))
+                                   prompt=params.get('prompt'),
+                                   query=params.get('query'))
 
         elif mode == 'show_section':
             entrypoint.show_section(params.get('section_index'))
@@ -66,7 +67,8 @@ class Main():
             entrypoint.browse_plex(key='/hubs/search',
                                    args={'includeCollections': 1,
                                          'includeExternalMedia': 1},
-                                   prompt=utils.lang(137))
+                                   prompt=utils.lang(137),
+                                   query=params.get('query'))
 
         elif mode == 'route_to_extras':
             # Hack so we can store this path in the Kodi DB
