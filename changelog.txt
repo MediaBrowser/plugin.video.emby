@@ -1,3 +1,6 @@
+version 2.10.9 (beta only):
+- Other Kodi add-ons can now search for Plex items using plugin://plugin.video.plexkodiconnect?mode=search&query=YOUR SEARCH STRING HERE 
+
 version 2.10.8 (beta only):
 - Improve thread pool management to render PKC snappier
 - Attempt to fix broken pipe error
