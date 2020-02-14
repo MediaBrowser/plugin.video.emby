@@ -78,8 +78,7 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         path_ops.copyfile(v.DB_PLEX_PATH, v.DB_PLEX_COPY_PATH)
 
     @utils.log_time
-    def processing_loop_new_and_changed_items(self, section_queue,
-                                              processing_queue):
+    def process_new_and_changed_items(self, section_queue, processing_queue):
         LOG.debug('Start working')
         get_metadata_queue = Queue.Queue(maxsize=BACKLOG_QUEUE_SIZE)
         scanner_thread = FillMetadataQueue(self.repair,
@@ -205,8 +204,7 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
                           None,
                           kinds, section_queue, processing_queue, False).start()
         # Do the heavy lifting
-        self.processing_loop_new_and_changed_items(section_queue,
-                                                   processing_queue)
+        self.process_new_and_changed_items(section_queue, processing_queue)
         common.update_kodi_library(video=True, music=True)
         if self.should_cancel() or not self.successful:
             return
