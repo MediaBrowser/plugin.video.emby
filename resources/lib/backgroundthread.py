@@ -136,14 +136,8 @@ class ProcessingQueue(Queue.Queue, object):
     def _qsize(self):
         return self._current_queue._qsize() if self._current_queue else 0
 
-    def total_size(self):
-        """
-        Return the approximate total size of all queues (not reliable!)
-        """
-        self.mutex.acquire()
-        n = sum(q._qsize() for q in self._queues) if self._queues else 0
-        self.mutex.release()
-        return n
+    def _total_qsize(self):
+        return sum(q._qsize() for q in self._queues) if self._queues else 0
 
     def put(self, item, block=True, timeout=None):
         """Put an item into the queue.
@@ -160,17 +154,16 @@ class ProcessingQueue(Queue.Queue, object):
         try:
             if self.maxsize > 0:
                 if not block:
-                    # Use >= instead of == due to OrderedQueue!
-                    if self._qsize() >= self.maxsize:
+                    if self._total_qsize() == self.maxsize:
                         raise Queue.Full
                 elif timeout is None:
-                    while self._qsize() >= self.maxsize:
+                    while self._total_qsize() == self.maxsize:
                         self.not_full.wait()
                 elif timeout < 0:
                     raise ValueError("'timeout' must be a non-negative number")
                 else:
                     endtime = _time() + timeout
-                    while self._qsize() >= self.maxsize:
+                    while self._total_qsize() == self.maxsize:
                         remaining = endtime - _time()
                         if remaining <= 0.0:
                             raise Queue.Full
