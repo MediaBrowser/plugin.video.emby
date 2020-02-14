@@ -230,7 +230,7 @@ class ProcessingQueue(Queue.Queue, object):
             self.unfinished_tasks += 1
             if len(self._queues) == 1:
                 # queue was already exhausted!
-                self._switch_queues()
+                self._activate_next_section()
                 self._counter = 0
                 self.not_empty.notify()
             else:
@@ -255,15 +255,15 @@ class ProcessingQueue(Queue.Queue, object):
             OrderedQueue() if section.plex_type == v.PLEX_TYPE_ALBUM
             else Queue.Queue())
         if self._current_section is None:
-            self._switch_queues()
+            self._activate_next_section()
 
     def _init_next_section(self):
         self._sections.popleft()
         self._queues.popleft()
         self._counter = 0
-        self._switch_queues()
+        self._activate_next_section()
 
-    def _switch_queues(self):
+    def _activate_next_section(self):
         self._current_section = self._sections[0] if self._sections else None
         self._current_queue = self._queues[0] if self._queues else None
 
