@@ -125,7 +125,7 @@ def process_new_item_message(message):
     with itemtypes.ITEMTYPE_FROM_PLEXTYPE[plex_type](timing.unix_timestamp()) as typus:
         typus.add_update(xml[0],
                          section_name=xml.get('librarySectionTitle'),
-                         section_id=xml.get('librarySectionID'))
+                         section_id=utils.cast(int, xml.get('librarySectionID')))
     cache_artwork(message['plex_id'], plex_type)
     return True, plex_type in v.PLEX_VIDEOTYPES, plex_type in v.PLEX_AUDIOTYPES
 
