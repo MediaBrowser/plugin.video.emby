@@ -52,7 +52,7 @@ class ProcessMetadataThread(common.LibrarySyncMixin,
 
     def _get(self):
         item = {'xml': None}
-        while not self.should_cancel() and item and item['xml'] is None:
+        while item and item['xml'] is None:
             item = self.processing_queue.get()
             self.processing_queue.task_done()
         return item
