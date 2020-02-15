@@ -1,3 +1,7 @@
+version 2.10.10 (beta only):
+- Fix rare but annoying bug where PKC becomes unresponsive during sync
+- Fix PKC background sync not working in some cases
+
 version 2.10.9 (beta only):
 - Other Kodi add-ons can now search for Plex items using plugin://plugin.video.plexkodiconnect?mode=search&query=YOUR SEARCH STRING HERE 
 
