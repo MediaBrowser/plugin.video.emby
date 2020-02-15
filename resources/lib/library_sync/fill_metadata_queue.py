@@ -54,6 +54,8 @@ class FillMetadataQueue(common.LibrarySyncMixin,
                 count += 1
         # We might have received LESS items from the PMS than anticipated.
         # Ensures that our queues finish
+        LOG.debug('Expected to process %s items, actually processed %s for '
+                  'section %s', section.number_of_items, count, section)
         section.number_of_items = count
 
     def _run(self):
