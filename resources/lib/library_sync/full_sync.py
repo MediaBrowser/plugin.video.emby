@@ -101,9 +101,6 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         for t in metadata_threads:
             t.join()
         LOG.debug('Download metadata threads finished')
-        # Sentinel for the process_thread once we added everything else
-        processing_queue.put_sentinel(sections.Section())
-        LOG.debug('Put sentinel into queue, waiting for processing thread')
         process_thread.join()
         self.successful = process_thread.successful
         LOG.debug('threads finished work. successful: %s', self.successful)
@@ -181,7 +178,10 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         except Exception:
             utils.ERROR(notify=True)
         finally:
+            # Sentinel for the section queue
             section_queue.put(None)
+            # Sentinel for the process_thread once we added everything else
+            processing_queue.add_sentinel(sections.Section())
             LOG.debug('Exiting threaded_get_generators')
 
     def full_library_sync(self):
