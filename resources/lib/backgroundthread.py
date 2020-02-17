@@ -222,15 +222,6 @@ class ProcessingQueue(Queue.Queue, object):
         """
         Call only when a section has been completely exhausted
         """
-        # Might have some items left if we lowered section.number_of_items
-        leftover = self._current_queue._qsize()
-        if leftover:
-            LOG.warn('Still have %s items in the current queue', leftover)
-            self.unfinished_tasks -= leftover
-            if self.unfinished_tasks == 0:
-                self.all_tasks_done.notify_all()
-            elif self.unfinished_tasks < 0:
-                raise RuntimeError('Got negative number of unfinished_tasks')
         self._sections.popleft()
         self._queues.popleft()
         self._activate_next_section()
