@@ -83,7 +83,8 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         get_metadata_queue = Queue.Queue(maxsize=BACKLOG_QUEUE_SIZE)
         scanner_thread = FillMetadataQueue(self.repair,
                                            section_queue,
-                                           get_metadata_queue)
+                                           get_metadata_queue,
+                                           processing_queue)
         scanner_thread.start()
         metadata_threads = [
             GetMetadataThread(get_metadata_queue, processing_queue)
@@ -136,8 +137,7 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
             LOG.error('Could not entirely process section %s', section)
             self.successful = False
 
-    def threaded_get_generators(self, kinds, section_queue, processing_queue,
-                                all_items):
+    def threaded_get_generators(self, kinds, section_queue, all_items):
         """
         Getting iterators is costly, so let's do it in a dedicated thread
         """
@@ -171,7 +171,6 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
                     else:
                         section.number_of_items = section.iterator.total
                         if section.number_of_items > 0:
-                            processing_queue.add_section(section)
                             section_queue.put(section)
                             LOG.debug('Put section in queue with %s items: %s',
                                       section.number_of_items, section)
@@ -180,8 +179,6 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         finally:
             # Sentinel for the section queue
             section_queue.put(None)
-            # Sentinel for the process_thread once we added everything else
-            processing_queue.add_sentinel(sections.Section())
             LOG.debug('Exiting threaded_get_generators')
 
     def full_library_sync(self):
@@ -202,7 +199,7 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
         # We need to enforce syncing e.g. show before season before episode
         bg.FunctionAsTask(self.threaded_get_generators,
                           None,
-                          kinds, section_queue, processing_queue, False).start()
+                          kinds, section_queue, False).start()
         # Do the heavy lifting
         self.process_new_and_changed_items(section_queue, processing_queue)
         common.update_kodi_library(video=True, music=True)
@@ -236,7 +233,7 @@ class FullSync(common.LibrarySyncMixin, bg.KillableThread):
             self.dialog = None
         bg.FunctionAsTask(self.threaded_get_generators,
                           None,
-                          kinds, section_queue, processing_queue, True).start()
+                          kinds, section_queue, True).start()
         self.processing_loop_playstates(section_queue)
         if self.should_cancel() or not self.successful:
             return
