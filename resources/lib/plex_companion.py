@@ -293,7 +293,7 @@ class PlexCompanion(backgroundthread.KillableThread):
                         subscription_manager,
                         ('', v.COMPANION_PORT),
                         listener.MyHandler)
-                    httpd.timeout = 0.95
+                    httpd.timeout = 10.0
                     break
                 except Exception:
                     LOG.error("Unable to start PlexCompanion. Traceback:")
@@ -312,12 +312,13 @@ class PlexCompanion(backgroundthread.KillableThread):
         if httpd:
             thread = Thread(target=httpd.handle_request)
 
-        while not self.isCanceled():
+        while not self.should_cancel():
             # If we are not authorized, sleep
             # Otherwise, we trigger a download which leads to a
             # re-authorizations
-            if self.wait_while_suspended():
-                break
+            if self.should_suspend():
+                if self.wait_while_suspended():
+                    break
             try:
                 message_count += 1
                 if httpd:
@@ -356,6 +357,6 @@ class PlexCompanion(backgroundthread.KillableThread):
                 app.APP.companion_queue.task_done()
                 # Don't sleep
                 continue
-            app.APP.monitor.waitForAbort(0.05)
+            self.sleep(0.05)
         subscription_manager.signal_stop()
         client.stop_all()

@@ -101,7 +101,7 @@ class Service(object):
         self._init_done = True
 
     @staticmethod
-    def isCanceled():
+    def should_cancel():
         return xbmc.abortRequested or app.APP.stop_pkc
 
     def on_connection_check(self, result):
@@ -437,7 +437,7 @@ class Service(object):
         self.playqueue = playqueue.PlayqueueMonitor()
 
         # Main PKC program loop
-        while not self.isCanceled():
+        while not self.should_cancel():
 
             # Check for PKC commands from other Python instances
             plex_command = utils.window('plexkodiconnect.command')
@@ -544,6 +544,7 @@ class Service(object):
         # Tell all threads to terminate (e.g. several lib sync threads)
         LOG.debug('Aborting all threads')
         app.APP.stop_pkc = True
+        backgroundthread.BGThreader.shutdown(block=False)
         # Load/Reset PKC entirely - important for user/Kodi profile switch
         # Clear video nodes properties
         library_sync.clear_window_vars()

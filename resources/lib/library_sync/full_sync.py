@@ -3,345 +3,208 @@
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
 import Queue
-import copy
 
 import xbmcgui
 
-from .get_metadata import GetMetadataTask, reset_collections
+from .get_metadata import GetMetadataThread
+from .fill_metadata_queue import FillMetadataQueue
+from .process_metadata import ProcessMetadataThread
 from . import common, sections
-from .. import utils, timing, backgroundthread, variables as v, app
-from .. import plex_functions as PF, itemtypes
-from ..plex_db import PlexDB
+from .. import utils, timing, backgroundthread as bg, variables as v, app
+from .. import plex_functions as PF, itemtypes, path_ops
 
 if common.PLAYLIST_SYNC_ENABLED:
     from .. import playlists
 
 
 LOG = getLogger('PLEX.sync.full_sync')
-# How many items will be put through the processing chain at once?
-BATCH_SIZE = 2000
+DELETION_BATCH_SIZE = 250
+PLAYSTATE_BATCH_SIZE = 5000
+
+# Max. number of plex_ids held in memory for later processing
+BACKLOG_QUEUE_SIZE = 10000
+# Max number of xmls held in memory
+XML_QUEUE_SIZE = 500
 # Safety margin to filter PMS items - how many seconds to look into the past?
 UPDATED_AT_SAFETY = 60 * 5
 LAST_VIEWED_AT_SAFETY = 60 * 5
 
 
-class InitNewSection(object):
-    """
-    Throw this into the queue used for ProcessMetadata to tell it which
-    Plex library section we're looking at
-    """
-    def __init__(self, context, total_number_of_items, section_name,
-                 section_id, plex_type):
-        self.context = context
-        self.total = total_number_of_items
-        self.name = section_name
-        self.id = section_id
-        self.plex_type = plex_type
-
-
-class FullSync(common.fullsync_mixin):
+class FullSync(common.LibrarySyncMixin, bg.KillableThread):
     def __init__(self, repair, callback, show_dialog):
         """
         repair=True: force sync EVERY item
         """
+        self.successful = True
         self.repair = repair
         self.callback = callback
-        self.queue = None
-        self.process_thread = None
-        self.current_sync = None
-        self.plexdb = None
-        self.plex_type = None
-        self.section_type = None
-        self.worker_count = int(utils.settings('syncThreadNumber'))
-        self.item_count = 0
         # For progress dialog
         self.show_dialog = show_dialog
         self.show_dialog_userdata = utils.settings('playstate_sync_indicator') == 'true'
-        self.dialog = None
-        self.total = 0
-        self.current = 0
-        self.processed = 0
-        self.title = ''
-        self.section = None
-        self.section_name = None
-        self.section_type_text = None
-        self.context = None
-        self.get_children = None
-        self.successful = None
-        self.section_success = None
+        if self.show_dialog:
+            self.dialog = xbmcgui.DialogProgressBG()
+            self.dialog.create(utils.lang(39714))
+        else:
+            self.dialog = None
+        self.current_time = timing.plex_now()
+        self.last_section = sections.Section()
         self.install_sync_done = utils.settings('SyncInstallRunDone') == 'true'
-        self.threader = backgroundthread.ThreaderManager(
-            worker=backgroundthread.NonstoppingBackgroundWorker,
-            worker_count=self.worker_count)
         super(FullSync, self).__init__()
 
-    def update_progressbar(self):
-        if self.dialog:
-            try:
-                progress = int(float(self.current) / float(self.total) * 100.0)
-            except ZeroDivisionError:
-                progress = 0
-            self.dialog.update(progress,
-                               '%s (%s)' % (self.section_name, self.section_type_text),
-                               '%s %s/%s'
-                               % (self.title, self.current, self.total))
-            if app.APP.is_playing_video:
-                self.dialog.close()
-                self.dialog = None
-
-    def process_item(self, xml_item):
-        """
-        Processes a single library item
-        """
-        plex_id = int(xml_item.get('ratingKey'))
-        if not self.repair and self.plexdb.checksum(plex_id, self.plex_type) == \
-                int('%s%s' % (plex_id,
-                              xml_item.get('updatedAt',
-                                           xml_item.get('addedAt', 1541572987)))):
+    def update_progressbar(self, section, title, current):
+        if not self.dialog:
             return
-        self.threader.addTask(GetMetadataTask(self.queue,
-                                              plex_id,
-                                              self.plex_type,
-                                              self.get_children,
-                                              self.item_count))
-        self.item_count += 1
-
-    def update_library(self):
-        LOG.debug('Writing changes to Kodi library now')
-        i = 0
-        if not self.section:
-            _, self.section = self.queue.get()
-            self.queue.task_done()
-        while not self.isCanceled() and self.item_count > 0:
-            section = self.section
-            if not section:
-                break
-            LOG.debug('Start or continue processing section %s (%ss)',
-                      section.name, section.plex_type)
-            self.processed = 0
-            self.total = section.total
-            self.section_name = section.name
-            self.section_type_text = utils.lang(
-                v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
-            with section.context(self.current_sync) as context:
-                while not self.isCanceled() and self.item_count > 0:
-                    try:
-                        _, item = self.queue.get(block=False)
-                    except backgroundthread.Queue.Empty:
-                        if self.threader.threader.working():
-                            app.APP.monitor.waitForAbort(0.02)
-                            continue
-                        else:
-                            # Try again, in case a thread just finished
-                            i += 1
-                            if i == 3:
-                                break
-                            continue
-                    i = 0
-                    self.queue.task_done()
-                    if isinstance(item, dict):
-                        context.add_update(item['xml'][0],
-                                           section_name=section.name,
-                                           section_id=section.id,
-                                           children=item['children'])
-                        self.title = item['xml'][0].get('title')
-                        self.processed += 1
-                    elif isinstance(item, InitNewSection) or item is None:
-                        self.section = item
-                        break
-                    else:
-                        raise ValueError('Unknown type %s' % type(item))
-                    self.item_count -= 1
-                    self.current += 1
-                    self.update_progressbar()
-                    if self.processed == 500:
-                        self.processed = 0
-                        context.commit()
-        LOG.debug('Done writing changes to Kodi library')
-
-    @utils.log_time
-    def addupdate_section(self, section):
-        LOG.debug('Processing library section for new or changed items %s',
-                  section)
-        if not self.install_sync_done:
-            app.SYNC.path_verified = False
+        current += 1
         try:
-            # Sync new, updated and deleted items
-            iterator = section.iterator
-            # Tell the processing thread about this new section
-            queue_info = InitNewSection(section.context,
-                                        iterator.total,
-                                        iterator.get('librarySectionTitle',
-                                                     iterator.get('title1')),
-                                        section.section_id,
-                                        section.plex_type)
-            self.queue.put((-1, queue_info))
-            last = True
-            # To keep track of the item-number in order to kill while loops
-            self.item_count = 0
-            self.current = 0
-            # Initialize only once to avoid loosing the last value before
-            # we're breaking the for loop
-            loop = common.tag_last(iterator)
-            while True:
-                # Check Plex DB to see what we need to add/update
-                with PlexDB() as self.plexdb:
-                    for last, xml_item in loop:
-                        if self.isCanceled():
-                            return False
-                        self.process_item(xml_item)
-                        if self.item_count == BATCH_SIZE:
-                            break
-                # Make sure Plex DB above is closed before adding/updating!
-                self.update_library()
-                if last:
-                    break
-            reset_collections()
-            return True
-        except RuntimeError:
-            LOG.error('Could not entirely process section %s', section)
-            return False
+            progress = int(float(current) / float(section.number_of_items) * 100.0)
+        except ZeroDivisionError:
+            progress = 0
+        self.dialog.update(progress,
+                           '%s (%s)' % (section.name, section.section_type_text),
+                           '%s %s/%s'
+                           % (title, current, section.number_of_items))
+        if app.APP.is_playing_video:
+            self.dialog.close()
+            self.dialog = None
+
+    @staticmethod
+    def copy_plex_db():
+        """
+        Takes the current plex.db file and copies it to plex-copy.db
+        This will allow us to have "concurrent" connections during adding/
+        updating items, increasing sync speed tremendously.
+        Using the same DB with e.g. WAL mode did not really work out...
+        """
+        path_ops.copyfile(v.DB_PLEX_PATH, v.DB_PLEX_COPY_PATH)
 
     @utils.log_time
+    def process_new_and_changed_items(self, section_queue, processing_queue):
+        LOG.debug('Start working')
+        get_metadata_queue = Queue.Queue(maxsize=BACKLOG_QUEUE_SIZE)
+        scanner_thread = FillMetadataQueue(self.repair,
+                                           section_queue,
+                                           get_metadata_queue,
+                                           processing_queue)
+        scanner_thread.start()
+        metadata_threads = [
+            GetMetadataThread(get_metadata_queue, processing_queue)
+            for _ in range(int(utils.settings('syncThreadNumber')))
+        ]
+        for t in metadata_threads:
+            t.start()
+        process_thread = ProcessMetadataThread(self.current_time,
+                                               processing_queue,
+                                               self.update_progressbar)
+        process_thread.start()
+        LOG.debug('Waiting for scanner thread to finish up')
+        scanner_thread.join()
+        LOG.debug('Waiting for metadata download threads to finish up')
+        for t in metadata_threads:
+            t.join()
+        LOG.debug('Download metadata threads finished')
+        process_thread.join()
+        self.successful = process_thread.successful
+        LOG.debug('threads finished work. successful: %s', self.successful)
+
+    @utils.log_time
+    def processing_loop_playstates(self, section_queue):
+        while not self.should_cancel():
+            section = section_queue.get()
+            section_queue.task_done()
+            if section is None:
+                break
+            self.playstate_per_section(section)
+
     def playstate_per_section(self, section):
         LOG.debug('Processing %s playstates for library section %s',
-                  section.iterator.total, section)
+                  section.number_of_items, section)
         try:
-            # Sync new, updated and deleted items
-            iterator = section.iterator
-            # Tell the processing thread about this new section
-            queue_info = InitNewSection(section.context,
-                                        iterator.total,
-                                        section.name,
-                                        section.section_id,
-                                        section.plex_type)
-            self.queue.put((-1, queue_info))
-            self.total = iterator.total
-            self.section_name = section.name
-            self.section_type_text = utils.lang(
-                v.TRANSLATION_FROM_PLEXTYPE[section.plex_type])
-            self.current = 0
-
-            last = True
-            loop = common.tag_last(iterator)
-            while True:
-                with section.context(self.current_sync) as itemtype:
-                    for i, (last, xml_item) in enumerate(loop):
-                        if self.isCanceled():
-                            return False
-                        if not itemtype.update_userdata(xml_item, section.plex_type):
-                            # Somehow did not sync this item yet
-                            itemtype.add_update(xml_item,
-                                                section_name=section.name,
-                                                section_id=section.section_id)
-                        itemtype.plexdb.update_last_sync(int(xml_item.attrib['ratingKey']),
-                                                         section.plex_type,
-                                                         self.current_sync)
-                        self.current += 1
-                        self.update_progressbar()
-                        if (i + 1) % (10 * BATCH_SIZE) == 0:
-                            break
-                if last:
-                    break
-            return True
+            with section.context(self.current_time) as context:
+                for xml in section.iterator:
+                    section.count += 1
+                    if not context.update_userdata(xml, section.plex_type):
+                        # Somehow did not sync this item yet
+                        context.add_update(xml,
+                                           section_name=section.name,
+                                           section_id=section.section_id)
+                    context.plexdb.update_last_sync(int(xml.attrib['ratingKey']),
+                                                    section.plex_type,
+                                                    self.current_time)
+                    self.update_progressbar(section, '', section.count - 1)
+                    if section.count % PLAYSTATE_BATCH_SIZE == 0:
+                        context.commit()
         except RuntimeError:
             LOG.error('Could not entirely process section %s', section)
-            return False
+            self.successful = False
 
-    def threaded_get_iterators(self, kinds, queue, all_items=False):
+    def threaded_get_generators(self, kinds, section_queue, all_items):
         """
-        Getting iterators is costly, so let's do it asynchronously
+        Getting iterators is costly, so let's do it in a dedicated thread
         """
+        LOG.debug('Start threaded_get_generators')
         try:
             for kind in kinds:
                 for section in (x for x in app.SYNC.sections
                                 if x.section_type == kind[1]):
-                    if self.isCanceled():
+                    if self.should_cancel():
                         LOG.debug('Need to exit now')
                         return
                     if not section.sync_to_kodi:
                         LOG.info('User chose to not sync section %s', section)
                         continue
-                    element = copy.deepcopy(section)
-                    element.plex_type = kind[0]
-                    element.section_type = element.plex_type
-                    element.context = kind[2]
-                    element.get_children = kind[3]
-                    element.Queue = kind[4]
+                    section = sections.get_sync_section(section,
+                                                        plex_type=kind[0])
                     if self.repair or all_items:
                         updated_at = None
                     else:
                         updated_at = section.last_sync - UPDATED_AT_SAFETY \
                             if section.last_sync else None
                     try:
-                        element.iterator = PF.get_section_iterator(
+                        section.iterator = PF.get_section_iterator(
                             section.section_id,
-                            plex_type=element.plex_type,
+                            plex_type=section.plex_type,
                             updated_at=updated_at,
                             last_viewed_at=None)
                     except RuntimeError:
-                        LOG.warn('Sync at least partially unsuccessful')
-                        self.successful = False
-                        self.section_success = False
+                        LOG.error('Sync at least partially unsuccessful!')
+                        LOG.error('Error getting section iterator %s', section)
                     else:
-                        queue.put(element)
+                        section.number_of_items = section.iterator.total
+                        if section.number_of_items > 0:
+                            section_queue.put(section)
+                            LOG.debug('Put section in queue with %s items: %s',
+                                      section.number_of_items, section)
         except Exception:
             utils.ERROR(notify=True)
         finally:
-            queue.put(None)
+            # Sentinel for the section queue
+            section_queue.put(None)
+            LOG.debug('Exiting threaded_get_generators')
 
     def full_library_sync(self):
-        """
-        """
-        # structure:
-        #  (plex_type,
-        #   section_type,
-        #   context for itemtype,
-        #   download children items, e.g. songs for a specific album?,
-        #   Queue)
+        section_queue = Queue.Queue()
+        processing_queue = bg.ProcessingQueue(maxsize=XML_QUEUE_SIZE)
         kinds = [
-            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_MOVIE, itemtypes.Movie, False, Queue.Queue),
-            (v.PLEX_TYPE_SHOW, v.PLEX_TYPE_SHOW, itemtypes.Show, False, Queue.Queue),
-            (v.PLEX_TYPE_SEASON, v.PLEX_TYPE_SHOW, itemtypes.Season, False, Queue.Queue),
-            (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SHOW, itemtypes.Episode, False, Queue.Queue)
+            (v.PLEX_TYPE_MOVIE, v.PLEX_TYPE_MOVIE),
+            (v.PLEX_TYPE_SHOW, v.PLEX_TYPE_SHOW),
+            (v.PLEX_TYPE_SEASON, v.PLEX_TYPE_SHOW),
+            (v.PLEX_TYPE_EPISODE, v.PLEX_TYPE_SHOW)
         ]
         if app.SYNC.enable_music:
             kinds.extend([
-                (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST, itemtypes.Artist, False, Queue.Queue),
-                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True, backgroundthread.OrderedQueue),
+                (v.PLEX_TYPE_ARTIST, v.PLEX_TYPE_ARTIST),
+                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST),
             ])
         # ADD NEW ITEMS
-        # Already start setting up the iterators. We need to enforce
-        # syncing e.g. show before season before episode
-        iterator_queue = Queue.Queue()
-        task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
-                                               None,
-                                               kinds,
-                                               iterator_queue)
-        backgroundthread.BGThreader.addTask(task)
-        while True:
-            self.section_success = True
-            section = iterator_queue.get()
-            iterator_queue.task_done()
-            if section is None:
-                break
-            # Setup our variables
-            self.plex_type = section.plex_type
-            self.section_type = section.section_type
-            self.context = section.context
-            self.get_children = section.get_children
-            self.queue = section.Queue()
-            # Now do the heavy lifting
-            if self.isCanceled() or not self.addupdate_section(section):
-                return False
-            if self.section_success:
-                # Need to check because a thread might have missed to get
-                # some items from the PMS
-                with PlexDB() as plexdb:
-                    # Set the new time mark for the next delta sync
-                    plexdb.update_section_last_sync(section.section_id,
-                                                    self.current_sync)
+        # We need to enforce syncing e.g. show before season before episode
+        bg.FunctionAsTask(self.threaded_get_generators,
+                          None,
+                          kinds, section_queue, False).start()
+        # Do the heavy lifting
+        self.process_new_and_changed_items(section_queue, processing_queue)
         common.update_kodi_library(video=True, music=True)
+        if self.should_cancel() or not self.successful:
+            return
 
         # Sync Plex playlists to Kodi and vice-versa
         if common.PLAYLIST_SYNC_ENABLED:
@@ -351,48 +214,29 @@ class FullSync(common.fullsync_mixin):
                 self.dialog = xbmcgui.DialogProgressBG()
                 # "Synching playlists"
                 self.dialog.create(utils.lang(39715))
-            if not playlists.full_sync():
-                return False
+            if not playlists.full_sync() or self.should_cancel():
+                return
 
         # SYNC PLAYSTATE of ALL items (otherwise we won't pick up on items that
         # were set to unwatched). Also mark all items on the PMS to be able
         # to delete the ones still in Kodi
-        LOG.info('Start synching playstate and userdata for every item')
-        # In order to not delete all your songs again
+        LOG.debug('Start synching playstate and userdata for every item')
         if app.SYNC.enable_music:
-            # We don't need to enforce the album order now
-            kinds.pop(5)
+            # In order to not delete all your songs again
             kinds.extend([
-                (v.PLEX_TYPE_ALBUM, v.PLEX_TYPE_ARTIST, itemtypes.Album, True, Queue.Queue),
-                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST, itemtypes.Song, True, Queue.Queue),
+                (v.PLEX_TYPE_SONG, v.PLEX_TYPE_ARTIST),
             ])
         # Make sure we're not showing an item's title in the sync dialog
-        self.title = ''
-        self.threader.shutdown()
-        self.threader = None
         if not self.show_dialog_userdata and self.dialog:
             # Close the progress indicator dialog
             self.dialog.close()
             self.dialog = None
-        task = backgroundthread.FunctionAsTask(self.threaded_get_iterators,
-                                               None,
-                                               kinds,
-                                               iterator_queue,
-                                               all_items=True)
-        backgroundthread.BGThreader.addTask(task)
-        while True:
-            section = iterator_queue.get()
-            iterator_queue.task_done()
-            if section is None:
-                break
-            # Setup our variables
-            self.plex_type = section.plex_type
-            self.section_type = section.section_type
-            self.context = section.context
-            self.get_children = section.get_children
-            # Now do the heavy lifting
-            if self.isCanceled() or not self.playstate_per_section(section):
-                return False
+        bg.FunctionAsTask(self.threaded_get_generators,
+                          None,
+                          kinds, section_queue, True).start()
+        self.processing_loop_playstates(section_queue)
+        if self.should_cancel() or not self.successful:
+            return
 
         # Delete movies that are not on Plex anymore
         LOG.debug('Looking for items to delete')
@@ -411,61 +255,40 @@ class FullSync(common.fullsync_mixin):
         for plex_type, context in kinds:
             # Delete movies that are not on Plex anymore
             while True:
-                with context(self.current_sync) as ctx:
-                    plex_ids = list(ctx.plexdb.plex_id_by_last_sync(plex_type,
-                                                                    self.current_sync,
-                                                                    BATCH_SIZE))
+                with context(self.current_time) as ctx:
+                    plex_ids = list(
+                        ctx.plexdb.plex_id_by_last_sync(plex_type,
+                                                        self.current_time,
+                                                        DELETION_BATCH_SIZE))
                     for plex_id in plex_ids:
-                        if self.isCanceled():
-                            return False
+                        if self.should_cancel():
+                            return
                         ctx.remove(plex_id, plex_type)
-                if len(plex_ids) < BATCH_SIZE:
+                if len(plex_ids) < DELETION_BATCH_SIZE:
                     break
-        LOG.debug('Done deleting')
-        return True
-
-    def run(self):
-        app.APP.register_thread(self)
-        try:
-            self._run()
-        finally:
-            app.APP.deregister_thread(self)
-            LOG.info('Done full_sync')
+        LOG.debug('Done looking for items to delete')
 
     @utils.log_time
     def _run(self):
-        self.current_sync = timing.plex_now()
-        # Get latest Plex libraries and build playlist and video node files
-        if self.isCanceled() or not sections.sync_from_pms(self):
-            return
-        self.successful = True
         try:
-            if self.show_dialog:
-                self.dialog = xbmcgui.DialogProgressBG()
-                self.dialog.create(utils.lang(39714))
-
-            # Actual syncing - do only new items first
-            LOG.info('Running full_library_sync with repair=%s',
-                     self.repair)
-            if self.isCanceled() or not self.full_library_sync():
-                self.successful = False
+            # Get latest Plex libraries and build playlist and video node files
+            if self.should_cancel() or not sections.sync_from_pms(self):
                 return
+            self.copy_plex_db()
+            self.full_library_sync()
         finally:
             common.update_kodi_library(video=True, music=True)
             if self.dialog:
                 self.dialog.close()
-            if self.threader:
-                self.threader.shutdown()
-                self.threader = None
-            if not self.successful and not self.isCanceled():
+            if not self.successful and not self.should_cancel():
                 # "ERROR in library sync"
                 utils.dialog('notification',
                              heading='{plex}',
                              message=utils.lang(39410),
                              icon='{error}')
-            if self.callback:
-                self.callback(self.successful)
+            self.callback(self.successful)
 
 
 def start(show_dialog, repair=False, callback=None):
+    # Call run() and NOT start in order to not spawn another thread
     FullSync(repair, callback, show_dialog).run()

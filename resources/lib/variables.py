@@ -69,7 +69,14 @@ elif xbmc.getCondVisibility('system.platform.android'):
 else:
     DEVICE = "Unknown"
 
-MODEL = platform.release() or 'Unknown'
+try:
+    MODEL = platform.release() or 'Unknown'
+except IOError:
+    # E.g. iOS
+    # It seems that Kodi doesn't allow python to spawn subprocesses in order to
+    # determine the system name
+    # See https://github.com/psf/requests/issues/4434
+    MODEL = 'Unknown'
 
 DEVICENAME = try_decode(_ADDON.getSetting('deviceName'))
 if not DEVICENAME:
@@ -127,6 +134,7 @@ DB_MUSIC_PATH = None
 DB_TEXTURE_VERSION = None
 DB_TEXTURE_PATH = None
 DB_PLEX_PATH = try_decode(xbmc.translatePath("special://database/plex.db"))
+DB_PLEX_COPY_PATH = try_decode(xbmc.translatePath("special://database/plex-copy.db"))
 
 EXTERNAL_SUBTITLE_TEMP_PATH = try_decode(xbmc.translatePath(
     "special://profile/addon_data/%s/temp/" % ADDON_ID))

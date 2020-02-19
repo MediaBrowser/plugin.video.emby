@@ -96,6 +96,21 @@ def delete(playlist):
     db.update_playlist(playlist, delete=True)
 
 
+def delete_kodi_playlists(playlist_paths):
+    """
+    Deletes all the the playlist files passed in; WILL IGNORE THIS CHANGE ON
+    THE PLEX SIDE!
+    """
+    for path in playlist_paths:
+        try:
+            path_ops.remove(path)
+            # Ensure we're not deleting the playlists on the Plex side later
+            IGNORE_KODI_PLAYLIST_CHANGE.append(path)
+            LOG.info('Removed playlist %s', path)
+        except (OSError, IOError):
+            LOG.warn('Could not remove playlist %s', path)
+
+
 def _write_playlist_to_file(playlist, xml):
     """
     Feed with playlist Playlist. Will write the playlist to a m3u file

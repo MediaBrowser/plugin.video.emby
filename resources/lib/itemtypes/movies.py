@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import app, variables as v, plex_functions as PF
+from .. import app, variables as v, plex_functions as PF, utils
 
 LOG = getLogger('PLEX.movies')
 
@@ -20,10 +20,10 @@ class Movie(ItemBase):
         Process single movie
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         movie = self.plexdb.movie(plex_id)
@@ -54,7 +54,7 @@ class Movie(ItemBase):
                 else:
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
-                path = playurl.replace(filename, "")
+                path = utils.rreplace(playurl, filename, "", 1)
                 kodi_pathid = self.kodidb.add_path(path,
                                                    content='movies',
                                                    scraper='metadata.local')
@@ -74,31 +74,21 @@ class Movie(ItemBase):
                                               api.date_created())
             if file_id != old_kodi_fileid:
                 self.kodidb.remove_file(old_kodi_fileid)
-            rating_id = self.kodidb.get_ratingid(kodi_id,
-                                                 v.KODI_TYPE_MOVIE)
-            self.kodidb.update_ratings(kodi_id,
-                                       v.KODI_TYPE_MOVIE,
-                                       "default",
-                                       api.rating(),
-                                       api.votecount(),
-                                       rating_id)
-            # update new uniqueid Kodi 17
+            rating_id = self.kodidb.update_ratings(kodi_id,
+                                                   v.KODI_TYPE_MOVIE,
+                                                   "default",
+                                                   api.rating(),
+                                                   api.votecount())
             if api.provider('imdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_MOVIE)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_MOVIE,
-                                            api.provider('imdb'),
-                                            "imdb",
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_MOVIE,
+                                                       'imdb',
+                                                       api.provider('imdb'))
             elif api.provider('tmdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_MOVIE)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_MOVIE,
-                                            api.provider('tmdb'),
-                                            "tmdb",
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_MOVIE,
+                                                       'tmdb',
+                                                       api.provider('tmdb'))
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_MOVIE)
                 uniqueid = -1
@@ -114,27 +104,21 @@ class Movie(ItemBase):
             file_id = self.kodidb.add_file(filename,
                                            kodi_pathid,
                                            api.date_created())
-            rating_id = self.kodidb.add_ratingid()
-            self.kodidb.add_ratings(rating_id,
-                                    kodi_id,
-                                    v.KODI_TYPE_MOVIE,
-                                    "default",
-                                    api.rating(),
-                                    api.votecount())
+            rating_id = self.kodidb.add_ratings(kodi_id,
+                                                v.KODI_TYPE_MOVIE,
+                                                "default",
+                                                api.rating(),
+                                                api.votecount())
             if api.provider('imdb') is not None:
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_MOVIE,
-                                         api.provider('imdb'),
-                                         "imdb")
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_MOVIE,
+                                                    api.provider('imdb'),
+                                                    "imdb")
             elif api.provider('tmdb') is not None:
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_MOVIE,
-                                         api.provider('tmdb'),
-                                         "tmdb")
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_MOVIE,
+                                                    api.provider('tmdb'),
+                                                    "tmdb")
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,

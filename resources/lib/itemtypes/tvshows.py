@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import plex_functions as PF, app, variables as v
+from .. import plex_functions as PF, app, variables as v, utils
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -148,10 +148,10 @@ class Show(TvShowMixin, ItemBase):
         Process a single show
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         show = self.plexdb.show(plex_id)
@@ -189,29 +189,21 @@ class Show(TvShowMixin, ItemBase):
         if update_item:
             LOG.info("UPDATE tvshow plex_id: %s - %s", plex_id, api.title())
             # update new ratings Kodi 17
-            rating_id = self.kodidb.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
-            self.kodidb.update_ratings(kodi_id,
-                                       v.KODI_TYPE_SHOW,
-                                       "default",
-                                       api.rating(),
-                                       api.votecount(),
-                                       rating_id)
+            rating_id = self.kodidb.update_ratings(kodi_id,
+                                                   v.KODI_TYPE_SHOW,
+                                                   "default",
+                                                   api.rating(),
+                                                   api.votecount())
             if api.provider('tvdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_SHOW)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_SHOW,
-                                            api.provider('tvdb'),
-                                            'tvdb',
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_SHOW,
+                                                       'tvdb',
+                                                       api.provider('tvdb'))
             elif api.provider('tmdb') is not None:
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_SHOW)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_SHOW,
-                                            api.provider('tmdb'),
-                                            'tmdb',
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_SHOW,
+                                                       'tmdb',
+                                                       api.provider('tmdb'))
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_SHOW)
                 uniqueid = -1
@@ -239,27 +231,21 @@ class Show(TvShowMixin, ItemBase):
             LOG.info("ADD tvshow plex_id: %s - %s", plex_id, api.title())
             # Link the path
             self.kodidb.add_showlinkpath(kodi_id, kodi_pathid)
-            rating_id = self.kodidb.get_ratingid(kodi_id, v.KODI_TYPE_SHOW)
-            self.kodidb.add_ratings(rating_id,
-                                    kodi_id,
-                                    v.KODI_TYPE_SHOW,
-                                    "default",
-                                    api.rating(),
-                                    api.votecount())
+            rating_id = self.kodidb.add_ratings(kodi_id,
+                                                v.KODI_TYPE_SHOW,
+                                                "default",
+                                                api.rating(),
+                                                api.votecount())
             if api.provider('tvdb'):
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_SHOW,
-                                         api.provider('tvdb'),
-                                         'tvdb')
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_SHOW,
+                                                    api.provider('tvdb'),
+                                                    'tvdb')
             if api.provider('tmdb'):
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_SHOW,
-                                         api.provider('tmdb'),
-                                         'tmdb')
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_SHOW,
+                                                    api.provider('tmdb'),
+                                                    'tmdb')
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
@@ -303,10 +289,10 @@ class Season(TvShowMixin, ItemBase):
         Process a single season of a certain tv show
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         season = self.plexdb.season(plex_id)
@@ -372,10 +358,10 @@ class Episode(TvShowMixin, ItemBase):
         Process single episode
         """
         api = API(xml)
-        if not self.sync_this_item(api.library_section_id()):
+        if not self.sync_this_item(section_id or api.library_section_id()):
             LOG.debug('Skipping sync of %s %s: %s - section %s not synched to '
                       'Kodi', api.plex_type, api.plex_id, api.title(),
-                      api.library_section_id())
+                      section_id or api.library_section_id())
             return
         plex_id = api.plex_id
         episode = self.plexdb.episode(plex_id)
@@ -448,7 +434,7 @@ class Episode(TvShowMixin, ItemBase):
                 else:
                     # Network share
                     filename = playurl.rsplit("/", 1)[1]
-                path = playurl.replace(filename, "")
+                path = utils.rreplace(playurl, filename, "", 1)
                 parent_path_id = self.kodidb.parent_path_id(path)
                 kodi_pathid = self.kodidb.add_path(path,
                                                    id_parent_path=parent_path_id)
@@ -489,30 +475,21 @@ class Episode(TvShowMixin, ItemBase):
                 self.kodidb.remove_file(old_kodi_fileid)
                 if not app.SYNC.direct_paths:
                     self.kodidb.remove_file(old_kodi_fileid_2)
-            ratingid = self.kodidb.get_ratingid(kodi_id,
-                                                v.KODI_TYPE_EPISODE)
-            self.kodidb.update_ratings(kodi_id,
-                                       v.KODI_TYPE_EPISODE,
-                                       "default",
-                                       api.rating(),
-                                       api.votecount(),
-                                       ratingid)
+            ratingid = self.kodidb.update_ratings(kodi_id,
+                                                  v.KODI_TYPE_EPISODE,
+                                                  "default",
+                                                  api.rating(),
+                                                  api.votecount())
             if api.provider('tvdb'):
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_EPISODE)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_EPISODE,
-                                            api.provider('tvdb'),
-                                            "tvdb",
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_EPISODE,
+                                                       'tvdb',
+                                                       api.provider('tvdb'))
             elif api.provider('tmdb'):
-                uniqueid = self.kodidb.get_uniqueid(kodi_id,
-                                                    v.KODI_TYPE_EPISODE)
-                self.kodidb.update_uniqueid(kodi_id,
-                                            v.KODI_TYPE_EPISODE,
-                                            api.provider('tmdb'),
-                                            "tmdb",
-                                            uniqueid)
+                uniqueid = self.kodidb.update_uniqueid(kodi_id,
+                                                       v.KODI_TYPE_EPISODE,
+                                                       'tmdb',
+                                                       api.provider('tmdb'))
             else:
                 self.kodidb.remove_uniqueid(kodi_id, v.KODI_TYPE_EPISODE)
                 uniqueid = -1
@@ -537,6 +514,7 @@ class Episode(TvShowMixin, ItemBase):
                                        airs_before_episode,
                                        playurl,
                                        kodi_pathid,
+                                       uniqueid,
                                        kodi_fileid,  # and NOT kodi_fileid_2
                                        parent_id,
                                        api.userrating(),
@@ -577,27 +555,21 @@ class Episode(TvShowMixin, ItemBase):
             else:
                 kodi_fileid_2 = None
 
-            rating_id = self.kodidb.add_ratingid()
-            self.kodidb.add_ratings(rating_id,
-                                    kodi_id,
-                                    v.KODI_TYPE_EPISODE,
-                                    "default",
-                                    api.rating(),
-                                    api.votecount())
+            rating_id = self.kodidb.add_ratings(kodi_id,
+                                                v.KODI_TYPE_EPISODE,
+                                                "default",
+                                                api.rating(),
+                                                api.votecount())
             if api.provider('tvdb'):
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_EPISODE,
-                                         api.provider('tvdb'),
-                                         "tvdb")
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_EPISODE,
+                                                    api.provider('tvdb'),
+                                                    "tvdb")
             elif api.provider('tmdb'):
-                uniqueid = self.kodidb.add_uniqueid_id()
-                self.kodidb.add_uniqueid(uniqueid,
-                                         kodi_id,
-                                         v.KODI_TYPE_EPISODE,
-                                         api.provider('tmdb'),
-                                         "tmdb")
+                uniqueid = self.kodidb.add_uniqueid(kodi_id,
+                                                    v.KODI_TYPE_EPISODE,
+                                                    api.provider('tmdb'),
+                                                    "tmdb")
             else:
                 uniqueid = -1
             self.kodidb.add_people(kodi_id,
@@ -624,6 +596,7 @@ class Episode(TvShowMixin, ItemBase):
                                     airs_before_episode,
                                     playurl,
                                     kodi_pathid,
+                                    uniqueid,
                                     parent_id,
                                     api.userrating())
             self.kodidb.set_resume(kodi_fileid,

@@ -1,40 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
+from logging import getLogger
 import xbmc
 
 from .. import utils, app, variables as v
+
+LOG = getLogger('PLEX.sync')
 
 PLAYLIST_SYNC_ENABLED = (v.DEVICE != 'Microsoft UWP' and
                          utils.settings('enablePlaylistSync') == 'true')
 
 
-class fullsync_mixin(object):
-    def __init__(self):
-        self._canceled = False
+class LibrarySyncMixin(object):
+    def suspend(self, block=False, timeout=None):
+        """
+        Let's NOT suspend sync threads but immediately terminate them
+        """
+        self.cancel()
 
-    def abort(self):
-        """Hit method to terminate the thread"""
-        self._canceled = True
-    # Let's NOT suspend sync threads but immediately terminate them
-    suspend = abort
+    def wait_while_suspended(self):
+        """
+        Return immediately
+        """
+        return self.should_cancel()
 
-    @property
-    def suspend_reached(self):
-        """Since we're not suspending, we'll never set it to True"""
-        return False
-
-    @suspend_reached.setter
-    def suspend_reached(self):
-        pass
-
-    def resume(self):
-        """Obsolete since we're not suspending"""
-        pass
-
-    def isCanceled(self):
-        """Check whether we should exit this thread"""
-        return self._canceled
+    def run(self):
+        app.APP.register_thread(self)
+        LOG.debug('##===--- Starting %s ---===##', self.__class__.__name__)
+        try:
+            self._run()
+        except Exception as err:
+            LOG.error('Exception encountered: %s', err)
+            utils.ERROR(notify=True)
+        finally:
+            app.APP.deregister_thread(self)
+            LOG.debug('##===--- %s Stopped ---===##', self.__class__.__name__)
 
 
 def update_kodi_library(video=True, music=True):

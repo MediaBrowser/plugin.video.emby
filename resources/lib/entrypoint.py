@@ -468,7 +468,7 @@ def watchlater():
 
 
 def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
-                args=None, prompt=None):
+                args=None, prompt=None, query=None):
     """
     Lists the content of a Plex folder, e.g. channels. Either pass in key (to
     be used directly for PMS url {server}<key>) or the section_id
@@ -483,7 +483,9 @@ def browse_plex(key=None, plex_type=None, section_id=None, synched=True,
         return
     app.init(entrypoint=True)
     args = args or {}
-    if prompt:
+    if query:
+        args['query'] = query
+    elif prompt:
         prompt = utils.dialog('input', prompt)
         if prompt is None:
             # User cancelled

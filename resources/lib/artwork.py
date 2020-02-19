@@ -33,8 +33,8 @@ class ImageCachingThread(backgroundthread.KillableThread):
         if not utils.settings('imageSyncDuringPlayback') == 'true':
             self.suspend_points.append((app.APP, 'is_playing_video'))
 
-    def isSuspended(self):
-        return any(getattr(obj, txt) for obj, txt in self.suspend_points)
+    def should_suspend(self):
+        return any(getattr(obj, attrib) for obj, attrib in self.suspend_points)
 
     @staticmethod
     def _url_generator(kind, kodi_type):
@@ -73,18 +73,26 @@ class ImageCachingThread(backgroundthread.KillableThread):
             app.APP.deregister_caching_thread(self)
             LOG.info("---===### Stopped ImageCachingThread ###===---")
 
-    def _run(self):
+    def _loop(self):
         kinds = [KodiVideoDB]
         if app.SYNC.enable_music:
             kinds.append(KodiMusicDB)
         for kind in kinds:
             for kodi_type in ('poster', 'fanart'):
                 for url in self._url_generator(kind, kodi_type):
-                    if self.wait_while_suspended():
-                        return
+                    if self.should_suspend() or self.should_cancel():
+                        return False
                     cache_url(url)
         # Toggles Image caching completed to Yes
         utils.settings('plex_status_image_caching', value=utils.lang(107))
+        return True
+
+    def _run(self):
+        while True:
+            if self._loop():
+                break
+            if self.wait_while_suspended():
+                break
 
 
 def cache_url(url):

@@ -27,48 +27,51 @@ class FanartThread(backgroundthread.KillableThread):
         self.refresh = refresh
         super(FanartThread, self).__init__()
 
-    def isSuspended(self):
+    def should_suspend(self):
         return self._suspended or app.APP.is_playing_video
 
     def run(self):
         LOG.info('Starting FanartThread')
         app.APP.register_fanart_thread(self)
         try:
-            self._run_internal()
+            self._run()
         except Exception:
             utils.ERROR(notify=True)
         finally:
             app.APP.deregister_fanart_thread(self)
 
-    def _run_internal(self):
+    def _loop(self):
+        for typus in SUPPORTED_TYPES:
+            offset = 0
+            while True:
+                with PlexDB() as plexdb:
+                    # Keep DB connection open only for a short period of time!
+                    if self.refresh:
+                        batch = list(plexdb.every_plex_id(typus,
+                                                          offset,
+                                                          BATCH_SIZE))
+                    else:
+                        batch = list(plexdb.missing_fanart(typus,
+                                                           offset,
+                                                           BATCH_SIZE))
+                for plex_id in batch:
+                    # Do the actual, time-consuming processing
+                    if self.should_suspend() or self.should_cancel():
+                        return False
+                    process_fanart(plex_id, typus, self.refresh)
+                if len(batch) < BATCH_SIZE:
+                    break
+                offset += BATCH_SIZE
+        return True
+
+    def _run(self):
         finished = False
-        try:
-            for typus in SUPPORTED_TYPES:
-                offset = 0
-                while True:
-                    with PlexDB() as plexdb:
-                        # Keep DB connection open only for a short period of time!
-                        if self.refresh:
-                            batch = list(plexdb.every_plex_id(typus,
-                                                              offset,
-                                                              BATCH_SIZE))
-                        else:
-                            batch = list(plexdb.missing_fanart(typus,
-                                                               offset,
-                                                               BATCH_SIZE))
-                    for plex_id in batch:
-                        # Do the actual, time-consuming processing
-                        if self.wait_while_suspended():
-                            return
-                        process_fanart(plex_id, typus, self.refresh)
-                    if len(batch) < BATCH_SIZE:
-                        break
-                    offset += BATCH_SIZE
-            else:
-                finished = True
-        finally:
-            LOG.info('FanartThread finished: %s', finished)
-            self.callback(finished)
+        while not finished:
+            finished = self._loop()
+            if self.wait_while_suspended():
+                break
+        LOG.info('FanartThread finished: %s', finished)
+        self.callback(finished)
 
 
 class FanartTask(backgroundthread.Task):

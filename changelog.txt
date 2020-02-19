@@ -1,3 +1,40 @@
+version 2.10.12:
+- versions 2.10.5-11 for everyone
+
+version 2.10.11 (beta only):
+- Fix yet another rare but annoying bug where PKC becomes unresponsive during sync 
+
+version 2.10.10 (beta only):
+- Fix rare but annoying bug where PKC becomes unresponsive during sync
+- Fix PKC background sync not working in some cases
+
+version 2.10.9 (beta only):
+- Other Kodi add-ons can now search for Plex items using plugin://plugin.video.plexkodiconnect?mode=search&query=YOUR SEARCH STRING HERE 
+
+version 2.10.8 (beta only):
+- Improve thread pool management to render PKC snappier
+- Attempt to fix broken pipe error
+- Fix DirectPaths when a video's folder name is identical to a video's filename (you will need to manually reset the Kodi database) 
+
+version 2.10.7 (beta only):
+- Fix PKC not starting up on iOS
+- Optimize the new sync process and fix some bugs that were introduced
+- Fix PKC becoming unresponsive e.g. when switching the PMS
+
+version 2.10.6 (beta only):
+- Fix AttributeError if user enters an invalid pin code
+- Fix OperationalError when starting with a fresh PKC installation
+- Fix IndexError
+
+version 2.10.5 (beta only):
+- Rewire library sync to speed it up and fix sync getting stuck in rare cases 
+- Optimize threads by using events instead of a polling mechanism. Fixes PKC becoming unresponsive, e.g. when switching users
+- Optimize adding values to Kodi databases by not using sqlite COALESCE command
+- Fix OperationalError when resetting PKC
+- Improve sync resiliance when certain items are not to be synced to Kodi or PKC skipped an item in the past
+- Make sure bool is returned instead of an int 
+- Don't use WAL mode for sqlite connections, it is not making any difference
+
 version 2.10.4:
 - version 2.10.3 for everyone
 - Fix to correctly wipe Kodi databases

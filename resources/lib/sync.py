@@ -38,7 +38,9 @@ class Sync(backgroundthread.KillableThread):
             self.start_library_sync(show_dialog=True,
                                     repair=app.SYNC.run_lib_scan == 'repair',
                                     block=True)
-            if not self.sync_successful and not self.isSuspended() and not self.isCanceled():
+            if (not self.sync_successful and
+                    not self.should_suspend() and
+                    not self.should_cancel()):
                 # ERROR in library sync
                 LOG.warn('Triggered full/repair sync has not been successful')
         elif app.SYNC.run_lib_scan == 'fanart':
@@ -112,7 +114,7 @@ class Sync(backgroundthread.KillableThread):
             LOG.info('Not synching Plex artwork - not caching')
             return
         if self.image_cache_thread and self.image_cache_thread.is_alive():
-            self.image_cache_thread.abort()
+            self.image_cache_thread.cancel()
             self.image_cache_thread.join()
         self.image_cache_thread = artwork.ImageCachingThread()
         self.image_cache_thread.start()
@@ -163,10 +165,11 @@ class Sync(backgroundthread.KillableThread):
 
         utils.init_dbs()
 
-        while not self.isCanceled():
+        while not self.should_cancel():
             # In the event the server goes offline
-            if self.wait_while_suspended():
-                return
+            if self.should_suspend():
+                if self.wait_while_suspended():
+                    return
             if not install_sync_done:
                 # Very FIRST sync ever upon installation or reset of Kodi DB
                 LOG.info('Initial start-up full sync starting')
@@ -188,7 +191,7 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.error('Initial start-up full sync unsuccessful')
-                    app.APP.monitor.waitForAbort(1)
+                    self.sleep(1)
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
 
             elif not initial_sync_done:
@@ -205,7 +208,7 @@ class Sync(backgroundthread.KillableThread):
                     self.start_image_cache_thread()
                 else:
                     LOG.info('Startup sync has not yet been successful')
-                    app.APP.monitor.waitForAbort(1)
+                    self.sleep(1)
 
             # Currently no db scan, so we could start a new scan
             else:
@@ -240,9 +243,9 @@ class Sync(backgroundthread.KillableThread):
                         library_sync.store_websocket_message(message)
                         queue.task_done()
                         # Sleep just a bit
-                        app.APP.monitor.waitForAbort(0.01)
+                        self.sleep(0.01)
                         continue
-            app.APP.monitor.waitForAbort(0.1)
+            self.sleep(0.1)
         # Shut down playlist monitoring
         if playlist_monitor:
             playlist_monitor.stop()

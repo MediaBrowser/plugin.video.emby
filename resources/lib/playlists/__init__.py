@@ -13,6 +13,7 @@
 """
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+from sqlite3 import OperationalError
 
 from .common import Playlist, PlaylistError, PlaylistObserver, \
     kodi_playlist_hash
@@ -38,7 +39,7 @@ SUPPORTED_FILETYPES = (
 ###############################################################################
 
 
-def isCanceled():
+def should_cancel():
     return app.APP.stop_pkc or app.SYNC.stop_sync
 
 
@@ -66,6 +67,22 @@ def kodi_playlist_monitor():
     observer.schedule(event_handler, v.PLAYLIST_PATH, recursive=True)
     observer.start()
     return observer
+
+
+def remove_synced_playlists():
+    """
+    Deletes all synched playlists on the Kodi side, not on the Plex side
+    """
+    LOG.info('Removing all playlists that we synced to Kodi')
+    with app.APP.lock_playlists:
+        try:
+            paths = db.get_all_kodi_playlist_paths()
+        except OperationalError:
+            LOG.info('Playlists table has not yet been set-up')
+            return
+        kodi_pl.delete_kodi_playlists(paths)
+        db.wipe_table()
+    LOG.info('Done removing all synced playlists')
 
 
 def websocket(plex_id, status):
@@ -167,7 +184,7 @@ def _full_sync():
     # before. If yes, make sure that hashes are identical. If not, sync it.
     old_plex_ids = db.plex_playlist_ids()
     for xml_playlist in xml:
-        if isCanceled():
+        if should_cancel():
             return False
         api = API(xml_playlist)
         try:
@@ -199,7 +216,7 @@ def _full_sync():
                     LOG.info('Could not recreate playlist %s', api.plex_id)
     # Get rid of old Plex playlists that were deleted on the Plex side
     for plex_id in old_plex_ids:
-        if isCanceled():
+        if should_cancel():
             return False
         playlist = db.get_playlist(plex_id=plex_id)
         LOG.debug('Removing outdated Plex playlist from Kodi: %s', playlist)
@@ -213,7 +230,7 @@ def _full_sync():
     old_kodi_paths = db.kodi_playlist_paths()
     for root, _, files in path_ops.walk(v.PLAYLIST_PATH):
         for f in files:
-            if isCanceled():
+            if should_cancel():
                 return False
             path = path_ops.path.join(root, f)
             try:
@@ -244,7 +261,7 @@ def _full_sync():
                 except PlaylistError:
                     LOG.info('Skipping Kodi playlist %s', path)
     for kodi_path in old_kodi_paths:
-        if isCanceled():
+        if should_cancel():
             return False
         playlist = db.get_playlist(path=kodi_path)
         if not playlist:
@@ -370,19 +387,19 @@ class PlaylistEventhandler(events.FileSystemEventHandler):
         """
         path = event.dest_path if event.event_type == events.EVENT_TYPE_MOVED \
             else event.src_path
-        if not sync_kodi_playlist(path):
-            return
-        if path in kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE:
-            LOG.debug('Ignoring event %s', event)
-            kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE.remove(path)
-            return
-        _method_map = {
-            events.EVENT_TYPE_MODIFIED: self.on_modified,
-            events.EVENT_TYPE_MOVED: self.on_moved,
-            events.EVENT_TYPE_CREATED: self.on_created,
-            events.EVENT_TYPE_DELETED: self.on_deleted,
-        }
         with app.APP.lock_playlists:
+            if not sync_kodi_playlist(path):
+                return
+            if path in kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE:
+                LOG.debug('Ignoring event %s', event)
+                kodi_pl.IGNORE_KODI_PLAYLIST_CHANGE.remove(path)
+                return
+            _method_map = {
+                events.EVENT_TYPE_MODIFIED: self.on_modified,
+                events.EVENT_TYPE_MOVED: self.on_moved,
+                events.EVENT_TYPE_CREATED: self.on_created,
+                events.EVENT_TYPE_DELETED: self.on_deleted,
+            }
             _method_map[event.event_type](event)
 
     def on_created(self, event):

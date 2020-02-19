@@ -54,17 +54,18 @@ class App(object):
 
     @property
     def is_playing(self):
-        return self.player.isPlaying()
+        return self.player.isPlaying() == 1
 
     @property
     def is_playing_video(self):
-        return self.player.isPlayingVideo()
+        return self.player.isPlayingVideo() == 1
 
     def register_fanart_thread(self, thread):
         self.fanart_thread = thread
         self.threads.append(thread)
 
     def deregister_fanart_thread(self, thread):
+        self.fanart_thread.unblock_callers()
         self.fanart_thread = None
         self.threads.remove(thread)
 
@@ -85,6 +86,7 @@ class App(object):
         self.threads.append(thread)
 
     def deregister_caching_thread(self, thread):
+        self.caching_thread.unblock_callers()
         self.caching_thread = None
         self.threads.remove(thread)
 
@@ -111,6 +113,7 @@ class App(object):
         """
         Sync thread has done it's work and is e.g. about to die
         """
+        thread.unblock_callers()
         self.threads.remove(thread)
 
     def suspend_threads(self, block=True):
@@ -124,19 +127,16 @@ class App(object):
         if block:
             while True:
                 for thread in self.threads:
-                    if not thread.suspend_reached:
+                    if not thread.is_suspended():
                         LOG.debug('Waiting for thread to suspend: %s', thread)
                         # Send suspend signal again in case self.threads
                         # changed
-                        thread.suspend()
-                        if self.monitor.waitForAbort(0.1):
-                            return True
-                        break
+                        thread.suspend(block=True)
                 else:
                     break
         return xbmc.abortRequested
 
-    def resume_threads(self, block=True):
+    def resume_threads(self):
         """
         Resume all thread activity with or without blocking.
         Returns True only if PKC shutdown requested
@@ -144,16 +144,6 @@ class App(object):
         LOG.debug('Resuming threads: %s', self.threads)
         for thread in self.threads:
             thread.resume()
-        if block:
-            while True:
-                for thread in self.threads:
-                    if thread.suspend_reached:
-                        LOG.debug('Waiting for thread to resume: %s', thread)
-                        if self.monitor.waitForAbort(0.1):
-                            return True
-                        break
-                else:
-                    break
         return xbmc.abortRequested
 
     def stop_threads(self, block=True):
@@ -163,7 +153,7 @@ class App(object):
         """
         LOG.debug('Killing threads: %s', self.threads)
         for thread in self.threads:
-            thread.abort()
+            thread.cancel()
         if block:
             while self.threads:
                 LOG.debug('Waiting for threads to exit: %s', self.threads)

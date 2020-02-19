@@ -2,142 +2,241 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
+from time import time as _time
 import threading
 import Queue
 import heapq
+from collections import deque
+
 import xbmc
 
-from . import utils, app
+from . import utils, app, variables as v
 
+WORKER_COUNT = 3
 LOG = getLogger('PLEX.threads')
 
 
 class KillableThread(threading.Thread):
-    '''A thread class that supports raising exception in the thread from
-       another thread.
-    '''
-    # def _get_my_tid(self):
-    #     """determines this (self's) thread id
-
-    #     CAREFUL : this function is executed in the context of the caller
-    #     thread, to get the identity of the thread represented by this
-    #     instance.
-    #     """
-    #     if not self.isAlive():
-    #         raise threading.ThreadError("the thread is not active")
-
-    #     return self.ident
-
-    # def _raiseExc(self, exctype):
-    #     """Raises the given exception type in the context of this thread.
-
-    #     If the thread is busy in a system call (time.sleep(),
-    #     socket.accept(), ...), the exception is simply ignored.
-
-    #     If you are sure that your exception should terminate the thread,
-    #     one way to ensure that it works is:
-
-    #         t = ThreadWithExc( ... )
-    #         ...
-    #         t.raiseExc( SomeException )
-    #         while t.isAlive():
-    #             time.sleep( 0.1 )
-    #             t.raiseExc( SomeException )
-
-    #     If the exception is to be caught by the thread, you need a way to
-    #     check that your thread has caught it.
-
-    #     CAREFUL : this function is executed in the context of the
-    #     caller thread, to raise an excpetion in the context of the
-    #     thread represented by this instance.
-    #     """
-    #     _async_raise(self._get_my_tid(), exctype)
-
-    def kill(self, force_and_wait=False):
-        pass
-    #     try:
-    #         self._raiseExc(KillThreadException)
-
-    #         if force_and_wait:
-    #             time.sleep(0.1)
-    #             while self.isAlive():
-    #                 self._raiseExc(KillThreadException)
-    #                 time.sleep(0.1)
-    #     except threading.ThreadError:
-    #         pass
-
-    # def onKilled(self):
-    #     pass
-
-    # def run(self):
-    #     try:
-    #         self._Thread__target(*self._Thread__args, **self._Thread__kwargs)
-    #     except KillThreadException:
-    #         self.onKilled()
-
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
         self._canceled = False
-        # Set to True to set the thread to suspended
         self._suspended = False
-        # Thread will return True only if suspended state is reached
-        self.suspend_reached = False
+        self._is_not_suspended = threading.Event()
+        self._is_not_suspended.set()
+        self._suspension_reached = threading.Event()
+        self._is_not_asleep = threading.Event()
+        self._is_not_asleep.set()
+        self.suspension_timeout = None
         super(KillableThread, self).__init__(group, target, name, args, kwargs)
 
-    def isCanceled(self):
+    def should_cancel(self):
         """
-        Returns True if the thread is stopped
+        Returns True if the thread should be stopped immediately
         """
-        if self._canceled or xbmc.abortRequested:
-            return True
-        return False
+        return self._canceled or app.APP.stop_pkc
 
-    def abort(self):
+    def cancel(self):
         """
-        Call to stop this thread
+        Call from another thread to stop this current thread
         """
         self._canceled = True
+        # Make sure thread is running in order to exit quickly
+        self._is_not_asleep.set()
+        self._is_not_suspended.set()
 
-    def suspend(self, block=False):
+    def should_suspend(self):
         """
-        Call to suspend this thread
+        Returns True if the current thread should be suspended immediately
         """
+        return self._suspended
+
+    def suspend(self, block=False, timeout=None):
+        """
+        Call from another thread to suspend the current thread. Provide a
+        timeout [float] in seconds optionally. block=True will block the caller
+        until the thread-to-be-suspended is indeed suspended
+        Will wake a thread that is asleep!
+        """
+        self.suspension_timeout = timeout
         self._suspended = True
+        self._is_not_suspended.clear()
+        # Make sure thread wakes up in order to suspend
+        self._is_not_asleep.set()
         if block:
-            while not self.suspend_reached:
-                LOG.debug('Waiting for thread to suspend: %s', self)
-                if app.APP.monitor.waitForAbort(0.1):
-                    return
+            self._suspension_reached.wait()
 
     def resume(self):
         """
-        Call to revive a suspended thread back to life
+        Call from another thread to revive a suspended or asleep current thread
+        back to life
         """
         self._suspended = False
+        self._is_not_asleep.set()
+        self._is_not_suspended.set()
 
     def wait_while_suspended(self):
         """
         Blocks until thread is not suspended anymore or the thread should
-        exit.
-        Returns True only if the thread should exit (=isCanceled())
+        exit or for a period of self.suspension_timeout (set by the caller of
+        suspend())
+        Returns the value of should_cancel()
         """
-        while self.isSuspended():
-            try:
-                self.suspend_reached = True
-                # Set in service.py
-                if self.isCanceled():
-                    # Abort was requested while waiting. We should exit
-                    return True
-                if app.APP.monitor.waitForAbort(0.1):
-                    return True
-            finally:
-                self.suspend_reached = False
-        return self.isCanceled()
+        self._suspension_reached.set()
+        self._is_not_suspended.wait(self.suspension_timeout)
+        self._suspension_reached.clear()
+        return self.should_cancel()
 
-    def isSuspended(self):
+    def is_suspended(self):
         """
-        Returns True if the thread is suspended
+        Check from another thread whether the current thread is suspended
         """
-        return self._suspended
+        return self._suspension_reached.is_set()
+
+    def sleep(self, timeout):
+        """
+        Only call from the current thread in order to sleep for a period of
+        timeout [float, seconds]. Will unblock immediately if thread should
+        cancel (should_cancel()) or the thread should_suspend
+        """
+        self._is_not_asleep.clear()
+        self._is_not_asleep.wait(timeout)
+        self._is_not_asleep.set()
+
+    def is_asleep(self):
+        """
+        Check from another thread whether the current thread is asleep
+        """
+        return not self._is_not_asleep.is_set()
+
+    def unblock_callers(self):
+        """
+        Ensures that any other thread that requested this thread's suspension
+        is released
+        """
+        self._suspension_reached.set()
+
+
+class ProcessingQueue(Queue.Queue, object):
+    """
+    Queue of queues that processes a queue completely before moving on to the
+    next queue. There's one queue per Section(). You need to initialize each
+    section with add_section(section) first.
+    Put tuples (count, item) into this queue, with count being the respective
+    position of the item in the queue, starting with 0 (zero).
+    (None, None) is the sentinel for a single queue being exhausted, added by
+    add_sentinel()
+    """
+    def _init(self, maxsize):
+        self.queue = deque()
+        self._sections = deque()
+        self._queues = deque()
+        self._current_section = None
+        self._current_queue = None
+        # Item-index for the currently active queue
+        self._counter = 0
+
+    def _qsize(self):
+        return self._current_queue._qsize() if self._current_queue else 0
+
+    def _total_qsize(self):
+        return sum(q._qsize() for q in self._queues) if self._queues else 0
+
+    def put(self, item, block=True, timeout=None):
+        """
+        PKC customization of Queue.put. item needs to be the tuple
+            (count [int], {'section': [Section], 'xml': [etree xml]})
+        """
+        self.not_full.acquire()
+        try:
+            if self.maxsize > 0:
+                if not block:
+                    if self._total_qsize() == self.maxsize:
+                        raise Queue.Full
+                elif timeout is None:
+                    while self._total_qsize() == self.maxsize:
+                        self.not_full.wait()
+                elif timeout < 0:
+                    raise ValueError("'timeout' must be a non-negative number")
+                else:
+                    endtime = _time() + timeout
+                    while self._total_qsize() == self.maxsize:
+                        remaining = endtime - _time()
+                        if remaining <= 0.0:
+                            raise Queue.Full
+                        self.not_full.wait(remaining)
+            self._put(item)
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
+        finally:
+            self.not_full.release()
+
+    def _put(self, item):
+        for i, section in enumerate(self._sections):
+            if item[1]['section'] == section:
+                self._queues[i]._put(item)
+                break
+        else:
+            raise RuntimeError('Could not find section for item %s' % item[1])
+
+    def add_sentinel(self, section):
+        """
+        Adds a new empty section as a sentinel. Call with an empty Section()
+        object. Call this method immediately after having added all sections
+        with add_section().
+        Once the get()-method returns None, you've received the sentinel and
+        you've thus exhausted the queue
+        """
+        self.not_full.acquire()
+        try:
+            section.number_of_items = 1
+            self._add_section(section)
+            # Add the actual sentinel to the queue we just added
+            self._queues[-1]._put((None, None))
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
+        finally:
+            self.not_full.release()
+
+    def add_section(self, section):
+        """
+        Add a new Section() to this Queue. Each section will be entirely
+        processed before moving on to the next section.
+
+        Be sure to set section.number_of_items correctly as it will signal
+        when processing is completely done for a specific section!
+        """
+        self.mutex.acquire()
+        try:
+            self._add_section(section)
+        finally:
+            self.mutex.release()
+
+    def _add_section(self, section):
+        self._sections.append(section)
+        self._queues.append(
+            OrderedQueue() if section.plex_type == v.PLEX_TYPE_ALBUM
+            else Queue.Queue())
+        if self._current_section is None:
+            self._activate_next_section()
+
+    def _init_next_section(self):
+        """
+        Call only when a section has been completely exhausted
+        """
+        self._sections.popleft()
+        self._queues.popleft()
+        self._activate_next_section()
+
+    def _activate_next_section(self):
+        self._counter = 0
+        self._current_section = self._sections[0] if self._sections else None
+        self._current_queue = self._queues[0] if self._queues else None
+
+    def _get(self):
+        item = self._current_queue._get()
+        self._counter += 1
+        if self._counter == self._current_section.number_of_items:
+            self._init_next_section()
+        return item[1]
 
 
 class OrderedQueue(Queue.PriorityQueue, object):
@@ -147,58 +246,24 @@ class OrderedQueue(Queue.PriorityQueue, object):
         (index, item)
     where index=-1 is the item that will be returned first. The Queue will block
     until index=-1, 0, 1, 2, 3, ... is then made available
+
+    maxsize will be rather fuzzy, as _qsize returns 0 if we're still waiting
+    for the next smalles index. put() thus might not block always when it
+    should.
     """
     def __init__(self, maxsize=0):
+        self.next_index = 0
         super(OrderedQueue, self).__init__(maxsize)
-        self.smallest = -1
-        self.not_next_item = threading.Condition(self.mutex)
 
-    def _put(self, item, heappush=heapq.heappush):
-        heappush(self.queue, item)
-        if item[0] == self.smallest:
-            self.not_next_item.notify()
-
-    def get(self, block=True, timeout=None):
-        """Remove and return an item from the queue.
-
-        If optional args 'block' is true and 'timeout' is None (the default),
-        block if necessary until an item is available. If 'timeout' is
-        a non-negative number, it blocks at most 'timeout' seconds and raises
-        the Empty exception if no item was available within that time.
-        Otherwise ('block' is false), return an item if one is immediately
-        available, else raise the Empty exception ('timeout' is ignored
-        in that case).
-        """
-        self.not_empty.acquire()
+    def _qsize(self, len=len):
         try:
-            if not block:
-                if not self._qsize() or self.queue[0][0] != self.smallest:
-                    raise Queue.Empty
-            elif timeout is None:
-                while not self._qsize():
-                    self.not_empty.wait()
-                while self.queue[0][0] != self.smallest:
-                    self.not_next_item.wait()
-            elif timeout < 0:
-                raise ValueError("'timeout' must be a non-negative number")
-            else:
-                endtime = Queue._time() + timeout
-                while not self._qsize():
-                    remaining = endtime - Queue._time()
-                    if remaining <= 0.0:
-                        raise Queue.Empty
-                    self.not_empty.wait(remaining)
-                while self.queue[0][0] != self.smallest:
-                    remaining = endtime - Queue._time()
-                    if remaining <= 0.0:
-                        raise Queue.Empty
-                    self.not_next_item.wait(remaining)
-            item = self._get()
-            self.smallest += 1
-            self.not_full.notify()
-            return item
-        finally:
-            self.not_empty.release()
+            return len(self.queue) if self.queue[0][0] == self.next_index else 0
+        except IndexError:
+            return 0
+
+    def _get(self, heappop=heapq.heappop):
+        self.next_index += 1
+        return heappop(self.queue)
 
 
 class Tasks(list):
@@ -239,11 +304,16 @@ class Task(object):
     def cancel(self):
         self._canceled = True
 
-    def isCanceled(self):
+    def should_cancel(self):
         return self._canceled or xbmc.abortRequested
 
     def isValid(self):
         return not self.finished and not self._canceled
+
+
+class ShutdownSentinel(Task):
+    def run(self):
+        pass
 
 
 class FunctionAsTask(Task):
@@ -272,7 +342,7 @@ class MutablePriorityQueue(Queue.PriorityQueue):
             lowest = self.queue and min(self.queue) or None
         except Exception:
             lowest = None
-            utils.ERROR()
+            utils.ERROR(notify=True)
         finally:
             self.mutex.release()
         return lowest
@@ -293,7 +363,7 @@ class BackgroundWorker(object):
         try:
             task._run()
         except Exception:
-            utils.ERROR()
+            utils.ERROR(notify=True)
 
     def abort(self):
         self._abort = True
@@ -323,13 +393,13 @@ class BackgroundWorker(object):
         except Queue.Empty:
             LOG.debug('(%s): Idle', self.name)
 
-    def shutdown(self):
+    def shutdown(self, block=True):
         self.abort()
 
         if self._task:
             self._task.cancel()
 
-        if self._thread and self._thread.isAlive():
+        if block and self._thread and self._thread.isAlive():
             LOG.debug('thread (%s): Waiting...', self.name)
             self._thread.join()
             LOG.debug('thread (%s): Done', self.name)
@@ -344,16 +414,17 @@ class NonstoppingBackgroundWorker(BackgroundWorker):
         super(NonstoppingBackgroundWorker, self).__init__(queue, name)
 
     def _queueLoop(self):
+        LOG.debug('Starting Worker %s', self.name)
         while not self.aborted():
-            try:
-                self._task = self._queue.get_nowait()
-                self._working = True
-                self._runTask(self._task)
-                self._working = False
-                self._queue.task_done()
-                self._task = None
-            except Queue.Empty:
-                app.APP.monitor.waitForAbort(0.05)
+            self._task = self._queue.get()
+            if self._task is ShutdownSentinel:
+                break
+            self._working = True
+            self._runTask(self._task)
+            self._working = False
+            self._queue.task_done()
+            self._task = None
+        LOG.debug('Exiting Worker %s', self.name)
 
     def working(self):
         return self._working
@@ -365,7 +436,10 @@ class BackgroundThreader:
         self._queue = MutablePriorityQueue()
         self._abort = False
         self.priority = -1
-        self.workers = [worker(self._queue, 'queue.{0}:worker.{1}'.format(self.name, x)) for x in range(worker_count)]
+        self.workers = [
+            worker(self._queue, 'queue.{0}:worker.{1}'.format(self.name, x))
+            for x in range(worker_count)
+        ]
 
     def _nextPriority(self):
         self.priority += 1
@@ -380,11 +454,11 @@ class BackgroundThreader:
     def aborted(self):
         return self._abort or xbmc.abortRequested
 
-    def shutdown(self):
+    def shutdown(self, block=True):
         self.abort()
-
+        self.addTasksToFront([ShutdownSentinel() for _ in self.workers])
         for w in self.workers:
-            w.shutdown()
+            w.shutdown(block)
 
     def addTask(self, task):
         task.priority = self._nextPriority()
@@ -437,7 +511,9 @@ class BackgroundThreader:
 
 
 class ThreaderManager:
-    def __init__(self, worker=BackgroundWorker, worker_count=6):
+    def __init__(self,
+                 worker=NonstoppingBackgroundWorker,
+                 worker_count=WORKER_COUNT):
         self.index = 0
         self.abandoned = []
         self._workerhandler = worker
@@ -457,10 +533,10 @@ class ThreaderManager:
         self.threader = BackgroundThreader(name=str(self.index),
                                            worker=self._workerhandler)
 
-    def shutdown(self):
-        self.threader.shutdown()
+    def shutdown(self, block=True):
+        self.threader.shutdown(block)
         for a in self.abandoned:
-            a.shutdown()
+            a.shutdown(block)
 
 
 BGThreader = ThreaderManager()
