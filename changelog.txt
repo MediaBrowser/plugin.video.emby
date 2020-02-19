@@ -1,3 +1,6 @@
+version 2.10.12:
+- versions 2.10.5-11 for everyone
+
 version 2.10.11 (beta only):
 - Fix yet another rare but annoying bug where PKC becomes unresponsive during sync 
 
