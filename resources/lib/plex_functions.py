@@ -846,27 +846,30 @@ def _pms_https_enabled(url):
 
     Prefers HTTPS over HTTP
     """
-    res = DU().downloadUrl('https://%s/identity' % url,
-                           authenticate=False,
-                           verifySSL=True if v.KODIVERSION >= 18 else False)
+    # Try HTTPS first
     try:
-        res.attrib
-    except AttributeError:
-        # Might have SSL deactivated. Try with http
-        res = DU().downloadUrl('http://%s/identity' % url,
-                               authenticate=False,
-                               verifySSL=True if v.KODIVERSION >= 18 else False)
-        try:
-            res.attrib
-        except AttributeError:
-            LOG.error("Could not contact PMS %s", url)
-            return None
-        else:
-            # Received a valid XML. Server wants to talk HTTP
-            return False
+        DU().downloadUrl('https://%s/identity' % url,
+                         authenticate=False,
+                         reraise=True)
+    except exceptions.SSLError:
+        LOG.debug('SSLError trying to connect to https://%s/identity', url)
+    except Exception as e:
+        LOG.info('Couldnt check https connection to https://%s/identity: %s',
+                 url, e)
     else:
-        # Received a valid XML. Server wants to talk HTTPS
         return True
+
+    # Try HTTP next
+    try:
+        DU().downloadUrl('http://%s/identity' % url,
+                         authenticate=False,
+                         reraise=True)
+    except Exception as e:
+        LOG.info('Couldnt check http connection to http://%s/identity: %s',
+                 url, e)
+        return
+    else:
+        return False
 
 
 def GetMachineIdentifier(url):
