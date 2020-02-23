@@ -89,6 +89,7 @@
 - Improve PKC automatically connecting to local PMS
 - Ensure that our only video transcoding target is h264 
 - Fix adjusted subtitle size not working when burning in subtitles
+- Fix regression: burn-in subtitles picking up the last user setting instead of the current one
 
 version 2.10.12:
 - versions 2.10.5-11 for everyone

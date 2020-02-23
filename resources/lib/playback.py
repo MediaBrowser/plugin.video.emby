@@ -451,6 +451,11 @@ def _conclude_playback(playqueue, pos):
     LOG.debug('Concluding playback for playqueue position %s', pos)
     item = playqueue.items[pos]
     api = API(item.xml)
+    if api.mediastream_number() is None:
+        # E.g. user could choose between several media streams and cancelled
+        LOG.debug('Did not get a mediastream_number')
+        _ensure_resolve()
+        return
     api.part = item.part or 0
     listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
     set_playurl(api, item)
@@ -464,6 +469,9 @@ def _conclude_playback(playqueue, pos):
     elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
                              v.PLAYBACK_METHOD_TRANSCODE):
         audio_subtitle_prefs(api, listitem)
+        # Need to hit the PMS api again in order to get the selected
+        # burn-in subtitles set-up correctly
+        set_playurl(api, item)
     transfer.send(listitem)
     LOG.debug('Done concluding playback')
 

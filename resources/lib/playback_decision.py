@@ -19,9 +19,6 @@ CONVERSION_OK = 1001  # PMS can either direct stream or transcode
 
 
 def set_playurl(api, item):
-    if api.mediastream_number() is None:
-        # E.g. user could choose between several media streams and cancelled
-        return
     item.playmethod = int(utils.settings('playType'))
     LOG.info('User chose playback method %s in PKC settings',
              v.EXPLICIT_PLAYBACK_METHOD[item.playmethod])
@@ -420,19 +417,21 @@ def audio_subtitle_prefs(api, listitem):
     # Enable Kodi to switch autonomously to downloadable subtitles
     if download_subs:
         listitem.setSubtitles(download_subs)
+    select_subs_index = ''
     if sub_num == 1:
+        # Note: we DO need to tell the PMS that we DONT want any sub
+        # Otherwise, the PMS might pick-up the last one
         LOG.debug('No subtitles to burn-in')
-        return
-
-    resp = utils.dialog('select', utils.lang(33014), subtitle_streams)
-    if resp < 1:
-        # User did not select a subtitle or backed out of the dialog
-        LOG.debug('User chose to not burn-in any subtitles')
-        return
-    select_subs_index = subtitle_streams_list[resp - 1]
-    LOG.debug('User chose to burn-in subtitle %s: %s',
-              select_subs_index,
-              subtitle_streams[resp].decode('utf-8'))
+    else:
+        resp = utils.dialog('select', utils.lang(33014), subtitle_streams)
+        if resp < 1:
+            # User did not select a subtitle or backed out of the dialog
+            LOG.debug('User chose to not burn-in any subtitles')
+        else:
+            LOG.debug('User chose to burn-in subtitle %s: %s',
+                      select_subs_index,
+                      subtitle_streams[resp].decode('utf-8'))
+            select_subs_index = subtitle_streams_list[resp - 1]
     # Now prep the PMS for our choice
     args = {
         'subtitleStreamID': select_subs_index,
