@@ -1078,7 +1078,7 @@ def transcoding_arguments(path, media, part, playmethod, args=None):
         # none, embedded, sidecar
         # Essentially indicating what you want to do with subtitles and state
         # you aren’t want it to burn them into the video (requires transcoding)
-        'subtitles': 'none',
+        # 'subtitles': 'none',
         # 'subtitleSize': utils.settings('subtitleSize')
         'copyts': 1
     }
