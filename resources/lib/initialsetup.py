@@ -241,20 +241,18 @@ class InitialSetup(object):
         """
         Checks for server's connectivity. Returns check_connection result
         """
-        # Re-direct via plex if remote - will lead to the correct SSL
-        # certificate
         if server['local']:
-            url = ('%s://%s:%s'
-                   % (server['scheme'], server['ip'], server['port']))
             # Deactive SSL verification if the server is local for Kodi 17
             verifySSL = True if v.KODIVERSION >= 18 else False
         else:
-            url = server['baseURL']
             verifySSL = True
-        chk = PF.check_connection(url,
-                                  token=server['token'],
-                                  verifySSL=verifySSL)
-        return chk
+        if not server['token']:
+            # Plex GDM: we only get the token from plex.tv after
+            # Sign-in to plex.tv
+            server['token'] = utils.settings('plexToken') or None
+        return PF.check_connection(server['baseURL'],
+                                   token=server['token'],
+                                   verifySSL=verifySSL)
 
     def pick_pms(self, showDialog=False, inform_of_search=False):
         """

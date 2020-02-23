@@ -210,22 +210,29 @@ def discover_pms(token=None):
             if pms['machineIdentifier'] == plex_pms['machineIdentifier']:
                 break
         else:
-            # Only found PMS using GDM - add it to the PMS from plex.tv
-            https = _pms_https_enabled('%s:%s' % (pms['ip'], pms['port']))
-            if https is None:
-                # Error contacting url. Skip and ignore this PMS for now
-                LOG.error('Could not contact PMS %s but we should have', pms)
-                continue
-            elif https is True:
-                pms['scheme'] = 'https'
-            else:
-                pms['scheme'] = 'http'
-            pms['baseURL'] = '%s://%s:%s' % (pms['scheme'],
-                                             pms['ip'],
-                                             pms['port'])
+            # Only found PMS using GDM. Check whether we can use baseURL
+            # (which is in a different format) or need to connect directly
+            if not _correct_baseurl(pms,
+                                    '%s:%s' % (pms['baseURL'], pms['port'])):
+                if not _correct_baseurl(pms,
+                                        '%s:%s' % (pms['ip'], pms['port'])):
+                    continue
             plex_pms_list.append(pms)
     _log_pms(plex_pms_list)
     return plex_pms_list
+
+
+def _correct_baseurl(pms, url):
+    https = _pms_https_enabled(url)
+    if https is None:
+        # Error contacting url
+        return False
+    elif https is True:
+        pms['scheme'] = 'https'
+    else:
+        pms['scheme'] = 'http'
+    pms['baseURL'] = '%s://%s' % (pms['scheme'], url)
+    return True
 
 
 def _log_pms(pms_list):
@@ -846,27 +853,30 @@ def _pms_https_enabled(url):
 
     Prefers HTTPS over HTTP
     """
-    res = DU().downloadUrl('https://%s/identity' % url,
-                           authenticate=False,
-                           verifySSL=True if v.KODIVERSION >= 18 else False)
+    # Try HTTPS first
     try:
-        res.attrib
-    except AttributeError:
-        # Might have SSL deactivated. Try with http
-        res = DU().downloadUrl('http://%s/identity' % url,
-                               authenticate=False,
-                               verifySSL=True if v.KODIVERSION >= 18 else False)
-        try:
-            res.attrib
-        except AttributeError:
-            LOG.error("Could not contact PMS %s", url)
-            return None
-        else:
-            # Received a valid XML. Server wants to talk HTTP
-            return False
+        DU().downloadUrl('https://%s/identity' % url,
+                         authenticate=False,
+                         reraise=True)
+    except exceptions.SSLError:
+        LOG.debug('SSLError trying to connect to https://%s/identity', url)
+    except Exception as e:
+        LOG.info('Couldnt check https connection to https://%s/identity: %s',
+                 url, e)
     else:
-        # Received a valid XML. Server wants to talk HTTPS
         return True
+
+    # Try HTTP next
+    try:
+        DU().downloadUrl('http://%s/identity' % url,
+                         authenticate=False,
+                         reraise=True)
+    except Exception as e:
+        LOG.info('Couldnt check http connection to http://%s/identity: %s',
+                 url, e)
+        return
+    else:
+        return False
 
 
 def GetMachineIdentifier(url):
