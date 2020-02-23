@@ -337,8 +337,8 @@ def audio_subtitle_prefs(api, listitem):
     audio_streams_list = []
     audio_streams = []
     subtitle_streams_list = []
-    # No subtitles as an option
-    subtitle_streams = [utils.lang(39706)]
+    # "Don't burn-in any subtitle"
+    subtitle_streams = ['1 %s' % utils.lang(39706)]
     downloadable_streams = []
     download_subs = []
     # selectAudioIndex = ""
@@ -346,7 +346,6 @@ def audio_subtitle_prefs(api, listitem):
     audio_numb = 0
     # Remember 'no subtitles'
     sub_num = 1
-    default_sub = None
 
     for stream in mediastreams:
         # Since Plex returns all possible tracks together, have to sort
@@ -373,21 +372,11 @@ def audio_subtitle_prefs(api, listitem):
 
         # Subtitles
         elif typus == "3":
-            try:
-                track = '{} {}'.format(sub_num, stream.attrib['displayTitle'])
-            except KeyError:
-                track = '{} {} ({})'.format(sub_num + 1,
-                                            utils.lang(39707),  # unknown
-                                            stream.get('codec'))
-            default = stream.get('default')
-            forced = stream.get('forced')
             downloadable = stream.get('key')
-
-            if default:
-                track = "%s - %s" % (track, utils.lang(39708))  # Default
-            if forced:
-                track = "%s - %s" % (track, utils.lang(39709))  # Forced
             if downloadable:
+                # Download the subtitle to Kodi - the user will need to
+                # manually select the subtitle on the Kodi side
+                # Hence do NOT show dialog for this sub
                 path = api.download_external_subtitles(
                     '{{server}}{}'.format(stream.get('key')),
                     stream.get('displayTitle'),
@@ -396,15 +385,24 @@ def audio_subtitle_prefs(api, listitem):
                     downloadable_streams.append(index)
                     download_subs.append(path.encode('utf-8'))
             else:
+                # Burn in the subtitle, if user chooses to do so
+                default = stream.get('default')
+                forced = stream.get('forced')
+                try:
+                    track = '{} {}'.format(sub_num + 1,
+                                           stream.attrib['displayTitle'])
+                except KeyError:
+                    track = '{} {} ({})'.format(sub_num + 1,
+                                                utils.lang(39707),  # unknown
+                                                stream.get('codec'))
+                if default:
+                    track = "%s - %s" % (track, utils.lang(39708))  # Default
+                if forced:
+                    track = "%s - %s" % (track, utils.lang(39709))  # Forced
                 track = "%s (%s)" % (track, utils.lang(39710))  # burn-in
-            if stream.get('selected') == '1' and downloadable:
-                # Only show subs without asking user if they can be
-                # turned off
-                default_sub = index
-
-            subtitle_streams_list.append(index)
-            subtitle_streams.append(track.encode('utf-8'))
-            sub_num += 1
+                subtitle_streams_list.append(index)
+                subtitle_streams.append(track.encode('utf-8'))
+                sub_num += 1
 
     if audio_numb > 1:
         resp = utils.dialog('select', utils.lang(33013), audio_streams)
@@ -418,30 +416,23 @@ def audio_subtitle_prefs(api, listitem):
                              action_type='PUT',
                              parameters=args)
 
-    if sub_num == 1:
-        # No subtitles
-        return
-
-    select_subs_index = None
-    if (utils.settings('pickPlexSubtitles') == 'true' and
-            default_sub is not None):
-        LOG.info('Using default Plex subtitle: %s', default_sub)
-        select_subs_index = default_sub
-    else:
-        resp = utils.dialog('select', utils.lang(33014), subtitle_streams)
-        if resp > 0:
-            select_subs_index = subtitle_streams_list[resp - 1]
-        else:
-            # User selected no subtitles or backed out of dialog
-            select_subs_index = ''
-
-    LOG.debug('Adding external subtitles: %s', download_subs)
+    LOG.debug('Adding downloadable subtitles: %s', download_subs)
     # Enable Kodi to switch autonomously to downloadable subtitles
     if download_subs:
         listitem.setSubtitles(download_subs)
-    # Don't additionally burn in subtitles
-    if select_subs_index in downloadable_streams:
-        select_subs_index = ''
+    if sub_num == 1:
+        LOG.debug('No subtitles to burn-in')
+        return
+
+    resp = utils.dialog('select', utils.lang(33014), subtitle_streams)
+    if resp < 1:
+        # User did not select a subtitle or backed out of the dialog
+        LOG.debug('User chose to not burn-in any subtitles')
+        return
+    select_subs_index = subtitle_streams_list[resp - 1]
+    LOG.debug('User chose to burn-in subtitle %s: %s',
+              select_subs_index,
+              subtitle_streams[resp].decode('utf-8'))
     # Now prep the PMS for our choice
     args = {
         'subtitleStreamID': select_subs_index,
