@@ -1085,13 +1085,15 @@ def transcoding_arguments(path, media, part, playmethod, args=None):
         'protocol': 'hls',   # seen in the wild: 'http', 'dash', 'http', 'hls'
         'session': v.PKC_MACHINE_IDENTIFIER,  # TODO: create new unique id
         'fastSeek': 1,
-        # none, embedded, sidecar
-        # Essentially indicating what you want to do with subtitles and state
-        # you aren’t want it to burn them into the video (requires transcoding)
-        # 'subtitles': 'none',
-        'subtitleSize': utils.settings('subtitleSize'),
         'copyts': 1
     }
+    if playmethod != v.PLAYBACK_METHOD_TRANSCODE:
+        # Essentially indicating what you want to do with subtitles and state
+        # you aren’t want it to burn them into the video (requires transcoding)
+        # none, embedded, sidecar
+        args['subtitles'] = 'none'
+    else:
+        args['subtitleSize'] = utils.settings('subtitleSize')
     if args:
         arguments.update(args)
     return arguments
