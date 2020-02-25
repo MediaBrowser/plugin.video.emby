@@ -34,9 +34,12 @@ def set_playurl(api, item):
     LOG.info('Lets ask the PMS next')
     try:
         _pms_playback_decision(api, item)
-    except (exceptions.RequestException, AttributeError, IndexError, SystemExit) as err:
+    except (exceptions.RequestException,
+            AttributeError,
+            IndexError,
+            SystemExit):
         LOG.warn('Could not find suitable settings for playback, aborting')
-        LOG.warn('Error received: %s', err)
+        utils.ERROR(notify=True)
         item.playmethod = None
         item.file = None
     else:
