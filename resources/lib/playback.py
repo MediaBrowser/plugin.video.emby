@@ -12,16 +12,10 @@ import xbmc
 
 from .plex_api import API
 from .plex_db import PlexDB
-from . import plex_functions as PF
-from . import utils
 from .kodi_db import KodiVideoDB
-from . import playlist_func as PL
-from . import playqueue as PQ
-from . import json_rpc as js
-from . import transfer
-from .playback_decision import set_playurl, audio_subtitle_prefs
-from . import variables as v
-from . import app
+from . import plex_functions as PF, playlist_func as PL, playqueue as PQ
+from . import json_rpc as js, variables as v, utils, transfer
+from . import playback_decision, app
 
 ###############################################################################
 LOG = getLogger('PLEX.playback')
@@ -457,21 +451,20 @@ def _conclude_playback(playqueue, pos):
         _ensure_resolve()
         return
     api.part = item.part or 0
-    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
-    set_playurl(api, item)
-    if not item.file:
-        LOG.debug('Did not get a playurl, aborting playback silently')
+    playback_decision.set_pkc_playmethod(api, item)
+    if not playback_decision.audio_subtitle_prefs(api, item):
+        LOG.info('Did not set audio subtitle prefs, aborting silently')
         _ensure_resolve()
         return
+    playback_decision.set_playurl(api, item)
+    if not item.file:
+        LOG.info('Did not get a playurl, aborting playback silently')
+        _ensure_resolve()
+        return
+    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
     listitem.setPath(item.file.encode('utf-8'))
-    if item.playmethod == v.PLAYBACK_METHOD_DIRECT_PLAY:
+    if item.playmethod != v.PLAYBACK_METHOD_DIRECT_PATH:
         listitem.setSubtitles(api.cache_external_subs())
-    elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
-                             v.PLAYBACK_METHOD_TRANSCODE):
-        audio_subtitle_prefs(api, listitem)
-        # Need to hit the PMS api again in order to get the selected
-        # burn-in subtitles set-up correctly
-        set_playurl(api, item)
     transfer.send(listitem)
     LOG.debug('Done concluding playback')
 
