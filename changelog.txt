@@ -1,3 +1,6 @@
+version 2.11.1 (beta only):
+- Rewire the set-up of audio and subtitle streams, esp. before starting a transcoding session. Fixes playback not starting at all
+
 version 2.11.0 (beta only):
 - Fix PKC not burning in (and thus not showing) subtitles when transcoding
 - When transcoding, only let user choose to burn-in subtitles that can't be displayed otherwise by Kodi
