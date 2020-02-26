@@ -350,7 +350,7 @@ def _prep_playlist_stack(xml, resume):
             api.part = part
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
-                path = api.path(force_addon=True, force_first_media=True)
+                path = api.fullpath(force_addon=True)[0]
                 # Using different paths than the ones saved in the Kodi DB
                 # fixes Kodi immediately resuming the video if one restarts
                 # the same video again after playback
