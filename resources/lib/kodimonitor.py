@@ -575,7 +575,7 @@ def _notify_upnext(item):
                                full_artwork=True)
         }
         _complete_artwork_keys(info[key])
-    info['play_info'] = {'handle': next_api.path(force_addon=True)}
+    info['play_info'] = {'handle': next_api.fullpath(force_addon=True)[0]}
     sender = v.ADDON_ID.encode('utf-8')
     method = 'upnext_data'.encode('utf-8')
     data = binascii.hexlify(json.dumps(info))

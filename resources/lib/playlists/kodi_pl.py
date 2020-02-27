@@ -117,21 +117,8 @@ def _write_playlist_to_file(playlist, xml):
     Returns None or raises PlaylistError
     """
     text = '#EXTCPlayListM3U::M3U\n'
-    for element in xml:
-        api = API(element)
-        if api.plex_type == v.PLEX_TYPE_EPISODE:
-            if api.season_number() is not None and api.index() is not None:
-                text += ('#EXTINF:%s,%s S%.2dE%.2d - %s\n%s\n'
-                         % (api.runtime(), api.show_title(),
-                            api.season_number(), api.index(),
-                            api.title(), api.path()))
-            else:
-                # Only append the TV show name
-                text += ('#EXTINF:%s,%s - %s\n%s\n'
-                         % (api.runtime(), api.show_title(), api.title(), api.path()))
-        else:
-            text += ('#EXTINF:%s,%s\n%s\n'
-                     % (api.runtime(), api.title(), api.path()))
+    for xml_element in xml:
+        text += _m3u_element(xml_element)
     text += '\n'
     text = text.encode(v.M3U_ENCODING, 'ignore')
     try:
@@ -142,3 +129,45 @@ def _write_playlist_to_file(playlist, xml):
         LOG.error('Error message %s: %s', err.errno, err.strerror)
         raise PlaylistError('Cannot write Kodi playlist to path for %s'
                             % playlist)
+
+
+def _m3u_element(xml_element):
+    api = API(xml_element)
+    if api.plex_type == v.PLEX_TYPE_EPISODE:
+        if api.season_number() is not None and api.index() is not None:
+            return '#EXTINF:{},{} S{:2d}E{:2d} - {}\n{}\n'.format(
+                    api.runtime(),
+                    api.show_title(),
+                    api.season_number(),
+                    api.index(),
+                    api.title(),
+                    api.fullpath(force_addon=True)[0])
+        else:
+            # Only append the TV show name
+            return '#EXTINF:{},{} - {}\n{}\n'.format(
+                api.runtime(),
+                api.show_title(),
+                api.title(),
+                api.fullpath(force_addon=True)[0])
+    elif api.plex_type == v.PLEX_TYPE_SONG:
+        if api.index() is not None:
+            return '#EXTINF:{},{:02d}. {} - {}\n{}\n'.format(
+                api.runtime(),
+                api.index(),
+                api.grandparent_title(),
+                api.title(),
+                api.fullpath(force_first_media=True,
+                             omit_check=True)[0])
+        else:
+            return '#EXTINF:{},{} - {}\n{}\n'.format(
+                api.runtime(),
+                api.grandparent_title(),
+                api.title(),
+                api.fullpath(force_first_media=True,
+                             omit_check=True)[0])
+    else:
+        return '#EXTINF:{},{}\n{}\n'.format(
+            api.runtime(),
+            api.title(),
+            api.fullpath(force_first_media=True,
+                         omit_check=True)[0])

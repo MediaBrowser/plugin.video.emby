@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase, process_path
 from ..plex_api import API
-from .. import plex_functions as PF, app, variables as v, utils
+from .. import plex_functions as PF, app, variables as v
 
 LOG = getLogger('PLEX.tvshows')
 
@@ -420,43 +420,22 @@ class Episode(TvShowMixin, ItemBase):
                 return
         parent_id = season['kodi_id'] if season else None
 
-        # GET THE FILE AND PATH #####
-        do_indirect = not app.SYNC.direct_paths
-        if app.SYNC.direct_paths:
-            playurl = api.file_path(force_first_media=True)
-            if playurl is None:
-                do_indirect = True
-            else:
-                playurl = api.validate_playurl(playurl, v.PLEX_TYPE_EPISODE)
-                if "\\" in playurl:
-                    # Local path
-                    filename = playurl.rsplit("\\", 1)[1]
-                else:
-                    # Network share
-                    filename = playurl.rsplit("/", 1)[1]
-                path = utils.rreplace(playurl, filename, "", 1)
-                parent_path_id = self.kodidb.parent_path_id(path)
-                kodi_pathid = self.kodidb.add_path(path,
-                                                   id_parent_path=parent_path_id)
-        if do_indirect:
-            # Set plugin path - do NOT use "intermediate" paths for the show
-            # as with direct paths!
-            filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.tvshows/%s/' % (v.ADDON_ID, api.show_id())
-            filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (path, plex_id, v.PLEX_TYPE_EPISODE, filename))
-            playurl = filename
+        fullpath, path, filename = api.fullpath()
+        if app.SYNC.direct_paths and not fullpath.startswith('http'):
+            parent_path_id = self.kodidb.parent_path_id(path)
+            kodi_pathid = self.kodidb.add_path(path,
+                                               id_parent_path=parent_path_id)
+        else:
             # Root path tvshows/ already saved in Kodi DB
             kodi_pathid = self.kodidb.add_path(path)
-            if not app.SYNC.direct_paths:
-                # need to set a 2nd file entry for a path without plex show id
-                # This fixes e.g. context menu and widgets working as they
-                # should
-                # A dirty hack, really
-                path_2 = 'plugin://%s.tvshows/' % v.ADDON_ID
-                # filename_2 is exactly the same as filename
-                # so WITH plex show id!
-                kodi_pathid_2 = self.kodidb.add_path(path_2)
+            # need to set a 2nd file entry for a path without plex show id
+            # This fixes e.g. context menu and widgets working as they
+            # should
+            # A dirty hack, really
+            path_2 = 'plugin://%s.tvshows/' % v.ADDON_ID
+            # filename_2 is exactly the same as filename
+            # so WITH plex show id!
+            kodi_pathid_2 = self.kodidb.add_path(path_2)
 
         # UPDATE THE EPISODE #####
         if update_item:
@@ -512,7 +491,7 @@ class Episode(TvShowMixin, ItemBase):
                                        api.title(),
                                        airs_before_season,
                                        airs_before_episode,
-                                       playurl,
+                                       fullpath,
                                        kodi_pathid,
                                        uniqueid,
                                        kodi_fileid,  # and NOT kodi_fileid_2
@@ -594,7 +573,7 @@ class Episode(TvShowMixin, ItemBase):
                                     grandparent_id,
                                     airs_before_season,
                                     airs_before_episode,
-                                    playurl,
+                                    fullpath,
                                     kodi_pathid,
                                     uniqueid,
                                     parent_id,
