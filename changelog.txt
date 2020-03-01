@@ -1,3 +1,6 @@
+version 2.11.3 (beta only):
+- Fix TypeError: 'NoneType' object has no attribute '__getitem__', e.g. when displaying albums
+
 version 2.11.2 (beta only):
 - Refactor direct and add-on paths. Enables use of Plex music playlists synched to Kodi
 
