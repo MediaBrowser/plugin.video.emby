@@ -69,22 +69,18 @@ class File(object):
                         % self.grandparent_id())
             else:
                 path = 'plugin://%s/' % v.ADDON_TYPE[self.plex_type]
-            if self.plex_type in (v.PLEX_TYPE_MOVIE,
-                                  v.PLEX_TYPE_CLIP,
-                                  v.PLEX_TYPE_EPISODE):
-                # Filename in Kodi will end with actual filename - hopefully
-                # this is useful for other add-ons
-                filename = self.file_path(force_first_media=force_first_media)
-                try:
-                    if '/' in filename:
-                        filename = filename.rsplit('/', 1)[1]
-                    else:
-                        filename = filename.rsplit('\\', 1)[1]
-                except (TypeError, IndexError):
-                    return
+            # Filename in Kodi will end with actual filename - hopefully
+            # this is useful for other add-ons
+            filename = self.file_path(force_first_media=force_first_media)
+            if filename:
+                if '/' in filename:
+                    filename = filename.rsplit('/', 1)[1]
+                else:
+                    filename = filename.rsplit('\\', 1)[1]
                 entirepath = ('%s?mode=play&plex_id=%s&plex_type=%s&filename=%s'
                         % (path, self.plex_id, self.plex_type, filename))
             else:
+                # E.g. clips or albums
                 entirepath = ('%s?mode=play&plex_id=%s&plex_type=%s'
                         % (path, self.plex_id, self.plex_type))
             # For Kodi DB, we need to safe the ENTIRE path for filenames
