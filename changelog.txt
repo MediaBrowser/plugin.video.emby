@@ -1,3 +1,6 @@
+version 2.11.5:
+- Versions 2.11.0-2.11.4 for everyone
+
 version 2.11.4 (beta only):
 - Fix another TypeError: 'NoneType' object has no attribute '__getitem__', e.g. when trying to play trailers
 
