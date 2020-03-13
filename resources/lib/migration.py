@@ -84,4 +84,10 @@ def check_migration():
         from . import library_sync
         library_sync.force_full_sync()
 
+    if not utils.compare_version(last_migration, '2.11.3'):
+        LOG.info('Migrating to version 2.11.2')
+        # Re-sync all playlists to Kodi
+        from .playlists import remove_synced_playlists
+        remove_synced_playlists()
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)

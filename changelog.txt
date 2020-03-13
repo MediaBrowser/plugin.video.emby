@@ -1,3 +1,26 @@
+version 2.11.5:
+- Versions 2.11.0-2.11.4 for everyone
+
+version 2.11.4 (beta only):
+- Fix another TypeError: 'NoneType' object has no attribute '__getitem__', e.g. when trying to play trailers
+
+version 2.11.3 (beta only):
+- Fix TypeError: 'NoneType' object has no attribute '__getitem__', e.g. when displaying albums
+
+version 2.11.2 (beta only):
+- Refactor direct and add-on paths. Enables use of Plex music playlists synched to Kodi
+
+version 2.11.1 (beta only):
+- Rewire the set-up of audio and subtitle streams, esp. before starting a transcoding session. Fixes playback not starting at all
+
+version 2.11.0 (beta only):
+- Fix PKC not burning in (and thus not showing) subtitles when transcoding
+- When transcoding, only let user choose to burn-in subtitles that can't be displayed otherwise by Kodi
+- Improve PKC automatically connecting to local PMS
+- Ensure that our only video transcoding target is h264 
+- Fix adjusted subtitle size not working when burning in subtitles
+- Fix regression: burn-in subtitles picking up the last user setting instead of the current one
+
 version 2.10.12:
 - versions 2.10.5-11 for everyone
 

@@ -18,33 +18,36 @@ DIRECT_PLAY_OK = 1000
 CONVERSION_OK = 1001  # PMS can either direct stream or transcode
 
 
-def set_playurl(api, item):
-    if api.mediastream_number() is None:
-        # E.g. user could choose between several media streams and cancelled
-        return
+def set_pkc_playmethod(api, item):
     item.playmethod = int(utils.settings('playType'))
     LOG.info('User chose playback method %s in PKC settings',
              v.EXPLICIT_PLAYBACK_METHOD[item.playmethod])
     _initial_best_playback_method(api, item)
     LOG.info('PKC decided on playback method %s',
              v.EXPLICIT_PLAYBACK_METHOD[item.playmethod])
-    if item.playmethod == v.PLAYBACK_METHOD_DIRECT_PATH:
-        # No need to ask the PMS whether we can play - we circumvent
-        # the PMS entirely
-        LOG.info('The playurl for %s is: %s',
-                 v.EXPLICIT_PLAYBACK_METHOD[item.playmethod], item.file)
-        return
-    LOG.info('Lets ask the PMS next')
+
+
+def set_playurl(api, item):
     try:
-        _pms_playback_decision(api, item)
-    except (exceptions.RequestException, AttributeError, IndexError, SystemExit) as err:
-        LOG.warn('Could not find suitable settings for playback, aborting')
-        LOG.warn('Error received: %s', err)
-        item.playmethod = None
-        item.file = None
-    else:
-        item.file = api.transcode_video_path(item.playmethod,
-                                             quality=item.quality)
+        if item.playmethod == v.PLAYBACK_METHOD_DIRECT_PATH:
+            # No need to ask the PMS whether we can play - we circumvent
+            # the PMS entirely
+            return
+        LOG.info('Lets ask the PMS next')
+        try:
+            _pms_playback_decision(api, item)
+        except (exceptions.RequestException,
+                AttributeError,
+                IndexError,
+                SystemExit):
+            LOG.warn('Could not find suitable settings for playback, aborting')
+            utils.ERROR(notify=True)
+            item.playmethod = None
+            item.file = None
+        else:
+            item.file = api.transcode_video_path(item.playmethod,
+                                                 quality=item.quality)
+    finally:
         LOG.info('The playurl for %s is: %s',
                  v.EXPLICIT_PLAYBACK_METHOD[item.playmethod], item.file)
 
@@ -316,12 +319,16 @@ def _getH265():
     return H265[utils.settings('transcodeH265')]
 
 
-def audio_subtitle_prefs(api, listitem):
+def audio_subtitle_prefs(api, item):
     """
-    For transcoding only
+    Sets the stage for transcoding, letting the user potentially choose both
+    audio and subtitle streams; subtitle streams to burn-into the video file.
 
-    Called at the very beginning of play; used to change audio and subtitle
-    stream by a PUT request to the PMS
+    Uses a PUT request to the PMS, simulating e.g. the user using Plex Web,
+    choosing a different stream in the video's metadata and THEN initiating
+    playback.
+
+    Returns None if user cancelled or we need to abort, True otherwise
     """
     # Set media and part where we're at
     if (api.mediastream is None and
@@ -334,19 +341,26 @@ def audio_subtitle_prefs(api, listitem):
                   api.mediastream, api.part)
         return
     part_id = mediastreams.attrib['id']
+    if item.playmethod != v.PLAYBACK_METHOD_TRANSCODE:
+        LOG.debug('Telling PMS we are not burning in any subtitles')
+        args = {
+            'subtitleStreamID': 0,
+            'allParts': 1
+        }
+        DU().downloadUrl('{server}/library/parts/%s' % part_id,
+                         action_type='PUT',
+                         parameters=args)
+        return True
     audio_streams_list = []
     audio_streams = []
     subtitle_streams_list = []
-    # No subtitles as an option
-    subtitle_streams = [utils.lang(39706)]
-    downloadable_streams = []
-    download_subs = []
+    # "Don't burn-in any subtitle"
+    subtitle_streams = ['1 %s' % utils.lang(39706)]
     # selectAudioIndex = ""
     select_subs_index = ""
     audio_numb = 0
     # Remember 'no subtitles'
     sub_num = 1
-    default_sub = None
 
     for stream in mediastreams:
         # Since Plex returns all possible tracks together, have to sort
@@ -373,75 +387,61 @@ def audio_subtitle_prefs(api, listitem):
 
         # Subtitles
         elif typus == "3":
+            if stream.get('key'):
+                # Subtitle can and will be downloaded - don't let user choose
+                # this subtitle to burn-in
+                continue
+            # Subtitle is available within the video file
+            # Burn in the subtitle, if user chooses to do so
+            default = stream.get('default')
+            forced = stream.get('forced')
             try:
-                track = '{} {}'.format(sub_num, stream.attrib['displayTitle'])
+                track = '{} {}'.format(sub_num + 1,
+                                       stream.attrib['displayTitle'])
             except KeyError:
                 track = '{} {} ({})'.format(sub_num + 1,
                                             utils.lang(39707),  # unknown
                                             stream.get('codec'))
-            default = stream.get('default')
-            forced = stream.get('forced')
-            downloadable = stream.get('key')
-
             if default:
                 track = "%s - %s" % (track, utils.lang(39708))  # Default
             if forced:
                 track = "%s - %s" % (track, utils.lang(39709))  # Forced
-            if downloadable:
-                path = api.download_external_subtitles(
-                    '{{server}}{}'.format(stream.get('key')),
-                    stream.get('displayTitle'),
-                    stream.get('codec'))
-                if path:
-                    downloadable_streams.append(index)
-                    download_subs.append(path.encode('utf-8'))
-            else:
-                track = "%s (%s)" % (track, utils.lang(39710))  # burn-in
-            if stream.get('selected') == '1' and downloadable:
-                # Only show subs without asking user if they can be
-                # turned off
-                default_sub = index
-
+            track = "%s (%s)" % (track, utils.lang(39710))  # burn-in
             subtitle_streams_list.append(index)
             subtitle_streams.append(track.encode('utf-8'))
             sub_num += 1
 
     if audio_numb > 1:
         resp = utils.dialog('select', utils.lang(33013), audio_streams)
-        if resp > -1:
-            # User selected some audio track
-            args = {
-                'audioStreamID': audio_streams_list[resp],
-                'allParts': 1
-            }
-            DU().downloadUrl('{server}/library/parts/%s' % part_id,
-                             action_type='PUT',
-                             parameters=args)
+        if resp == -1:
+            LOG.info('User aborted dialog to select audio stream')
+            return
+        args = {
+            'audioStreamID': audio_streams_list[resp],
+            'allParts': 1
+        }
+        DU().downloadUrl('{server}/library/parts/%s' % part_id,
+                         action_type='PUT',
+                         parameters=args)
 
+    select_subs_index = ''
     if sub_num == 1:
-        # No subtitles
-        return
-
-    select_subs_index = None
-    if (utils.settings('pickPlexSubtitles') == 'true' and
-            default_sub is not None):
-        LOG.info('Using default Plex subtitle: %s', default_sub)
-        select_subs_index = default_sub
+        # Note: we DO need to tell the PMS that we DONT want any sub
+        # Otherwise, the PMS might pick-up the last one
+        LOG.info('No subtitles to burn-in')
     else:
         resp = utils.dialog('select', utils.lang(33014), subtitle_streams)
-        if resp > 0:
-            select_subs_index = subtitle_streams_list[resp - 1]
+        if resp == -1:
+            LOG.info('User aborted dialog to select subtitle stream')
+            return
+        elif resp == 0:
+            # User did not select a subtitle or backed out of the dialog
+            LOG.info('User chose to not burn-in any subtitles')
         else:
-            # User selected no subtitles or backed out of dialog
-            select_subs_index = ''
-
-    LOG.debug('Adding external subtitles: %s', download_subs)
-    # Enable Kodi to switch autonomously to downloadable subtitles
-    if download_subs:
-        listitem.setSubtitles(download_subs)
-    # Don't additionally burn in subtitles
-    if select_subs_index in downloadable_streams:
-        select_subs_index = ''
+            LOG.info('User chose to burn-in subtitle %s: %s',
+                      select_subs_index,
+                      subtitle_streams[resp].decode('utf-8'))
+            select_subs_index = subtitle_streams_list[resp - 1]
     # Now prep the PMS for our choice
     args = {
         'subtitleStreamID': select_subs_index,
@@ -450,3 +450,4 @@ def audio_subtitle_prefs(api, listitem):
     DU().downloadUrl('{server}/library/parts/%s' % part_id,
                      action_type='PUT',
                      parameters=args)
+    return True

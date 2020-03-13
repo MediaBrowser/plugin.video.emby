@@ -7,7 +7,7 @@ from .common import ItemBase
 from ..plex_api import API
 from ..plex_db import PlexDB, PLEXDB_LOCK
 from ..kodi_db import KodiMusicDB, KODIDB_LOCK
-from .. import plex_functions as PF, db, timing, app, variables as v, utils
+from .. import plex_functions as PF, db, timing, app, variables as v
 
 LOG = getLogger('PLEX.music')
 
@@ -520,33 +520,7 @@ class Song(MusicMixin, ItemBase):
             if entry.tag == 'Mood':
                 moods.append(entry.attrib['tag'])
         mood = api.list_to_string(moods)
-
-        # GET THE FILE AND PATH #####
-        do_indirect = not app.SYNC.direct_paths
-        if app.SYNC.direct_paths:
-            # Direct paths is set the Kodi way
-            playurl = api.file_path(force_first_media=True)
-            if playurl is None:
-                # Something went wrong, trying to use non-direct paths
-                do_indirect = True
-            else:
-                playurl = api.validate_playurl(playurl, api.plex_type)
-                if playurl is None:
-                    return False
-                if "\\" in playurl:
-                    # Local path
-                    filename = playurl.rsplit("\\", 1)[1]
-                else:
-                    # Network share
-                    filename = playurl.rsplit("/", 1)[1]
-                path = utils.rreplace(playurl, filename, "", 1)
-        if do_indirect:
-            # Plex works a bit differently
-            path = "%s%s" % (app.CONN.server, xml[0][0].get('key'))
-            path = api.attach_plex_token_to_url(path)
-            filename = path.rsplit('/', 1)[1]
-            path = path.replace(filename, '')
-
+        _, path, filename = api.fullpath()
         # UPDATE THE SONG #####
         if update_item:
             LOG.info("UPDATE song plex_id: %s - %s", plex_id, title)

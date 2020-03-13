@@ -291,8 +291,8 @@ class DownloadUtils():
                 return
             else:
                 r.encoding = 'utf-8'
-                LOG.warn('Unknown answer from PMS %s with status code %s. ',
-                         url, r.status_code)
+                LOG.warn('Unknown answer from PMS %s with status code %s: %s',
+                         url, r.status_code, r.text)
                 return True
 
         finally:

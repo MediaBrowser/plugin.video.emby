@@ -5,7 +5,7 @@ from logging import getLogger
 
 from .common import ItemBase
 from ..plex_api import API
-from .. import app, variables as v, plex_functions as PF, utils
+from .. import app, variables as v, plex_functions as PF
 
 LOG = getLogger('PLEX.movies')
 
@@ -36,35 +36,12 @@ class Movie(ItemBase):
             update_item = False
             kodi_id = self.kodidb.new_movie_id()
 
-        # GET THE FILE AND PATH #####
-        do_indirect = not app.SYNC.direct_paths
-        if app.SYNC.direct_paths:
-            # Direct paths is set the Kodi way
-            playurl = api.file_path(force_first_media=True)
-            if playurl is None:
-                # Something went wrong, trying to use non-direct paths
-                do_indirect = True
-            else:
-                playurl = api.validate_playurl(playurl, api.plex_type)
-                if playurl is None:
-                    return False
-                if '\\' in playurl:
-                    # Local path
-                    filename = playurl.rsplit("\\", 1)[1]
-                else:
-                    # Network share
-                    filename = playurl.rsplit("/", 1)[1]
-                path = utils.rreplace(playurl, filename, "", 1)
-                kodi_pathid = self.kodidb.add_path(path,
-                                                   content='movies',
-                                                   scraper='metadata.local')
-        if do_indirect:
-            # Set plugin path and media flags using real filename
-            filename = api.file_name(force_first_media=True)
-            path = 'plugin://%s.movies/' % v.ADDON_ID
-            filename = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                        % (path, plex_id, v.PLEX_TYPE_MOVIE, filename))
-            playurl = filename
+        fullpath, path, filename = api.fullpath()
+        if app.SYNC.direct_paths and not fullpath.startswith('http'):
+            kodi_pathid = self.kodidb.add_path(path,
+                                               content='movies',
+                                               scraper='metadata.local')
+        else:
             kodi_pathid = self.kodidb.get_path(path)
 
         if update_item:
@@ -150,7 +127,7 @@ class Movie(ItemBase):
                               api.list_to_string(api.studios()),
                               api.trailer(),
                               api.list_to_string(api.countries()),
-                              playurl,
+                              fullpath,
                               kodi_pathid,
                               api.premiere_date(),
                               api.userrating())

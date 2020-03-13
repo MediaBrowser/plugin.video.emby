@@ -12,16 +12,10 @@ import xbmc
 
 from .plex_api import API
 from .plex_db import PlexDB
-from . import plex_functions as PF
-from . import utils
 from .kodi_db import KodiVideoDB
-from . import playlist_func as PL
-from . import playqueue as PQ
-from . import json_rpc as js
-from . import transfer
-from .playback_decision import set_playurl, audio_subtitle_prefs
-from . import variables as v
-from . import app
+from . import plex_functions as PF, playlist_func as PL, playqueue as PQ
+from . import json_rpc as js, variables as v, utils, transfer
+from . import playback_decision, app
 
 ###############################################################################
 LOG = getLogger('PLEX.playback')
@@ -356,7 +350,7 @@ def _prep_playlist_stack(xml, resume):
             api.part = part
             if kodi_id is None:
                 # Need to redirect again to PKC to conclude playback
-                path = api.path(force_addon=True, force_first_media=True)
+                path = api.fullpath(force_addon=True)[0]
                 # Using different paths than the ones saved in the Kodi DB
                 # fixes Kodi immediately resuming the video if one restarts
                 # the same video again after playback
@@ -451,19 +445,26 @@ def _conclude_playback(playqueue, pos):
     LOG.debug('Concluding playback for playqueue position %s', pos)
     item = playqueue.items[pos]
     api = API(item.xml)
-    api.part = item.part or 0
-    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
-    set_playurl(api, item)
-    if not item.file:
-        LOG.debug('Did not get a playurl, aborting playback silently')
+    if api.mediastream_number() is None:
+        # E.g. user could choose between several media streams and cancelled
+        LOG.debug('Did not get a mediastream_number')
         _ensure_resolve()
         return
+    api.part = item.part or 0
+    playback_decision.set_pkc_playmethod(api, item)
+    if not playback_decision.audio_subtitle_prefs(api, item):
+        LOG.info('Did not set audio subtitle prefs, aborting silently')
+        _ensure_resolve()
+        return
+    playback_decision.set_playurl(api, item)
+    if not item.file:
+        LOG.info('Did not get a playurl, aborting playback silently')
+        _ensure_resolve()
+        return
+    listitem = api.listitem(listitem=transfer.PKCListItem, resume=False)
     listitem.setPath(item.file.encode('utf-8'))
-    if item.playmethod == v.PLAYBACK_METHOD_DIRECT_PLAY:
+    if item.playmethod != v.PLAYBACK_METHOD_DIRECT_PATH:
         listitem.setSubtitles(api.cache_external_subs())
-    elif item.playmethod in (v.PLAYBACK_METHOD_DIRECT_STREAM,
-                             v.PLAYBACK_METHOD_TRANSCODE):
-        audio_subtitle_prefs(api, listitem)
     transfer.send(listitem)
     LOG.debug('Done concluding playback')
 

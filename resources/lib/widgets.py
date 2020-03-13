@@ -223,7 +223,7 @@ def _generate_content(api):
     elif plex_type == v.PLEX_TYPE_PHOTO:
         url = api.get_picture_path()
     else:
-        url = api.path()
+        url = api.fullpath(force_first_media=True)[0]
     if not api.kodi_id and plex_type == v.PLEX_TYPE_EPISODE:
         # Hack - Item is not synched to the Kodi database
         # We CANNOT use paths that show up in the Kodi paths table!

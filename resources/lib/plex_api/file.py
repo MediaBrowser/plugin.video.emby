@@ -41,43 +41,82 @@ def _transcode_image_path(key, AuthToken, path, width, height):
 
 
 class File(object):
-    def path(self, force_first_media=True, force_addon=False,
-             direct_paths=None):
+    def fullpath(self, force_first_media=True, force_addon=False,
+             direct_paths=None, omit_check=False, force_check=False):
         """
-        Returns a "fully qualified path": add-on paths or direct paths
-        depending on the current settings. Will NOT valide the playurl
-        Returns unicode or None if something went wrong.
+        Returns a "fully qualified path" add-on paths or direct paths
+        depending on the current settings as the tupple
+            (fullpath, path, filename)
+        as unicode. Add-on paths are returned as a fallback. Returns None
+        if something went wrong.
 
-        Pass direct_path=True if you're calling from another Plex python
-        instance - because otherwise direct paths will evaluate to False!
+        firce_first_media=False prompts the user to choose which version of the
+                                media should be returned, if several are present
+        force_addon=True will always return the add-on path
+        direct_path=True if you're calling from another Plex python
+                         instance - because otherwise direct paths will
+                         evaluate to False!
         """
-        direct_paths = direct_paths or app.SYNC.direct_paths
-        filename = self.file_path(force_first_media=force_first_media)
+        direct_paths = app.SYNC.direct_paths if direct_paths is None \
+            else direct_paths
         if (not direct_paths or force_addon or
                 self.plex_type == v.PLEX_TYPE_CLIP):
-            if filename and '/' in filename:
-                filename = filename.rsplit('/', 1)
-            elif filename:
-                filename = filename.rsplit('\\', 1)
-            try:
-                filename = filename[1]
-            except (TypeError, IndexError):
-                filename = None
-            # Set plugin path and media flags using real filename
+            if self.plex_type == v.PLEX_TYPE_SONG:
+                return self._music_addon_paths(force_first_media)
             if self.plex_type == v.PLEX_TYPE_EPISODE:
                 # need to include the plex show id in the path
                 path = ('plugin://plugin.video.plexkodiconnect.tvshows/%s/'
                         % self.grandparent_id())
             else:
                 path = 'plugin://%s/' % v.ADDON_TYPE[self.plex_type]
-            path = ('%s?plex_id=%s&plex_type=%s&mode=play&filename=%s'
-                    % (path, self.plex_id, self.plex_type, filename))
+            # Filename in Kodi will end with actual filename - hopefully
+            # this is useful for other add-ons
+            filename = self.file_path(force_first_media=force_first_media)
+            if filename:
+                if '/' in filename:
+                    filename = filename.rsplit('/', 1)[1]
+                else:
+                    filename = filename.rsplit('\\', 1)[1]
+                entirepath = ('%s?mode=play&plex_id=%s&plex_type=%s&filename=%s'
+                        % (path, self.plex_id, self.plex_type, filename))
+            else:
+                # E.g. clips or albums
+                entirepath = ('%s?mode=play&plex_id=%s&plex_type=%s'
+                        % (path, self.plex_id, self.plex_type))
+            # For Kodi DB, we need to safe the ENTIRE path for filenames
+            filename = entirepath
         else:
-            # Direct paths is set the Kodi way
-            path = self.validate_playurl(filename,
-                                         self.plex_type,
-                                         omit_check=True)
-        return path
+            entirepath = self.validate_playurl(
+                self.file_path(force_first_media=force_first_media),
+                self.plex_type,
+                force_check=force_check,
+                omit_check=omit_check)
+            try:
+                if '/' in entirepath:
+                    filename = entirepath.rsplit('/', 1)[1]
+                else:
+                    filename = entirepath.rsplit('\\', 1)[1]
+            except (TypeError, IndexError):
+                # Fallback to add-on paths
+                return self.fullpath(force_first_media=force_first_media,
+                                     force_addon=True)
+            path = utils.rreplace(entirepath, filename, "", 1)
+        return entirepath, path, filename
+
+    def _music_addon_paths(self, force_first_media):
+        """
+        For songs only. Normal add-on paths plugin://... don't work with the
+        Kodi music DB, hence use a "direct" url to the music file on the PMS.
+        """
+        if self.mediastream is None and force_first_media is False:
+            if self.mediastream_number() is None:
+                return
+        streamno = 0 if force_first_media else self.mediastream
+        entirepath = "%s%s" % (app.CONN.server,
+                               self.xml[streamno][self.part].get('key'))
+        entirepath = self.attach_plex_token_to_url(entirepath)
+        path, filename = entirepath.rsplit('/', 1)
+        return entirepath, path + '/', filename
 
     def directory_path(self, section_id=None, plex_type=None, old_key=None,
                        synched=True):
