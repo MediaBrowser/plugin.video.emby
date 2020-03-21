@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 from logging import getLogger
-from Queue import Empty
+from Queue import Full
 
 from . import common, sections
 from ..plex_db import PlexDB
@@ -9,7 +9,7 @@ from .. import backgroundthread
 
 LOG = getLogger('PLEX.sync.fill_metadata_queue')
 
-QUEUE_TIMEOUT = 10  # seconds
+QUEUE_TIMEOUT = 60  # seconds
 
 
 class FillMetadataQueue(common.LibrarySyncMixin,
@@ -49,7 +49,7 @@ class FillMetadataQueue(common.LibrarySyncMixin,
                 try:
                     self.get_metadata_queue.put((count, plex_id, section),
                                                 timeout=QUEUE_TIMEOUT)
-                except Empty:
+                except Full:
                     LOG.error('Putting %s in get_metadata_queue timed out - '
                               'aborting sync now', plex_id)
                     section.sync_successful = False
