@@ -1,3 +1,7 @@
+version 2.11.6:
+- Fix rare sync crash when queue was full
+- Set "Auto-adjust transcoding quality" to false by default
+
 version 2.11.5:
 - Versions 2.11.0-2.11.4 for everyone
 
