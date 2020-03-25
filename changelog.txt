@@ -1,3 +1,6 @@
+version 2.11.7:
+- Fix PKC crashing on devices running Microsoft UWP, e.g. XBox
+
 version 2.11.6:
 - Fix rare sync crash when queue was full
 - Set "Auto-adjust transcoding quality" to false by default
