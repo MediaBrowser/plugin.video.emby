@@ -542,11 +542,12 @@ def wipe_database(reboot=True):
     """
     LOG.warn('Start wiping')
     from .library_sync.sections import delete_files
+    from .library_sync.common import PLAYLIST_SYNC_ENABLED
     from . import kodi_db, plex_db
-    from .playlists import remove_synced_playlists
-    # Clean up the playlists and video nodes
     delete_files()
-    remove_synced_playlists()
+    if PLAYLIST_SYNC_ENABLED:
+        from .playlists import remove_synced_playlists
+        remove_synced_playlists()
     try:
         with plex_db.PlexDB() as plexdb:
             if plexdb.songs_have_been_synced():
