@@ -234,9 +234,6 @@ class API(object):
     def get_local_trailers(self, item_id):
         return  self.user_items("/%s/LocalTrailers" % item_id)
 
-    def get_transcode_settings(self):
-        return  self._get('System/Configuration/encoding')
-
     def get_ancestors(self, item_id):
         return  self.items("/%s/Ancestors" % item_id, params={
                     'UserId': "{UserId}"
