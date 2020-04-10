@@ -644,10 +644,9 @@ class PlayUtils(object):
         if subtitle:
 
             index = subtitle
-            server_settings = self.info['Server']['api'].get_transcode_settings()
             stream = streams[index]
 
-            if server_settings['EnableSubtitleExtraction'] and stream['SupportsExternalStream']:
+            if stream['SupportsExternalStream'] and 'DeliveryUrl' in stream:
                 self.info['SubtitleUrl'] = self.get_subtitles(source, stream, index)
             else:
                 prefs += "&SubtitleStreamIndex=%s" % index
@@ -664,10 +663,9 @@ class PlayUtils(object):
 
                 if index is not None:
 
-                    server_settings = self.info['Server']['api'].get_transcode_settings()
                     stream = streams[index]
 
-                    if server_settings['EnableSubtitleExtraction'] and stream['SupportsExternalStream']:
+                    if stream['SupportsExternalStream'] and 'DeliveryUrl' in stream:
                         self.info['SubtitleUrl'] = self.get_subtitles(source, stream, index)
                     else:
                         prefs += "&SubtitleStreamIndex=%s" % index
