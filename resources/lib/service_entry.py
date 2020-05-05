@@ -102,7 +102,7 @@ class Service(object):
 
     @staticmethod
     def should_cancel():
-        return xbmc.abortRequested or app.APP.stop_pkc
+        return xbmc.Monitor().abortRequested() or app.APP.stop_pkc
 
     def on_connection_check(self, result):
         """

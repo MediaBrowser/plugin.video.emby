@@ -134,7 +134,7 @@ class App(object):
                         thread.suspend(block=True)
                 else:
                     break
-        return xbmc.abortRequested
+        return xbmc.Monitor().abortRequested()
 
     def resume_threads(self):
         """
@@ -144,7 +144,7 @@ class App(object):
         LOG.debug('Resuming threads: %s', self.threads)
         for thread in self.threads:
             thread.resume()
-        return xbmc.abortRequested
+        return xbmc.Monitor().abortRequested()
 
     def stop_threads(self, block=True):
         """

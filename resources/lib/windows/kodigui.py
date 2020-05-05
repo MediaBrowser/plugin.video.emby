@@ -737,7 +737,7 @@ class MultiWindow(object):
         return mw
 
     def _open(self):
-        while not xbmc.abortRequested and not self._allClosed:
+        while not xbmc.Monitor().abortRequested() and not self._allClosed:
             self._setupCurrent(self._next)
             self._current.modal()
 
@@ -922,9 +922,9 @@ class PropertyTimer():
             self._callback()
 
     def _wait(self):
-        while not xbmc.abortRequested and time.time() < self._endTime:
+        while not xbmc.Monitor().abortRequested() and time.time() < self._endTime:
             app.APP.monitor.waitForAbort(0.1)
-        if xbmc.abortRequested:
+        if xbmc.Monitor().abortRequested():
             return
         if self._endTime == 0:
             return
