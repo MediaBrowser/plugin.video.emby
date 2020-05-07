@@ -162,9 +162,8 @@ class PMS_Websocket(WebSocket):
             else:
                 server = "ws%s" % server[4:]
             uri = "%s/:/websockets/notifications" % server
-            # Need to use plex.tv token, if any. NOT user token
-            if app.ACCOUNT.plex_token:
-                uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
+            if app.ACCOUNT.pms_token:
+                uri += '?X-Plex-Token=%s' % app.ACCOUNT.pms_token
         sslopt = {}
         if v.KODIVERSION == 17 and utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
@@ -215,8 +214,8 @@ class Alexa_Websocket(WebSocket):
         """
         suspend = self._suspended or \
             not app.SYNC.enable_alexa or \
-            not app.ACCOUNT.plex_token or \
-            app.ACCOUNT.restricted_user
+            app.ACCOUNT.restricted_user or \
+            not app.ACCOUNT.plex_token
         if suspend:
             # This thread needs to clear the Event() _is_not_suspended itself!
             self.suspend()
