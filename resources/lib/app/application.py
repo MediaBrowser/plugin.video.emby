@@ -22,7 +22,7 @@ class App(object):
         if entrypoint:
             self.load_entrypoint()
         else:
-            self.reload()
+            self.load()
             # Quit PKC?
             self.stop_pkc = False
             # This will suspend the main thread also
@@ -51,8 +51,6 @@ class App(object):
             self.fanart_thread = None
             # Instance of ImageCachingThread()
             self.caching_thread = None
-            self.pms_websocket = None
-            self.alexa_websocket = None
 
     @property
     def is_playing(self):
@@ -104,48 +102,6 @@ class App(object):
         except AttributeError:
             pass
 
-    def register_pms_websocket(self, thread):
-        self.pms_websocket = thread
-        self.threads.append(thread)
-
-    def deregister_pms_websocket(self, thread):
-        self.pms_websocket.unblock_callers()
-        self.pms_websocket = None
-        self.threads.remove(thread)
-
-    def suspend_pms_websocket(self, block=True):
-        try:
-            self.pms_websocket.suspend(block=block)
-        except AttributeError:
-            pass
-
-    def resume_pms_websocket(self):
-        try:
-            self.pms_websocket.resume()
-        except AttributeError:
-            pass
-
-    def register_alexa_websocket(self, thread):
-        self.alexa_websocket = thread
-        self.threads.append(thread)
-
-    def deregister_alexa_websocket(self, thread):
-        self.alexa_websocket.unblock_callers()
-        self.alexa_websocket = None
-        self.threads.remove(thread)
-
-    def suspend_alexa_websocket(self, block=True):
-        try:
-            self.alexa_websocket.suspend(block=block)
-        except AttributeError:
-            pass
-
-    def resume_alexa_websocket(self):
-        try:
-            self.alexa_websocket.resume()
-        except AttributeError:
-            pass
-
     def register_thread(self, thread):
         """
         Hit with thread [backgroundthread.Killablethread instance] to register
@@ -180,6 +136,16 @@ class App(object):
                     break
         return xbmc.Monitor().abortRequested()
 
+    def resume_threads(self):
+        """
+        Resume all thread activity with or without blocking.
+        Returns True only if PKC shutdown requested
+        """
+        LOG.debug('Resuming threads: %s', self.threads)
+        for thread in self.threads:
+            thread.resume()
+        return xbmc.Monitor().abortRequested()
+
     def stop_threads(self, block=True):
         """
         Stop all threads. Will block until all threads are stopped
@@ -194,7 +160,7 @@ class App(object):
                 if xbmc.sleep(100):
                     return True
 
-    def reload(self):
+    def load(self):
         # Number of items to fetch and display in widgets
         self.fetch_pms_item_number = int(utils.settings('fetch_pms_item_number'))
         # Hack to force Kodi widget for "in progress" to show up if it was empty

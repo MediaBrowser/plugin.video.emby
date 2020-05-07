@@ -116,7 +116,7 @@ class Service(object):
                     # PMS was online before
                     LOG.warn("Plex Media Server went offline")
                     app.CONN.online = False
-                    app.suspend_threads()
+                    app.APP.suspend_threads()
                     LOG.debug('Threads suspended')
                     if utils.settings('show_pms_offline') == 'true':
                         utils.dialog('notification',
@@ -154,7 +154,7 @@ class Service(object):
                 if app.ACCOUNT.authenticated:
                     # Server got offline when we were authenticated.
                     # Hence resume threads
-                    app.resume_threads()
+                    app.APP.resume_threads()
                 app.CONN.online = True
         finally:
             self.connection_check_running = False
@@ -165,7 +165,7 @@ class Service(object):
         Ensures that lib sync threads are suspended; signs out user
         """
         LOG.info('Log-out requested')
-        app.suspend_threads()
+        app.APP.suspend_threads()
         LOG.info('Successfully suspended threads')
         app.ACCOUNT.log_out()
         LOG.info('User has been logged out')
@@ -248,10 +248,7 @@ class Service(object):
                              icon='{plex}',
                              time=2000,
                              sound=False)
-            app.reload()
-            app.check_websocket_threads_suspend()
-            app.resume_threads()
-
+            app.APP.resume_threads()
         self.auth_running = False
 
     def enter_new_pms_address(self):
@@ -293,7 +290,7 @@ class Service(object):
             # "Unauthorized for PMS"
             utils.dialog('notification', utils.lang(29999), utils.lang(30017))
             return
-        app.suspend_threads()
+        app.APP.suspend_threads()
         from .library_sync import sections
         try:
             # Get newest sections from the PMS
@@ -303,14 +300,14 @@ class Service(object):
             library_sync.force_full_sync()
             app.SYNC.run_lib_scan = 'full'
         finally:
-            app.resume_threads()
+            app.APP.resume_threads()
 
     def reset_playlists_and_nodes(self):
         """
         Resets the Kodi playlists and nodes for all the PKC libraries by
         deleting all of them first, then rewriting everything
         """
-        app.suspend_threads()
+        app.APP.suspend_threads()
         from .library_sync import sections
         try:
             sections.clear_window_vars()
@@ -332,7 +329,7 @@ class Service(object):
                          icon='{plex}',
                          sound=False)
         finally:
-            app.resume_threads()
+            app.APP.resume_threads()
             xbmc.executebuiltin('ReloadSkin()')
 
     def _do_auth(self):
@@ -365,7 +362,7 @@ class Service(object):
                 if not user:
                     LOG.info('No user received')
                     app.APP.suspend = True
-                    app.suspend_threads()
+                    app.APP.suspend_threads()
                     LOG.debug('Threads suspended')
                     return False
                 username = user.title
@@ -401,7 +398,7 @@ class Service(object):
                     else:
                         LOG.debug('Suspending threads')
                         app.APP.suspend = True
-                        app.suspend_threads()
+                        app.APP.suspend_threads()
                         LOG.debug('Threads suspended')
                         return False
             elif res >= 400:
@@ -538,7 +535,8 @@ class Service(object):
                 self.sync.start()
                 self.plexcompanion.start()
                 self.playqueue.start()
-                self.alexa.start()
+                if utils.settings('enable_alexa') == 'true':
+                    self.alexa.start()
 
             xbmc.sleep(100)
 

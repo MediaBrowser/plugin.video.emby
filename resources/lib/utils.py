@@ -603,7 +603,7 @@ def reset(ask_user=True):
         return
     from . import app
     # first stop any db sync
-    app.suspend_threads()
+    app.APP.suspend_threads()
     # Reset all PlexKodiConnect Addon settings? (this is usually NOT
     # recommended and unnecessary!)
     if ask_user and yesno_dialog(lang(29999), lang(39603)):

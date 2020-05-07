@@ -22,11 +22,6 @@ class WebSocket(backgroundthread.KillableThread):
         self.sleeptime = 0.0
         super(WebSocket, self).__init__()
 
-    def close_websocket(self):
-        if self.ws is not None:
-            self.ws.close()
-            self.ws = None
-
     def process(self, opcode, message):
         raise NotImplementedError
 
@@ -61,11 +56,26 @@ class WebSocket(backgroundthread.KillableThread):
         if self.sleeptime < 6:
             self.sleeptime += 1.0
 
+    def run(self):
+        LOG.info("----===## Starting %s ##===----", self.__class__.__name__)
+        app.APP.register_thread(self)
+        try:
+            self._run()
+        finally:
+            # Close websocket connection on shutdown
+            if self.ws is not None:
+                self.ws.close()
+            app.APP.deregister_thread(self)
+            LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
+
     def _run(self):
         while not self.should_cancel():
             # In the event the server goes offline
             if self.should_suspend():
-                self.close_websocket()
+                # Set in service.py
+                if self.ws is not None:
+                    self.ws.close()
+                    self.ws = None
                 if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
                     return
@@ -122,7 +132,8 @@ class WebSocket(backgroundthread.KillableThread):
                 import traceback
                 LOG.error("%s: Traceback:\n%s",
                           self.__class__.__name__, traceback.format_exc())
-                self.close_websocket()
+                if self.ws is not None:
+                    self.ws.close()
                 self.ws = None
 
 
@@ -130,15 +141,11 @@ class PMS_Websocket(WebSocket):
     """
     Websocket connection with the PMS for Plex Companion
     """
-    def run(self):
-        LOG.info("----===## Starting Websocket ##===----")
-        app.APP.register_pms_websocket(self)
-        try:
-            self._run()
-        finally:
-            self.close_websocket()
-            app.APP.deregister_pms_websocket(self)
-            LOG.info("##===---- Websocket Stopped ----===##")
+    def should_suspend(self):
+        """
+        Returns True if the thread is suspended
+        """
+        return self._suspended or app.SYNC.background_sync_disabled
 
     def getUri(self):
         if self.redirect_uri:
@@ -199,15 +206,13 @@ class Alexa_Websocket(WebSocket):
     """
     Websocket connection to talk to Amazon Alexa.
     """
-    def run(self):
-        LOG.info("----===## Starting Alexa Websocket ##===----")
-        app.APP.register_alexa_websocket(self)
-        try:
-            self._run()
-        finally:
-            self.close_websocket()
-            app.APP.deregister_alexa_websocket(self)
-            LOG.info("##===---- Alexa Websocket Stopped ----===##")
+    def should_suspend(self):
+        """
+        Overwrite method since we need to check for plex token
+        """
+        return (self._suspended or
+                not app.ACCOUNT.plex_token or
+                app.ACCOUNT.restricted_user)
 
     def getUri(self):
         if self.redirect_uri:
