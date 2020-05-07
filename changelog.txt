@@ -1,3 +1,8 @@
+version 2.12.0 (beta only):
+- Fix websocket threads; enable PKC background sync for all Plex Home users!
+- Fix PKC incorrectly marking a video as unwatched if an external player has been used
+- Update translations
+
 version 2.11.7:
 - Fix PKC crashing on devices running Microsoft UWP, e.g. XBox
 
