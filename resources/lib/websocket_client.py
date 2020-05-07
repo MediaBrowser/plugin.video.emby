@@ -22,6 +22,11 @@ class WebSocket(backgroundthread.KillableThread):
         self.sleeptime = 0.0
         super(WebSocket, self).__init__()
 
+    def close_websocket(self):
+        if self.ws is not None:
+            self.ws.close()
+            self.ws = None
+
     def process(self, opcode, message):
         raise NotImplementedError
 
@@ -62,9 +67,7 @@ class WebSocket(backgroundthread.KillableThread):
         try:
             self._run()
         finally:
-            # Close websocket connection on shutdown
-            if self.ws is not None:
-                self.ws.close()
+            self.close_websocket()
             app.APP.deregister_thread(self)
             LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
@@ -73,9 +76,7 @@ class WebSocket(backgroundthread.KillableThread):
             # In the event the server goes offline
             if self.should_suspend():
                 # Set in service.py
-                if self.ws is not None:
-                    self.ws.close()
-                    self.ws = None
+                self.close_websocket()
                 if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
                     return
@@ -132,9 +133,7 @@ class WebSocket(backgroundthread.KillableThread):
                 import traceback
                 LOG.error("%s: Traceback:\n%s",
                           self.__class__.__name__, traceback.format_exc())
-                if self.ws is not None:
-                    self.ws.close()
-                self.ws = None
+                self.close_websocket()
 
 
 class PMS_Websocket(WebSocket):

@@ -80,6 +80,7 @@ class Sync(object):
         # List of section_ids we're synching to Kodi - will be automatically
         # re-built if sections are set a-new
         self.section_ids = set()
+        self.enable_alexa = None
 
         self.load()
 
@@ -113,11 +114,18 @@ class Sync(object):
         self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'
         self.sync_specific_plex_playlists = utils.settings('syncSpecificPlexPlaylists') == 'true'
         self.sync_specific_kodi_playlists = utils.settings('syncSpecificKodiPlaylists') == 'true'
-        self.sync_dialog = utils.settings('dbSyncIndicator') == 'true'
-
-        self.full_sync_intervall = int(utils.settings('fullSyncInterval')) * 60
-        self.background_sync_disabled = utils.settings('enableBackgroundSync') == 'false'
-        self.backgroundsync_saftymargin = int(utils.settings('backgroundsync_saftyMargin'))
         self.sync_thread_number = int(utils.settings('syncThreadNumber'))
+        self.reload()
+
+    def reload(self):
+        """
+        Any settings unrelated to syncs to the Kodi database - can thus be
+        safely reset without a Kodi reboot
+        """
+        self.background_sync_disabled = utils.settings('enableBackgroundSync') == 'false'
+        self.enable_alexa = utils.settings('enable_alexa') == 'true'
+        self.sync_dialog = utils.settings('dbSyncIndicator') == 'true'
+        self.full_sync_intervall = int(utils.settings('fullSyncInterval')) * 60
+        self.backgroundsync_saftymargin = int(utils.settings('backgroundsync_saftyMargin'))
 
         self.image_sync_notifications = utils.settings('imageSyncNotifications') == 'true'

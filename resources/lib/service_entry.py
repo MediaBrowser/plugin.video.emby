@@ -535,8 +535,7 @@ class Service(object):
                 self.sync.start()
                 self.plexcompanion.start()
                 self.playqueue.start()
-                if utils.settings('enable_alexa') == 'true':
-                    self.alexa.start()
+                self.alexa.start()
 
             xbmc.sleep(100)
 
