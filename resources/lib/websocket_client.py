@@ -142,9 +142,13 @@ class PMS_Websocket(WebSocket):
     """
     def should_suspend(self):
         """
-        Returns True if the thread is suspended
+        Returns True if the thread is suspended.
         """
-        return self._suspended or app.SYNC.background_sync_disabled
+        suspend = self._suspended or app.SYNC.background_sync_disabled
+        if suspend:
+            # This thread needs to clear the Event() _is_not_suspended itself!
+            self.suspend()
+        return suspend
 
     def getUri(self):
         if self.redirect_uri:
@@ -209,9 +213,14 @@ class Alexa_Websocket(WebSocket):
         """
         Overwrite method since we need to check for plex token
         """
-        return (self._suspended or
-                not app.ACCOUNT.plex_token or
-                app.ACCOUNT.restricted_user)
+        suspend = self._suspended or \
+            not app.SYNC.enable_alexa or \
+            not app.ACCOUNT.plex_token or \
+            app.ACCOUNT.restricted_user
+        if suspend:
+            # This thread needs to clear the Event() _is_not_suspended itself!
+            self.suspend()
+        return suspend
 
     def getUri(self):
         if self.redirect_uri:

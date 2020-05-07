@@ -100,7 +100,6 @@ class Sync(object):
         self.artwork = utils.settings('usePlexArtwork') == 'true'
         self.replace_smb_path = utils.settings('replaceSMB') == 'true'
         self.remap_path = utils.settings('remapSMB') == 'true'
-        self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
         self.remapSMBmovieOrg = remove_trailing_slash(utils.settings('remapSMBmovieOrg'))
         self.remapSMBmovieNew = remove_trailing_slash(utils.settings('remapSMBmovieNew'))
         self.remapSMBtvOrg = remove_trailing_slash(utils.settings('remapSMBtvOrg'))
@@ -111,7 +110,6 @@ class Sync(object):
         self.remapSMBphotoNew = remove_trailing_slash(utils.settings('remapSMBphotoNew'))
         self.escape_path = utils.settings('escapePath') == 'true'
         self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
-        self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'
         self.sync_specific_plex_playlists = utils.settings('syncSpecificPlexPlaylists') == 'true'
         self.sync_specific_kodi_playlists = utils.settings('syncSpecificKodiPlaylists') == 'true'
         self.sync_thread_number = int(utils.settings('syncThreadNumber'))
@@ -129,3 +127,7 @@ class Sync(object):
         self.backgroundsync_saftymargin = int(utils.settings('backgroundsync_saftyMargin'))
 
         self.image_sync_notifications = utils.settings('imageSyncNotifications') == 'true'
+
+        self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
+        # Trailers in Kodi DB will remain UNTIL DB is reset!
+        self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'

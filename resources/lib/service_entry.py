@@ -248,6 +248,7 @@ class Service(object):
                              icon='{plex}',
                              time=2000,
                              sound=False)
+            app.reload()
             app.APP.resume_threads()
         self.auth_running = False
 

@@ -30,3 +30,11 @@ def init(entrypoint=False):
     SYNC = Sync(entrypoint)
     if not entrypoint:
         PLAYSTATE = PlayState()
+
+def reload():
+    """
+    Reload PKC settings from xml file, e.g. on user-switch
+    """
+    global APP, SYNC
+    APP.reload()
+    SYNC.reload()
