@@ -66,8 +66,7 @@ def _wait_for_auth():
     xbmcplugin.endOfDirectory(int(argv[1]), False) if failed
 
     WARNING - this will potentially stall the shutdown of Kodi since we cannot
-    poll xbmc.Monitor().abortRequested() or waitForAbort() or
-    xbmc.abortRequested
+    poll xbmc.Monitor().abortRequested() or waitForAbort()
     """
     counter = 0
     startupdelay = int(utils.settings('startupDelay') or 0)

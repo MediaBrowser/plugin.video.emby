@@ -102,7 +102,7 @@ class Service(object):
 
     @staticmethod
     def should_cancel():
-        return xbmc.abortRequested or app.APP.stop_pkc
+        return xbmc.Monitor().abortRequested() or app.APP.stop_pkc
 
     def on_connection_check(self, result):
         """
@@ -248,6 +248,7 @@ class Service(object):
                              icon='{plex}',
                              time=2000,
                              sound=False)
+            app.reload()
             app.APP.resume_threads()
         self.auth_running = False
 
@@ -535,8 +536,7 @@ class Service(object):
                 self.sync.start()
                 self.plexcompanion.start()
                 self.playqueue.start()
-                if utils.settings('enable_alexa') == 'true':
-                    self.alexa.start()
+                self.alexa.start()
 
             xbmc.sleep(100)
 

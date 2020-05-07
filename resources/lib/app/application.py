@@ -22,7 +22,7 @@ class App(object):
         if entrypoint:
             self.load_entrypoint()
         else:
-            self.load()
+            self.reload()
             # Quit PKC?
             self.stop_pkc = False
             # This will suspend the main thread also
@@ -134,7 +134,7 @@ class App(object):
                         thread.suspend(block=True)
                 else:
                     break
-        return xbmc.abortRequested
+        return xbmc.Monitor().abortRequested()
 
     def resume_threads(self):
         """
@@ -144,7 +144,7 @@ class App(object):
         LOG.debug('Resuming threads: %s', self.threads)
         for thread in self.threads:
             thread.resume()
-        return xbmc.abortRequested
+        return xbmc.Monitor().abortRequested()
 
     def stop_threads(self, block=True):
         """
@@ -160,7 +160,7 @@ class App(object):
                 if xbmc.sleep(100):
                     return True
 
-    def load(self):
+    def reload(self):
         # Number of items to fetch and display in widgets
         self.fetch_pms_item_number = int(utils.settings('fetch_pms_item_number'))
         # Hack to force Kodi widget for "in progress" to show up if it was empty

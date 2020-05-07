@@ -305,7 +305,7 @@ class Task(object):
         self._canceled = True
 
     def should_cancel(self):
-        return self._canceled or xbmc.abortRequested
+        return self._canceled or xbmc.Monitor().abortRequested()
 
     def isValid(self):
         return not self.finished and not self._canceled
@@ -370,7 +370,7 @@ class BackgroundWorker(object):
         return self
 
     def aborted(self):
-        return self._abort or xbmc.abortRequested
+        return self._abort or xbmc.Monitor().abortRequested()
 
     def start(self):
         if self._thread and self._thread.isAlive():
@@ -452,7 +452,7 @@ class BackgroundThreader:
         return self
 
     def aborted(self):
-        return self._abort or xbmc.abortRequested
+        return self._abort or xbmc.Monitor().abortRequested()
 
     def shutdown(self, block=True):
         self.abort()
