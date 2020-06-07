@@ -398,8 +398,8 @@ def escape_path(path, safe_url_char=SAFE_URL_CHARACTERS):
     """
     is_http_dav_ftp = HTTP_DAV_FTP.match(path)
     if is_http_dav_ftp:
-        # If path seems to be a http(s), dav(s) or (s)ftp url, the escape path will be constructed using RegExp and
-        # using safe_url_char as safe characters not to be escaped
+        # If path seems to be a http(s), dav(s) or (s)ftp url, the escape path will be constructed
+        # using RegExp and using safe_url_char as safe characters not to be escaped
         protocol = is_http_dav_ftp.group(1)
         user = is_http_dav_ftp.group(6)
         psswd = is_http_dav_ftp.group(7)
@@ -420,7 +420,8 @@ def escape_path(path, safe_url_char=SAFE_URL_CHARACTERS):
                u'/' + \
                (url_path if url_path else u'')
     else:
-        # If paths does not seem to be a http(s), dav(s) or (s)ftp url (e.g. plugin://), escape path as before
+        # If paths does not seem to be a http(s), dav(s) or (s)ftp url (e.g. plugin://)
+        # escape path as before
         return urllib.quote(path.encode('utf-8'),
                             safe=SAFE_URL_CHARACTERS).decode('utf-8')
 
