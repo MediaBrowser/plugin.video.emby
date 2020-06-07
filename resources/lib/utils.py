@@ -56,7 +56,7 @@ REGEX_MUSICPATH = re.compile(r'''^\^(.+)\$$''')
 REGEX_PLEX_ID_FROM_URL = re.compile(r'''metadata%2F(\d+)''')
 
 SAFE_URL_CHARACTERS = "%/:=&?~#+!$,;'@()*[]".encode('utf-8')
-
+HTTP_DAV_FTP = re.compile(r'(http(s)?|dav(s)?|(s)?ftp)://((.+):(.+)@)?([\w\.]+)(:([\d]+))?/')
 
 def garbageCollect():
     gc.collect(2)
@@ -385,7 +385,7 @@ def urlparse(url, scheme='', allow_fragments=True):
     return _urlparse.urlparse(url, scheme, allow_fragments)
 
 
-def escape_path(path):
+def escape_path(path, safe_url_char=SAFE_URL_CHARACTERS):
     """
     Uses urllib.quote to escape to escape path [unicode]. See here for the
     reasoning whether a character is safe or not and whether or not it should
@@ -396,8 +396,33 @@ def escape_path(path):
     you in trouble (e.g. '@')
     Returns the escaped path as unicode
     """
-    return urllib.quote(path.encode('utf-8'),
-                        safe=SAFE_URL_CHARACTERS).decode('utf-8')
+    is_http_dav_ftp = HTTP_DAV_FTP.match(path)
+    if is_http_dav_ftp:
+        # If path seems to be a http(s), dav(s) or (s)ftp url, the escape path will be constructed using RegExp and
+        # using safe_url_char as safe characters not to be escaped
+        protocol = is_http_dav_ftp.group(1)
+        user = is_http_dav_ftp.group(6)
+        psswd = is_http_dav_ftp.group(7)
+        if user and psswd:
+            user = urllib.quote(user.encode('utf-8'), safe=safe_url_char).decode('utf-8')
+            psswd = urllib.quote(psswd.encode('utf-8'), safe=safe_url_char).decode('utf-8')
+        host = is_http_dav_ftp.group(8)
+        port = is_http_dav_ftp.group(10)
+        url_path = path.replace(is_http_dav_ftp.group(), '', 1)
+        if url_path:
+            url_path = urllib.quote(path.replace(is_http_dav_ftp.group(), '', 1).encode('utf-8'),
+                                    safe=safe_url_char).decode('utf-8')
+        return protocol + \
+               u'://' + \
+               (user + u':' + psswd + u'@' if (user and psswd) else u'') + \
+               host + \
+               (u':' + port if port else u'') + \
+               u'/' + \
+               (url_path if url_path else u'')
+    else:
+        # If paths does not seem to be a http(s), dav(s) or (s)ftp url (e.g. plugin://), escape path as before
+        return urllib.quote(path.encode('utf-8'),
+                            safe=SAFE_URL_CHARACTERS).decode('utf-8')
 
 
 def quote(s, safe='/'):
