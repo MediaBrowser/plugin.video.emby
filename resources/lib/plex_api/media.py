@@ -319,7 +319,7 @@ class Media(object):
             if path.startswith('\\\\'):
                 path = 'smb:' + path.replace('\\', '/')
         if app.SYNC.escape_path:
-            path = utils.escape_path(path)
+            path = utils.escape_path(path, app.SYNC.escape_path_safe_chars)
         if (app.SYNC.path_verified and not force_check) or omit_check:
             return path
 

@@ -42,6 +42,7 @@ class Sync(object):
         self.remapSMBphotoNew = None
         # Escape path?
         self.escape_path = None
+        self.escape_path_safe_chars = None
         # Shall we replace custom user ratings with the number of versions available?
         self.indicate_media_versions = None
         # Will sync movie trailer differently: either play trailer directly or show
@@ -109,6 +110,7 @@ class Sync(object):
         self.remapSMBphotoOrg = remove_trailing_slash(utils.settings('remapSMBphotoOrg'))
         self.remapSMBphotoNew = remove_trailing_slash(utils.settings('remapSMBphotoNew'))
         self.escape_path = utils.settings('escapePath') == 'true'
+        self.escape_path_safe_chars = utils.settings('escapePathSafeChars').encode('utf-8')
         self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
         self.sync_specific_plex_playlists = utils.settings('syncSpecificPlexPlaylists') == 'true'
         self.sync_specific_kodi_playlists = utils.settings('syncSpecificKodiPlaylists') == 'true'
