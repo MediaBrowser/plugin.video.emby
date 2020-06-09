@@ -35,7 +35,7 @@ class Sync(backgroundthread.KillableThread):
         """
         if app.SYNC.run_lib_scan in ("full", "repair"):
             LOG.info('Full library scan requested, starting')
-            self.start_library_sync(show_dialog=True,
+            self.start_library_sync(show_dialog=app.SYNC.run_lib_scan == 'repair',
                                     repair=app.SYNC.run_lib_scan == 'repair',
                                     block=True)
             if (not self.sync_successful and
