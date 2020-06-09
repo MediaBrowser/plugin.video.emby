@@ -556,6 +556,11 @@ class Service(object):
         library_sync.clear_window_vars()
         # Will block until threads have quit
         app.APP.stop_threads()
+        # CLEANUP
+        # Kodi's xbmc.Monitor() stalls
+        # delete xbmc.Player() just to be sure
+        del app.APP.monitor
+        del app.APP.player
 
 
 def start():
