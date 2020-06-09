@@ -92,7 +92,7 @@ DEVICENAME = DEVICENAME.replace("?", "")
 DEVICENAME = DEVICENAME.replace('|', "")
 DEVICENAME = DEVICENAME.replace('(', "")
 DEVICENAME = DEVICENAME.replace(')', "")
-DEVICENAME = DEVICENAME.replace(' ', "")
+DEVICENAME = DEVICENAME.strip()
 
 COMPANION_PORT = int(_ADDON.getSetting('companionPort'))
 
