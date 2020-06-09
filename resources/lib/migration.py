@@ -90,4 +90,13 @@ def check_migration():
         from .playlists import remove_synced_playlists
         remove_synced_playlists()
 
+    if not utils.compare_version(last_migration, '2.12.2'):
+        LOG.info('Migrating to version 2.12.1')
+        # Sign user out to make sure he needs to sign in again
+        utils.settings('username', value='')
+        utils.settings('userid', value='')
+        utils.settings('plex_restricteduser', value='')
+        utils.settings('accessToken', value='')
+        utils.settings('plexAvatar', value='')
+
     utils.settings('last_migrated_PKC_version', value=v.ADDON_VERSION)
