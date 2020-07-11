@@ -1,3 +1,7 @@
+version 2.12.2:
+- version 2.12.0 and 2.12.1 for everyone 
+- Fix regression: sync dialog not showing up when it should 
+
 version 2.12.1 (beta only):
 - Fix PKC shutdown on Kodi profile switch
 - Fix Kodi content type for images/photos
