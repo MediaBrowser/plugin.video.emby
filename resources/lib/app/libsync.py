@@ -42,6 +42,7 @@ class Sync(object):
         self.remapSMBphotoNew = None
         # Escape path?
         self.escape_path = None
+        self.escape_path_safe_chars = None
         # Shall we replace custom user ratings with the number of versions available?
         self.indicate_media_versions = None
         # Will sync movie trailer differently: either play trailer directly or show
@@ -80,6 +81,7 @@ class Sync(object):
         # List of section_ids we're synching to Kodi - will be automatically
         # re-built if sections are set a-new
         self.section_ids = set()
+        self.enable_alexa = None
 
         self.load()
 
@@ -99,7 +101,6 @@ class Sync(object):
         self.artwork = utils.settings('usePlexArtwork') == 'true'
         self.replace_smb_path = utils.settings('replaceSMB') == 'true'
         self.remap_path = utils.settings('remapSMB') == 'true'
-        self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
         self.remapSMBmovieOrg = remove_trailing_slash(utils.settings('remapSMBmovieOrg'))
         self.remapSMBmovieNew = remove_trailing_slash(utils.settings('remapSMBmovieNew'))
         self.remapSMBtvOrg = remove_trailing_slash(utils.settings('remapSMBtvOrg'))
@@ -109,15 +110,26 @@ class Sync(object):
         self.remapSMBphotoOrg = remove_trailing_slash(utils.settings('remapSMBphotoOrg'))
         self.remapSMBphotoNew = remove_trailing_slash(utils.settings('remapSMBphotoNew'))
         self.escape_path = utils.settings('escapePath') == 'true'
+        self.escape_path_safe_chars = utils.settings('escapePathSafeChars').encode('utf-8')
         self.indicate_media_versions = utils.settings('indicate_media_versions') == "true"
-        self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'
         self.sync_specific_plex_playlists = utils.settings('syncSpecificPlexPlaylists') == 'true'
         self.sync_specific_kodi_playlists = utils.settings('syncSpecificKodiPlaylists') == 'true'
-        self.sync_dialog = utils.settings('dbSyncIndicator') == 'true'
-
-        self.full_sync_intervall = int(utils.settings('fullSyncInterval')) * 60
-        self.background_sync_disabled = utils.settings('enableBackgroundSync') == 'false'
-        self.backgroundsync_saftymargin = int(utils.settings('backgroundsync_saftyMargin'))
         self.sync_thread_number = int(utils.settings('syncThreadNumber'))
+        self.reload()
+
+    def reload(self):
+        """
+        Any settings unrelated to syncs to the Kodi database - can thus be
+        safely reset without a Kodi reboot
+        """
+        self.background_sync_disabled = utils.settings('enableBackgroundSync') == 'false'
+        self.enable_alexa = utils.settings('enable_alexa') == 'true'
+        self.sync_dialog = utils.settings('dbSyncIndicator') == 'true'
+        self.full_sync_intervall = int(utils.settings('fullSyncInterval')) * 60
+        self.backgroundsync_saftymargin = int(utils.settings('backgroundsync_saftyMargin'))
 
         self.image_sync_notifications = utils.settings('imageSyncNotifications') == 'true'
+
+        self.force_transcode_pix = utils.settings('force_transcode_pix') == 'true'
+        # Trailers in Kodi DB will remain UNTIL DB is reset!
+        self.show_extras_instead_of_playing_trailer = utils.settings('showExtrasInsteadOfTrailer') == 'true'

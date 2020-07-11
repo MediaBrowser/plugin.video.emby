@@ -37,6 +37,10 @@ class Service(object):
 
     def __init__(self):
         self._init_done = False
+        # Detect switch of Kodi profile - a second instance of PKC is started
+        self.profile = xbmc.translatePath('special://profile')
+        utils.window('plex_kodi_profilepath', value=self.profile)
+
         # Kodi Version supported by PKC?
         try:
             v.database_paths()
@@ -100,9 +104,11 @@ class Service(object):
         self.auth_running = False
         self._init_done = True
 
-    @staticmethod
-    def should_cancel():
-        return xbmc.abortRequested or app.APP.stop_pkc
+    def should_cancel(self):
+        if self.profile != utils.window('plex_kodi_profilepath'):
+            LOG.info('Kodi profile switch detected, shutting this instance down')
+            return True
+        return app.APP.monitor.abortRequested() or app.APP.stop_pkc
 
     def on_connection_check(self, result):
         """
@@ -248,6 +254,7 @@ class Service(object):
                              icon='{plex}',
                              time=2000,
                              sound=False)
+            app.reload()
             app.APP.resume_threads()
         self.auth_running = False
 
@@ -535,8 +542,7 @@ class Service(object):
                 self.sync.start()
                 self.plexcompanion.start()
                 self.playqueue.start()
-                if utils.settings('enable_alexa') == 'true':
-                    self.alexa.start()
+                self.alexa.start()
 
             xbmc.sleep(100)
 
@@ -550,31 +556,14 @@ class Service(object):
         library_sync.clear_window_vars()
         # Will block until threads have quit
         app.APP.stop_threads()
+        # CLEANUP
+        # Kodi's xbmc.Monitor() stalls
+        # delete xbmc.Player() just to be sure
+        del app.APP.monitor
+        del app.APP.player
 
 
 def start():
-    # Safety net - Kody starts PKC twice upon first installation!
-    if utils.window('plex_service_started') == 'true':
-        LOG.info('Another service.py instance is already running - shutting '
-                 'it down now')
-        # Telling the other Python instance of PKC to shut down now
-        i = 0
-        while utils.window('plexkodiconnect.command'):
-            xbmc.sleep(20)
-            i += 1
-            if i > 300:
-                LOG.error('Could not tell other PKC instance to shut down')
-                return
-        utils.window('plexkodiconnect.command', value='EXIT-PKC')
-        # Telling successful - now wait for actual shut-down
-        i = 0
-        while utils.window('plex_service_started'):
-            xbmc.sleep(20)
-            i += 1
-            if i > 300:
-                LOG.error('Could not shut down other PKC instance')
-                return
-    utils.window('plex_service_started', value='true')
     DELAY = int(utils.settings('startupDelay'))
     LOG.info("Delaying Plex startup by: %s sec...", DELAY)
     if DELAY and xbmc.Monitor().waitForAbort(DELAY):
@@ -582,5 +571,4 @@ def start():
         LOG.info("Abort requested while waiting. PKC not started.")
     else:
         Service().ServiceEntryPoint()
-    utils.window('plex_service_started', clear=True)
     LOG.info("======== STOP PlexKodiConnect service ========")

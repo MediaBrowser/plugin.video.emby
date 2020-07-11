@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.11.7" provider-name="croneter">
+<addon  id="plugin.video.plexkodiconnect" name="PlexKodiConnect" version="2.12.2" provider-name="croneter">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests" version="2.9.1" />
@@ -83,7 +83,23 @@
     <summary lang="lt_LT">Natūralioji „Plex“ integracija į „Kodi“</summary>
     <description lang="lt_LT">Prijunkite „Kodi“ prie „Plex Medija Serverio“. Šiame papildinyje daroma prielaida, kad valdote visus savo vaizdo įrašus naudodami „Plex“ (ir nė vieno su „Kodi“). Galite prarasti jau saugomus „Kodi“ vaizdo įrašų ir muzikos duomenų bazių duomenis (kadangi šis papildinys juos tiesiogiai pakeičia). Naudokite savo pačių rizika!</description>
     <disclaimer lang="lt_LT">Naudokite savo pačių rizika</disclaimer>
-    <news>version 2.11.7:
+    <news>version 2.12.2:
+- version 2.12.0 and 2.12.1 for everyone 
+- Fix regression: sync dialog not showing up when it should 
+
+version 2.12.1 (beta only):
+- Fix PKC shutdown on Kodi profile switch
+- Fix Kodi content type for images/photos
+- Added support for custom set of safe characters when escaping paths (thanks @geropan)
+- Revert "Don't allow spaces in devicename"
+- Fix sync dialog showing in certain cases even though user opted out
+
+version 2.12.0 (beta only):
+- Fix websocket threads; enable PKC background sync for all Plex Home users!
+- Fix PKC incorrectly marking a video as unwatched if an external player has been used
+- Update translations
+
+version 2.11.7:
 - Fix PKC crashing on devices running Microsoft UWP, e.g. XBox
 
 version 2.11.6:

@@ -101,6 +101,7 @@
 		<setting id="remapSMBphotoOrg" type="text" label="39045" default="" visible="eq(-7,true)" subsetting="true" /> <!-- Original Plex MUSIC path to replace: -->
 		<setting id="remapSMBphotoNew" type="text" label="39046" default="smb://" visible="eq(-8,true)" subsetting="true" /> <!-- Replace Plex MUSIC with: -->
         <setting id="escapePath" type="bool" label="39036" default="false" /> <!-- Escape special characters in path (e.g. space to %20) -->
+        <setting id="escapePathSafeChars" type="text" label="39090" default="%/:=&amp;?~#+!$,;'@()*[]" visible="eq(-1,true)" subsetting="true"/> <!-- Safe characters for http(s), dav(s) and (s)ftp urls -->
 	</category>
 
 	<category label="30516"><!-- Playback -->

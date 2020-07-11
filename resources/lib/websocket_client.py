@@ -22,6 +22,11 @@ class WebSocket(backgroundthread.KillableThread):
         self.sleeptime = 0.0
         super(WebSocket, self).__init__()
 
+    def close_websocket(self):
+        if self.ws is not None:
+            self.ws.close()
+            self.ws = None
+
     def process(self, opcode, message):
         raise NotImplementedError
 
@@ -62,9 +67,7 @@ class WebSocket(backgroundthread.KillableThread):
         try:
             self._run()
         finally:
-            # Close websocket connection on shutdown
-            if self.ws is not None:
-                self.ws.close()
+            self.close_websocket()
             app.APP.deregister_thread(self)
             LOG.info("##===---- %s Stopped ----===##", self.__class__.__name__)
 
@@ -73,9 +76,7 @@ class WebSocket(backgroundthread.KillableThread):
             # In the event the server goes offline
             if self.should_suspend():
                 # Set in service.py
-                if self.ws is not None:
-                    self.ws.close()
-                    self.ws = None
+                self.close_websocket()
                 if self.wait_while_suspended():
                     # Abort was requested while waiting. We should exit
                     return
@@ -132,9 +133,7 @@ class WebSocket(backgroundthread.KillableThread):
                 import traceback
                 LOG.error("%s: Traceback:\n%s",
                           self.__class__.__name__, traceback.format_exc())
-                if self.ws is not None:
-                    self.ws.close()
-                self.ws = None
+                self.close_websocket()
 
 
 class PMS_Websocket(WebSocket):
@@ -143,9 +142,13 @@ class PMS_Websocket(WebSocket):
     """
     def should_suspend(self):
         """
-        Returns True if the thread is suspended
+        Returns True if the thread is suspended.
         """
-        return self._suspended or app.SYNC.background_sync_disabled
+        suspend = self._suspended or app.SYNC.background_sync_disabled
+        if suspend:
+            # This thread needs to clear the Event() _is_not_suspended itself!
+            self.suspend()
+        return suspend
 
     def getUri(self):
         if self.redirect_uri:
@@ -159,9 +162,8 @@ class PMS_Websocket(WebSocket):
             else:
                 server = "ws%s" % server[4:]
             uri = "%s/:/websockets/notifications" % server
-            # Need to use plex.tv token, if any. NOT user token
-            if app.ACCOUNT.plex_token:
-                uri += '?X-Plex-Token=%s' % app.ACCOUNT.plex_token
+            if app.ACCOUNT.pms_token:
+                uri += '?X-Plex-Token=%s' % app.ACCOUNT.pms_token
         sslopt = {}
         if v.KODIVERSION == 17 and utils.settings('sslverify') == "false":
             sslopt["cert_reqs"] = CERT_NONE
@@ -210,9 +212,14 @@ class Alexa_Websocket(WebSocket):
         """
         Overwrite method since we need to check for plex token
         """
-        return (self._suspended or
-                not app.ACCOUNT.plex_token or
-                app.ACCOUNT.restricted_user)
+        suspend = self._suspended or \
+            not app.SYNC.enable_alexa or \
+            app.ACCOUNT.restricted_user or \
+            not app.ACCOUNT.plex_token
+        if suspend:
+            # This thread needs to clear the Event() _is_not_suspended itself!
+            self.suspend()
+        return suspend
 
     def getUri(self):
         if self.redirect_uri:

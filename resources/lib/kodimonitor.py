@@ -409,9 +409,15 @@ def _record_playstate(status, ended):
         return
     totaltime = float(timing.kodi_time_to_millis(status['totaltime'])) / 1000
     if status['external_player']:
-        _external_player_correct_plex_watch_count(db_item)
-        progress = 0.0
-        time = 0.0
+        # video has either been entirely watched - or not.
+        # "ended" won't work, need a workaround
+        ended = _external_player_correct_plex_watch_count(db_item)
+        if ended:
+            progress = 0.99
+            time = v.IGNORE_SECONDS_AT_START + 1
+        else:
+            progress = 0.0
+            time = 0.0
     else:
         if ended:
             progress = 0.99
@@ -479,6 +485,7 @@ def _external_player_correct_plex_watch_count(db_item):
         playcount = kodidb.get_playcount(db_item['kodi_fileid'])
     LOG.debug('External player detected. Playcount: %s', playcount)
     PF.scrobble(db_item['plex_id'], 'watched' if playcount else 'unwatched')
+    return True if playcount else False
 
 
 def _clean_file_table():

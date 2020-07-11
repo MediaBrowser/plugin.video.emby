@@ -66,8 +66,7 @@ def _wait_for_auth():
     xbmcplugin.endOfDirectory(int(argv[1]), False) if failed
 
     WARNING - this will potentially stall the shutdown of Kodi since we cannot
-    poll xbmc.Monitor().abortRequested() or waitForAbort() or
-    xbmc.abortRequested
+    poll xbmc.Monitor().abortRequested() or waitForAbort()
     """
     counter = 0
     startupdelay = int(utils.settings('startupDelay') or 0)
@@ -119,16 +118,15 @@ def show_main_menu(content_type=None):
         # we need to figure out which items to show in each listing. for
         # now we just only show picture nodes in the picture library video
         # nodes in the video library and all nodes in any other window
-        if node_type == 'photos' and content_type == 'image':
+        if node_type == v.CONTENT_TYPE_PHOTO and content_type == 'image':
             directory_item(label, path)
-        elif node_type in ('artists',
-                           'albums',
-                           'songs') and content_type == 'audio':
+        elif node_type in (v.CONTENT_TYPE_ARTIST,
+                           v.CONTENT_TYPE_ALBUM,
+                           v.CONTENT_TYPE_SONG) and content_type == 'audio':
             directory_item(label, path)
-        elif node_type in ('movies',
-                           'tvshows',
-                           'homevideos',
-                           'musicvideos') and content_type == 'video':
+        elif node_type in (v.CONTENT_TYPE_MOVIE,
+                           v.CONTENT_TYPE_SHOW,
+                           v.CONTENT_TYPE_MUSICVIDEO) and content_type == 'video':
             directory_item(label, path)
         elif content_type is None:
             # To let the user pick this node as a WIDGET (content_type is None)

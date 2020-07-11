@@ -965,7 +965,12 @@ msgstr ""
 # PKC Settings - Customize Paths
 msgctxt "#39036"
 msgid "Escape special characters in path (e.g. space to %20)"
-msgstr "Escapar caracteres especiales en la ruta (i.e. espacio a %20)"
+msgstr "Escapar caracteres especiales en la ruta (p. ej. espacio a %20)"
+
+# PKC Settings - Customize Paths
+msgctxt "#39090"
+msgid "Safe characters for http(s), dav(s) and (s)ftp urls"
+msgstr "Caracteres seguros para urls http(s), dav(s) y (s)ftp"
 
 # PKC Settings - Customize Paths
 msgctxt "#39037"

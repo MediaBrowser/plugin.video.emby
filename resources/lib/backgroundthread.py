@@ -8,8 +8,6 @@ import Queue
 import heapq
 from collections import deque
 
-import xbmc
-
 from . import utils, app, variables as v
 
 WORKER_COUNT = 3
@@ -305,7 +303,7 @@ class Task(object):
         self._canceled = True
 
     def should_cancel(self):
-        return self._canceled or xbmc.abortRequested
+        return self._canceled or app.APP.monitor.abortRequested()
 
     def isValid(self):
         return not self.finished and not self._canceled
@@ -370,7 +368,7 @@ class BackgroundWorker(object):
         return self
 
     def aborted(self):
-        return self._abort or xbmc.abortRequested
+        return self._abort or app.APP.monitor.abortRequested()
 
     def start(self):
         if self._thread and self._thread.isAlive():
@@ -452,7 +450,7 @@ class BackgroundThreader:
         return self
 
     def aborted(self):
-        return self._abort or xbmc.abortRequested
+        return self._abort or app.APP.monitor.abortRequested()
 
     def shutdown(self, block=True):
         self.abort()
