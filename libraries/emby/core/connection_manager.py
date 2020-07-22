@@ -200,7 +200,7 @@ class ConnectionManager(object):
                 'url': self.get_emby_url(server, "Users/AuthenticateByName"),
                 'json': {
                     'username': username,
-                    'password': hashlib.sha1(password or "").hexdigest(),
+                    'pw': password or "",
                 }
             }
             if clear:
