@@ -167,7 +167,7 @@ class ConnectionManager(object):
                 'url': self.get_connect_url("user/authenticate"),
                 'data': {
                     'nameOrEmail': username,
-                    'password': self._get_connect_password_hash(password)
+                    'rawpw': password
                 },
                 'dataType': "json"
             })
