@@ -23,8 +23,21 @@ sys.path.insert(0, __libraries__)
 sys.path.append(__base__)
 
 #################################################################################################
+from helper import window
 
-from entrypoint import Events
+#Verify emby for kodi plugin is fully loaded, timeout after 30 seconds
+EmbyOnline = False
+
+for i in range(60):
+    if window('emby_online.bool'):
+        EmbyOnline = True
+        from entrypoint import Events
+        break
+    else:
+        xbmc.sleep(500)
+
+if not EmbyOnline:
+    exit()
 
 #################################################################################################
 
