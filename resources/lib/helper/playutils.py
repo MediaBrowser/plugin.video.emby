@@ -247,13 +247,14 @@ class PlayUtils(object):
             base, params = source['TranscodingUrl'].split('?')
 
             if settings('skipDialogTranscode') != "3" and source.get('MediaStreams'):
-                url_parsed = params.split('&')
+                Temp = params.split('&')
+                url_parsed = ''
 
-                for i in url_parsed:
-                    if 'AudioStreamIndex' in i or 'AudioBitrate' in i or 'SubtitleStreamIndex' in i: # handle manually
-                        url_parsed.remove(i)
+                for Parameter in Temp:
+                    if not 'AudioStreamIndex' in Parameter and not 'AudioBitrate' in Parameter and not 'SubtitleStreamIndex' in Parameter: # handle manually
+                        url_parsed = url_parsed + '&' + Parameter
 
-                params = "%s%s" % ('&'.join(url_parsed), self.get_audio_subs(source, audio, subtitle))
+                params = "%s%s" % (url_parsed, self.get_audio_subs(source, audio, subtitle))
 
             video_type = 'live' if source['Protocol'] == 'LiveTV' else 'master'
             base = base.replace('stream' if 'stream' in base else 'master', video_type, 1)
