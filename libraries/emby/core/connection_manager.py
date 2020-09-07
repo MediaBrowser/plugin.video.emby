@@ -179,7 +179,7 @@ class ConnectionManager(object):
             credentials = self.credentials.get_credentials()
             credentials['ConnectAccessToken'] = result['AccessToken']
             credentials['ConnectUserId'] = result['User']['Id']
-            credentials['ConnectUser'] = result['User']['DisplayName']
+            credentials['ConnectUser'] = result['User']['Name']
             self.credentials.get_credentials(credentials)
             # Signed in
             self._on_connect_user_signin(result['User'])
