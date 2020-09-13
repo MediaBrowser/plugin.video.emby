@@ -114,7 +114,7 @@ def find(dict, item, beta=True):
     if item in dict:
         return dict[item], item
 
-    for key, value in sorted(dict.iteritems(), key=lambda (k, v): (v, k)):
+    for key, value in sorted(dict.iteritems(), key=lambda k_v: (k_v[1], k_v[0])):
 
         if re.match(key, item, re.I):
             return dict[key], key
