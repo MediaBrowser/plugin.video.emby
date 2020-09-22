@@ -9,7 +9,7 @@
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video audio image</provides>
     </extension>
-    <extension point="xbmc.service" library="service.py" start="login" />
+    <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
             <item library="context_play.py">

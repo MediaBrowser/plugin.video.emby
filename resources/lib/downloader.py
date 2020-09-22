@@ -77,27 +77,37 @@ def get_single_item(parent_id, media):
                 'IncludeItemTypes': media
             })
 
-def get_filtered_section(parent_id=None, media=None, limit=None, recursive=None, sort=None, sort_order=None,
-                         filters=None, extra=None, server_id=None):
+def get_filtered_section(parent_id=None, media=None, limit=None, recursive=None, sort=None, sort_order=None, filters=None, extra=None, server_id=None, ForceNoSort=None):
 
     ''' Get dynamic listings.
     '''
-    params = {
-        'ParentId': parent_id,
-        'IncludeItemTypes': media,
-        'IsMissing': False,
-        'Recursive': recursive if recursive is not None else True,
-        'Limit': limit,
-        'SortBy': sort or "SortName",
-        'SortOrder': sort_order or "Ascending",
-        'ImageTypeLimit': 1,
-        'IsVirtualUnaired': False,
-        'Fields': browse_info()
-    }
+    if ForceNoSort:
+        params = {
+            'ParentId': parent_id,
+            'IncludeItemTypes': media,
+            'IsMissing': False,
+            'Recursive': recursive if recursive is not None else True,
+            'Limit': limit,
+            'ImageTypeLimit': 1,
+            'IsVirtualUnaired': False,
+            'Fields': browse_info()
+        }
+    else:
+        params = {
+            'ParentId': parent_id,
+            'IncludeItemTypes': media,
+            'IsMissing': False,
+            'Recursive': recursive if recursive is not None else True,
+            'Limit': limit,
+            'SortBy': sort or "SortName",
+            'SortOrder': sort_order or "Ascending",
+            'ImageTypeLimit': 1,
+            'IsVirtualUnaired': False,
+            'Fields': browse_info()
+        }
+
     if filters:
-
         if 'Boxsets' in filters:
-
             filters.remove('Boxsets')
             params['CollapseBoxSetItems'] = settings('groupedSets.bool')
 
@@ -112,7 +122,7 @@ def get_filtered_section(parent_id=None, media=None, limit=None, recursive=None,
     if extra is not None:
         params.update(extra)
 
-    return  _get("Users/{UserId}/Items", params, server_id)
+    return _get("Users/{UserId}/Items", params, server_id)
 
 def get_movies_by_boxset(boxset_id):
 
