@@ -439,6 +439,8 @@ def browse(media, view_id=None, folder=None, server_id=None):
         listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, True, None, None, None, None, server_id)
     elif media == 'seasons':
         listing = EMBY['api'].get_seasons(folder)
+    elif media == 'playlists':
+        listing = downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, server_id, True)
     elif media != 'files':
         listing = downloader.get_filtered_section(folder or view_id, get_media_type(content_type), None, False, None, None, None, None, server_id)
     else:
@@ -526,6 +528,14 @@ def browse(media, view_id=None, folder=None, server_id=None):
         xbmcplugin.addDirectoryItems(int(sys.argv[1]), list_li, len(list_li))
 
     if content_type == 'images':
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+
+    if media == 'playlists':
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_YEAR)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)

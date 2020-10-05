@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.emby" name="Emby" version="4.1.20" provider-name="angelblue05, sualfred">
+<addon  id="plugin.video.emby" name="Emby" version="4.1.21" provider-name="angelblue05, sualfred">
     <requires>
         <import addon="xbmc.python" version="2.25.0"/>
         <import addon="plugin.video.emby.movies" version="0.14" />
@@ -9,7 +9,7 @@
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video audio image</provides>
     </extension>
-    <extension point="xbmc.service" library="service.py" start="login" />
+    <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
             <item library="context_play.py">
