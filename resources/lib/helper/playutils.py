@@ -110,13 +110,23 @@ class PlayUtils(object):
 
         return sources
 
+    def SizeToText(self, size, precision = 2):
+        suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+        suffixIndex = 0
+
+        while size > 1024 and suffixIndex < 4:
+            suffixIndex += 1
+            size = size / 1024.0
+
+        return "%.*f%s" % (precision, size, suffixes[suffixIndex])
+
     def select_source(self, sources, audio=None, subtitle=None):
 
         if len(sources) > 1:
             selection = []
 
             for source in sources:
-                selection.append(source.get('Name', "na"))
+                selection.append(source.get('Name', "na") + " - " + self.SizeToText(float(source.get('Size', "0")))  + " - " + self.SizeToText(float(source.get('Bitrate', "0"))) + "it")
 
             resp = dialog("select", _(33130), selection)
 
