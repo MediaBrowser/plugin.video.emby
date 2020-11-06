@@ -38,18 +38,21 @@ def sources():
     video = xml.find('video')
     count_http = 1
     count_smb = 1
+    count_nfs = 1
 
     for source in xml.findall('.//path'):
         if source.text == 'smb://':
             count_smb -= 1
         elif source.text == 'http://':
             count_http -= 1
+        elif source.text == 'nfs://':
+            count_nfs -= 1
 
-        if not count_http and not count_smb:
+        if not count_http and not count_smb and not count_nfs:
             break
     else:
-        for protocol in ('smb://', 'http://'):
-            if (protocol == 'smb://' and count_smb > 0) or (protocol == 'http://' and count_http > 0):
+        for protocol in ('smb://', 'http://', 'nfs://'):
+            if (protocol == 'smb://' and count_smb > 0) or (protocol == 'http://' and count_http > 0) or (protocol == 'nfs://' and count_nfs > 0):
 
                 source = etree.SubElement(video, 'source')
                 etree.SubElement(source, 'name').text = "Emby"
