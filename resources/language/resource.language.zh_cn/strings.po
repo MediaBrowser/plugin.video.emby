@@ -7,15 +7,15 @@
 # lei zhang <hazhanglei@gmail.com>, 2019
 # Noisy✘ <164980316@qq.com>, 2019
 # jindaxia <jfk_jin@sina.com>, 2019
-# 無情天 X <kofzhanganguo@126.com>, 2019
 # angelblue05 <tamara.angel05@gmail.com>, 2019
+# 無情天 X <kofzhanganguo@126.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: angelblue05 <tamara.angel05@gmail.com>, 2019\n"
+"Last-Translator: 無情天 X <kofzhanganguo@126.com>, 2019\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/emby-for-kodi/teams/91090/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -89,7 +89,7 @@ msgstr "视频质量"
 
 msgctxt "#30170"
 msgid "Recently Added TV Shows"
-msgstr "最近新增的剧集"
+msgstr "最近添加的电视节目"
 
 msgctxt "#30171"
 msgid "In Progress TV Shows"
@@ -97,11 +97,11 @@ msgstr "正在播出的电视节目"
 
 msgctxt "#30174"
 msgid "Recently Added Movies"
-msgstr "最近新增的电影"
+msgstr "最近添加的电影"
 
 msgctxt "#30175"
 msgid "Recently Added Episodes"
-msgstr "最近新增季"
+msgstr "最近添加的剧集"
 
 msgctxt "#30177"
 msgid "In Progress Movies"
@@ -269,7 +269,7 @@ msgstr "播放"
 
 msgctxt "#30517"
 msgid "Network credentials"
-msgstr "网络凭据"
+msgstr "网络证书"
 
 msgctxt "#30518"
 msgid "Enable cinema mode"
@@ -305,7 +305,7 @@ msgstr "启动延迟（以秒为单位）"
 
 msgctxt "#30530"
 msgid "Enable server restart message"
-msgstr "启用服务器重新启动通知"
+msgstr "启用服务器重启信息"
 
 msgctxt "#30531"
 msgid "Enable new content"
@@ -341,7 +341,7 @@ msgstr "手动登录"
 
 msgctxt "#30543"
 msgid "Username or email"
-msgstr "用户名或电子邮箱"
+msgstr "用户名或邮箱地址"
 
 msgctxt "#30545"
 msgid "Enable server offline"
@@ -393,7 +393,7 @@ msgstr "请登录"
 
 msgctxt "#30613"
 msgid "Change Emby Connect user"
-msgstr "更改Emby Connect用户"
+msgstr "更改 Emby 连接用户"
 
 msgctxt "#30614"
 msgid "Connect to server"
@@ -409,7 +409,7 @@ msgstr "连接"
 
 msgctxt "#30617"
 msgid "Server or port cannot be empty"
-msgstr "服务器或端口不能为空"
+msgstr "服务器或端口号不能为空"
 
 msgctxt "#30618"
 msgid "Change Emby Connect user"
@@ -425,7 +425,7 @@ msgstr "服务器正在重新启动"
 
 msgctxt "#33009"
 msgid "Invalid username or password"
-msgstr "用户名或密码无效"
+msgstr "用户名或密码错误"
 
 msgctxt "#33013"
 msgid "Choose the audio stream"
@@ -441,7 +441,7 @@ msgstr "从Emby删除文件？"
 
 msgctxt "#33016"
 msgid "Play trailers?"
-msgstr "播放预告片？"
+msgstr "是否播放预告片？"
 
 msgctxt "#33018"
 msgid "Gathering boxsets"
@@ -463,11 +463,11 @@ msgstr "只有重置数据库后，Emby for Kodi才能正常使用。"
 
 msgctxt "#33025"
 msgid "Completed in:"
-msgstr "完成："
+msgstr "剩余时间："
 
 msgctxt "#33033"
 msgid "A new device Id has been generated. Kodi will now restart."
-msgstr "生成了一个新的设备ID，Kodi将要重启。"
+msgstr "新设备ID已生成，Kodi将重启"
 
 msgctxt "#33035"
 msgid ""
@@ -482,7 +482,7 @@ msgstr "插件（默认）"
 
 msgctxt "#33037"
 msgid "Native (direct paths)"
-msgstr "本地（直接路径）"
+msgstr "本地（直接路径访问）"
 
 msgctxt "#33039"
 msgid "Enable music library?"
@@ -519,11 +519,11 @@ msgstr ""
 
 msgctxt "#33049"
 msgid "New"
-msgstr "新的"
+msgstr "新项目"
 
 msgctxt "#33054"
 msgid "Add user to session"
-msgstr "将用户添加到会话"
+msgstr "添加用户至会话"
 
 msgctxt "#33058"
 msgid "Perform local database reset"
@@ -571,7 +571,7 @@ msgstr "删除所有缓存的艺术图？"
 
 msgctxt "#33087"
 msgid "Reset all Emby add-on settings?"
-msgstr "重置所有 Emby 插件选项设置？"
+msgstr "重置所有 Emby 插件项设置？"
 
 msgctxt "#33088"
 msgid ""
@@ -588,7 +588,7 @@ msgstr "替换现有备份？"
 
 msgctxt "#33091"
 msgid "Created backup at:"
-msgstr "创建备份的位置："
+msgstr "创建备份位置到："
 
 msgctxt "#33092"
 msgid "Create a backup"
@@ -738,7 +738,7 @@ msgstr "稍后同步"
 
 msgctxt "#33127"
 msgid "Proceed"
-msgstr "执行"
+msgstr "继续"
 
 msgctxt "#33128"
 msgid ""
@@ -770,7 +770,7 @@ msgstr "从Kodi中删除媒体库"
 
 msgctxt "#33134"
 msgid "Add server"
-msgstr "新增服务器"
+msgstr "添加服务器"
 
 msgctxt "#33135"
 msgid "Kodi will now restart to apply a small patch for your Kodi version."
@@ -932,7 +932,7 @@ msgstr "未观看"
 
 msgctxt "#33171"
 msgid "By first letter"
-msgstr "用第一字母"
+msgstr "以首字母排序"
 
 msgctxt "#33172"
 msgid ""
@@ -986,7 +986,7 @@ msgstr "使用影院模式播放"
 
 msgctxt "#33183"
 msgid "Enable the option to play with cinema mode"
-msgstr "启用选项以影院模式播放"
+msgstr "启用此选项以影院模式播放"
 
 msgctxt "#33184"
 msgid "Remove libraries"
@@ -1065,7 +1065,7 @@ msgstr "启用简易播放（有助于外部播放器）"
 
 msgctxt "#33206"
 msgid "Transcode 10-bit (H264)"
-msgstr "转码(H264)10-bit"
+msgstr "转码 (H264)10-bit"
 
 msgctxt "#33207"
 msgid "Ask to proceed with sync if count greater than"
@@ -1073,7 +1073,7 @@ msgstr "如果计数大于，则要求继续同步"
 
 msgctxt "#33208"
 msgid "Transcode 10-bit (H265/HEVC)"
-msgstr "转码(H265/HEVC)10-bit"
+msgstr "转码 (H265/HEVC)10-bit"
 
 msgctxt "#33209"
 msgid "Play remote urls using Emby"
@@ -1097,30 +1097,30 @@ msgstr "为多集启用标签，即| # |标题"
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr ""
+msgstr "转码 Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr ""
+msgstr "转码 Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
-msgstr ""
+msgstr "转码 Dvd (MPEG2)"
 
 msgctxt "#33217"
 msgid ""
 "Verify the connection? Recommended: Disable for self-signed certificate "
 "only."
-msgstr ""
+msgstr "验证连接？ 推荐：禁用自签名证书only."
 
 msgctxt "#33218"
 msgid "By Year"
-msgstr ""
+msgstr "按年份"
 
 msgctxt "#33219"
 msgid "By Actor"
-msgstr ""
+msgstr "按演员"
 
 msgctxt "#33220"
 msgid "By Tag"
-msgstr ""
+msgstr "按标签"

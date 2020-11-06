@@ -4,13 +4,14 @@
 # Addon Provider: angelblue05
 # Translators:
 # 63ac71fcbd0581bb567b1f0d798c7970, 2019
+# Dag Wieers <dag@wieers.com>, 2019
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: 63ac71fcbd0581bb567b1f0d798c7970, 2019\n"
+"Last-Translator: Dag Wieers <dag@wieers.com>, 2019\n"
 "Language-Team: Dutch (https://www.transifex.com/emby-for-kodi/teams/91090/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -498,7 +499,7 @@ msgstr ""
 
 msgctxt "#33045"
 msgid "Updating artwork cache"
-msgstr ""
+msgstr "Artwork cache wordt bijgewerkt"
 
 msgctxt "#33046"
 msgid "Waiting for threads to exit"
@@ -529,7 +530,7 @@ msgstr "Lokale databank reset doorvoeren"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr ""
+msgstr "Cache alle artwork"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -553,11 +554,11 @@ msgstr "Gebruiker uit sessie verwijderen"
 
 msgctxt "#33066"
 msgid "Removed"
-msgstr ""
+msgstr "Verwijderd"
 
 msgctxt "#33067"
 msgid "Added"
-msgstr ""
+msgstr "Toegevoegd"
 
 msgctxt "#33074"
 msgid "Are you sure you want to reset your local Kodi database?"
@@ -655,7 +656,7 @@ msgstr "Schakel de optie om te transkoderen in"
 
 msgctxt "#33107"
 msgid "Users added to the session"
-msgstr ""
+msgstr "Gebruikers toegevoegd aan de sessie"
 
 msgctxt "#33108"
 msgid "Notifications are delayed during video playback (except live tv)."
@@ -805,7 +806,7 @@ msgstr "Bibliotheek updaten"
 
 msgctxt "#33137"
 msgid "Enable Kodi Companion (server plugin)"
-msgstr ""
+msgstr "Kodi Companion (server plugin) inschakelen"
 
 msgctxt "#33138"
 msgid ""
@@ -1082,7 +1083,7 @@ msgstr ""
 
 msgctxt "#33199"
 msgid "Emby"
-msgstr ""
+msgstr "Emby"
 
 msgctxt "#33201"
 msgid "Emby play"
@@ -1094,19 +1095,19 @@ msgstr ""
 
 msgctxt "#33203"
 msgid "Task succeeded!"
-msgstr ""
+msgstr "Taak uitgevoerd!"
 
 msgctxt "#33204"
 msgid "Task failed!"
-msgstr ""
+msgstr "Taak gefaald!"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
-msgstr ""
+msgstr "Eenvoudig afspelen inschakelen (werkt met externe speler)"
 
 msgctxt "#33206"
 msgid "Transcode 10-bit (H264)"
-msgstr ""
+msgstr "Transcodeer 10-bit (H264)"
 
 msgctxt "#33207"
 msgid "Ask to proceed with sync if count greater than"
@@ -1114,15 +1115,15 @@ msgstr ""
 
 msgctxt "#33208"
 msgid "Transcode 10-bit (H265/HEVC)"
-msgstr ""
+msgstr "Transcodeer 10-bit (H265/HEVC)"
 
 msgctxt "#33209"
 msgid "Play remote urls using Emby"
-msgstr ""
+msgstr "Speel remote URLs met Emby"
 
 msgctxt "#33210"
 msgid "Display hidden users in selection"
-msgstr ""
+msgstr "Toon verborgen gebruikers in selectie"
 
 msgctxt "#33211"
 msgid "Reset patch update"
@@ -1130,7 +1131,7 @@ msgstr ""
 
 msgctxt "#33212"
 msgid "Latest release"
-msgstr ""
+msgstr "Laatste release"
 
 msgctxt "#33213"
 msgid "Enable label for multi-episodes. i.e. | # | title"
@@ -1138,25 +1139,27 @@ msgstr ""
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr ""
+msgstr "Transcodeer Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr ""
+msgstr "Transcodeer Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
-msgstr ""
+msgstr "Transcodeer DVD (MPEG2)"
 
 msgctxt "#33217"
 msgid ""
 "Verify the connection? Recommended: Disable for self-signed certificate "
 "only."
 msgstr ""
+"Controleer je verbinding? Advies: Uitgeschakeld enkel voor zelf-gesigneerde "
+"certificaten"
 
 msgctxt "#33218"
 msgid "By Year"
-msgstr ""
+msgstr "Per Jaar"
 
 msgctxt "#33219"
 msgid "By Actor"
