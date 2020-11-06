@@ -9,13 +9,14 @@
 # Mike Delling <mike.delling@gmail.com>, 2019
 # Ja Ku <asd2304@gmail.com>, 2019
 # Benni <semool@secure-mail.biz>, 2019
+# Markus Maurer <admin@ryuum3gum1n.de>, 2020
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: Benni <semool@secure-mail.biz>, 2019\n"
+"Last-Translator: Markus Maurer <admin@ryuum3gum1n.de>, 2020\n"
 "Language-Team: German (https://www.transifex.com/emby-for-kodi/teams/91090/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1166,30 +1167,32 @@ msgstr "Aktiviere Markierung für Multi Episoden zB. | # | titel"
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr ""
+msgstr "Transkodier Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr ""
+msgstr "Transkodier Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
-msgstr ""
+msgstr "Transkodier Dvd (MPEG2)"
 
 msgctxt "#33217"
 msgid ""
 "Verify the connection? Recommended: Disable for self-signed certificate "
 "only."
 msgstr ""
+"Überprüfen Sie die Verbindung? Empfohlen: Deaktivieren Sie nur für "
+"selbstsigniertes Zertifikat."
 
 msgctxt "#33218"
 msgid "By Year"
-msgstr ""
+msgstr "Nach Jahr"
 
 msgctxt "#33219"
 msgid "By Actor"
-msgstr ""
+msgstr "Nach Schauspieler"
 
 msgctxt "#33220"
 msgid "By Tag"
-msgstr ""
+msgstr "Nach Kennzeichen"
