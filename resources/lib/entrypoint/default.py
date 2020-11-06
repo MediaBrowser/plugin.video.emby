@@ -1076,24 +1076,19 @@ def backup():
         return
 
     copytree(addon_data, destination_data)
+    db = xbmc.translatePath("special://database/").decode('utf-8')
+    dirs, files = xbmcvfs.listdir(db)
 
-    databases = objects.Objects().objects
-
-    db = xbmc.translatePath(databases['emby']).decode('utf-8')
-    xbmcvfs.copy(db, os.path.join(destination_databases, db.rsplit('\\', 1)[1]))
-    LOG.info("copied emby.db")
-
-    db = xbmc.translatePath(databases['video']).decode('utf-8')
-    filename = db.rsplit('\\', 1)[1]
-    xbmcvfs.copy(db, os.path.join(destination_databases, filename))
-    LOG.info("copied %s", filename)
-
-    if settings('enableMusic.bool'):
-
-        db = xbmc.translatePath(databases['music']).decode('utf-8')
-        filename = db.rsplit('\\', 1)[1]
-        xbmcvfs.copy(db, os.path.join(destination_databases, filename))
-        LOG.info("copied %s", filename)
+    for Temp in files:
+        if 'MyVideos' in Temp:
+            xbmcvfs.copy(os.path.join(db, Temp), os.path.join(destination_databases, Temp))
+            LOG.info("copied %s", Temp)
+        elif 'emby' in Temp:
+            xbmcvfs.copy(os.path.join(db, Temp), os.path.join(destination_databases, Temp))
+            LOG.info("copied %s", Temp)
+        elif 'MyMusic' in Temp:
+            xbmcvfs.copy(os.path.join(db, Temp), os.path.join(destination_databases, Temp))
+            LOG.info("copied %s", Temp)
 
     LOG.info("backup completed")
     dialog("ok", heading="{emby}", line1="%s %s" % (_(33091), backup))
