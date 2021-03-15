@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
+import os
+
 import xbmcgui
+import xbmcaddon
+
 import helper.utils
-import helper.translate
+import helper.loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -18,7 +21,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         self._user = None
         self.error = None
         self.username = None
-        self.LOG = logging.getLogger("EMBY.dialogs.loginmanual.LoginManual")
+        self.LOG = helper.loghandler.LOG('EMBY.dialogs.loginmanual.LoginManual')
         self.Utils = helper.utils.Utils()
         self.user_field = None
         self.password_field = None
@@ -69,7 +72,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
             if not user:
                 # Display error
-                self._error(ERROR['Empty'], helper.translate._('empty_user'))
+                self._error(ERROR['Empty'], self.Utils.Translate('empty_user'))
                 self.LOG.error("Username cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -85,7 +88,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width, password=0):
-#        media = os.path.join(xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
+        os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
 ####        control = xbmcgui.ControlEdit(0, 0, 0, 0, label="User", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-", isPassword=password)
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
 #        control.setInputType(xbmcgui.INPUT_TYPE_PASSWORD)
@@ -97,10 +100,10 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
     def _login(self, username, password):
         server = self.connect_manager['server-address']
-        result = self.connect_manager['login'](server, username, password)
+        result = self.connect_manager.login(server, username, password, True, {})
 
         if not result:
-            self._error(ERROR['Invalid'], helper.translate._('invalid_auth'))
+            self._error(ERROR['Invalid'], self.Utils.Translate('invalid_auth'))
             return False
 
         self._user = result

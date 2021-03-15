@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-import logging
 import time
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
-LOG = logging.getLogger('Emby.' + __name__)
+
+import helper.loghandler
 
 class Credentials():
     credentials = None
 
     def __init__(self):
-        LOG.debug("Credentials initializing...")
+        self.LOG = helper.loghandler.LOG('Emby.core.credentials')
+        self.LOG.debug("Credentials initializing...")
 
     def set_credentials(self, credentials):
         self.credentials = dict(credentials)
@@ -22,14 +24,16 @@ class Credentials():
     def _ensure(self):
         if not self.credentials:
             try:
-                LOG.info(self.credentials)
+                self.LOG.info(self.credentials)
+
                 if not isinstance(self.credentials, dict):
-                    raise ValueError("invalid credentials format")
-            except Exception as e: # File is either empty or missing
-                LOG.warning(e)
+                    self.LOG.error("invalid credentials format")
+                    return False #"invalid credentials format"
+            except Exception as error: #File is either empty or missing
+                self.LOG.warning(error)
                 self.credentials = {}
 
-            LOG.debug("credentials initialized with: %s", self.credentials)
+            self.LOG.debug("credentials initialized with: %s" % self.credentials)
             self.credentials['Servers'] = self.credentials.setdefault('Servers', [])
 
     def _get(self):
@@ -42,7 +46,7 @@ class Credentials():
         else:
             self._clear()
 
-        LOG.debug("credentialsupdated")
+        self.LOG.debug("credentialsupdated")
 
     def _clear(self):
         self.credentials.clear()
@@ -58,7 +62,8 @@ class Credentials():
 
     def add_update_server(self, servers, server):
         if server.get('Id') is None:
-            raise KeyError("Server['Id'] cannot be null or empty")
+            self.LOG.error("Server['Id'] cannot be null or empty")
+            return False
 
         # Add default DateLastAccessed if doesn't exist.
         server.setdefault('DateLastAccessed', "1970-01-01T00:00:00Z")

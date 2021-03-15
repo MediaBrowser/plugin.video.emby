@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import logging
 import xbmc
 import xbmcgui
-import emby.core.connection_manager
-import helper.translate
+
+import helper.utils
+import helper.loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -23,6 +23,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self.user_image = None
         self.servers = []
+        self.Utils = helper.utils.Utils()
         self._selected_server = None
         self._connect_login = False
         self._manual_server = False
@@ -30,7 +31,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         self.message_box = None
         self.busy = None
         self.list_ = None
-        self.LOG = logging.getLogger("EMBY.dialogs.serverconnect.ServerConnect")
+        self.LOG = helper.loghandler.LOG('EMBY.dialogs.serverconnect.ServerConnect')
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     #connect_manager, user_image, servers, emby_connect
@@ -64,7 +65,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
         if not self.emby_connect: # Change connect user
-            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % helper.translate._(30618))
+            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % self.Utils.Translate(30618))
 
         if self.servers:
             self.setFocus(self.list_)
@@ -84,7 +85,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             if self.getFocusId() == LIST:
                 server = self.list_.getSelectedItem()
                 selected_id = server.getProperty('id')
-                self.LOG.info('Server Id selected: %s', selected_id)
+                self.LOG.info('Server Id selected: %s' % selected_id)
 
                 if self._connect_server(selected_id):
                     self.message_box.setVisibleCondition('false')
@@ -102,15 +103,15 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _connect_server(self, server_id):
-        server = self.connect_manager.get_server_info(server_id)
-        self.message.setLabel("%s %s..." % (helper.translate._(30610), server['Name']))
+        server = self.connect_manager.get_server_info()
+        self.message.setLabel("%s %s..." % (self.Utils.Translate(30610), server['Name']))
         self.message_box.setVisibleCondition('true')
         self.busy.setVisibleCondition('true')
-        result = self.connect_manager['connect-to-server'](server)
+        result = self.connect_manager.connect_to_server(server, {})
 
-        if result['State'] == emby.core.connection_manager.CONNECTION_STATE['Unavailable']:
+        if result['State'] == 0: #Unavailable
             self.busy.setVisibleCondition('false')
-            self.message.setLabel(helper.translate._(30609))
+            self.message.setLabel(self.Utils.Translate(30609))
             return False
 
         xbmc.sleep(1000)

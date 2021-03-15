@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
-import logging
 import re
 
 import database.queries
 import database.emby_db
-import helper.wrapper
 import helper.api
+import helper.loghandler
 from . import obj_ops
 from . import kodi
 from . import queries_videos
@@ -14,9 +14,10 @@ from . import artwork
 from . import common
 
 class MusicVideos():
-    def __init__(self, server, embydb, videodb, direct_path, Utils):
-        self.LOG = logging.getLogger("EMBY.core.musicvideos.MusicVideos")
+    def __init__(self, server, embydb, videodb, direct_path, Utils, Downloader, server_id):
+        self.LOG = helper.loghandler.LOG('EMBY.core.musicvideos.MusicVideos')
         self.Utils = Utils
+        self.server_id = server_id
         self.server = server
         self.emby = embydb
         self.video = videodb
@@ -25,15 +26,16 @@ class MusicVideos():
         self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.server)
         self.MusicVideosDBIO = MusicVideosDBIO(videodb.cursor)
-        self.KodiDBIO = kodi.Kodi(videodb.cursor)
+        self.KodiDBIO = kodi.Kodi(videodb.cursor, Utils)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.Utils)
 
     def __getitem__(self, key):
         if key == 'MusicVideo':
             return self.musicvideo
 
-    @helper.wrapper.stop
-    def musicvideo(self, item, library=None):
+        return None
+
+    def musicvideo(self, item, library):
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
 
@@ -54,18 +56,18 @@ class MusicVideos():
         obj['LibraryName'] = library['Name']
         update = True
 
-        try:
+        if e_item:
             obj['MvideoId'] = e_item[0]
             obj['FileId'] = e_item[1]
             obj['PathId'] = e_item[2]
-        except TypeError:
-            update = False
-            self.LOG.debug("MvideoId for %s not found", obj['Id'])
-            obj['MvideoId'] = self.MusicVideosDBIO.create_entry()
-        else:
+
             if self.MusicVideosDBIO.get(*self.Utils.values(obj, queries_videos.get_musicvideo_obj)) is None:
                 update = False
-                self.LOG.info("MvideoId %s missing from kodi. repairing the entry.", obj['MvideoId'])
+                self.LOG.info("MvideoId %s missing from kodi. repairing the entry" % obj['MvideoId'])
+        else:
+            update = False
+            self.LOG.debug("MvideoId for %s not found" % obj['Id'])
+            obj['MvideoId'] = self.MusicVideosDBIO.create_entry()
 
         obj['Item']['MediaSources'][0] = self.objects.MapMissingData(obj['Item']['MediaSources'][0], 'MediaSources')
         obj['MediaSourceID'] = obj['Item']['MediaSources'][0]['Id']
@@ -105,7 +107,10 @@ class MusicVideos():
         obj['Audio'] = API.audio_streams(obj['Audio'] or [])
         obj['Streams'] = API.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'Artwork'))
-        obj = self.Common.get_path_filename(obj, "musicvideos")
+        PathValid, obj = self.Common.get_path_filename(obj, "musicvideos")
+
+        if not PathValid:
+            return "Invalid Filepath"
 
         if obj['Premiere']:
             obj['Premiere'] = str(obj['Premiere']).split('.')[0].replace('T', " ")
@@ -159,16 +164,15 @@ class MusicVideos():
         obj['FileId'] = self.KodiDBIO.add_file(*self.Utils.values(obj, queries_videos.add_file_obj))
         self.MusicVideosDBIO.add(*self.Utils.values(obj, queries_videos.add_musicvideo_obj))
         self.emby_db.add_reference(*self.Utils.values(obj, database.queries.add_reference_mvideo_obj))
-        self.LOG.info("ADD mvideo [%s/%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title'])
+        self.LOG.info("ADD mvideo [%s/%s/%s] %s: %s" % (obj['PathId'], obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title']))
 
     #Update object to kodi
     def musicvideo_update(self, obj):
         obj = self.Common.Streamdata_add(obj, True)
         self.MusicVideosDBIO.update(*self.Utils.values(obj, queries_videos.update_musicvideo_obj))
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("UPDATE mvideo [%s/%s/%s] %s: %s", obj['PathId'], obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title'])
+        self.LOG.info("UPDATE mvideo [%s/%s/%s] %s: %s" % (obj['PathId'], obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title']))
 
-    @helper.wrapper.stop
     def userdata(self, item):
         ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
             Poster with progress bar
@@ -178,10 +182,10 @@ class MusicVideos():
         obj = self.objects.map(item, 'MusicVideoUserData')
         obj['Item'] = item
 
-        try:
+        if e_item:
             obj['MvideoId'] = e_item[0]
             obj['FileId'] = e_item[1]
-        except TypeError:
+        else:
             return
 
         obj = self.Common.Streamdata_add(obj, True)
@@ -199,26 +203,24 @@ class MusicVideos():
 
         self.KodiDBIO.add_playstate(*self.Utils.values(obj, queries_videos.add_bookmark_obj))
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("USERDATA mvideo [%s/%s] %s: %s", obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title'])
+        self.LOG.info("USERDATA mvideo [%s/%s] %s: %s" % (obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title']))
 
     #Remove mvideoid, fileid, pathid, emby reference
-    @helper.wrapper.stop
     def remove(self, item_id):
         e_item = self.emby_db.get_item_by_id(item_id)
         obj = {'Id': item_id}
 
-        try:
+        if e_item:
             obj['MvideoId'] = e_item[0]
             obj['FileId'] = e_item[1]
             obj['PathId'] = e_item[2]
-        except TypeError:
+        else:
             return
 
         self.ArtworkDBIO.delete(obj['MvideoId'], "musicvideo")
         self.MusicVideosDBIO.delete(*self.Utils.values(obj, queries_videos.delete_musicvideo_obj))
         self.emby_db.remove_item(*self.Utils.values(obj, database.queries.delete_item_obj))
-        self.LOG.info("DELETE musicvideo %s [%s/%s] %s", obj['MvideoId'], obj['PathId'], obj['FileId'], obj['Id'])
-
+        self.LOG.info("DELETE musicvideo %s [%s/%s] %s" % (obj['MvideoId'], obj['PathId'], obj['FileId'], obj['Id']))
 
 class MusicVideosDBIO():
     def __init__(self, cursor):
@@ -229,11 +231,13 @@ class MusicVideosDBIO():
         return self.cursor.fetchone()[0] + 1
 
     def get(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_musicvideo, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_videos.get_musicvideo, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
 
     def add(self, *args):
         self.cursor.execute(queries_videos.add_musicvideo, args)

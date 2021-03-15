@@ -1,29 +1,30 @@
 # -*- coding: utf-8 -*-
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
-import logging
 
 import database.queries
 import database.emby_db
-import helper.wrapper
 import helper.api
+import helper.loghandler
 from . import obj_ops
 from . import queries_music
 from . import artwork
 from . import common
 
 class Music():
-    def __init__(self, server, embydb, musicdb, direct_path, Utils):
-        self.LOG = logging.getLogger("EMBY.core.music.Music")
+    def __init__(self, server, embydb, musicdb, direct_path, Utils, Downloader, server_id):
+        self.LOG = helper.loghandler.LOG('EMBY.core.music.Music')
         self.Utils = Utils
+        self.server_id = server_id
         self.server = server
         self.emby = embydb
         self.music = musicdb
         self.emby_db = database.emby_db.EmbyDatabase(self.emby.cursor)
         self.objects = obj_ops.Objects(self.Utils)
         self.item_ids = []
-        self.DBVersion = int(self.Utils.window('kodidbverion.music'))
+        self.DBVersion = int(self.Utils.window('kodidbversion.music'))
         self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.server)
-        self.MusicDBIO = MusicDBIO(self.music.cursor, int(self.Utils.window('kodidbverion.music')))
+        self.MusicDBIO = MusicDBIO(self.music.cursor, self.DBVersion)
         self.ArtworkDBIO = artwork.Artwork(musicdb.cursor, self.Utils)
 
         if not self.Utils.settings('MusicRescan.bool'):
@@ -38,10 +39,11 @@ class Music():
         elif key == 'Audio':
             return self.song
 
+        return None
+
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
-    @helper.wrapper.stop
-    def artist(self, item, library=None):
+    def artist(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -52,16 +54,16 @@ class Music():
         obj = self.objects.map(item, 'Artist')
         update = True
 
-        try:
+        if e_item:
             obj['ArtistId'] = e_item[0]
-        except TypeError:
-            update = False
-            obj['ArtistId'] = None
-            self.LOG.debug("ArtistId %s not found", obj['Id'])
-        else:
+
             if self.MusicDBIO.validate_artist(*self.Utils.values(obj, queries_music.get_artist_by_id_obj)) is None:
                 update = False
-                self.LOG.info("ArtistId %s missing from kodi. repairing the entry.", obj['ArtistId'])
+                self.LOG.info("ArtistId %s missing from kodi. repairing the entry." % obj['ArtistId'])
+        else:
+            update = False
+            obj['ArtistId'] = None
+            self.LOG.debug("ArtistId %s not found" % obj['Id'])
 
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
@@ -102,16 +104,15 @@ class Music():
     def artist_add(self, obj):
         obj['ArtistId'] = self.MusicDBIO.get(*self.Utils.values(obj, queries_music.get_artist_obj))
         self.emby_db.add_reference(*self.Utils.values(obj, database.queries.add_reference_artist_obj))
-        self.LOG.info("ADD artist [%s] %s: %s", obj['ArtistId'], obj['Name'], obj['Id'])
+        self.LOG.info("ADD artist [%s] %s: %s" % (obj['ArtistId'], obj['Name'], obj['Id']))
 
     #Update object to kodi
     def artist_update(self, obj):
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("UPDATE artist [%s] %s: %s", obj['ArtistId'], obj['Name'], obj['Id'])
+        self.LOG.info("UPDATE artist [%s] %s: %s" % (obj['ArtistId'], obj['Name'], obj['Id']))
 
     #Update object to kodi
-    @helper.wrapper.stop
-    def album(self, item, library=None):
+    def album(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -122,15 +123,15 @@ class Music():
         obj = self.objects.map(item, 'Album')
         update = True
 
-        try:
+        if e_item:
             obj['AlbumId'] = e_item[0]
-        except TypeError:
-            update = False
-            obj['AlbumId'] = None
-            self.LOG.debug("AlbumId %s not found", obj['Id'])
-        else:
+
             if self.MusicDBIO.validate_album(*self.Utils.values(obj, queries_music.get_album_by_id_obj)) is None:
                 update = False
+        else:
+            update = False
+            obj['AlbumId'] = None
+            self.LOG.debug("AlbumId %s not found" % obj['Id'])
 
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
@@ -142,6 +143,7 @@ class Music():
         obj['Artists'] = " / ".join(obj['Artists'] or [])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
         obj['Thumb'] = obj['Artwork']['Primary']
+        obj['UniqueId'] = obj['UniqueId'] or None
 
         if obj['DateAdded']:
             obj['DateAdded'] = self.Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
@@ -156,26 +158,30 @@ class Music():
 
         self.artist_link(obj)
         self.artist_discography(obj)
-
-        if self.DBVersion >= 82:
-            self.MusicDBIO.update_album(*self.Utils.values(obj, queries_music.update_album_obj82))
-        else:
-            self.MusicDBIO.update_album(*self.Utils.values(obj, queries_music.update_album_obj))
-
         self.ArtworkDBIO.add(obj['Artwork'], obj['AlbumId'], "album")
         self.item_ids.append(obj['Id'])
         return not update
 
     #Add object to kodi
     def album_add(self, obj):
-        obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_album_obj))
+        if self.DBVersion >= 82:
+            obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_album_obj82))
+        else:
+            obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_album_obj))
+
         self.emby_db.add_reference(*self.Utils.values(obj, database.queries.add_reference_album_obj))
-        self.LOG.info("ADD album [%s] %s: %s", obj['AlbumId'], obj['Title'], obj['Id'])
+        self.LOG.info("ADD album [%s] %s: %s" % (obj['AlbumId'], obj['Title'], obj['Id']))
 
     #Update object to kodi
     def album_update(self, obj):
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("UPDATE album [%s] %s: %s", obj['AlbumId'], obj['Title'], obj['Id'])
+
+        if self.DBVersion >= 82:
+            self.MusicDBIO.update_album(*self.Utils.values(obj, queries_music.update_album_obj82))
+        else:
+            self.MusicDBIO.update_album(*self.Utils.values(obj, queries_music.update_album_obj))
+
+        self.LOG.info("UPDATE album [%s] %s: %s" % (obj['AlbumId'], obj['Title'], obj['Id']))
 
     #Update the artist's discography
     def artist_discography(self, obj):
@@ -183,10 +189,11 @@ class Music():
             temp_obj = dict(obj)
             temp_obj['Id'] = artist['Id']
             temp_obj['AlbumId'] = obj['Id']
+            Data = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))
 
-            try:
-                temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-            except TypeError:
+            if Data:
+                temp_obj['ArtistId'] = Data[0]
+            else:
                 continue
 
             self.MusicDBIO.add_discography(*self.Utils.values(temp_obj, queries_music.update_discography_obj))
@@ -199,24 +206,20 @@ class Music():
             temp_obj = dict(obj)
             temp_obj['Name'] = artist['Name']
             temp_obj['Id'] = artist['Id']
+            Data = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))
 
-            try:
+            if Data:
+                temp_obj['ArtistId'] = Data[0]
+            else:
+                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-            except TypeError:
-                try:
-                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
-                    temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-                except Exception as error:
-                    self.LOG.error(error)
-                    continue
 
             self.MusicDBIO.update_artist_name(*self.Utils.values(temp_obj, queries_music.update_artist_name_obj))
             self.MusicDBIO.link(*self.Utils.values(temp_obj, queries_music.update_link_obj))
             self.item_ids.append(temp_obj['Id'])
 
     #Update object to kodi
-    @helper.wrapper.stop
-    def song(self, item, library=None):
+    def song(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -227,22 +230,26 @@ class Music():
         obj = self.objects.map(item, 'Song')
         update = True
 
-        try:
+        if e_item:
             obj['SongId'] = e_item[0]
             obj['PathId'] = e_item[2]
             obj['AlbumId'] = e_item[3]
-        except TypeError:
-            update = False
-            obj['SongId'] = self.MusicDBIO.create_entry_song()
-            self.LOG.debug("SongId %s not found", obj['Id'])
-        else:
+
             if self.MusicDBIO.validate_song(*self.Utils.values(obj, queries_music.get_song_by_id_obj)) is None:
                 update = False
+        else:
+            update = False
+            obj['SongId'] = self.MusicDBIO.create_entry_song()
+            self.LOG.debug("SongId %s not found" % obj['Id'])
 
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
         obj['Path'] = API.get_file_path(obj['Path'])
-        obj = self.Common.get_path_filename(obj, "audio")
+        PathValid, obj = self.Common.get_path_filename(obj, "audio")
+
+        if not PathValid:
+            return "Invalid Filepath"
+
         obj['Rating'] = 0
         obj['Genres'] = obj['Genres'] or []
         obj['PlayCount'] = API.get_playcount(obj['Played'], obj['PlayCount'])
@@ -250,12 +257,14 @@ class Music():
         obj['Genre'] = " / ".join(obj['Genres'])
         obj['Artists'] = " / ".join(obj['Artists'] or [])
         obj['AlbumArtists'] = obj['AlbumArtists'] or []
-        obj['Index'] = obj['Index'] or 0
+        obj['Index'] = obj['Index'] or None
         obj['Disc'] = obj['Disc'] or 1
         obj['EmbedCover'] = False
         obj['Comment'] = API.get_overview(obj['Comment'])
         obj['Artwork'] = API.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
         obj['Thumb'] = obj['Artwork']['Primary']
+        obj['UniqueId'] = obj['UniqueId'] or None
+        obj['Album'] = obj['Album'] or "Single"
 
         if obj['DateAdded']:
             obj['DateAdded'] = self.Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
@@ -263,7 +272,7 @@ class Music():
         if obj['DatePlayed']:
             obj['DatePlayed'] = self.Utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
 
-        if obj['Disc'] != 1:
+        if obj['Disc'] != 1 and obj['Index']:
             obj['Index'] = obj['Disc'] * 2 ** 16 + obj['Index']
 
         if obj['Thumb']:
@@ -294,28 +303,40 @@ class Music():
     def song_add(self, obj):
         obj['PathId'] = self.MusicDBIO.add_path(obj['Path'])
 
-        try:
+        if obj['SongAlbumId']:
             obj['AlbumId'] = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_song_obj))[0]
-        except TypeError:
-            try:
-                if obj['SongAlbumId'] is None:
-                    raise TypeError("No album id found associated?")
+        else:
+            if obj['SongAlbumId'] is None:
+                obj['LastScraped'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                obj['AlbumId'] = None
+                BackupTitle = obj['Title']
+                obj['Title'] = "--NO INFO--"
 
-                self.album(self.server['api'].get_item(obj['SongAlbumId']))
-                obj['AlbumId'] = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_song_obj))[0]
-            except TypeError:
-                self.single(obj)
+                if self.DBVersion >= 82:
+                    obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj82))
+                else:
+                    obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj))
 
-        self.MusicDBIO.add_song(*self.Utils.values(obj, queries_music.add_song_obj))
+                obj['Title'] = BackupTitle
+
+        if not self.MusicDBIO.add_song(*self.Utils.values(obj, queries_music.add_song_obj)):
+            obj['Index'] = None #Duplicate track number for same album
+            self.MusicDBIO.add_song(*self.Utils.values(obj, queries_music.add_song_obj))
+
         self.emby_db.add_reference(*self.Utils.values(obj, database.queries.add_reference_song_obj))
-        self.LOG.info("ADD song [%s/%s/%s] %s: %s", obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title'])
+        self.LOG.info("ADD song [%s/%s/%s] %s: %s" % (obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title']))
+        return True # obj
 
     #Update object to kodi
     def song_update(self, obj):
         self.MusicDBIO.update_path(*self.Utils.values(obj, queries_music.update_path_obj))
-        self.MusicDBIO.update_song(*self.Utils.values(obj, queries_music.update_song_obj))
+
+        if not self.MusicDBIO.update_song(*self.Utils.values(obj, queries_music.update_song_obj)):
+            obj['Index'] = None #Duplicate track number for same album
+            self.MusicDBIO.update_song(*self.Utils.values(obj, queries_music.update_song_obj))
+
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("UPDATE song [%s/%s/%s] %s: %s", obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title'])
+        self.LOG.info("UPDATE song [%s/%s/%s] %s: %s" % (obj['PathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title']))
 
     #Update the artist's discography
     def song_artist_discography(self, obj):
@@ -326,16 +347,13 @@ class Music():
             temp_obj['Name'] = artist['Name']
             temp_obj['Id'] = artist['Id']
             artists.append(temp_obj['Name'])
+            Data = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))
 
-            try:
+            if Data:
+                temp_obj['ArtistId'] = Data[0]
+            else:
+                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-            except TypeError:
-                try:
-                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
-                    temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-                except Exception as error:
-                    self.LOG.error(error)
-                    continue
 
             self.MusicDBIO.link(*self.Utils.values(temp_obj, queries_music.update_link_obj))
             self.item_ids.append(temp_obj['Id'])
@@ -355,40 +373,27 @@ class Music():
             temp_obj['Name'] = artist['Name']
             temp_obj['Id'] = artist['Id']
             temp_obj['Index'] = index
+            Data = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))
 
-            try:
+            if Data:
+                temp_obj['ArtistId'] = Data[0]
+            else:
+                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-            except TypeError:
-                try:
-                    self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
-                    temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
-                except Exception as error:
-                    self.LOG.error(error)
-                    continue
 
             self.MusicDBIO.link_song_artist(*self.Utils.values(temp_obj, queries_music.update_song_artist_obj))
             self.item_ids.append(temp_obj['Id'])
 
-    def single(self, obj):
-        obj['AlbumId'] = self.MusicDBIO.create_entry_album()
-        obj['LastScraped'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        if self.DBVersion >= 82:
-            self.MusicDBIO.add_single(*self.Utils.values(obj, queries_music.add_single_obj82))
-        else:
-            self.MusicDBIO.add_single(*self.Utils.values(obj, queries_music.add_single_obj))
-
     #This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     #Poster with progress bar
-    @helper.wrapper.stop
     def userdata(self, item):
         e_item = self.emby_db.get_item_by_id(item['Id'])
         obj = self.objects.map(item, 'SongUserData')
 
-        try:
+        if e_item:
             obj['KodiId'] = e_item[0]
             obj['Media'] = e_item[4]
-        except TypeError:
+        else:
             return
 
         obj['Rating'] = 0
@@ -400,20 +405,19 @@ class Music():
             self.MusicDBIO.rate_song(*self.Utils.values(obj, queries_music.update_song_rating_obj))
 
         self.emby_db.update_reference(*self.Utils.values(obj, database.queries.update_reference_obj))
-        self.LOG.info("USERDATA %s [%s] %s: %s", obj['Media'], obj['KodiId'], obj['Id'], obj['Title'])
+        self.LOG.info("USERDATA %s [%s] %s: %s" % (obj['Media'], obj['KodiId'], obj['Id'], obj['Title']))
 
     #This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     #Poster with progress bar
     #This should address single song scenario, where server doesn't actually create an album for the song
-    @helper.wrapper.stop
     def remove(self, item_id):
         e_item = self.emby_db.get_item_by_id(item_id)
         obj = {'Id': item_id}
 
-        try:
+        if e_item:
             obj['KodiId'] = e_item[0]
             obj['Media'] = e_item[4]
-        except TypeError:
+        else:
             return
 
         if obj['Media'] == 'song':
@@ -458,17 +462,17 @@ class Music():
     def remove_artist(self, kodi_id, item_id):
         self.ArtworkDBIO.delete(kodi_id, "artist")
         self.MusicDBIO.delete(kodi_id)
-        self.LOG.info("DELETE artist [%s] %s", kodi_id, item_id)
+        self.LOG.info("DELETE artist [%s] %s" % (kodi_id, item_id))
 
     def remove_album(self, kodi_id, item_id):
         self.ArtworkDBIO.delete(kodi_id, "album")
         self.MusicDBIO.delete_album(kodi_id)
-        self.LOG.info("DELETE album [%s] %s", kodi_id, item_id)
+        self.LOG.info("DELETE album [%s] %s" % (kodi_id, item_id))
 
     def remove_song(self, kodi_id, item_id):
         self.ArtworkDBIO.delete(kodi_id, "song")
         self.MusicDBIO.delete_song(kodi_id)
-        self.LOG.info("DELETE song [%s] %s", kodi_id, item_id)
+        self.LOG.info("DELETE song [%s] %s" % (kodi_id, item_id))
 
     #Get all child elements from tv show emby id
     def get_child(self, item_id):
@@ -476,12 +480,12 @@ class Music():
         obj = {'Id': item_id}
         child = []
 
-        try:
+        if e_item:
             obj['KodiId'] = e_item[0]
             obj['FileId'] = e_item[1]
             obj['ParentId'] = e_item[3]
             obj['Media'] = e_item[4]
-        except TypeError:
+        else:
             return child
 
         obj['ParentId'] = obj['KodiId']
@@ -498,7 +502,7 @@ class Music():
 
 class MusicDBIO():
     def __init__(self, cursor, MusicDBVersion):
-        self.LOG = logging.getLogger("EMBY.core.music.Music")
+        self.LOG = helper.loghandler.LOG('EMBY.core.music.Music')
         self.cursor = cursor
         self.DBVersion = MusicDBVersion
 
@@ -534,25 +538,28 @@ class MusicDBIO():
 
     #Get artist or create the entry
     def get(self, artist_id, name, musicbrainz):
-        try:
-            self.cursor.execute(queries_music.get_artist, (musicbrainz,))
-            result = self.cursor.fetchone()
+        self.cursor.execute(queries_music.get_artist, (musicbrainz,))
+        result = self.cursor.fetchone()
+
+        if result:
             artist_id = result[0]
             artist_name = result[1]
-        except TypeError:
-            artist_id = self.add_artist(artist_id, name, musicbrainz)
-        else:
+
             if artist_name != name:
                 self.update_artist_name(artist_id, name)
+        else:
+            artist_id = self.add_artist(artist_id, name, musicbrainz)
 
         return artist_id
 
     #Safety check, when musicbrainz does not exist
     def add_artist(self, artist_id, name, *args):
-        try:
-            self.cursor.execute(queries_music.get_artist_by_name, (name,))
-            artist_id = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_music.get_artist_by_name, (name,))
+        artist_id = self.cursor.fetchone()
+
+        if artist_id:
+            artist_id = artist_id[0]
+        else:
             artist_id = artist_id or self.create_entry()
             self.cursor.execute(queries_music.add_artist, (artist_id, name,) + args)
 
@@ -574,44 +581,62 @@ class MusicDBIO():
         self.cursor.execute(queries_music.update_discography, args)
 
     def validate_artist(self, *args):
-        try:
-            self.cursor.execute(queries_music.get_artist_by_id, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_music.get_artist_by_id, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
 
     def validate_album(self, *args):
-        try:
-            self.cursor.execute(queries_music.get_album_by_id, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_music.get_album_by_id, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
 
     def validate_song(self, *args):
-        try:
-            self.cursor.execute(queries_music.get_song_by_id, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_music.get_song_by_id, args)
+        Data = self.cursor.fetchone()
 
-    def get_album(self, album_id, name, musicbrainz, artists=None, *args):
-        try:
-            if musicbrainz is not None:
-                self.cursor.execute(queries_music.get_album, (musicbrainz,))
-                album = None
-            else:
-                self.cursor.execute(queries_music.get_album_by_name, (name,))
-                album = self.cursor.fetchone()
+        if Data:
+            return Data[0]
 
-            album_id = (album or self.cursor.fetchone())[0]
-        except TypeError:
-            album_id = self.add_album(*(album_id, name, musicbrainz,) + args)
+        return None
+
+    def get_album(self, album_id, name, musicbrainz, Type, artists, *args):
+        if musicbrainz:
+            self.cursor.execute(queries_music.get_album, (musicbrainz,))
+        else:
+            self.cursor.execute(queries_music.get_album_by_name, (name, artists,))
+
+        album = self.cursor.fetchone()
+        album_id = (album or self.cursor.fetchone())
+
+        if album_id:
+            album_id = album_id[0]
+        else:
+            album_id = self.add_album(*(album_id, name, musicbrainz, Type, artists,) + args)
 
         return album_id
 
-    def add_album(self, album_id, *args):
+    def add_album(self, album_id, name, musicbrainz, Type, artists, *args):
         album_id = album_id or self.create_entry_album()
-        self.cursor.execute(queries_music.add_album, (album_id,) + args)
+
+        if Type == "album":
+            if self.DBVersion >= 82:
+                self.cursor.execute(queries_music.add_album82, (album_id, name, musicbrainz, Type, artists,) + args)
+            else:
+                self.cursor.execute(queries_music.add_album, (album_id, name, musicbrainz, Type, artists,) + args)
+        else: #single
+            if self.DBVersion >= 82:
+                self.cursor.execute(queries_music.add_single82, (album_id, name, musicbrainz, Type, artists,) + args)
+            else:
+                self.cursor.execute(queries_music.add_single, (album_id, name, musicbrainz, Type, artists,) + args)
+
         return album_id
 
     def update_album(self, *args):
@@ -621,10 +646,12 @@ class MusicDBIO():
             self.cursor.execute(queries_music.update_album, args)
 
     def get_album_artist(self, album_id, artists):
-        try:
-            self.cursor.execute(queries_music.get_album_artist, (album_id,))
-            curr_artists = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_music.get_album_artist, (album_id,))
+        curr_artists = self.cursor.fetchone()
+
+        if curr_artists:
+            curr_artists = curr_artists[0]
+        else:
             return
 
         if curr_artists != artists:
@@ -633,29 +660,30 @@ class MusicDBIO():
     def update_album_artist(self, *args):
         self.cursor.execute(queries_music.update_album_artist, args)
 
-    def add_single(self, *args):
-        if self.DBVersion >= 82:
-            self.cursor.execute(queries_music.add_single82, args)
-        else:
-            self.cursor.execute(queries_music.add_single, args)
-
     def add_song(self, *args):
-        if self.DBVersion >= 82:
-            self.cursor.execute(queries_music.add_song82, args)
-        else:
-            self.cursor.execute(queries_music.add_song, args)
+        try: #Covers duplicate track numbers in same album
+            if self.DBVersion >= 82:
+                self.cursor.execute(queries_music.add_song82, args)
+            else:
+                self.cursor.execute(queries_music.add_song, args)
+
+            return True
+        except:
+            return False
 
     def update_song(self, *args):
-        if self.DBVersion >= 82:
-            self.cursor.execute(queries_music.update_song82, args)
-        else:
-            self.cursor.execute(queries_music.update_song, args)
+        try: #Covers duplicate track numbers in same album
+            if self.DBVersion >= 82:
+                self.cursor.execute(queries_music.update_song82, args)
+            else:
+                self.cursor.execute(queries_music.update_song, args)
+
+            return True
+        except:
+            return False
 
     def link_song_artist(self, *args):
         self.cursor.execute(queries_music.update_song_artist, args)
-
-#    def link_song_album(self, *args):
-#        self.cursor.execute(queries_music.update_song_album, args)
 
     def rate_song(self, *args):
         self.cursor.execute(queries_music.update_song_rating, args)
@@ -677,12 +705,13 @@ class MusicDBIO():
                 self.cursor.execute(queries_music.update_genre_song, (genre_id, kodi_id))
 
     def get_genre(self, *args):
-        try:
-            self.cursor.execute(queries_music.get_genre, args)
+        self.cursor.execute(queries_music.get_genre, args)
+        Data = self.cursor.fetchone()
 
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_genre(*args)
+        if Data:
+            return Data[0]
+
+        return self.add_genre(*args)
 
     def add_genre(self, *args):
         genre_id = self.create_entry_genre()
@@ -699,11 +728,13 @@ class MusicDBIO():
         self.cursor.execute(queries_music.delete_song, args)
 
     def get_path(self, *args):
-        try:
-            self.cursor.execute(queries_music.get_path, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_music.get_path, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return
 
     def add_path(self, *args):
         path_id = self.get_path(*args)

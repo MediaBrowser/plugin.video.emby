@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import logging
 import xbmcgui
 
-from helper import api
+import helper.api
+import helper.loghandler
 from . import obj_ops
 
 class BaseListItem(object):
     def __init__(self, obj_type, art_type, art_parent, listitem, item, Utils):
-        self.LOG = logging.getLogger("EMBY.code.listitem.BaseListItem")
+        self.LOG = helper.loghandler.LOG('EMBY.code.listitem.BaseListItem')
         self.li = listitem
         self.item = item
         self.Utils = Utils
         self.objects = obj_ops.Objects(self.Utils)
-        self.api = api.API(item, self.Utils, item['LI']['Server'])
+        self.api = helper.api.API(item, self.Utils, item['LI']['Server'])
         self.obj = self._get_objects(obj_type)
         self.obj['Artwork'] = self._get_artwork(art_type, art_parent)
         self.format()
@@ -66,7 +66,7 @@ class BaseListItem(object):
                 self._set_art(kodi, artwork.get(emby, " "))
 
     def _set_art(self, art, path):
-        self.LOG.debug(" [ art/%s ] %s", art, path)
+        self.LOG.debug(" [ art/%s ] %s" % (art, path))
 
         if art in ('fanart_image', 'small_poster', 'tiny_poster', 'medium_landscape', 'medium_poster', 'small_fanartimage', 'medium_fanartimage', 'fanart_noindicators', 'tvshow.poster'):
             self.li.setProperty(art, path)
@@ -242,7 +242,6 @@ class PhotoAlbum(Photo):
 class Video(BaseListItem):
     def __init__(self, *args, **kwargs):
         BaseListItem.__init__(self, 'BrowseVideo', 'ArtworkParent', True, *args, **kwargs)
-        self.LOG = logging.getLogger("EMBY.code.listitem.Video")
 
     def format(self):
         self['Genres'] = " / ".join(self['Genres'] or [])

@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-
-import helper.utils
+import helper.loghandler
 from . import artwork
 from . import queries_videos
 
 class Kodi():
-    def __init__(self, cursor):
-        self.LOG = logging.getLogger("EMBY.core.kodi.Kodi")
-        self.Utils = helper.utils.Utils()
+    def __init__(self, cursor, Utils):
+        self.LOG = helper.loghandler.LOG('EMBY.core.kodi.Kodi')
+        self.Utils = Utils
         self.cursor = cursor
         self.artwork = artwork.Artwork(cursor, self.Utils)
 
@@ -54,11 +52,13 @@ class Kodi():
         return path_id
 
     def get_path(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_path, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return
+        self.cursor.execute(queries_videos.get_path, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
 
     def update_path(self, *args):
         self.cursor.execute(queries_videos.update_path, args)
@@ -75,10 +75,12 @@ class Kodi():
         self.cursor.execute(queries_videos.delete_path, args)
 
     def add_file(self, filename, path_id):
-        try:
-            self.cursor.execute(queries_videos.get_file, (path_id, filename,))
-            file_id = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_videos.get_file, (path_id, filename,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            file_id = Data[0]
+        else:
             file_id = self.create_entry_file()
             self.cursor.execute(queries_videos.add_file, (file_id, path_id, filename))
 
@@ -94,11 +96,13 @@ class Kodi():
             self.cursor.execute(queries_videos.delete_file_by_path, (path_id,) + args)
 
     def get_filename(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_filename, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return ""
+        self.cursor.execute(queries_videos.get_filename, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return ""
 
     def add_people(self, people, *args):
         def add_thumbnail(person_id, person, person_type):
@@ -138,11 +142,13 @@ class Kodi():
         return person_id
 
     def get_person(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_person, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_person(*args)
+        self.cursor.execute(queries_videos.get_person, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return self.add_person(*args)
 
     #Delete current genres first for clean slate
     def add_genres(self, genres, *args):
@@ -157,11 +163,13 @@ class Kodi():
         return genre_id
 
     def get_genre(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_genre, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_genre(*args)
+        self.cursor.execute(queries_videos.get_genre, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return self.add_genre(*args)
 
     def add_studios(self, studios, *args):
         for studio in studios:
@@ -174,11 +182,13 @@ class Kodi():
         return studio_id
 
     def get_studio(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_studio, args)
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.add_studio(*args)
+        self.cursor.execute(queries_videos.get_studio, args)
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return self.add_studio(*args)
 
     #First remove any existing entries
     #Then re-add video, audio and subtitles
@@ -223,18 +233,10 @@ class Kodi():
     def set_playcount(self, *args):
         self.cursor.execute(queries_videos.update_playcount, args)
 
-#    def add_settings(self, *args):
-#        self.cursor.execute(queries_videos.update_settings, args)
-
-#    def get_settings(self, *args):
-#        self.cursor.execute(queries_videos.get_settings, args)
-#        return self.cursor.fetchone()
-
     def add_tags(self, tags, *args):
         self.cursor.execute(queries_videos.delete_tags, args)
 
         for tag in tags:
-#            tag_id = self.get_tag(tag, *args)
             self.get_tag(tag, *args)
 
     def add_tag(self, *args):
@@ -243,31 +245,36 @@ class Kodi():
         return tag_id
 
     def get_tag(self, tag, *args):
-        try:
-            self.cursor.execute(queries_videos.get_tag, (tag,))
-            tag_id = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_videos.get_tag, (tag,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            tag_id = Data[0]
+        else:
             tag_id = self.add_tag(tag)
 
         self.cursor.execute(queries_videos.update_tag, (tag_id,) + args)
         return tag_id
 
     def remove_tag(self, tag, *args):
-        try:
-            self.cursor.execute(queries_videos.get_tag, (tag,))
-            tag_id = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_videos.get_tag, (tag,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            tag_id = Data[0]
+        else:
             return
 
         self.cursor.execute(queries_videos.delete_tag, (tag_id,) + args)
 
     def get_rating_id(self, *args):
-        try:
-            self.cursor.execute(queries_videos.get_rating, args)
+        self.cursor.execute(queries_videos.get_rating, args)
+        Data = self.cursor.fetchone()
 
-            return self.cursor.fetchone()[0]
-        except TypeError:
-            return self.create_entry_rating()
+        if Data:
+            return Data[0]
+
+        return self.create_entry_rating()
 
     #Add ratings, rating type and votes
     def add_ratings(self, *args):

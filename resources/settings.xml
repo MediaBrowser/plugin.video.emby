@@ -84,7 +84,6 @@
         <setting label="33195" id="enableAddon" type="bool" default="true" />
         <setting label="33180" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=restartservice)" option="close" />
         <setting label="30529" id="startupDelay" type="number" default="0" option="int" />
-        <setting label="33161" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=checkupdate)" option="close" />
         <setting type="sep" />
         <setting label="33104" type="lsep"/>
         <setting label="33093" type="folder" id="backupPath" option="writeable" />
@@ -94,9 +93,7 @@
         <setting id="MusicRescan" type="bool" visible="false" />
         <setting id="SyncInstallRunDone" type="bool" visible="false" />
         <setting id="groupedSets" type="bool" visible="false" />
-        <setting id="platformDetected" type="text" visible="false" />
         <setting id="changelog" type="bool" visible="false" />
-        <setting id="distroDetected" type="text" visible="false" />
         <setting id="Migrate" type="bool" visible="false" />
     </category>
 </settings>

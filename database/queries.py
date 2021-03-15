@@ -48,7 +48,15 @@ add_reference_movie_obj = ["{Id}", "{MovieId}", "{FileId}", "{PathId}", "Movie",
 add_reference_boxset_obj = ["{Id}", "{SetId}", None, None, "BoxSet", "set", None, "{Checksum}", None, None, "{PresentationKey}"]
 add_reference_tvshow_obj = ["{Id}", "{ShowId}", None, "{PathId}", "Series", "tvshow", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_season_obj = ["{Id}", "{SeasonId}", None, None, "Season", "season", "{ShowId}", None, "{LibraryId}", None, "{PresentationKey}"]
+
+
+
+
 add_reference_pool_obj = ["{SeriesId}", "{ShowId}", None, "{PathId}", "Series", "tvshow", None, "{Checksum}", "{LibraryId}", None, "{PresentationKey}"]
+
+
+
+
 add_reference_episode_obj = ["{Id}", "{EpisodeId}", "{FileId}", "{PathId}", "Episode", "episode", "{SeasonId}", "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_mvideo_obj = ["{Id}", "{MvideoId}", "{FileId}", "{PathId}", "MusicVideo", "musicvideo", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_artist_obj = ["{Id}", "{ArtistId}", None, None, "{ArtistType}", "artist", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]

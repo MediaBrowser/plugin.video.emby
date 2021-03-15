@@ -5,10 +5,7 @@ except:
     from urllib.parse import urlencode
 
 class API():
-    def __init__(self, item, Utils, server=None):
-        ''' Get item information in special cases.
-            server is the server address, provide if your functions requires it.
-        '''
+    def __init__(self, item, Utils, server):
         self.Utils = Utils
         self.item = item
         self.server = server
@@ -18,9 +15,6 @@ class API():
             self.verify_ssl = False
 
     def get_playcount(self, played, playcount):
-        ''' Convert Emby played/playcount into
-            the Kodi equivalent. The playcount is tied to the watch status.
-        '''
         return (playcount or 1) if played else None
 
     def get_actors(self):
@@ -47,7 +41,7 @@ class API():
             'subtitle': subtitles or []
         }
 
-    def video_streams(self, tracks, container=None):
+    def video_streams(self, tracks, container):
         if container:
             container = container.split(',')[0]
 
@@ -135,7 +129,7 @@ class API():
         }
         return studios.get(studio_name.lower(), studio_name)
 
-    def get_overview(self, overview=None):
+    def get_overview(self, overview):
         overview = overview or self.item.get('Overview')
 
         if not overview:
@@ -147,7 +141,7 @@ class API():
         overview = overview.replace("<br>", "[CR]")
         return overview
 
-    def get_mpaa(self, rating=None):
+    def get_mpaa(self, rating):
         mpaa = rating or self.item.get('OfficialRating', "")
 
         if mpaa in ("NR", "UR"):
@@ -159,7 +153,7 @@ class API():
 
         return mpaa
 
-    def get_file_path(self, path=None):
+    def get_file_path(self, path):
         if path is None:
             path = self.item.get('Path')
 
@@ -196,14 +190,12 @@ class API():
 
         return path
 
+    #Get emby user profile picture.
     def get_user_artwork(self, user_id):
-        ''' Get emby user profile picture.
-        '''
         return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.server, user_id)
 
+    #Get people (actor, director, etc) artwork.
     def get_people_artwork(self, people):
-        ''' Get people (actor, director, etc) artwork.
-        '''
         for person in people:
             if 'PrimaryImageTag' in person:
                 #query = [('MaxWidth', 400), ('MaxHeight', 400), ('Index', 0)]
@@ -214,12 +206,8 @@ class API():
 
         return people
 
+    #Get all artwork possible. If parent_info is True, it will fill missing artwork with parent artwork.
     def get_all_artwork(self, obj, parent_info=False):
-        ''' Get all artwork possible. If parent_info is True,
-            it will fill missing artwork with parent artwork.
-
-            obj is from objects.Objects().map(item, 'Artwork')
-        '''
         query = []
         all_artwork = {
             'Primary': "",
@@ -260,9 +248,8 @@ class API():
 
         return all_artwork
 
-    def get_backdrops(self, item_id, tags, query=None):
-        ''' Get backdrops based of "BackdropImageTags" in the emby object.
-        '''
+    #Get backdrops based of "BackdropImageTags" in the emby object.
+    def get_backdrops(self, item_id, tags, query):
         query = list(query) if query else []
         backdrops = []
 
@@ -280,9 +267,8 @@ class API():
 
         return backdrops
 
-    def get_artwork(self, item_id, image, tag=None, query=None):
-        ''' Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
-        '''
+    #Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
+    def get_artwork(self, item_id, image, tag, query):
         query = list(query) if query else []
 
         if item_id is None:

@@ -5,20 +5,16 @@ import os
 class Objects():
     def __init__(self, Utils):
         self.Utils = Utils
-
-        if not self.Utils.window('emby_objects.mapping'):
-            infile = open(os.path.join(os.path.dirname(__file__), 'obj_map.json'), 'r')
-            Value = infile.read()
-            self.Utils.window('emby_objects.mapping', value=Value)
-            infile.close()
-
-        self.objects = json.loads(self.Utils.window('emby_objects.mapping'))
+        infile = open(os.path.join(os.path.dirname(__file__), 'obj_map.json'), 'r')
+        Value = infile.read()
+        infile.close()
+        self.objects = json.loads(Value)
         self.mapped_item = {}
 
     def MapMissingData(self, item, mapping_name):
         mapping = self.objects[mapping_name]
 
-        for key, value in list(mapping.items()):
+        for key, _ in list(mapping.items()):
             if not key in item:
                 item[key] = ""
 
@@ -38,10 +34,6 @@ class Objects():
             "/": indicates where to go directly
         '''
         self.mapped_item = {}
-
-        if not mapping_name:
-            raise Exception("execute mapping() first")
-
         mapping = self.objects[mapping_name]
 
         for key, value in list(mapping.items()):
@@ -91,7 +83,7 @@ class Objects():
                     continue
 
                 if obj_key:
-                    obj = [d[obj_key] for d in obj if d.get(obj_key)] if type(obj) == list else obj.get(obj_key)
+                    obj = [d[obj_key] for d in obj if d.get(obj_key)] if isinstance(obj, list) else obj.get(obj_key)
 
                 self.mapped_item[key] = obj
                 break
@@ -118,7 +110,7 @@ class Objects():
     def __recursive__(self, obj, keys):
         for string in keys.split('/'):
             if not obj:
-                return
+                return False
 
             obj = obj[int(string)] if string.isdigit() else obj.get(string)
 

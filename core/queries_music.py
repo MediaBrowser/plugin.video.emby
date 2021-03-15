@@ -13,19 +13,21 @@ get_album_by_id_obj = ["{AlbumId}"]
 get_song_by_id = """ SELECT * FROM song WHERE idSong = ? """
 get_song_by_id_obj = ["{SongId}"]
 get_album = """ SELECT idAlbum FROM album WHERE strMusicBrainzAlbumID = ? """
-get_album_obj = ["{AlbumId}", "{Title}", "{UniqueId}", "{Artists}", "album"]
-get_album_by_name = """ SELECT idAlbum, strArtistDisp FROM album WHERE strAlbum = ? """
+get_album_by_name = """ SELECT idAlbum FROM album WHERE strAlbum = ? AND strArtistDisp = ? """
 get_album_artist = """ SELECT strArtistDisp FROM album WHERE idAlbum = ? """
 get_album_artist_obj = ["{AlbumId}", "{strAlbumArtists}"]
 get_genre = """ SELECT idGenre FROM genre WHERE strGenre = ? COLLATE NOCASE """
 get_total_episodes = """ SELECT totalCount FROM tvshowcounts WHERE idShow = ? """
 get_artwork = """ SELECT url FROM art """
 add_artist = """ INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID) VALUES (?, ?, ?) """
-add_album = """ INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType) VALUES (?, ?, ?, ?) """
-add_single = """ INSERT INTO album(strArtistDisp, iYear, strGenres, strImage, iUserrating, lastScraped, strReleaseType) VALUES (?, ?, ?, ?, ?, ?, ?) """
-add_single_obj = ["{Artists}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}", "single"]
-add_single82 = """ INSERT INTO album(strArtistDisp, strReleaseDate, strGenres, strImage, iUserrating, lastScraped, bScrapedMBID, strReleaseType, dateAdded) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?) """
-add_single_obj82 = ["{Artists}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}", "single", "{DateAdded}"]
+add_single = """ INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType, strArtistDisp, iYear, strGenres, strImage, iUserrating, lastScraped) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """
+get_single_obj = ["{AlbumId}", "{Title}", "{UniqueId}", "single", "{Artists}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}"]
+add_single82 = """ INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strImage, iUserrating, lastScraped, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """
+get_single_obj82 = ["{AlbumId}", "{Title}", "{UniqueId}", "single", "{Artists}", "{Year}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}", "{DateAdded}"]
+add_album = """ INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType, strArtistDisp, iYear, strGenres, strImage, iUserrating, lastScraped) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """
+get_album_obj = ["{AlbumId}", "{Title}", "{UniqueId}", "album", "{Artists}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}"]
+add_album82 = """ INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strImage, iUserrating, lastScraped, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """
+get_album_obj82 = ["{AlbumId}", "{Title}", "{UniqueId}", "album", "{Artists}", "{Year}", "{Year}", "{Genre}", "{Thumb}", "{Rating}", "{LastScraped}", "{DateAdded}"]
 add_song = """ INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, iYear, strFileName, strMusicBrainzTrackID, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """
 add_song_obj = ["{SongId}", "{AlbumId}", "{PathId}", "{Artists}", "{Genre}", "{Title}", "{Index}", "{Runtime}", "{Year}", "{Filename}", "{UniqueId}", "{PlayCount}", "{DatePlayed}", "{Rating}", "{Comment}", "{DateAdded}"]
 add_song82 = """ INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strReleaseDate, strFileName, strMusicBrainzTrackID, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """

@@ -1,75 +1,89 @@
-import logging
-from . import client
-
-LOG = logging.getLogger('EMBY')
-
-def has_attribute(obj, name):
-    try:
-        object.__getattribute__(obj, name)
-        return True
-    except AttributeError:
-        return False
-
-def ensure_client():
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
-            if self.client.get(self.server_id) is None:
-                self.construct()
-
-            return func(self, *args, **kwargs)
-
-        return wrapper
-    return decorator
+# -*- coding: utf-8 -*-
+import helper.loghandler
+from .core import api
+from .core import configuration
+from .core import http
+from .core import ws_client
+from .core import connection_manager
 
 class Emby():
-    client = {}
-    server_id = "default"
-
     def __init__(self, server_id=None):
-        self.server_id = server_id or "default"
+        self.LOG = helper.loghandler.LOG('EMBY.emby.main')
+        self.logged_in = False
+        self.server_id = server_id
+        self.config = configuration.Config()
+        self.http = http.HTTP(self)
+        self.wsock = None
+        self.auth = connection_manager.ConnectionManager(self)
+        self.emby = api.API(self)
+        self.LOG.info("---[ START EMBYCLIENT: ]---")
 
     def get_client(self):
-        return self.client[self.server_id]
+        return self
 
-    def close(self):
-        if self.server_id not in self.client:
+    def set_state(self, state):
+        if not state:
+            self.LOG.warning("state cannot be empty")
             return
 
-        self.client[self.server_id].stop()
-        self.client.pop(self.server_id, None)
-        LOG.info("---[ STOPPED EMBYCLIENT: %s ]---", self.server_id)
+        if state.get('config'):
+            self.config.__setstate__(state['config'])
 
-    @classmethod
-    def close_all(cls):
-        for clientData in dict(cls.client):
-            cls.client[clientData].stop()
+        if state.get('credentials'):
+            self.logged_in = True
+            self.set_credentials(state['credentials'])
+            self.auth.server_id = state['credentials']['Servers'][0]['Id']
 
-        cls.client = {}
-        LOG.info("---[ STOPPED ALL EMBYCLIENTS ]---")
+    def get_state(self):
+        state = {'config': self.config.__getstate__(), 'credentials': self.get_credentials()}
+        return state
 
-    @classmethod
-    def get_active_clients(cls):
-        return cls.client
+    def set_credentials(self, credentials):
+        self.auth.credentials.set_credentials(credentials or {})
 
-    @ensure_client()
-    def __setattr__(self, name, value):
-        if has_attribute(self, name):
-            return super(Emby, self).__setattr__(name, value)
+    def get_credentials(self):
+        return self.auth.credentials.get_credentials()
 
-        setattr(self.client[self.server_id], name, value)
+    def authenticate(self, credentials, options):
+        self.set_credentials(credentials or {})
+        state = self.auth.connect(options or {})
 
-    @ensure_client()
-    def __getattr__(self, name):
-        return getattr(self.client[self.server_id], name)
+        if not state:
+            return False
 
-    @ensure_client()
+        if state['State'] == 3: #SignedIn
+            self.logged_in = True
+            self.LOG.info("User is authenticated.")
+
+        state['Credentials'] = self.get_credentials()
+        return state
+
+    def start(self):
+        if not self.logged_in:
+            return False #"User is not authenticated."
+
+        self.http.start_session()
+        self.wsock = ws_client.WSClient(self)
+        self.wsock.start()
+
+    def stop(self):
+        self.LOG.info("---[ STOPPED EMBYCLIENT: %s ]---" % self.server_id)
+        self.wsock.close()
+        self.wsock = None
+        self.http.stop_session()
+
     def __getitem__(self, key):
-        return self.client[self.server_id][key]
+        if key.startswith('config'):
+            return self.config[key.replace('config/', "", 1)] if "/" in key else self.config
+        elif key.startswith('http'):
+            return self.http.__shortcuts__(key.replace('http/', "", 1))
+#        elif key.startswith('websocket'):
+#            return self.wsock.__shortcuts__(key.replace('websocket/', "", 1))
+        elif key.startswith('auth'):
+            return self.auth.__shortcuts__(key.replace('auth/', "", 1))
+        elif key.startswith('api'):
+            return self.emby
+        elif key == 'connected':
+            return self.logged_in
 
-    def construct(self):
-        self.client[self.server_id] = client.EmbyClient()
-
-        if self.server_id == 'default':
-            LOG.info("---[ START EMBYCLIENT ]---")
-        else:
-            LOG.info("---[ START EMBYCLIENT: %s ]---", self.server_id)
+        return None

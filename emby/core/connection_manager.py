@@ -1,52 +1,31 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
 import hashlib
 import socket
 import time
+import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
 import distutils.version
+
+import helper.loghandler
 import emby.core.credentials
 import emby.core.http
-import emby.core.exceptions
-
-LOG = logging.getLogger('Emby.' + __name__)
-CONNECTION_STATE = {
-    'Unavailable': 0,
-    'ServerSelection': 1,
-    'ServerSignIn': 2,
-    'SignedIn': 3,
-    'ConnectSignIn': 4,
-    'ServerUpdateNeeded': 5
-}
-CONNECTION_MODE = {
-    'Local': 0,
-    'Remote': 1,
-    'Manual': 2
-}
-
-def get_server_address(server, mode):
-    modes = {
-        CONNECTION_MODE['Local']: server.get('LocalAddress'),
-        CONNECTION_MODE['Remote']: server.get('RemoteAddress'),
-        CONNECTION_MODE['Manual']: server.get('ManualAddress')
-    }
-
-    return modes.get(mode) or server.get('ManualAddress', server.get('LocalAddress', server.get('RemoteAddress')))
 
 class ConnectionManager():
-    min_server_version = "3.0.5930"
-    server_version = min_server_version
-    user = {}
-    server_id = None
-    timeout = 10
-
     def __init__(self, client):
-        LOG.debug("ConnectionManager initializing...")
+        self.LOG = helper.loghandler.LOG('EMBY.core.connection_manager')
+        self.LOG.debug("ConnectionManager initializing...")
+        self.LOG.info("Begin connectToServer")
+        self.user = {}
+        self.server_version = None
+        self.timeout = 10
         self.client = client
-        self.config = client.config
         self.credentials = emby.core.credentials.Credentials()
         self.http = emby.core.http.HTTP(client)
+
+    def get_server_address(self, server, mode):
+        modes = {0: server.get('LocalAddress'), 1: server.get('RemoteAddress'), 2: server.get('ManualAddress')} #Local...Remote...Manual
+        return modes.get(mode) or server.get('ManualAddress', server.get('LocalAddress', server.get('RemoteAddress')))
 
     def __shortcuts__(self, key):
         if key == "clear":
@@ -66,53 +45,53 @@ class ConnectionManager():
         elif key == "connect-user-id":
             return self.connect_user_id()
         elif key == "server":
-            return self.get_server_info(self.server_id)
+            return self.get_server_info()
         elif key == "server-id":
-            return self.server_id
-        elif key == "server-version":
-            return self.server_version
+            return self.client.server_id
+#        elif key == "server-version":
+#            return self.server_version
         elif key == "user-id":
             return self.emby_user_id()
         elif key == "public-users":
             return self.get_public_users()
         elif key == "token":
             return self.emby_token()
-        elif key == "manual-server":
-            return self.connect_to_address
-        elif key == "connect-to-server":
-            return self.connect_to_server
+#        elif key == "manual-server":
+#            return self.connect_to_address
+#        elif key == "connect-to-server":
+#            return self.connect_to_server
         elif key == "server-address":
-            server = self.get_server_info(self.server_id)
-            return get_server_address(server, server['LastConnectionMode'])
+            server = self.get_server_info()
+            return self.get_server_address(server, server['LastConnectionMode'])
         elif key == "revoke-token":
             return self.revoke_token()
         elif key == "server-mode":
-            server = self.get_server_info(self.server_id)
+            server = self.get_server_info()
             return server['LastConnectionMode']
 
-        return
+        return None
 
     def __getitem__(self, key):
         return self.__shortcuts__(key)
 
     def clear_data(self):
-        LOG.info("connection manager clearing data")
+        self.LOG.info("connection manager clearing data")
         self.user = None
         credentials = self.credentials.get_credentials()
         credentials['ConnectAccessToken'] = None
         credentials['ConnectUserId'] = None
         credentials['Servers'] = list()
         self.credentials.get_credentials(credentials)
-        self.config.auth(None, None)
+        self.client.config.auth(None, None, None, None)
 
     def revoke_token(self):
-        LOG.info("revoking token")
-        self.get_server_info(self.server_id)['AccessToken'] = None
+        self.LOG.info("revoking token")
+        self.get_server_info()['AccessToken'] = None
         self.credentials.get_credentials(self.credentials.get_credentials())
-        self.config['auth.token'] = None
+        self.client.config['auth.token'] = None
 
     def get_available_servers(self):
-        LOG.debug("Begin getAvailableServers")
+        self.LOG.debug("Begin getAvailableServers")
 
         # Clone the credentials
         credentials = self.credentials.get_credentials()
@@ -120,7 +99,7 @@ class ConnectionManager():
         found_servers = self._find_servers(self._server_discovery())
 
         if not connect_servers and not found_servers and not credentials['Servers']: # back out right away, no point in continuing
-            LOG.info("Found no servers")
+            self.LOG.info("Found no servers")
             return list()
 
         servers = list(credentials['Servers'])
@@ -128,10 +107,10 @@ class ConnectionManager():
         self._merge_servers(servers, connect_servers)
         servers = self._filter_servers(servers, connect_servers)
 
-        try:
-            servers.sort(key=lambda x: datetime.datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
-        except TypeError:
-            servers.sort(key=lambda x: datetime.datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])), reverse=True)
+#        try:
+#        servers.sort(key=lambda x: datetime.datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
+#        except TypeError:
+#            servers.sort(key=lambda x: datetime.datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])), reverse=True)
 
         credentials['Servers'] = servers
         self.credentials.get_credentials(credentials)
@@ -139,81 +118,80 @@ class ConnectionManager():
 
     def login_to_connect(self, username, password):
         if not username:
-            raise AttributeError("username cannot be empty")
+            return False #"username cannot be empty"
 
         if not password:
-            raise AttributeError("password cannot be empty")
+            return False #"password cannot be empty"
 
-        try:
-            result = self._request_url({
-                'type': "POST",
-                'url': self.get_connect_url("user/authenticate"),
-                'data': {
-                    'nameOrEmail': username,
-                    'rawpw': password
-                },
-                'dataType': "json"
-            })
-        except Exception as error: # Failed to login
-            LOG.error(error)
+        result = self._request_url({
+            'type': "POST",
+            'url': self.get_connect_url("user/authenticate"),
+            'data': {
+                'nameOrEmail': username,
+                'rawpw': password
+            },
+            'dataType': "json"
+        }, True, True)
+
+        if not result: #Failed to login
             return False
-        else:
-            credentials = self.credentials.get_credentials()
-            credentials['ConnectAccessToken'] = result['AccessToken']
-            credentials['ConnectUserId'] = result['User']['Id']
-            credentials['ConnectUser'] = result['User']['Name']
-            self.credentials.get_credentials(credentials)
-            # Signed in
-            self._on_connect_user_signin(result['User'])
+
+        credentials = self.credentials.get_credentials()
+        credentials['ConnectAccessToken'] = result['AccessToken']
+        credentials['ConnectUserId'] = result['User']['Id']
+        credentials['ConnectUser'] = result['User']['Name']
+        self.credentials.get_credentials(credentials)
+        # Signed in
+        self._on_connect_user_signin(result['User'])
 
         return result
 
-    def login(self, server, username, password=None, clear=True, options={}):
+    def login(self, server, username, password, clear, options):
         if not username:
-            raise AttributeError("username cannot be empty")
+            return False #"username cannot be empty"
 
         if not server:
-            raise AttributeError("server cannot be empty")
+            return False #"password cannot be empty"
 
-        try:
-            request = {
-                'type': "POST",
-                'url': self.get_emby_url(server, "Users/AuthenticateByName"),
-                'json': {
-                    'username': username,
-                    'pw': password or "",
-                }
+        request = {
+            'type': "POST",
+            'url': self.get_emby_url(server, "Users/AuthenticateByName"),
+            'json': {
+                'username': username,
+                'pw': password or "",
             }
+        }
+
+        if request:
             if clear:
                 request['json']['pw'] = password or ""
 
-            result = self._request_url(request, False)
-        except Exception as error: # Failed to login
-            LOG.error(error)
+            result = self._request_url(request, True, True)
+        else:
             return False
 
         self._on_authenticated(result, options)
         return result
 
-    def connect_to_address(self, address, options={}):
+    def connect_to_address(self, address, options):
         if not address:
             return False
 
         address = self._normalize_address(address)
 
         def _on_fail():
-            LOG.error("connectToAddress %s failed", address)
+            self.LOG.error("connectToAddress %s failed", address)
             return self._resolve_failure()
 
         try:
-            public_info = self._try_connect(address, options=options)
+            public_info = self._try_connect(address, None, options)
         except Exception:
             return _on_fail()
         else:
-            LOG.info("connectToAddress %s succeeded", address)
+            self.LOG.info("connectToAddress %s succeeded" % address)
             server = {
                 'ManualAddress': address,
-                'LastConnectionMode': CONNECTION_MODE['Manual']
+                'LastConnectionMode': 2 #Manual
             }
             self._update_server_info(server, public_info)
             server = self.connect_to_server(server, options)
@@ -223,27 +201,27 @@ class ConnectionManager():
 
             return server
 
-    def connect_to_server(self, server, options={}):
-        LOG.debug("Begin connectToServer")
+    def connect_to_server(self, server, options):
+        self.LOG.debug("Begin connectToServer")
         tests = []
 
-        if server.get('LastConnectionMode') != CONNECTION_MODE['Remote'] and server.get('AccessToken'):
+        if server.get('LastConnectionMode') != 1 and server.get('AccessToken'): #Remote
             tests.append(server['LastConnectionMode'])
 
-        if CONNECTION_MODE['Manual'] not in tests:
-            tests.append(CONNECTION_MODE['Manual'])
+        if 2 not in tests: #Manual
+            tests.append(2)
 
-        if CONNECTION_MODE['Local'] not in tests:
-            tests.append(CONNECTION_MODE['Local'])
+        if 0 not in tests: #Local
+            tests.append(0)
 
-        if CONNECTION_MODE['Remote'] not in tests:
-            tests.append(CONNECTION_MODE['Remote'])
+        if 1 not in tests: #Remote
+            tests.append(1)
 
         # TODO: begin to wake server
         return self._test_next_connection_mode(tests, 0, server, options)
 
-    def connect(self, options={}):
-        LOG.info("Begin connect")
+    def connect(self, options):
+        self.LOG.info("Begin connect")
         return self._connect_to_servers(self.get_available_servers(), options)
 
     def connect_user(self):
@@ -256,20 +234,16 @@ class ConnectionManager():
         return self.credentials.get_credentials().get('ConnectAccessToken')
 
     def emby_user_id(self):
-        return self.get_server_info(self.server_id)['UserId']
+        return self.get_server_info()['UserId']
 
     def emby_token(self):
-        return self.get_server_info(self.server_id)['AccessToken']
+        return self.get_server_info()['AccessToken']
 
-    def get_server_info(self, server_id):
-
-        if server_id is None:
-            LOG.info("server_id is empty")
-            return {}
-
+    def get_server_info(self):
         servers = self.credentials.get_credentials()['Servers']
+
         for server in servers:
-            if server['Id'] == server_id:
+            if server['Id'] == self.client.server_id:
                 return server
 
     def get_public_users(self):
@@ -281,19 +255,16 @@ class ConnectionManager():
     def get_emby_url(self, base, handler):
         return "%s/emby/%s" % (base, handler)
 
-    def _request_url(self, request, headers=True):
+    def _request_url(self, request, headers, MSGs):
         request['timeout'] = request.get('timeout') or self.timeout
 
         if headers:
             self._get_headers(request)
-        try:
-            return self.http.request(request)
-        except Exception as error:
-            LOG.error(error)
-            raise
+
+        return self.http.request(request, None, MSGs)
 
     def _add_app_info(self):
-        return "%s/%s" % (self.config['app.name'], self.config['app.version'])
+        return "%s/%s" % (self.client.config['app.name'], self.client.config['app.version'])
 
     def _get_headers(self, request):
         headers = request.setdefault('headers', {})
@@ -306,12 +277,12 @@ class ConnectionManager():
         headers['Content-type'] = request.get('contentType', 'application/x-www-form-urlencoded; charset=UTF-8')
 
     def _connect_to_servers(self, servers, options):
-        LOG.info("Begin connectToServers, with %s servers", len(servers))
+        self.LOG.info("Begin connectToServers, with %s servers" % len(servers))
         result = {}
 
         if len(servers) == 1:
             result = self.connect_to_server(servers[0], options)
-            LOG.debug("resolving connectToServers with result['State']: %s", result)
+            self.LOG.debug("resolving connectToServers with result['State']: %s" % result)
             return result
 
         first_server = self._get_last_used_server()
@@ -320,22 +291,20 @@ class ConnectionManager():
         if first_server is not None and first_server['DateLastAccessed'] != "2001-01-01T00:00:00Z":
             result = self.connect_to_server(first_server, options)
 
-            if result['State'] in (CONNECTION_STATE['SignedIn'], CONNECTION_STATE['Unavailable']):
+            if result['State'] in (3, 0): #SignedIn or Unavailable
                 return result
 
         # Return loaded credentials if exists
         credentials = self.credentials.get_credentials()
         self._ensure_connect_user(credentials)
-
         return {
             'Servers': servers,
-            'State': CONNECTION_STATE['ConnectSignIn'] if (not len(servers) and not self.connect_user()) else (result.get('State') or CONNECTION_STATE['ServerSelection']), 'ConnectUser': self.connect_user()
+            'State': 4 if (not len(servers) and not self.connect_user()) else (result.get('State') or 1), 'ConnectUser': self.connect_user() #ConnectSignIn...ServerSelection
         }
 
-    def _try_connect(self, url, timeout=None, options={}):
+    def _try_connect(self, url, timeout, options, NoMSGs=False):
         url = self.get_emby_url(url, "system/info/public")
-        LOG.info("tryConnect url: %s", url)
-
+        self.LOG.info("tryConnect url: %s" % url)
         return self._request_url({
             'type': "GET",
             'url': url,
@@ -343,57 +312,41 @@ class ConnectionManager():
             'timeout': timeout,
             'verify': options.get('ssl'),
             'retry': False
-        })
+        }, True, NoMSGs)
 
     def _test_next_connection_mode(self, tests, index, server, options):
         if index >= len(tests):
-            LOG.info("Tested all connection modes. Failing server connection.")
+            self.LOG.info("Tested all connection modes. Failing server connection.")
             return self._resolve_failure()
 
         mode = tests[index]
-        address = get_server_address(server, mode)
-        enable_retry = False
+        address = self.get_server_address(server, mode)
         skip_test = False
         timeout = self.timeout
-        LOG.info("testing connection mode %s with server %s", mode, server.get('Name'))
+        self.LOG.info("testing connection mode %s with server %s" % (str(mode), server.get('Name')))
 
-        if mode == CONNECTION_MODE['Local']:
-            enable_retry = True
+        if mode == 0: #Local
             timeout = 8
 
             if self._string_equals_ignore_case(address, server.get('ManualAddress')):
-                LOG.info("skipping LocalAddress test because it is the same as ManualAddress")
+                self.LOG.info("skipping LocalAddress test because it is the same as ManualAddress")
                 skip_test = True
 
-        elif mode == CONNECTION_MODE['Manual']:
+        elif mode == 2: #Manual
             if self._string_equals_ignore_case(address, server.get('LocalAddress')):
-                enable_retry = True
                 timeout = 8
 
         if skip_test or not address:
-            LOG.info("skipping test at index: %s", index)
+            self.LOG.info("skipping test at index: %s" % index)
             return self._test_next_connection_mode(tests, index + 1, server, options)
 
-        try:
-            result = self._try_connect(address, timeout, options)
-        except Exception:
-            LOG.error("test failed for connection mode %s with server %s", mode, server.get('Name'))
+        result = self._try_connect(address, timeout, options, True)
 
-            if enable_retry:
-                # TODO: wake on lan and retry
-                return self._test_next_connection_mode(tests, index + 1, server, options)
-            else:
-                return self._test_next_connection_mode(tests, index + 1, server, options)
-        else:
-            if self._compare_versions(self._get_min_server_version(), result['Version']) == 1:
-                LOG.warning("minServerVersion requirement not met. Server version: %s", result['Version'])
-                return {
-                    'State': CONNECTION_STATE['ServerUpdateNeeded'],
-                    'Servers': [server]
-                }
-            else:
-                LOG.info("calling onSuccessfulConnection with connection mode %s with server %s", mode, server.get('Name'))
-                return self._on_successful_connection(server, result, mode, options)
+        if not result:
+            return self._test_next_connection_mode(tests, index + 1, server, options)
+
+        self.LOG.info("calling onSuccessfulConnection with connection mode %s with server %s" % (mode, server.get('Name')))
+        return self._on_successful_connection(server, result, mode, options)
 
     def _on_successful_connection(self, server, system_info, connection_mode, options):
         credentials = self.credentials.get_credentials()
@@ -406,16 +359,7 @@ class ConnectionManager():
         return self._after_connect_validated(server, credentials, system_info, connection_mode, True, options)
 
     def _resolve_failure(self):
-        return {
-            'State': CONNECTION_STATE['Unavailable'],
-            'ConnectUser': self.connect_user()
-        }
-
-    def _get_min_server_version(self, val=None):
-        if val is not None:
-            self.min_server_version = val
-
-        return self.min_server_version
+        return {'State': 0, 'ConnectUser': self.connect_user()} #Unavailable
 
     def _compare_versions(self, a, b):
         ''' -1 a is smaller
@@ -438,10 +382,10 @@ class ConnectionManager():
 
     def _get_connect_user(self, user_id, access_token):
         if not user_id:
-            raise AttributeError("null userId")
+            return False #"null userId"
 
         if not access_token:
-            raise AttributeError("null accessToken")
+            return False #"null accessToken"
 
         return self._request_url({
             'type': "GET",
@@ -450,7 +394,7 @@ class ConnectionManager():
             'headers': {
                 'X-Connect-UserToken': access_token
             }
-        })
+        }, True, True)
 
     def _server_discovery(self):
         MULTI_GROUP = ("<broadcast>", 7359)
@@ -460,34 +404,37 @@ class ConnectionManager():
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.setsockopt(socket.IPPROTO_IP, socket.SO_REUSEADDR, 1)
-        LOG.debug("MultiGroup      : %s", str(MULTI_GROUP))
-        LOG.debug("Sending UDP Data: %s", MESSAGE)
+        self.LOG.debug("MultiGroup      : %s" % str(MULTI_GROUP))
+        self.LOG.debug("Sending UDP Data: %s" % MESSAGE)
         servers = []
 
         try:
             sock.sendto(MESSAGE, MULTI_GROUP)
         except Exception as error:
-            LOG.error(error)
-
+            self.LOG.error("ERROR: %s" % error)
             return servers
 
         while True:
             data = None
-            addr = None
 
             try:
-                data, addr = sock.recvfrom(1024) # buffer size
+                data, _ = sock.recvfrom(1024) # buffer size
                 servers.append(json.loads(data))
             except socket.timeout:
-                LOG.info("Found Servers: %s", servers)
+                self.LOG.info("Found Servers: %s" % servers)
                 return servers
-            except Exception as e:
-                LOG.error("Error trying to find servers: %s", e)
+            except Exception as Error:
+                self.LOG.error("Error trying to find servers: %s" % Error)
                 return servers
 
     def _get_connect_servers(self, credentials):
-        LOG.debug("Begin getConnectServers")
+        self.LOG.debug("Begin getConnectServers")
         servers = list()
+
+
+
+
+
 
         if not credentials.get('ConnectAccessToken') or not credentials.get('ConnectUserId'):
             return servers
@@ -502,7 +449,7 @@ class ConnectionManager():
             }
         }
 
-        for server in self._request_url(request):
+        for server in self._request_url(request, True, False):
             servers.append({
                 'ExchangeToken': server['AccessKey'],
                 'ConnectServerId': server['Id'],
@@ -544,7 +491,7 @@ class ConnectionManager():
             server = self._convert_endpoint_address_to_manual_address(found_server)
 
             if not server and not found_server.get('Address'):
-                LOG.warning("Server %s has no address.", found_server)
+                self.LOG.warning("Server %s has no address." % found_server)
                 continue
 
             info = {
@@ -629,7 +576,7 @@ class ConnectionManager():
 
     def _on_connect_user_signin(self, user):
         self.user = user
-        LOG.info("connectusersignedin %s", user)
+        self.LOG.info("connectusersignedin %s" % user)
 
     def _save_user_info_into_credentials(self, server, user):
         info = {
@@ -638,50 +585,49 @@ class ConnectionManager():
         }
         self.credentials.add_update_user(server, info)
 
-    def _add_authentication_info_from_connect(self, server, connection_mode, credentials, options={}):
+    def _add_authentication_info_from_connect(self, server, connection_mode, credentials, options):
         if not server.get('ExchangeToken'):
-            raise KeyError("server['ExchangeToken'] cannot be null")
+            return False #"server['ExchangeToken'] cannot be null"
 
         if not credentials.get('ConnectUserId'):
-            raise KeyError("credentials['ConnectUserId'] cannot be null")
+            return False #"credentials['ConnectUserId'] cannot be null"
 
         auth = "MediaBrowser "
-        auth += "Client=%s, " % self.config['app.name']
-        auth += "Device=%s, " % self.config['app.device_name']
-        auth += "DeviceId=%s, " % self.config['app.device_id']
-        auth += "Version=%s " % self.config['app.version']
+        auth += "Client=%s, " % self.client.config['app.name']
+        auth += "Device=%s, " % self.client.config['app.device_name']
+        auth += "DeviceId=%s, " % self.client.config['app.device_id']
+        auth += "Version=%s " % self.client.config['app.version']
+        auth = self._request_url({
+            'url': self.get_emby_url(self.get_server_address(server, connection_mode), "Connect/Exchange"),
+            'type': "GET",
+            'dataType': "json",
+            'verify': options.get('ssl'),
+            'params': {
+                'ConnectUserId': credentials['ConnectUserId']
+            },
+            'headers': {
+                'X-MediaBrowser-Token': server['ExchangeToken'],
+                'X-Emby-Authorization': auth
+            }
+        }, True, True)
 
-        try:
-            auth = self._request_url({
-                'url': self.get_emby_url(get_server_address(server, connection_mode), "Connect/Exchange"),
-                'type': "GET",
-                'dataType': "json",
-                'verify': options.get('ssl'),
-                'params': {
-                    'ConnectUserId': credentials['ConnectUserId']
-                },
-                'headers': {
-                    'X-MediaBrowser-Token': server['ExchangeToken'],
-                    'X-Emby-Authorization': auth
-                }
-            })
-        except Exception:
+        if not auth:
             server['UserId'] = None
             server['AccessToken'] = None
             return False
-        else:
-            server['UserId'] = auth['LocalUserId']
-            server['AccessToken'] = auth['AccessToken']
-            return auth
+
+        server['UserId'] = auth['LocalUserId']
+        server['AccessToken'] = auth['AccessToken']
+        return auth
 
     def _after_connect_validated(self, server, credentials, system_info, connection_mode, verify_authentication, options):
         if options.get('enableAutoLogin') == False:
-            self.config['auth.user_id'] = server.pop('UserId', None)
-            self.config['auth.token'] = server.pop('AccessToken', None)
+            self.client.config['auth.user_id'] = server.pop('UserId', None)
+            self.client.config['auth.token'] = server.pop('AccessToken', None)
         elif verify_authentication and server.get('AccessToken'):
             if self._validate_authentication(server, connection_mode, options) is not False:
-                self.config['auth.user_id'] = server['UserId']
-                self.config['auth.token'] = server['AccessToken']
+                self.client.config['auth.user_id'] = server['UserId']
+                self.client.config['auth.token'] = server['AccessToken']
                 return self._after_connect_validated(server, credentials, system_info, connection_mode, False, options)
             elif server.get('AccessToken'):
                 return self._resolve_failure()
@@ -695,40 +641,32 @@ class ConnectionManager():
 
         self.credentials.add_update_server(credentials['Servers'], server)
         self.credentials.get_credentials(credentials)
-        self.server_id = server['Id']
+        self.client.server_id = server['Id']
 
         # Update configs
-        self.config['auth.server'] = get_server_address(server, connection_mode)
-        self.config['auth.server-name'] = server['Name']
-        self.config['auth.server=id'] = server['Id']
-        self.config['auth.ssl'] = options.get('ssl', self.config['auth.ssl'])
-
-        result = {
-            'Servers': [server],
-            'ConnectUser': self.connect_user()
-        }
-        result['State'] = CONNECTION_STATE['SignedIn'] if server.get('AccessToken') else CONNECTION_STATE['ServerSignIn']
+        self.client.config['auth.server'] = self.get_server_address(server, connection_mode)
+        self.client.config['auth.server-name'] = server['Name']
+        self.client.config['auth.server=id'] = server['Id']
+        self.client.config['auth.ssl'] = options.get('ssl', self.client.config['auth.ssl'])
+        result = {'Servers': [server], 'ConnectUser': self.connect_user()}
+        result['State'] = 3 if server.get('AccessToken') else 2 #SignedIn...ServerSignIn
         # Connected
         return result
 
-    def _validate_authentication(self, server, connection_mode, options={}):
-        try:
-            system_info = self._request_url({
-                'type': "GET",
-                'url': self.get_emby_url(get_server_address(server, connection_mode), "System/Info"),
-                'verify': options.get('ssl'),
-                'dataType': "json",
-                'headers': {
-                    'X-MediaBrowser-Token': server['AccessToken']
-                }
-            })
+    def _validate_authentication(self, server, connection_mode, options):
+        system_info = self._request_url({
+            'type': "GET",
+            'url': self.get_emby_url(self.get_server_address(server, connection_mode), "System/Info"),
+            'verify': options.get('ssl'),
+            'dataType': "json",
+            'headers': {
+                'X-MediaBrowser-Token': server['AccessToken']
+            }
+        }, True, True)
+
+        if system_info:
             self._update_server_info(server, system_info)
             return True
-        except emby.core.exceptions.HTTPException as error:
-            if error.status == 'Unauthorized':
-                server['AccessToken'] = None
-        except Exception as error:
-            LOG.error(error)
 
         return False
 
@@ -746,10 +684,10 @@ class ConnectionManager():
         if 'MacAddress' in system_info:
             server['WakeOnLanInfos'] = [{'MacAddress': system_info['MacAddress']}]
 
-    def _on_authenticated(self, result, options={}):
+    def _on_authenticated(self, result, options):
         credentials = self.credentials.get_credentials()
-        self.config['auth.user_id'] = result['User']['Id']
-        self.config['auth.token'] = result['AccessToken']
+        self.client.config['auth.user_id'] = result['User']['Id']
+        self.client.config['auth.token'] = result['AccessToken']
 
         for server in credentials['Servers']:
             if server['Id'] == result['ServerId']:

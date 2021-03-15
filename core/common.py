@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
+import helper.loghandler
 import database.queries
 
 class Common():
     def __init__(self, emby_db, objects, Utils, direct_path, Server):
-        self.LOG = logging.getLogger("EMBY.core.common.Common")
+        self.LOG = helper.loghandler.LOG('EMBY.core.common.Common')
         self.Utils = Utils
         self.emby_db = emby_db
         self.objects = objects
@@ -81,12 +81,12 @@ class Common():
             obj['Filename'] = self.Utils.StringDecode(obj['Filename'])
 
             if not self.Utils.validate(obj['Path']):
-                raise Exception("Failed to validate path. User stopped.")
+                return False, obj
 
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
 
             if MediaID == "audio":
-                return obj
+                return True, obj
 
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
@@ -114,7 +114,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "movies":
                 obj['Path'] = "http://127.0.0.1:57578/movies/%s/" % obj['LibraryId']
 
@@ -122,7 +122,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "musicvideos":
                 obj['Path'] = "http://127.0.0.1:57578/musicvideos/%s/" % obj['LibraryId']
 
@@ -130,11 +130,11 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], obj['Streams']['video'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "audio":
                 obj['Path'] = "http://127.0.0.1:57578/audio/%s/" % obj['Id']
                 obj['Filename'] = "%s-stream-%s" % (obj['Id'], Filename)
-                return obj
+                return True, obj
 
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
@@ -158,7 +158,7 @@ class Common():
 
                     obj['Filename'] = "stack://" + obj['Filename']
 
-        return obj
+        return True, obj
 
     def library_check(self, e_item, item, library):
         if library is None:
@@ -195,13 +195,13 @@ class Common():
 
                             break
 
-            sync = database.database.get_sync()
+            sync = database.database.get_sync(self.Utils)
 
             if not library:
                 library = {}
 
             if view_id not in [x.replace('Mixed:', "") for x in sync['Whitelist'] + sync['Libraries']]:
-                self.LOG.info("Library %s is not synced. Skip update.", view_id)
+                self.LOG.info("Library %s is not synced. Skip update." % view_id)
                 return False
 
             library['Id'] = view_id

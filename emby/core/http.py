@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
 import time
 import requests
-import emby.core.exceptions
+
 import xbmc
+
+import helper.loghandler
 
 if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
     unicode = str
 
 class HTTP():
     def __init__(self, client):
-        self.LOG = logging.getLogger('emby.core.HTTP')
+        self.LOG = helper.loghandler.LOG('EMBY.core.HTTP')
         self.session = None
-        self.keep_alive = False
         self.client = client
         self.config = client['config']
 
@@ -25,53 +25,39 @@ class HTTP():
 
     def start_session(self):
         self.session = requests.Session()
-        """
-        max_retries = self.config['http.max_retries']
-        self.session.mount("http://", requests.adapters.HTTPAdapter(max_retries=max_retries))
-        self.session.mount("https://", requests.adapters.HTTPAdapter(max_retries=max_retries))
-        """
 
     def stop_session(self):
         if self.session is None:
             return
 
         try:
-            self.LOG.warning("--<[ session/%s ]", id(self.session))
+            self.LOG.warning("--<[ session/%s ]" % id(self.session))
             self.session.close()
         except Exception as error:
-            self.LOG.warning("The requests session could not be terminated: %s", error)
+            self.LOG.warning("The requests session could not be terminated: %s" % error)
 
     def _replace_user_info(self, string):
         if '{server}' in string:
             if self.config['auth.server']:
                 string = string.replace("{server}", self.config['auth.server'])
             else:
-                raise Exception("Server address not set.")
+                return False
 
         if '{UserId}'in string:
             if self.config['auth.user_id']:
                 string = string.replace("{UserId}", self.config['auth.user_id'])
             else:
-                raise Exception("UserId is not set.")
+                return False
 
         return string
 
-    def request(self, data, session=None):
-        ''' Give a chance to retry the connection. Emby sometimes can be slow to answer back
-            data dictionary can contain:
-            type: GET, POST, etc.
-            url: (optional)
-            handler: not considered when url is provided (optional)
-            params: request parameters (optional)
-            json: request body (optional)
-            headers: (optional),
-            verify: ssl certificate, True (verify using device built-in library) or False
-        '''
-        if not data:
-            raise AttributeError("Request cannot be empty")
-
+    def request(self, data, session, MSGs=True):
         data = self._request(data)
-        self.LOG.debug("--->[ http ] %s", json.dumps(data, indent=4))
+
+        if not data:
+            return False
+
+        self.LOG.debug("--->[ http ] %s" % json.dumps(data, indent=4))
         retry = data.pop('retry', 5)
 
         def _retry(current):
@@ -85,10 +71,6 @@ class HTTP():
             try:
                 r = self._requests(session or self.session or requests, data.pop('type', "GET"), **data)
                 r.content # release the connection
-
-                if not self.keep_alive and self.session is not None:
-                    self.stop_session()
-
                 r.raise_for_status()
             except requests.exceptions.ConnectionError as error:
                 retry = _retry(retry)
@@ -97,8 +79,12 @@ class HTTP():
                     continue
 
                 self.LOG.error(error)
-                self.client['callback']("ServerUnreachable", {'ServerId': self.config['auth.server-id']})
-                raise emby.core.exceptions.HTTPException("ServerUnreachable", error)
+
+                if MSGs:
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerUnreachable", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+
+                return False
+
             except requests.exceptions.ReadTimeout as error:
                 retry = _retry(retry)
 
@@ -106,27 +92,32 @@ class HTTP():
                     continue
 
                 self.LOG.error(error)
-                raise emby.core.exceptions.HTTPException("ReadTimeout", error)
+
+                if MSGs:
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerTimeout", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+
+                return False
 
             except requests.exceptions.HTTPError as error:
                 self.LOG.error(error)
 
                 if r.status_code == 401:
                     if 'X-Application-Error-Code' in r.headers:
-                        self.client['callback']("AccessRestricted", {'ServerId': self.config['auth.server-id']})
-                        raise emby.core.exceptions.HTTPException("AccessRestricted", error)
+                        xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "AccessRestricted", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+                        return False
 
-                    self.client['callback']("Unauthorized", {'ServerId': self.config['auth.server-id']})
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "Unauthorized", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
                     self.client['auth/revoke-token']
-                    raise emby.core.exceptions.HTTPException("Unauthorized", error)
-                elif r.status_code == 500: # log and ignore.
-                    self.LOG.error("--[ 500 response ] %s", error)
+                    return False
+
+                if r.status_code == 500: # log and ignore.
+                    self.LOG.error("--[ 500 response ] %s" % error)
                     return
                 elif r.status_code == 400: # log and ignore.
-                    self.LOG.error("--[ 400 response ] %s", error)
+                    self.LOG.error("--[ 400 response ] %s" % error)
                     return
                 elif r.status_code == 404: # log and ignore.
-                    self.LOG.error("--[ 404 response ] %s", error)
+                    self.LOG.error("--[ 404 response ] %s" % error)
                     return
                 elif r.status_code == 502:
                     retry = _retry(retry)
@@ -139,14 +130,16 @@ class HTTP():
                     if retry:
                         continue
 
-                raise emby.core.exceptions.HTTPException(r.status_code, error)
+                return False
             except requests.exceptions.MissingSchema as error:
-                raise emby.core.exceptions.HTTPException("MissingSchema", {'ServerId': self.config['auth.server']})
+                self.LOG.error(error)
+                return False
             except Exception as error:
-                raise
+                self.LOG.error(error)
+                return False
             else:
                 elapsed = int(r.elapsed.total_seconds() * 1000)
-                self.LOG.debug("---<[ http ][%s ms]", elapsed)
+                self.LOG.debug("---<[ http ][%s ms]" % elapsed)
 
                 try:
                     self.config['server-time'] = r.headers['Date']
@@ -164,15 +157,22 @@ class HTTP():
 
                     return response
                 except ValueError:
-                    return
+                    return False
 
     def _request(self, data):
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.config['auth.server'], data.pop('handler', ""))
 
-        self._get_header(data)
+        Ret = self._get_header(data)
+
+        if not Ret:
+            return False
+
         data['timeout'] = data.get('timeout') or self.config['http.timeout']
         data['url'] = self._replace_user_info(data['url'])
+
+        if not data['url']:
+            return False
 
         if data.get('verify') is None:
             if self.config['auth.ssl'] is None:
@@ -206,13 +206,14 @@ class HTTP():
             })
 
         if 'Authorization' not in data['headers']:
-            self._authorization(data)
+            if not self._authorization(data):
+                return False
 
         return data
 
     def _authorization(self, data):
         if not self.config['app.device_name']:
-            raise KeyError("Device name cannot be null")
+            return False #Device name cannot be null
 
         auth = "MediaBrowser "
         auth += "Client=%s, " % self.config['app.name']
@@ -236,3 +237,5 @@ class HTTP():
             return session.head(**kwargs)
         elif action == "DELETE":
             return session.delete(**kwargs)
+
+        return None

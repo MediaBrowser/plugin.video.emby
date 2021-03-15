@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
+import os
+
 import xbmcgui
-import emby.core.connection_manager
+import xbmcaddon
+
 import helper.utils
-import helper.translate
+import helper.loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -21,14 +23,14 @@ class ServerManual(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self._server = None
         self.error = None
+        self.Utils = helper.utils.Utils()
         self.connect_button = None
         self.cancel_button = None
         self.error_toggle = None
         self.error_msg = None
         self.host_field = None
         self.port_field = None
-        self.LOG = logging.getLogger("EMBY.dialogs.servermanual.ServerManual")
-        self.Utils = helper.utils.Utils()
+        self.LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual.ServerManual')
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     #connect_manager, user_image, servers, emby_connect
@@ -67,7 +69,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], helper.translate._('empty_server'))
+                self._error(ERROR['Empty'], self.Utils.Translate('empty_server'))
                 self.LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
@@ -84,7 +86,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width):
-#        media = os.path.join(xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
+        os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
         control.setPosition(x, y)
         control.setHeight(height)
@@ -94,11 +96,11 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
-        self._message("%s %s..." % (helper.translate._(30610), server_address))
-        result = self.connect_manager['manual-server'](server_address)
+        self._message("%s %s..." % (self.Utils.Translate(30610), server_address))
+        result = self.connect_manager.connect_to_address(server_address, {})
 
-        if result['State'] == emby.core.connection_manager.CONNECTION_STATE['Unavailable']:
-            self._message(helper.translate._(30609))
+        if result['State'] == 0: #Unavailable
+            self._message(self.Utils.Translate(30609))
             return False
 
         self._server = result['Servers'][0]

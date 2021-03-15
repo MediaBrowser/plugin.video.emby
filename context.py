@@ -1,20 +1,18 @@
+# -*- coding: utf-8 -*-
 import json
-import logging
+
 import xbmc
 import xbmcaddon
 
 import database.database
 import dialogs.context
 import emby.main
-import helper.translate
 import helper.utils
 import helper.loghandler
 
 class Context():
-    def __init__(self, play=False, transcode=False, delete=False):
-        helper.loghandler.reset()
-        helper.loghandler.config()
-        self.LOG = logging.getLogger("EMBY.context.Context")
+    def __init__(self, delete):
+        self.LOG = helper.loghandler.LOG('EMBY.context.Context')
         self._selected_option = None
         self.Utils = helper.utils.Utils()
         self.server_id = None
@@ -22,20 +20,14 @@ class Context():
         self.media = None
         self.XML_PATH = (xbmcaddon.Addon('plugin.video.emby-next-gen').getAddonInfo('path'), "default", "1080i")
         self.OPTIONS = {
-            'Refresh': helper.translate._(30410),
-            'Delete': helper.translate._(30409),
-            'Addon': helper.translate._(30408),
-            'AddFav': helper.translate._(30405),
-            'RemoveFav': helper.translate._(30406),
-            'Transcode': helper.translate._(30412)
+            'Refresh': self.Utils.Translate(30410),
+            'Delete': self.Utils.Translate(30409),
+            'Addon': self.Utils.Translate(30408),
+            'AddFav': self.Utils.Translate(30405),
+            'RemoveFav': self.Utils.Translate(30406),
+            'Transcode': self.Utils.Translate(30412)
         }
 
-#        try:
-#            self.kodi_id = max(sys.listitem.getVideoInfoTag().getDbId(), 0) or max(sys.listitem.getMusicInfoTag().getDbId(), 0) or None
-#            self.media = self.get_media_type()
-#            self.server_id = sys.listitem.getProperty('embyserver') or None
-#            item_id = sys.listitem.getProperty('embyid')
-#        except AttributeError:
         if xbmc.getInfoLabel('ListItem.Property(embyid)'):
             item_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
         else:
@@ -45,23 +37,22 @@ class Context():
 
         ServerOnline = False
 
-        for i in range(60):
-            if self.Utils.window('emby_online.bool'):
+        for _ in range(60):
+            if self.Utils.window('emby.online.bool'):
                 ServerOnline = True
                 break
 
             xbmc.sleep(500)
 
         if not ServerOnline:
-            helper.loghandler.reset()
             return
 
         #Load server connection data
-        self.server = emby.main.Emby(self.server_id).get_client()
-        emby.main.Emby().set_state(self.Utils.window('emby.server.state.json'))
+        self.server = emby.main.Emby(self.Utils, self.server_id).get_client()
+        emby.main.Emby(self.Utils).set_state(self.Utils.window('emby.server.state.json'))
 
         for server in self.Utils.window('emby.server.states.json') or []:
-            emby.main.Emby(server).set_state(self.Utils.window('emby.server.%s.state.json' % server))
+            emby.main.Emby(self.Utils, server).set_state(self.Utils.window('emby.server.%s.state.json' % server))
 
         if item_id:
             self.item = self.server['api'].get_item(item_id)
@@ -75,27 +66,23 @@ class Context():
             elif self.select_menu():
                 self.action_menu()
 
-    #Get media type based on sys.listitem. If unfilled, base on visible window
-#    def get_media_type(self):
-#        media = sys.listitem.getVideoInfoTag().getMediaType() or sys.listitem.getMusicInfoTag().getMediaType()
+    def get_server(self, server_id):
+        ServerOnline = False
 
-#        if not media:
-#            if xbmc.getCondVisibility('Container.Content(albums)'):
-#                media = "album"
-#            elif xbmc.getCondVisibility('Container.Content(artists)'):
-#                media = "artist"
-#            elif xbmc.getCondVisibility('Container.Content(songs)'):
-#                media = "song"
-#            elif xbmc.getCondVisibility('Container.Content(pictures)'):
-#                media = "picture"
-#            else:
-#                self.LOG.info("media is unknown")
+        for _ in range(60):
+            if self.Utils.window('emby.online.bool'):
+                ServerOnline = True
+                break
 
-#        return media.decode('utf-8')
+            xbmc.sleep(500)
+
+        self.EmbyServer = emby.main.Emby(self.Utils, server_id)
+        self.EmbyServer.set_state(self.Utils.window('emby.server.%s.state.json' % server_id))
+        return ServerOnline
 
     #Get synced item from embydb
     def get_item_id(self):
-        item = database.database.get_item(self.kodi_id, self.media)
+        item = database.database.get_item(self.Utils, self.kodi_id, self.media)
 
         if not item:
             return {}
@@ -136,13 +123,13 @@ class Context():
         selected = self.Utils.StringDecode(self._selected_option)
 
         if selected == self.OPTIONS['Refresh']:
-            self.server['api'].refresh_item(self.item['Id'])
+            self.Utils.event('RefreshItem', {'Id': self.item['Id']})
 
         elif selected == self.OPTIONS['AddFav']:
-            self.server['api'].favorite(self.item['Id'], True)
+            self.Utils.event('AddFavItem', {'Id': self.item['Id']})
 
         elif selected == self.OPTIONS['RemoveFav']:
-            self.server['api'].favorite(self.item['Id'], False)
+            self.Utils.event('RemoveFavItem', {'Id': self.item['Id']})
 
         elif selected == self.OPTIONS['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
@@ -154,7 +141,7 @@ class Context():
         delete = True
 
         if not self.Utils.settings('skipContextMenu.bool'):
-            if not self.Utils.dialog("yesno", heading="{emby}", line1=helper.translate._(33015)):
+            if not self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33015)):
                 delete = False
 
         if delete:
