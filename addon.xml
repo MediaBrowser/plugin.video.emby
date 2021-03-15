@@ -1,28 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon  id="plugin.video.emby" name="Emby" version="4.1.22" provider-name="angelblue05, sualfred">
+<addon  id="plugin.video.emby-next-gen" name="Emby-next-gen" version="5.2.02" provider-name="quickmic, angelblue05, sualfred">
     <requires>
-        <import addon="xbmc.python" version="2.25.0"/>
-        <import addon="plugin.video.emby.movies" version="0.14" />
-        <import addon="plugin.video.emby.tvshows" version="0.14" />
-        <import addon="plugin.video.emby.musicvideos" version="0.14" />
+        <import addon="script.module.requests" version="2.22.0"/>
+        <import addon="script.module.dateutil" version="2.8.1"/>
     </requires>
-    <extension point="xbmc.python.pluginsource" library="default.py">
+    <extension point="xbmc.python.pluginsource" library="events.py">
         <provides>video audio image</provides>
     </extension>
     <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
-            <item library="context_play.py">
-                <label>33201</label>
-                <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))] + !String.IsEmpty(Window(10000).Property(emby_context))</visible>
-            </item>
-            <item library="context_transcode.py">
-                <label>30402</label>
-                <visible>[[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))] + [String.IsEqual(ListItem.DBTYPE,movie) | String.IsEqual(ListItem.DBTYPE,episode)]] + !String.IsEmpty(Window(10000).Property(emby_context_transcode))</visible>
-            </item>
             <item library="context.py">
                 <label>30401</label>
-                <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))] + !String.IsEmpty(Window(10000).Property(emby_context))</visible>
+                <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))]</visible>
             </item>
         </menu>
     </extension>
@@ -31,13 +21,13 @@
         <language>en</language>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
         <forum>http://emby.media/community/index.php?/forum/99-kodi/</forum>
-        <website>http://emby.media/</website>
+        <website>https://emby.media/</website>
         <source>https://github.com/MediaBrowser/plugin.video.emby</source>
         <description lang="en">Welcome to Emby for Kodi A whole new way to manage and view your media library. The Emby addon for Kodi combines the best of Kodi - ultra smooth navigation, beautiful UIs and playback of any file under the sun, and Emby - the most powerful fully open source multi-client media metadata indexer and server.&#10;&#10;Emby for Kodi is the absolute best way to enjoy the incredible Kodi playback engine combined with the power of Emby's centralized database. Features: Direct integration with the Kodi library for native Kodi speed Instant synchronization with the Emby server Full support for Movie, TV and Music collections Emby Server direct stream and transcoding support - use Kodi when you are away from home!</description>
         <description lang="es">Bienvenido a Emby para Kodi una forma completamente nueva de gestionar y ver su biblioteca multimedia. El complemento Emby para Kodi combina lo mejor de Kodi - navegación ultra suave, interfaces hermosas de usuario y la reproducción de cualquier archivo bajo el sol, y Emby - el indexador y servidor de metadatos multimedia multicliente de código abierto más potente.&#10;&#10;Emby para Kodi es la mejor manera de disfrutar del increíble motor de reproducción de Kodi combinado con el poder de la base de datos centralizada de Emby. Características: Integración directa con la biblioteca de Kodi para una velocidad nativa de sincronización instantánea con el soporte completo del Servidor Emby para colecciones de películas, programas de TV y música. Emby Server soporta transcodificación y transmisión en directo - ¡Usa Kodi cuando estés fuera de casa!</description>
         <assets>
-            <icon>icon.png</icon>
-            <fanart>fanart.jpg</fanart>
+            <icon>resources/icon.png</icon>
+            <fanart>resources/fanart.jpg</fanart>
         </assets>
     </extension>
 </addon>

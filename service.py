@@ -1,143 +1,133 @@
 # -*- coding: utf-8 -*-
-
-#################################################################################################
-
-import imp
-import logging
-import os
-import threading
-import sys
-
 import xbmc
-import xbmcvfs
-import xbmcaddon
 
-#################################################################################################
+import hooks.monitor
+import database.database
+import emby.views
+import helper.setup
+import helper.utils
+import helper.xmls
+import helper.loghandler
 
-__addon__ = xbmcaddon.Addon(id='plugin.video.emby')
-__addon_path__ = __addon__.getAddonInfo('path').decode('utf-8')
-__base__ = xbmc.translatePath(os.path.join(__addon_path__, 'resources', 'lib')).decode('utf-8')
-__libraries__ = xbmc.translatePath(os.path.join(__addon_path__, 'libraries')).decode('utf-8')
-__pcache__ = xbmc.translatePath(os.path.join(__addon__.getAddonInfo('profile'), 'emby')).decode('utf-8')
-__cache__ = xbmc.translatePath('special://temp/emby').decode('utf-8')
-
-sys.path.insert(0, __libraries__)
-
-if not xbmcvfs.exists(__pcache__ + '/'):
-    from resources.lib.helper.utils import copytree
-
-    copytree(os.path.join(__base__, 'objects'), os.path.join(__pcache__, 'objects'))
-
-sys.path.insert(0, __cache__)
-sys.path.insert(0, __pcache__)
-sys.path.append(__base__)
-sys.argv.append('service')
-
-#################################################################################################
-
-from helper import settings
-import entrypoint
-
-#################################################################################################
-
-LOG = logging.getLogger("EMBY.service")
-DELAY = int(settings('startupDelay') if settings('SyncInstallRunDone.bool') else 4 or 0)
-
-#################################################################################################
-
-
-class ServiceManager(threading.Thread):
-
-    ''' Service thread. 
-        To allow to restart and reload modules internally.
-
-        Restart service
-        Delete lib and objects entries to reload them as if it were the first time.
-        Delete .pyo files to force Kodi to recreate them.
-        Finally, re-initialize modules that are used in __main__ to reload all our modules.
-    '''
-    exception = None
-
+class Service():
     def __init__(self):
-        threading.Thread.__init__(self)
+        self.ShouldStop = False
+        self.ReloadSkin = True
+        self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
+        self.Utils = helper.utils.Utils()
+        self.Setup = helper.setup.Setup(self)
+        self.Delay = int(self.Utils.settings('startupDelay'))
+        self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
+        self.Monitor = hooks.monitor.Monitor(self)
+        self.Views = None
+        database.database.test_databases(self.Utils)
+        Xmls = helper.xmls.Xmls(self.Utils)
+        Xmls.advanced_settings_add_timeouts()
+        self.Utils.settings('groupedSets.bool', self.Utils.GroupedSet)
+        self.ServerReconnecting = {}
+        self.SyncPause = False
 
-    def run(self):
-        global entrypoint
-        global settings
+        if not self.Setup.Migrate(): #Check Migrate
+            xbmc.executebuiltin('RestartApp')
+            return
 
-        service = None
+    def ServerConnect(self):
+        if self.Delay:
+            if self.Monitor.waitForAbort(self.Delay):
+                self.shutdown()
+                return False
 
-        try:
-            service = entrypoint.Service()
+        server_id = self.Monitor.EmbyServer_Connect()
+        self.Views = emby.views.Views(self, server_id)
+        self.Views.verify_kodi_defaults()
+        self.Views.get_nodes()
 
-            if DELAY and xbmc.Monitor().waitForAbort(DELAY):
-                raise Exception("Aborted during startup delay")
+        if not server_id:
+            return False
 
-            service.service()
-        except Exception as error:
-            self.exception = error
-            LOG.error(error)
-            if service is not None:
+        self.Setup.setup()
+        self.Monitor.LibraryLoad(server_id)
+        return True
 
-                if not 'ExitService' in error:
-                    service.shutdown()
-                
-                if 'RestartService' in error:
+    def ServerReconnectingInProgress(self, server_id):
+        if server_id in self.ServerReconnecting:
+            if self.ServerReconnecting[server_id]:
+                return True
 
-                    for mod in dict(sys.modules):
-                        module = sys.modules[mod]
+        return False
 
-                        try:
-                            module_path = imp.find_module(mod.split('.')[0])[1]
+    def ServerReconnect(self, server_id, Terminate=True):
+        self.ServerReconnecting[server_id] = True
+        self.SyncPause = False
 
-                            if ('plugin.video.emby' in module_path and not 'libraries' in module_path or 
-                                mod.startswith('objects')):
+        if Terminate:
+            self.Monitor.EmbyServer[server_id].stop()
+            self.Monitor.LibraryStop(server_id)
 
-                                LOG.debug("[ reload/%s ]", mod)
-                                del sys.modules[mod]
-                        except ImportError: #xbmc built-in functions or entries with None
-                            pass
+        while True:
+            if self.Monitor.waitForAbort(10):
+                return
 
-                    import entrypoint
-                    import helper
-                    import objects
+            server_id = self.Monitor.EmbyServer_Connect()
 
-                    try:
-                        helper.utils.delete_pyo(__addon_path__)
-                        helper.utils.delete_pyo(__pcache__)
-                    except Exception:
-                        pass
+            if server_id:
+                self.ServerReconnecting[server_id] = False
+                break
 
-                    imp.reload(entrypoint)
-                    imp.reload(helper)
-                    imp.reload(objects)
+        self.Monitor.LibraryLoad(server_id)
+        self.ServerReconnecting[server_id] = True
 
-                    from helper import settings
+    def WatchDog(self):
+        while True:
+            if self.Monitor.waitForAbort(1):
+                self.shutdown()
+                return False
 
+            if self.Utils.window('emby.shouldstop.bool'):
+                self.ShouldStop = True
 
-if __name__ == '__main__':
+            if self.Utils.window('emby.restart.bool'):
+                self.Utils.window('emby.restart.bool', False)
+                self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Translate(33193), icon="{emby}", time=1000, sound=False)
+                self.restart()
+                return True
 
-    LOG.warn("-->[ service ]")
-    LOG.warn("Delay startup by %s seconds.", DELAY)
+            if self.Monitor.sleep:
+                xbmc.sleep(5000)
+                self.Monitor.System_OnWake(None)
+
+            if self.ShouldStop:
+                self.shutdown()
+                return False
+
+    def shutdown(self):
+        self.LOG.warning("---<[ EXITING ]")
+        self.SyncPause = True
+        self.ShouldStop = True
+        self.Monitor.QuitThreads()
+        self.Monitor.EmbyServer_DisconnectAll()
+        self.Monitor.LibraryStopAll()
+
+    def restart(self):
+        self.shutdown()
+        self.LOG.warning("[ RESTART ]")
+        properties = ["emby.restart", "emby.servers", "emby.should_stop", "emby.online", "emby.sync.pause", "emby.nodes.total", "emby.sync", "emby.pathverified", "emby.UserImage", "emby.shouldstop"]
+
+        for server_id in self.Utils.window('emby.servers') or []:
+            properties.append("emby.server.%s.state" % server_id)
+
+        for prop in properties:
+            self.Utils.window(prop, clear=True)
+
+if __name__ == "__main__":
+    serviceOBJ = Service()
 
     while True:
+        serviceOBJ.ServerConnect()
 
-        if not settings('enableAddon.bool'):
-            LOG.warn("Emby for Kodi is not enabled.")
-
-            break
-
-        try:
-            session = ServiceManager()
-            session.start()
-            session.join() # Block until the thread exits.
-
-            if 'RestartService' in session.exception:
-                continue
-
-        except Exception as error:
-            LOG.exception(error)
+        if serviceOBJ.WatchDog():
+            continue #Restart
 
         break
 
-    LOG.warn("--<[ service ]")
+    serviceOBJ = None
