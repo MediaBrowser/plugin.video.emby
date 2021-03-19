@@ -10,11 +10,10 @@ from . import artwork
 from . import common
 
 class Movies():
-    def __init__(self, server, embydb, videodb, direct_path, Utils, Downloader, server_id):
+    def __init__(self, EmbyServer, embydb, videodb, direct_path, Utils, Downloader):
         self.LOG = helper.loghandler.LOG('EMBY.core.movies.Movies')
         self.Utils = Utils
-        self.server_id = server_id
-        self.server = server
+        self.EmbyServer = EmbyServer
         self.emby = embydb
         self.video = videodb
         self.direct_path = direct_path
@@ -22,18 +21,10 @@ class Movies():
         self.objects = obj_ops.Objects(self.Utils)
         self.item_ids = []
         self.Downloader = Downloader
-        self.Common = common.Common(self.emby_db, self.objects, self.Utils, self.direct_path, self.server)
+        self.Common = common.Common(self.emby_db, self.objects, self.Utils, self.direct_path, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, Utils)
         self.MoviesDBIO = MoviesDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.Utils)
-
-    def __getitem__(self, key):
-        if key == 'Movie':
-            return self.movie
-        elif key == 'BoxSet':
-            return self.boxset
-
-        return None
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -44,7 +35,7 @@ class Movies():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Movie')
         obj['Item'] = item
         obj['Library'] = library
@@ -55,7 +46,7 @@ class Movies():
 
         if str(StackedID) != obj['Id']:
             self.LOG.info("Skipping stacked movie %s [%s/%s]" % (obj['Title'], StackedID, obj['Id']))
-            Movies(self.server, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, self.server_id).remove(StackedID)
+            Movies(self.EmbyServer, self.emby, self.video, self.direct_path, self.Utils, self.Downloader).remove(StackedID)
 
         if e_item:
             obj['MovieId'] = e_item[0]
@@ -205,8 +196,8 @@ class Movies():
     def trailer(self, obj):
         try:
             if obj['LocalTrailer']:
-                trailer = self.server['api'].get_local_trailers(obj['Id'])
-                API = helper.api.API(trailer, self.Utils, self.server['auth/server-address'])
+                trailer = self.EmbyServer.API.get_local_trailers(obj['Id'])
+                API = helper.api.API(trailer, self.Utils, self.EmbyServer.auth.get_serveraddress())
 
                 if self.direct_path:
                     obj['Trailer'] = API.get_file_path(trailer[0]['Path'])
@@ -225,7 +216,7 @@ class Movies():
     #Process removals from boxset.
     def boxset(self, item):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Boxset')
         obj['Overview'] = API.get_overview(obj['Overview'])
         obj['Checksum'] = obj['Etag']
@@ -251,6 +242,7 @@ class Movies():
         self.ArtworkDBIO.add(obj['Artwork'], obj['SetId'], "set")
         self.emby_db.add_reference(*self.Utils.values(obj, database.queries.add_reference_boxset_obj))
         self.LOG.info("UPDATE boxset [%s] %s" % (obj['SetId'], obj['Title']))
+        return True
 
     #Add or removes movies based on the current movies found in the boxset
     def boxset_current(self, obj):
@@ -262,7 +254,7 @@ class Movies():
 
         obj['Current'] = movies
 
-        for all_movies in self.Downloader.get_movies_by_boxset(obj['Id'], self.server_id):
+        for all_movies in self.Downloader.get_movies_by_boxset(obj['Id']):
             for movie in all_movies['Items']:
                 temp_obj = dict(obj)
                 temp_obj['Title'] = movie['Name']
@@ -292,7 +284,7 @@ class Movies():
     #Poster with progress bar
     def userdata(self, item):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'MovieUserData')
         obj['Item'] = item
 

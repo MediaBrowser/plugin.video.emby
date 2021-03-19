@@ -14,26 +14,19 @@ from . import artwork
 from . import common
 
 class MusicVideos():
-    def __init__(self, server, embydb, videodb, direct_path, Utils, Downloader, server_id):
+    def __init__(self, EmbyServer, embydb, videodb, direct_path, Utils):
         self.LOG = helper.loghandler.LOG('EMBY.core.musicvideos.MusicVideos')
         self.Utils = Utils
-        self.server_id = server_id
-        self.server = server
+        self.EmbyServer = EmbyServer
         self.emby = embydb
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
         self.objects = obj_ops.Objects(self.Utils)
         self.item_ids = []
-        self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.server)
+        self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.EmbyServer)
         self.MusicVideosDBIO = MusicVideosDBIO(videodb.cursor)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, Utils)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.Utils)
-
-    def __getitem__(self, key):
-        if key == 'MusicVideo':
-            return self.musicvideo
-
-        return None
 
     def musicvideo(self, item, library):
         ''' If item does not exist, entry will be added.
@@ -48,7 +41,7 @@ class MusicVideos():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'MusicVideo')
         obj['Item'] = item
         obj['Library'] = library
@@ -178,7 +171,7 @@ class MusicVideos():
             Poster with progress bar
         '''
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'MusicVideoUserData')
         obj['Item'] = item
 

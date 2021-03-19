@@ -3,13 +3,13 @@ import helper.loghandler
 import database.queries
 
 class Common():
-    def __init__(self, emby_db, objects, Utils, direct_path, Server):
+    def __init__(self, emby_db, objects, Utils, direct_path, EmbyServer):
         self.LOG = helper.loghandler.LOG('EMBY.core.common.Common')
         self.Utils = Utils
         self.emby_db = emby_db
         self.objects = objects
         self.direct_path = direct_path
-        self.server = Server
+        self.EmbyServer = EmbyServer
 
     #Add streamdata
     def Streamdata_add(self, obj, Update):
@@ -91,7 +91,7 @@ class Common():
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
                 if (obj['Item']['PartCount']) >= 2:
-                    AdditionalParts = self.server['api'].get_additional_parts(obj['Id'])
+                    AdditionalParts = self.EmbyServer.API.get_additional_parts(obj['Id'])
                     obj['Filename'] = obj['Path'] + obj['Filename']
                     obj['StackTimes'] = str(obj['Runtime'])
 
@@ -139,7 +139,7 @@ class Common():
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
                 if (obj['Item']['PartCount']) >= 2:
-                    AdditionalParts = self.server['api'].get_additional_parts(obj['Id'])
+                    AdditionalParts = self.EmbyServer.API.get_additional_parts(obj['Id'])
                     obj['Filename'] = obj['Path'] + obj['Filename']
                     obj['StackTimes'] = str(obj['Runtime'])
 
@@ -166,7 +166,7 @@ class Common():
                 view_id = e_item[6]
                 view_name = self.emby_db.get_view_name(view_id)
             else:
-                ancestors = self.server['api'].get_ancestors(item['Id'])
+                ancestors = self.EmbyServer.API.get_ancestors(item['Id'])
 
                 if not ancestors:
                     if item['Type'] == 'MusicArtist':
@@ -195,7 +195,7 @@ class Common():
 
                             break
 
-            sync = database.database.get_sync(self.Utils)
+            sync = self.Utils.get_sync()
 
             if not library:
                 library = {}

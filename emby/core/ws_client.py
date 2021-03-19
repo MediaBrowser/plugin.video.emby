@@ -72,12 +72,15 @@ class ABNF():
         return mask_key + b"".join(s)
 
 class WSClient(threading.Thread):
-    def __init__(self, client):
+    def __init__(self, Server, DeviceID, Token, server_id):
+        self.Server = Server
+        self.DeviceID = DeviceID
+        self.Token = Token
+        self.server_id = server_id
         self.wsc = None
         self.stop = False
         self.LOG = helper.loghandler.LOG('Emby.core.ws_client')
         self.LOG.debug("WSClient initializing...")
-        self.client = client
         self.stop = False
         self.connected = False
         self.sock = socket.socket()
@@ -91,9 +94,8 @@ class WSClient(threading.Thread):
 
     def run(self):
         self.LOG.info("--->[ websocket ]")
-        server = self.client['config/auth.server']
-        server = server.replace('https', "wss") if server.startswith('https') else server.replace('http', "ws")
-        self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.client['config/auth.token'], self.client['config/app.device_id']))
+        server = self.Server.replace('https', "wss") if self.Server.startswith('https') else self.Server.replace('http', "ws")
+        self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.Token, self.DeviceID))
         thread = threading.Thread(target=self.ping)
         thread.start()
         data = None
@@ -114,7 +116,11 @@ class WSClient(threading.Thread):
     def on_message(self, message):
         message = json.loads(message)
         data = message.get('Data', {})
-        data['ServerId'] = self.client.server_id
+
+        if not data: #check if data is an empty string
+            data = {}
+
+        data['ServerId'] = self.server_id
 
         if message['MessageType'] == 'RefreshProgress':
             self.LOG.debug("Ignoring %s" % message)

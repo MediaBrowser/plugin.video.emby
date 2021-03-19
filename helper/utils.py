@@ -6,6 +6,8 @@ import unicodedata
 import uuid
 import requests
 from dateutil import tz, parser
+import _strptime # Workaround for threads using datetime: _striptime is locked
+import datetime
 
 try:
     from urllib import quote, quote_plus
@@ -60,6 +62,57 @@ class Utils():
         self.device_id = self.get_device_id(False)
         self.device_info = {'DeviceName': self.device_name, 'Version': self.addon_version, 'DeviceId': self.device_id}
         self.Screensaver = None
+
+
+
+        self.SyncTimestampLast = datetime.datetime.fromtimestamp(0)
+        self.SyncData = {}
+        self.SyncData = self.get_sync()
+
+    def get_sync(self):
+        if not self.SyncData: #load from xbmc
+            self.SyncData = self.window('emby.servers.sync.json')
+
+            if not self.SyncData: #load from file
+                path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+
+                if not xbmcvfs.exists(path):
+                    xbmcvfs.mkdirs(path)
+
+                if xbmcvfs.exists(os.path.join(path, "sync.json")):
+                    with open(os.path.join(path, 'sync.json'), 'rb') as infile:
+                        self.SyncData = json.load(infile)
+                else:
+                    self.SyncData = {}
+
+                self.SyncData['Libraries'] = self.SyncData.get('Libraries', [])
+                self.SyncData['RestorePoint'] = self.SyncData.get('RestorePoint', {})
+                self.SyncData['Whitelist'] = list(set(self.SyncData.get('Whitelist', [])))
+                self.SyncData['SortedViews'] = self.SyncData.get('SortedViews', [])
+                self.window('emby.servers.sync.json', self.SyncData)
+
+        return self.SyncData
+
+    def save_sync(self, Data, ForceSave=False):
+        CurrentDate = datetime.datetime.utcnow()
+
+        if not ForceSave:
+            if (CurrentDate - self.SyncTimestampLast).seconds <= 30: #save every 30 seconds on sync progress
+                return
+
+        self.SyncTimestampLast = CurrentDate
+        Data['Date'] = CurrentDate.strftime('%Y-%m-%dT%H:%M:%SZ')
+        path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+
+        if not xbmcvfs.exists(path):
+            xbmcvfs.mkdirs(path)
+
+        with open(os.path.join(path, 'sync.json'), 'wb') as outfile:
+            output = json.dumps(Data, sort_keys=True, indent=4, ensure_ascii=False)
+            outfile.write(output.encode('utf-8'))
+
+        self.window('emby.servers.sync.json', Data)
+        self.SyncData = Data
 
     def InitSettings(self):
         self.KodiVersion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])

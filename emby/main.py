@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import helper.loghandler
 from .core import api
-from .core import configuration
 from .core import http
 from .core import ws_client
 from .core import connection_manager
@@ -11,15 +10,12 @@ class Emby():
         self.LOG = helper.loghandler.LOG('EMBY.emby.main')
         self.logged_in = False
         self.server_id = server_id
-        self.config = configuration.Config()
-        self.http = http.HTTP(self)
         self.wsock = None
+        self.http = http.HTTP(self)
         self.auth = connection_manager.ConnectionManager(self)
-        self.emby = api.API(self)
+        self.API = api.API(self)
+        self.Data = {'http.user_agent': None, 'http.timeout': 30, 'http.max_retries': 3, 'auth.server': None, 'auth.user_id': None, 'auth.token': None, 'auth.ssl': None, 'app.name': None, 'app.version': None, 'app.device_name': None, 'app.device_id': None, 'app.capabilities': None, 'app.session': None}
         self.LOG.info("---[ START EMBYCLIENT: ]---")
-
-    def get_client(self):
-        return self
 
     def set_state(self, state):
         if not state:
@@ -27,25 +23,18 @@ class Emby():
             return
 
         if state.get('config'):
-            self.config.__setstate__(state['config'])
+            self.Data = state['config']
 
         if state.get('credentials'):
             self.logged_in = True
-            self.set_credentials(state['credentials'])
+            self.auth.credentials.set_credentials(state['credentials'] or {})
             self.auth.server_id = state['credentials']['Servers'][0]['Id']
 
     def get_state(self):
-        state = {'config': self.config.__getstate__(), 'credentials': self.get_credentials()}
-        return state
-
-    def set_credentials(self, credentials):
-        self.auth.credentials.set_credentials(credentials or {})
-
-    def get_credentials(self):
-        return self.auth.credentials.get_credentials()
+        return {'config': self.Data, 'credentials': self.auth.credentials.get_credentials()}
 
     def authenticate(self, credentials, options):
-        self.set_credentials(credentials or {})
+        self.auth.credentials.set_credentials(credentials or {})
         state = self.auth.connect(options or {})
 
         if not state:
@@ -55,7 +44,7 @@ class Emby():
             self.logged_in = True
             self.LOG.info("User is authenticated.")
 
-        state['Credentials'] = self.get_credentials()
+        state['Credentials'] = self.auth.credentials.get_credentials()
         return state
 
     def start(self):
@@ -63,7 +52,7 @@ class Emby():
             return False #"User is not authenticated."
 
         self.http.start_session()
-        self.wsock = ws_client.WSClient(self)
+        self.wsock = ws_client.WSClient(self.Data['auth.server'], self.Data['app.device_id'], self.Data['auth.token'], self.server_id)
         self.wsock.start()
 
     def stop(self):
@@ -71,19 +60,3 @@ class Emby():
         self.wsock.close()
         self.wsock = None
         self.http.stop_session()
-
-    def __getitem__(self, key):
-        if key.startswith('config'):
-            return self.config[key.replace('config/', "", 1)] if "/" in key else self.config
-        elif key.startswith('http'):
-            return self.http.__shortcuts__(key.replace('http/', "", 1))
-#        elif key.startswith('websocket'):
-#            return self.wsock.__shortcuts__(key.replace('websocket/', "", 1))
-        elif key.startswith('auth'):
-            return self.auth.__shortcuts__(key.replace('auth/', "", 1))
-        elif key.startswith('api'):
-            return self.emby
-        elif key == 'connected':
-            return self.logged_in
-
-        return None

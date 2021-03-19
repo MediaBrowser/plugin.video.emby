@@ -99,7 +99,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         return control
 
     def _login(self, username, password):
-        server = self.connect_manager['server-address']
+        server = self.connect_manager.get_serveraddress()
         result = self.connect_manager.login(server, username, password, True, {})
 
         if not result:

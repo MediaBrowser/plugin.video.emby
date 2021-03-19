@@ -5,19 +5,21 @@ import datetime
 import xbmc
 import xbmcgui
 
+import core.movies
+import core.musicvideos
+import core.tvshows
+import core.music
 import helper.xmls
 import helper.loghandler
 from . import database
 from . import emby_db
 
 class Sync():
-    running = False
-
     def __init__(self, library):
         self.LOG = helper.loghandler.LOG('EMBY.database.sync')
         self.library = library
-        self.sync = None
-#        self.running = False
+        self.SyncData = {}
+        self.running = False
         self.SyncInProgress = False
         self.screensaver = None
         self.update_library = False
@@ -43,36 +45,36 @@ class Sync():
 
     #Assign the restore point and save the sync status
     def _restore_point(self, restore):
-        self.sync['RestorePoint'] = restore
-        database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+        self.SyncData['RestorePoint'] = restore
+        self.library.Monitor.Service.Utils.save_sync(self.SyncData, False)
 
     #Map the syncing process and start the sync. Ensure only one sync is running
     #force to resume any previous sync
     def libraries(self, library_id, update, forced):
         self.update_library = update
-        self.sync = database.get_sync(self.library.Monitor.Service.Utils)
+        self.SyncData = self.library.Monitor.Service.Utils.get_sync()
 
         if library_id:
             libraries = library_id.split(',')
 
             for selected in libraries:
-                if selected not in [x.replace('Mixed:', "") for x in self.sync['Libraries']]:
+                if selected not in [x.replace('Mixed:', "") for x in self.SyncData['Libraries']]:
                     library = self.get_libraries(selected)
 
                     if library:
-                        self.sync['Libraries'].append("Mixed:%s" % selected if library[1] == 'mixed' else selected)
+                        self.SyncData['Libraries'].append("Mixed:%s" % selected if library[1] == 'mixed' else selected)
 
                         if library[1] in ('mixed', 'movies'):
-                            self.sync['Libraries'].append('Boxsets:%s' % selected)
+                            self.SyncData['Libraries'].append('Boxsets:%s' % selected)
                     else:
-                        self.sync['Libraries'].append(selected)
+                        self.SyncData['Libraries'].append(selected)
         else:
             if not self.mapping(forced):
                 return
 
         self.xmls.sources()
 
-        if not self.xmls.advanced_settings() and self.sync['Libraries']:
+        if not self.xmls.advanced_settings() and self.SyncData['Libraries']:
             self.start()
 
     def get_libraries(self, library_id):
@@ -85,7 +87,7 @@ class Sync():
     #Load the mapping of the full sync.
     #This allows us to restore a previous sync
     def mapping(self, forced):
-        if self.sync['Libraries']:
+        if self.SyncData['Libraries']:
             if not forced and not self.library.Monitor.Service.Utils.dialog("yesno", heading="{emby}", line1=self.library.Monitor.Service.Utils.Translate(33102)):
                 if not self.library.Monitor.Service.Utils.dialog("yesno", heading="{emby}", line1=self.library.Monitor.Service.Utils.Translate(33173)):
                     self.library.Monitor.Service.Utils.dialog("ok", heading="{emby}", line1=self.library.Monitor.Service.Utils.Translate(33122))
@@ -93,8 +95,8 @@ class Sync():
                     self.library.Monitor.Service.SyncPause = True
                     return False
 
-                self.sync['Libraries'] = []
-                self.sync['RestorePoint'] = {}
+                self.SyncData['Libraries'] = []
+                self.SyncData['RestorePoint'] = {}
         else:
             self.LOG.info("generate full sync")
             libraries = []
@@ -109,9 +111,9 @@ class Sync():
                 return False
 
             if [x['Media'] for x in libraries if x['Media'] in ('movies', 'mixed')]:
-                self.sync['Libraries'].append("Boxsets:")
+                self.SyncData['Libraries'].append("Boxsets:")
 
-        database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+        self.library.Monitor.Service.Utils.save_sync(self.SyncData, True)
         return True
 
     #Select all or certain libraries to be whitelisted
@@ -146,42 +148,35 @@ class Sync():
             else:
                 selected_libraries.append("Mixed:%s" % library['Id'])
 
-        self.sync['Libraries'] = selected_libraries
+        self.SyncData['Libraries'] = selected_libraries
         return [libraries[x - 1] for x in selection]
 
     #Main sync process
     def start(self):
-        self.LOG.info("starting sync with %s" % self.sync['Libraries'])
-        database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+        self.LOG.info("starting sync with %s" % self.SyncData['Libraries'])
+        self.library.Monitor.Service.Utils.save_sync(self.SyncData, True)
         start_time = datetime.datetime.now()
 
-        for library in list(self.sync['Libraries']):
+        for library in list(self.SyncData['Libraries']):
             if not self.process_library(library):
                 return
 
-            if not library.startswith('Boxsets:') and library not in self.sync['Whitelist']:
-                self.sync['Whitelist'].append(library)
+            if not library.startswith('Boxsets:') and library not in self.SyncData['Whitelist']:
+                self.SyncData['Whitelist'].append(library)
 
-            self.sync['Libraries'].pop(self.sync['Libraries'].index(library))
+            self.SyncData['Libraries'].pop(self.SyncData['Libraries'].index(library))
             self._restore_point({})
 
         elapsed = datetime.datetime.now() - start_time
         self.library.Monitor.Service.Utils.settings('SyncInstallRunDone.bool', True)
         self.library.save_last_sync()
-        database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+        self.library.Monitor.Service.Utils.save_sync(self.SyncData, True)
         xbmc.executebuiltin('UpdateLibrary(video)')
         self.library.Monitor.Service.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.library.Monitor.Service.Utils.Translate(33025), str(elapsed).split('.')[0]), icon="{emby}", sound=False)
         self.LOG.info("Full sync completed in: %s" % str(elapsed).split('.')[0])
 
     #Add a library by it's id. Create a node and a playlist whenever appropriate
     def process_library(self, library_id):
-        media = {
-            'movies': self.movies,
-            'musicvideos': self.musicvideos,
-            'tvshows': self.tvshows,
-            'music': self.music
-        }
-
         if library_id.startswith('Boxsets:'):
             if library_id.endswith('Refresh'):
                 self.refresh_boxsets()
@@ -190,42 +185,48 @@ class Sync():
 
             return True
 
-        library = self.library.server['api'].get_item(library_id.replace('Mixed:', ""))
+        library = self.library.EmbyServer.API.get_item(library_id.replace('Mixed:', ""))
 
         if library_id.startswith('Mixed:'):
-            for mixed in ('movies', 'tvshows'):
-                media[mixed](library, self.library.Monitor.Downloader)
-                self.sync['RestorePoint'] = {}
+            self.movies(library)
+            self.SyncData['RestorePoint'] = {}
+            self.tvshows(library)
+            self.SyncData['RestorePoint'] = {}
         else:
-            if library['CollectionType']:
+            if library['CollectionType'] == 'movies':
+                self.movies(library)
+            elif library['CollectionType'] == 'musicvideos':
+                self.musicvideos(library)
+            elif library['CollectionType'] == 'tvshows':
+                self.tvshows(library)
+            elif library['CollectionType'] == 'music':
                 self.library.Monitor.Service.Utils.settings('enableMusic.bool', True)
-
-            media[library['CollectionType']](library, self.library.Monitor.Downloader)
+                self.music(library)
 
         if self.library.Monitor.Service.SyncPause:
-            database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+            self.library.Monitor.Service.Utils.save_sync(self.SyncData, True)
             return False
 
         return True
 
     #Process movies from a single library
-    def movies(self, library, Downloader):
+    def movies(self, library):
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Movies"))
 
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    MoviesObject = self.library.MEDIA['Movie'](self.library.server, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)
-                    TotalRecords = Downloader.get_TotalRecordsRegular(library['Id'], "Movie", self.library.server_id)
+                    MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
+                    TotalRecords = self.library.Downloader.get_TotalRecordsRegular(library['Id'], "Movie")
 
-                    for items in Downloader.get_items(library['Id'], "Movie", False, self.sync['RestorePoint'].get('params'), self.library.server_id):
+                    for items in self.library.Downloader.get_items(library['Id'], "Movie", False, self.SyncData['RestorePoint'].get('params')):
                         self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, movie in enumerate(items['Items']):
                             dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library['Name']), message=movie['Name'])
-                            MoviesObject.movie(movie, library=library)
+                            MoviesObject.movie(movie, library)
 
                             if self.library.Monitor.Service.SyncPause:
                                 dialog.close()
@@ -243,17 +244,17 @@ class Sync():
         dialog.close()
 
     #Process tvshows and episodes from a single library
-    def tvshows(self, library, Downloader):
+    def tvshows(self, library):
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "TV Shows"))
 
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    TVShowsObject = self.library.MEDIA['TVShow'](self.library.server, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id, True)
-                    TotalRecords = Downloader.get_TotalRecordsRegular(library['Id'], "Series", self.library.server_id)
+                    TVShowsObject = core.tvshows.TVShows(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader, True)
+                    TotalRecords = self.library.Downloader.get_TotalRecordsRegular(library['Id'], "Series")
 
-                    for items in Downloader.get_items(library['Id'], "Series", False, self.sync['RestorePoint'].get('params'), self.library.server_id):
+                    for items in self.library.Downloader.get_items(library['Id'], "Series", False, self.SyncData['RestorePoint'].get('params')):
                         self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
@@ -261,11 +262,11 @@ class Sync():
                             percent = int((float(start_index + index) / TotalRecords)*100)
                             dialog.update(percent, heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library['Name']), message=show['Name'])
 
-                            if TVShowsObject.tvshow(show, library, None, False):
-                                for episodes in Downloader.get_episode_by_show(show['Id'], self.library.server_id):
+                            if TVShowsObject.tvshow(show, library, None, None):
+                                for episodes in self.library.Downloader.get_episode_by_show(show['Id']):
                                     for episode in episodes['Items']:
                                         dialog.update(percent, message="%s/%s" % (show['Name'], episode['Name'][:10]))
-                                        TVShowsObject.episode(episode, library=library)
+                                        TVShowsObject.episode(episode, library)
 
                                         if self.library.Monitor.Service.SyncPause:
                                             dialog.close()
@@ -287,23 +288,23 @@ class Sync():
         dialog.close()
 
     #Process musicvideos from a single library
-    def musicvideos(self, library, Downloader):
+    def musicvideos(self, library):
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Musicvideos"))
 
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    MusicVideosObject = self.library.MEDIA['MusicVideo'](self.library.server, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)
-                    TotalRecords = Downloader.get_TotalRecordsRegular(library['Id'], "MusicVideo", self.library.server_id)
+                    MusicVideosObject = core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils)
+                    TotalRecords = self.library.Downloader.get_TotalRecordsRegular(library['Id'], "MusicVideo")
 
-                    for items in Downloader.get_items(library['Id'], "MusicVideo", False, self.sync['RestorePoint'].get('params'), self.library.server_id):
+                    for items in self.library.Downloader.get_items(library['Id'], "MusicVideo", False, self.SyncData['RestorePoint'].get('params')):
                         self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, mvideo in enumerate(items['Items']):
                             dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library['Name']), message=mvideo['Name'])
-                            MusicVideosObject.musicvideo(mvideo, library=library)
+                            MusicVideosObject.musicvideo(mvideo, library)
 
                             if self.library.Monitor.Service.SyncPause:
                                 dialog.close()
@@ -321,7 +322,7 @@ class Sync():
         dialog.close()
 
     #Process artists, album, songs from a single library
-    def music(self, library, Downloader):
+    def music(self, library):
         self.patch_music(True)
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Music"))
@@ -329,29 +330,29 @@ class Sync():
         with self.library.music_database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'music', True) as musicdb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    MusicObject = self.library.MEDIA['Music'](self.library.server, embydb, musicdb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)
-                    TotalRecords = Downloader.get_TotalRecordsArtists(library['Id'], self.library.server_id)
+                    MusicObject = core.music.Music(self.library.EmbyServer, embydb, musicdb, self.direct_path, self.library.Monitor.Service.Utils)
+                    TotalRecords = self.library.Downloader.get_TotalRecordsArtists(library['Id'])
 
-                    for items in Downloader.get_artists(library['Id'], False, self.sync['RestorePoint'].get('params'), self.library.server_id):
+                    for items in self.library.Downloader.get_artists(library['Id'], False, self.SyncData['RestorePoint'].get('params')):
                         self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, artist in enumerate(items['Items']):
                             percent = int((float(start_index + index) / TotalRecords) * 100)
                             dialog.update(percent, heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library['Name']), message=artist['Name'])
-                            MusicObject.artist(artist, library=library)
+                            MusicObject.artist(artist, library)
 
-                            for albums in Downloader.get_albums_by_artist(library['Id'], artist['Id'], False, self.library.server_id):
+                            for albums in self.library.Downloader.get_albums_by_artist(library['Id'], artist['Id'], False):
                                 for album in albums['Items']:
-                                    MusicObject.album(album, library=library)
+                                    MusicObject.album(album, library)
 
                                     if self.library.Monitor.Service.SyncPause:
                                         dialog.close()
                                         return
 
-                            for songs in Downloader.get_songs_by_artist(library['Id'], artist['Id'], False, self.library.server_id):
+                            for songs in self.library.Downloader.get_songs_by_artist(library['Id'], artist['Id'], False):
                                 for song in songs['Items']:
-                                    MusicObject.song(song, library=library)
+                                    MusicObject.song(song, library)
 
                                     if self.library.Monitor.Service.SyncPause:
                                         dialog.close()
@@ -380,10 +381,10 @@ class Sync():
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    MoviesObject = self.library.MEDIA['Movie'](self.library.server, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)
-                    TotalRecords = self.library.Monitor.Downloader.get_TotalRecordsRegular(library_id, "BoxSet", self.library.server_id)
+                    MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
+                    TotalRecords = self.library.Downloader.get_TotalRecordsRegular(library_id, "BoxSet")
 
-                    for items in self.library.Monitor.Downloader.get_items(library_id, "BoxSet", False, self.sync['RestorePoint'].get('params'), self.library.server_id):
+                    for items in self.library.Downloader.get_items(library_id, "BoxSet", False, self.SyncData['RestorePoint'].get('params')):
                         self._restore_point(items['RestorePoint'])
                         start_index = items['RestorePoint']['params']['StartIndex']
 
@@ -402,7 +403,7 @@ class Sync():
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-                    MoviesObject = self.library.MEDIA['Movie'](self.library.server, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)
+                    MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
                     MoviesObject.boxsets_reset()
 
         self.boxsets(None)
@@ -411,7 +412,7 @@ class Sync():
     def patch_music(self, notification):
         with self.library.database_lock:
             with database.Database(self.library.Monitor.Service.Utils, 'music', True) as musicdb:
-                self.library.MEDIA['MusicDisableScan'](musicdb.cursor, int(self.library.Monitor.Service.Utils.window('kodidbversion.music'))).disable_rescan()
+                core.music.MusicDBIO(musicdb.cursor, int(self.library.Monitor.Service.Utils.window('kodidbversion.music'))).disable_rescan()
 
         self.library.Monitor.Service.Utils.settings('MusicRescan.bool', True)
 
@@ -438,21 +439,28 @@ class Sync():
                         if library[1] == 'mixed':
                             movies = [x for x in items if x[1] == 'Movie']
                             tvshows = [x for x in items if x[1] == 'Series']
-                            MediaObject = self.library.MEDIA['Movie'](self.library.server, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id).remove
+                            MediaObject = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove
 
                             for item in movies:
                                 MediaObject(item[0])
                                 dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library[0]))
                                 count += 1
 
-                            MediaObject = self.library.MEDIA['Series'](self.library.server, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id).remove
+                            MediaObject = core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove
 
                             for item in tvshows:
                                 MediaObject(item[0])
                                 dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.library.Monitor.Service.Utils.Translate('addon_name'), library[0]))
                                 count += 1
                         else:
-                            MediaObject = self.library.MEDIA[items[0][1]](self.library.server, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id).remove
+                            if items[0][1] in ('Movie', 'BoxSet'):
+                                MediaObject = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove
+                            if items[0][1] == 'MusicVideo':
+                                MediaObject = core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils).remove
+                            if items[0][1] in ('TVShow', 'Series', 'Season', 'Episode'):
+                                MediaObject = core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove
+                            if items[0][1] in ('Music', 'MusicAlbum', 'MusicArtist', 'AlbumArtist', 'Audio'):
+                                MediaObject = core.music.Music(self.library.EmbyServer, embydb, kodidb, direct_path, self.library.Monitor.Service.Utils).remove
 
                             for item in items:
                                 MediaObject(item[0])
@@ -460,14 +468,14 @@ class Sync():
                                 count += 1
 
         dialog.close()
-        self.sync = database.get_sync(self.library.Monitor.Service.Utils)
+        self.SyncData = self.library.Monitor.Service.Utils.get_sync()
 
-        if library_id in self.sync['Whitelist']:
-            self.sync['Whitelist'].remove(library_id)
-        elif 'Mixed:%s' % library_id in self.sync['Whitelist']:
-            self.sync['Whitelist'].remove('Mixed:%s' % library_id)
+        if library_id in self.SyncData['Whitelist']:
+            self.SyncData['Whitelist'].remove(library_id)
+        elif 'Mixed:%s' % library_id in self.SyncData['Whitelist']:
+            self.SyncData['Whitelist'].remove('Mixed:%s' % library_id)
 
-        database.save_sync(self.library.Monitor.Service.Utils, self.sync)
+        self.library.Monitor.Service.Utils.save_sync(self.SyncData, True)
 
     #Exiting sync
     def __exit__(self, exc_type, exc_val, exc_tb):

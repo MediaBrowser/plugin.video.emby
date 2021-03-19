@@ -84,10 +84,9 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
             if self.getFocusId() == LIST:
                 server = self.list_.getSelectedItem()
-                selected_id = server.getProperty('id')
-                self.LOG.info('Server Id selected: %s' % selected_id)
+                self.LOG.info('Server Id selected: %s' % server.getProperty('id'))
 
-                if self._connect_server(selected_id):
+                if self._connect_server():
                     self.message_box.setVisibleCondition('false')
                     self.close()
 
@@ -102,7 +101,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         elif control == CANCEL:
             self.close()
 
-    def _connect_server(self, server_id):
+    def _connect_server(self):
         server = self.connect_manager.get_server_info()
         self.message.setLabel("%s %s..." % (self.Utils.Translate(30610), server['Name']))
         self.message_box.setVisibleCondition('true')

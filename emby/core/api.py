@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class API():
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, EmbyServer):
+        self.EmbyServer = EmbyServer
         self.info = (
             "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,"
             "OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,"
@@ -12,12 +12,12 @@ class API():
             "PresentationUniqueKey,OriginalTitle,MediaSources,AlternateMediaSources,PartCount"
         )
 
-    def emby_url(self, client, handler):
-        return "%s/emby/%s" % (client['config/auth.server'], handler)
+    def emby_url(self, handler):
+        return "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], handler)
 
     def _http(self, action, url, request):
         request.update({'type': action, 'handler': url})
-        return self.client.http.request(request, None)
+        return self.EmbyServer.http.request(request, None)
 
     def _get(self, handler, params):
         if not params:
@@ -88,9 +88,9 @@ class API():
 
     def artwork(self, item_id, art, max_width, ext, index):
         if index is None:
-            return  self.emby_url(self.client.http, "Items/%s/Images/%s?MaxWidth=%s&format=%s" % (item_id, art, max_width, ext))
+            return  self.emby_url("Items/%s/Images/%s?MaxWidth=%s&format=%s" % (item_id, art, max_width, ext))
 
-        return self.emby_url(self.client.http, "Items/%s/Images/%s/%s?MaxWidth=%s&format=%s" % (item_id, art, index, max_width, ext))
+        return self.emby_url("Items/%s/Images/%s/%s?MaxWidth=%s&format=%s" % (item_id, art, index, max_width, ext))
 
     #################################################################################################
     # More granular api
