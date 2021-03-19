@@ -99,17 +99,16 @@ class Events():
         mode = params.get('mode')
         self.server_id = params.get('server')
 
-        if not self.server_id: #load first server WORKAROUND!!!!!!!!!!!
-            server_ids = self.Utils.window('emby.servers.json')
 
-            for server_id in server_ids:
-                self.server_id = server_id
-                break
 
-        if not self.get_server():
+        if not self.set_server():
             return
 
-        self.Downloader = emby.downloader.Downloader(self.Utils, self.EmbyServer)
+
+
+
+
+        self.Downloader = emby.downloader.Downloader(self.Utils, self.EmbyServer[self.server_id])
         self.LOG.warning("path: %s params: %s" % (Parameter[2], json.dumps(params, indent=4)))
 
 #        if '/extrafanart' in Parameter[0]:
@@ -121,7 +120,7 @@ class Events():
 #            emby_id = params.get('id')
 #            self.get_video_extras(emby_id, emby_path, server)
         if mode == 'photoviewer':
-            xbmc.executebuiltin('ShowPicture(%s/emby/Items/%s/Images/Primary)' % (self.EmbyServer[self.server_id]['auth/server-address'], params['id']))
+            xbmc.executebuiltin('ShowPicture(%s/emby/Items/%s/Images/Primary)' % (self.EmbyServer[self.server_id].auth.get_serveraddress(), params['id']))
         elif mode == 'deviceid':
             self.Utils.reset_device_id()
         elif mode == 'reset':
@@ -186,7 +185,14 @@ class Events():
         else:
             self.listing(Handle)
 
-    def get_server(self):
+    def set_server(self):
+        if not self.server_id or self.server_id == 'None': #load first server WORKAROUND!!!!!!!!!!!
+            server_ids = self.Utils.window('emby.servers.json')
+
+            for server_id in server_ids:
+                self.server_id = server_id
+                break
+
         ServerOnline = False
         self.EmbyServer = {}
         self.EmbyServerName = {}
@@ -196,21 +202,20 @@ class Events():
             for _ in range(60):
                 if self.Utils.window('emby.server.%s.online.bool' % server_id):
                     ServerOnline = True
+                    self.EmbyServer[server_id] = emby.main.Emby(server_id)
+                    ServerData = self.Utils.window('emby.server.%s.state.json' % server_id)
+                    self.EmbyServer[server_id].set_state(ServerData)
+                    self.EmbyServerName[server_id] = ServerData['config']['auth.server-name']
                     break
 
                 xbmc.sleep(500)
-
-            self.EmbyServer[server_id] = emby.main.Emby(server_id)
-            ServerData = self.Utils.window('emby.server.%s.state.json' % server_id)
-            self.EmbyServer[server_id].set_state(ServerData)
-            self.EmbyServerName[server_id] = ServerData['config']['auth.server-name']
 
         return ServerOnline
 
     #Display all emby nodes and dynamic entries when appropriate
     def listing(self, Handle):
         total = int(self.Utils.window('emby.nodes.total') or 0)
-        sync = database.database.get_sync(self.Utils)
+        sync = self.Utils.get_sync()
         whitelist = [x.replace('Mixed:', "") for x in sync['Whitelist']]
 
         for i in range(total):
@@ -320,7 +325,7 @@ class Events():
             return self.browse_letters(Handle, media, view_id)
 
         if view_id:
-            view = self.EmbyServer[self.server_id]['api'].get_item(view_id)
+            view = self.EmbyServer[self.server_id].API.get_item(view_id)
 
             if not view:
                 return
@@ -338,50 +343,50 @@ class Events():
         elif media == 'music':
             content_type = "artists"
         if folder == 'recentlyadded':
-            listing = self.EmbyServer[self.server_id]['api'].get_recently_added(None, view_id, None)
+            listing = self.EmbyServer[self.server_id].API.get_recently_added(None, view_id, None)
         elif folder == 'genres':
-            listing = self.EmbyServer[self.server_id]['api'].get_genres(view_id)
+            listing = self.EmbyServer[self.server_id].API.get_genres(view_id)
         elif media == 'livetv':
-            listing = self.EmbyServer[self.server_id]['api'].get_channels()
+            listing = self.EmbyServer[self.server_id].API.get_channels()
         elif folder == 'unwatched':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsUnplayed'], None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsUnplayed'], None, False)
         elif folder == 'favorite':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsFavorite'], None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsFavorite'], None, False)
         elif folder == 'inprogress':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsResumable'], None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsResumable'], None, False)
         elif folder == 'boxsets':
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type('boxsets'), None, True, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type('boxsets'), None, True, None, None, None, None, False)
         elif folder == 'random':
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), 25, True, "Random", None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), 25, True, "Random", None, None, None, False)
         elif (folder or "").startswith('firstletter-'):
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'NameStartsWith': folder.split('-')[1]}, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'NameStartsWith': folder.split('-')[1]}, False)
         elif (folder or "").startswith('genres-'):
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'GenreIds': folder.split('-')[1]}, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'GenreIds': folder.split('-')[1]}, False)
         elif folder == 'favepisodes':
-            listing = self.Downloader.get_filtered_section(None, self.get_media_type(content_type), 25, None, None, None, ['IsFavorite'], None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(None, self.get_media_type(content_type), 25, None, None, None, ['IsFavorite'], None, False)
         elif media == 'homevideos':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
         elif media == 'movies':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media in ('boxset', 'library'):
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, True, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, True, None, None, None, None, False)
         elif media == 'episodes':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media == 'boxsets':
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, ['Boxsets'], None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, ['Boxsets'], None, False)
         elif media == 'tvshows':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media == 'seasons':
-            listing = self.EmbyServer[self.server_id]['api'].get_seasons(folder)
+            listing = self.EmbyServer[self.server_id].API.get_seasons(folder)
         elif media == 'playlists':
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, self.server_id, True)
+            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, True)
         elif media != 'files':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
         else:
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, self.server_id, False)
+            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, False)
 
         if listing:
-            listitems = core.listitem.ListItem(self.EmbyServer[self.server_id]['auth/server-address'], self.Utils)
+            listitems = core.listitem.ListItem(self.EmbyServer[self.server_id].auth.get_serveraddress(), self.Utils)
             list_li = []
             listing = listing if isinstance(listing, list) else listing.get('Items', [])
 
@@ -495,7 +500,7 @@ class Events():
 
     #Display submenus for emby views
     def browse_subfolders(self, Handle, media, view_id):
-        view = self.EmbyServer[self.server_id]['api'].get_item(view_id)
+        view = self.EmbyServer[self.server_id].API.get_item(view_id)
 
         if not view:
             return
@@ -519,7 +524,7 @@ class Events():
     #Display letters as options
     def browse_letters(self, Handle, media, view_id):
         letters = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        view = self.EmbyServer[self.server_id]['api'].get_item(view_id)
+        view = self.EmbyServer[self.server_id].API.get_item(view_id)
 
         if not view:
             return
@@ -545,36 +550,47 @@ class Events():
 
         if media == 'Series':
             return "seasons"
-        elif media == 'Season':
+
+        if media == 'Season':
             return "episodes"
-        elif media == 'BoxSet':
+
+        if media == 'BoxSet':
             return "boxset"
-        elif media == 'MusicArtist':
+
+        if media == 'MusicArtist':
             return "albums"
-        elif media == 'MusicAlbum':
+
+        if media == 'MusicAlbum':
             return "songs"
-        elif media == 'CollectionFolder':
+
+        if media == 'CollectionFolder':
             return item.get('CollectionType', 'library')
-        elif media == 'Folder' and content_type == 'music':
+
+        if media == 'Folder' and content_type == 'music':
             return "albums"
-        else:
-            return None
+
+        return None
 
     def get_media_type(self, media):
         if media == 'movies':
             return "Movie,BoxSet"
-        elif media == 'homevideos':
+
+        if media == 'homevideos':
             return "Video,Folder,PhotoAlbum,Photo"
-        elif media == 'episodes':
+
+        if media == 'episodes':
             return "Episode"
-        elif media == 'boxsets':
+
+        if media == 'boxsets':
             return "BoxSet"
-        elif media == 'tvshows':
+
+        if media == 'tvshows':
             return "Series"
-        elif media == 'music':
+
+        if media == 'music':
             return "MusicArtist,MusicAlbum,Audio"
-        else:
-            return None
+
+        return None
 
     #Get extra fanart for listitems. This is called by skinhelper.
     #Images are stored locally, due to the Kodi caching system
@@ -592,9 +608,9 @@ class Events():
 
         if not xbmcvfs.exists(directory):
             xbmcvfs.mkdirs(directory)
-            item = self.EmbyServer[self.server_id]['api'].get_item(item_id)
+            item = self.EmbyServer[self.server_id].API.get_item(item_id)
             obj = objects.map(item, 'Artwork')
-            backdrops = helper.api.API(item, self.Utils, self.EmbyServer[self.server_id]['auth/server-address']).get_all_artwork(obj)
+            backdrops = helper.api.API(item, self.Utils, self.EmbyServer[self.server_id].auth.get_serveraddress()).get_all_artwork(obj)
             tags = obj['BackdropTags']
 
             for index, backdrop in enumerate(backdrops):
@@ -625,6 +641,18 @@ class Events():
             return
 
     #Only for synced content
+
+
+
+#JSONRPC: Failed to parse '{ "jsonrpc": "2.0", "method" : "VideoLibrary.GetTvShows", "params": b'{"properties": [ "file", "title", "year", "imdbnumber", "art", "genre", "cast", "studio", "uniqueid" ] }', "id":1 }'
+#LIVINGROOM!!!!!!!!!!!!!
+
+
+
+
+
+
+
     def get_next_episodes(self, Handle, item_id, limit):
         with database.database.Database(self.Utils, 'emby', False) as embydb:
 
@@ -782,9 +810,9 @@ class Events():
 #        if not self.Utils.window('emby.online.bool'):
 #            return
 
-        session = self.EmbyServer[self.server_id]['api'].get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
+        session = self.EmbyServer[self.server_id].API.get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
         hidden = None if self.Utils.settings('addUsersHidden.bool') else False
-        users = self.EmbyServer[self.server_id]['api'].get_users(False, hidden)
+        users = self.EmbyServer[self.server_id].API.get_users(False, hidden)
 
         for user in users:
             if user['Id'] == session[0]['UserId']:
@@ -792,7 +820,7 @@ class Events():
                 break
 
         while True:
-            session = self.EmbyServer[self.server_id]['api'].get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
+            session = self.EmbyServer[self.server_id].API.get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
             additional = current = session[0]['AdditionalUsers']
             add_session = True
 
@@ -879,12 +907,12 @@ class Events():
         items = {}
 
         for view in views:
-            for result in self.Downloader.get_items(view, None, False, {'HasThemeVideo': True}, self.server_id):
+            for result in self.Downloader.get_items(view, None, False, {'HasThemeVideo': True}):
                 for item in result['Items']:
                     folder = self.Utils.normalize_string(item['Name'])
                     items[item['Id']] = folder
 
-            for result in self.Downloader.get_items(view, None, False, {'HasThemeSong': True}, self.server_id):
+            for result in self.Downloader.get_items(view, None, False, {'HasThemeSong': True}):
                 for item in result['Items']:
                     folder = self.Utils.normalize_string(item['Name'])
                     items[item['Id']] = folder
@@ -896,7 +924,7 @@ class Events():
             if not xbmcvfs.exists(nfo_path):
                 xbmcvfs.mkdir(nfo_path)
 
-            themes = self.EmbyServer[self.server_id]['api'].get_themes(item)
+            themes = self.EmbyServer[self.server_id].API.get_themes(item)
             paths = []
 
             for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:

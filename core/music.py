@@ -12,34 +12,23 @@ from . import artwork
 from . import common
 
 class Music():
-    def __init__(self, server, embydb, musicdb, direct_path, Utils, Downloader, server_id):
+    def __init__(self, EmbyServer, embydb, musicdb, direct_path, Utils):
         self.LOG = helper.loghandler.LOG('EMBY.core.music.Music')
         self.Utils = Utils
-        self.server_id = server_id
-        self.server = server
+        self.EmbyServer = EmbyServer
         self.emby = embydb
         self.music = musicdb
         self.emby_db = database.emby_db.EmbyDatabase(self.emby.cursor)
         self.objects = obj_ops.Objects(self.Utils)
         self.item_ids = []
         self.DBVersion = int(self.Utils.window('kodidbversion.music'))
-        self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.server)
+        self.Common = common.Common(self.emby_db, self.objects, self.Utils, direct_path, self.EmbyServer)
         self.MusicDBIO = MusicDBIO(self.music.cursor, self.DBVersion)
         self.ArtworkDBIO = artwork.Artwork(musicdb.cursor, self.Utils)
 
         if not self.Utils.settings('MusicRescan.bool'):
             self.MusicDBIO.disable_rescan()
             self.Utils.settings('MusicRescan.bool', True)
-
-    def __getitem__(self, key):
-        if key in ('MusicArtist', 'AlbumArtist'):
-            return self.artist
-        elif key == 'MusicAlbum':
-            return self.album
-        elif key == 'Audio':
-            return self.song
-
-        return None
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -50,7 +39,7 @@ class Music():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Artist')
         update = True
 
@@ -119,7 +108,7 @@ class Music():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Album')
         update = True
 
@@ -211,7 +200,7 @@ class Music():
             if Data:
                 temp_obj['ArtistId'] = Data[0]
             else:
-                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
+                self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
 
             self.MusicDBIO.update_artist_name(*self.Utils.values(temp_obj, queries_music.update_artist_name_obj))
@@ -226,7 +215,7 @@ class Music():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Song')
         update = True
 
@@ -352,7 +341,7 @@ class Music():
             if Data:
                 temp_obj['ArtistId'] = Data[0]
             else:
-                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
+                self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
 
             self.MusicDBIO.link(*self.Utils.values(temp_obj, queries_music.update_link_obj))
@@ -378,7 +367,7 @@ class Music():
             if Data:
                 temp_obj['ArtistId'] = Data[0]
             else:
-                self.artist(self.server['api'].get_item(temp_obj['Id']), library=None)
+                self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
                 temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.Utils.values(temp_obj, database.queries.get_item_obj))[0]
 
             self.MusicDBIO.link_song_artist(*self.Utils.values(temp_obj, queries_music.update_song_artist_obj))

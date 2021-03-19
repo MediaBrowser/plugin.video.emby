@@ -11,7 +11,7 @@ import helper.utils
 import helper.loghandler
 
 class Context():
-    def __init__(self, delete):
+    def __init__(self, delete=False):
         self.LOG = helper.loghandler.LOG('EMBY.context.Context')
         self._selected_option = None
         self.Utils = helper.utils.Utils()
@@ -35,27 +35,21 @@ class Context():
             self.media = xbmc.getInfoLabel('ListItem.DBTYPE')
             item_id = None
 
-        ServerOnline = False
 
-        for _ in range(60):
-            if self.Utils.window('emby.online.bool'):
-                ServerOnline = True
-                break
 
-            xbmc.sleep(500)
 
-        if not ServerOnline:
+
+
+        if not self.set_server():
             return
 
-        #Load server connection data
-        self.server = emby.main.Emby(self.Utils, self.server_id).get_client()
-        emby.main.Emby(self.Utils).set_state(self.Utils.window('emby.server.state.json'))
 
-        for server in self.Utils.window('emby.server.states.json') or []:
-            emby.main.Emby(self.Utils, server).set_state(self.Utils.window('emby.server.%s.state.json' % server))
+
+
+
 
         if item_id:
-            self.item = self.server['api'].get_item(item_id)
+            self.item = self.EmbyServer[self.server_id].API.get_item(item_id)
         else:
             self.item = self.get_item_id()
 
@@ -66,19 +60,37 @@ class Context():
             elif self.select_menu():
                 self.action_menu()
 
-    def get_server(self, server_id):
-        ServerOnline = False
+    def set_server(self):
+        if not self.server_id or self.server_id == 'None': #load first server WORKAROUND!!!!!!!!!!!
+            server_ids = self.Utils.window('emby.servers.json')
 
-        for _ in range(60):
-            if self.Utils.window('emby.online.bool'):
-                ServerOnline = True
+            for server_id in server_ids:
+                self.server_id = server_id
                 break
 
-            xbmc.sleep(500)
+        ServerOnline = False
+        self.EmbyServer = {}
+        self.EmbyServerName = {}
+        server_ids = self.Utils.window('emby.servers.json')
 
-        self.EmbyServer = emby.main.Emby(self.Utils, server_id)
-        self.EmbyServer.set_state(self.Utils.window('emby.server.%s.state.json' % server_id))
+        for server_id in server_ids:
+            for _ in range(60):
+                if self.Utils.window('emby.server.%s.online.bool' % server_id):
+                    ServerOnline = True
+                    self.EmbyServer[server_id] = emby.main.Emby(server_id)
+                    ServerData = self.Utils.window('emby.server.%s.state.json' % server_id)
+                    self.EmbyServer[server_id].set_state(ServerData)
+                    self.EmbyServerName[server_id] = ServerData['config']['auth.server-name']
+                    break
+
+                xbmc.sleep(500)
+
         return ServerOnline
+
+
+
+
+
 
     #Get synced item from embydb
     def get_item_id(self):
@@ -123,13 +135,13 @@ class Context():
         selected = self.Utils.StringDecode(self._selected_option)
 
         if selected == self.OPTIONS['Refresh']:
-            self.Utils.event('RefreshItem', {'Id': self.item['Id']})
+            self.Utils.event('RefreshItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['AddFav']:
-            self.Utils.event('AddFavItem', {'Id': self.item['Id']})
+            self.Utils.event('AddFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['RemoveFav']:
-            self.Utils.event('RemoveFavItem', {'Id': self.item['Id']})
+            self.Utils.event('RemoveFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
@@ -145,7 +157,7 @@ class Context():
                 delete = False
 
         if delete:
-            self.server['api'].delete_item(self.item['Id'])
+            self.EmbyServer[self.server_id].API.delete_item(self.item['Id'])
             self.Utils.event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
 if __name__ == "__main__":

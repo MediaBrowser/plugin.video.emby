@@ -11,17 +11,10 @@ if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
     unicode = str
 
 class HTTP():
-    def __init__(self, client):
+    def __init__(self, EmbyServer):
         self.LOG = helper.loghandler.LOG('EMBY.core.HTTP')
         self.session = None
-        self.client = client
-        self.config = client['config']
-
-    def __shortcuts__(self, key):
-        if key == "request":
-            return self.request
-
-        return
+        self.EmbyServer = EmbyServer
 
     def start_session(self):
         self.session = requests.Session()
@@ -38,20 +31,20 @@ class HTTP():
 
     def _replace_user_info(self, string):
         if '{server}' in string:
-            if self.config['auth.server']:
-                string = string.replace("{server}", self.config['auth.server'])
+            if self.EmbyServer.Data['auth.server']:
+                string = string.replace("{server}", self.EmbyServer.Data['auth.server'])
             else:
                 return False
 
         if '{UserId}'in string:
-            if self.config['auth.user_id']:
-                string = string.replace("{UserId}", self.config['auth.user_id'])
+            if self.EmbyServer.Data['auth.user_id']:
+                string = string.replace("{UserId}", self.EmbyServer.Data['auth.user_id'])
             else:
                 return False
 
         return string
 
-    def request(self, data, session, MSGs=True):
+    def request(self, data, MSGs=True): #MSGs are disabled on initial sync and reconnection. Only send msgs if connection is unexpectly interrupted
         data = self._request(data)
 
         if not data:
@@ -69,7 +62,7 @@ class HTTP():
 
         while True:
             try:
-                r = self._requests(session or self.session or requests, data.pop('type', "GET"), **data)
+                r = self._requests(self.session or requests, data.pop('type', "GET"), **data)
                 r.content # release the connection
                 r.raise_for_status()
             except requests.exceptions.ConnectionError as error:
@@ -81,7 +74,7 @@ class HTTP():
                 self.LOG.error(error)
 
                 if MSGs:
-                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerUnreachable", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerUnreachable", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
 
@@ -94,7 +87,7 @@ class HTTP():
                 self.LOG.error(error)
 
                 if MSGs:
-                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerTimeout", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerTimeout", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
 
@@ -103,11 +96,11 @@ class HTTP():
 
                 if r.status_code == 401:
                     if 'X-Application-Error-Code' in r.headers:
-                        xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "AccessRestricted", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
+                        xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "AccessRestricted", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
                         return False
 
-                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "Unauthorized", '"[%s]"' % json.dumps({'ServerId': self.config['auth.server-id']}).replace('"', '\\"')))
-                    self.client['auth/revoke-token']
+                    xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "Unauthorized", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
+                    self.EmbyServer.auth.revoke_token()
                     return False
 
                 if r.status_code == 500: # log and ignore.
@@ -142,7 +135,7 @@ class HTTP():
                 self.LOG.debug("---<[ http ][%s ms]" % elapsed)
 
                 try:
-                    self.config['server-time'] = r.headers['Date']
+                    self.EmbyServer.Data['server-time'] = r.headers['Date']
 
                     if r.status_code == 204:
                         # return, because there is no response
@@ -161,24 +154,24 @@ class HTTP():
 
     def _request(self, data):
         if 'url' not in data:
-            data['url'] = "%s/emby/%s" % (self.config['auth.server'], data.pop('handler', ""))
+            data['url'] = "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], data.pop('handler', ""))
 
         Ret = self._get_header(data)
 
         if not Ret:
             return False
 
-        data['timeout'] = data.get('timeout') or self.config['http.timeout']
+        data['timeout'] = data.get('timeout') or self.EmbyServer.Data['http.timeout']
         data['url'] = self._replace_user_info(data['url'])
 
         if not data['url']:
             return False
 
         if data.get('verify') is None:
-            if self.config['auth.ssl'] is None:
+            if self.EmbyServer.Data['auth.ssl'] is None:
                 data['verify'] = data['url'].startswith('https')
             else:
-                data['verify'] = self.config['auth.ssl']
+                data['verify'] = self.EmbyServer.Data['auth.ssl']
 
         self._process_params(data.get('params') or {})
         self._process_params(data.get('json') or {})
@@ -202,7 +195,7 @@ class HTTP():
                 'Content-type': "application/json",
                 'Accept-Charset': "UTF-8,*",
                 'Accept-encoding': "gzip",
-                'User-Agent': self.config['http.user_agent'] or "%s/%s" % (self.config['app.name'], self.config['app.version'])
+                'User-Agent': self.EmbyServer.Data['http.user_agent'] or "%s/%s" % (self.EmbyServer.Data['app.name'], self.EmbyServer.Data['app.version'])
             })
 
         if 'Authorization' not in data['headers']:
@@ -212,30 +205,33 @@ class HTTP():
         return data
 
     def _authorization(self, data):
-        if not self.config['app.device_name']:
+        if not self.EmbyServer.Data['app.device_name']:
             return False #Device name cannot be null
 
         auth = "MediaBrowser "
-        auth += "Client=%s, " % self.config['app.name']
-        auth += "Device=%s, " % self.config['app.device_name']
-        auth += "DeviceId=%s, " % self.config['app.device_id']
-        auth += "Version=%s" % self.config['app.version']
+        auth += "Client=%s, " % self.EmbyServer.Data['app.name']
+        auth += "Device=%s, " % self.EmbyServer.Data['app.device_name']
+        auth += "DeviceId=%s, " % self.EmbyServer.Data['app.device_id']
+        auth += "Version=%s" % self.EmbyServer.Data['app.version']
         data['headers'].update({'Authorization': auth})
 
-        if self.config['auth.token'] and self.config['auth.user_id']:
-            auth += ', UserId=%s' % self.config['auth.user_id']
-            data['headers'].update({'Authorization': auth, 'X-MediaBrowser-Token': self.config['auth.token']})
+        if self.EmbyServer.Data['auth.token'] and self.EmbyServer.Data['auth.user_id']:
+            auth += ', UserId=%s' % self.EmbyServer.Data['auth.user_id']
+            data['headers'].update({'Authorization': auth, 'X-MediaBrowser-Token': self.EmbyServer.Data['auth.token']})
 
         return data
 
     def _requests(self, session, action, **kwargs):
         if action == "GET":
             return session.get(**kwargs)
-        elif action == "POST":
+
+        if action == "POST":
             return session.post(**kwargs)
-        elif action == "HEAD":
+
+        if action == "HEAD":
             return session.head(**kwargs)
-        elif action == "DELETE":
+
+        if action == "DELETE":
             return session.delete(**kwargs)
 
         return None

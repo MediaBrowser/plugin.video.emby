@@ -15,6 +15,7 @@ import core.movies
 import core.musicvideos
 import core.tvshows
 import core.music
+import emby.views
 import emby.downloader
 import helper.loghandler
 from . import database
@@ -25,6 +26,7 @@ class Library(threading.Thread):
         self.LOG = helper.loghandler.LOG('EMBY.library.Library')
         self.Monitor = Monitor
         self.server_id = server_id
+        self.EmbyServer = self.Monitor.EmbyServer[self.server_id]
         self.SyncSkipResume = False
         self.SyncInProgress = False
         self.SyncLater = False
@@ -38,8 +40,6 @@ class Library(threading.Thread):
         self.direct_path = self.Monitor.Service.Utils.settings('useDirectPaths') == "1"
         self.LIMIT = min(int(self.Monitor.Service.Utils.settings('limitIndex') or 50), 50)
         self.DTHREADS = int(self.Monitor.Service.Utils.settings('limitThreads') or 3)
-        self.MEDIA = {'Movie': core.movies.Movies, 'BoxSet': core.movies.Movies, 'MusicVideo': core.musicvideos.MusicVideos, 'TVShow': core.tvshows.TVShows, 'Series': core.tvshows.TVShows, 'Season': core.tvshows.TVShows, 'Episode': core.tvshows.TVShows, 'Music': core.music.Music, 'MusicAlbum': core.music.Music, 'MusicArtist': core.music.Music, 'AlbumArtist': core.music.Music, 'Audio': core.music.Music, 'MusicDisableScan': core.music.MusicDBIO}
-        self.server = self.Monitor.EmbyServer[self.server_id].get_client()
         self.updated_queue = Queue.Queue()
         self.userdata_queue = Queue.Queue()
         self.removed_queue = Queue.Queue()
@@ -56,10 +56,13 @@ class Library(threading.Thread):
         self.writer_threads_updated = []
         self.writer_threads_userdata = []
         self.writer_threads_removed = []
-        self.database_lock = threading.Lock()
-        self.music_database_lock = threading.Lock()
-        self.sync = sync.Sync
+        self.sync = sync.Sync(self)
+        self.Views = emby.views.Views(self)
+        self.Views.verify_kodi_defaults()
+        self.Views.get_nodes()
+        self.Downloader = emby.downloader.Downloader(self.Monitor.Service.Utils, self.EmbyServer)
         self.progress_percent = 0
+        self.database_lock = threading.Lock()
         threading.Thread.__init__(self)
         self.start()
 
@@ -151,7 +154,7 @@ class Library(threading.Thread):
         if not self.Monitor.player.isPlayingVideo() or self.Monitor.Service.Utils.settings('syncDuringPlay.bool') or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
             if not self.Monitor.player.isPlayingVideo() or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
                 if not self.SyncSkipResume:
-                    if database.get_sync(self.Monitor.Service.Utils)['Libraries']:
+                    if self.Monitor.Service.Utils.get_sync()['Libraries']:
                         self.sync_libraries(True)
 
                 self.worker_remove_lib()
@@ -258,7 +261,7 @@ class Library(threading.Thread):
     def worker_downloads(self):
         for queue in ((self.updated_queue, self.updated_output), (self.userdata_queue, self.userdata_output)):
             if queue[0].qsize() and len(self.download_threads) < self.DTHREADS:
-                new_thread = emby.downloader.GetItemWorker(self.server, queue[0], queue[1], self.Monitor.Service.Utils)
+                new_thread = GetItemWorker(self, queue[0], queue[1])
                 self.LOG.info("-->[ q:download/%s ]" % id(new_thread))
                 self.download_threads.append(new_thread)
 
@@ -280,7 +283,7 @@ class Library(threading.Thread):
 
             if queue.qsize() and not len(self.writer_threads_updated):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UpdatedWorker(queue, self, "music", self.music_database_lock)
+                    new_thread = UpdatedWorker(queue, self, "music", self.database_lock)
                 else:
                     new_thread = UpdatedWorker(queue, self, "video", self.database_lock)
 
@@ -299,7 +302,7 @@ class Library(threading.Thread):
 
             if queue.qsize() and not len(self.writer_threads_userdata):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UserDataWorker(queue, self, "music", self.music_database_lock)
+                    new_thread = UserDataWorker(queue, self, "music", self.database_lock)
                 else:
                     new_thread = UserDataWorker(queue, self, "video", self.database_lock)
 
@@ -314,7 +317,7 @@ class Library(threading.Thread):
 
             if queue.qsize() and not len(self.writer_threads_removed):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = RemovedWorker(queue, self, "music", self.music_database_lock)
+                    new_thread = RemovedWorker(queue, self, "music", self.database_lock)
                 else:
                     new_thread = RemovedWorker(queue, self, "video", self.database_lock)
 
@@ -333,70 +336,61 @@ class Library(threading.Thread):
         if self.remove_lib_queue.qsize():
             while not self.remove_lib_queue.empty():
                 library_id = self.remove_lib_queue.get()
-                self._remove_libraries(library_id)
+                self.sync.remove_library(library_id)
+
+                if self.Monitor.Service.SyncPause:
+                    return
+
+                self.Views.remove_library(library_id)
+                self.Views.get_views()
+                self.Views.get_nodes()
+
             xbmc.executebuiltin("Container.Refresh")
 
     def worker_add_lib(self):
         if self.add_lib_queue.qsize():
             while not self.add_lib_queue.empty():
                 library_id, update = self.add_lib_queue.get()
-                self._add_libraries(library_id, update)
+                self.sync.libraries(library_id, update, False)
+
+                if self.Monitor.Service.SyncPause:
+                    return
+
+                self.Views.get_nodes()
 
             xbmc.executebuiltin("Container.Refresh")
 
     def sync_libraries(self, forced):
-        with self.sync(self) as syncObj:
-            syncObj.libraries(None, False, forced)
+        self.sync.libraries(None, False, forced)
 
         if self.Monitor.Service.SyncPause:
             return
 
-        self.Monitor.Service.Views.get_nodes()
-
-    def _add_libraries(self, library_id, update):
-        with self.sync(self) as syncObj:
-            syncObj.libraries(library_id, update, False)
-
-        if self.Monitor.Service.SyncPause:
-            return
-
-        self.Monitor.Service.Views.get_nodes()
-
-    def _remove_libraries(self, library_id):
-        with self.sync(self) as syncObj:
-            syncObj.remove_library(library_id)
-
-        if self.Monitor.Service.SyncPause:
-            return
-
-        self.Monitor.Service.Views.remove_library(library_id)
-        self.Monitor.Service.Views.get_views()
-        self.Monitor.Service.Views.get_nodes()
+        self.Views.get_nodes()
 
     #Run at startup.
     #Check databases.
     #Check for the server plugin.
     def startup(self):
         self.started = True
-        self.Monitor.Service.Views.get_views()
-        self.Monitor.Service.Views.get_nodes()
+        self.Views.get_views()
+        self.Views.get_nodes()
 
-        if database.get_sync(self.Monitor.Service.Utils)['Libraries']:
+        if self.Monitor.Service.Utils.get_sync()['Libraries']:
             self.sync_libraries(False)
         elif not self.Monitor.Service.Utils.settings('SyncInstallRunDone.bool'):
-            with self.sync(self) as syncObj:
-                if not syncObj.libraries(None, False, False):
-                    if self.SyncLater:
-                        self.Monitor.Service.Utils.dialog("ok", heading="{emby}", line1=self.Monitor.Service.Utils.Translate(33129))
-                        self.Monitor.Service.Utils.settings('SyncInstallRunDone.bool', True)
-                        syncLibs = database.get_sync(self.Monitor.Service.Utils)
-                        syncLibs['Libraries'] = []
-                        database.save_sync(self.Monitor.Service.Utils, syncLibs)
-                        return True
-                else:
-                    return False
+            if not self.sync.libraries(None, False, False):
+                if self.SyncLater:
+                    self.Monitor.Service.Utils.dialog("ok", heading="{emby}", line1=self.Monitor.Service.Utils.Translate(33129))
+                    self.Monitor.Service.Utils.settings('SyncInstallRunDone.bool', True)
+                    syncLibs = self.Monitor.Service.Utils.get_sync()
+                    syncLibs['Libraries'] = []
+                    self.Monitor.Service.Utils.save_sync(syncLibs)
+                    return True
+            else:
+                return False
 
-            self.Monitor.Service.Views.get_nodes()
+            self.Views.get_nodes()
             xbmc.executebuiltin('ReloadSkin()')
             return True
 
@@ -408,7 +402,7 @@ class Library(threading.Thread):
 
         if self.Monitor.Service.Utils.settings('SyncInstallRunDone.bool'):
             if self.Monitor.Service.Utils.settings('kodiCompanion.bool'):
-                for plugin in self.server['api'].get_plugins():
+                for plugin in self.EmbyServer.API.get_plugins():
                     if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
                         enable_fast_sync = True
                         break
@@ -419,11 +413,10 @@ class Library(threading.Thread):
     #Movie and userdata not provided by server yet
     def fast_sync(self, plugin):
         last_sync = self.Monitor.Service.Utils.settings('LastIncrementalSync')
-        syncOBJ = database.get_sync(self.Monitor.Service.Utils)
         self.LOG.info("--[ retrieve changes ] %s" % last_sync)
 
-        for library in syncOBJ['Whitelist']:
-            for data in self.Monitor.Downloader.get_items(library.replace('Mixed:', ""), "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio", False, {'MinDateLastSaved': last_sync}, self.server_id):
+        for library in self.Monitor.Service.Utils.get_sync()['Whitelist']:
+            for data in self.Downloader.get_items(library.replace('Mixed:', ""), "Series,Season,Episode,BoxSet,Movie,MusicVideo,MusicArtist,MusicAlbum,Audio", False, {'MinDateLastSaved': last_sync}):
                 with database.Database(self.Monitor.Service.Utils, 'emby', True) as embydb:
                     emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
 
@@ -435,7 +428,7 @@ class Library(threading.Thread):
                             self.updated_output[item['Type']].put(item)
                             self.total_updates += 1
 
-            for data in self.Monitor.Downloader.get_items(library.replace('Mixed:', ""), "Episode,Movie,MusicVideo,Audio", False, {'MinDateLastSavedForUser': last_sync}, self.server_id):
+            for data in self.Downloader.get_items(library.replace('Mixed:', ""), "Episode,Movie,MusicVideo,Audio", False, {'MinDateLastSavedForUser': last_sync}):
                 with database.Database(self.Monitor.Service.Utils, 'emby', True) as embydb:
                     emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
 
@@ -449,7 +442,7 @@ class Library(threading.Thread):
 
         if plugin:
             try:
-                result = self.server['api'].get_sync_queue(last_sync, None) #Kodi companion plugin
+                result = self.EmbyServer.API.get_sync_queue(last_sync, None) #Kodi companion plugin
                 self.removed(result['ItemsRemoved'])
             except Exception as error:
                 self.LOG.error(error)
@@ -472,19 +465,19 @@ class Library(threading.Thread):
             'RemoveLibrarySelection': 'RemoveLibrary'
         }
 
-        syncOBJ = database.get_sync(self.Monitor.Service.Utils)
-        whitelist = [x.replace('Mixed:', "") for x in syncOBJ['Whitelist']]
+        syncData = self.Monitor.Service.Utils.get_sync()
+        whitelist = [x.replace('Mixed:', "") for x in syncData['Whitelist']]
         libraries = []
 
         with database.Database(self.Monitor.Service.Utils, 'emby', True) as embydb:
             db = database.emby_db.EmbyDatabase(embydb.cursor)
 
             if mode in ('SyncLibrarySelection', 'RepairLibrarySelection', 'RemoveLibrarySelection'):
-                for library in syncOBJ['Whitelist']:
+                for library in syncData['Whitelist']:
                     name = db.get_view_name(library.replace('Mixed:', ""))
                     libraries.append({'Id': library, 'Name': name})
             else:
-                available = [x for x in syncOBJ['SortedViews'] if x not in whitelist]
+                available = [x for x in syncData['SortedViews'] if x not in whitelist]
 
                 for library in available:
                     name, media = db.get_view(library)
@@ -511,8 +504,7 @@ class Library(threading.Thread):
         self.Monitor.Service.Utils.event(modes[mode], {'Id': ','.join([libraries[x - 1]['Id'] for x in selection]), 'Update': mode == 'SyncLibrarySelection', 'ServerId': self.server_id})
 
     def patch_music(self, notification):
-        with self.sync(self) as syncObj:
-            syncObj.patch_music(notification)
+        self.sync.patch_music(notification)
 
     def add_library(self, library_id, update):
         self.add_lib_queue.put((library_id, update))
@@ -589,7 +581,27 @@ class UpdatedWorker(threading.Thread):
                         else:
                             LibID = None
 
-                        Ret = self.library.MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id)[item['Type']](item, LibID)
+                        if item['Type'] == 'Movie':
+                            Ret = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).movie(item, LibID)
+                        elif item['Type'] == 'Movie':
+                            Ret = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).boxset(item)
+                        elif item['Type'] == 'MusicVideo':
+                            Ret = core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).musicvideo(item, LibID)
+                        elif item['Type'] == 'Series':
+                            Ret = core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).tvshow(item, LibID)
+                        elif item['Type'] == 'Season':
+                            Ret = core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).season(item, LibID)
+                        elif item['Type'] == 'Episode':
+                            Ret = core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).episode(item, LibID)
+                        elif item['Type'] == 'MusicAlbum':
+                            Ret = core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).album(item, LibID)
+                        elif item['Type'] == 'Audio':
+                            Ret = core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).song(item, LibID)
+                        elif item['Type'] in ('MusicArtist', 'AlbumArtist'):
+                            Ret = core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).artist(item, LibID)
+                        else:
+                            self.LOG.error("Media Type not found: %s" % item['Type'])
+                            break
 
                         if Ret == "Invalid Filepath":
                             break
@@ -626,7 +638,18 @@ class UserDataWorker(threading.Thread):
                     while not self.queue.empty():
                         item = self.queue.get()
                         self.library.update_progress_dialog(item)
-                        self.library.MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Monitor.Downloader, self.library.server_id).userdata(item)
+
+                        if item['Type'] in ('Movie', 'BoxSet'):
+                            core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).userdata(item)
+
+                        elif item['Type'] == 'MusicVideo':
+                            core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).userdata(item)
+
+                        elif item['Type'] in ('TVShow', 'Series', 'Season', 'Episode'):
+                            core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).userdata(item)
+
+                        elif item['Type'] in ('Music', 'MusicAlbum', 'MusicArtist', 'AlbumArtist', 'Audio'):
+                            core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).userdata(item)
 
                         if self.library.Monitor.Service.SyncPause:
                             break
@@ -690,7 +713,18 @@ class RemovedWorker(threading.Thread):
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     while not self.queue.empty():
                         item = self.queue.get()
-                        self.library.MEDIA[item['Type']](self.library.server, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.server_id).remove(item['Id'])
+
+                        if item['Type'] in ('Movie', 'BoxSet'):
+                            core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item)
+
+                        elif item['Type'] == 'MusicVideo':
+                            core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item)
+
+                        elif item['Type'] in ('TVShow', 'Series', 'Season', 'Episode'):
+                            core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item)
+
+                        elif item['Type'] in ('Music', 'MusicAlbum', 'MusicArtist', 'AlbumArtist', 'Audio'):
+                            core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item)
 
                         if self.library.Monitor.Service.SyncPause:
                             break
@@ -722,4 +756,53 @@ class NotifyWorker(threading.Thread):
                 break
 
         self.LOG.info("--<[ q:notify/%s ]" % id(self))
+        self.is_done = True
+
+class GetItemWorker(threading.Thread):
+    def __init__(self, library, queue, output):
+        self.library = library
+        self.queue = queue
+        self.output = output
+        self.removed = []
+        self.is_done = False
+        self.LOG = helper.loghandler.LOG('EMBY.downloader.GetItemWorker')
+        self.info = (
+            "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,"
+            "OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,"
+            "Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,"
+            "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
+            "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,"
+            "MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,"
+            "PresentationUniqueKey,OriginalTitle,MediaSources,AlternateMediaSources,PartCount"
+        )
+        threading.Thread.__init__(self)
+        self.start()
+
+    def Done(self):
+        return self.is_done
+
+    def run(self):
+        count = 0
+
+        while not self.queue.empty():
+            item_ids = self.queue.get()
+            clean_list = [str(x) for x in item_ids]
+            request = {
+                'type': "GET",
+                'handler': "Users/{UserId}/Items",
+                'params': {
+                    'Ids': ','.join(clean_list),
+                    'Fields': self.info
+                }
+            }
+            result = self.library.EmbyServer.http.request(request)
+
+            self.removed.extend(list(set(clean_list) - set([str(x['Id']) for x in result['Items']])))
+
+            for item in result['Items']:
+                if item['Type'] in self.output:
+                    self.output[item['Type']].put(item)
+
+            count += len(clean_list)
+
         self.is_done = True

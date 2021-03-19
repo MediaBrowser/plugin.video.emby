@@ -12,18 +12,12 @@ from . import queries_videos
 from . import artwork
 from . import kodi
 
-
-import xbmc
-
-
-
 class TVShows():
-    def __init__(self, server, embydb, videodb, direct_path, Utils, Downloader, server_id, update_library=False):
+    def __init__(self, EmbyServer, embydb, videodb, direct_path, Utils, Downloader, update_library=False):
         self.LOG = helper.loghandler.LOG('EMBY.core.tvshows.TVShows')
         self.Utils = Utils
-        self.server_id = server_id
         self.update_library = update_library
-        self.server = server
+        self.EmbyServer = EmbyServer
         self.emby = embydb
         self.video = videodb
         self.direct_path = direct_path
@@ -32,29 +26,19 @@ class TVShows():
         self.item_ids = []
         self.display_multiep = self.Utils.settings('displayMultiEpLabel.bool')
         self.Downloader = Downloader
-        self.Common = common.Common(self.emby_db, self.objects, self.Utils, self.direct_path, self.server)
+        self.Common = common.Common(self.emby_db, self.objects, self.Utils, self.direct_path, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, Utils)
         self.TVShowsDBIO = TVShowsDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.Utils)
 
-    def __getitem__(self, key):
-        if key == 'Series':
-            return self.tvshow
-        elif key == 'Season':
-            return self.season
-        elif key == 'Episode':
-            return self.episode
-
-        return None
-
-    def tvshow(self, item, library, pooling, redirect):
+    def tvshow(self, item, library, pooling=None, redirect=None):
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Series')
         obj['Item'] = item
         obj['Library'] = library
@@ -62,39 +46,17 @@ class TVShows():
         obj['LibraryName'] = library['Name']
         update = True
 
-
-
-
-
-        xbmc.log("AAAAAAAAAAAAAAAAAAAAAAAAAa "   + str(      obj['RecursiveCount']         )    , xbmc.LOGWARNING)
-
-        xbmc.log("AAAAAAAAAAAAAAAAAAAAAAAAAa1 "   + str(      obj['Id']        )    , xbmc.LOGWARNING)
-
-
-        xbmc.log("AAAAAAAAAAAAAAAAAAAAAAAAAa2 "   + str(      pooling       )    , xbmc.LOGWARNING)
-
-
-
-
         if not self.Utils.settings('syncEmptyShows.bool') and not obj['RecursiveCount']:
             self.LOG.info("Skipping empty show %s: %s" % (obj['Title'], obj['Id']))
-            TVShows(self.server, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, self.server_id, False).remove(obj['Id'])
+            TVShows(self.EmbyServer, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, False).remove(obj['Id'])
             return False
-
-
-
-
-
-
-
-
 
         if pooling is None:
             StackedID = self.emby_db.get_stack(obj['PresentationKey']) or obj['Id']
 
 
             if str(StackedID) != obj['Id']:
-                return TVShows(self.server, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, self.server_id, False).tvshow(obj['Item'], obj['Library'], StackedID, False)
+                return TVShows(self.EmbyServer, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, False).tvshow(obj['Item'], obj['Library'], StackedID, False)
 
         if e_item:
             obj['ShowId'] = e_item[0]
@@ -174,7 +136,7 @@ class TVShows():
         season_episodes = {}
 
         try:
-            all_seasons = self.server['api'].get_seasons(obj['Id'])['Items']
+            all_seasons = self.EmbyServer.API.get_seasons(obj['Id'])['Items']
         except Exception as error:
             self.LOG.error("Unable to pull seasons for %s" % obj['Title'])
             self.LOG.error(error)
@@ -188,13 +150,13 @@ class TVShows():
                 self.emby_db.get_item_by_id(season['Id'])[0]
                 self.item_ids.append(season['Id'])
             except TypeError:
-                self.season(season, obj['ShowId'], obj['LibraryId'])
+                self.season(season, library, obj['ShowId'])
 
         season_id = self.TVShowsDBIO.get_season(*self.Utils.values(obj, queries_videos.get_season_special_obj))
         self.ArtworkDBIO.add(obj['Artwork'], season_id, "season")
 
         for season in season_episodes:
-            for episodes in self.Downloader.get_episode_by_season(season_episodes[season], season, self.server_id):
+            for episodes in self.Downloader.get_episode_by_season(season_episodes[season], season):
                 for episode in episodes['Items']:
                     Ret = self.episode(episode, library)
 
@@ -270,14 +232,14 @@ class TVShows():
 
         return True
 
-    def season(self, item, show_id, library_id):
+    def season(self, item, library, show_id=None):
         ''' If item does not exist, entry will be added.
             If item exists, entry will be updated.
             If the show is empty, try to remove it.
         '''
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Season')
-        obj['LibraryId'] = library_id
+        obj['LibraryId'] = library['Id']
         obj['ShowId'] = show_id
 
         if obj['ShowId'] is None:
@@ -307,7 +269,7 @@ class TVShows():
         if not library:
             return False
 
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Episode')
         obj['Item'] = item
         obj['Library'] = library
@@ -327,7 +289,7 @@ class TVShows():
 
         if str(StackedID) != obj['Id']:
             self.LOG.info("Skipping stacked episode %s [%s]" % (obj['Title'], obj['Id']))
-            TVShows(self.server, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, self.server_id, False).remove(StackedID)
+            TVShows(self.EmbyServer, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, False).remove(StackedID)
 
         if e_item:
             obj['EpisodeId'] = e_item[0]
@@ -473,7 +435,7 @@ class TVShows():
 
         obj['ShowId'] = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_series_obj))
         if obj['ShowId'] is None:
-            TVShows(self.server, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, self.server_id, False).tvshow(self.server['api'].get_item(obj['SeriesId']), None, None, True)
+            TVShows(self.EmbyServer, self.emby, self.video, self.direct_path, self.Utils, self.Downloader, False).tvshow(self.EmbyServer.API.get_item(obj['SeriesId']), None, None, True)
             Data = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_series_obj))
 
             if Data:
@@ -490,7 +452,7 @@ class TVShows():
     #This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     def userdata(self, item):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        API = helper.api.API(item, self.Utils, self.server['auth/server-address'])
+        API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'EpisodeUserData')
         obj['Item'] = item
 

@@ -3,7 +3,6 @@ import xbmc
 
 import hooks.monitor
 import database.database
-import emby.views
 import helper.setup
 import helper.utils
 import helper.xmls
@@ -11,21 +10,26 @@ import helper.loghandler
 
 class Service():
     def __init__(self):
+        self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
         self.ShouldStop = False
         self.ReloadSkin = True
-        self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
+        self.SyncPause = False
+        self.Startup()
+
+    def Startup(self):
+        self.ShouldStop = False
+        self.ReloadSkin = True
+        self.SyncPause = False
         self.Utils = helper.utils.Utils()
         self.Setup = helper.setup.Setup(self)
         self.Delay = int(self.Utils.settings('startupDelay'))
         self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
         self.Monitor = hooks.monitor.Monitor(self)
-        self.Views = None
         database.database.test_databases(self.Utils)
         Xmls = helper.xmls.Xmls(self.Utils)
         Xmls.advanced_settings_add_timeouts()
         self.Utils.settings('groupedSets.bool', self.Utils.GroupedSet)
         self.ServerReconnecting = {}
-        self.SyncPause = False
 
         if not self.Setup.Migrate(): #Check Migrate
             xbmc.executebuiltin('RestartApp')
@@ -38,9 +42,6 @@ class Service():
                 return False
 
         server_id = self.Monitor.EmbyServer_Connect()
-        self.Views = emby.views.Views(self, server_id)
-        self.Views.verify_kodi_defaults()
-        self.Views.get_nodes()
 
         if not server_id:
             return False
@@ -61,8 +62,9 @@ class Service():
         self.SyncPause = False
 
         if Terminate:
-            self.Monitor.EmbyServer[server_id].stop()
-            self.Monitor.LibraryStop(server_id)
+            if server_id in self.Monitor.EmbyServer:
+                self.Monitor.EmbyServer[server_id].stop()
+                self.Monitor.LibraryStop(server_id)
 
         while True:
             if self.Monitor.waitForAbort(10):
@@ -94,7 +96,7 @@ class Service():
 
             if self.Monitor.sleep:
                 xbmc.sleep(5000)
-                self.Monitor.System_OnWake(None)
+                self.Monitor.System_OnWake()
 
             if self.ShouldStop:
                 self.shutdown()
@@ -123,9 +125,11 @@ if __name__ == "__main__":
     serviceOBJ = Service()
 
     while True:
-        serviceOBJ.ServerConnect()
+        if not serviceOBJ.ServerConnect():
+            break
 
         if serviceOBJ.WatchDog():
+            serviceOBJ.Startup()
             continue #Restart
 
         break

@@ -30,13 +30,7 @@ class WebService(threading.Thread):
     def stop(self):
         conn = httplib.HTTPConnection("127.0.0.1:57578")
         conn.request("QUIT", "/")
-
-#        try:
         conn.getresponse()
-#        conn.request("QUIT", "/")
-#        conn.getresponse()
-#        except:
-#            pass
         self.server.server_close()
 
     def run(self):
@@ -63,14 +57,8 @@ class TCPServer(HTTPServer):
         try:
             while not self.RequestHandlerClass.Stop:
                 self.handle_request()
-
-            xbmc.log("WEBSERVER 1 stop A15", xbmc.LOGWARNING)
-
         except:
-            xbmc.log("WEBSERVER 1 stop A16", xbmc.LOGWARNING)
             return
-
-        xbmc.log("WEBSERVER 1 stop A17", xbmc.LOGWARNING)
 
 #Http request handler. Do not use LOG here, it will hang requests in Kodi > show information dialog.
 class RequestHandler(BaseHTTPRequestHandler): #SimpleHTTPRequestHandler):
@@ -91,13 +79,9 @@ class RequestHandler(BaseHTTPRequestHandler): #SimpleHTTPRequestHandler):
         pass
 
     def do_QUIT(self):
-        xbmc.log("WEBSERVER 1 stop A8", xbmc.LOGWARNING)
         RequestHandler.Stop = True
-        xbmc.log("WEBSERVER 1 stop A9", xbmc.LOGWARNING)
         self.send_response(200)
-        xbmc.log("WEBSERVER 1 stop A10", xbmc.LOGWARNING)
         self.end_headers()
-        xbmc.log("WEBSERVER 1 stop A11", xbmc.LOGWARNING)
 
     def do_HEAD(self):
         if 'stream' in self.path:

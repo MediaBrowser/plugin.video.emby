@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import _strptime # Workaround for threads using datetime: _striptime is locked
-import datetime
 import json
 import os
 import sqlite3
@@ -317,36 +315,6 @@ def reset_artwork(Utils):
         Progress.close()
 
     LOG.warning("[ reset artwork ]")
-
-def get_sync(Utils):
-    path = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
-
-    if not xbmcvfs.exists(path):
-        xbmcvfs.mkdirs(path)
-
-    if xbmcvfs.exists(os.path.join(path, "sync.json")):
-        with open(os.path.join(path, 'sync.json'), 'rb') as infile:
-            sync = json.load(infile)
-    else:
-        sync = {}
-
-    sync['Libraries'] = sync.get('Libraries', [])
-    sync['RestorePoint'] = sync.get('RestorePoint', {})
-    sync['Whitelist'] = list(set(sync.get('Whitelist', [])))
-    sync['SortedViews'] = sync.get('SortedViews', [])
-    return sync
-
-def save_sync(Utils, sync):
-    path = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
-
-    if not xbmcvfs.exists(path):
-        xbmcvfs.mkdirs(path)
-
-    sync['Date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    with open(os.path.join(path, 'sync.json'), 'wb') as outfile:
-        data = json.dumps(sync, sort_keys=True, indent=4, ensure_ascii=False)
-        outfile.write(data.encode('utf-8'))
 
 def get_credentials(Utils):
     path = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")

@@ -25,17 +25,17 @@ class Monitor(xbmc.Monitor):
     def __init__(self, Service):
         self.LOG = helper.loghandler.LOG('EMBY.hooks.monitor.Monitor')
         self.sleep = False
+        self.EmbyServer = {}
         self.library = {}
         self.ServerIP = None
         self.ServerToken = None
         self.Server = None
-        self.Service = Service
-        self.EmbyServer = {}
-        self.ProgressThread = None
         self.WebServiceThread = None
         self.WebserviceOnPlayThread = None
         self.WebserviceEventOut = Queue.Queue()
         self.WebserviceEventIn = Queue.Queue()
+        self.Service = Service
+        self.ProgressThread = None
         self.player = player.PlayerEvents(monitor=self)
         self.ItemSkipUpdate = []
         self.ItemSkipUpdateAfterStop = []
@@ -50,7 +50,6 @@ class Monitor(xbmc.Monitor):
         self.PlayWebsocketPreviousCommand = "" #Propably an issue from Emby Server -> Same command send twice
         self.device_id = self.Service.Utils.get_device_id(False)
         self.connect = emby.connect.Connect(self) #multipe servers here
-        self.Downloader = emby.downloader.Downloader(self.Service.Utils, self.EmbyServer)
 
     def EmbyServer_ReconnectAll(self):
         for server_id in self.EmbyServer:
@@ -63,13 +62,17 @@ class Monitor(xbmc.Monitor):
             self.Service.Utils.window('emby.server.%s.online.bool' % server_id, False)
 
     def EmbyServer_Connect(self):
-        server_id, EmbyServerObj = self.connect.register({})
+        server_id, EmbyServer = self.connect.register({})
+
+        if server_id == 'cancel':
+            return False
 
         if not server_id:
-            self.ServerUnreachable({'ServerId': server_id})
+#            self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33146))
+            self.LOG.error("EmbyServer Connect error")
             return False
         else:
-            self.EmbyServer[server_id] = EmbyServerObj
+            self.EmbyServer[server_id] = EmbyServer
             self.EmbyServer[server_id].start()
             self.LoadServer({'ServerId': server_id})
             self.ServerOnline({'ServerId': server_id})
@@ -119,12 +122,12 @@ class Monitor(xbmc.Monitor):
         if self.Service.Utils.settings('addUsers'):
             users = self.Service.Utils.settings('addUsers').split(',')
             hidden = None if self.Service.Utils.settings('addUsersHidden.bool') else False
-            all_users = self.EmbyServer[server_id]['api'].get_users(hidden=hidden)
+            all_users = self.EmbyServer[server_id].API.get_users(hidden=hidden)
 
             for additional in users:
                 for user in all_users:
                     if user['Id'] == additional:
-                        self.EmbyServer[server_id]['api'].session_add_user(self.EmbyServer[server_id]['config/app.session'], user['Id'])
+                        self.EmbyServer[server_id].API.session_add_user(self.EmbyServer[server_id].Data['app.session'], user['Id'])
 
             self.additional_users(server_id)
 
@@ -132,8 +135,8 @@ class Monitor(xbmc.Monitor):
         return True
 
     def post_capabilities(self, server_id):
-        self.LOG.info("--[ post capabilities/%s ]" % self.EmbyServer[server_id]['auth/server-id'])
-        self.EmbyServer[server_id]['api'].post_capabilities({
+        self.LOG.info("--[ post capabilities/%s ]" % self.EmbyServer[server_id].server_id)
+        self.EmbyServer[server_id].API.post_capabilities({
             'PlayableMediaTypes': "Audio,Video",
             'SupportsMediaControl': True,
             'SupportedCommands': (
@@ -149,10 +152,10 @@ class Monitor(xbmc.Monitor):
             ),
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
-        session = self.EmbyServer[server_id]['api'].get_device(self.device_id)
+        session = self.EmbyServer[server_id].API.get_device(self.device_id)
 
         if session:
-            self.EmbyServer[server_id]['config']['app.session'] = session[0]['Id']
+            self.EmbyServer[server_id].Data['app.session'] = session[0]['Id']
             return True
 
         return False
@@ -162,14 +165,14 @@ class Monitor(xbmc.Monitor):
             self.Service.Utils.window('emby.AdditionalUserImage.%s' % i, clear=True)
 
         try:
-            session = self.EmbyServer[server_id]['api'].get_device(self.device_id)
+            session = self.EmbyServer[server_id].API.get_device(self.device_id)
         except Exception as error:
             self.LOG.error(error)
             return
 
         for index, user in enumerate(session[0]['AdditionalUsers']):
-            info = self.EmbyServer[server_id]['api'].get_user(user['UserId'])
-            image = helper.api.API(info, self.Service.Utils, self.EmbyServer[server_id]['config/auth.server']).get_user_artwork(user['UserId'])
+            info = self.EmbyServer[server_id].API.get_user(user['UserId'])
+            image = helper.api.API(info, self.Service.Utils, self.EmbyServer[server_id].Data['auth.server']).get_user_artwork(user['UserId'])
             self.Service.Utils.window('emby.AdditionalUserImage.%s' % index, image)
             self.Service.Utils.window('emby.AdditionalUserPosition.%s' % user['UserId'], str(index))
 
@@ -280,7 +283,7 @@ class Monitor(xbmc.Monitor):
             self.ProgressThread.Stop()
             self.ProgressThread = None
 
-        self.EmbyServer[server_id]['api'].close_transcode(self.device_id)
+        self.EmbyServer[server_id].API.close_transcode(self.device_id)
         self.Service.SyncPause = False
 
     def Player_OnPlay(self, data):
@@ -377,8 +380,8 @@ class Monitor(xbmc.Monitor):
             Pos = self.GetPlaylistPos(Position, playlist, Offset)
             helper.utils.JSONRPC('Playlist.Insert').execute({'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}})
         else:
-            listitems = core.listitem.ListItem(self.EmbyServer[server_id]['auth/server-address'], self.Service.Utils)
-            item = self.EmbyServer[server_id]['api'].get_item(EmbyID)
+            listitems = core.listitem.ListItem(self.EmbyServer[server_id].auth.get_serveraddress(), self.Service.Utils)
+            item = self.EmbyServer[server_id].API.get_item(EmbyID)
             li = xbmcgui.ListItem()
             li = listitems.set(item, li, None, False, None)
             path = ""
@@ -499,11 +502,11 @@ class Monitor(xbmc.Monitor):
         self.player.played = {}
 
     def ServerConnect(self, data):
-        self.connect.register({}, data['ServerId'])
+        self.EmbyServer_Connect()
         xbmc.executebuiltin("Container.Refresh")
 
     def EmbyConnect(self, data):
-        self.connect.setup_login_connect(data['ServerId'])
+        self.connect.setup_login_connect()
 
     def RemoveServer(self, data):
         self.connect.remove_server(data['ServerId'])
@@ -513,7 +516,7 @@ class Monitor(xbmc.Monitor):
         if not self.library[data['ServerId']].started:
             return
 
-        if data.get('UserId') != self.EmbyServer[data['ServerId']]['auth/user-id']:
+        if data.get('UserId') != self.EmbyServer[data['ServerId']].auth.get_server_info()['UserId']:
             return
 
         self.LOG.info("[ UserDataChanged ] %s" % data)
@@ -575,18 +578,18 @@ class Monitor(xbmc.Monitor):
         if self.Service.ServerReconnectingInProgress(data['ServerId']):
             return
 
-        self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], False)
         self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33146))
+        self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], False)
         self.Service.ServerReconnect(data['ServerId'])
 
     def RefreshItem(self, data):
-        self.EmbyServer[data['ServerId']]['api'].refresh_item(data['Id'])
+        self.EmbyServer[data['ServerId']].API.refresh_item(data['Id'])
 
     def AddFavItem(self, data):
-        self.EmbyServer[data['ServerId']]['api'].favorite(data['Id'], True)
+        self.EmbyServer[data['ServerId']].API.favorite(data['Id'], True)
 
     def RemoveFavItem(self, data):
-        self.EmbyServer[data['ServerId']]['api'].favorite(data['Id'], False)
+        self.EmbyServer[data['ServerId']].API.favorite(data['Id'], False)
 
     def ServerShuttingDown(self, data):
         if self.Service.ServerReconnectingInProgress(data['ServerId']):
@@ -639,15 +642,15 @@ class Monitor(xbmc.Monitor):
         self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], False)
         self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33147))
 
-    def System_OnQuit(self, data):
+    def System_OnQuit(self):
         self.Server = None
 
         for server_id in self.EmbyServer:
-            self.EmbyServer[server_id]['api'].close_transcode(self.device_id)
+            self.EmbyServer[server_id].API.close_transcode(self.device_id)
 
         self.Service.ShouldStop = True
 
-    def Other_ServerRestarting(self, data):
+    def ServerRestarting(self, data):
         self.Server = None
 
         if self.Service.ServerReconnectingInProgress(data['ServerId']):
@@ -656,6 +659,7 @@ class Monitor(xbmc.Monitor):
         if self.Service.Utils.settings('restartMsg.bool'):
             self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33006), icon="{emby}")
 
+        self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], False)
         self.Service.ServerReconnect(data['ServerId'])
 
     def WebserviceUpdateInfo(self, server):
@@ -699,12 +703,12 @@ class Monitor(xbmc.Monitor):
 
     def UpdateServer(self, data):
         self.Service.Utils.dialog("ok", heading="{emby}", line1=self.Service.Utils.Translate(33151))
-        self.connect.setup_manual_server(data['ServerId'])
+        self.connect.setup_manual_server()
 
     def SetServerSSL(self, data):
         self.connect.set_ssl(data['ServerId'])
 
-    def settingschanged(self, data):
+    def settingschanged(self):
         if self.Service.ShouldStop or self.sleep:
             return
 
@@ -713,17 +717,17 @@ class Monitor(xbmc.Monitor):
     def Application_OnVolumeChanged(self, data):
         self.player.SETVolume(data['volume'], data['muted'])
 
-    def System_OnWake(self, data):
+    def System_OnWake(self):
         if not self.sleep:
             self.LOG.warning("System.OnSleep was never called, skip System.OnWake")
             return
 
         self.LOG.info("--<[ sleep ]")
         self.sleep = False
-        self.EmbyServer_ReconnectAll
+        self.EmbyServer_ReconnectAll()
         self.Service.SyncPause = False
 
-    def System_OnSleep(self, data):
+    def System_OnSleep(self):
         self.LOG.info("-->[ sleep ]")
         self.Service.SyncPause = True
         self.QuitThreads()
@@ -738,8 +742,8 @@ class Monitor(xbmc.Monitor):
             return
 
         self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], True)
-        self.ServerIP = self.EmbyServer[data['ServerId']]['auth/server-address']
-        self.ServerToken = self.EmbyServer[data['ServerId']]['auth/token']
+        self.ServerIP = self.EmbyServer[data['ServerId']].auth.get_serveraddress()
+        self.ServerToken = self.EmbyServer[data['ServerId']].Data['auth.token']
         self.WebserviceUpdateInfo(self.EmbyServer[data['ServerId']])
 
         if self.Service.ReloadSkin:
@@ -747,7 +751,7 @@ class Monitor(xbmc.Monitor):
             self.Service.ReloadSkin = False
 
         if self.Service.Utils.settings('connectMsg.bool'):
-            users = self.EmbyServer[data['ServerId']]['api'].get_device(self.Service.Utils.get_device_id(False))[0]['AdditionalUsers']
+            users = self.EmbyServer[data['ServerId']].API.get_device(self.Service.Utils.get_device_id(False))[0]['AdditionalUsers']
             users = [user['UserName'] for user in users]
             users.insert(0, self.Service.Utils.settings('username'))
             self.Service.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.Service.Utils.Translate(33000), ", ".join(users)), icon="{emby}", time=1500, sound=False)
@@ -778,12 +782,12 @@ class Monitor(xbmc.Monitor):
 
                         for item2 in items:
                             self.ItemSkipUpdate.append(item2[0])
-                            self.EmbyServer[server_id]['api'].item_played(item2[0], bool(data['playcount']))
+                            self.EmbyServer[server_id].API.item_played(item2[0], bool(data['playcount']))
 
                         return
 
                     self.ItemSkipUpdate.append(item[0])
-                    self.EmbyServer[server_id]['api'].item_played(item[0], bool(data['playcount']))
+                    self.EmbyServer[server_id].API.item_played(item[0], bool(data['playcount']))
 
             self.ItemSkipUpdateReset = True
 
@@ -797,12 +801,26 @@ class MonitorWorker(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        if self.method in ('System.OnWake', 'System.OnSleep', 'Unauthorized', 'System.OnQuit', 'Other.ServerRestarting', 'settingschanged'):
-            self.data = {}
-        elif self.sender == 'plugin.video.emby-next-gen':
+        if self.method == 'System.OnWake':
+            self.monitor.System_OnWake()
+            return
+
+        if self.method == 'System.OnSleep':
+            self.monitor.System_OnSleep()
+            return
+
+        if self.method == 'System.OnQuit':
+            self.monitor.System_OnQuit()
+            return
+
+        if self.method == 'settingschanged':
+            self.monitor.settingschanged()
+            return
+
+        if self.sender == 'plugin.video.emby-next-gen':
             self.method = self.method.split('.')[1]
 
-            if self.method not in ('ReportProgressRequested', 'LoadServer', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer', 'ServerOnline', 'ServerConnect', 'EmbyConnect', 'AddServer', 'RemoveServer', 'UpdateServer', 'SetServerSSL', 'UserDataChanged', 'LibraryChanged', 'WebSocketRestarting', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary', 'GUI.OnScreensaverDeactivated', 'PatchMusic', 'UserConfigurationUpdated', 'UserPolicyUpdated', 'ServerUnreachable', 'ServerShuttingDown', 'RefreshItem', 'AddFavItem', 'RemoveFavItem'):
+            if self.method not in ('ReportProgressRequested', 'LoadServer', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer', 'ServerOnline', 'ServerConnect', 'EmbyConnect', 'AddServer', 'RemoveServer', 'UpdateServer', 'SetServerSSL', 'UserDataChanged', 'LibraryChanged', 'WebSocketRestarting', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary', 'GUI.OnScreensaverDeactivated', 'PatchMusic', 'UserConfigurationUpdated', 'UserPolicyUpdated', 'ServerUnreachable', 'ServerShuttingDown', 'RefreshItem', 'AddFavItem', 'RemoveFavItem', 'ServerRestarting', 'Unauthorized'):
                 return
 
             self.data = json.loads(self.data)[0]
