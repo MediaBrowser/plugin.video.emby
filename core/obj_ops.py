@@ -319,7 +319,6 @@ class Objects():
                 "DatePlayed": "UserData/LastPlayedDate",
                 "Artists": "ArtistItems:?$Name",
                 "Album": "Album",
-                "Votes": "VoteCount",
                 "Path": "Path",
                 "LocalTrailer": "LocalTrailerCount",
                 "Trailer": "RemoteTrailers/0/Url",

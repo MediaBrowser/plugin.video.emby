@@ -641,18 +641,6 @@ class Events():
             return
 
     #Only for synced content
-
-
-
-#JSONRPC: Failed to parse '{ "jsonrpc": "2.0", "method" : "VideoLibrary.GetTvShows", "params": b'{"properties": [ "file", "title", "year", "imdbnumber", "art", "genre", "cast", "studio", "uniqueid" ] }', "id":1 }'
-#LIVINGROOM!!!!!!!!!!!!!
-
-
-
-
-
-
-
     def get_next_episodes(self, Handle, item_id, limit):
         with database.database.Database(self.Utils, 'emby', False) as embydb:
 

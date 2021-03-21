@@ -290,23 +290,28 @@ class Music():
     #Verify if there's an album associated.
     #If no album found, create a single's album
     def song_add(self, obj):
+        AlbumFound = False
         obj['PathId'] = self.MusicDBIO.add_path(obj['Path'])
 
         if obj['SongAlbumId']:
-            obj['AlbumId'] = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_song_obj))[0]
-        else:
-            if obj['SongAlbumId'] is None:
-                obj['LastScraped'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                obj['AlbumId'] = None
-                BackupTitle = obj['Title']
-                obj['Title'] = "--NO INFO--"
+            result = self.emby_db.get_item_by_id(*self.Utils.values(obj, database.queries.get_item_song_obj))
 
-                if self.DBVersion >= 82:
-                    obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj82))
-                else:
-                    obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj))
+            if result:
+                obj['AlbumId'] = result[0]
+                AlbumFound = True
 
-                obj['Title'] = BackupTitle
+        if not AlbumFound:
+            obj['LastScraped'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            obj['AlbumId'] = None
+            BackupTitle = obj['Title']
+            obj['Title'] = "--NO INFO--"
+
+            if self.DBVersion >= 82:
+                obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj82))
+            else:
+                obj['AlbumId'] = self.MusicDBIO.get_album(*self.Utils.values(obj, queries_music.get_single_obj))
+
+            obj['Title'] = BackupTitle
 
         if not self.MusicDBIO.add_song(*self.Utils.values(obj, queries_music.add_song_obj)):
             obj['Index'] = None #Duplicate track number for same album
