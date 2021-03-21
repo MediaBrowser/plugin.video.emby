@@ -393,11 +393,20 @@ class WebserviceOnPlay(threading.Thread):
                 CounterSubTitle += 1
 
                 if Data[3] == "srt":
-                    SubTitleURL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/" + MediasourceID + "/Subtitles/ " + str(Data[18]) + "/stream.srt?api_key=" + self.EmbyServer.Data['auth.token']
+                    SubTitleURL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/" + MediasourceID + "/Subtitles/" + str(Data[18]) + "/stream.srt"
+
+                    request = {
+                        'type': "GET",
+                        'url': SubTitleURL,
+                        'params': {}
+                    }
+
                     Filename = self.Monitor.Service.Utils.PathToFilenameReplaceSpecialCharecters(str(CounterSubTitle) + "." + Data[4] + ".srt")
-                    Path = self.Monitor.Service.Utils.download_external_subs(SubTitleURL, Filename)
-                    self.Monitor.player.setSubtitles(Path)
-                    self.Monitor.player.showSubtitles(False)
+                    Path = self.Monitor.Service.Utils.download_external_subs(request, Filename, self.EmbyServer)
+
+                    if Path:
+                        self.Monitor.player.setSubtitles(Path)
+                        self.Monitor.player.showSubtitles(False)
 
     def LoadData(self, MediasourceID, emby_dbT, MediaIndex):
         VideoStreams = emby_dbT.get_videostreams(self.EmbyID, MediaIndex)
@@ -463,7 +472,7 @@ class WebserviceOnPlay(threading.Thread):
         if Audio:
             Audio = "&AudioStreamIndex=" + Audio
         else:
-           Audio = ""
+            Audio = ""
 
         if self.TargetVideoBitrate:
             TranscodingVideo = "&VideoBitrate=" + str(self.TargetVideoBitrate)

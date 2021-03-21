@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
-import requests
-
 import helper.loghandler
 
 class Downloader():
@@ -9,7 +6,7 @@ class Downloader():
         self.Utils = Utils
         self.EmbyServer = EmbyServer
         self.LOG = helper.loghandler.LOG('EMBY.emby.downloader.Downloader')
-        self.LIMIT = min(int(self.Utils.settings('limitIndex') or 50), 50)
+        self.LIMIT = min(int(self.Utils.settings('limitIndex') or 15), 50)
         self.info = ("Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,PresentationUniqueKey,OriginalTitle,MediaSources,AlternateMediaSources,PartCount")
         self.browse_info = ("DateCreated,EpisodeCount,SeasonCount,Path,Genres,Studios,Taglines,MediaStreams,Overview,Etag,ProductionLocations,Width,Height,RecursiveItemCount,ChildCount")
 
@@ -180,7 +177,7 @@ class Downloader():
             'SortBy': "DateCreated",
             'ParentId': parent_id,
             'ArtistIds': artist_id
-        }
+        } #fixme: test -> remove sortby, but check impact on dynamic lists
 
         for items in self.get_items(None, "MusicAlbum", basic, params):
             yield items
@@ -190,7 +187,7 @@ class Downloader():
             'SortBy': "DateCreated",
             'ParentId': parent_id,
             'ArtistIds': artist_id
-        }
+        } #fixme: test -> remove sortby, but check impact on dynamic lists
 
         for items in self.get_items(None, "Audio", basic, params):
             yield items

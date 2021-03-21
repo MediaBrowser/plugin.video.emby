@@ -150,7 +150,7 @@ class HTTP():
 
                     return response
                 except ValueError:
-                    return False
+                    return r.content
 
     def _request(self, data):
         if 'url' not in data:

@@ -4,10 +4,9 @@ import os
 import re
 import unicodedata
 import uuid
-import requests
-from dateutil import tz, parser
 import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
+from dateutil import tz, parser
 
 try:
     from urllib import quote, quote_plus
@@ -238,27 +237,22 @@ class Utils():
         xbmc.executebuiltin('RestartApp')
 
     #Download external subtitles to temp folder
-    def download_external_subs(self, src, filename):
+    def download_external_subs(self, request, filename, EmbyServer):
         temp = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/")
 
         if not xbmcvfs.exists(temp):
             xbmcvfs.mkdir(temp)
 
         path = os.path.join(temp, filename)
+        response = EmbyServer.http.request(request)
 
-        try:
-            response = requests.get(src, stream)
-            response.raise_for_status()
-            response.encoding = 'utf-8'
-
+        if response:
             with open(path, 'wb') as f:
-                f.write(response.content)
+                f.write(response)
 
-            del response
-        except:
-            path = None
+            return path
 
-        return path
+        return None
 
     def StringMod(self, Data):
         if self.KodiVersion >= 19:
@@ -633,6 +627,12 @@ class Utils():
             date = date.replace(tzinfo=tz.tzutc())
             date = date.astimezone(tz.tzlocal())
             return date.strftime('%Y-%m-%dT%H:%M:%S')
+
+
+
+#datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
         except Exception as error:
             self.LOG.error(error)
             self.LOG.info("date: %s" % str(date))

@@ -38,8 +38,9 @@ class Library(threading.Thread):
         self.progress_updates = None
         self.total_updates = 0
         self.direct_path = self.Monitor.Service.Utils.settings('useDirectPaths') == "1"
-        self.LIMIT = min(int(self.Monitor.Service.Utils.settings('limitIndex') or 50), 50)
-        self.DTHREADS = int(self.Monitor.Service.Utils.settings('limitThreads') or 3)
+        self.LIMIT = min(int(self.Monitor.Service.Utils.settings('limitIndex') or 15), 50)
+        self.DTHREADS = min(int(self.Monitor.Service.Utils.settings('limitThreads') or 3), 3)
+        self.MinsyncProgress = int(self.Monitor.Service.Utils.settings('syncProgress') or 50)
         self.updated_queue = Queue.Queue()
         self.userdata_queue = Queue.Queue()
         self.removed_queue = Queue.Queue()
@@ -62,7 +63,7 @@ class Library(threading.Thread):
         self.Views.get_nodes()
         self.Downloader = emby.downloader.Downloader(self.Monitor.Service.Utils, self.EmbyServer)
         self.progress_percent = 0
-        self.database_lock = threading.Lock()
+        self.ThreadingLock = threading.Lock()
         threading.Thread.__init__(self)
         self.start()
 
@@ -99,14 +100,14 @@ class Library(threading.Thread):
     def set_progress_dialog(self):
         queue_size = self.worker_queue_size()
 
-        try:
-            self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates))*100)
-        except Exception:
+        if self.total_updates:
+            self.progress_percent = int((float(self.total_updates - queue_size) / float(self.total_updates)) * 100)
+        else:
             self.progress_percent = 0
 
         self.LOG.debug("--[ pdialog (%s/%s) ]" % (queue_size, self.total_updates))
 
-        if self.total_updates < int(self.Monitor.Service.Utils.settings('syncProgress') or 50):
+        if self.total_updates < self.MinsyncProgress:
             return
 
         if self.progress_updates is None:
@@ -123,7 +124,7 @@ class Library(threading.Thread):
         self.LOG.warning("--->[ library ]")
 
         while not self.stop_thread:
-            if self.Monitor.waitForAbort(5):
+            if self.Monitor.waitForAbort(0.5):
                 break
 
             if not self.started and not self.startup():
@@ -142,13 +143,13 @@ class Library(threading.Thread):
 
     def service(self):
         for thread in self.download_threads:
-            if thread.Done:
+            if thread.Done():
                 self.removed(thread.removed)
                 self.download_threads.remove(thread)
 
         for threads in (self.emby_threads, self.writer_threads_updated, self.writer_threads_userdata, self.writer_threads_removed):
             for thread in threads:
-                if thread.Done:
+                if thread.Done():
                     threads.remove(thread)
 
         if not self.Monitor.player.isPlayingVideo() or self.Monitor.Service.Utils.settings('syncDuringPlay.bool') or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
@@ -278,14 +279,18 @@ class Library(threading.Thread):
             self.LOG.info("[ DELAY UPDATES ]")
             return
 
+        if len(self.writer_threads_updated):
+            self.LOG.info("[ DELAY UPDATES ]")
+            return
+
         for queues in self.updated_output:
             queue = self.updated_output[queues]
 
-            if queue.qsize() and not len(self.writer_threads_updated):
+            if queue.qsize(): # and not len(self.writer_threads_updated):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UpdatedWorker(queue, self, "music", self.database_lock)
+                    new_thread = UpdatedWorker(queue, self, "music")
                 else:
-                    new_thread = UpdatedWorker(queue, self, "video", self.database_lock)
+                    new_thread = UpdatedWorker(queue, self, "video")
 
                 self.LOG.info("-->[ q:updated/%s/%s ]" % (queues, id(new_thread)))
                 self.writer_threads_updated.append(new_thread)
@@ -297,14 +302,18 @@ class Library(threading.Thread):
             self.LOG.info("[ DELAY UPDATES ]")
             return
 
+        if len(self.writer_threads_userdata):
+            self.LOG.info("[ DELAY UPDATES ]")
+            return
+
         for queues in self.userdata_output:
             queue = self.userdata_output[queues]
 
-            if queue.qsize() and not len(self.writer_threads_userdata):
+            if queue.qsize(): # and not len(self.writer_threads_userdata):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = UserDataWorker(queue, self, "music", self.database_lock)
+                    new_thread = UserDataWorker(queue, self, "music")
                 else:
-                    new_thread = UserDataWorker(queue, self, "video", self.database_lock)
+                    new_thread = UserDataWorker(queue, self, "video")
 
                 self.LOG.info("-->[ q:userdata/%s/%s ]" % (queues, id(new_thread)))
                 self.writer_threads_userdata.append(new_thread)
@@ -312,14 +321,18 @@ class Library(threading.Thread):
 
     #Remove items from the Kodi database
     def worker_remove(self):
+        if len(self.writer_threads_removed):
+            self.LOG.info("[ DELAY UPDATES ]")
+            return
+
         for queues in self.removed_output:
             queue = self.removed_output[queues]
 
-            if queue.qsize() and not len(self.writer_threads_removed):
+            if queue.qsize(): # and not len(self.writer_threads_removed):
                 if queues in ('Audio', 'MusicArtist', 'AlbumArtist', 'MusicAlbum'):
-                    new_thread = RemovedWorker(queue, self, "music", self.database_lock)
+                    new_thread = RemovedWorker(queue, self, "music")
                 else:
-                    new_thread = RemovedWorker(queue, self, "video", self.database_lock)
+                    new_thread = RemovedWorker(queue, self, "video")
 
                 self.LOG.info("-->[ q:removed/%s/%s ]" % (queues, id(new_thread)))
                 self.writer_threads_removed.append(new_thread)
@@ -441,11 +454,8 @@ class Library(threading.Thread):
                             self.total_updates += 1
 
         if plugin:
-            try:
-                result = self.EmbyServer.API.get_sync_queue(last_sync, None) #Kodi companion plugin
-                self.removed(result['ItemsRemoved'])
-            except Exception as error:
-                self.LOG.error(error)
+            result = self.EmbyServer.API.get_sync_queue(last_sync, None) #Kodi companion plugin
+            self.removed(result['ItemsRemoved'])
 
         return True
 
@@ -553,12 +563,11 @@ class Library(threading.Thread):
         self.LOG.info("---[ verify:%s ]" % len(data))
 
 class UpdatedWorker(threading.Thread):
-    def __init__(self, queue, library, DB, lock):
+    def __init__(self, queue, library, DB):
         self.LOG = helper.loghandler.LOG('EMBY.library.UpdatedWorker')
         self.library = library
         self.queue = queue
         self.notify = self.library.Monitor.Service.Utils.settings('newContent.bool')
-        self.lock = lock
         self.DB = database.Database(self.library.Monitor.Service.Utils, DB, True)
         self.library.set_progress_dialog()
         self.is_done = False
@@ -569,7 +578,7 @@ class UpdatedWorker(threading.Thread):
         return self.is_done
 
     def run(self):
-        with self.lock:
+        with self.library.ThreadingLock:
             with self.DB as kodidb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     while not self.queue.empty():
@@ -583,7 +592,7 @@ class UpdatedWorker(threading.Thread):
 
                         if item['Type'] == 'Movie':
                             Ret = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).movie(item, LibID)
-                        elif item['Type'] == 'Movie':
+                        elif item['Type'] == 'BoxSet':
                             Ret = core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).boxset(item)
                         elif item['Type'] == 'MusicVideo':
                             Ret = core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).musicvideo(item, LibID)
@@ -607,7 +616,7 @@ class UpdatedWorker(threading.Thread):
                             break
 
                         if Ret and self.notify:
-                            self.library.notify_output.put(item['Type'], self.library.get_naming(item))
+                            self.library.notify_output.put({'Type': item['Type'], 'Name': self.library.get_naming(item)})
 
                         if self.library.Monitor.Service.SyncPause:
                             break
@@ -617,11 +626,10 @@ class UpdatedWorker(threading.Thread):
 
 #Incomming Update Data from Websocket
 class UserDataWorker(threading.Thread):
-    def __init__(self, queue, library, DB, lock):
+    def __init__(self, queue, library, DB):
         self.LOG = helper.loghandler.LOG('EMBY.library.UserDataWorker')
         self.library = library
         self.queue = queue
-        self.lock = lock
         self.DB = database.Database(self.library.Monitor.Service.Utils, DB, True)
         self.is_done = False
         self.library.set_progress_dialog()
@@ -632,7 +640,7 @@ class UserDataWorker(threading.Thread):
         return self.is_done
 
     def run(self):
-        with self.lock:
+        with self.library.ThreadingLock:
             with self.DB as kodidb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     while not self.queue.empty():
@@ -669,36 +677,36 @@ class SortWorker(threading.Thread):
         return self.is_done
 
     def run(self):
-        with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
-            db = database.emby_db.EmbyDatabase(embydb.cursor)
+        with self.library.ThreadingLock:
+            with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
+                db = database.emby_db.EmbyDatabase(embydb.cursor)
 
-            while not self.library.removed_queue.empty():
-                item_id = self.library.removed_queue.get()
-
-                try:
+                while not self.library.removed_queue.empty():
+                    item_id = self.library.removed_queue.get()
                     media = db.get_media_by_id(item_id)
-                    self.library.removed_output[media].put({'Id': item_id, 'Type': media})
-                except Exception:
-                    items = db.get_media_by_parent_id(item_id)
 
-                    if not items:
-                        self.LOG.info("Could not find media %s in the emby database." % item_id)
+                    if media:
+                        self.library.removed_output[media].put({'Id': item_id, 'Type': media})
                     else:
-                        for item in items:
-                            self.library.removed_output[item[1]].put({'Id': item[0], 'Type': item[1]})
+                        items = db.get_media_by_parent_id(item_id)
 
-                if self.library.Monitor.Service.ShouldStop or self.library.Monitor.sleep:
-                    break
+                        if not items:
+                            self.LOG.info("Could not find media %s in the emby database." % item_id)
+                        else:
+                            for item in items:
+                                self.library.removed_output[item[1]].put({'Id': item[0], 'Type': item[1]})
 
-        self.LOG.info("--<[ q:sort/%s ]" % id(self))
-        self.is_done = True
+                    if self.library.Monitor.Service.ShouldStop or self.library.Monitor.sleep:
+                        break
+
+            self.LOG.info("--<[ q:sort/%s ]" % id(self))
+            self.is_done = True
 
 class RemovedWorker(threading.Thread):
-    def __init__(self, queue, library, DB, lock):
+    def __init__(self, queue, library, DB):
         self.LOG = helper.loghandler.LOG('EMBY.library.RemovedWorker')
         self.library = library
         self.queue = queue
-        self.lock = lock
         self.DB = database.Database(self.library.Monitor.Service.Utils, DB, True)
         self.is_done = False
         threading.Thread.__init__(self)
@@ -708,7 +716,7 @@ class RemovedWorker(threading.Thread):
         return self.is_done
 
     def run(self):
-        with self.lock:
+        with self.library.ThreadingLock:
             with self.DB as kodidb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     while not self.queue.empty():
@@ -740,6 +748,7 @@ class NotifyWorker(threading.Thread):
         self.music_time = int(self.library.Monitor.Service.Utils.settings('newmusictime')) * 1000
         self.is_done = False
         threading.Thread.__init__(self)
+        self.start()
 
     def Done(self):
         return self.is_done
@@ -747,10 +756,10 @@ class NotifyWorker(threading.Thread):
     def run(self):
         while not self.library.notify_output.empty():
             item = self.library.notify_output.get()
-            time = self.music_time if item[0] == 'Audio' else self.video_time
+            time = self.music_time if item['Type'] == 'Audio' else self.video_time
 
             if time and (not self.library.Monitor.player.isPlayingVideo() or xbmc.getCondVisibility('VideoPlayer.Content(livetv)')):
-                self.library.Monitor.Service.Utils.dialog("notification", heading="%s %s" % (self.library.Monitor.Service.Utils.Translate(33049), item[0]), message=item[1], icon="{emby}", time=time, sound=False)
+                self.library.Monitor.Service.Utils.dialog("notification", heading="%s %s" % (self.library.Monitor.Service.Utils.Translate(33049), item['Type']), message=item['Name'], icon="{emby}", time=time, sound=False)
 
             if self.library.Monitor.Service.ShouldStop or self.library.Monitor.sleep:
                 break

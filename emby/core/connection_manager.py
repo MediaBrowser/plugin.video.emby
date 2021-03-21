@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
-import hashlib
 import socket
-import time
 import _strptime # Workaround for threads using datetime: _striptime is locked
 import datetime
-import distutils.version
 
 import helper.loghandler
 import emby.core.credentials
@@ -217,6 +214,9 @@ class ConnectionManager():
         # See if we have any saved credentials and can auto sign in
         if first_server is not None and first_server['DateLastAccessed'] != "2001-01-01T00:00:00Z":
             result = self.connect_to_server(first_server, options)
+
+            if not result:
+                return False
 
             if result['State'] in (3, 0): #SignedIn or Unavailable
                 return result

@@ -74,8 +74,8 @@ class Monitor(xbmc.Monitor):
         else:
             self.EmbyServer[server_id] = EmbyServer
             self.EmbyServer[server_id].start()
+            #self.ServerOnline({'ServerId': server_id})
             self.LoadServer({'ServerId': server_id})
-            self.ServerOnline({'ServerId': server_id})
             return server_id
 
     def Monitor_waitForAbort(self, Data):
@@ -92,6 +92,7 @@ class Monitor(xbmc.Monitor):
 
     def LibraryLoad(self, server_id):
         if not server_id in self.library:
+            self.ServerOnline({'ServerId': server_id})
             self.library[server_id] = database.library.Library(self, server_id)
 
     def onScanStarted(self, library):
@@ -595,9 +596,17 @@ class Monitor(xbmc.Monitor):
         if self.Service.ServerReconnectingInProgress(data['ServerId']):
             return
 
-        self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33146))
+
+
+
+
+        self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33146))     #MSG WRONG!!!!
         self.Service.Utils.window('emby.server.%s.online.bool' % data['ServerId'], False)
-        self.Service.ServerReconnect(data['ServerId'])
+
+
+
+
+        self.Service.ServerReconnect(data['ServerId'])   #CRASH!!!!!!!!!!!!!!
 
     def UserConfigurationUpdated(self, data):
         self.Service.Views.get_views()

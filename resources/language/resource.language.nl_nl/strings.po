@@ -632,7 +632,7 @@ msgstr ""
 
 msgctxt "#33102"
 msgid "Resume the previous sync?"
-msgstr "De vorige synchronisatoe hervatten?"
+msgstr "De vorige synchronisatie hervatten?"
 
 msgctxt "#33103"
 msgid ""

@@ -214,7 +214,7 @@ class Sync():
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Movies"))
 
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
@@ -248,7 +248,7 @@ class Sync():
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "TV Shows"))
 
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     TVShowsObject = core.tvshows.TVShows(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader, True)
@@ -292,7 +292,7 @@ class Sync():
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Musicvideos"))
 
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     MusicVideosObject = core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils)
@@ -327,7 +327,7 @@ class Sync():
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Music"))
 
-        with self.library.music_database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'music', True) as musicdb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     MusicObject = core.music.Music(self.library.EmbyServer, embydb, musicdb, self.direct_path, self.library.Monitor.Service.Utils)
@@ -378,7 +378,7 @@ class Sync():
         dialog = xbmcgui.DialogProgressBG()
         dialog.create(self.library.Monitor.Service.Utils.Translate('addon_name'), "%s %s" % (self.library.Monitor.Service.Utils.Translate('gathering'), "Boxsets"))
 
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
@@ -400,7 +400,7 @@ class Sync():
 
     #Delete all exisitng boxsets and re-add
     def refresh_boxsets(self):
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'video', True) as videodb:
                 with database.Database(self.library.Monitor.Service.Utils, 'emby', True) as embydb:
                     MoviesObject = core.movies.Movies(self.library.EmbyServer, embydb, videodb, self.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader)
@@ -410,7 +410,7 @@ class Sync():
 
     #Patch the music database to silence the rescan prompt
     def patch_music(self, notification):
-        with self.library.database_lock:
+        with self.library.ThreadingLock:
             with database.Database(self.library.Monitor.Service.Utils, 'music', True) as musicdb:
                 core.music.MusicDBIO(musicdb.cursor, int(self.library.Monitor.Service.Utils.window('kodidbversion.music'))).disable_rescan()
 
@@ -434,7 +434,7 @@ class Sync():
             if items:
                 count = 0
 
-                with self.library.music_database_lock if media == 'music' else self.library.database_lock:
+                with self.library.ThreadingLock:
                     with database.Database(self.library.Monitor.Service.Utils, media, True) as kodidb:
                         if library[1] == 'mixed':
                             movies = [x for x in items if x[1] == 'Movie']

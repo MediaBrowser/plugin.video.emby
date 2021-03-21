@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import xbmc
 import xbmcaddon
 
 import database.database
@@ -113,7 +112,9 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
 
             return self.register_client(state['Credentials'], options, False)
 
-        return self.EmbyServerObj.auth.credentials.get_credentials()
+
+        return False
+#        return self.EmbyServerObj.auth.credentials.get_credentials()
 
     #Save user info
     def get_user(self):
