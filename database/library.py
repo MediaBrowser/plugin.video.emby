@@ -723,16 +723,16 @@ class RemovedWorker(threading.Thread):
                         item = self.queue.get()
 
                         if item['Type'] in ('Movie', 'BoxSet'):
-                            core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item)
+                            core.movies.Movies(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item['Id'])
 
                         elif item['Type'] == 'MusicVideo':
-                            core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item)
+                            core.musicvideos.MusicVideos(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item['Id'])
 
                         elif item['Type'] in ('TVShow', 'Series', 'Season', 'Episode'):
-                            core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item)
+                            core.tvshows.TVShows(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils, self.library.Downloader).remove(item['Id'])
 
                         elif item['Type'] in ('Music', 'MusicAlbum', 'MusicArtist', 'AlbumArtist', 'Audio'):
-                            core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item)
+                            core.music.Music(self.library.EmbyServer, embydb, kodidb, self.library.direct_path, self.library.Monitor.Service.Utils).remove(item['Id'])
 
                         if self.library.Monitor.Service.SyncPause:
                             break

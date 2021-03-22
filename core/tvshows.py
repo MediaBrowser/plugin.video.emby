@@ -12,6 +12,13 @@ from . import queries_videos
 from . import artwork
 from . import kodi
 
+
+
+import xbmc
+
+
+
+
 class TVShows():
     def __init__(self, EmbyServer, embydb, videodb, direct_path, Utils, Downloader, update_library=False):
         self.LOG = helper.loghandler.LOG('EMBY.core.tvshows.TVShows')
@@ -237,6 +244,12 @@ class TVShows():
             If item exists, entry will be updated.
             If the show is empty, try to remove it.
         '''
+        e_item = self.emby_db.get_item_by_id(item['Id'])
+        library = self.Common.library_check(e_item, item, library)
+
+        if not library:
+            return False
+
         API = helper.api.API(item, self.Utils, self.EmbyServer.auth.get_serveraddress())
         obj = self.objects.map(item, 'Season')
         obj['LibraryId'] = library['Id']
