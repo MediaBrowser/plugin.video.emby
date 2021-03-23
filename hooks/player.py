@@ -339,8 +339,10 @@ class WebserviceOnPlay(threading.Thread):
                     EmbyDBItem = emby_dbT.get_kodiid(self.EmbyID)
 
                     if EmbyDBItem: #Item not synced to Kodi DB
-                        PresentationKey = EmbyDBItem[1].split("-")
-                        self.Monitor.AddSkipItem(PresentationKey[0])
+                        if EmbyDBItem[1]:
+                            PresentationKey = EmbyDBItem[1].split("-")
+                            self.Monitor.AddSkipItem(PresentationKey[0])
+
                         self.KodiID = str(EmbyDBItem[0])
                     else:
                         self.Monitor.PlayerReloadIndex = "-1"

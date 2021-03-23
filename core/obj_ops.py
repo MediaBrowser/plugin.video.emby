@@ -196,7 +196,8 @@ class Objects():
                 "Favorite": "UserData/IsFavorite",
                 "PlayCount": "UserData/PlayCount",
                 "DatePlayed": "UserData/LastPlayedDate",
-                "Played": "UserData/Played"
+                "Played": "UserData/Played",
+                "PresentationKey": "PresentationUniqueKey"
             },
             "Artist": {
                 "Id": "Id",
