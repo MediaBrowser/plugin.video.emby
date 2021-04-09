@@ -1,28 +1,30 @@
 # -*- coding: utf-8 -*-
-import xbmcaddon
+import json
+import os
 
-import database.database
+import xbmcaddon
+import xbmcvfs
+
 import dialogs.serverconnect
 import dialogs.usersconnect
 import dialogs.loginconnect
 import dialogs.loginmanual
 import dialogs.servermanual
 import helper.loghandler
-import helper.api
 import emby.main
 
-class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
-    def __init__(self, Monitor):
-        self.Monitor = Monitor
+class Connect():
+    def __init__(self, Utils):
+        self.Utils = Utils
         self.XML_PATH = (xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), "default", "1080i")
         self.LOG = helper.loghandler.LOG('EMBY.emby.connect.Connect')
         self.user = None
         self.config = None
         self.connect_manager = None
-        self.EmbyServerObj = emby.main.Emby()
+        self.EmbyServer = emby.main.Emby(self.Utils)
 
     def _save_servers(self, new_servers, default):
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
+        credentials = self.get_credentials()
 
         if not new_servers:
             return credentials
@@ -58,42 +60,87 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
     #If a server id is specified then only a login dialog will be shown for that server.
     def register(self, options):
         self.LOG.info("--[ server/%s ]" % "DEFAULT")
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
-        new_credentials = self.register_client(credentials, options, not self.Monitor.Service.Utils.settings('SyncInstallRunDone.bool'))
+        credentials = self.get_credentials()
+        new_credentials = self.register_client(credentials, options, not self.Utils.settings('SyncInstallRunDone.bool'))
 
         if new_credentials:
             server_id = new_credentials['Servers'][0]['Id']
             credentials = self._save_servers(new_credentials['Servers'], server_id)
             new_credentials.update(credentials)
-            database.database.save_credentials(self.Monitor.Service.Utils, new_credentials)
-            return server_id, self.EmbyServerObj                    #, new_credentials['Servers'][0]['Name']
+            self.save_credentials(new_credentials)
+            return server_id, self.EmbyServer
 
         return False, None
+
+
+
+
+
+    def save_credentials(self, credentials):
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+
+        if not xbmcvfs.exists(path):
+            xbmcvfs.mkdirs(path)
+
+        credentials = json.dumps(credentials, sort_keys=True, indent=4, ensure_ascii=False)
+
+        with open(os.path.join(path, 'data.json'), 'wb') as outfile:
+            outfile.write(credentials.encode('utf-8'))
+
+
+
+
+    def get_credentials(self):
+
+
+#self.EmbyServer.server_id
+
+
+
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+
+        if not xbmcvfs.exists(path):
+            xbmcvfs.mkdirs(path)
+
+        if xbmcvfs.exists(os.path.join(path, "data.json")):
+            with open(os.path.join(path, 'data.json'), 'rb') as infile:
+                credentials = json.load(infile)
+        else:
+            credentials = {}
+
+        credentials['Servers'] = credentials.get('Servers', [])
+        return credentials
+
+
+
+
+
+
 
     #Returns boolean value.
     #True: verify connection.
     def get_ssl(self):
-        return self.Monitor.Service.Utils.settings('sslverify.bool')
+        return self.Utils.settings('sslverify.bool')
 
     #Set Emby client
     def set_client(self):
-        self.EmbyServerObj.Data['app.name'] = "Kodi"
-        self.EmbyServerObj.Data['app.version'] = self.Monitor.Service.Utils.device_info['Version']
-        self.EmbyServerObj.Data['app.device_name'] = self.Monitor.Service.Utils.device_info['DeviceName']
-        self.EmbyServerObj.Data['app.device_id'] = self.Monitor.Service.Utils.device_info['DeviceId']
-        self.EmbyServerObj.Data['app.capabilities'] = None
-        self.EmbyServerObj.Data['http.user_agent'] = "Emby-Kodi/%s" % self.Monitor.Service.Utils.device_info['Version']
-        self.EmbyServerObj.Data['auth.ssl'] = self.Monitor.Service.Utils.settings('sslverify.bool')
+        self.EmbyServer.Data['app.name'] = "Kodi"
+        self.EmbyServer.Data['app.version'] = self.Utils.device_info['Version']
+        self.EmbyServer.Data['app.device_name'] = self.Utils.device_info['DeviceName']
+        self.EmbyServer.Data['app.device_id'] = self.Utils.device_info['DeviceId']
+        self.EmbyServer.Data['app.capabilities'] = None
+        self.EmbyServer.Data['http.user_agent'] = "Emby-Kodi/%s" % self.Utils.device_info['Version']
+        self.EmbyServer.Data['auth.ssl'] = self.Utils.settings('sslverify.bool')
 
     def register_client(self, credentials, options, server_selection):
         self.set_client()
-        self.connect_manager = self.EmbyServerObj.auth
-        state = self.EmbyServerObj.authenticate(credentials or {}, options or {})
+        self.connect_manager = self.EmbyServer.auth
+        state = self.EmbyServer.authenticate(credentials or {}, options or {})
 
         if state:
             if state['State'] == 3: #SignedIn
                 server_id = state['Servers'][0]['Id']
-                self.EmbyServerObj.server_id = server_id
+                self.EmbyServer.server_id = server_id
                 return state['Credentials']
 
             if state['State'] == 0: #Unavailable
@@ -106,24 +153,26 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
                     return False
             elif state['State'] == 2: #ServerSignIn
                 if 'ExchangeToken' not in state['Servers'][0]:
-                    self.login()
+                    result = self.login()
+
+                    if not result:
+                        return False
+
             elif state['State'] == 0: #Unavailable
                 return False
 
             return self.register_client(state['Credentials'], options, False)
 
-
         return False
-#        return self.EmbyServerObj.auth.credentials.get_credentials()
 
     #Save user info
     def get_user(self):
-        self.user = self.EmbyServerObj.API.get_user(None)
-        self.config = self.EmbyServerObj.API.get_system_info()
-        self.Monitor.Service.Utils.settings('username', self.user['Name'])
+        self.user = self.EmbyServer.API.get_user(None)
+        self.config = self.EmbyServer.API.get_system_info()
+        self.Utils.settings('username', self.user['Name'])
 
         if 'PrimaryImageTag' in self.user:
-            self.Monitor.Service.Utils.window('emby.UserImage', helper.api.API(self.user, self.Monitor.Service.Utils, self.EmbyServerObj.auth.get_serveraddress()).get_user_artwork(self.user['Id']))
+            self.Utils.window('emby.UserImage', self.EmbyServer.API.get_user_artwork(self.user['Id']))
 
     def select_servers(self, state):
         if not state:
@@ -159,18 +208,18 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
         return self.select_servers(None)
 
     #Setup manual servers
-    def setup_manual_server(self):
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
-        self.set_client()
-        self.EmbyServerObj.auth.credentials.set_credentials(credentials)
-        manager = self.EmbyServerObj.auth
+#    def setup_manual_server(self):
+#        credentials = database.database.get_credentials(self.Utils)
+#        self.set_client()
+#        self.EmbyServer.auth.credentials.set_credentials(credentials)
+#        manager = self.EmbyServer.auth
 
-        if not self.manual_server(manager):
-            return
+#        if not self.manual_server(manager):
+#            return
 
-        new_credentials = self.EmbyServerObj.auth.credentials.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'], False)
-        database.database.save_credentials(self.Monitor.Service.Utils, credentials)
+#        new_credentials = self.EmbyServer.auth.credentials.get_credentials()
+#        credentials = self._save_servers(new_credentials['Servers'], False)
+#        database.database.save_credentials(self.Utils, credentials)
 
     #Return server or raise error
     def manual_server(self, manager):
@@ -185,18 +234,19 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
         return False
 
     #Setup emby connect by itself
-    def setup_login_connect(self):
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
-        self.set_client()
-        self.EmbyServerObj.auth.credentials.set_credentials(credentials)
-        manager = self.EmbyServerObj.auth
+#    def setup_login_connect(self):
+#        credentials = database.database.get_credentials(self.Utils)
+#        self.set_client()
+#        self.EmbyServer.auth.credentials.set_credentials(credentials)
+#        manager = self.EmbyServer.auth
+#        result = self.login_connect(manager)
 
-        if not self.login_connect(manager):
-            return
+#        if not result:
+#            return
 
-        new_credentials = self.EmbyServerObj.auth.credentials.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'], False)
-        database.database.save_credentials(self.Monitor.Service.Utils, credentials)
+#        new_credentials = self.EmbyServer.auth.credentials.get_credentials()
+#        credentials = self._save_servers(new_credentials['Servers'], False)
+#        database.database.save_credentials(self.Utils, credentials)
 
     #Return connect user or raise error
     def login_connect(self, manager):
@@ -210,8 +260,8 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
         return False #"Connect user is not logged in"
 
     def login(self):
-        users = self.EmbyServerObj.API.get_public_users()
-        server = self.EmbyServerObj.auth.get_serveraddress()
+        users = self.EmbyServer.API.get_public_users()
+        server = self.EmbyServer.auth.get_serveraddress()
 
         if not users:
             return self.login_manual(None, None)
@@ -242,19 +292,6 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
 
         return self.login()
 
-    #Setup manual login by itself for default server
-    def setup_login_manual(self, server_id):
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
-        self.set_client()
-        self.EmbyServerObj.auth.credentials.set_credentials(credentials)
-
-        if not self.login_manual(None, self.EmbyServerObj.auth):
-            return
-
-        new_credentials = self.EmbyServerObj.auth.credentials.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'], False)
-        database.database.save_credentials(self.Monitor.Service.Utils, credentials)
-
     #Return manual login user authenticated or raise error
     def login_manual(self, user, manager):
         Dialog = dialogs.loginmanual.LoginManual("script-emby-connect-login-manual.xml", *self.XML_PATH)
@@ -268,25 +305,24 @@ class Connect(): #ADD SERVER NUMBER FOR SELECTION OR RETURN SERVER ARRAY
 
     #Stop client and remove server
     def remove_server(self, server_id):
-        self.Monitor.EmbyServer[server_id].close()
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
+        credentials = self.get_credentials()
 
         for server in credentials['Servers']:
             if server['Id'] == server_id:
                 credentials['Servers'].remove(server)
                 break
 
-        database.database.save_credentials(self.Monitor.Service.Utils, credentials)
+        self.save_credentials(credentials)
         self.LOG.info("[ remove server ] %s" % server_id)
 
     #Allow user to setup ssl verification for additional servers
     def set_ssl(self, server_id):
-        value = self.Monitor.Service.Utils.Dialog("yesno", heading="{emby}", line1=self.Monitor.Service.Utils.Translate(33217))
-        credentials = database.database.get_credentials(self.Monitor.Service.Utils)
+        value = self.Utils.Dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33217))
+        credentials = self.get_credentials()
 
         for server in credentials['Servers']:
             if server['Id'] == server_id:
                 server['verify'] = bool(value)
-                database.database.save_credentials(self.Monitor.Service.Utils, credentials)
+                self.save_credentials(credentials)
                 self.LOG.info("[ ssl/%s/%s ]" % (server_id, server['verify']))
                 break

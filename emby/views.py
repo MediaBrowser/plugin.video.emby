@@ -15,27 +15,27 @@ import helper.api
 import helper.loghandler
 
 class Views():
-    def __init__(self, Library):
+    def __init__(self, Embyserver):
+        self.EmbyServer = Embyserver
         self.limit = 25
         self.media_folders = None
-        self.Library = Library
-        self.SyncData = self.Library.Monitor.Service.Utils.get_sync()
         self.LOG = helper.loghandler.LOG('EMBY.emby.views.Views')
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils, self.EmbyServer.Data['auth.ssl'])
         self.NODES = {
             'tvshows': [
                 ('alphabet', None),
                 ('all', None),
-                ('recent', self.Library.Monitor.Service.Utils.Translate(30170)),
-                ('recentepisodes', self.Library.Monitor.Service.Utils.Translate(30175)),
-                ('inprogress', self.Library.Monitor.Service.Utils.Translate(30171)),
-                ('inprogressepisodes', self.Library.Monitor.Service.Utils.Translate(30178)),
-                ('nextepisodes', self.Library.Monitor.Service.Utils.Translate(30179)),
+                ('recent', self.EmbyServer.Utils.Translate(30170)),
+                ('recentepisodes', self.EmbyServer.Utils.Translate(30175)),
+                ('inprogress', self.EmbyServer.Utils.Translate(30171)),
+                ('inprogressepisodes', self.EmbyServer.Utils.Translate(30178)),
+                ('nextepisodes', self.EmbyServer.Utils.Translate(30179)),
                 ('genres', 135),
-                ('random', self.Library.Monitor.Service.Utils.Translate(30229)),
-                ('recommended', self.Library.Monitor.Service.Utils.Translate(30230)),
-                ('years', self.Library.Monitor.Service.Utils.Translate(33218)),
-                ('actors', self.Library.Monitor.Service.Utils.Translate(33219)),
-                ('tags', self.Library.Monitor.Service.Utils.Translate(33220)),
+                ('random', self.EmbyServer.Utils.Translate(30229)),
+                ('recommended', self.EmbyServer.Utils.Translate(30230)),
+                ('years', self.EmbyServer.Utils.Translate(33218)),
+                ('actors', self.EmbyServer.Utils.Translate(33219)),
+                ('tags', self.EmbyServer.Utils.Translate(33220)),
                 ('unwatched', "Unwatched TV Shows"),
                 ('unwatchedepisodes', "Unwatched Episodes"),
                 ('studios', "Studios"),
@@ -46,16 +46,16 @@ class Views():
             'movies': [
                 ('alphabet', None),
                 ('all', None),
-                ('recent', self.Library.Monitor.Service.Utils.Translate(30174)),
-                ('inprogress', self.Library.Monitor.Service.Utils.Translate(30177)),
-                ('unwatched', self.Library.Monitor.Service.Utils.Translate(30189)),
+                ('recent', self.EmbyServer.Utils.Translate(30174)),
+                ('inprogress', self.EmbyServer.Utils.Translate(30177)),
+                ('unwatched', self.EmbyServer.Utils.Translate(30189)),
                 ('sets', 20434),
                 ('genres', 135),
-                ('random', self.Library.Monitor.Service.Utils.Translate(30229)),
-                ('recommended', self.Library.Monitor.Service.Utils.Translate(30230)),
-                ('years', self.Library.Monitor.Service.Utils.Translate(33218)),
-                ('actors', self.Library.Monitor.Service.Utils.Translate(33219)),
-                ('tags', self.Library.Monitor.Service.Utils.Translate(33220)),
+                ('random', self.EmbyServer.Utils.Translate(30229)),
+                ('recommended', self.EmbyServer.Utils.Translate(30230)),
+                ('years', self.EmbyServer.Utils.Translate(33218)),
+                ('actors', self.EmbyServer.Utils.Translate(33219)),
+                ('tags', self.EmbyServer.Utils.Translate(33220)),
                 ('studios', "Studios"),
                 ('recentplayed', 'Recently played'),
                 ('directors', 'Directors'),
@@ -64,19 +64,19 @@ class Views():
             'musicvideos': [
                 ('alphabet', None),
                 ('all', None),
-                ('recent', self.Library.Monitor.Service.Utils.Translate(30256)),
-                ('years', self.Library.Monitor.Service.Utils.Translate(33218)),
+                ('recent', self.EmbyServer.Utils.Translate(30256)),
+                ('years', self.EmbyServer.Utils.Translate(33218)),
                 ('genres', 135),
-                ('inprogress', self.Library.Monitor.Service.Utils.Translate(30257)),
-                ('random', self.Library.Monitor.Service.Utils.Translate(30229)),
-                ('unwatched', self.Library.Monitor.Service.Utils.Translate(30258)),
+                ('inprogress', self.EmbyServer.Utils.Translate(30257)),
+                ('random', self.EmbyServer.Utils.Translate(30229)),
+                ('unwatched', self.EmbyServer.Utils.Translate(30258)),
                 ('artists', "Artists"),
                 ('albums', "Albums"),
                 ('recentplayed', 'Recently played')
             ],
             'music': [
                 ('alphabet', None),
-                ('years', self.Library.Monitor.Service.Utils.Translate(33218)),
+                ('years', self.EmbyServer.Utils.Translate(33218)),
                 ('genres', 135),
                 ('artists', "Artists"),
                 ('albums', "Albums"),
@@ -141,11 +141,11 @@ class Views():
 
     #Make sure we have the kodi default folder in place
     def verify_kodi_defaults(self):
-        node_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video")
+        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
 
         if not xbmcvfs.exists(node_path):
             try:
-                shutil.copytree(src=self.Library.Monitor.Service.Utils.translatePath("special://xbmc/system/library/video"), dst=self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video"))
+                shutil.copytree(src=self.EmbyServer.Utils.translatePath("special://xbmc/system/library/video"), dst=self.EmbyServer.Utils.translatePath("special://profile/library/video"))
             except Exception as error:
                 xbmcvfs.mkdir(node_path)
 
@@ -160,22 +160,22 @@ class Views():
                     continue
 
                 xmlData.set('order', str(17 + index))
-                self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-                self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+                self.EmbyServer.Utils.indent(xmlData, 0)
+                self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
 
-        playlist_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/video")
+        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
 
         if not xbmcvfs.exists(playlist_path):
             xbmcvfs.mkdirs(playlist_path)
 
     #Add entry to view table in emby database
     def add_library(self, view):
-        with database.database.Database(self.Library.Monitor.Service.Utils, 'emby', True) as embydb:
+        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             database.emby_db.EmbyDatabase(embydb.cursor).add_view(view['Id'], view['Name'], view['Media'])
 
     #Remove entry from view table in emby database
     def remove_library(self, view_id):
-        with database.database.Database(self.Library.Monitor.Service.Utils, 'emby', True) as embydb:
+        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             database.emby_db.EmbyDatabase(embydb.cursor).remove_view(view_id)
 
         self.delete_playlist_by_id(view_id)
@@ -183,11 +183,11 @@ class Views():
 
     def get_libraries(self):
         try:
-            if not self.Library.Monitor.EmbyServer[self.Library.server_id].logged_in:
+            if not self.EmbyServer.logged_in:
                 return False
 
-            libraries = self.Library.Monitor.EmbyServer[self.Library.server_id].API.get_media_folders()['Items']
-            views = self.Library.Monitor.EmbyServer[self.Library.server_id].API.get_views()['Items']
+            libraries = self.EmbyServer.API.get_media_folders()['Items']
+            views = self.EmbyServer.API.get_views()['Items']
         except:
             return False
 
@@ -202,7 +202,7 @@ class Views():
             self.LOG.error("Unable to retrieve libraries")
             return
 
-        self.SyncData['SortedViews'] = [x['Id'] for x in libraries]
+        self.EmbyServer.Utils.SyncData['SortedViews'] = [x['Id'] for x in libraries]
 
         for library in libraries:
             if library['Type'] == 'Channel':
@@ -212,10 +212,10 @@ class Views():
 
             self.add_library(library)
 
-        with database.database.Database(self.Library.Monitor.Service.Utils, 'emby', True) as embydb:
+        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             views = database.emby_db.EmbyDatabase(embydb.cursor).get_views()
-            sorted_views = self.SyncData['SortedViews']
-            whitelist = self.SyncData['Whitelist']
+            sorted_views = self.EmbyServer.Utils.SyncData['SortedViews']
+            whitelist = self.EmbyServer.Utils.SyncData['Whitelist']
             removed = []
 
             for view in views:
@@ -223,7 +223,7 @@ class Views():
                     removed.append(view[0])
 
         if removed:
-            self.Library.Monitor.Service.Utils.event('RemoveLibrary', {'Id': ','.join(removed)})
+            self.EmbyServer.Utils.event('RemoveLibrary', {'Id': ','.join(removed)})
 
             for library_id in removed:
                 if library_id in sorted_views:
@@ -232,16 +232,16 @@ class Views():
                 if library_id in whitelist:
                     whitelist.remove(library_id)
 
-        self.Library.Monitor.Service.Utils.save_sync(self.SyncData)
+        self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData)
 
     #Set up playlists, video nodes, window prop
     def get_nodes(self):
         index = 0
 
-        with database.database.Database(self.Library.Monitor.Service.Utils, 'emby', True) as embydb:
+        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             db = database.emby_db.EmbyDatabase(embydb.cursor)
 
-            for library in self.SyncData['Whitelist']:
+            for library in self.EmbyServer.Utils.SyncData['Whitelist']:
                 library = library.replace('Mixed:', "")
                 view = db.get_view(library)
 
@@ -249,11 +249,11 @@ class Views():
                     view = {'Id': library, 'Name': view[0], 'Tag': view[0], 'Media': view[1]}
 
                     if view['Media'] == 'music':
-                        node_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/music")
-                        playlist_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/music")
+                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/music")
+                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/music")
                     else:
-                        node_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video")
-                        playlist_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/video")
+                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
+                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
 
                     if view['Media'] == 'mixed':
                         for media in ('movies', 'tvshows'):
@@ -271,10 +271,10 @@ class Views():
 
                     index += 1
 
-        node_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video")
-        playlist_path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/video")
+        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
+        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
 
-        for single in [{'Name': self.Library.Monitor.Service.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.Library.Monitor.Service.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.Library.Monitor.Service.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
+        for single in [{'Name': self.EmbyServer.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.EmbyServer.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.EmbyServer.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
             self.add_single_node(node_path, index, "favorites", single)
             index += 1
 
@@ -303,8 +303,8 @@ class Views():
             rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
             xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
 
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
 
     #Create or update the video node file
     def add_nodes(self, path, view, mixed):
@@ -352,8 +352,8 @@ class Views():
         else:
             self.node_all(xmlData)
 
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
 
     #Create the root element
     def node_root(self, root, index):
@@ -369,7 +369,7 @@ class Views():
 
     def node_index(self, folder, view, mixed):
         filepath = os.path.join(folder, "index.xml")
-        index = self.SyncData['SortedViews'].index(view['Id'])
+        index = self.EmbyServer.Utils.SyncData['SortedViews'].index(view['Id'])
 
         try:
             xmlData = xml.etree.ElementTree.parse(filepath).getroot()
@@ -379,9 +379,9 @@ class Views():
             xml.etree.ElementTree.SubElement(xmlData, 'label')
 
         label = xmlData.find('label')
-        label.text = view['Name'] if not mixed else "%s (%s)" % (view['Name'], self.Library.Monitor.Service.Utils.Translate(view['Media']))
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        label.text = view['Name'] if not mixed else "%s (%s)" % (view['Name'], self.EmbyServer.Utils.Translate(view['Media']))
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
 
     def node(self, folder, view):
         for node in self.NODES[view['Media']]:
@@ -413,8 +413,8 @@ class Views():
         xmlData.set('type', "folder")
         xmlLabel = xml.etree.ElementTree.SubElement(xmlData, "label").text = "Alphabet"
         xmlIcon = xml.etree.ElementTree.SubElement(xmlData, 'icon').text = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
         Counter = 1
         FileName = os.path.join(FolderPath, "0-9.xml")
 
@@ -454,36 +454,36 @@ class Views():
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("&")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("Ä")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("Ö")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("Ü")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("!")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("(")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(")")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("@")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("#")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("$")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("^")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("*")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("-")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("=")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("+")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("{")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("}")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("[")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("]")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("?")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(":")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(";")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("'")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(",")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(".")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("<")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode(">")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.Library.Monitor.Service.Utils.StringDecode("~")
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("&")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ä")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ö")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ü")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("!")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("(")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(")")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("@")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("#")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("$")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("^")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("*")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("-")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("=")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("+")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("{")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("}")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("[")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("]")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("?")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(":")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(";")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("'")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(",")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(".")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("<")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(">")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("~")
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
         FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
         for FileID in FileNames:
@@ -512,8 +512,8 @@ class Views():
             xmlRule.text = FileID
             xmlRule.set('field', SortObject)
             xmlRule.set('operator', "startswith")
-            self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-            self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
+            self.EmbyServer.Utils.indent(xmlData, 0)
+            self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
 
     def node_tvshow(self, folder, view):
         for node in self.NODES[view['Media']]:
@@ -568,8 +568,8 @@ class Views():
             xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
 
         getattr(self, 'node_' + node)(xmlData) # get node function based on node type
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
 
     def add_dynamic_node(self, index, filepath, node, name, path):
         try:
@@ -582,8 +582,8 @@ class Views():
         label = xmlData.find('label')
         label.text = name
         getattr(self, 'node_' + node)(xmlData, path)
-        self.Library.Monitor.Service.Utils.indent(xmlData, 0)
-        self.Library.Monitor.Service.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        self.EmbyServer.Utils.indent(xmlData, 0)
+        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
 
     def node_all(self, root):
         for rule in root.findall('.//order'):
@@ -900,7 +900,7 @@ class Views():
         if not folders:
             return folders
 
-        sorted_views = list(self.SyncData['SortedViews'])
+        sorted_views = list(self.EmbyServer.Utils.SyncData['SortedViews'])
         unordered = [x[0] for x in folders]
         grouped = [x for x in unordered if x not in sorted_views]
 
@@ -916,7 +916,7 @@ class Views():
         self.window_clear('Emby.nodes')
         self.window_clear('Emby.wnodes')
 
-        with database.database.Database(self.Library.Monitor.Service.Utils, 'emby', True) as embydb:
+        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             libraries = database.emby_db.EmbyDatabase(embydb.cursor).get_views()
 
         libraries = self.order_media_folders(libraries or [])
@@ -930,7 +930,7 @@ class Views():
 
         for library in (libraries or []):
             view = {'Id': library[0], 'Name': library[1], 'Tag': library[1], 'Media': library[2]}
-            if library[0] in [x.replace('Mixed:', "") for x in self.SyncData['Whitelist']]: # Synced libraries
+            if library[0] in [x.replace('Mixed:', "") for x in self.EmbyServer.Utils.SyncData['Whitelist']]: # Synced libraries
                 if view['Media'] in ('movies', 'tvshows', 'musicvideos', 'mixed'):
                     if view['Media'] == 'mixed':
                         for media in ('movies', 'tvshows'):
@@ -938,7 +938,7 @@ class Views():
                                 temp_view = dict(view)
                                 temp_view['Media'] = media
                                 temp_view['CleanName'] = view['Name']
-                                temp_view['Name'] = "%s (%s)" % (view['Name'], self.Library.Monitor.Service.Utils.Translate(media))
+                                temp_view['Name'] = "%s (%s)" % (view['Name'], self.EmbyServer.Utils.Translate(media))
                                 self.window_node(index, temp_view, *node)
                                 self.window_wnode(windex, temp_view, *node)
 
@@ -966,11 +966,11 @@ class Views():
 
             index += 1
 
-        for single in [{'Name': self.Library.Monitor.Service.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.Library.Monitor.Service.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.Library.Monitor.Service.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
+        for single in [{'Name': self.EmbyServer.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.EmbyServer.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.EmbyServer.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
             self.window_single_node(index, "favorites", single)
             index += 1
 
-        self.Library.Monitor.Service.Utils.window('emby.nodes.total', str(index))
+        self.EmbyServer.Utils.window('emby.nodes.total', str(index))
 
     #Leads to another listing of nodes
     def window_node(self, index, view, node, node_label):
@@ -992,25 +992,25 @@ class Views():
         else:
             window_path = "ActivateWindow(Videos,%s,return)" % path
 
-        node_label = self.Library.Monitor.Service.Utils.Translate(node_label) if isinstance(node_label, int) else node_label
+        node_label = self.EmbyServer.Utils.Translate(node_label) if isinstance(node_label, int) else node_label
         node_label = node_label or view['Name']
 
         if node in ('all', 'music'):
             window_prop = "Emby.nodes.%s" % index
-            self.Library.Monitor.Service.Utils.window('%s.index' % window_prop, path.replace('all.xml', "")) # dir
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
+            self.EmbyServer.Utils.window('%s.index' % window_prop, path.replace('all.xml', "")) # dir
+            self.EmbyServer.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.content' % window_prop, path)
         elif node == 'browse':
             window_prop = "Emby.nodes.%s" % index
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
         else:
             window_prop = "Emby.nodes.%s.%s" % (index, node)
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, node_label.encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
+            self.EmbyServer.Utils.window('%s.title' % window_prop, node_label.encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.content' % window_prop, path)
 
-        self.Library.Monitor.Service.Utils.window('%s.id' % window_prop, view['Id'])
-        self.Library.Monitor.Service.Utils.window('%s.path' % window_prop, window_path)
-        self.Library.Monitor.Service.Utils.window('%s.type' % window_prop, view['Media'])
+        self.EmbyServer.Utils.window('%s.id' % window_prop, view['Id'])
+        self.EmbyServer.Utils.window('%s.path' % window_prop, window_path)
+        self.EmbyServer.Utils.window('%s.type' % window_prop, view['Media'])
         self.window_artwork(window_prop, view['Id'])
 
     #Single destination node
@@ -1018,10 +1018,10 @@ class Views():
         path = "library://video/emby_%s.xml" % view['Tag'].replace(" ", "")
         window_path = "ActivateWindow(Videos,%s,return)" % path
         window_prop = "Emby.nodes.%s" % index
-        self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, view['Name'])
-        self.Library.Monitor.Service.Utils.window('%s.path' % window_prop, window_path)
-        self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
-        self.Library.Monitor.Service.Utils.window('%s.type' % window_prop, item_type)
+        self.EmbyServer.Utils.window('%s.title' % window_prop, view['Name'])
+        self.EmbyServer.Utils.window('%s.path' % window_prop, window_path)
+        self.EmbyServer.Utils.window('%s.content' % window_prop, path)
+        self.EmbyServer.Utils.window('%s.type' % window_prop, item_type)
 
     #Similar to window_node, but does not contain music, musicvideos.
     #Contains books, audiobooks
@@ -1036,44 +1036,44 @@ class Views():
         else:
             window_path = "ActivateWindow(Videos,%s,return)" % path
 
-        node_label = self.Library.Monitor.Service.Utils.Translate(node_label) if isinstance(node_label, int) else node_label
+        node_label = self.EmbyServer.Utils.Translate(node_label) if isinstance(node_label, int) else node_label
         node_label = node_label or view['Name']
         clean_title = view.get('CleanName', node_label)
 
         if node == 'all':
             window_prop = "Emby.wnodes.%s" % index
-            self.Library.Monitor.Service.Utils.window('%s.index' % window_prop, path.replace('all.xml', "")) # dir
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
+            self.EmbyServer.Utils.window('%s.index' % window_prop, path.replace('all.xml', "")) # dir
+            self.EmbyServer.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.content' % window_prop, path)
         elif node == 'browse':
             window_prop = "Emby.wnodes.%s" % index
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
+            self.EmbyServer.Utils.window('%s.title' % window_prop, view['Name'].encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.content' % window_prop, path)
         else:
             window_prop = "Emby.wnodes.%s.%s" % (index, node)
-            self.Library.Monitor.Service.Utils.window('%s.title' % window_prop, node_label.encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
-            self.Library.Monitor.Service.Utils.window('%s.content' % window_prop, path)
+            self.EmbyServer.Utils.window('%s.title' % window_prop, node_label.encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.cleantitle' % window_prop, clean_title.encode('utf-8'))
+            self.EmbyServer.Utils.window('%s.content' % window_prop, path)
 
-        self.Library.Monitor.Service.Utils.window('%s.id' % window_prop, view['Id'])
-        self.Library.Monitor.Service.Utils.window('%s.path' % window_prop, window_path)
-        self.Library.Monitor.Service.Utils.window('%s.type' % window_prop, view['Media'])
+        self.EmbyServer.Utils.window('%s.id' % window_prop, view['Id'])
+        self.EmbyServer.Utils.window('%s.path' % window_prop, window_path)
+        self.EmbyServer.Utils.window('%s.type' % window_prop, view['Media'])
         self.window_artwork(window_prop, view['Id'])
-        self.LOG.debug("--[ wnode/%s/%s ] %s" % (index, self.Library.Monitor.Service.Utils.window('%s.title' % window_prop), self.Library.Monitor.Service.Utils.window('%s.artwork' % window_prop)))
+        self.LOG.debug("--[ wnode/%s/%s ] %s" % (index, self.EmbyServer.Utils.window('%s.title' % window_prop), self.EmbyServer.Utils.window('%s.artwork' % window_prop)))
 
     def window_artwork(self, prop, view_id):
-        if not self.Library.Monitor.EmbyServer[self.Library.server_id].logged_in:
-            self.Library.Monitor.Service.Utils.window('%s.artwork' % prop, clear=True)
-        elif self.Library.Monitor.EmbyServer[self.Library.server_id].logged_in and self.media_folders:
+        if not self.EmbyServer.logged_in:
+            self.EmbyServer.Utils.window('%s.artwork' % prop, clear=True)
+        elif self.EmbyServer.logged_in and self.media_folders:
             for library in self.media_folders:
                 if library['Id'] == view_id and 'Primary' in library.get('ImageTags', {}):
-                    artwork = helper.api.API(None, self.Library.Monitor.Service.Utils, self.Library.Monitor.EmbyServer[self.Library.server_id].auth.get_serveraddress()).get_artwork(view_id, 'Primary', None, None)
-                    self.Library.Monitor.Service.Utils.window('%s.artwork' % prop, artwork)
+                    artwork = self.APIHelper.get_artwork(view_id, 'Primary', None, None)
+                    self.EmbyServer.Utils.window('%s.artwork' % prop, artwork)
                     break
             else:
-                self.Library.Monitor.Service.Utils.window('%s.artwork' % prop, clear=True)
+                self.EmbyServer.Utils.window('%s.artwork' % prop, clear=True)
 
     def window_path(self, view, node):
         return "library://video/emby%s%s/%s.xml" % (view['Media'], view['Id'], node)
@@ -1105,9 +1105,8 @@ class Views():
 
     #Clearing window prop setup for Views
     def window_clear(self, name):
-        total = int(self.Library.Monitor.Service.Utils.window(name + '.total') or 0)
+        total = int(self.EmbyServer.Utils.window(name + '.total') or 0)
         props = [
-
             "index", "id", "path", "artwork", "title", "cleantitle", "content", "type"
             "inprogress.content", "inprogress.title",
             "inprogress.content", "inprogress.path",
@@ -1122,10 +1121,10 @@ class Views():
 
         for i in range(total):
             for prop in props:
-                self.Library.Monitor.Service.Utils.window(name + '.%s.%s' % (str(i), prop), clear=True)
+                self.EmbyServer.Utils.window(name + '.%s.%s' % (str(i), prop), clear=True)
 
         for prop in props:
-            self.Library.Monitor.Service.Utils.window(name + '.%s' % prop, clear=True)
+            self.EmbyServer.Utils.window(name + '.%s' % prop, clear=True)
 
     def delete_playlist(self, path):
         xbmcvfs.delete(path)
@@ -1133,7 +1132,7 @@ class Views():
 
     #Remove all emby playlists
     def delete_playlists(self):
-        path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
         _, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -1142,7 +1141,7 @@ class Views():
 
     #Remove playlist based based on view_id
     def delete_playlist_by_id(self, view_id):
-        path = self.Library.Monitor.Service.Utils.translatePath("special://profile/playlists/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
         _, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -1155,7 +1154,7 @@ class Views():
 
     #Remove node and children files
     def delete_nodes(self):
-        path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
         dirs, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -1173,7 +1172,7 @@ class Views():
 
     #Remove node and children files based on view_id
     def delete_node_by_id(self, view_id):
-        path = self.Library.Monitor.Service.Utils.translatePath("special://profile/library/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
         dirs, files = xbmcvfs.listdir(path)
 
         for directory in dirs:

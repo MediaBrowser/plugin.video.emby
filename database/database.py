@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 import sqlite3
 
@@ -7,7 +6,6 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 
-import core.obj_ops
 import helper.loghandler
 from . import emby_db
 
@@ -18,85 +16,21 @@ class Database():
     discovered = False
     discovered_file = None
 
-    #file: emby, texture, music, video, :memory: or path to file
     def __init__(self, Utils, fileID, commit_close):
         self.Utils = Utils
         self.db_file = fileID
         self.commit_close = commit_close
-        self.objects = core.obj_ops.Objects(self.Utils)
-        self.path = None
         self.conn = None
         self.cursor = None
 
     #Open the connection and return the Database class.
     #This is to allow for the cursor, conn and others to be accessible.
     def __enter__(self):
-        self.path = self._sql(self.db_file)
-
-        if not self.path:
-            return
-
-        self.conn = sqlite3.connect(self.path, timeout=self.timeout)
+        self.conn = sqlite3.connect(self.Utils.DatabaseFiles[self.db_file], timeout=self.timeout)
         self.cursor = self.conn.cursor()
-
-        if self.db_file in ('video', 'music', 'texture', 'emby'):
-            self.conn.execute("PRAGMA journal_mode=WAL") # to avoid writing conflict with kodi
-
+        self.conn.execute("PRAGMA journal_mode=WAL") # to avoid writing conflict with kodi
         LOG.debug("--->[ database: %s ] %s" % (self.db_file, id(self.conn)))
         return self
-
-    def _get_database(self, path, silent):
-        path = self.Utils.translatePath(path)
-
-        if not silent:
-            if not xbmcvfs.exists(path):
-                LOG.error("Database: %s missing" % path)
-                return False
-
-            conn = sqlite3.connect(path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = cursor.fetchall()
-            conn.close()
-
-            if not len(tables):
-                LOG.error("Database: %s malformed?" % path)
-                return False
-
-        return path
-
-    def _sql(self, DBFile):
-        databases = self.objects.objects
-
-        if DBFile not in ('video', 'music', 'texture') or databases.get('database_set%s' % DBFile):
-            return self._get_database(databases[DBFile], True)
-
-        #Read Database from filesystem
-        folder = self.Utils.translatePath("special://database/")
-        _, files = xbmcvfs.listdir(folder)
-        DBIDs = {
-            'Textures': "texture",
-            'MyMusic': "music",
-            'MyVideos': "video"
-        }
-
-        Version = 0
-
-        for DBID in DBIDs:
-            key = DBIDs[DBID]
-
-            if key == DBFile:
-                for Filename in files:
-                    if (Filename.startswith(DBID) and not Filename.endswith('-wal') and not Filename.endswith('-shm') and not Filename.endswith('db-journal')):
-                        Temp = int(''.join(i for i in Filename if i.isdigit()))
-
-                        if Temp > Version:
-                            databases[key] = os.path.join(folder, Filename)
-                            databases['database_set%s' % key] = True
-                            Version = Temp
-
-        self.Utils.window('kodidbversion.' + DBFile, str(Version))
-        return databases[DBFile]
 
     #Close the connection and cursor
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -113,57 +47,47 @@ class Database():
         self.cursor.close()
         self.conn.close()
 
-
 #Open the databases to test if the file exists
-def test_databases(Utils):
-    with Database(Utils, 'video', True):
-        with Database(Utils, 'music', True):
-            pass
-
+def EmbyDatabaseBuild(Utils):
     with Database(Utils, 'emby', True) as embydb:
-        emby_tables(embydb.cursor)
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS emby(emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT, kodi_id INTEGER, kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER, checksum INTEGER, emby_parent_id TEXT)")
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS view(view_id TEXT UNIQUE, view_name TEXT, media_type TEXT)")
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS MediaSources(emby_id TEXT, MediaIndex INTEGER, Protocol TEXT, MediaSourceId TEXT, Path TEXT, Type TEXT, Container TEXT, Size INTEGER, Name TEXT, IsRemote TEXT, RunTimeTicks INTEGER, SupportsTranscoding TEXT, SupportsDirectStream TEXT, SupportsDirectPlay TEXT, IsInfiniteStream TEXT, RequiresOpening TEXT, RequiresClosing TEXT, RequiresLooping TEXT, SupportsProbing TEXT, Formats TEXT, Bitrate INTEGER, RequiredHttpHeaders TEXT, ReadAtNativeFramerate TEXT, DefaultAudioStreamIndex INTEGER)")
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams(emby_id TEXT, MediaIndex INTEGER, VideoIndex INTEGER, Codec TEXT, TimeBase TEXT, CodecTimeBase TEXT, VideoRange TEXT, DisplayTitle TEXT, IsInterlaced TEXT, BitRate INTEGER, BitDepth INTEGER, RefFrames INTEGER, IsDefault TEXT, IsForced TEXT, Height INTEGER, Width INTEGER, AverageFrameRate INTEGER, RealFrameRate INTEGER, Profile TEXT, Type TEXT, AspectRatio TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, PixelFormat TEXT, Level INTEGER, IsAnamorphic TEXT, StreamIndex INTEGER)")
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams(emby_id TEXT, MediaIndex INTEGER, AudioIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, ChannelLayout TEXT, BitRate INTEGER, Channels INTEGER, SampleRate INTEGER, IsDefault TEXT, IsForced TEXT, Profile TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
+        embydb.cursor.execute("CREATE TABLE IF NOT EXISTS Subtitle(emby_id TEXT, MediaIndex INTEGER, SubtitleIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, IsDefault TEXT, IsForced TEXT, Path TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
 
+        columns = embydb.cursor.execute("SELECT * FROM VideoStreams")
+        descriptions = [description[0] for description in columns.description]
 
-#Create the tables for the emby database
-def emby_tables(cursor):
-    cursor.execute("CREATE TABLE IF NOT EXISTS emby(emby_id TEXT UNIQUE, media_folder TEXT, emby_type TEXT, media_type TEXT, kodi_id INTEGER, kodi_fileid INTEGER, kodi_pathid INTEGER, parent_id INTEGER, checksum INTEGER, emby_parent_id TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS view(view_id TEXT UNIQUE, view_name TEXT, media_type TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS MediaSources(emby_id TEXT, MediaIndex INTEGER, Protocol TEXT, MediaSourceId TEXT, Path TEXT, Type TEXT, Container TEXT, Size INTEGER, Name TEXT, IsRemote TEXT, RunTimeTicks INTEGER, SupportsTranscoding TEXT, SupportsDirectStream TEXT, SupportsDirectPlay TEXT, IsInfiniteStream TEXT, RequiresOpening TEXT, RequiresClosing TEXT, RequiresLooping TEXT, SupportsProbing TEXT, Formats TEXT, Bitrate INTEGER, RequiredHttpHeaders TEXT, ReadAtNativeFramerate TEXT, DefaultAudioStreamIndex INTEGER)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams(emby_id TEXT, MediaIndex INTEGER, VideoIndex INTEGER, Codec TEXT, TimeBase TEXT, CodecTimeBase TEXT, VideoRange TEXT, DisplayTitle TEXT, IsInterlaced TEXT, BitRate INTEGER, BitDepth INTEGER, RefFrames INTEGER, IsDefault TEXT, IsForced TEXT, Height INTEGER, Width INTEGER, AverageFrameRate INTEGER, RealFrameRate INTEGER, Profile TEXT, Type TEXT, AspectRatio TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, PixelFormat TEXT, Level INTEGER, IsAnamorphic TEXT, StreamIndex INTEGER)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams(emby_id TEXT, MediaIndex INTEGER, AudioIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, ChannelLayout TEXT, BitRate INTEGER, Channels INTEGER, SampleRate INTEGER, IsDefault TEXT, IsForced TEXT, Profile TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS Subtitle(emby_id TEXT, MediaIndex INTEGER, SubtitleIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, IsDefault TEXT, IsForced TEXT, Path TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
+        if 'StreamIndex' not in descriptions:
+            LOG.info("Add missing column VideoStreams -> StreamIndex")
+            embydb.cursor.execute("ALTER TABLE VideoStreams ADD COLUMN StreamIndex 'INTEGER'")
 
-    columns = cursor.execute("SELECT * FROM VideoStreams")
-    descriptions = [description[0] for description in columns.description]
+        columns = embydb.cursor.execute("SELECT * FROM AudioStreams")
+        descriptions = [description[0] for description in columns.description]
 
-    if 'StreamIndex' not in descriptions:
-        LOG.info("Add missing column VideoStreams -> StreamIndex")
-        cursor.execute("ALTER TABLE VideoStreams ADD COLUMN StreamIndex 'INTEGER'")
+        if 'StreamIndex' not in descriptions:
+            LOG.info("Add missing column AudioStreams -> StreamIndex")
+            embydb.cursor.execute("ALTER TABLE AudioStreams ADD COLUMN StreamIndex 'INTEGER'")
 
-    columns = cursor.execute("SELECT * FROM AudioStreams")
-    descriptions = [description[0] for description in columns.description]
+        columns = embydb.cursor.execute("SELECT * FROM Subtitle")
+        descriptions = [description[0] for description in columns.description]
 
-    if 'StreamIndex' not in descriptions:
-        LOG.info("Add missing column AudioStreams -> StreamIndex")
-        cursor.execute("ALTER TABLE AudioStreams ADD COLUMN StreamIndex 'INTEGER'")
+        if 'StreamIndex' not in descriptions:
+            LOG.info("Add missing column Subtitle -> StreamIndex")
+            embydb.cursor.execute("ALTER TABLE Subtitle ADD COLUMN StreamIndex 'INTEGER'")
 
-    columns = cursor.execute("SELECT * FROM Subtitle")
-    descriptions = [description[0] for description in columns.description]
+        columns = embydb.cursor.execute("SELECT * FROM emby")
+        descriptions = [description[0] for description in columns.description]
 
-    if 'StreamIndex' not in descriptions:
-        LOG.info("Add missing column Subtitle -> StreamIndex")
-        cursor.execute("ALTER TABLE Subtitle ADD COLUMN StreamIndex 'INTEGER'")
+        if 'emby_parent_id' not in descriptions:
+            LOG.info("Add missing column emby_parent_id")
+            embydb.cursor.execute("ALTER TABLE emby ADD COLUMN emby_parent_id 'TEXT'")
 
-    columns = cursor.execute("SELECT * FROM emby")
-    descriptions = [description[0] for description in columns.description]
-
-    if 'emby_parent_id' not in descriptions:
-        LOG.info("Add missing column emby_parent_id")
-        cursor.execute("ALTER TABLE emby ADD COLUMN emby_parent_id 'TEXT'")
-
-    if 'presentation_key' not in descriptions:
-        LOG.info("Add missing column presentation_key")
-        cursor.execute("ALTER TABLE emby ADD COLUMN presentation_key 'TEXT'")
+        if 'presentation_key' not in descriptions:
+            LOG.info("Add missing column presentation_key")
+            embydb.cursor.execute("ALTER TABLE emby ADD COLUMN presentation_key 'TEXT'")
 
 #Reset both the emby database and the kodi database.
 def reset(Utils, Force):
@@ -316,32 +240,13 @@ def reset_artwork(Utils):
 
     LOG.warning("[ reset artwork ]")
 
-def get_credentials(Utils):
-    path = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
-    if not xbmcvfs.exists(path):
-        xbmcvfs.mkdirs(path)
 
-    if xbmcvfs.exists(os.path.join(path, "data.json")):
-        with open(os.path.join(path, 'data.json'), 'rb') as infile:
-            credentials = json.load(infile)
-    else:
-        credentials = {}
 
-    credentials['Servers'] = credentials.get('Servers', [])
-    return credentials
 
-def save_credentials(Utils, credentials):
-    credentials = credentials or {}
-    path = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
-    if not xbmcvfs.exists(path):
-        xbmcvfs.mkdirs(path)
 
-    credentials = json.dumps(credentials, sort_keys=True, indent=4, ensure_ascii=False)
 
-    with open(os.path.join(path, 'data.json'), 'wb') as outfile:
-        outfile.write(credentials.encode('utf-8'))
 
 #Get Kodi ID from emby ID
 def get_kodiID(Utils, emby_id):

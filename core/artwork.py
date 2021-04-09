@@ -37,21 +37,21 @@ class Artwork():
         if image == 'poster' and media in ('song', 'artist', 'album'):
             return
 
-        try:
-            self.cursor.execute(queries_videos.get_art, (kodi_id, media, image,))
-            url = self.cursor.fetchone()[0]
-        except TypeError:
+        self.cursor.execute(queries_videos.get_art, (kodi_id, media, image,))
+        result = self.cursor.fetchone()
+
+        if result:
+            url = result[0]
+
+            if url != image_url:
+                self.delete_cache(url, False)
+
+                if image_url:
+                    self.LOG.info("UPDATE to kodi_id %s art: %s" % (kodi_id, image_url))
+                    self.cursor.execute(queries_videos.update_art, (image_url, kodi_id, media, image))
+        else:
             self.LOG.debug("ADD to kodi_id %s art: %s" % (kodi_id, image_url))
             self.cursor.execute(queries_videos.add_art, (kodi_id, media, image, image_url))
-        else:
-            if url != image_url:
-                self.delete_cache(url)
-
-                if not image_url:
-                    return
-
-                self.LOG.info("UPDATE to kodi_id %s art: %s" % (kodi_id, image_url))
-                self.cursor.execute(queries_videos.update_art, (image_url, kodi_id, media, image))
 
     #Add all artworks
     def add(self, artwork, *args):
@@ -88,29 +88,30 @@ class Artwork():
         self.cursor.execute(queries_videos.get_art_url, args)
 
         for row in self.cursor.fetchall():
-            self.delete_cache(row[0])
+            self.delete_cache(row[0], True)
 
     #Delete cached artwork
-    def delete_cache(self, url):
+    def delete_cache(self, url, CompleteRemove):
         with database.database.Database(self.Utils, 'texture', True) as texturedb:
             cursor = texturedb.cursor
+            cursor.execute(queries_texture.get_cache, (url,))
+            result = cursor.fetchone()
 
-            try:
-                cursor.execute(queries_texture.get_cache, (url,))
-                cached = cursor.fetchone()[0]
-            except TypeError:
-                self.LOG.debug("Could not find cached url: %s" % url)
-            else:
+            if result:
+                cached = result[0]
                 thumbnails = self.Utils.translatePath("special://thumbnails/%s" % cached)
                 xbmcvfs.delete(thumbnails)
                 cursor.execute(queries_texture.delete_cache, (url,))
 
-                if self.is_music:
-                    self.cursor.execute(queries_music.delete_artwork, (url,))
-                else:
-                    self.cursor.execute(queries_videos.delete_artwork, (url,))
+                if CompleteRemove:
+                    if self.is_music:
+                        self.cursor.execute(queries_music.delete_artwork, (url,))
+                    else:
+                        self.cursor.execute(queries_videos.delete_artwork, (url,))
 
                 self.LOG.info("DELETE cached %s" % cached)
+            else:
+                self.LOG.debug("Could not find cached url: %s" % url)
 
     #This method will sync all Kodi artwork to textures13.dband cache them locally. This takes diskspace!
     def cache_textures(self):

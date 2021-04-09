@@ -13,19 +13,17 @@ class Service():
         self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
         self.ShouldStop = False
         self.ReloadSkin = True
-        self.SyncPause = False
         self.Startup()
 
     def Startup(self):
         self.ShouldStop = False
         self.ReloadSkin = True
-        self.SyncPause = False
         self.Utils = helper.utils.Utils()
-        self.Setup = helper.setup.Setup(self)
+        self.Setup = helper.setup.Setup(self.Utils)
         self.Delay = int(self.Utils.settings('startupDelay'))
         self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
         self.Monitor = hooks.monitor.Monitor(self)
-        database.database.test_databases(self.Utils)
+        database.database.EmbyDatabaseBuild(self.Utils)
         Xmls = helper.xmls.Xmls(self.Utils)
         Xmls.advanced_settings_add_timeouts()
         self.Utils.settings('groupedSets.bool', self.Utils.GroupedSet)
@@ -46,20 +44,19 @@ class Service():
         if not server_id:
             return False
 
-        self.Setup.setup()
+        self.ReloadSkin = self.Setup.setup()
         self.Monitor.LibraryLoad(server_id)
         return True
 
     def ServerReconnectingInProgress(self, server_id):
         if server_id in self.ServerReconnecting:
-            if self.ServerReconnecting[server_id]:
-                return True
+            return self.ServerReconnecting[server_id]
 
         return False
 
     def ServerReconnect(self, server_id, Terminate=True):
         self.ServerReconnecting[server_id] = True
-        self.SyncPause = False
+        self.Monitor.player.SyncPause = False
 
         if Terminate:
             if server_id in self.Monitor.EmbyServer:
@@ -77,7 +74,7 @@ class Service():
                 break
 
         self.Monitor.LibraryLoad(server_id)
-        self.ServerReconnecting[server_id] = True
+        self.ServerReconnecting[server_id] = False
 
     def WatchDog(self):
         while True:
@@ -104,7 +101,7 @@ class Service():
 
     def shutdown(self):
         self.LOG.warning("---<[ EXITING ]")
-        self.SyncPause = True
+        self.Monitor.player.SyncPause = True
         self.ShouldStop = True
         self.Monitor.QuitThreads()
         self.Monitor.EmbyServer_DisconnectAll()
@@ -125,8 +122,9 @@ if __name__ == "__main__":
     serviceOBJ = Service()
 
     while True:
-        if not serviceOBJ.ServerConnect():
-            break
+        serviceOBJ.ServerConnect()
+#        if not serviceOBJ.ServerConnect():
+#            break
 
         if serviceOBJ.WatchDog():
             serviceOBJ.Startup()

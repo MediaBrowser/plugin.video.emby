@@ -83,10 +83,38 @@ class Xmls():
         self.Utils.indent(xmlData, 0)
         self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), path)
 
+    #Settings table for audio and subtitle tracks.
+    def load_defaultvideosettings(self):
+        path = xbmc.translatePath('special://profile/')
+        FilePath = os.path.join(path, 'guisettings.xml')
+        xmlData = xml.etree.ElementTree.parse(FilePath).getroot()
+        default = xmlData.find('defaultvideosettings')
+        return {
+            'Deinterlace': default.find('interlacemethod').text,
+            'ViewMode': default.find('viewmode').text,
+            'ZoomAmount': default.find('zoomamount').text,
+            'PixelRatio': default.find('pixelratio').text,
+            'VerticalShift': default.find('verticalshift').text,
+            'SubtitleDelay': default.find('subtitledelay').text,
+            'ShowSubtitles': default.find('showsubtitles').text == 'true',
+            'Brightness': default.find('brightness').text,
+            'Contrast': default.find('contrast').text,
+            'Gamma': default.find('gamma').text,
+            'VolumeAmplification': default.find('volumeamplification').text,
+            'AudioDelay': default.find('audiodelay').text,
+            'Sharpness': default.find('sharpness').text,
+            'NoiseReduction': default.find('noisereduction').text,
+            'NonLinStretch': int(default.find('nonlinstretch').text == 'true'),
+            'PostProcess': int(default.find('postprocess').text == 'true'),
+            'ScalingMethod': default.find('scalingmethod').text,
+            'StereoMode': default.find('stereomode').text,
+            'CenterMixLevel': default.find('centermixlevel').text
+        }
+
     #Track the existence of <cleanonupdate>true</cleanonupdate>
     #It is incompatible with plugin paths.
     def advanced_settings(self):
-        if self.Utils.settings('useDirectPaths') != "0":
+        if self.Utils.direct_path:
             return
 
         path = self.Utils.translatePath('special://profile/')

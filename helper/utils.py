@@ -5,7 +5,7 @@ import re
 import unicodedata
 import uuid
 import _strptime # Workaround for threads using datetime: _striptime is locked
-import datetime
+from datetime import datetime, timedelta
 from dateutil import tz, parser
 
 try:
@@ -19,6 +19,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+import helper.xmls
 from . import loghandler
 
 class Utils():
@@ -31,6 +32,8 @@ class Utils():
         self.PathVerified = False
         self.VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
         self.AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
+        self.VideoCodecOptions = ["h264", "hevc"]
+        self.AudioCodecOptions = ["aac", "ac3"]
         self.STRINGS = {
             'addon_name': 29999,
             'playback_mode': 30511,
@@ -58,42 +61,89 @@ class Utils():
         self.addon_name = xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('name').upper()
         self.addon_version = xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('version')
         self.device_name = self.get_device_name()
+        self.direct_path = self.settings('useDirectPaths') == "1"
         self.device_id = self.get_device_id(False)
         self.device_info = {'DeviceName': self.device_name, 'Version': self.addon_version, 'DeviceId': self.device_id}
         self.Screensaver = None
+        self.SyncTimestampLast = datetime.fromtimestamp(0)
+        self.SyncData = self.load_sync()
+        self.DefaultVideoSettings = self.load_defaultvideosettings()
+        self.DatabaseFiles = self.load_DatabaseFiles()
 
+    def load_DatabaseFiles(self):
+        DatabaseFiles = self.window('emby.DatabaseFiles.json')
 
+        if not DatabaseFiles: #load from file
+            DatabaseFiles = {
+                'emby': self.translatePath("special://database/") + "emby.db",
+                'texture': "",
+                'texture-version': 0,
+                'music': "",
+                'music-version': 0,
+                'video': "",
+                'video-version': 0
+            }
 
-        self.SyncTimestampLast = datetime.datetime.fromtimestamp(0)
-        self.SyncData = {}
-        self.SyncData = self.get_sync()
+            folder = self.translatePath("special://database/")
+            _, files = xbmcvfs.listdir(folder)
 
-    def get_sync(self):
-        if not self.SyncData: #load from xbmc
-            self.SyncData = self.window('emby.servers.sync.json')
+            for Filename in files:
+                if not Filename.endswith('-wal') and not Filename.endswith('-shm') and not Filename.endswith('db-journal'):
+                    if Filename.startswith('Textures'):
+                        Version = int(''.join(i for i in Filename if i.isdigit()))
 
-            if not self.SyncData: #load from file
-                path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+                        if Version > DatabaseFiles['texture-version']:
+                            DatabaseFiles['texture'] = os.path.join(folder, Filename)
+                            DatabaseFiles['texture-version'] = Version
+                    elif Filename.startswith('MyMusic'):
+                        Version = int(''.join(i for i in Filename if i.isdigit()))
 
-                if not xbmcvfs.exists(path):
-                    xbmcvfs.mkdirs(path)
+                        if Version > DatabaseFiles['music-version']:
+                            DatabaseFiles['music'] = os.path.join(folder, Filename)
+                            DatabaseFiles['music-version'] = Version
+                    elif Filename.startswith('MyVideos'):
+                        Version = int(''.join(i for i in Filename if i.isdigit()))
 
-                if xbmcvfs.exists(os.path.join(path, "sync.json")):
-                    with open(os.path.join(path, 'sync.json'), 'rb') as infile:
-                        self.SyncData = json.load(infile)
-                else:
-                    self.SyncData = {}
+                        if Version > DatabaseFiles['video-version']:
+                            DatabaseFiles['video'] = os.path.join(folder, Filename)
+                            DatabaseFiles['video-version'] = Version
 
-                self.SyncData['Libraries'] = self.SyncData.get('Libraries', [])
-                self.SyncData['RestorePoint'] = self.SyncData.get('RestorePoint', {})
-                self.SyncData['Whitelist'] = list(set(self.SyncData.get('Whitelist', [])))
-                self.SyncData['SortedViews'] = self.SyncData.get('SortedViews', [])
-                self.window('emby.servers.sync.json', self.SyncData)
+        return DatabaseFiles
 
-        return self.SyncData
+    def load_defaultvideosettings(self):
+        DefaultVideoSettings = self.window('emby.kodi.get_defaultvideosettings.json')
+
+        if not DefaultVideoSettings: #load from file
+            DefaultVideoSettings = helper.xmls.Xmls(self).load_defaultvideosettings()
+            self.window('emby.kodi.get_defaultvideosettings.json', DefaultVideoSettings)
+
+        return DefaultVideoSettings
+
+    def load_sync(self):
+        SyncData = self.window('emby.servers.sync.json')
+
+        if not SyncData: #load from file
+            path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+
+            if not xbmcvfs.exists(path):
+                xbmcvfs.mkdirs(path)
+
+            if xbmcvfs.exists(os.path.join(path, "sync.json")):
+                with open(os.path.join(path, 'sync.json'), 'rb') as infile:
+                    SyncData = json.load(infile)
+            else:
+                SyncData = {}
+
+            SyncData['Libraries'] = SyncData.get('Libraries', [])
+            SyncData['RestorePoint'] = SyncData.get('RestorePoint', {})
+            SyncData['Whitelist'] = list(set(SyncData.get('Whitelist', [])))
+            SyncData['SortedViews'] = SyncData.get('SortedViews', [])
+            self.window('emby.servers.sync.json', SyncData)
+
+        return SyncData
 
     def save_sync(self, Data, ForceSave=False):
-        CurrentDate = datetime.datetime.utcnow()
+        CurrentDate = datetime.utcnow()
 
         if not ForceSave:
             if (CurrentDate - self.SyncTimestampLast).seconds <= 30: #save every 30 seconds on sync progress
@@ -113,11 +163,34 @@ class Utils():
         self.window('emby.servers.sync.json', Data)
         self.SyncData = Data
 
+    def save_last_sync(self):
+        time_now = datetime.utcnow() - timedelta(minutes=2)
+        last_sync = time_now.strftime('%Y-%m-%dT%H:%M:%Sz')
+        self.settings('LastIncrementalSync', value=last_sync)
+        self.LOG.info("--[ sync/%s ]" % last_sync)
+
     def InitSettings(self):
         self.KodiVersion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
         self.Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
         self.VideoBitrate = self.VideoBitrateOptions[int(self.settings('videoBitrate'))]
         self.AudioBitrate = self.AudioBitrateOptions[int(self.settings('audioBitrate'))]
+
+
+
+
+        self.TranscodeH265 = self.settings('transcode_h265.bool')
+        self.TranscodeDivx = self.settings('transcodeDivx.bool')
+        self.TranscodeXvid = self.settings('transcodeXvid.bool')
+        self.TranscodeMpeg2 = self.settings('transcodeMpeg2.bool')
+        self.EnableCinema = self.settings('enableCinema.bool')
+        self.AskCinema = self.settings('askCinema.bool')
+
+
+        self.VideoCodecID = self.VideoCodecOptions[int(self.settings('TranscodeFormatVideo'))]
+        self.AudioCodecID = self.AudioCodecOptions[int(self.settings('TranscodeFormatAudio'))]
+
+
+
         self.Screensaver = self.get_screensaver()
         self.WebserverData = self.get_web_server_data()
         self.GroupedSet = self.get_grouped_set()
@@ -275,6 +348,17 @@ class Utils():
 
         return xbmc.translatePath(Data)
 
+    def ReplaceSpecialCharecters(self, Data):
+        if self.KodiVersion <= 18:
+            Data = unicode(Data, 'utf-8')
+            Data = Data.encode('utf-8')
+            Data = quote(Data, safe=u':/'.encode('utf-8'))
+        else:
+            Data = quote(Data)
+
+        Data = Data.replace("%", "")
+        return Data
+
     def PathToFilenameReplaceSpecialCharecters(self, Path):
         Temp = Path
         Pos = Temp.rfind("/")
@@ -358,11 +442,10 @@ class Utils():
             return self.find(dictData, item.replace('beta-', ""), False)
 
     #Data is a dictionary
-    def event(self, method, data, sender="plugin.video.emby-next-gen"):
-        #data = data or {"ServerId" : "default"}
+    def event(self, method, data):
         data = '"[%s]"' % json.dumps(data).replace('"', '\\"')
-        xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % (sender, method, data))
-        self.LOG.debug("---[ event: %s/%s ] %s" % (sender, method, data))
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s, %s)' % (method, data))
+        self.LOG.debug("---[ event: plugin.video.emby-next-gen/%s ] %s" % (method, data))
 
     def dialog(self, dialog_type, *args, **kwargs):
         if "icon" in kwargs:
@@ -630,7 +713,7 @@ class Utils():
 
 
 
-#datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+#datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
         except Exception as error:

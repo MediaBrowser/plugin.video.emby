@@ -1,16 +1,227 @@
 # -*- coding: utf-8 -*-
+import helper.loghandler
+
 class API():
     def __init__(self, EmbyServer):
         self.EmbyServer = EmbyServer
-        self.info = (
-            "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,"
-            "OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,"
-            "Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,"
-            "CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,"
-            "Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,"
-            "MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,"
-            "PresentationUniqueKey,OriginalTitle,MediaSources,AlternateMediaSources,PartCount"
-        )
+        self.LOG = helper.loghandler.LOG('EMBY.emby.api.API')
+        self.LIMIT = min(int(self.EmbyServer.Utils.settings('limitIndex') or 15), 50)
+        self.info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,MediaSources,VoteCount,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount"
+        self.music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,Metascore,CommunityRating,AirTime,DateCreated,MediaStreams,People,ProviderIds,Overview,ItemCounts,PresentationUniqueKey"
+        self.browse_info = "DateCreated,EpisodeCount,SeasonCount,Path,Genres,Studios,Taglines,MediaStreams,Overview,Etag,ProductionLocations,Width,Height,RecursiveItemCount,ChildCount"
+
+    #This confirms a single item from the library matches the view it belongs to.
+    #Used to detect grouped libraries.
+    def validate_view(self, library_id, item_id):
+        try:
+            result = self._get("Users/{UserId}/Items", {'ParentId': library_id, 'Recursive': True, 'Ids': item_id})
+        except Exception:
+            return False
+
+        return bool(len(result['Items']))
+
+    #Get emby user profile picture.
+    def get_user_artwork(self, user_id):
+        return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.EmbyServer.Data['auth.server'], user_id)
+
+    #Get dynamic listings
+    def get_filtered_section(self, parent_id, media, limit, recursive, sort, sort_order, filters, extra, NoSort):
+        if NoSort:
+            params = {
+                'ParentId': parent_id,
+                'IncludeItemTypes': media,
+                'IsMissing': False,
+                'Recursive': recursive if recursive is not None else True,
+                'Limit': limit,
+                'ImageTypeLimit': 1,
+                'IsVirtualUnaired': False,
+                'Fields': self.browse_info
+            }
+        else:
+            params = {
+                'ParentId': parent_id,
+                'IncludeItemTypes': media,
+                'IsMissing': False,
+                'Recursive': recursive if recursive is not None else True,
+                'Limit': limit,
+                'SortBy': sort or "SortName",
+                'SortOrder': sort_order or "Ascending",
+                'ImageTypeLimit': 1,
+                'IsVirtualUnaired': False,
+                'Fields': self.browse_info
+            }
+
+        if filters:
+            if 'Boxsets' in filters:
+                filters.remove('Boxsets')
+                params['CollapseBoxSetItems'] = self.EmbyServer.Utils.settings('groupedSets.bool')
+
+            params['Filters'] = ','.join(filters)
+
+        if self.EmbyServer.Utils.settings('getCast.bool'):
+            params['Fields'] += ",People"
+
+        if media and 'Photo' in media:
+            params['Fields'] += ",Width,Height"
+
+        if extra is not None:
+            params.update(extra)
+
+        return self._get("Users/{UserId}/Items", params)
+
+    def get_movies_by_boxset(self, boxset_id):
+        for items in self.get_itemsSync(boxset_id, "Movie", False, None):
+            yield items
+
+    def get_episode_by_show(self, show_id):
+        query = {
+            'url': "Shows/%s/Episodes" % show_id,
+            'params': {
+                'EnableUserData': True,
+                'EnableImages': True,
+                'UserId': "{UserId}",
+                'Fields': self.info
+            }
+        }
+
+        for items in self._get_items(query, self.LIMIT):
+            yield items
+
+    def get_episode_by_season(self, show_id, season_id):
+        query = {
+            'url': "Shows/%s/Episodes" % show_id,
+            'params': {
+                'SeasonId': season_id,
+                'EnableUserData': True,
+                'EnableImages': True,
+                'UserId': "{UserId}",
+                'Fields': self.info
+            }
+        }
+
+        for items in self._get_items(query, self.LIMIT):
+            yield items
+
+    def get_itemsSync(self, parent_id, item_type, basic, params):
+        query = {
+            'url': "Users/{UserId}/Items",
+            'params': {
+                'ParentId': parent_id,
+                'IncludeItemTypes': item_type,
+                'Fields': "Etag,PresentationUniqueKey" if basic else self.info,
+                'CollapseBoxSetItems': False,
+                'IsVirtualUnaired': False,
+                'EnableTotalRecordCount': False,
+                'LocationTypes': "FileSystem,Remote,Offline",
+                'IsMissing': False,
+                'Recursive': True
+            }
+        }
+
+        if params:
+            query['params'].update(params)
+
+        for items in self._get_items(query, self.LIMIT):
+            yield items
+
+    def get_artists(self, parent_id, basic, params):
+        query = {
+            'url': "Artists",
+            'params': {
+                'UserId': "{UserId}",
+                'ParentId': parent_id,
+                'Fields': "Etag,PresentationUniqueKey" if basic else self.music_info,
+                'CollapseBoxSetItems': False,
+                'IsVirtualUnaired': False,
+                'EnableTotalRecordCount': False,
+                'LocationTypes': "FileSystem,Remote,Offline",
+                'IsMissing': False,
+                'Recursive': True
+            }
+        }
+
+        if params:
+            query['params'].update(params)
+
+        for items in self._get_items(query, self.LIMIT):
+            yield items
+
+    def get_albums_by_artist(self, parent_id, artist_id, basic):
+        params = {
+            'ParentId': parent_id,
+            'ArtistIds': artist_id
+        }
+
+        for items in self.get_itemsSync(None, "MusicAlbum", basic, params):
+            yield items
+
+    def get_songs_by_artist(self, parent_id, artist_id, basic):
+        params = {
+            'ParentId': parent_id,
+            'ArtistIds': artist_id
+        }
+
+        for items in self.get_itemsSync(None, "Audio", basic, params):
+            yield items
+
+    def get_TotalRecordsRegular(self, parent_id, item_type):
+        Params = {
+            'ParentId': parent_id,
+            'IncludeItemTypes': item_type,
+            'CollapseBoxSetItems': False,
+            'IsVirtualUnaired': False,
+            'IsMissing': False,
+            'EnableTotalRecordCount': True,
+            'LocationTypes': "FileSystem,Remote,Offline",
+            'Recursive': True,
+            'Limit': 1
+        }
+
+        return self._get("Users/{UserId}/Items", Params)['TotalRecordCount']
+
+    def get_TotalRecordsArtists(self, parent_id):
+        Params = {
+            'UserId': "{UserId}",
+            'ParentId': parent_id,
+            'CollapseBoxSetItems': False,
+            'IsVirtualUnaired': False,
+            'IsMissing': False,
+            'EnableTotalRecordCount': True,
+            'LocationTypes': "FileSystem,Remote,Offline",
+            'Recursive': True,
+            'Limit': 1
+        }
+        return self._get("Artists", Params)['TotalRecordCount']
+
+    def _get_items(self, query, LIMIT):
+        items = {
+            'Items': [],
+            'RestorePoint': {}
+        }
+
+        url = query['url']
+        params = query.get('params', {})
+        index = params.get('StartIndex', 0)
+
+        while True:
+            params['StartIndex'] = index
+            params['Limit'] = LIMIT
+
+            try:
+                result = self._get(url, params) or {'Items': []}
+            except Exception as error:
+                self.LOG.error("ERROR: %s" % error)
+                result = {'Items': []}
+
+            if result['Items'] == []:
+                items['TotalRecordCount'] = index
+                break
+
+            items['Items'].extend(result['Items'])
+            items['RestorePoint'] = query
+            yield items
+            del items['Items'][:]
+            index += LIMIT
 
     def emby_url(self, handler):
         return "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], handler)
@@ -42,10 +253,6 @@ class API():
             return self._http("DELETE", handler, {})
 
         return self._http("DELETE", handler, {'params': params})
-
-    #################################################################################################
-    # Bigger section of the Emby api
-    #################################################################################################
 
     def try_server(self):
         return self._get("System/Info/Public", None)
@@ -92,10 +299,6 @@ class API():
 
         return self.emby_url("Items/%s/Images/%s/%s?MaxWidth=%s&format=%s" % (item_id, art, index, max_width, ext))
 
-    #################################################################################################
-    # More granular api
-    #################################################################################################
-
     def get_users(self, disabled, hidden):
         return self._get("Users", {
             'IsDisabled': disabled,
@@ -126,8 +329,8 @@ class API():
     def get_sessions(self):
         return self.sessions("", "GET", {'ControllableByUserId': "{UserId}"}, None)
 
-    def get_device(self, device_id):
-        return self.sessions("", "GET", {'DeviceId': device_id}, None)
+    def get_device(self):
+        return self.sessions("", "GET", {'DeviceId': self.EmbyServer.Data['app.device_id']}, None)
 
     def post_session(self, session_id, url, params, data):
         return self.sessions("/%s/%s" % (session_id, url), "POST", params, data)
@@ -336,8 +539,8 @@ class API():
     def close_live_stream(self, live_id):
         return self._post("LiveStreams/Close", {'LiveStreamId': live_id}, False)
 
-    def close_transcode(self, device_id):
-        return self._delete("Videos/ActiveEncodings", {'DeviceId': device_id})
+    def close_transcode(self):
+        return self._delete("Videos/ActiveEncodings", {'DeviceId': self.EmbyServer.Data['app.device_id']})
 
     def delete_item(self, item_id):
         return self.items("/%s" % item_id, "DELETE", None, None)

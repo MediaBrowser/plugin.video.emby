@@ -57,6 +57,5 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         self.addControl(control)
         return control
 
-    @classmethod
-    def _add_listitem(cls, label):
+    def _add_listitem(self, label):
         return xbmcgui.ListItem(label)
