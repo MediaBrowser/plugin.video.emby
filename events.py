@@ -13,18 +13,14 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcplugin
-import xbmcaddon
 
 import core.obj_ops
 import core.listitem
-import core.artwork
 import emby.main
-import emby.downloader
 import database.database
 import database.emby_db
 import helper.utils
 import helper.api
-import helper.xmls
 import helper.loghandler
 import context
 
@@ -32,8 +28,42 @@ class Events():
     #Parse the parameters. Reroute to our service.py
     #where user is fully identified already
     def __init__(self, Parameter):
-        self.LOG = helper.loghandler.LOG('EMBY.Events')
         self.Utils = helper.utils.Utils()
+        params = dict(parse_qsl(Parameter[2][1:]))
+        Handle = int(Parameter[1])
+        mode = params.get('mode')
+        self.server_id = params.get('server')
+
+        #Simple commands
+        if mode == 'deviceid':
+            self.Utils.reset_device_id()
+            return
+        elif mode == 'reset':
+            self.Utils.event('DatabaseReset', {})
+            return
+        elif mode == 'login':
+            self.Utils.event('ServerConnect', {'ServerId': None})
+            return
+        elif mode == 'backup':
+            self.backup()
+            return
+        elif mode == 'changelog':
+            #self.changelog()  #EVENT!!!!!!!!!!!!!!!!!!
+            return
+        elif mode == 'restartservice':
+            self.Utils.window('emby.restart.bool', True)
+            return
+        elif mode == 'patchmusic':
+            self.Utils.event('PatchMusic', {'Notification': True, 'ServerId': None})
+            return
+        elif mode == 'settings':
+            xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
+            return
+        elif mode == 'texturecache':
+            self.Utils.event('TextureCache', {})
+            return
+
+        self.LOG = helper.loghandler.LOG('EMBY.Events')
         self.EMBY = None
         self.DYNNODES = {
             'tvshows': [
@@ -90,25 +120,10 @@ class Events():
             ]
         }
 
-        if len(Parameter) >= 2:
-            params = dict(parse_qsl(Parameter[2][1:]))
-        else:
-            params = {}
-
-        Handle = int(Parameter[1])
-        mode = params.get('mode')
-        self.server_id = params.get('server')
-
-
-
         if not self.set_server():
             return
 
-
-
-
-
-        self.Downloader = emby.downloader.Downloader(self.Utils, self.EmbyServer[self.server_id])
+        self.APIHelper = helper.api.API(self.Utils, self.EmbyServer[self.server_id].Data['auth.ssl'])
         self.LOG.warning("path: %s params: %s" % (Parameter[2], json.dumps(params, indent=4)))
 
 #        if '/extrafanart' in Parameter[0]:
@@ -121,20 +136,16 @@ class Events():
 #            self.get_video_extras(emby_id, emby_path, server)
         if mode == 'photoviewer':
             xbmc.executebuiltin('ShowPicture(%s/emby/Items/%s/Images/Primary)' % (self.EmbyServer[self.server_id].auth.get_serveraddress(), params['id']))
-        elif mode == 'deviceid':
-            self.Utils.reset_device_id()
-        elif mode == 'reset':
-            database.database.reset(self.Utils, False)
         elif mode == 'delete':
-            context.Context(delete=True)
+            context.Context(delete=True) #EVENT!!!!!!!!!!!!!!!!!!
         elif mode == 'refreshboxsets':
-            self.Utils.event('SyncLibrary', {'Id': "Boxsets: Refresh", 'ServerId': self.server_id})
+            self.Utils.event('SyncLibrary', {'Id': "Boxsets: Refresh", 'Update': False, 'ServerId': self.server_id})
         elif mode == 'nextepisodes':
             self.get_next_episodes(Handle, params['id'], params['limit'])
         elif mode == 'browse':
             self.browse(Handle, params.get('type'), params.get('id'), params.get('folder'))
         elif mode == 'synclib':
-            self.Utils.event('SyncLibrary', {'Id': params.get('id'), 'ServerId': self.server_id})
+            self.Utils.event('SyncLibrary', {'Id': params.get('id'), 'Update': False, 'ServerId': self.server_id})
         elif mode == 'updatelib':
             self.Utils.event('SyncLibrary', {'Id': params.get('id'), 'Update': True, 'ServerId': self.server_id})
         elif mode == 'repairlib':
@@ -149,37 +160,16 @@ class Events():
             self.Utils.event('RemoveLibrarySelection', {'ServerId': self.server_id})
         elif mode == 'addlibs':
             self.Utils.event('AddLibrarySelection', {'ServerId': self.server_id})
-        elif mode == 'connect':
-            self.Utils.event('EmbyConnect', {'ServerId': self.server_id})
         elif mode == 'addserver':
             self.Utils.event('AddServer', {'ServerId': self.server_id})
-        elif mode == 'login':
-            self.Utils.event('ServerConnect', {'ServerId': self.server_id})
         elif mode == 'removeserver':
             self.Utils.event('RemoveServer', {'ServerId': self.server_id})
-        elif mode == 'settings':
-            xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
         elif mode == 'adduser':
-            self.add_user(params.get('permanent') == 'true')
-        elif mode == 'resetupdate':
-            self.Utils.event('ResetUpdate', {'ServerId': self.server_id})
-        elif mode == 'updateserver':
-            self.Utils.event('UpdateServer', {'ServerId': self.server_id})
+            self.add_user(params.get('permanent') == 'true') #EVENT!!!!!!!!!!!!!!!!!!
         elif mode == 'thememedia':
-            self.get_themes()
+            self.Utils.event('SyncThemes', {'ServerId': self.server_id})
         elif mode == 'managelibs':
             self.manage_libraries(Handle)
-        elif mode == 'texturecache':
-            self.cache_artwork()
-        elif mode == 'backup':
-            self.backup()
-        elif mode == 'restartservice':
-            self.Utils.window('emby.restart.bool', True)
-        elif mode == 'patchmusic':
-            self.Utils.event('PatchMusic', {'Notification': True, 'ServerId': self.server_id})
-        elif mode == 'changelog':
-            return
-            #self.changelog()
         elif mode == 'setssl':
             self.Utils.event('SetServerSSL', {'ServerId': self.server_id})
         else:
@@ -195,17 +185,14 @@ class Events():
 
         ServerOnline = False
         self.EmbyServer = {}
-        self.EmbyServerName = {}
         server_ids = self.Utils.window('emby.servers.json')
 
         for server_id in server_ids:
             for _ in range(60):
                 if self.Utils.window('emby.server.%s.online.bool' % server_id):
                     ServerOnline = True
-                    self.EmbyServer[server_id] = emby.main.Emby(server_id)
-                    ServerData = self.Utils.window('emby.server.%s.state.json' % server_id)
-                    self.EmbyServer[server_id].set_state(ServerData)
-                    self.EmbyServerName[server_id] = ServerData['config']['auth.server-name']
+                    self.EmbyServer[server_id] = emby.main.Emby(self.Utils, server_id)
+                    self.EmbyServer[server_id].set_state()
                     break
 
                 xbmc.sleep(500)
@@ -215,8 +202,7 @@ class Events():
     #Display all emby nodes and dynamic entries when appropriate
     def listing(self, Handle):
         total = int(self.Utils.window('emby.nodes.total') or 0)
-        sync = self.Utils.get_sync()
-        whitelist = [x.replace('Mixed:', "") for x in sync['Whitelist']]
+        whitelist = [x.replace('Mixed:', "") for x in self.Utils.SyncData['Whitelist']]
 
         for i in range(total):
             window_prop = "Emby.nodes.%s" % i
@@ -225,7 +211,7 @@ class Events():
             if not path:
                 path = self.Utils.window('%s.content' % window_prop) or self.Utils.window('%s.path' % window_prop)
 
-            label = self.Utils.window('%s.title' % window_prop)          +    " ("  + self.EmbyServerName[self.server_id] + ")"
+            label = self.Utils.window('%s.title' % window_prop) + " (" + self.EmbyServer[self.server_id].Data['auth.server-name'] + ")"
             node = self.Utils.window('%s.type' % window_prop)
             artwork = self.Utils.window('%s.artwork' % window_prop)
             view_id = self.Utils.window('%s.id' % window_prop)
@@ -268,7 +254,7 @@ class Events():
 
         self.directory(Handle, self.Utils.Translate(33194), "plugin://plugin.video.emby-next-gen/?mode=managelibs", True, None, None, None)
         self.directory(Handle, self.Utils.Translate(33134), "plugin://plugin.video.emby-next-gen/?mode=addserver", False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33054), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=adduser&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33054), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=adduser&server=%s" % self.server_id, False, None, None, None)
         self.directory(Handle, self.Utils.Translate(5), "plugin://plugin.video.emby-next-gen/?mode=settings", False, None, None, None)
         self.directory(Handle, self.Utils.Translate(33059), "plugin://plugin.video.emby-next-gen/?mode=texturecache", False, None, None, None)
         self.directory(Handle, self.Utils.Translate(33058), "plugin://plugin.video.emby-next-gen/?mode=reset", False, None, None, None)
@@ -300,12 +286,12 @@ class Events():
         return li
 
     def manage_libraries(self, Handle):
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33098), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=refreshboxsets&server=%s" % self.server_id, False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33154), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=addlibs&server=%s" % self.server_id, False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33139), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=updatelibs&server=%s" % self.server_id, False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33140), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=repairlibs&server=%s" % self.server_id, False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33184), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=removelibs&server=%s" % self.server_id, False, None, None, None)
-        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33060), self.EmbyServerName[self.server_id]), "plugin://plugin.video.emby-next-gen/?mode=thememedia&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33098), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=refreshboxsets&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33154), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=addlibs&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33139), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=updatelibs&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33140), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=repairlibs&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33184), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=removelibs&server=%s" % self.server_id, False, None, None, None)
+        self.directory(Handle, "%s (%s)" % (self.Utils.Translate(33060), self.EmbyServer[self.server_id].Data['auth.server-name']), "plugin://plugin.video.emby-next-gen/?mode=thememedia&server=%s" % self.server_id, False, None, None, None)
         self.directory(Handle, self.Utils.Translate(33202), "plugin://plugin.video.emby-next-gen/?mode=patchmusic", False, None, None, None)
         xbmcplugin.setContent(Handle, 'files')
         xbmcplugin.endOfDirectory(Handle)
@@ -342,6 +328,7 @@ class Events():
             content_type = "videos"
         elif media == 'music':
             content_type = "artists"
+
         if folder == 'recentlyadded':
             listing = self.EmbyServer[self.server_id].API.get_recently_added(None, view_id, None)
         elif folder == 'genres':
@@ -349,44 +336,44 @@ class Events():
         elif media == 'livetv':
             listing = self.EmbyServer[self.server_id].API.get_channels()
         elif folder == 'unwatched':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsUnplayed'], None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, None, None, None, None, None, ['IsUnplayed'], None, False)
         elif folder == 'favorite':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsFavorite'], None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, None, None, None, None, None, ['IsFavorite'], None, False)
         elif folder == 'inprogress':
-            listing = self.Downloader.get_filtered_section(view_id, None, None, None, None, None, ['IsResumable'], None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, None, None, None, None, None, ['IsResumable'], None, False)
         elif folder == 'boxsets':
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type('boxsets'), None, True, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, self.get_media_type('boxsets'), None, True, None, None, None, None, False)
         elif folder == 'random':
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), 25, True, "Random", None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, self.get_media_type(content_type), 25, True, "Random", None, None, None, False)
         elif (folder or "").startswith('firstletter-'):
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'NameStartsWith': folder.split('-')[1]}, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'NameStartsWith': folder.split('-')[1]}, False)
         elif (folder or "").startswith('genres-'):
-            listing = self.Downloader.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'GenreIds': folder.split('-')[1]}, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(view_id, self.get_media_type(content_type), None, None, None, None, None, {'GenreIds': folder.split('-')[1]}, False)
         elif folder == 'favepisodes':
-            listing = self.Downloader.get_filtered_section(None, self.get_media_type(content_type), 25, None, None, None, ['IsFavorite'], None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(None, self.get_media_type(content_type), 25, None, None, None, ['IsFavorite'], None, False)
         elif media == 'homevideos':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
         elif media == 'movies':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media in ('boxset', 'library'):
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, True, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, None, None, True, None, None, None, None, False)
         elif media == 'episodes':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media == 'boxsets':
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, ['Boxsets'], None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, None, None, False, None, None, ['Boxsets'], None, False)
         elif media == 'tvshows':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, True, None, None, None, None, False)
         elif media == 'seasons':
             listing = self.EmbyServer[self.server_id].API.get_seasons(folder)
         elif media == 'playlists':
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, True)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, True)
         elif media != 'files':
-            listing = self.Downloader.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, self.get_media_type(content_type), None, False, None, None, None, None, False)
         else:
-            listing = self.Downloader.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, False)
+            listing = self.EmbyServer[self.server_id].API.get_filtered_section(folder or view_id, None, None, False, None, None, None, None, False)
 
         if listing:
-            listitems = core.listitem.ListItem(self.EmbyServer[self.server_id].auth.get_serveraddress(), self.Utils)
+            listitems = core.listitem.ListItem(self.EmbyServer[self.server_id].Data['auth.ssl'], self.Utils)
             list_li = []
             listing = listing if isinstance(listing, list) else listing.get('Items', [])
 
@@ -397,7 +384,7 @@ class Events():
                 li = xbmcgui.ListItem()
                 li.setProperty('embyid', item['Id'])
                 li.setProperty('embyserver', self.server_id)
-                li = listitems.set(item, li, None, False, None)
+                li = listitems.set(item, li, None, None)
 
                 if item.get('IsFolder'):
                     params = {
@@ -464,8 +451,7 @@ class Events():
                                 else:
                                     path = "http://127.0.0.1:57578/%s/%s-%s-stream-%s" % (Type, item['Id'], item['MediaSources'][0]['Id'], FilenameURL)
 
-                        self.Utils.window('emby.DynamicItem_' + path, item['Id'])
-
+                        self.Utils.window('emby.DynamicItem_' + self.Utils.ReplaceSpecialCharecters(li.getLabel()), item['Id'])
                         li.setProperty('path', path)
                         contextData = [(self.Utils.Translate(13412), "RunPlugin(plugin://plugin.video.emby-next-gen/?mode=playlist&id=%s&server=%s)" % (item['Id'], self.server_id))]
 
@@ -610,10 +596,9 @@ class Events():
             xbmcvfs.mkdirs(directory)
             item = self.EmbyServer[self.server_id].API.get_item(item_id)
             obj = objects.map(item, 'Artwork')
-            backdrops = helper.api.API(item, self.Utils, self.EmbyServer[self.server_id].auth.get_serveraddress()).get_all_artwork(obj)
             tags = obj['BackdropTags']
 
-            for index, backdrop in enumerate(backdrops):
+            for index, backdrop in enumerate(self.APIHelper.get_all_artwork(obj)):
                 tag = tags[index]
                 fanart = os.path.join(directory, "fanart%s.jpg" % tag)
                 li = xbmcgui.ListItem(tag, path=fanart)
@@ -795,10 +780,7 @@ class Events():
     #Add or remove users from the default server session
     #permanent=True from the add-on settings
     def add_user(self, permanent):
-#        if not self.Utils.window('emby.online.bool'):
-#            return
-
-        session = self.EmbyServer[self.server_id].API.get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
+        session = self.EmbyServer[self.server_id].API.get_device()
         hidden = None if self.Utils.settings('addUsersHidden.bool') else False
         users = self.EmbyServer[self.server_id].API.get_users(False, hidden)
 
@@ -808,7 +790,7 @@ class Events():
                 break
 
         while True:
-            session = self.EmbyServer[self.server_id].API.get_device(self.EmbyServer[self.server_id]['config/app.device_id'])
+            session = self.EmbyServer[self.server_id].API.get_device()
             additional = current = session[0]['AdditionalUsers']
             add_session = True
 
@@ -864,67 +846,6 @@ class Events():
 
                 self.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.Utils.Translate(33066), user['UserName']), icon="{emby}", time=1000, sound=False)
 
-    #Add theme media locally, via strm. This is only for tv tunes.
-    #If another script is used, adjust this code
-    def get_themes(self):
-        xmls = helper.xmls.Xmls(self.Utils)
-        library = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/library")
-        play = self.Utils.settings('useDirectPaths') == "1"
-
-        if not xbmcvfs.exists(library + '/'):
-            xbmcvfs.mkdir(library)
-
-        if xbmc.getCondVisibility('System.HasAddon(script.tvtunes)'):
-            tvtunes = xbmcaddon.Addon(id="script.tvtunes")
-            tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', library)
-            self.LOG.info("TV Tunes custom path is enabled and set.")
-        elif xbmc.getCondVisibility('System.HasAddon(service.tvtunes)'):
-            tvtunes = xbmcaddon.Addon(id="service.tvtunes")
-            tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', library)
-            self.LOG.info("TV Tunes custom path is enabled and set.")
-        else:
-            self.Utils.dialog("ok", heading="{emby}", line1=self.Utils.Translate(33152))
-            return
-
-        with database.database.Database(self.Utils, 'emby', False) as embydb:
-            all_views = database.emby_db.EmbyDatabase(embydb.cursor).get_views()
-            views = [x[0] for x in all_views if x[2] in ('movies', 'tvshows', 'mixed')]
-
-        items = {}
-
-        for view in views:
-            for result in self.Downloader.get_items(view, None, False, {'HasThemeVideo': True}):
-                for item in result['Items']:
-                    folder = self.Utils.normalize_string(item['Name'])
-                    items[item['Id']] = folder
-
-            for result in self.Downloader.get_items(view, None, False, {'HasThemeSong': True}):
-                for item in result['Items']:
-                    folder = self.Utils.normalize_string(item['Name'])
-                    items[item['Id']] = folder
-
-        for item in items:
-            nfo_path = os.path.join(library, items[item])
-            nfo_file = os.path.join(nfo_path, "tvtunes.nfo")
-
-            if not xbmcvfs.exists(nfo_path):
-                xbmcvfs.mkdir(nfo_path)
-
-            themes = self.EmbyServer[self.server_id].API.get_themes(item)
-            paths = []
-
-            for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:
-                if play:
-                    paths.append(theme['MediaSources'][0]['Path'])
-                else:
-                    paths.append(self.Utils.direct_url(theme))
-
-            xmls.tvtunes_nfo(nfo_file, paths)
-
-        self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Translate(33153), icon="{emby}", time=1000, sound=False)
-
     #Emby backup
     def backup(self):
         path = self.Utils.settings('backupPath')
@@ -968,9 +889,6 @@ class Events():
 
         self.LOG.info("backup completed")
         self.Utils.dialog("ok", heading="{emby}", line1="%s %s" % (self.Utils.Translate(33091), backup))
-
-    def cache_artwork(self):
-        core.artwork.Artwork(None, self.Utils).cache_textures()
 
 if __name__ == "__main__":
     Events(sys.argv)

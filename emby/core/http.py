@@ -26,6 +26,7 @@ class HTTP():
         try:
             self.LOG.warning("--<[ session/%s ]" % id(self.session))
             self.session.close()
+            self.session = None
         except Exception as error:
             self.LOG.warning("The requests session could not be terminated: %s" % error)
 
@@ -156,11 +157,7 @@ class HTTP():
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], data.pop('handler', ""))
 
-        Ret = self._get_header(data)
-
-        if not Ret:
-            return False
-
+        self.get_header(data)
         data['timeout'] = data.get('timeout') or self.EmbyServer.Data['http.timeout']
         data['url'] = self._replace_user_info(data['url'])
 
@@ -187,7 +184,7 @@ class HTTP():
             if isinstance(value, (str, unicode)):
                 params[key] = self._replace_user_info(value)
 
-    def _get_header(self, data):
+    def get_header(self, data):
         data['headers'] = data.setdefault('headers', {})
 
         if not data['headers']:
@@ -199,8 +196,9 @@ class HTTP():
             })
 
         if 'Authorization' not in data['headers']:
-            if not self._authorization(data):
-                return False
+            self._authorization(data)
+#            if not self._authorization(data):
+#                return False
 
         return data
 
@@ -208,7 +206,7 @@ class HTTP():
         if not self.EmbyServer.Data['app.device_name']:
             return False #Device name cannot be null
 
-        auth = "MediaBrowser "
+        auth = "Emby "
         auth += "Client=%s, " % self.EmbyServer.Data['app.name']
         auth += "Device=%s, " % self.EmbyServer.Data['app.device_name']
         auth += "DeviceId=%s, " % self.EmbyServer.Data['app.device_id']
@@ -217,7 +215,7 @@ class HTTP():
 
         if self.EmbyServer.Data['auth.token'] and self.EmbyServer.Data['auth.user_id']:
             auth += ', UserId=%s' % self.EmbyServer.Data['auth.user_id']
-            data['headers'].update({'Authorization': auth, 'X-MediaBrowser-Token': self.EmbyServer.Data['auth.token']})
+            data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.Data['auth.token']})
 
         return data
 

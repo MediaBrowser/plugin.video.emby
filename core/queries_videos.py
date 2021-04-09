@@ -129,7 +129,17 @@ update_genres = """INSERT OR REPLACE INTO genre_link(genre_id, media_id, media_t
 update_studios = """INSERT OR REPLACE INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)"""
 update_playcount = """UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?"""
 update_tag = """INSERT OR REPLACE INTO tag_link(tag_id, media_id, media_type) VALUES (?, ?, ?)"""
+
+
+
+
 update_art = """UPDATE art SET url = ? WHERE media_id = ? AND media_type = ? AND type = ?"""
+
+
+
+
+
+
 update_actor = """INSERT OR REPLACE INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)"""
 update_link = """ INSERT OR REPLACE INTO {LinkType}(actor_id, media_id, media_type) VALUES (?, ?, ?) """
 get_update_link = """SELECT * FROM {LinkType} WHERE actor_id = ? AND media_id = ? AND media_type = ? COLLATE NOCASE"""

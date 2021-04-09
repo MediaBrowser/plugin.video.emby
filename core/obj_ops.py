@@ -6,10 +6,6 @@ class Objects():
         self.Utils = Utils
         self.mapped_item = {}
         self.objects = {
-            "video": "special://database/MyVideos119.db",
-            "music": "special://database/MyMusic82.db",
-            "texture": "special://database/Textures13.db",
-            "emby": "special://database/emby.db",
             "MovieProviderName": "imdb",
             "Movie": {
                 "Id": "Id",
@@ -129,7 +125,6 @@ class Objects():
                 "AirsAfterSeason": "AirsAfterSeasonNumber",
                 "AirsBeforeSeason": "AirsBeforeSeasonNumber,SortParentIndexNumber",
                 "AirsBeforeEpisode": "AirsBeforeEpisodeNumber,SortIndexNumber",
-                "MultiEpisode": "IndexNumberEnd",
                 "Played": "UserData/Played",
                 "PlayCount": "UserData/PlayCount",
                 "DateAdded": "DateCreated",
@@ -355,14 +350,13 @@ class Objects():
                 "DatePlayed": "UserData/LastPlayedDate",
                 "UniqueId": "ProviderIds/MusicBrainzTrackId,ProviderIds/MusicBrainzAlbum,ProviderIds/MusicBrainzArtist",
                 "Comment": "Overview",
-                "FileDate": "DateCreated",
+                "DateAdded": "DateCreated",
                 "Played": "UserData/Played"
             },
             "BrowsePhoto": {
                 "Id": "Id",
                 "Title": "Name",
                 "Type": "Type",
-                "FileDate": "DateCreated",
                 "Width": "Width",
                 "Height": "Height",
                 "Size": "Size",
@@ -370,7 +364,8 @@ class Objects():
                 "CameraMake": "CameraMake",
                 "CameraModel": "CameraModel",
                 "ExposureTime": "ExposureTime",
-                "FocalLength": "FocalLength"
+                "FocalLength": "FocalLength",
+                "DateAdded": "DateCreated"
             },
             "BrowseFolder": {
                 "Id": "Id",
@@ -498,7 +493,7 @@ class Objects():
 
         for key, _ in list(mapping.items()):
             if not key in item:
-                item[key] = ""
+                item[key] = None
 
         return item
 
@@ -543,9 +538,9 @@ class Objects():
                 if ':' in obj_param:
                     result = []
 
-                    for d in self.__recursiveloop__(obj, obj_param):
+                    for d in self.recursiveloop(obj, obj_param):
 
-                        if obj_filters and self.__filters__(d, obj_filters):
+                        if obj_filters and self.filters(d, obj_filters):
                             result.append(d)
                         elif not obj_filters:
                             result.append(d)
@@ -553,12 +548,12 @@ class Objects():
                     obj = result
                     obj_filters = {}
                 elif '/' in obj_param:
-                    obj = self.__recursive__(obj, obj_param)
+                    obj = self.recursive(obj, obj_param)
                 elif obj is item and obj is not None:
                     obj = item.get(obj_param)
 
                 if obj_filters and obj:
-                    if not self.__filters__(obj, obj_filters):
+                    if not self.filters(obj, obj_filters):
                         obj = None
 
                 if obj is None and len(params) != params.index(param):
@@ -577,28 +572,28 @@ class Objects():
 
         return self.mapped_item
 
-    def __recursiveloop__(self, obj, keys):
+    def recursiveloop(self, obj, keys):
         first, rest = keys.split(':', 1)
-        obj = self.__recursive__(obj, first)
+        obj = self.recursive(obj, first)
 
         if obj:
             if rest:
                 for item in obj:
-                    self.__recursiveloop__(item, rest)
+                    self.recursiveloop(item, rest)
             else:
                 for item in obj:
                     yield item
 
-    def __recursive__(self, obj, keys):
+    def recursive(self, obj, keys):
         for string in keys.split('/'):
             if not obj:
-                return False
+                return None
 
             obj = obj[int(string)] if string.isdigit() else obj.get(string)
 
         return obj
 
-    def __filters__(self, obj, filters):
+    def filters(self, obj, filters):
         result = False
 
         for key, value in iter(list(filters.items())):
@@ -607,8 +602,7 @@ class Objects():
             if value.startswith('!'):
                 inverse = True
                 value = value.split('!', 1)[1]
-
-            if value.lower() == "null":
+            elif value.lower() == "null":
                 value = None
 
             result = obj.get(key) != value if inverse else obj.get(key) == value

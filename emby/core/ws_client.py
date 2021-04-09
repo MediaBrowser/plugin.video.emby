@@ -237,10 +237,11 @@ class WSClient(threading.Thread):
         length = len(data)
 
         while data:
-            l = self.sock.send(data)
-            data = data[l:]
-
-        return length
+            try:
+                l = self.sock.send(data)
+                data = data[l:]
+            except: #Offline
+                break
 
     def ping(self):
         while True:

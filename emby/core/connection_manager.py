@@ -6,7 +6,6 @@ import datetime
 
 import helper.loghandler
 import emby.core.credentials
-import emby.core.http
 
 class ConnectionManager():
     def __init__(self, EmbyServer):
@@ -16,7 +15,6 @@ class ConnectionManager():
         self.user = {}
         self.EmbyServer = EmbyServer
         self.credentials = emby.core.credentials.Credentials()
-        self.http = emby.core.http.HTTP(self.EmbyServer)
 
     def get_server_address(self, server, mode):
         modes = {0: server.get('LocalAddress'), 1: server.get('RemoteAddress'), 2: server.get('ManualAddress')} #Local...Remote...Manual
@@ -41,7 +39,7 @@ class ConnectionManager():
 
     def revoke_token(self):
         self.LOG.info("revoking token")
-        self.get_server_info()['AccessToken'] = None
+#        self.get_server_info()['AccessToken'] = None
         self.credentials.get_credentials(self.credentials.get_credentials())
         self.EmbyServer.Data['auth.token'] = None
 
@@ -61,12 +59,6 @@ class ConnectionManager():
         self._merge_servers(servers, found_servers)
         self._merge_servers(servers, connect_servers)
         servers = self._filter_servers(servers, connect_servers)
-
-#        try:
-#        servers.sort(key=lambda x: datetime.datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
-#        except TypeError:
-#            servers.sort(key=lambda x: datetime.datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])), reverse=True)
-
         credentials['Servers'] = servers
         self.credentials.get_credentials(credentials)
         return servers
@@ -98,15 +90,12 @@ class ConnectionManager():
         self.credentials.get_credentials(credentials)
         # Signed in
         self._on_connect_user_signin(result['User'])
-
         return result
 
     def login(self, server, username, password, clear, options):
         if not username:
-            return False #"username cannot be empty"
-
-        if not password:
-            return False #"password cannot be empty"
+            self.LOG.error("username cannot be empty")
+            return False
 
         request = {
             'type': "POST",
@@ -188,13 +177,15 @@ class ConnectionManager():
         if headers:
             self._get_headers(request)
 
-        return self.http.request(request, MSGs)
+        return self.EmbyServer.http.request(request, MSGs)
 
     def _get_headers(self, request):
         headers = request.setdefault('headers', {})
 
         if request.get('dataType') == "json":
             headers['Accept'] = "application/json"
+            headers['Accept-Charset'] = "UTF-8,*"
+            headers['Accept-encoding'] = "gzip"
             request.pop('dataType')
 
         headers['X-Application'] = "%s/%s" % (self.EmbyServer.Data['app.name'], self.EmbyServer.Data['app.version'])
@@ -351,7 +342,6 @@ class ConnectionManager():
         if not result:
             return []
 
-
         for server in result:
             servers.append({
                 'ExchangeToken': server['AccessKey'],
@@ -370,11 +360,6 @@ class ConnectionManager():
 
         if not len(servers):
             return
-
-#        try:
-#            servers.sort(key=lambda x: datetime.datetime.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ"), reverse=True)
-#        except TypeError:
-#            servers.sort(key=lambda x: datetime.datetime(*(time.strptime(x['DateLastAccessed'], "%Y-%m-%dT%H:%M:%SZ")[0:6])), reverse=True)
 
         return servers[0]
 
@@ -463,12 +448,14 @@ class ConnectionManager():
 
     def _add_authentication_info_from_connect(self, server, connection_mode, credentials, options):
         if not server.get('ExchangeToken'):
-            return False #"server['ExchangeToken'] cannot be null"
+            self.LOG.error('server ExchangeToken cannot be null')
+            return False
 
         if not credentials.get('ConnectUserId'):
-            return False #"credentials['ConnectUserId'] cannot be null"
+            self.LOG.error('credentials ConnectUserId cannot be null')
+            return False
 
-        auth = "MediaBrowser "
+        auth = "Emby "
         auth += "Client=%s, " % self.EmbyServer.Data['app.name']
         auth += "Device=%s, " % self.EmbyServer.Data['app.device_name']
         auth += "DeviceId=%s, " % self.EmbyServer.Data['app.device_id']
@@ -482,8 +469,8 @@ class ConnectionManager():
                 'ConnectUserId': credentials['ConnectUserId']
             },
             'headers': {
-                'X-MediaBrowser-Token': server['ExchangeToken'],
-                'X-Emby-Authorization': auth
+                'X-Emby-Token': server['ExchangeToken'],
+                'Authorization': auth
             }
         }, True, False)
 
@@ -535,7 +522,7 @@ class ConnectionManager():
             'verify': options.get('ssl'),
             'dataType': "json",
             'headers': {
-                'X-MediaBrowser-Token': server['AccessToken']
+                'X-Emby-Token': server['AccessToken']
             }
         }, True, False)
 

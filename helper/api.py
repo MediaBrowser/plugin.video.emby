@@ -5,25 +5,20 @@ except:
     from urllib.parse import urlencode
 
 class API():
-    def __init__(self, item, Utils, server):
+    def __init__(self, Utils, ssl):
         self.Utils = Utils
-        self.item = item
-        self.server = server
-        self.verify_ssl = True
-
-        if server and server.startswith('https') and not self.Utils.settings('sslverify.bool'):
-            self.verify_ssl = False
+        self.verify_ssl = ssl
 
     def get_playcount(self, played, playcount):
         return (playcount or 1) if played else None
 
-    def get_actors(self):
+    def get_actors(self, item):
         cast = []
 
-        if 'People' in self.item:
-            self.get_people_artwork(self.item['People'])
+        if 'People' in item:
+            self.get_people_artwork(item['People'])
 
-            for person in self.item['People']:
+            for person in item['People']:
                 if person['Type'] == "Actor":
                     cast.append({
                         'name': person['Name'],
@@ -41,7 +36,7 @@ class API():
             'subtitle': subtitles or []
         }
 
-    def video_streams(self, tracks, container):
+    def video_streams(self, tracks, container, item):
         if container:
             container = container.split(',')[0]
 
@@ -51,7 +46,7 @@ class API():
                 'profile': track.get('Profile', "").lower(),
                 'height': track.get('Height'),
                 'width': track.get('Width'),
-                '3d': self.item.get('Video3DFormat'),
+                '3d': item.get('Video3DFormat'),
                 'aspect': 1.85
             })
 
@@ -66,14 +61,14 @@ class API():
                     track['codec'] = "avc1"
 
             try:
-                width, height = self.item.get('AspectRatio', track.get('AspectRatio', "0")).split(':')
+                width, height = item.get('AspectRatio', track.get('AspectRatio', "0")).split(':')
                 track['aspect'] = round(float(width) / float(height), 6)
             except (ValueError, ZeroDivisionError):
 
                 if track['width'] and track['height']:
                     track['aspect'] = round(float(track['width'] / track['height']), 6)
 
-            track['duration'] = self.get_runtime()
+            track['duration'] = self.get_runtime(item)
 
         return tracks
 
@@ -93,21 +88,20 @@ class API():
 
         return tracks
 
-    def get_runtime(self):
+    def get_runtime(self, item):
         try:
-            runtime = self.item['RunTimeTicks'] / 10000000.0
+            runtime = item['RunTimeTicks'] / 10000000.0
         except KeyError:
-            runtime = self.item.get('CumulativeRunTimeTicks', 0) / 10000000.0
+            runtime = item.get('CumulativeRunTimeTicks', 0) / 10000000.0
 
         return runtime
 
-    @classmethod
-    def adjust_resume(cls, resume_seconds, Utils):
+    def adjust_resume(self, resume_seconds):
         resume = 0
 
         if resume_seconds:
             resume = round(float(resume_seconds), 6)
-            jumpback = int(Utils.settings('resumeJumpBack'))
+            jumpback = int(self.Utils.settings('resumeJumpBack'))
 
             if resume > jumpback:
                 # To avoid negative bookmark
@@ -129,8 +123,8 @@ class API():
         }
         return studios.get(studio_name.lower(), studio_name)
 
-    def get_overview(self, overview):
-        overview = overview or self.item.get('Overview')
+    def get_overview(self, overview, item):
+        overview = overview or item.get('Overview')
 
         if not overview:
             return
@@ -141,8 +135,8 @@ class API():
         overview = overview.replace("<br>", "[CR]")
         return overview
 
-    def get_mpaa(self, rating):
-        mpaa = rating or self.item.get('OfficialRating', "")
+    def get_mpaa(self, rating, item):
+        mpaa = rating or item.get('OfficialRating', "")
 
         if mpaa in ("NR", "UR"):
             # Kodi seems to not like NR, but will accept Not Rated
@@ -153,9 +147,9 @@ class API():
 
         return mpaa
 
-    def get_file_path(self, path):
+    def get_file_path(self, path, item):
         if path is None:
-            path = self.item.get('Path')
+            path = item.get('Path')
 
         path = self.Utils.StringMod(path)
 
@@ -163,9 +157,9 @@ class API():
         if path.endswith('.strm'):
             path = path.replace('.strm', "")
 
-            if 'Container' in self.item:
-                if not path.endswith(self.Utils.StringMod(self.item['Container'])):
-                    path = path + "." + self.Utils.StringMod(self.item['Container'])
+            if 'Container' in item:
+                if not path.endswith(self.Utils.StringMod(item['Container'])):
+                    path = path + "." + self.Utils.StringMod(item['Container'])
 
         if not path:
             return ""
@@ -173,10 +167,10 @@ class API():
         if path.startswith('\\\\'):
             path = path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
-        if 'Container' in self.item:
-            if self.item['Container'] == 'dvd':
+        if 'Container' in item:
+            if item['Container'] == 'dvd':
                 path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
-            elif self.item['Container'] == 'bluray':
+            elif item['Container'] == 'bluray':
                 path = "%s/BDMV/index.bdmv" % path
 
         path = path.replace('\\\\', "\\")
@@ -189,10 +183,6 @@ class API():
             path = path.replace(protocol, protocol.lower())
 
         return path
-
-    #Get emby user profile picture.
-    def get_user_artwork(self, user_id):
-        return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.server, user_id)
 
     #Get people (actor, director, etc) artwork.
     def get_people_artwork(self, people):

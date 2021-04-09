@@ -70,8 +70,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         if self.servers:
             self.setFocus(self.list_)
 
-    @classmethod
-    def _add_listitem(cls, label, server_id, server_type):
+    def _add_listitem(self, label, server_id, server_type):
         item = xbmcgui.ListItem(label)
         item.setProperty('id', server_id)
         item.setProperty('server_type', server_type)

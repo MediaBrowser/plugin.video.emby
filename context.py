@@ -35,18 +35,8 @@ class Context():
             self.media = xbmc.getInfoLabel('ListItem.DBTYPE')
             item_id = None
 
-
-
-
-
-
         if not self.set_server():
             return
-
-
-
-
-
 
         if item_id:
             self.item = self.EmbyServer[self.server_id].API.get_item(item_id)
@@ -77,10 +67,9 @@ class Context():
             for _ in range(60):
                 if self.Utils.window('emby.server.%s.online.bool' % server_id):
                     ServerOnline = True
-                    self.EmbyServer[server_id] = emby.main.Emby(server_id)
-                    ServerData = self.Utils.window('emby.server.%s.state.json' % server_id)
-                    self.EmbyServer[server_id].set_state(ServerData)
-                    self.EmbyServerName[server_id] = ServerData['config']['auth.server-name']
+                    self.EmbyServer[server_id] = emby.main.Emby(self.Utils, server_id)
+                    self.EmbyServer[server_id].set_state()
+                    self.EmbyServerName[server_id] = self.EmbyServer[server_id].Data['auth.server-name']
                     break
 
                 xbmc.sleep(500)
@@ -158,7 +147,7 @@ class Context():
 
         if delete:
             self.EmbyServer[self.server_id].API.delete_item(self.item['Id'])
-            self.Utils.event("LibraryChanged", {'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
+            self.Utils.event("LibraryChanged", {'ServerId' : self.server_id, 'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
 if __name__ == "__main__":
     Context()
