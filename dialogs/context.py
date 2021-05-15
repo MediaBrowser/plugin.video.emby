@@ -26,8 +26,8 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        if self.Utils.window('emby.UserImage'):
-            self.getControl(150).setImage(self.Utils.window('emby.UserImage'))
+        if self.Utils.Basics.window('emby.UserImage'):
+            self.getControl(150).setImage(self.Utils.Basics.window('emby.UserImage'))
 
         self.LOG.info("options: %s" % self._options)
         self.list_ = self.getControl(155)

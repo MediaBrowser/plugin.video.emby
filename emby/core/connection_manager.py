@@ -40,8 +40,8 @@ class ConnectionManager():
     def revoke_token(self):
         self.LOG.info("revoking token")
 #        self.get_server_info()['AccessToken'] = None
-        self.credentials.get_credentials(self.credentials.get_credentials())
-        self.EmbyServer.Data['auth.token'] = None
+#        self.credentials.get_credentials(self.credentials.get_credentials())
+#        self.EmbyServer.Data['auth.token'] = None
 
     def get_available_servers(self):
         self.LOG.debug("Begin getAvailableServers")
@@ -430,7 +430,8 @@ class ConnectionManager():
     def _ensure_connect_user(self, credentials):
         if self.user and self.user['Id'] == credentials['ConnectUserId']:
             return
-        elif credentials.get('ConnectUserId') and credentials.get('ConnectAccessToken'):
+
+        if credentials.get('ConnectUserId') and credentials.get('ConnectAccessToken'):
             self.user = None
             result = self._get_connect_user(credentials['ConnectUserId'], credentials['ConnectAccessToken'])
             self._on_connect_user_signin(result)
@@ -492,7 +493,8 @@ class ConnectionManager():
                 self.EmbyServer.Data['auth.user_id'] = server['UserId']
                 self.EmbyServer.Data['auth.token'] = server['AccessToken']
                 return self._after_connect_validated(server, credentials, system_info, connection_mode, False, options)
-            elif server.get('AccessToken'):
+
+            if server.get('AccessToken'):
                 return False
 
         self._update_server_info(server, system_info)

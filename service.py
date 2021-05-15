@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+import shutil
+import os
+import xml.etree.ElementTree
+
 import xbmc
+import xbmcvfs
 
 import hooks.monitor
 import database.database
@@ -12,26 +17,81 @@ class Service():
     def __init__(self):
         self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
         self.ShouldStop = False
-        self.ReloadSkin = True
         self.Startup()
 
     def Startup(self):
         self.ShouldStop = False
-        self.ReloadSkin = True
         self.Utils = helper.utils.Utils()
-        self.Setup = helper.setup.Setup(self.Utils)
-        self.Delay = int(self.Utils.settings('startupDelay'))
         self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
+        self.KodiDefaultNodes()
+        self.Setup = helper.setup.Setup(self.Utils)
+        self.Delay = int(self.Utils.Basics.settings('startupDelay'))
         self.Monitor = hooks.monitor.Monitor(self)
         database.database.EmbyDatabaseBuild(self.Utils)
         Xmls = helper.xmls.Xmls(self.Utils)
+        Xmls.advanced_settings()
         Xmls.advanced_settings_add_timeouts()
-        self.Utils.settings('groupedSets.bool', self.Utils.GroupedSet)
+        self.Utils.Basics.settings('groupedSets.bool', self.Utils.GroupedSet)
         self.ServerReconnecting = {}
 
         if not self.Setup.Migrate(): #Check Migrate
             xbmc.executebuiltin('RestartApp')
             return
+
+    def KodiDefaultNodes(self):
+        node_path = self.Utils.Basics.translatePath("special://profile/library/video")
+
+        if not xbmcvfs.exists(node_path):
+            try:
+                shutil.copytree(src=self.Utils.Basics.translatePath("special://xbmc/system/library/video"), dst=self.Utils.Basics.translatePath("special://profile/library/video"))
+            except Exception as error:
+                xbmcvfs.mkdir(node_path)
+
+        for index, node in enumerate(['movies', 'tvshows', 'musicvideos']):
+            filename = os.path.join(node_path, node, "index.xml")
+
+            if xbmcvfs.exists(filename):
+                try:
+                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
+                except Exception as error:
+                    self.LOG.error(error)
+                    continue
+
+                xmlData.set('order', str(17 + index))
+                self.Utils.indent(xmlData, 0)
+                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+
+        playlist_path = self.Utils.Basics.translatePath("special://profile/playlists/video")
+
+        if not xbmcvfs.exists(playlist_path):
+            xbmcvfs.mkdirs(playlist_path)
+
+        node_path = self.Utils.Basics.translatePath("special://profile/library/music")
+
+        if not xbmcvfs.exists(node_path):
+            try:
+                shutil.copytree(src=self.Utils.Basics.translatePath("special://xbmc/system/library/music"), dst=self.Utils.Basics.translatePath("special://profile/library/music"))
+            except Exception as error:
+                xbmcvfs.mkdir(node_path)
+
+        for index, node in enumerate(['music']):
+            filename = os.path.join(node_path, node, "index.xml")
+
+            if xbmcvfs.exists(filename):
+                try:
+                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
+                except Exception as error:
+                    self.LOG.error(error)
+                    continue
+
+                xmlData.set('order', str(17 + index))
+                self.Utils.indent(xmlData, 0)
+                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+
+        playlist_path = self.Utils.Basics.translatePath("special://profile/playlists/music")
+
+        if not xbmcvfs.exists(playlist_path):
+            xbmcvfs.mkdirs(playlist_path)
 
     def ServerConnect(self):
         if self.Delay:
@@ -39,12 +99,16 @@ class Service():
                 self.shutdown()
                 return False
 
-        server_id = self.Monitor.EmbyServer_Connect()
+        while True:
+            server_id = self.Monitor.EmbyServer_Connect()
 
-        if not server_id:
-            return False
+            if server_id:
+                break
 
-        self.ReloadSkin = self.Setup.setup()
+            if self.Monitor.waitForAbort(10):
+                return False
+
+        self.Setup.setup()
         self.Monitor.LibraryLoad(server_id)
         return True
 
@@ -82,12 +146,12 @@ class Service():
                 self.shutdown()
                 return False
 
-            if self.Utils.window('emby.shouldstop.bool'):
+            if self.Utils.Basics.window('emby.shouldstop.bool'):
                 self.ShouldStop = True
 
-            if self.Utils.window('emby.restart.bool'):
-                self.Utils.window('emby.restart.bool', False)
-                self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Translate(33193), icon="{emby}", time=1000, sound=False)
+            if self.Utils.Basics.window('emby.restart.bool'):
+                self.Utils.Basics.window('emby.restart.bool', False)
+                self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Basics.Translate(33193), icon="{emby}", time=1000, sound=False)
                 self.restart()
                 return True
 
@@ -112,11 +176,11 @@ class Service():
         self.LOG.warning("[ RESTART ]")
         properties = ["emby.restart", "emby.servers", "emby.should_stop", "emby.online", "emby.sync.pause", "emby.nodes.total", "emby.sync", "emby.pathverified", "emby.UserImage", "emby.shouldstop"]
 
-        for server_id in self.Utils.window('emby.servers') or []:
+        for server_id in self.Utils.Basics.window('emby.servers') or []:
             properties.append("emby.server.%s.state" % server_id)
 
         for prop in properties:
-            self.Utils.window(prop, clear=True)
+            self.Utils.Basics.window(prop, clear=True)
 
 if __name__ == "__main__":
     serviceOBJ = Service()

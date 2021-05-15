@@ -72,7 +72,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
             if not user:
                 # Display error
-                self._error(ERROR['Empty'], self.Utils.Translate('empty_user'))
+                self._error(ERROR['Empty'], self.Utils.Basics.Translate('empty_user'))
                 self.LOG.error("Username cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -103,7 +103,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         result = self.connect_manager.login(server, username, password, True, {})
 
         if not result:
-            self._error(ERROR['Invalid'], self.Utils.Translate('invalid_auth'))
+            self._error(ERROR['Invalid'], self.Utils.Basics.Translate('invalid_auth'))
             return False
 
         self._user = result

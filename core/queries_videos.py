@@ -98,6 +98,8 @@ add_tags_tvshow_obj = ["{Tags}", "{ShowId}", "tvshow"]
 add_art = """INSERT OR REPLACE INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)"""
 add_movie = """INSERT OR REPLACE INTO movie(idMovie, idFile, c00, c01, c02, c03, c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16, c18, c19, c21, userrating, premiered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
 add_movie_obj = ["{MovieId}", "{FileId}", "{Title}", "{Plot}", "{ShortPlot}", "{Tagline}", "{Votes}", "{RatingId}", "{Writers}", "{Year}", "{Unique}", "{SortTitle}", "{Runtime}", "{Mpaa}", "{Genre}", "{Directors}", "{OriginalTitle}", "{Studio}", "{Trailer}", "{Country}", "{CriticRating}", "{Premiered}"]
+add_movie_nouserrating = """INSERT OR REPLACE INTO movie(idMovie, idFile, c00, c01, c02, c03, c04, c05, c06, c07, c09, c10, c11, c12, c14, c15, c16, c18, c19, c21, premiered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+add_movie_nouserrating_obj = ["{MovieId}", "{FileId}", "{Title}", "{Plot}", "{ShortPlot}", "{Tagline}", "{Votes}", "{RatingId}", "{Writers}", "{Year}", "{Unique}", "{SortTitle}", "{Runtime}", "{Mpaa}", "{Genre}", "{Directors}", "{OriginalTitle}", "{Studio}", "{Trailer}", "{Country}", "{Premiered}"]
 add_rating = """INSERT OR REPLACE INTO rating(rating_id, media_id, media_type, rating_type, rating, votes) VALUES (?, ?, ?, ?, ?, ?)"""
 add_rating_movie_obj = ["{RatingId}", "{MovieId}", "movie", "{RatingType}", "{Rating}", "{Votes}"]
 add_rating_tvshow_obj = ["{RatingId}", "{ShowId}", "tvshow", "default", "{Rating}", "{Votes}"]
@@ -129,22 +131,14 @@ update_genres = """INSERT OR REPLACE INTO genre_link(genre_id, media_id, media_t
 update_studios = """INSERT OR REPLACE INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)"""
 update_playcount = """UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?"""
 update_tag = """INSERT OR REPLACE INTO tag_link(tag_id, media_id, media_type) VALUES (?, ?, ?)"""
-
-
-
-
 update_art = """UPDATE art SET url = ? WHERE media_id = ? AND media_type = ? AND type = ?"""
-
-
-
-
-
-
 update_actor = """INSERT OR REPLACE INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)"""
 update_link = """ INSERT OR REPLACE INTO {LinkType}(actor_id, media_id, media_type) VALUES (?, ?, ?) """
 get_update_link = """SELECT * FROM {LinkType} WHERE actor_id = ? AND media_id = ? AND media_type = ? COLLATE NOCASE"""
 update_movie = """UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?, userrating = ?, premiered = ? WHERE idMovie = ?"""
 update_movie_obj = ["{Title}", "{Plot}", "{ShortPlot}", "{Tagline}", "{Votes}", "{RatingId}", "{Writers}", "{Year}", "{Unique}", "{SortTitle}", "{Runtime}", "{Mpaa}", "{Genre}", "{Directors}", "{OriginalTitle}", "{Studio}", "{Trailer}", "{Country}", "{CriticRating}", "{Premiered}", "{MovieId}"]
+update_movie_nouserrating = """UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?, c07 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c21 = ?, premiered = ? WHERE idMovie = ?"""
+update_movie_nouserrating_obj = ["{Title}", "{Plot}", "{ShortPlot}", "{Tagline}", "{Votes}", "{RatingId}", "{Writers}", "{Year}", "{Unique}", "{SortTitle}", "{Runtime}", "{Mpaa}", "{Genre}", "{Directors}", "{OriginalTitle}", "{Studio}", "{Trailer}", "{Country}", "{Premiered}", "{MovieId}"]
 update_rating = """UPDATE rating SET media_id = ?, media_type = ?, rating_type = ?, rating = ?, votes = ? WHERE rating_id = ?"""
 update_rating_movie_obj = ["{MovieId}", "movie", "{RatingType}", "{Rating}", "{Votes}", "{RatingId}"]
 update_rating_tvshow_obj = ["{ShowId}", "tvshow", "default", "{Rating}", "{Votes}", "{RatingId}"]

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import threading
-import requests
 
 try:
     from urllib import urlencode
@@ -99,7 +98,7 @@ class Artwork():
 
             if result:
                 cached = result[0]
-                thumbnails = self.Utils.translatePath("special://thumbnails/%s" % cached)
+                thumbnails = self.Utils.Basics.translatePath("special://thumbnails/%s" % cached)
                 xbmcvfs.delete(thumbnails)
                 cursor.execute(queries_texture.delete_cache, (url,))
 
@@ -120,7 +119,7 @@ class Artwork():
 
         self.LOG.info("<[ cache textures ]")
 
-        if self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33044)):
+        if self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Basics.Translate(33044)):
             self.delete_all_cache()
 
         self._cache_all_video_entries()
@@ -129,7 +128,7 @@ class Artwork():
     #Remove all existing textures from the thumbnails folder
     def delete_all_cache(self):
         self.LOG.info("[ delete all thumbnails ]")
-        cache = self.Utils.translatePath('special://thumbnails/')
+        cache = self.Utils.Basics.translatePath('special://thumbnails/')
 
         if xbmcvfs.exists(cache):
             dirs, _ = xbmcvfs.listdir(cache)
@@ -175,19 +174,20 @@ class CacheAllEntries(threading.Thread):
         self.urls = urls
         self.Label = Label
         self.progress_updates = xbmcgui.DialogProgressBG()
-        self.progress_updates.create(self.Utils.Translate('addon_name'), self.Utils.Translate(33045))
+        self.progress_updates.create(self.Utils.Basics.Translate('addon_name'), self.Utils.Basics.Translate(33045))
         threading.Thread.__init__(self)
 
     #Cache all entries
     def run(self):
+        import requests
         total = len(self.urls)
 
         for index, url in enumerate(self.urls):
-#            if self.Utils.window('emby.should_stop.bool'):
+#            if self.Utils.Basics.window('emby.should_stop.bool'):
 #                break
 
             Value = int((float(float(index)) / float(total)) * 100)
-            self.progress_updates.update(Value, message="%s: %s" % (self.Utils.Translate(33045), self.Label + ": " + str(index)))
+            self.progress_updates.update(Value, message="%s: %s" % (self.Utils.Basics.Translate(33045), self.Label + ": " + str(index)))
 
             if url[0]:
                 url = urlencode({'blahblahblah': url[0]})

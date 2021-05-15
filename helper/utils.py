@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from dateutil import tz, parser
 
 try:
-    from urllib import quote, quote_plus
+    from urllib import quote_plus
 except:
-    from urllib.parse import quote, quote_plus
+    from urllib.parse import quote_plus
     unicode = str
 
 import xbmc
@@ -19,63 +19,40 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-import helper.xmls
+from . import xmls
+from . import basics
 from . import loghandler
 
 class Utils():
     def __init__(self):
         self.LOG = loghandler.LOG('EMBY.helper.utils.Utils')
+        self.Basics = basics.Basics()
         self.Dialog = xbmcgui.Dialog()
         self.DeviceName = xbmc.getInfoLabel('System.FriendlyName')
-        self.WindowID = xbmcgui.Window(10000)
         self.DeviceID = ""
+        self.device_id = self.get_device_id(False)
+        self.SyncData = self.load_sync()
         self.PathVerified = False
         self.VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
         self.AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
         self.VideoCodecOptions = ["h264", "hevc"]
         self.AudioCodecOptions = ["aac", "ac3"]
-        self.STRINGS = {
-            'addon_name': 29999,
-            'playback_mode': 30511,
-            'empty_user': 30613,
-            'empty_user_pass': 30608,
-            'empty_server': 30617,
-            'network_credentials': 30517,
-            'invalid_auth': 33009,
-            'addon_mode': 33036,
-            'native_mode': 33037,
-            'cancel': 30606,
-            'username': 30024,
-            'password': 30602,
-            'gathering': 33021,
-            'boxsets': 30185,
-            'movies': 30302,
-            'tvshows': 30305,
-            'fav_movies': 30180,
-            'fav_tvshows': 30181,
-            'fav_episodes': 30182,
-            'task_success': 33203,
-            'task_fail': 33204
-        }
         self.InitSettings()
         self.addon_name = xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('name').upper()
         self.addon_version = xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('version')
         self.device_name = self.get_device_name()
-        self.direct_path = self.settings('useDirectPaths') == "1"
-        self.device_id = self.get_device_id(False)
+        self.direct_path = self.Basics.settings('useDirectPaths') == "1"
         self.device_info = {'DeviceName': self.device_name, 'Version': self.addon_version, 'DeviceId': self.device_id}
         self.Screensaver = None
         self.SyncTimestampLast = datetime.fromtimestamp(0)
-        self.SyncData = self.load_sync()
-        self.DefaultVideoSettings = self.load_defaultvideosettings()
         self.DatabaseFiles = self.load_DatabaseFiles()
 
     def load_DatabaseFiles(self):
-        DatabaseFiles = self.window('emby.DatabaseFiles.json')
+        DatabaseFiles = self.Basics.window('emby.DatabaseFiles.json')
 
         if not DatabaseFiles: #load from file
             DatabaseFiles = {
-                'emby': self.translatePath("special://database/") + "emby.db",
+                'emby': self.Basics.translatePath("special://database/") + "emby.db",
                 'texture': "",
                 'texture-version': 0,
                 'music': "",
@@ -84,7 +61,7 @@ class Utils():
                 'video-version': 0
             }
 
-            folder = self.translatePath("special://database/")
+            folder = self.Basics.translatePath("special://database/")
             _, files = xbmcvfs.listdir(folder)
 
             for Filename in files:
@@ -111,19 +88,19 @@ class Utils():
         return DatabaseFiles
 
     def load_defaultvideosettings(self):
-        DefaultVideoSettings = self.window('emby.kodi.get_defaultvideosettings.json')
+        DefaultVideoSettings = self.Basics.window('emby.kodi.get_defaultvideosettings.json')
 
         if not DefaultVideoSettings: #load from file
-            DefaultVideoSettings = helper.xmls.Xmls(self).load_defaultvideosettings()
-            self.window('emby.kodi.get_defaultvideosettings.json', DefaultVideoSettings)
+            DefaultVideoSettings = xmls.Xmls(self).load_defaultvideosettings()
+            self.Basics.window('emby.kodi.get_defaultvideosettings.json', DefaultVideoSettings)
 
         return DefaultVideoSettings
 
     def load_sync(self):
-        SyncData = self.window('emby.servers.sync.json')
+        SyncData = self.Basics.window('emby.servers.sync.json')
 
         if not SyncData: #load from file
-            path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+            path = self.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
             if not xbmcvfs.exists(path):
                 xbmcvfs.mkdirs(path)
@@ -138,7 +115,7 @@ class Utils():
             SyncData['RestorePoint'] = SyncData.get('RestorePoint', {})
             SyncData['Whitelist'] = list(set(SyncData.get('Whitelist', [])))
             SyncData['SortedViews'] = SyncData.get('SortedViews', [])
-            self.window('emby.servers.sync.json', SyncData)
+            self.Basics.window('emby.servers.sync.json', SyncData)
 
         return SyncData
 
@@ -151,7 +128,7 @@ class Utils():
 
         self.SyncTimestampLast = CurrentDate
         Data['Date'] = CurrentDate.strftime('%Y-%m-%dT%H:%M:%SZ')
-        path = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+        path = self.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
         if not xbmcvfs.exists(path):
             xbmcvfs.mkdirs(path)
@@ -160,55 +137,39 @@ class Utils():
             output = json.dumps(Data, sort_keys=True, indent=4, ensure_ascii=False)
             outfile.write(output.encode('utf-8'))
 
-        self.window('emby.servers.sync.json', Data)
+        self.Basics.window('emby.servers.sync.json', Data)
         self.SyncData = Data
 
     def save_last_sync(self):
         time_now = datetime.utcnow() - timedelta(minutes=2)
         last_sync = time_now.strftime('%Y-%m-%dT%H:%M:%Sz')
-        self.settings('LastIncrementalSync', value=last_sync)
+        self.Basics.settings('LastIncrementalSync', value=last_sync)
         self.LOG.info("--[ sync/%s ]" % last_sync)
 
     def InitSettings(self):
-        self.KodiVersion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
-        self.Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
-        self.VideoBitrate = self.VideoBitrateOptions[int(self.settings('videoBitrate'))]
-        self.AudioBitrate = self.AudioBitrateOptions[int(self.settings('audioBitrate'))]
-
-
-
-
-        self.TranscodeH265 = self.settings('transcode_h265.bool')
-        self.TranscodeDivx = self.settings('transcodeDivx.bool')
-        self.TranscodeXvid = self.settings('transcodeXvid.bool')
-        self.TranscodeMpeg2 = self.settings('transcodeMpeg2.bool')
-        self.EnableCinema = self.settings('enableCinema.bool')
-        self.AskCinema = self.settings('askCinema.bool')
-
-
-        self.VideoCodecID = self.VideoCodecOptions[int(self.settings('TranscodeFormatVideo'))]
-        self.AudioCodecID = self.AudioCodecOptions[int(self.settings('TranscodeFormatAudio'))]
-
-
-
+        self.VideoBitrate = self.VideoBitrateOptions[int(self.Basics.settings('videoBitrate'))]
+        self.AudioBitrate = self.AudioBitrateOptions[int(self.Basics.settings('audioBitrate'))]
+        self.TranscodeH265 = self.Basics.settings('transcode_h265.bool')
+        self.TranscodeDivx = self.Basics.settings('transcodeDivx.bool')
+        self.TranscodeXvid = self.Basics.settings('transcodeXvid.bool')
+        self.TranscodeMpeg2 = self.Basics.settings('transcodeMpeg2.bool')
+        self.EnableCinema = self.Basics.settings('enableCinema.bool')
+        self.AskCinema = self.Basics.settings('askCinema.bool')
+        self.OfferDelete = self.Basics.settings('offerDelete.bool')
+        self.OfferDeleteTV = self.Basics.settings('deleteTV.bool')
+        self.OfferDeleteMovie = self.Basics.settings('deleteMovies.bool')
+        self.UserRatingSync = self.Basics.settings('userRating.bool')
+        self.EnableCoverArt = self.Basics.settings('enableCoverArt.bool')
+        self.CompressArt = self.Basics.settings('compressArt.bool')
+        self.VideoCodecID = self.VideoCodecOptions[int(self.Basics.settings('TranscodeFormatVideo'))]
+        self.AudioCodecID = self.AudioCodecOptions[int(self.Basics.settings('TranscodeFormatAudio'))]
         self.Screensaver = self.get_screensaver()
         self.WebserverData = self.get_web_server_data()
         self.GroupedSet = self.get_grouped_set()
 
-    def Translate(self, String):
-        if isinstance(String, str):
-            String = self.STRINGS[String]
-
-        result = self.Addon.getLocalizedString(String)
-
-        if not result:
-            result = xbmc.getLocalizedString(String)
-
-        return result
-
     #Get if boxsets should be grouped
     def get_grouped_set(self):
-        result = JSONRPC('Settings.GetSettingValue').execute({'setting': "videolibrary.groupmoviesets"})
+        result = basics.JSONRPC('Settings.GetSettingValue').execute({'setting': "videolibrary.groupmoviesets"})
 
         try:
             return result['result']['value']
@@ -217,7 +178,7 @@ class Utils():
 
     #Get the current screensaver value
     def get_screensaver(self):
-        result = JSONRPC('Settings.getSettingValue').execute({'setting': "screensaver.mode"})
+        result = basics.JSONRPC('Settings.getSettingValue').execute({'setting': "screensaver.mode"})
 
         try:
             return result['result']['value']
@@ -225,16 +186,10 @@ class Utils():
             return ""
 
     def get_device_id(self, reset):
-        ''' Return the device_id if already loaded.
-            It will load from emby_guid file. If it's a fresh
-            setup, it will generate a new GUID to uniquely
-            identify the setup for all users.
-            window prop: emby_deviceId
-        '''
         if self.DeviceID:
             return self.DeviceID
 
-        directory = self.translatePath('special://profile/addon_data/plugin.video.emby-next-gen/')
+        directory = self.Basics.translatePath('special://profile/addon_data/plugin.video.emby-next-gen/')
 
         if not xbmcvfs.exists(directory):
             xbmcvfs.mkdir(directory)
@@ -258,10 +213,10 @@ class Utils():
             use the device name in the add-on settings.
             Otherwise fallback to the Kodi device name.
         '''
-        if not self.settings('deviceNameOpt.bool'):
+        if not self.Basics.settings('deviceNameOpt.bool'):
             device_name = self.DeviceName
         else:
-            device_name = self.settings('deviceName')
+            device_name = self.Basics.settings('deviceName')
             device_name = device_name.replace("\"", "_")
             device_name = device_name.replace("/", "_")
 
@@ -274,14 +229,14 @@ class Utils():
     #Will only test once, if it fails, user will be notified only once
     def get_web_server_data(self):
         Data = {'Enabled' : False}
-        get_setting = JSONRPC('Settings.GetSettingValue')
+        get_setting = basics.JSONRPC('Settings.GetSettingValue')
 
         if not self.get_web_server():
-            set_setting = JSONRPC('Settings.SetSetingValue')
+            set_setting = basics.JSONRPC('Settings.SetSetingValue')
             set_setting.execute({'setting': "services.webserver", 'value': True})
 
             if not self.get_web_server():
-#                self.dialog("ok", heading="{emby}", line1=self.Translate(33103))
+#                self.dialog("ok", heading="{emby}", line1=self.Basics.Translate(33103))
                 return Data
 
         result = get_setting.execute({'setting': "services.webserverport"})
@@ -296,7 +251,7 @@ class Utils():
         return Data
 
     def get_web_server(self):
-        result = JSONRPC('Settings.GetSettingValue').execute({'setting': "services.webserver"})
+        result = basics.JSONRPC('Settings.GetSettingValue').execute({'setting': "services.webserver"})
 
         try:
             return result['result']['value']
@@ -306,12 +261,12 @@ class Utils():
     def reset_device_id(self):
         self.DeviceID = ""
         self.get_device_id(True)
-        self.dialog("ok", heading="{emby}", line1=self.Translate(33033))
+        self.dialog("ok", heading="{emby}", line1=self.Basics.Translate(33033))
         xbmc.executebuiltin('RestartApp')
 
     #Download external subtitles to temp folder
-    def download_external_subs(self, request, filename, EmbyServer):
-        temp = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/")
+    def download_file_from_Embyserver(self, request, filename, EmbyServer):
+        temp = self.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/")
 
         if not xbmcvfs.exists(temp):
             xbmcvfs.mkdir(temp)
@@ -326,105 +281,6 @@ class Utils():
             return path
 
         return None
-
-    def StringMod(self, Data):
-        if self.KodiVersion >= 19:
-            return Data
-
-        return Data.encode('utf-8')
-
-    def StringDecode(self, Data):
-        if self.KodiVersion <= 18:
-            try:
-                Data = Data.decode('utf-8')
-            except:
-                Data = Data.encode('utf8').decode('utf-8')
-
-        return Data
-
-    def translatePath(self, Data):
-        if self.KodiVersion >= 19:
-            return xbmcvfs.translatePath(Data)
-
-        return xbmc.translatePath(Data)
-
-    def ReplaceSpecialCharecters(self, Data):
-        if self.KodiVersion <= 18:
-            Data = unicode(Data, 'utf-8')
-            Data = Data.encode('utf-8')
-            Data = quote(Data, safe=u':/'.encode('utf-8'))
-        else:
-            Data = quote(Data)
-
-        Data = Data.replace("%", "")
-        return Data
-
-    def PathToFilenameReplaceSpecialCharecters(self, Path):
-        Temp = Path
-        Pos = Temp.rfind("/")
-
-        if Pos == -1: #Windows
-            Pos = Temp.rfind("\\")
-
-        Temp = Temp[Pos + 1:]
-
-        if self.KodiVersion <= 18:
-            if isinstance(Temp, str):
-                Temp = unicode(Temp, 'utf-8')
-                Temp = Temp.encode('utf-8')
-                Filename = quote(Temp, safe=u':/'.encode('utf-8'))
-            else:
-                Filename = quote(Temp.encode('utf-8'), safe=u':/'.encode('utf-8'))
-        else:
-            Filename = quote(Temp)
-
-        while Filename.find("%") != -1:
-            Pos = Filename.find("%")
-            Filename = Filename.replace(Filename[Pos:Pos + 3], "_")
-
-        return Filename
-
-    #Get or set window properties
-    def window(self, key, value=None, clear=False):
-        if clear:
-            self.LOG.debug("--[ window clear: %s ]" % key)
-            self.WindowID.clearProperty(key.replace('.json', "").replace('.bool', ""))
-        elif value is not None:
-            if key.endswith('.json'):
-                key = key.replace('.json', "")
-                value = json.dumps(value)
-            elif key.endswith('.bool'):
-                key = key.replace('.bool', "")
-                value = "true" if value else "false"
-
-            self.WindowID.setProperty(key, value)
-        else:
-            result = self.WindowID.getProperty(key.replace('.json', "").replace('.bool', ""))
-
-            if result:
-                if key.endswith('.json'):
-                    result = json.loads(result)
-                elif key.endswith('.bool'):
-                    result = result in ("true", "1")
-
-            return result
-
-    #Get or add add-on settings.
-    #getSetting returns unicode object
-    def settings(self, setting, value=None):
-        if value is not None:
-            if setting.endswith('.bool'):
-                setting = setting.replace('.bool', "")
-                value = "true" if value else "false"
-
-            self.Addon.setSetting(setting, value)
-        else:
-            result = self.Addon.getSetting(setting.replace('.bool', ""))
-
-            if result and setting.endswith('.bool'):
-                result = result in ("true", "1")
-
-            return result
 
     def create_id(self):
         return uuid.uuid4()
@@ -441,20 +297,14 @@ class Utils():
         if beta:
             return self.find(dictData, item.replace('beta-', ""), False)
 
-    #Data is a dictionary
-    def event(self, method, data):
-        data = '"[%s]"' % json.dumps(data).replace('"', '\\"')
-        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s, %s)' % (method, data))
-        self.LOG.debug("---[ event: plugin.video.emby-next-gen/%s ] %s" % (method, data))
-
     def dialog(self, dialog_type, *args, **kwargs):
         if "icon" in kwargs:
             kwargs['icon'] = kwargs['icon'].replace("{emby}", "special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
         if "heading" in kwargs:
-            kwargs['heading'] = kwargs['heading'].replace("{emby}", self.Translate('addon_name'))
+            kwargs['heading'] = kwargs['heading'].replace("{emby}", self.Basics.Translate('addon_name'))
 
-        if self.KodiVersion >= 19:
+        if self.Basics.KodiVersion >= 19:
             if "line1" in kwargs:
                 kwargs['message'] = kwargs['line1']
                 del kwargs['line1']
@@ -477,7 +327,7 @@ class Utils():
             'setting': "screensaver.mode",
             'value': value
         }
-        result = JSONRPC('Settings.setSettingValue').execute(params)
+        result = basics.JSONRPC('Settings.setSettingValue').execute(params)
         self.Screensaver = value
         self.LOG.info("---[ screensaver/%s ] %s" % (value, result))
 
@@ -486,8 +336,8 @@ class Utils():
         if self.PathVerified:
             return True
 
-        path = self.StringDecode(path)
-        string = "%s %s. %s" % (self.Translate(33047), path, self.Translate(33048))
+        path = self.Basics.StringDecode(path)
+        string = "%s %s. %s" % (self.Basics.Translate(33047), path, self.Basics.Translate(33048))
 
         if not os.path.supports_unicode_filenames:
             path = path.encode('utf-8')
@@ -539,7 +389,7 @@ class Utils():
     def delete_folder(self, path):
         self.LOG.debug("--[ delete folder ]")
         delete_path = path is not None
-        path = path or self.translatePath('special://temp/emby')
+        path = path or self.Basics.translatePath('special://temp/emby')
         dirs, files = xbmcvfs.listdir(path)
         self.delete_recursive(path, dirs)
 
@@ -673,7 +523,7 @@ class Utils():
         text = text.strip()
         text = text.rstrip('.')
 
-        if self.KodiVersion >= 19:
+        if self.Basics.KodiVersion >= 19:
             text = unicodedata.normalize('NFKD', text)
         else:
             text = unicodedata.normalize('NFKD', text).encode('utf-8')
@@ -681,7 +531,7 @@ class Utils():
         return text
 
     def direct_url(self, item):
-        FilenameURL = self.PathToFilenameReplaceSpecialCharecters(item['Path'])
+        FilenameURL = self.Basics.PathToFilenameReplaceSpecialCharecters(item['Path'])
 
         if item['Type'] == 'Audio':
             Type = 'audio'
@@ -704,43 +554,13 @@ class Utils():
             if isinstance(date, int):
                 date = str(date)
 
-            if isinstance(date, unicode) or isinstance(date, str):
+            if isinstance(date, (str, unicode)):
                 date = parser.parse(date.encode('utf-8'))
 
             date = date.replace(tzinfo=tz.tzutc())
             date = date.astimezone(tz.tzlocal())
             return date.strftime('%Y-%m-%dT%H:%M:%S')
-
-
-
-#datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-
-
         except Exception as error:
             self.LOG.error(error)
             self.LOG.info("date: %s" % str(date))
             return ""
-
-class JSONRPC():
-    def __init__(self, method, **kwargs):
-        self.method = method
-        self.params = False
-
-        for arg in kwargs:
-            self.arg = kwargs[arg]
-
-    def _query(self):
-        query = {
-            'jsonrpc': "2.0",
-            'id': 1,
-            'method': self.method,
-        }
-
-        if self.params:
-            query['params'] = self.params
-
-        return json.dumps(query)
-
-    def execute(self, params):
-        self.params = params
-        return json.loads(xbmc.executeJSONRPC(self._query()))

@@ -20,12 +20,12 @@ class Context():
         self.media = None
         self.XML_PATH = (xbmcaddon.Addon('plugin.video.emby-next-gen').getAddonInfo('path'), "default", "1080i")
         self.OPTIONS = {
-            'Refresh': self.Utils.Translate(30410),
-            'Delete': self.Utils.Translate(30409),
-            'Addon': self.Utils.Translate(30408),
-            'AddFav': self.Utils.Translate(30405),
-            'RemoveFav': self.Utils.Translate(30406),
-            'Transcode': self.Utils.Translate(30412)
+            'Refresh': self.Utils.Basics.Translate(30410),
+            'Delete': self.Utils.Basics.Translate(30409),
+            'Addon': self.Utils.Basics.Translate(30408),
+            'AddFav': self.Utils.Basics.Translate(30405),
+            'RemoveFav': self.Utils.Basics.Translate(30406),
+            'Transcode': self.Utils.Basics.Translate(30412)
         }
 
         if xbmc.getInfoLabel('ListItem.Property(embyid)'):
@@ -52,7 +52,7 @@ class Context():
 
     def set_server(self):
         if not self.server_id or self.server_id == 'None': #load first server WORKAROUND!!!!!!!!!!!
-            server_ids = self.Utils.window('emby.servers.json')
+            server_ids = self.Utils.Basics.window('emby.servers.json')
 
             for server_id in server_ids:
                 self.server_id = server_id
@@ -61,11 +61,11 @@ class Context():
         ServerOnline = False
         self.EmbyServer = {}
         self.EmbyServerName = {}
-        server_ids = self.Utils.window('emby.servers.json')
+        server_ids = self.Utils.Basics.window('emby.servers.json')
 
         for server_id in server_ids:
             for _ in range(60):
-                if self.Utils.window('emby.server.%s.online.bool' % server_id):
+                if self.Utils.Basics.window('emby.server.%s.online.bool' % server_id):
                     ServerOnline = True
                     self.EmbyServer[server_id] = emby.main.Emby(self.Utils, server_id)
                     self.EmbyServer[server_id].set_state()
@@ -75,11 +75,6 @@ class Context():
                 xbmc.sleep(500)
 
         return ServerOnline
-
-
-
-
-
 
     #Get synced item from embydb
     def get_item_id(self):
@@ -107,7 +102,7 @@ class Context():
 
         options.append(self.OPTIONS['Refresh'])
 
-        if self.Utils.settings('enableContextDelete.bool'):
+        if self.Utils.Basics.settings('enableContextDelete.bool'):
             options.append(self.OPTIONS['Delete'])
 
         options.append(self.OPTIONS['Addon'])
@@ -121,16 +116,16 @@ class Context():
         return self._selected_option
 
     def action_menu(self):
-        selected = self.Utils.StringDecode(self._selected_option)
+        selected = self.Utils.Basics.StringDecode(self._selected_option)
 
         if selected == self.OPTIONS['Refresh']:
-            self.Utils.event('RefreshItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
+            self.Utils.Basics.event('RefreshItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['AddFav']:
-            self.Utils.event('AddFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
+            self.Utils.Basics.event('AddFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['RemoveFav']:
-            self.Utils.event('RemoveFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
+            self.Utils.Basics.event('RemoveFavItem', {'Id': self.item['Id'], 'ServerId' : self.server_id})
 
         elif selected == self.OPTIONS['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
@@ -141,13 +136,13 @@ class Context():
     def delete_item(self):
         delete = True
 
-        if not self.Utils.settings('skipContextMenu.bool'):
-            if not self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33015)):
+        if not self.Utils.Basics.settings('skipContextMenu.bool'):
+            if not self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Basics.Translate(33015)):
                 delete = False
 
         if delete:
             self.EmbyServer[self.server_id].API.delete_item(self.item['Id'])
-            self.Utils.event("LibraryChanged", {'ServerId' : self.server_id, 'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
+            self.Utils.Basics.event("LibraryChanged", {'ServerId' : self.server_id, 'ItemsRemoved': [self.item['Id']], 'ItemsVerify': [self.item['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
 
 if __name__ == "__main__":
     Context()

@@ -2,8 +2,7 @@
 import json
 
 class Objects():
-    def __init__(self, Utils):
-        self.Utils = Utils
+    def __init__(self):
         self.mapped_item = {}
         self.objects = {
             "MovieProviderName": "imdb",
@@ -101,6 +100,7 @@ class Objects():
                 "SeriesId": "SeriesId",
                 "Location": "LocationType",
                 "Title": "Name",
+                "EmbyParentId": "ParentId",
                 "PresentationKey": "PresentationUniqueKey"
             },
             "EpisodeProviderName": "tvdb",
@@ -372,6 +372,13 @@ class Objects():
                 "Title": "Name",
                 "Type": "Type",
                 "Overview": "Overview"
+            },
+            "BrowseGenre": {
+                "Id": "Id",
+                "Title": "Name",
+                "Type": "Type",
+                "Tags": "ImageTags",
+                "BackdropTags": "BackdropImageTags"
             },
             "BrowseChannel": {
                 "Id": "Id",

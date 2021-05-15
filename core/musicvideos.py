@@ -20,21 +20,15 @@ class MusicVideos():
         self.emby = embydb
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
-        self.objects = obj_ops.Objects(self.EmbyServer.Utils)
+        self.objects = obj_ops.Objects()
         self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.MusicVideosDBIO = MusicVideosDBIO(videodb.cursor)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
 
     def musicvideo(self, item, library):
-        ''' If item does not exist, entry will be added.
-            If item exists, entry will be updated.
-
-            If we don't get the track number from Emby, see if we can infer it
-            from the sortname attribute.
-        '''
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -69,9 +63,9 @@ class MusicVideos():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']
@@ -166,9 +160,6 @@ class MusicVideos():
         self.LOG.info("UPDATE mvideo [%s/%s/%s] %s: %s" % (obj['PathId'], obj['FileId'], obj['MvideoId'], obj['Id'], obj['Title']))
 
     def userdata(self, item):
-        ''' This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
-            Poster with progress bar
-        '''
         e_item = self.emby_db.get_item_by_id(item['Id'])
         obj = self.objects.map(item, 'MusicVideoUserData')
         obj['Item'] = item

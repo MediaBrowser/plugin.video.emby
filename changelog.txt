@@ -1,0 +1,300 @@
+5.2.07 (beta)
+=============
+
+Fixes:
+------
+Connection when server is offline on Kodi start
+Kodi 18 unicode issues fixed
+remove episode fixed
+TV Shows repair sync fixed
+music sync (single) issue
+Trakt dublette issue
+timeout advancedsettings issue
+readded and optimized nextepisode node
+fix subtitle preselection
+re-add favourites
+fix sources.xml
+reduced skinreloads to a minimum
+fix Kodi restart issues
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+User login issue (no admin privileges)
+delete item (Context menu)
+add user
+taglines bugfix
+hibernate mode
+Login issues
+Userlogin without password
+backdrops
+progress updates
+
+
+New:
+----
+Delete Show/Season after watched
+New content notifications
+Static nodes opimized
+Dynamic nodes opimized
+Subtitle enabled/disabled default settings based on guisettings.xml
+iso, bdmw support in addon mode (fallback to native mode)
+
+
+Known issues:
+-------------
+Multiserver not working
+Changelog not working
+1970 issue (Windows only)
+
+
+Feature requests:
+-----------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Add Playcount option for musicvideos
+
+
+5.2.06 (beta)
+=============
+
+Fixes:
+------
+sleep/hibernate
+backup
+sync issues
+New content Notification
+Threading limtation
+remove items while sync
+update TV-Show season
+Musicvideo realtime sync issue (no Presentation Key)
+
+New:
+----
+alphabet/first letter nodes
+Icon(s) in rootfolder
+Remove artwork optional when DB reset
+Boost initial sync
+
+Known issues:
+-------------
+Loghandler mask not working
+Multiserver not working
+Dynamic lists slow/artwork
+Distributed TV-Shows not synced correctly
+Review Artwork/Backdrops
+Changelog not working
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+Trakt issue
+1970 issue (Windows only)
+User login issue (no admin privileges)
+delete item (Context menu) fixed
+add user fixed
+taglines fixed
+hibernate fixed
+sync performance
+Login fixes (to be tested)
+Dynamic list performance
+Subtitle enabled/disabled should now work based on settings
+Userlogin with no passwords works
+ISO (to be tested) -> DB reset required
+backdrops fixed
+progress updates fixed
+
+Feature requests:
+-----------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Boost Repair sync
+New content notifications
+Add Playcount option for musicvideos
+Delete Show/Season after finished
+
+
+5.2.05 (beta)
+=============
+
+Fixes:
+------
+sleep/hibernate
+backup
+sync issues
+New content Notification
+Threading limtation
+remove items while sync
+update TV-Show season
+Musicvideo realtime sync issue (no Presentation Key)
+
+New:
+----
+alphabet/first letter nodes
+Icon(s) in rootfolder
+Remove artwork optional when DB reset
+Boost initial sync
+
+Known issues:
+-------------
+Loghandler mask not working
+Multiserver not working
+Dynamic lists slow/artwork
+Distributed TV-Shows not synced correctly
+Review Artwork/Backdrops
+Changelog not working
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+Trakt issue
+1970 issue (Windows only)
+User login issue (no admin privileges)
+
+Feature requests:
+-----------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Boost Repair sync
+New content notifications
+Add Playcount option for musicvideos
+Delete Show/Season after finished
+
+
+5.2.04 (beta)
+=============
+
+Fixes:
+------
+sleep/hibernate
+backup
+sync issues
+New content Notification
+Threading limtation
+remove items while sync
+update TV-Show season
+
+New:
+----
+alphabet/first letter nodes
+Icon(s) in rootfolder
+Remove artwork optional when DB reset
+Boost initial sync
+
+Known issues:
+-------------
+Loghandler mask not working
+Multiserver not working
+Dynamic lists slow/artwork
+Distributed TV-Shows not synced correctly
+Review Artwork/Backdrops
+Changelog not working
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+Trakt issue
+1970 issue (Windows only)
+User login issue (no admin privileges)
+
+Feature requests:
+-----------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Boost Repair sync
+New content notifications
+Add Playcount option for musicvideos
+Delete Show/Season after finished
+
+
+5.2.03 (beta)
+=============
+
+Fixes:
+------
+sleep/hibernate
+backup
+sync issues
+New content Notification
+Threading limtation
+
+New:
+----
+alphabet/first letter nodes
+Icon(s) in rootfolder
+Remove artwork optional when DB reset
+Boost initial sync
+
+Known issues:
+-------------
+Loghandler mask not working
+Multiserver not working
+Dynamic lists slow/artwork
+Distributed TV-Shows not synced correctly
+Review Artwork/Backdrops
+Changelog not working
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+Trakt issue
+1970 issue (Windows only)
+User login issue (no admin privileges)
+
+Feature requests (pending):
+---------------------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Boost Repair sync
+New content notifications
+Add Playcount option for musicvideos
+Delete Show/Season after finished
+
+
+5.2.02 (beta)
+=============
+
+Fixes:
+------
+sleep/hibernate fixed
+backup fixed
+sync issues fixed
+
+New:
+----
+alphabet/first letter nodes
+Icon(s) in rootfolder
+Remove artwork optional when DB reset
+Boost initial sync
+
+Known issues:
+-------------
+Loghandler mask not working
+Multiserver not working
+Dynamic lists slow/artwork
+Distributed TV-Shows not synced correctly
+Review Artwork/Backdrops
+Changelog not working
+Crash if Emby server is not up on Kodi startup
+Crash on Emby Server shutdown
+Trakt issue
+1970 issue (Windows only)
+User login issue (no admin privileges)
+
+Feature requests (pending):
+---------------------------
+PVR support
+Remove TV-Shows etc after fully watched
+Audiobook support
+Autodetect Speed for Transcoding
+Improve Subtitle selection
+Boost Repair sync
+New content notifications
+Add Playcount option for musicvideos
+Delete Show/Season after finished
+

@@ -5,27 +5,25 @@ except:
     from urllib.parse import urlencode
 
 class API():
-    def __init__(self, Utils, ssl):
-        self.Utils = Utils
+    def __init__(self, Basics, ssl):
+        self.Basics = Basics
         self.verify_ssl = ssl
 
     def get_playcount(self, played, playcount):
         return (playcount or 1) if played else None
 
-    def get_actors(self, item):
+    def get_actors(self, people):
         cast = []
+        self.get_people_artwork(people)
 
-        if 'People' in item:
-            self.get_people_artwork(item['People'])
-
-            for person in item['People']:
-                if person['Type'] == "Actor":
-                    cast.append({
-                        'name': person['Name'],
-                        'role': person.get('Role', "Unknown"),
-                        'order': len(cast) + 1,
-                        'thumbnail': person['imageurl']
-                    })
+        for person in people:
+            if person['Type'] == "Actor":
+                cast.append({
+                    'name': person['Name'],
+                    'role': person.get('Role', "Unknown"),
+                    'order': len(cast) + 1,
+                    'thumbnail': person['imageurl']
+                })
 
         return cast
 
@@ -101,7 +99,7 @@ class API():
 
         if resume_seconds:
             resume = round(float(resume_seconds), 6)
-            jumpback = int(self.Utils.settings('resumeJumpBack'))
+            jumpback = int(self.Basics.settings('resumeJumpBack'))
 
             if resume > jumpback:
                 # To avoid negative bookmark
@@ -135,6 +133,14 @@ class API():
         overview = overview.replace("<br>", "[CR]")
         return overview
 
+    def get_DateAdded(self, DateInfo):
+        if DateInfo:
+            DateAdded = DateInfo.split('.')[0].replace('T', " ")
+            FileDate = "%s.%s.%s" % tuple(reversed(DateAdded.split('T')[0].split('-')))
+            return DateAdded, FileDate
+
+        return None, None
+
     def get_mpaa(self, rating, item):
         mpaa = rating or item.get('OfficialRating', "")
 
@@ -145,21 +151,24 @@ class API():
         if "FSK-" in mpaa:
             mpaa = mpaa.replace("-", " ")
 
+        if "GB-" in mpaa:
+            mpaa = mpaa.replace("GB-", "UK:")
+
         return mpaa
 
     def get_file_path(self, path, item):
         if path is None:
             path = item.get('Path')
 
-        path = self.Utils.StringMod(path)
+        path = self.Basics.StringMod(path)
 
         #Addonmode replace filextensions
         if path.endswith('.strm'):
             path = path.replace('.strm', "")
 
             if 'Container' in item:
-                if not path.endswith(self.Utils.StringMod(item['Container'])):
-                    path = path + "." + self.Utils.StringMod(item['Container'])
+                if not path.endswith(self.Basics.StringMod(item['Container'])):
+                    path = path + "." + self.Basics.StringMod(item['Container'])
 
         if not path:
             return ""
@@ -209,11 +218,6 @@ class API():
             'Disc': "",
             'Backdrop': []
         }
-
-        if self.Utils.settings('compressArt.bool'):
-            query.append(('Quality', 70))
-
-        query.append(('EnableImageEnhancers', self.Utils.settings('enableCoverArt.bool')))
         all_artwork['Backdrop'] = self.get_backdrops(obj['Id'], obj['BackdropTags'] or [], query)
 
         for artwork in (obj['Tags'] or []):

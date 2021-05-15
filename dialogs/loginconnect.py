@@ -68,7 +68,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
             if not user or not password:
                 # Display error
-                self._error(ERROR['Empty'], self.Utils.Translate('empty_user_pass'))
+                self._error(ERROR['Empty'], self.Utils.Basics.Translate('empty_user_pass'))
                 self.LOG.error("Username or password cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -98,14 +98,14 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         result = self.connect_manager.login_to_connect(username, password)
 
         if result is False:
-            self._error(ERROR['Invalid'], self.Utils.Translate('invalid_auth'))
+            self._error(ERROR['Invalid'], self.Utils.Basics.Translate('invalid_auth'))
             return False
 
         self._user = result
         username = result['User']['Name']
-        self.Utils.settings('connectUsername', value=username)
-        self.Utils.settings('idMethod', value="1")
-        self.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.Utils.Translate(33000), self.Utils.StringMod(username)), icon=result['User'].get('ImageUrl') or "{emby}", time=2000, sound=False)
+        self.Utils.Basics.settings('connectUsername', value=username)
+        self.Utils.Basics.settings('idMethod', value="1")
+        self.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.Utils.Basics.Translate(33000), self.Utils.Basics.StringMod(username)), icon=result['User'].get('ImageUrl') or "{emby}", time=2000, sound=False)
         return True
 
     def _error(self, state, message):

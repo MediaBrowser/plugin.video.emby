@@ -9,7 +9,7 @@ import xbmcgui
 import database.database
 import database.emby_db
 import core.queries_videos
-import helper.utils
+import helper.basics
 import helper.loghandler
 
 class ProgressUpdates(threading.Thread):
@@ -63,8 +63,11 @@ class PlayerEvents(xbmc.Player):
         self.SyncPause = False
 
     #Threaded by Monitor
-    def OnPlay(self, data, EmbyServer):
+    def OnPlay(self, data, EmbyServer, server_id):
         self.LOG.info("[ OnPlay ] %s " % data)
+
+        if data['item']['type'] in ('picture', 'unknown'):
+            return
 
         if self.ProgressThread:
             self.ProgressThread.Stop()
@@ -74,7 +77,7 @@ class PlayerEvents(xbmc.Player):
 
         if not self.Trailer:
             if not "id" in data['item']:
-                self.CurrentItem['Id'] = EmbyServer.Utils.window('emby.DynamicItem_' + EmbyServer.Utils.ReplaceSpecialCharecters(data['item']['title']))
+                self.CurrentItem['Id'] = EmbyServer.Utils.Basics.window('emby.DynamicItem_%s' % EmbyServer.Utils.Basics.ReplaceSpecialCharecters(data['item']['title']))
 
                 if not self.CurrentItem['Id']:
                     self.CurrentItem['Tracking'] = False
@@ -98,12 +101,87 @@ class PlayerEvents(xbmc.Player):
             self.CurrentItem['Volume'], self.CurrentItem['Muted'] = self.get_volume()
             self.CurrentItem['MediaSourceId'] = self.MediasourceID
             self.CurrentItem['EmbyServer'] = EmbyServer
+            self.CurrentItem['ServerId'] = server_id
             self.CurrentItem['RunTime'] = 0
             self.CurrentItem['CurrentPosition'] = 0
             self.CurrentItem['Paused'] = False
             self.CurrentItem['MediaSourceId'] = self.MediasourceID
             self.CurrentItem['Volume'], self.CurrentItem['Muted'] = self.get_volume()
 
+    def onAVChange(self):
+        self.LOG.info("[ onAVChange ]")
+
+    def onQueueNextItem(self):
+        self.LOG.info("[ onQueueNextItem ]")
+
+    def onPlayBackStarted(self):
+        self.LOG.info("[ onPlayBackStarted ]")
+
+        if self.ReloadStream():#Media reload (3D Movie)
+            return
+
+    def onPlayBackPaused(self):
+        self.LOG.info("[ onPlayBackPaused ]")
+
+        if not self.CurrentlyPlaying:
+            return
+
+        self.CurrentlyPlaying['Paused'] = True
+        self.report_playback()
+        self.LOG.debug("-->[ paused ]")
+
+    def onPlayBackResumed(self):
+        self.LOG.info("[ onPlayBackResumed ]")
+
+        if not self.CurrentlyPlaying:
+            return
+
+        self.CurrentlyPlaying['Paused'] = False
+        self.report_playback(False)
+        self.LOG.debug("--<[ paused ]")
+
+    def onPlayBackStopped(self):
+        self.LOG.info("[ onPlayBackStopped ]")
+
+        if self.ReloadStream():#Media reload (3D Movie)
+            return
+
+        self.PlayerLastItemID = "-1"
+        self.PlayerLastItem = ""
+        self.Trailer = False
+        self.SyncPause = True
+        self.stop_playback(False)
+        self.LOG.info("--<[ playback ]")
+
+    def onPlayBackSeek(self, time, seekOffset):
+        self.LOG.info("[ onPlayBackSeek ]")
+
+        if not self.CurrentlyPlaying:
+            return
+
+        SeekPosition = int(time * 10000)
+
+        if self.CurrentlyPlaying['RunTime']:
+            if SeekPosition > self.CurrentlyPlaying['RunTime']:
+                SeekPosition = self.CurrentlyPlaying['RunTime']
+
+        self.CurrentlyPlaying['CurrentPosition'] = SeekPosition
+        self.report_playback(False)
+        self.SkipUpdate = True #Pause progress updates for one cycle -> new seek position
+
+    def onPlayBackEnded(self):
+        self.LOG.info("[ onPlayBackEnded ]")
+
+        if self.Trailer or self.ReloadStream():
+            return
+
+        self.PlayerLastItemID = "-1"
+        self.PlayerLastItem = ""
+        self.SyncPause = True
+        self.stop_playback(False)
+        self.LOG.info("--<<[ playback ]")
+
+    #Threaded to ThreadAVStarted
     def onAVStarted(self):
         self.LOG.info("[ onAVStarted ]")
         new_thread = PlayerWorker(self, "ThreadAVStarted")
@@ -121,7 +199,7 @@ class PlayerEvents(xbmc.Player):
             self.CurrentItem = {}
             return
 
-        if not self.set_CurrentPosition(): #Stopped directly after started playing 
+        if not self.set_CurrentPosition(): #Stopped directly after started playing
             self.LOG.info("[ fast stop detected ]")
             return
 
@@ -177,10 +255,11 @@ class PlayerEvents(xbmc.Player):
             self.SkipUpdate = False
             return
 
-        if not self.CurrentlyPlaying['RunTime']:
-            if not self.set_Runtime():
-                self.LOG.info("[ skip progress update, no runtime info ]")
-                return
+        if not 'RunTime' in self.CurrentlyPlaying:
+            if not self.CurrentlyPlaying['RunTime']:
+                if not self.set_Runtime():
+                    self.LOG.info("[ skip progress update, no runtime info ]")
+                    return
 
         if UpdatePosition:
             if not self.set_CurrentPosition():
@@ -201,77 +280,8 @@ class PlayerEvents(xbmc.Player):
         }
         self.CurrentlyPlaying['EmbyServer'].API.session_progress(data)
 
-    def onAVChange(self):
-        self.LOG.info("[ onAVChange ]")
-
-    def onQueueNextItem(self):
-        self.LOG.info("[ onQueueNextItem ]")
-
-    def onPlayBackStarted(self):
-        self.LOG.info("[ onPlayBackStarted ]")
-
-        if self.ReloadStream():#Media reload (3D Movie)
-            return
-
-    def onPlayBackPaused(self):
-        self.LOG.info("[ onPlayBackPaused ]")
-
-        if not self.CurrentlyPlaying:
-            return
-
-        self.CurrentlyPlaying['Paused'] = True
-        self.report_playback()
-        self.LOG.debug("-->[ paused ]")
-
-    def onPlayBackResumed(self):
-        self.LOG.info("[ onPlayBackResumed ]")
-
-        if not self.CurrentlyPlaying:
-            return
-
-        self.CurrentlyPlaying['Paused'] = False
-        self.report_playback(False)
-        self.LOG.debug("--<[ paused ]")
-
-    def onPlayBackStopped(self):
-        self.LOG.info("[ onPlayBackStopped ]")
-
-        if self.ReloadStream():#Media reload (3D Movie)
-            return
-
-        self.PlayerLastItemID = "-1"
-        self.PlayerLastItem = ""
-        self.Trailer = False
-        self.SyncPause = True
-        self.stop_playback(False)
-        self.LOG.info("--<[ playback ]")
-
-    def onPlayBackSeek(self, time, seekOffset):
-        self.LOG.info("[ onPlayBackSeek ]")
-        SeekPosition = int(time * 10000)
-
-        if self.CurrentlyPlaying['RunTime']:
-            if SeekPosition > self.CurrentlyPlaying['RunTime']:
-                SeekPosition = self.CurrentlyPlaying['RunTime']
-
-        self.CurrentlyPlaying['CurrentPosition'] = SeekPosition
-        self.report_playback(False)
-        self.SkipUpdate = True #Pause progress updates for one cycle -> new seek position
-
-    def onPlayBackEnded(self):
-        self.LOG.info("[ onPlayBackEnded ]")
-
-        if self.Trailer or self.ReloadStream():
-            return
-
-        self.PlayerLastItemID = "-1"
-        self.PlayerLastItem = ""
-        self.SyncPause = True
-        self.stop_playback(False)
-        self.LOG.info("--<<[ playback ]")
-
     def get_volume(self):
-        result = helper.utils.JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
+        result = helper.basics.JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
         result = result.get('result', {})
         volume = result.get('volume')
         muted = result.get('muted')
@@ -298,7 +308,6 @@ class PlayerEvents(xbmc.Player):
                 'ItemId': self.CurrentlyPlaying['Id'],
                 'MediaSourceId': self.CurrentlyPlaying['MediaSourceId'],
                 'PositionTicks': self.CurrentlyPlaying['CurrentPosition'],
-
                 'PlaySessionId': self.CurrentlyPlaying['PlaySessionId']
             }
             self.CurrentlyPlaying['EmbyServer'].API.session_stop(data)
@@ -306,12 +315,33 @@ class PlayerEvents(xbmc.Player):
             if self.Transcoding:
                 self.CurrentlyPlaying['EmbyServer'].API.close_transcode()
 
-            self.CurrentlyPlaying = {}
-
         if not Init:
             self.ItemSkipUpdate = self.ItemSkipUpdateAfterStop
             self.ItemSkipUpdateReset = True
             self.SyncPause = False
+
+            #Offer delete
+            if self.CurrentlyPlaying:
+                if self.CurrentlyPlaying['EmbyServer'].Utils.OfferDelete:
+                    Runtime = int(self.CurrentlyPlaying['RunTime'])
+
+                    if Runtime > 10:
+                        if int(self.CurrentlyPlaying['CurrentPosition']) > Runtime * 0.95: #95% Progress
+                            DeleteMsg = False
+
+                            if self.CurrentlyPlaying['Type'] == 'episode' and self.CurrentlyPlaying['EmbyServer'].Utils.OfferDeleteTV:
+                                DeleteMsg = True
+                            elif self.CurrentlyPlaying['Type'] == 'movie' and self.CurrentlyPlaying['EmbyServer'].Utils.OfferDeleteMovie:
+                                DeleteMsg = True
+
+                            if DeleteMsg:
+                                self.LOG.info("Offer delete option")
+
+                            if self.CurrentlyPlaying['EmbyServer'].Utils.dialog("yesno", heading=self.CurrentlyPlaying['EmbyServer'].Utils.Basics.Translate(30091), line1=self.CurrentlyPlaying['EmbyServer'].Utils.Basics.Translate(33015)):
+                                self.CurrentlyPlaying['EmbyServer'].API.delete_item(self.CurrentlyPlaying['Id'])
+                                self.CurrentlyPlaying['EmbyServer'].Utils.Basics.event("LibraryChanged", {'ServerId' : self.CurrentlyPlaying['ServerId'], 'ItemsRemoved': [self.CurrentlyPlaying['Id']], 'ItemsVerify': [self.CurrentlyPlaying['Id']], 'ItemsUpdated': [], 'ItemsAdded': []})
+
+            self.CurrentlyPlaying = {}
 
 class PlayerWorker(threading.Thread):
     def __init__(self, Player, method):
@@ -338,7 +368,6 @@ class WebserviceOnPlay(threading.Thread):
         self.Trailers = False
         self.EmbyIDLast = -1
         self.EmbyID = -1
-        self.URLQuery = ""
         self.Type = ""
         self.KodiID = -1
         self.KodiFileID = -1
@@ -346,8 +375,13 @@ class WebserviceOnPlay(threading.Thread):
         self.Filename = ""
         self.MediaSources = []
         self.TranscodeReasons = ""
+        self.IncommingData = ""
         self.TargetVideoBitrate = 0
         self.TargetAudioBitrate = 0
+        self.emby_dbT = None
+        self.BitrateFromURL = None
+        self.MediasourceID = None
+        self.DefaultVideoSettings = self.EmbyServer.Utils.load_defaultvideosettings()
         threading.Thread.__init__(self)
 
     def Stop(self):
@@ -356,36 +390,40 @@ class WebserviceOnPlay(threading.Thread):
 
     def run(self):
         while not self.Exit:
-            IncommingData = self.WebserviceEventOut.get()
-            self.LOG.debug("[ query IncommingData ] %s" % IncommingData)
+            self.EmbyID = None
+            self.MediasourceID = None
+            self.Type = None
+            self.BitrateFromURL = None
+            self.Filename = None
+            self.IncommingData = self.WebserviceEventOut.get()
+            self.LOG.debug("[ query IncommingData ] %s" % self.IncommingData)
 
-            if IncommingData == "quit":
+            if self.IncommingData == "quit":
                 break
 
-            self.EmbyID, MediasourceID, self.Type, BitrateFromURL, self.Filename = self.GetParametersFromURLQuery(IncommingData)
+            self.GetParametersFromURLQuery()
 
-            if 'audio' in IncommingData:
-                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/audio/" + self.EmbyID + "/stream?static=true&PlaySessionId=" + self.GETPlaySessionId("") + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename)
+            if 'audio' in self.IncommingData:
+                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/audio/" + self.EmbyID + "/stream?static=true&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename)
                 continue
 
-            if 'livetv' in IncommingData:
-                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream.ts?PlaySessionId=" + self.GETPlaySessionId("") + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename)
+            if 'livetv' in self.IncommingData:
+                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream.ts?PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename)
                 continue
 
-            if 'main.m3u8' in IncommingData: #Dynamic Transcode query
-                IncommingData = IncommingData.replace("/movie/", "/")
-                IncommingData = IncommingData.replace("/musicvideo/", "/")
-                IncommingData = IncommingData.replace("/tvshow/", "/")
-                IncommingData = IncommingData.replace("/video/", "/")
-                IncommingData = IncommingData.replace("/trailer/", "/")
-                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyIDLast + IncommingData)
+            if 'main.m3u8' in self.IncommingData: #Dynamic Transcode query
+                URL = self.IncommingData.replace("/movie/", "/")
+                URL = URL.replace("/musicvideo/", "/")
+                URL = URL.replace("/tvshow/", "/")
+                URL = URL.replace("/video/", "/")
+                URL = URL.replace("/trailer/", "/")
+                self.WebserviceEventIn.put(self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyIDLast + URL)
                 continue
 
             if self.Player.Transcoding:
                 self.EmbyServer.API.close_transcode()
 
             self.Player.Transcoding = False
-            self.URLQuery = "http://127.0.0.1:57578" + IncommingData
 
             if self.Type == "movies":
                 self.Type = "movie"
@@ -402,7 +440,6 @@ class WebserviceOnPlay(threading.Thread):
                 self.WebserviceEventIn.put(URL)
                 continue
 
-            #Todo: SKIP TRAILERS IF MULTIPART!
             #Trailers
             if self.EmbyServer.Utils.EnableCinema and self.Player.PlayerLastItemID != self.EmbyID:
                 PlayTrailer = True
@@ -413,12 +450,12 @@ class WebserviceOnPlay(threading.Thread):
 
                     if not self.Trailers and not self.Player.Trailer:
                         self.Trailers = True
-                        PlayTrailer = self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33016))
+                        PlayTrailer = self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33016))
 
                 if PlayTrailer:
-                    if self.Player.PlayerLastItem != IncommingData or not self.Player.Trailer:
+                    if self.Player.PlayerLastItem != self.IncommingData or not self.Player.Trailer:
                         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "one" }, "id": 1 }')
-                        self.Player.PlayerLastItem = IncommingData
+                        self.Player.PlayerLastItem = self.IncommingData
                         self.IntrosIndex = 0
                         self.Trailers = False
                         self.Intros = self.EmbyServer.API.get_intros(self.EmbyID)
@@ -446,10 +483,10 @@ class WebserviceOnPlay(threading.Thread):
                 self.Player.PlayerLastItemID = str(self.EmbyID)
 
                 with database.database.Database(self.EmbyServer.Utils, 'emby', False) as embydb:
-                    emby_dbT = database.emby_db.EmbyDatabase(embydb.cursor)
-                    EmbyDBItem = emby_dbT.get_kodiid(self.EmbyID)
+                    self.emby_dbT = database.emby_db.EmbyDatabase(embydb.cursor)
+                    EmbyDBItem = self.emby_dbT.get_kodiid(self.EmbyID)
 
-                    if EmbyDBItem: #Item not synced to Kodi DB
+                    if EmbyDBItem: #Item synced to Kodi DB
                         if EmbyDBItem[1]:
                             PresentationKey = EmbyDBItem[1].split("-")
                             self.Player.ItemSkipUpdate.append(PresentationKey[0])
@@ -457,6 +494,27 @@ class WebserviceOnPlay(threading.Thread):
 
                         self.KodiID = str(EmbyDBItem[0])
                         self.KodiFileID = str(EmbyDBItem[2])
+                        self.MediaSources = self.emby_dbT.get_mediasource(self.EmbyID)
+
+                        if len(self.MediaSources) == 1:
+                            self.Player.PlayerLastItemID = "-1"
+                            self.WebserviceEventIn.put(self.LoadData(0))
+                            continue
+
+                        #Multiversion
+                        Selection = []
+
+                        for Data in self.MediaSources:
+                            Selection.append(Data[8] + " - " + self.SizeToText(float(Data[7])))
+
+                        MediaIndex = self.EmbyServer.Utils.dialog("select", heading="Select Media Source:", list=Selection)
+
+                        if MediaIndex <= 0:
+                            MediaIndex = 0
+                            self.Player.PlayerLastItemID = "-1"
+
+                        self.MediasourceID = self.MediaSources[MediaIndex][3]
+                        self.WebserviceEventIn.put(self.LoadData(MediaIndex))
                     else:
                         self.Player.PlayerReloadIndex = "-1"
                         self.Player.PlayerLastItem = ""
@@ -464,42 +522,19 @@ class WebserviceOnPlay(threading.Thread):
                         self.IntrosIndex = 0
                         self.Trailers = False
                         self.Player.Trailer = False
-                        self.SubTitlesAdd(MediasourceID, emby_dbT)
-                        self.Player.Transcoding = self.IsTranscoding(BitrateFromURL, None)
+                        self.SubTitlesAdd()
+                        self.Player.Transcoding = self.IsTranscoding(self.BitrateFromURL, None)
 
                         if self.Player.Transcoding:
-                            URL = self.GETTranscodeURL(MediasourceID, self.Filename, False, False)
+                            URL = self.GETTranscodeURL(self.Filename, False, False)
                         else:
-                            URL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId(MediasourceID) + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
+                            URL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + self.MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
 
                         self.WebserviceEventIn.put(URL)
-                        continue
-
-                    self.MediaSources = emby_dbT.get_mediasource(self.EmbyID)
-
-                    if len(self.MediaSources) == 1:
-                        self.Player.PlayerLastItemID = "-1"
-                        self.WebserviceEventIn.put(self.LoadData(MediasourceID, emby_dbT, 0))
-                        continue
-
-                    #Multiversion
-                    Selection = []
-
-                    for Data in self.MediaSources:
-                        Selection.append(Data[8] + " - " + self.SizeToText(float(Data[7])))
-
-                    MediaIndex = self.EmbyServer.Utils.dialog("select", heading="Select Media Source:", list=Selection)
-
-                    if MediaIndex <= 0:
-                        MediaIndex = 0
-                        self.Player.PlayerLastItemID = "-1"
-
-                    MediasourceID = self.MediaSources[MediaIndex][3]
-                    self.WebserviceEventIn.put(self.LoadData(MediasourceID, emby_dbT, MediaIndex))
 
     #Load SRT subtitles
-    def SubTitlesAdd(self, MediasourceID, emby_dbT):
-        Subtitles = emby_dbT.get_Subtitles(self.EmbyID, 0)
+    def SubTitlesAdd(self):
+        Subtitles = self.emby_dbT.get_Subtitles(self.EmbyID, 0)
 
         if len(Subtitles) >= 1:
             CounterSubTitle = 0
@@ -508,7 +543,7 @@ class WebserviceOnPlay(threading.Thread):
                 CounterSubTitle += 1
 
                 if Data[3] == "srt":
-                    SubTitleURL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/" + MediasourceID + "/Subtitles/" + str(Data[18]) + "/stream.srt"
+                    SubTitleURL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/" + self.MediasourceID + "/Subtitles/" + str(Data[18]) + "/stream.srt"
                     request = {'type': "GET", 'url': SubTitleURL, 'params': {}}
 
                     #Get Subtitle Settings
@@ -519,36 +554,38 @@ class WebserviceOnPlay(threading.Thread):
                     if FileSettings:
                         EnableSubtitle = bool(FileSettings[9])
                     else:
-                        EnableSubtitle = False #Read default value
+                        if self.DefaultVideoSettings:
+                            EnableSubtitle = self.DefaultVideoSettings['ShowSubtitles']
+                        else:
+                            EnableSubtitle = False
 
                     if Data[4]:
                         SubtileLanguage = Data[4]
                     else:
                         SubtileLanguage = "unknown"
 
-                    Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(str(CounterSubTitle) + "." + SubtileLanguage + ".srt")
-                    Path = self.EmbyServer.Utils.download_external_subs(request, Filename, self.EmbyServer)
+                    Filename = self.EmbyServer.Utils.Basics.PathToFilenameReplaceSpecialCharecters(str(CounterSubTitle) + "." + SubtileLanguage + ".srt")
+                    Path = self.EmbyServer.Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
 
                     if Path:
                         self.Player.setSubtitles(Path)
                         self.Player.showSubtitles(EnableSubtitle)
 
-    def LoadData(self, MediasourceID, emby_dbT, MediaIndex):
-        VideoStreams = emby_dbT.get_videostreams(self.EmbyID, MediaIndex)
-        AudioStreams = emby_dbT.get_AudioStreams(self.EmbyID, MediaIndex)
+    def LoadData(self, MediaIndex):
+        VideoStreams = self.emby_dbT.get_videostreams(self.EmbyID, MediaIndex)
+        AudioStreams = self.emby_dbT.get_AudioStreams(self.EmbyID, MediaIndex)
 
         if not VideoStreams:
             self.LOG.warning("[ VideoStreams not found ] %s" % self.EmbyID)
-            return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId(MediasourceID) + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
+            return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + self.MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
 
-        Bitrate = VideoStreams[0][9]
-        self.Player.Transcoding = self.IsTranscoding(Bitrate, VideoStreams[0][3]) #add codec from videostreams, Bitrate (from file)
+        self.Player.Transcoding = self.IsTranscoding(VideoStreams[0][9], VideoStreams[0][3]) #add codec from videostreams, Bitrate (from file)
 
         if self.Player.Transcoding:
             SubtitleIndex = -1
             AudioIndex = -1
             Subtitles = []
-            Subtitles = emby_dbT.get_Subtitles(self.EmbyID, MediaIndex)
+            Subtitles = self.emby_dbT.get_Subtitles(self.EmbyID, MediaIndex)
 
             if len(AudioStreams) >= 2:
                 Selection = []
@@ -567,7 +604,7 @@ class WebserviceOnPlay(threading.Thread):
                 SubtitleIndex = self.EmbyServer.Utils.dialog("select", heading="Select Subtitle:", list=Selection)
 
             if AudioIndex <= 0 and SubtitleIndex < 0 and MediaIndex <= 0: #No change -> resume
-                return self.GETTranscodeURL(MediasourceID, self.Filename, False, False)
+                return self.GETTranscodeURL(self.Filename, False, False)
 
             if AudioIndex <= 0:
                 AudioIndex = 0
@@ -577,15 +614,15 @@ class WebserviceOnPlay(threading.Thread):
             else:
                 Subtitle = Subtitles[SubtitleIndex]
 
-            return self.UpdateItem(MediasourceID, self.MediaSources[MediaIndex], VideoStreams[0], AudioStreams[AudioIndex], emby_dbT, Subtitle)
+            return self.UpdateItem(self.MediaSources[MediaIndex], VideoStreams[0], AudioStreams[AudioIndex], Subtitle)
 
         if MediaIndex == 0:
-            self.SubTitlesAdd(MediasourceID, emby_dbT)
-            return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId(MediasourceID) + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
+            self.SubTitlesAdd()
+            return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/stream?static=true&MediaSourceId=" + self.MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&api_key=" + self.EmbyServer.Data['auth.token'] + "&" + self.Filename
 
-        return self.UpdateItem(MediasourceID, self.MediaSources[MediaIndex], VideoStreams[0], AudioStreams[0], emby_dbT, False)
+        return self.UpdateItem(self.MediaSources[MediaIndex], VideoStreams[0], AudioStreams[0], False)
 
-    def GETTranscodeURL(self, MediasourceID, Filename, Audio, Subtitle):
+    def GETTranscodeURL(self, Filename, Audio, Subtitle):
         TranscodingVideo = ""
         TranscodingAudio = ""
 
@@ -606,9 +643,9 @@ class WebserviceOnPlay(threading.Thread):
             TranscodingAudio = "&AudioBitrate=" + str(self.TargetAudioBitrate)
 
         if Filename:
-            Filename = "&" + Filename
+            Filename = "&stream-" + Filename
 
-        return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/master.m3u8?api_key=" + self.EmbyServer.Data['auth.token'] + "&MediaSourceId=" + MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId(MediasourceID) + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&VideoCodec=" + self.EmbyServer.Utils.VideoCodecID + "&AudioCodec=" + self.EmbyServer.Utils.AudioCodecID + TranscodingVideo + TranscodingAudio + Audio + Subtitle + "&TranscodeReasons=" + self.TranscodeReasons + Filename
+        return self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID + "/master.m3u8?api_key=" + self.EmbyServer.Data['auth.token'] + "&MediaSourceId=" + self.MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&VideoCodec=" + self.EmbyServer.Utils.VideoCodecID + "&AudioCodec=" + self.EmbyServer.Utils.AudioCodecID + TranscodingVideo + TranscodingAudio + Audio + Subtitle + "&TranscodeReasons=" + self.TranscodeReasons + Filename
 
     def SizeToText(self, size):
         suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -620,9 +657,9 @@ class WebserviceOnPlay(threading.Thread):
 
         return "%.*f%s" % (2, size, suffixes[suffixIndex])
 
-    def GETPlaySessionId(self, MediasourceID):
+    def GETPlaySessionId(self):
         self.Player.PlaySessionId = str(uuid.uuid4()).replace("-", "")
-        self.Player.MediasourceID = MediasourceID
+        self.Player.MediasourceID = self.MediasourceID
         return self.Player.PlaySessionId
 
     def IsTranscoding(self, Bitrate, Codec):
@@ -658,29 +695,32 @@ class WebserviceOnPlay(threading.Thread):
             self.TargetVideoBitrate = 0
             self.TargetAudioBitrate = 0
 
-    def GetParametersFromURLQuery(self, StreamURL):
-        Type = StreamURL[1:]
-        Type = Type[:Type.find("/")]
-        Temp = StreamURL[StreamURL.rfind("/") + 1:]
+    def GetParametersFromURLQuery(self):
+        Type = self.IncommingData[1:]
+        self.Type = Type[:Type.find("/")]
+        Temp = self.IncommingData[self.IncommingData.rfind("/") + 1:]
         Data = Temp.split("-")
 
         if len(Data[0]) < 10:
-            Filename = StreamURL[StreamURL.find("stream-") + 7:]
+            self.Filename = self.IncommingData[self.IncommingData.find("stream-") + 7:]
             self.EmbyIDLast = Data[0]
 
             try:
-                BitrateFromURL = int(Data[2])
+                self.BitrateFromURL = int(Data[2])
             except:
-                BitrateFromURL = 0
+                self.BitrateFromURL = 0
 
             self.Player.SyncPause = True
             self.Player.ItemSkipUpdate.append(Data[0])
             self.Player.ItemSkipUpdateAfterStop.append(Data[0])
-            return Data[0], Data[1], Type, BitrateFromURL, Filename
+            self.EmbyID = Data[0]
+            self.MediasourceID = Data[1]
 
-        return None, None, None, None, None
+            if self.MediasourceID == "DYNAMIC":
+                Result = self.EmbyServer.API.get_item(self.EmbyID)
+                self.MediasourceID = Result['MediaSources'][0]['Id']
 
-    def UpdateItem(self, MediasourceID, MediaSource, VideoStream, AudioStream, emby_dbT, Subtitle):
+    def UpdateItem(self, MediaSource, VideoStream, AudioStream, Subtitle):
         if self.Type == "movie":
             result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMovieDetails", "params":{"movieid":' + self.KodiID + ', "properties":["title", "playcount", "plot", "genre", "year", "rating", "director", "trailer", "tagline", "plotoutline", "originaltitle",  "writer", "studio", "mpaa", "country", "imdbnumber", "set", "showlink", "top250", "votes", "sorttitle",  "dateadded", "tag", "userrating", "cast", "premiered", "setid", "art", "lastplayed", "uniqueid"]}}')
             Data = json.loads(result)
@@ -697,7 +737,7 @@ class WebserviceOnPlay(threading.Thread):
 
         Details['mediatype'] = self.Type
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-        Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(MediaSource[4])
+        Filename = self.EmbyServer.Utils.Basics.PathToFilenameReplaceSpecialCharecters(MediaSource[4])
 
         if Subtitle:
             SubtitleStream = str(int(Subtitle[2]) + 2)
@@ -705,15 +745,15 @@ class WebserviceOnPlay(threading.Thread):
             SubtitleStream = ""
 
         if self.Player.Transcoding:
-            URL = self.GETTranscodeURL(MediasourceID, Filename, str(int(AudioStream[2]) + 1), SubtitleStream)
+            URL = self.GETTranscodeURL(Filename, str(int(AudioStream[2]) + 1), SubtitleStream)
         else: #stream
-            URL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID +"/stream?static=true&api_key=" + self.EmbyServer.Data['auth.token'] + "&MediaSourceId=" + MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId("") + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&" + Filename
+            URL = self.EmbyServer.auth.get_serveraddress() + "/emby/videos/" + self.EmbyID +"/stream?static=true&api_key=" + self.EmbyServer.Data['auth.token'] + "&MediaSourceId=" + self.MediasourceID + "&PlaySessionId=" + self.GETPlaySessionId() + "&DeviceId=" + self.EmbyServer.Data['app.device_id'] + "&" + Filename
 
         if "3d" in MediaSource[8].lower():
             item = xbmcgui.ListItem(Details['title'], path=URL)
         else:
             item = xbmcgui.ListItem()
-            item.setPath(self.URLQuery)
+            item.setPath("http://127.0.0.1:57578" + self.IncommingData)
 
         item.setArt(Details['art'])
         del Details['art']
@@ -726,13 +766,14 @@ class WebserviceOnPlay(threading.Thread):
             item.setUniqueIDs(Details['uniqueid'])
             del Details['uniqueid']
 
+        item.setLabel(Details['title'])
         item.setInfo('video', Details)
         item.setProperty('IsPlayable', 'true')
 
         if not VideoStream[10]: #Duration
             Duration = 0
         else:
-            Duration = int(VideoStream[10]) / 10000000
+            Duration = int(MediaSource[10]) / 10000000
 
         item.addStreamInfo('video', {'codec' : VideoStream[3], 'width' : VideoStream[14], 'height' : VideoStream[15], 'aspect' : VideoStream[20], 'duration' : Duration})
         item.addStreamInfo('audio', {'codec' : AudioStream[3], 'language' : AudioStream[4], 'channels' : AudioStream[12]})
@@ -749,7 +790,7 @@ class WebserviceOnPlay(threading.Thread):
             URL = "RELOAD"
         else:
             self.Player.updateInfoTag(item)
-            self.SubTitlesAdd(MediasourceID, emby_dbT)
+            self.SubTitlesAdd()
             self.Player.PlayerReloadIndex = "-1"
             self.Player.PlayerLastItemID = "-1"
 

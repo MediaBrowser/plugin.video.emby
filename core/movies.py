@@ -16,13 +16,13 @@ class Movies():
         self.emby = embydb
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
-        self.objects = obj_ops.Objects(self.EmbyServer.Utils)
+        self.objects = obj_ops.Objects()
         self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.MoviesDBIO = MoviesDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -66,9 +66,9 @@ class Movies():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']
@@ -143,7 +143,8 @@ class Movies():
         self.KodiDBIO.add_ratings(*self.EmbyServer.Utils.values(obj, queries_videos.add_rating_movie_obj))
 
         if obj['CriticRating'] is not None:
-            self.KodiDBIO.add_ratings(*self.EmbyServer.Utils.values(dict(obj, RatingId=self.KodiDBIO.create_entry_rating(), RatingType="tomatometerallcritics", Rating=float(obj['CriticRating']/10.0)), queries_videos.add_rating_movie_obj))
+            obj['CriticRating'] = float(obj['CriticRating'] / 10.0)
+            self.KodiDBIO.add_ratings(*self.EmbyServer.Utils.values(dict(obj, RatingId=self.KodiDBIO.create_entry_rating(), RatingType="tomatometerallcritics", Rating=obj['CriticRating']), queries_videos.add_rating_movie_obj))
 
         obj['Unique'] = self.MoviesDBIO.create_entry_unique_id()
         self.MoviesDBIO.add_unique_id(*self.EmbyServer.Utils.values(obj, queries_videos.add_unique_id_movie_obj))
@@ -158,7 +159,12 @@ class Movies():
 
         obj['PathId'] = self.KodiDBIO.add_path(*self.EmbyServer.Utils.values(obj, queries_videos.add_path_obj))
         obj['FileId'] = self.KodiDBIO.add_file(*self.EmbyServer.Utils.values(obj, queries_videos.add_file_obj))
-        self.MoviesDBIO.add(*self.EmbyServer.Utils.values(obj, queries_videos.add_movie_obj))
+
+        if self.EmbyServer.Utils.UserRatingSync:
+            self.MoviesDBIO.add(*self.EmbyServer.Utils.values(obj, queries_videos.add_movie_obj))
+        else:
+            self.MoviesDBIO.add_nouserrating(*self.EmbyServer.Utils.values(obj, queries_videos.add_movie_nouserrating_obj))
+
         self.emby_db.add_reference(*self.EmbyServer.Utils.values(obj, database.queries.add_reference_movie_obj))
         self.LOG.info("ADD movie [%s/%s/%s] %s: %s" % (obj['PathId'], obj['FileId'], obj['MovieId'], obj['Id'], obj['Title']))
 
@@ -170,7 +176,8 @@ class Movies():
         self.KodiDBIO.update_ratings(*self.EmbyServer.Utils.values(obj, queries_videos.update_rating_movie_obj))
 
         if obj['CriticRating'] is not None:
-            temp_obj = dict(obj, RatingType="tomatometerallcritics", Rating=float(obj['CriticRating']/10.0))
+            obj['CriticRating'] = float(obj['CriticRating'] / 10.0)
+            temp_obj = dict(obj, RatingType="tomatometerallcritics", Rating=obj['CriticRating'])
             temp_obj['RatingId'] = self.KodiDBIO.get_rating_id(*self.EmbyServer.Utils.values(temp_obj, queries_videos.get_rating_movie_obj))
             self.KodiDBIO.update_ratings(*self.EmbyServer.Utils.values(temp_obj, queries_videos.update_rating_movie_obj))
 
@@ -186,7 +193,11 @@ class Movies():
                 temp_obj = dict(obj, ProviderName=provider, UniqueId=unique_id, Unique=self.MoviesDBIO.create_entry_unique_id())
                 self.MoviesDBIO.add_unique_id(*self.EmbyServer.Utils.values(temp_obj, queries_videos.add_unique_id_movie_obj))
 
-        self.MoviesDBIO.update(*self.EmbyServer.Utils.values(obj, queries_videos.update_movie_obj))
+        if self.EmbyServer.Utils.UserRatingSync:
+            self.MoviesDBIO.update(*self.EmbyServer.Utils.values(obj, queries_videos.update_movie_obj))
+        else:
+            self.MoviesDBIO.update_nouserrating(*self.EmbyServer.Utils.values(obj, queries_videos.update_movie_nouserrating_obj))
+
         self.emby_db.update_reference(*self.EmbyServer.Utils.values(obj, database.queries.update_reference_obj))
         self.LOG.info("UPDATE movie [%s/%s/%s] %s: %s" % (obj['PathId'], obj['FileId'], obj['MovieId'], obj['Id'], obj['Title']))
 
@@ -197,7 +208,7 @@ class Movies():
 
                 if self.EmbyServer.Utils.direct_path:
                     obj['Trailer'] = self.APIHelper.get_file_path(trailer[0]['Path'], trailer)
-                    obj['Trailer'] = self.EmbyServer.Utils.StringDecode(obj['Trailer'])
+                    obj['Trailer'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Trailer'])
                 else:
                     obj['Trailer'] = "plugin://plugin.video.emby-next-gen/trailer?id=%s&mode=play" % trailer[0]['Id']
             elif obj['Trailer']:
@@ -368,8 +379,14 @@ class MoviesDBIO():
     def add(self, *args):
         self.cursor.execute(queries_videos.add_movie, args)
 
+    def add_nouserrating(self, *args):
+        self.cursor.execute(queries_videos.add_movie_nouserrating, args)
+
     def update(self, *args):
         self.cursor.execute(queries_videos.update_movie, args)
+
+    def update_nouserrating(self, *args):
+        self.cursor.execute(queries_videos.update_movie_nouserrating, args)
 
     def delete(self, kodi_id, file_id):
         self.cursor.execute(queries_videos.delete_movie, (kodi_id,))

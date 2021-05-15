@@ -20,13 +20,13 @@ class TVShows():
         self.emby = embydb
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
-        self.objects = obj_ops.Objects(self.EmbyServer.Utils)
+        self.objects = obj_ops.Objects()
         self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.TVShowsDBIO = TVShowsDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
 
     def tvshow(self, item, library, pooling=None, redirect=None):
         e_item = self.emby_db.get_item_by_id(item['Id'])
@@ -49,7 +49,6 @@ class TVShows():
 
         if pooling is None:
             StackedID = self.emby_db.get_stack(obj['PresentationKey']) or obj['Id']
-
 
             if str(StackedID) != obj['Id']:
                 return TVShows(self.EmbyServer, self.emby, self.video, False).tvshow(obj['Item'], obj['Library'], StackedID, False)
@@ -104,13 +103,6 @@ class TVShows():
             obj['SeriesId'] = pooling
             self.LOG.info("POOL %s [%s/%s]" % (obj['Title'], obj['Id'], obj['SeriesId']))
             self.emby_db.add_reference(*self.EmbyServer.Utils.values(obj, database.queries.add_reference_pool_obj))
-
-
-
-
-#get kodi TV show ID and remove it
-
-
             return True
 
         self.TVShowsDBIO.link(*self.EmbyServer.Utils.values(obj, queries_videos.update_tvshow_link_obj))
@@ -217,8 +209,8 @@ class TVShows():
                 obj['Path'] = "%s/" % obj['Path']
                 obj['TopLevel'] = "%s/" % ntpath.dirname(ntpath.dirname(obj['Path']))
 
-            obj['Path'] = self.EmbyServer.Utils.StringDecode(obj['Path'])
-            obj['TopLevel'] = self.EmbyServer.Utils.StringDecode(obj['TopLevel'])
+            obj['Path'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Path'])
+            obj['TopLevel'] = self.EmbyServer.Utils.Basics.StringDecode(obj['TopLevel'])
 
             if not self.EmbyServer.Utils.validate(obj['Path']):
                 return False
@@ -228,11 +220,10 @@ class TVShows():
 
         return True
 
+    #If item does not exist, entry will be added.
+    #If item exists, entry will be updated.
+    #If the show is empty, try to remove it.
     def season(self, item, library, show_id=None):
-        ''' If item does not exist, entry will be added.
-            If item exists, entry will be updated.
-            If the show is empty, try to remove it.
-        '''
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -258,12 +249,11 @@ class TVShows():
         self.LOG.info("UPDATE season [%s/%s] %s: %s" % (obj['ShowId'], obj['SeasonId'], obj['Title'] or obj['Index'], obj['Id']))
         return True
 
+    #If item does not exist, entry will be added.
+    #If item exists, entry will be updated.
+    #Create additional entry for widgets.
+    #This is only required for plugin/episode.
     def episode(self, item, library):
-        ''' If item does not exist, entry will be added.
-            If item exists, entry will be updated.
-            Create additional entry for widgets.
-            This is only required for plugin/episode.
-        '''
         e_item = self.emby_db.get_item_by_id(item['Id'])
         library = self.Common.library_check(e_item, item, library)
 
@@ -312,9 +302,9 @@ class TVShows():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']
@@ -482,10 +472,9 @@ class TVShows():
         self.LOG.info("USERDATA %s [%s/%s] %s: %s" % (obj['Media'], obj['FileId'], obj['KodiId'], obj['Id'], obj['Title']))
         return
 
+    #Remove showid, fileid, pathid, emby reference.
+    #There's no episodes left, delete show and any possible remaining seasons
     def remove(self, item_id):
-        ''' Remove showid, fileid, pathid, emby reference.
-            There's no episodes left, delete show and any possible remaining seasons
-        '''
         e_item = self.emby_db.get_item_by_id(item_id)
         obj = {'Id': item_id}
 
@@ -510,7 +499,7 @@ class TVShows():
 
             if not self.emby_db.get_item_by_parent_id(*self.EmbyServer.Utils.values(obj, database.queries.get_item_by_parent_episode_obj)):
                 self.remove_season(obj['ParentId'], obj['Id'])
-                self.emby_db.remove_item(*self.EmbyServer.Utils.values(temp_obj, database.queries.delete_item_obj))
+                self.emby_db.remove_item(temp_obj['Id'])
 
             temp_obj['Id'] = self.emby_db.get_item_by_kodi_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_by_parent_tvshow_obj))
 
@@ -520,7 +509,8 @@ class TVShows():
 
                 self.emby_db.remove_items_by_parent_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.delete_item_by_parent_season_obj))
                 self.remove_tvshow(temp_obj['ParentId'], obj['Id'])
-                self.emby_db.remove_item(*self.EmbyServer.Utils.values(temp_obj, database.queries.delete_item_obj))
+                self.emby_db.remove_item(temp_obj['Id'])
+
         elif obj['Media'] == 'tvshow':
             obj['ParentId'] = obj['KodiId']
 
@@ -529,7 +519,7 @@ class TVShows():
                 temp_obj['ParentId'] = season[1]
 
                 for episode in self.emby_db.get_item_by_parent_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_by_parent_episode_obj)):
-                    self.remove_episode(episode[1], episode[2], obj['Id'])
+                    self.remove_episode(episode[1], episode[2], episode[0])
 
                 self.emby_db.remove_items_by_parent_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.delete_item_by_parent_episode_obj))
 
@@ -539,7 +529,7 @@ class TVShows():
             obj['ParentId'] = obj['KodiId']
 
             for episode in self.emby_db.get_item_by_parent_id(*self.EmbyServer.Utils.values(obj, database.queries.get_item_by_parent_episode_obj)):
-                self.remove_episode(episode[1], episode[2], obj['Id'])
+                self.remove_episode(episode[1], episode[2], episode[0])
 
             self.emby_db.remove_items_by_parent_id(*self.EmbyServer.Utils.values(obj, database.queries.delete_item_by_parent_episode_obj))
             self.remove_season(obj['KodiId'], obj['Id'])
@@ -550,10 +540,10 @@ class TVShows():
 
         # Remove any series pooling episodes
         for episode in self.emby_db.get_media_by_parent_id(obj['Id']):
-            self.remove_episode(episode[2], episode[3], obj['Id'])
+            self.remove_episode(episode[2], episode[3], episode[0])
 
         self.emby_db.remove_media_by_parent_id(obj['Id'])
-        self.emby_db.remove_item(*self.EmbyServer.Utils.values(obj, database.queries.delete_item_obj))
+        self.emby_db.remove_item(obj['Id'])
 
     def remove_tvshow(self, kodi_id, item_id):
         self.ArtworkDBIO.delete(kodi_id, "tvshow")

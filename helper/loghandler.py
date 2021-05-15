@@ -12,7 +12,7 @@ class LOG():
         if self.KodiVersion >= 19:
             xbmc.log(msg, xbmc.LOGDEBUG)
         else:
-            xbmc.log(msg.encode('utf-8'), xbmc.LOGDEBUG)
+            xbmc.log(self.Encode(msg), xbmc.LOGDEBUG)
 
     def info(self, msg):
         msg = "INFO: %s: %s" % (self.Prefix, msg)
@@ -20,7 +20,7 @@ class LOG():
         if self.KodiVersion >= 19:
             xbmc.log(msg, xbmc.LOGINFO)
         else:
-            xbmc.log(msg.encode('utf-8'), xbmc.LOGNOTICE)
+            xbmc.log(self.Encode(msg), xbmc.LOGNOTICE)
 
     def warning(self, msg):
         msg = "WARNING: %s: %s" % (self.Prefix, msg)
@@ -28,7 +28,7 @@ class LOG():
         if self.KodiVersion >= 19:
             xbmc.log(msg, xbmc.LOGWARNING)
         else:
-            xbmc.log(msg.encode('utf-8'), xbmc.LOGWARNING)
+            xbmc.log(self.Encode(msg), xbmc.LOGWARNING)
 
     def error(self, msg):
         msg = "ERROR: %s: %s" % (self.Prefix, msg)
@@ -36,4 +36,12 @@ class LOG():
         if self.KodiVersion >= 19:
             xbmc.log(msg, xbmc.LOGERROR)
         else:
-            xbmc.log(msg.encode('utf-8'), xbmc.LOGERROR)
+            xbmc.log(self.Encode(msg), xbmc.LOGERROR)
+
+    def Encode(self, Data):
+        try:
+            Data = unicode(Data, 'utf-8')
+        except:
+            pass
+
+        return Data.encode('utf-8')
