@@ -14,12 +14,12 @@ class Xmls():
     #Create master lock compatible sources.
     #Also add the kodi.emby.media source.
     def sources(self):
-        path = self.Utils.translatePath('special://profile/')
+        path = self.Utils.Basics.translatePath('special://profile/')
         Filepath = os.path.join(path, 'sources.xml')
 
-        if xbmcvfs.exists(Filepath):
+        try:
             xmlData = xml.etree.ElementTree.parse(Filepath).getroot()
-        else:
+        except:
             xmlData = xml.etree.ElementTree.Element('sources')
             video = xml.etree.ElementTree.SubElement(xmlData, 'video')
             files = xml.etree.ElementTree.SubElement(xmlData, 'files')
@@ -85,47 +85,45 @@ class Xmls():
 
     #Settings table for audio and subtitle tracks.
     def load_defaultvideosettings(self):
-        path = xbmc.translatePath('special://profile/')
-        FilePath = os.path.join(path, 'guisettings.xml')
-        xmlData = xml.etree.ElementTree.parse(FilePath).getroot()
-        default = xmlData.find('defaultvideosettings')
-        return {
-            'Deinterlace': default.find('interlacemethod').text,
-            'ViewMode': default.find('viewmode').text,
-            'ZoomAmount': default.find('zoomamount').text,
-            'PixelRatio': default.find('pixelratio').text,
-            'VerticalShift': default.find('verticalshift').text,
-            'SubtitleDelay': default.find('subtitledelay').text,
-            'ShowSubtitles': default.find('showsubtitles').text == 'true',
-            'Brightness': default.find('brightness').text,
-            'Contrast': default.find('contrast').text,
-            'Gamma': default.find('gamma').text,
-            'VolumeAmplification': default.find('volumeamplification').text,
-            'AudioDelay': default.find('audiodelay').text,
-            'Sharpness': default.find('sharpness').text,
-            'NoiseReduction': default.find('noisereduction').text,
-            'NonLinStretch': int(default.find('nonlinstretch').text == 'true'),
-            'PostProcess': int(default.find('postprocess').text == 'true'),
-            'ScalingMethod': default.find('scalingmethod').text,
-            'StereoMode': default.find('stereomode').text,
-            'CenterMixLevel': default.find('centermixlevel').text
-        }
+        try: #Skip fileread issues
+            path = xbmc.translatePath('special://profile/')
+            FilePath = os.path.join(path, 'guisettings.xml')
+            xmlData = xml.etree.ElementTree.parse(FilePath).getroot()
+            default = xmlData.find('defaultvideosettings')
+            return {
+                'Deinterlace': default.find('interlacemethod').text,
+                'ViewMode': default.find('viewmode').text,
+                'ZoomAmount': default.find('zoomamount').text,
+                'PixelRatio': default.find('pixelratio').text,
+                'VerticalShift': default.find('verticalshift').text,
+                'SubtitleDelay': default.find('subtitledelay').text,
+                'ShowSubtitles': default.find('showsubtitles').text == 'true',
+                'Brightness': default.find('brightness').text,
+                'Contrast': default.find('contrast').text,
+                'Gamma': default.find('gamma').text,
+                'VolumeAmplification': default.find('volumeamplification').text,
+                'AudioDelay': default.find('audiodelay').text,
+                'Sharpness': default.find('sharpness').text,
+                'NoiseReduction': default.find('noisereduction').text,
+                'NonLinStretch': int(default.find('nonlinstretch').text == 'true'),
+                'PostProcess': int(default.find('postprocess').text == 'true'),
+                'ScalingMethod': default.find('scalingmethod').text,
+                'StereoMode': default.find('stereomode').text,
+                'CenterMixLevel': default.find('centermixlevel').text
+            }
+        except:
+            return {}
 
     #Track the existence of <cleanonupdate>true</cleanonupdate>
     #It is incompatible with plugin paths.
     def advanced_settings(self):
-        if self.Utils.direct_path:
-            return
-
-        path = self.Utils.translatePath('special://profile/')
+        video = None
+        path = self.Utils.Basics.translatePath('special://profile/')
         Filepath = os.path.join(path, 'advancedsettings.xml')
 
         if xbmcvfs.exists(Filepath):
             xmlData = xml.etree.ElementTree.parse(Filepath).getroot()
-        else:
-            return
-
-        video = xmlData.find('videolibrary')
+            video = xmlData.find('videolibrary')
 
         if video is not None:
             cleanonupdate = video.find('cleanonupdate')
@@ -135,13 +133,12 @@ class Xmls():
                 video.remove(cleanonupdate)
                 self.Utils.indent(xmlData, 0)
                 self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), Filepath)
-                self.Utils.dialog("ok", heading="{emby}", line1=self.Utils.Translate(33097))
+                self.Utils.dialog("ok", heading="{emby}", line1=self.Utils.Basics.Translate(33097))
                 xbmc.executebuiltin('RestartApp')
-                return True
 
     def advanced_settings_add_timeouts(self):
         WriteData = False
-        path = self.Utils.translatePath('special://profile/')
+        path = self.Utils.Basics.translatePath('special://profile/')
         Filepath = os.path.join(path, 'advancedsettings.xml')
 
         if xbmcvfs.exists(Filepath):

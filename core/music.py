@@ -18,16 +18,16 @@ class Music():
         self.emby = embydb
         self.music = musicdb
         self.emby_db = database.emby_db.EmbyDatabase(self.emby.cursor)
-        self.objects = obj_ops.Objects(self.EmbyServer.Utils)
+        self.objects = obj_ops.Objects()
         self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.MusicDBIO = MusicDBIO(self.music.cursor, self.EmbyServer.Utils.DatabaseFiles['music-version'])
         self.ArtworkDBIO = artwork.Artwork(musicdb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
 
-        if not self.EmbyServer.Utils.settings('MusicRescan.bool'):
+        if not self.EmbyServer.Utils.Basics.settings('MusicRescan.bool'):
             self.MusicDBIO.disable_rescan()
-            self.EmbyServer.Utils.settings('MusicRescan.bool', True)
+            self.EmbyServer.Utils.Basics.settings('MusicRescan.bool', True)
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -61,6 +61,7 @@ class Music():
         obj['Artwork'] = self.APIHelper.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
         obj['Thumb'] = obj['Artwork']['Primary']
         obj['Backdrops'] = obj['Artwork']['Backdrop'] or ""
+        obj['Disambiguation'] = obj['LibraryName']
 
         if obj['Thumb']:
             obj['Thumb'] = "<thumb>%s</thumb>" % obj['Thumb']
@@ -140,6 +141,7 @@ class Music():
         if update:
             self.album_update(obj)
         else:
+            obj['Type'] = obj['LibraryName']
             self.album_add(obj)
 
         self.artist_link(obj)
@@ -198,7 +200,12 @@ class Music():
                 temp_obj['ArtistId'] = Data[0]
             else:
                 self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
-                temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))[0]
+                Result = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))
+
+                if Result:
+                    temp_obj['ArtistId'] = Result[0]
+                else:
+                    continue
 
             self.MusicDBIO.update_artist_name(*self.EmbyServer.Utils.values(temp_obj, queries_music.update_artist_name_obj))
             self.MusicDBIO.link(*self.EmbyServer.Utils.values(temp_obj, queries_music.update_link_obj))
@@ -245,7 +252,7 @@ class Music():
         obj['Index'] = obj['Index'] or None
         obj['Disc'] = obj['Disc'] or 1
         obj['EmbedCover'] = False
-        obj['Comment'] = self.APIHelper.get_overview(obj['Comment'], item)
+        obj['Comment'] = "%s (Library: %s)" % (self.APIHelper.get_overview(obj['Comment'], item), obj['LibraryName'])
         obj['Artwork'] = self.APIHelper.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
         obj['Thumb'] = obj['Artwork']['Primary']
         obj['UniqueId'] = obj['UniqueId'] or None
@@ -301,6 +308,7 @@ class Music():
             obj['AlbumId'] = None
             BackupTitle = obj['Title']
             obj['Title'] = "--NO INFO--"
+            obj['Type'] = obj['LibraryName']
 
             if self.EmbyServer.Utils.DatabaseFiles['music-version'] >= 82:
                 obj['AlbumId'] = self.MusicDBIO.get_album(*self.EmbyServer.Utils.values(obj, queries_music.get_single_obj82))
@@ -343,7 +351,12 @@ class Music():
                 temp_obj['ArtistId'] = Data[0]
             else:
                 self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
-                temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))[0]
+                Result = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))
+
+                if Result:
+                    temp_obj['ArtistId'] = Result[0]
+                else:
+                    continue
 
             self.MusicDBIO.link(*self.EmbyServer.Utils.values(temp_obj, queries_music.update_link_obj))
             self.item_ids.append(temp_obj['Id'])
@@ -369,7 +382,12 @@ class Music():
                 temp_obj['ArtistId'] = Data[0]
             else:
                 self.artist(self.EmbyServer.API.get_item(temp_obj['Id']), library=None)
-                temp_obj['ArtistId'] = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))[0]
+                Result = self.emby_db.get_item_by_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_obj))
+
+                if Result:
+                    temp_obj['ArtistId'] = Result[0]
+                else:
+                    continue
 
             self.MusicDBIO.link_song_artist(*self.EmbyServer.Utils.values(temp_obj, queries_music.update_song_artist_obj))
             self.item_ids.append(temp_obj['Id'])
@@ -421,7 +439,6 @@ class Music():
 
                     if not self.emby_db.get_item_by_parent_id(*self.EmbyServer.Utils.values(temp_obj, database.queries.get_item_by_parent_song_obj)):
                         self.remove_album(temp_obj['ParentId'], obj['Id'])
-
         elif obj['Media'] == 'album':
             obj['ParentId'] = obj['KodiId']
 
@@ -527,7 +544,7 @@ class MusicDBIO():
         self.cursor.execute(queries_music.update_role, args)
 
     #Get artist or create the entry
-    def get(self, artist_id, name, musicbrainz):
+    def get(self, artist_id, name, musicbrainz, LibraryName):
         self.cursor.execute(queries_music.get_artist, (musicbrainz,))
         result = self.cursor.fetchone()
 
@@ -538,12 +555,12 @@ class MusicDBIO():
             if artist_name != name:
                 self.update_artist_name(artist_id, name)
         else:
-            artist_id = self.add_artist(artist_id, name, musicbrainz)
+            artist_id = self.add_artist(artist_id, name, musicbrainz, LibraryName)
 
         return artist_id
 
     #Safety check, when musicbrainz does not exist
-    def add_artist(self, artist_id, name, *args):
+    def add_artist(self, artist_id, name, musicbrainz, LibraryName):
         self.cursor.execute(queries_music.get_artist_by_name, (name,))
         artist_id = self.cursor.fetchone()
 
@@ -551,7 +568,7 @@ class MusicDBIO():
             artist_id = artist_id[0]
         else:
             artist_id = artist_id or self.create_entry()
-            self.cursor.execute(queries_music.add_artist, (artist_id, name,) + args)
+            self.cursor.execute(queries_music.add_artist, (artist_id, name, musicbrainz, LibraryName))
 
         return artist_id
 

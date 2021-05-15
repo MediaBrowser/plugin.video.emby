@@ -14,7 +14,7 @@ class Common():
         if Update:
             self.emby_db.remove_item_streaminfos(obj['Id'])
 
-        if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
+        if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
             if len(obj['Item']['MediaSources']) >= 2:
                 Temp = obj['Item']['MediaSources'][1]
                 obj['Item']['MediaSources'][1] = obj['Item']['MediaSources'][0]
@@ -76,8 +76,8 @@ class Common():
             else:
                 obj['Filename'] = obj['Path'].rsplit('\\', 1)[1] if '\\' in obj['Path'] else obj['Path'].rsplit('/', 1)[1]
 
-            obj['Path'] = self.EmbyServer.Utils.StringDecode(obj['Path'])
-            obj['Filename'] = self.EmbyServer.Utils.StringDecode(obj['Filename'])
+            obj['Path'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Path'])
+            obj['Filename'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Filename'])
 
             if not self.EmbyServer.Utils.validate(obj['Path']):
                 return False, obj
@@ -96,7 +96,7 @@ class Common():
 
                     for AdditionalItem in AdditionalParts['Items']:
                         AdditionalItem = self.objects.MapMissingData(AdditionalItem, 'MediaSources')
-                        Path = self.EmbyServer.Utils.StringDecode(AdditionalItem['Path'])
+                        Path = self.EmbyServer.Utils.Basics.StringDecode(AdditionalItem['Path'])
                         obj['Filename'] = obj['Filename'] + " , " + Path
                         RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
                         obj['Runtime'] = obj['Runtime'] + RunTimePart
@@ -104,7 +104,7 @@ class Common():
 
                     obj['Filename'] = "stack://" + obj['Filename']
         else:
-            Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(obj['Path'])
+            Filename = self.EmbyServer.Utils.Basics.PathToFilenameReplaceSpecialCharecters(obj['Path'])
 
             if MediaID == "tvshows":
                 obj['Path'] = "http://127.0.0.1:57578/tvshows/%s/" % obj['SeriesId']
@@ -113,7 +113,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], Filename)
-                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.Basics.StringMod(obj['Item']['Path']))
             elif MediaID == "movies":
                 obj['Path'] = "http://127.0.0.1:57578/movies/%s/" % obj['LibraryId']
 
@@ -121,7 +121,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], Filename)
-                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.Basics.StringMod(obj['Item']['Path']))
             elif MediaID == "musicvideos":
                 obj['Path'] = "http://127.0.0.1:57578/musicvideos/%s/" % obj['LibraryId']
 
@@ -129,7 +129,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], obj['Streams']['video'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], Filename)
-                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.Basics.StringMod(obj['Item']['Path']))
             elif MediaID == "audio":
                 obj['Path'] = "http://127.0.0.1:57578/audio/%s/" % obj['Id']
                 obj['Filename'] = "%s-stream-%s" % (obj['Id'], Filename)
@@ -144,7 +144,7 @@ class Common():
 
                     for AdditionalItem in AdditionalParts['Items']:
                         AdditionalItem = self.objects.MapMissingData(AdditionalItem, 'MediaSources')
-                        Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
+                        Filename = self.EmbyServer.Utils.Basics.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
 
                         try:
                             obj['Filename'] = obj['Filename'] + " , " + obj['Path'] + "%s--%s-stream-%s" % (AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)

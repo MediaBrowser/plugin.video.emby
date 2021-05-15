@@ -31,8 +31,8 @@ def maskData(mask_key, data):
 
     if Python3:
         return _d.tobytes()
-    else:
-        return _d.tostring()
+
+    return _d.tostring()
 
 class ABNF():
     def __init__(self, fin=0, rsv1=0, rsv2=0, rsv3=0, opcode=0x1, mask=1, data=""):

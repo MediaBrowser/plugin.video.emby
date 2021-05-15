@@ -12,10 +12,6 @@ from . import emby_db
 LOG = helper.loghandler.LOG('EMBY.database.database')
 
 class Database():
-    timeout = 120
-    discovered = False
-    discovered_file = None
-
     def __init__(self, Utils, fileID, commit_close):
         self.Utils = Utils
         self.db_file = fileID
@@ -26,7 +22,7 @@ class Database():
     #Open the connection and return the Database class.
     #This is to allow for the cursor, conn and others to be accessible.
     def __enter__(self):
-        self.conn = sqlite3.connect(self.Utils.DatabaseFiles[self.db_file], timeout=self.timeout)
+        self.conn = sqlite3.connect(self.Utils.DatabaseFiles[self.db_file], timeout=120)
         self.cursor = self.conn.cursor()
         self.conn.execute("PRAGMA journal_mode=WAL") # to avoid writing conflict with kodi
         LOG.debug("--->[ database: %s ] %s" % (self.db_file, id(self.conn)))
@@ -34,14 +30,15 @@ class Database():
 
     #Close the connection and cursor
     def __exit__(self, exc_type, exc_val, exc_tb):
-        changes = self.conn.total_changes
-
         if exc_type is not None: # errors raised
             LOG.error("type: %s value: %s" % (exc_type, exc_val))
 
-        if self.commit_close and changes:
+        if self.commit_close:
+            changes = self.conn.total_changes
             LOG.info("[%s] %s rows updated." % (self.db_file, changes))
-            self.conn.commit()
+
+            if changes:
+                self.conn.commit()
 
         LOG.debug("---<[ database: %s ] %s" % (self.db_file, id(self.conn)))
         self.cursor.close()
@@ -56,7 +53,6 @@ def EmbyDatabaseBuild(Utils):
         embydb.cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams(emby_id TEXT, MediaIndex INTEGER, VideoIndex INTEGER, Codec TEXT, TimeBase TEXT, CodecTimeBase TEXT, VideoRange TEXT, DisplayTitle TEXT, IsInterlaced TEXT, BitRate INTEGER, BitDepth INTEGER, RefFrames INTEGER, IsDefault TEXT, IsForced TEXT, Height INTEGER, Width INTEGER, AverageFrameRate INTEGER, RealFrameRate INTEGER, Profile TEXT, Type TEXT, AspectRatio TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, PixelFormat TEXT, Level INTEGER, IsAnamorphic TEXT, StreamIndex INTEGER)")
         embydb.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams(emby_id TEXT, MediaIndex INTEGER, AudioIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, ChannelLayout TEXT, BitRate INTEGER, Channels INTEGER, SampleRate INTEGER, IsDefault TEXT, IsForced TEXT, Profile TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
         embydb.cursor.execute("CREATE TABLE IF NOT EXISTS Subtitle(emby_id TEXT, MediaIndex INTEGER, SubtitleIndex INTEGER, Codec TEXT, Language TEXT, TimeBase TEXT, CodecTimeBase TEXT, DisplayTitle TEXT, DisplayLanguage TEXT, IsInterlaced TEXT, IsDefault TEXT, IsForced TEXT, Path TEXT, Type TEXT, IsExternal TEXT, IsTextSubtitleStream TEXT, SupportsExternalStream TEXT, Protocol TEXT, StreamIndex INTEGER)")
-
         columns = embydb.cursor.execute("SELECT * FROM VideoStreams")
         descriptions = [description[0] for description in columns.description]
 
@@ -94,10 +90,10 @@ def reset(Utils, Force):
 #    views = emby.views.Views(Utils)
 
     if not Force:
-        if not Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33074)):
+        if not Utils.dialog("yesno", heading="{emby}", line1=Utils.Basics.Translate(33074)):
             return
 
-    Utils.window('emby.shouldstop.bool', True)
+    Utils.Basics.window('emby.shouldstop.bool', True)
 
     if xbmc.Monitor().waitForAbort(5):
         return
@@ -107,12 +103,12 @@ def reset(Utils, Force):
 #    views.delete_playlists()
 #    views.delete_nodes()
 
-    if Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33086)):
+    if Utils.dialog("yesno", heading="{emby}", line1=Utils.Basics.Translate(33086)):
         reset_artwork(Utils)
 
-    addon_data = Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+    addon_data = Utils.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
-    if Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33087)):
+    if Utils.dialog("yesno", heading="{emby}", line1=Utils.Basics.Translate(33087)):
         xbmcvfs.delete(os.path.join(addon_data, "settings.xml"))
         xbmcvfs.delete(os.path.join(addon_data, "data.json"))
         LOG.info("[ reset settings ]")
@@ -120,17 +116,17 @@ def reset(Utils, Force):
     if xbmcvfs.exists(os.path.join(addon_data, "sync.json")):
         xbmcvfs.delete(os.path.join(addon_data, "sync.json"))
 
-    Utils.settings('enableMusic.bool', False)
-    Utils.settings('MinimumSetup', "")
-    Utils.settings('MusicRescan.bool', False)
-    Utils.settings('SyncInstallRunDone.bool', False)
-    Utils.settings('Migrate.bool', True)
-    Utils.dialog("ok", heading="{emby}", line1=Utils.Translate(33088))
+    Utils.Basics.settings('enableMusic.bool', False)
+    Utils.Basics.settings('MinimumSetup', "")
+    Utils.Basics.settings('MusicRescan.bool', False)
+    Utils.Basics.settings('SyncInstallRunDone.bool', False)
+    Utils.Basics.settings('Migrate.bool', True)
+    Utils.dialog("ok", heading="{emby}", line1=Utils.Basics.Translate(33088))
     xbmc.executebuiltin('RestartApp')
 
 def reset_kodi(Utils):
     Progress = xbmcgui.DialogProgressBG()
-    Progress.create(Utils.Translate('addon_name'), "Delete Kodi-Video Database")
+    Progress.create(Utils.Basics.Translate('addon_name'), "Delete Kodi-Video Database")
 
     with Database(Utils, 'video', True) as videodb:
         videodb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
@@ -151,7 +147,7 @@ def reset_kodi(Utils):
     with Database(Utils, 'music', True) as musicdb:
         musicdb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
         Progress = xbmcgui.DialogProgressBG()
-        Progress.create(Utils.Translate('addon_name'), "Delete Kodi-Music Database")
+        Progress.create(Utils.Basics.Translate('addon_name'), "Delete Kodi-Music Database")
         tables = musicdb.cursor.fetchall()
         Counter = 0
         Increment = 100.0 / (len(tables) - 1)
@@ -170,7 +166,7 @@ def reset_kodi(Utils):
 
 def reset_emby(Utils):
     Progress = xbmcgui.DialogProgressBG()
-    Progress.create(Utils.Translate('addon_name'), "Delete Emby Database")
+    Progress.create(Utils.Basics.Translate('addon_name'), "Delete Emby Database")
 
     with Database(Utils, 'emby', True) as embydb:
         embydb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
@@ -195,7 +191,7 @@ def reset_emby(Utils):
 
 #Remove all existing texture
 def reset_artwork(Utils):
-    thumbnails = Utils.translatePath('special://thumbnails/')
+    thumbnails = Utils.Basics.translatePath('special://thumbnails/')
 
     if xbmcvfs.exists(thumbnails):
         dirs, _ = xbmcvfs.listdir(thumbnails)
@@ -203,7 +199,7 @@ def reset_artwork(Utils):
         for directory in dirs:
             _, thumbs = xbmcvfs.listdir(os.path.join(thumbnails, directory))
             Progress = xbmcgui.DialogProgressBG()
-            Progress.create(Utils.Translate('addon_name'), "Delete Artwork Files: " + directory)
+            Progress.create(Utils.Basics.Translate('addon_name'), "Delete Artwork Files: " + directory)
             Counter = 0
             ThumbsLen = len(thumbs)
             Increment = 0.0
@@ -220,7 +216,7 @@ def reset_artwork(Utils):
             Progress.close()
 
     Progress = xbmcgui.DialogProgressBG()
-    Progress.create(Utils.Translate('addon_name'), "Delete Texture Database")
+    Progress.create(Utils.Basics.Translate('addon_name'), "Delete Texture Database")
 
     with Database(Utils, 'texture', True) as texdb:
         texdb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
@@ -240,17 +236,9 @@ def reset_artwork(Utils):
 
     LOG.warning("[ reset artwork ]")
 
-
-
-
-
-
-
-
-
 #Get Kodi ID from emby ID
 def get_kodiID(Utils, emby_id):
-    with Database(Utils, 'emby', True) as embydb:
+    with Database(Utils, 'emby', False) as embydb:
         item = emby_db.EmbyDatabase(embydb.cursor).get_item_by_wild_id(emby_id)
 
         if not item:
@@ -261,7 +249,7 @@ def get_kodiID(Utils, emby_id):
 
 #Get emby item based on kodi id and media
 def get_item(Utils, kodi_id, media):
-    with Database(Utils, 'emby', True) as embydb:
+    with Database(Utils, 'emby', False) as embydb:
         item = emby_db.EmbyDatabase(embydb.cursor).get_full_item_by_kodi_id(kodi_id, media)
 
         if not item:
@@ -271,7 +259,7 @@ def get_item(Utils, kodi_id, media):
     return item
 
 def get_item_complete(Utils, kodi_id, media):
-    with Database(Utils, 'emby', True) as embydb:
+    with Database(Utils, 'emby', False) as embydb:
         item = emby_db.EmbyDatabase(embydb.cursor).get_full_item_by_kodi_id_complete(kodi_id, media)
 
         if not item:
@@ -281,7 +269,7 @@ def get_item_complete(Utils, kodi_id, media):
     return item
 
 def get_Presentationkey(Utils, EmbyID):
-    with Database(Utils, 'emby', True) as embydb:
+    with Database(Utils, 'emby', False) as embydb:
         item = emby_db.EmbyDatabase(embydb.cursor).get_kodiid(EmbyID)
 
         if not item:
@@ -292,7 +280,7 @@ def get_Presentationkey(Utils, EmbyID):
 
 #Get emby item based on kodi id and media
 def get_ItemsByPresentationkey(Utils, PresentationKey):
-    with Database(Utils, 'emby', True) as embydb:
+    with Database(Utils, 'emby', False) as embydb:
         items = emby_db.EmbyDatabase(embydb.cursor).get_ItemsByPresentation_key(PresentationKey)
 
     return items

@@ -9,7 +9,6 @@ import core.movies
 import core.musicvideos
 import core.tvshows
 import core.music
-import helper.xmls
 import helper.loghandler
 from . import database
 from . import emby_db
@@ -23,10 +22,9 @@ class Sync():
         self.running = False
         self.screensaver = None
         self.update_library = False
-        self.xmls = helper.xmls.Xmls(self.EmbyServer.Utils)
 
         if self.running:
-            self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33197))
+            self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33197))
             return
 
     #Assign the restore point and save the sync status
@@ -34,50 +32,13 @@ class Sync():
         self.EmbyServer.Utils.SyncData['RestorePoint'] = restore
         self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData, False)
 
-    #Map the syncing process and start the sync. Ensure only one sync is running
-    #force to resume any previous sync
-    def libraries(self, library_id, update, forced):
-        self.update_library = update
-
-        if library_id:
-            libraries = library_id.split(',')
-
-            for selected in libraries:
-                if selected not in [x.replace('Mixed:', "") for x in self.EmbyServer.Utils.SyncData['Libraries']]:
-                    library = self.get_libraries(selected)
-
-                    if library:
-                        self.EmbyServer.Utils.SyncData['Libraries'].append("Mixed:%s" % selected if library[1] == 'mixed' else selected)
-
-                        if library[1] in ('mixed', 'movies'):
-                            self.EmbyServer.Utils.SyncData['Libraries'].append('Boxsets:%s' % selected)
-                    else:
-                        self.EmbyServer.Utils.SyncData['Libraries'].append(selected)
-        else:
-            if not self.mapping(forced):
-                return False
-
-        self.xmls.sources()
-
-        if not self.xmls.advanced_settings() and self.EmbyServer.Utils.SyncData['Libraries']:
-            self.FullSync()
-
-        return True
-
-    def get_libraries(self, library_id):
-        with database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
-            if not library_id:
-                return emby_db.EmbyDatabase(embydb.cursor).get_views()
-
-            return emby_db.EmbyDatabase(embydb.cursor).get_view(library_id)
-
     #Load the mapping of the full sync.
     #This allows us to restore a previous sync
     def mapping(self, forced):
         if self.EmbyServer.Utils.SyncData['Libraries']:
-            if not forced and not self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33102)):
-                if not self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33173)):
-                    self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33122))
+            if not forced and not self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33102)):
+                if not self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33173)):
+                    self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33122))
                     self.Player.SyncPause = True
                     return False
 
@@ -87,14 +48,44 @@ class Sync():
             self.LOG.info("generate full sync")
             libraries = []
 
-            for library in self.get_libraries(False):
+            with database.Database(self.EmbyServer.Utils, 'emby', False) as embydb:
+                libraries_DB = emby_db.EmbyDatabase(embydb.cursor).get_views()
+
+            for library in libraries_DB:
+
                 if library[2] in ('movies', 'tvshows', 'musicvideos', 'music', 'mixed'):
                     libraries.append({'Id': library[0], 'Name': library[1], 'Media': library[2]})
 
-            libraries = self.select_libraries(libraries)
-
-            if not libraries:
+            if self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33125), nolabel=self.EmbyServer.Utils.Basics.Translate(33127), yeslabel=self.EmbyServer.Utils.Basics.Translate(33126)):
+                self.LOG.info("Selected sync later")
                 return False
+
+            choices = [x['Name'] for x in libraries]
+            choices.insert(0, self.EmbyServer.Utils.Basics.Translate(33121))
+            selection = self.EmbyServer.Utils.dialog("multi", self.EmbyServer.Utils.Basics.Translate(33120), choices)
+
+            if selection is None:
+                return False
+
+            if not selection:
+                self.LOG.info("Nothing was selected")
+                return False
+
+            if 0 in selection:
+                selection = list(range(1, len(libraries) + 1))
+
+            selected_libraries = []
+
+            for x in selection:
+                library = libraries[x - 1]
+
+                if library['Media'] != 'mixed':
+                    selected_libraries.append(library['Id'])
+                else:
+                    selected_libraries.append("Mixed:%s" % library['Id'])
+
+            self.EmbyServer.Utils.SyncData['Libraries'] = selected_libraries
+            libraries = [libraries[x - 1] for x in selection]
 
             if [x['Media'] for x in libraries if x['Media'] in ('movies', 'mixed')]:
                 self.EmbyServer.Utils.SyncData['Libraries'].append("Boxsets:")
@@ -102,44 +93,12 @@ class Sync():
         self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData, True)
         return True
 
-    #Select all or certain libraries to be whitelisted
-    def select_libraries(self, libraries):
-        if self.EmbyServer.Utils.dialog("yesno", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33125), nolabel=self.EmbyServer.Utils.Translate(33127), yeslabel=self.EmbyServer.Utils.Translate(33126)):
-            self.LOG.info("Selected sync later")
-            return False
-
-        choices = [x['Name'] for x in libraries]
-        choices.insert(0, self.EmbyServer.Utils.Translate(33121))
-        selection = self.EmbyServer.Utils.dialog("multi", self.EmbyServer.Utils.Translate(33120), choices)
-
-        if selection is None:
-            return False
-
-        if not selection:
-            self.LOG.info("Nothing was selected")
-            return False
-
-        if 0 in selection:
-            selection = list(range(1, len(libraries) + 1))
-
-        selected_libraries = []
-
-        for x in selection:
-            library = libraries[x - 1]
-
-            if library['Media'] != 'mixed':
-                selected_libraries.append(library['Id'])
-            else:
-                selected_libraries.append("Mixed:%s" % library['Id'])
-
-        self.EmbyServer.Utils.SyncData['Libraries'] = selected_libraries
-        return [libraries[x - 1] for x in selection]
-
     #Main sync process
     def FullSync(self):
         self.LOG.info("-->[ starting sync with %s ]" % self.EmbyServer.Utils.SyncData['Libraries'])
+        self.EmbyServer.Utils.Basics.settings('ReloadSkin.bool', True)
 
-        if not self.EmbyServer.Utils.settings('dbSyncScreensaver.bool'):
+        if not self.EmbyServer.Utils.Basics.settings('dbSyncScreensaver.bool'):
             xbmc.executebuiltin('InhibitIdleShutdown(true)')
             self.screensaver = self.EmbyServer.Utils.Screensaver
             self.EmbyServer.Utils.set_screensaver(value="")
@@ -160,17 +119,20 @@ class Sync():
             self._restore_point({})
 
         elapsed = datetime.datetime.now() - start_time
-        self.EmbyServer.Utils.settings('SyncInstallRunDone.bool', True)
+        self.EmbyServer.Utils.Basics.settings('SyncInstallRunDone.bool', True)
         self.EmbyServer.Utils.save_last_sync()
         self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData, True)
         xbmc.executebuiltin('UpdateLibrary(video)')
-        self.EmbyServer.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.EmbyServer.Utils.Translate(33025), str(elapsed).split('.')[0]), icon="{emby}", sound=False)
+        self.EmbyServer.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.EmbyServer.Utils.Basics.Translate(33025), str(elapsed).split('.')[0]), icon="{emby}", sound=False)
         self.running = False
 
         if self.screensaver is not None:
             xbmc.executebuiltin('InhibitIdleShutdown(false)')
             self.EmbyServer.Utils.set_screensaver(value=self.screensaver)
 
+        xbmc.sleep(1000)
+        xbmc.executebuiltin('ReloadSkin()')
+        self.EmbyServer.Utils.Basics.settings('ReloadSkin.bool', False)
         self.LOG.info("--<[ Full sync completed in: %s ]" % str(elapsed).split('.')[0])
 
     def process_library(self, library_id):
@@ -197,7 +159,7 @@ class Sync():
             elif library['CollectionType'] == 'tvshows':
                 self.tvshows(library)
             elif library['CollectionType'] == 'music':
-                self.EmbyServer.Utils.settings('enableMusic.bool', True)
+                self.EmbyServer.Utils.Basics.settings('enableMusic.bool', True)
                 self.music(library)
 
         if self.Player.SyncPause:
@@ -209,7 +171,7 @@ class Sync():
     #Process movies from a single library
     def movies(self, library):
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Translate('gathering'), "Movies"))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Basics.Translate('gathering'), "Movies"))
 
         with self.ThreadingLock:
             with database.Database(self.EmbyServer.Utils, 'video', True) as videodb:
@@ -222,7 +184,7 @@ class Sync():
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, movie in enumerate(items['Items']):
-                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library['Name']), message=movie['Name'])
+                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library['Name']), message=movie['Name'])
                             MoviesObject.movie(movie, library)
 
                             if self.Player.SyncPause:
@@ -242,7 +204,7 @@ class Sync():
 
     def tvshows(self, library):
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Translate('gathering'), "TV Shows"))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Basics.Translate('gathering'), "TV Shows"))
 
         with self.ThreadingLock:
             with database.Database(self.EmbyServer.Utils, 'video', True) as videodb:
@@ -256,7 +218,7 @@ class Sync():
 
                         for index, show in enumerate(items['Items']):
                             percent = int((float(start_index + index) / TotalRecords)*100)
-                            dialog.update(percent, heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library['Name']), message=show['Name'])
+                            dialog.update(percent, heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library['Name']), message=show['Name'])
 
                             if TVShowsObject.tvshow(show, library, None, None):
                                 for episodes in self.EmbyServer.API.get_episode_by_show(show['Id']):
@@ -285,7 +247,7 @@ class Sync():
 
     def musicvideos(self, library):
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Translate('gathering'), "Musicvideos"))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Basics.Translate('gathering'), "Musicvideos"))
 
         with self.ThreadingLock:
             with database.Database(self.EmbyServer.Utils, 'video', True) as videodb:
@@ -298,7 +260,7 @@ class Sync():
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, mvideo in enumerate(items['Items']):
-                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library['Name']), message=mvideo['Name'])
+                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library['Name']), message=mvideo['Name'])
                             MusicVideosObject.musicvideo(mvideo, library)
 
                             if self.Player.SyncPause:
@@ -317,9 +279,9 @@ class Sync():
         dialog.close()
 
     def music(self, library):
-        self.patch_music(True)
+        self.patch_music(False)
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Translate('gathering'), "Music"))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Basics.Translate('gathering'), "Music"))
 
         with self.ThreadingLock:
             with database.Database(self.EmbyServer.Utils, 'music', True) as musicdb:
@@ -333,7 +295,7 @@ class Sync():
 
                         for index, artist in enumerate(items['Items']):
                             percent = int((float(start_index + index) / TotalRecords) * 100)
-                            dialog.update(percent, heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library['Name']), message=artist['Name'])
+                            dialog.update(percent, heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library['Name']), message=artist['Name'])
                             MusicObject.artist(artist, library)
 
                             for albums in self.EmbyServer.API.get_albums_by_artist(library['Id'], artist['Id'], False):
@@ -369,7 +331,7 @@ class Sync():
 
     def boxsets(self, library_id):
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Translate('gathering'), "Boxsets"))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "%s %s" % (self.EmbyServer.Utils.Basics.Translate('gathering'), "Boxsets"))
 
         with self.ThreadingLock:
             with database.Database(self.EmbyServer.Utils, 'video', True) as videodb:
@@ -382,7 +344,7 @@ class Sync():
                         start_index = items['RestorePoint']['params']['StartIndex']
 
                         for index, boxset in enumerate(items['Items']):
-                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), self.EmbyServer.Utils.Translate('boxsets')), message=boxset['Name'])
+                            dialog.update(int((float(start_index + index) / TotalRecords) * 100), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), self.EmbyServer.Utils.Basics.Translate('boxsets')), message=boxset['Name'])
                             MoviesObject.boxset(boxset)
 
                             if self.Player.SyncPause:
@@ -406,42 +368,42 @@ class Sync():
             with database.Database(self.EmbyServer.Utils, 'music', True) as musicdb:
                 core.music.MusicDBIO(musicdb.cursor, self.EmbyServer.Utils.DatabaseFiles['music-version']).disable_rescan()
 
-        self.EmbyServer.Utils.settings('MusicRescan.bool', True)
+        self.EmbyServer.Utils.Basics.settings('MusicRescan.bool', True)
 
         if notification:
-            self.EmbyServer.Utils.dialog("notification", heading="{emby}", message=self.EmbyServer.Utils.Translate('task_success'), icon="{emby}", time=1000, sound=False)
+            self.EmbyServer.Utils.dialog("notification", heading="{emby}", message=self.EmbyServer.Utils.Basics.Translate('task_success'), icon="{emby}", time=1000, sound=False)
 
     #Remove library by their id from the Kodi database
     def remove_library(self, library_id):
         dialog = xbmcgui.DialogProgressBG()
-        dialog.create(self.EmbyServer.Utils.Translate('addon_name'))
+        dialog.create(self.EmbyServer.Utils.Basics.Translate('addon_name'))
 
         with database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
             db = emby_db.EmbyDatabase(embydb.cursor)
             library = db.get_view(library_id.replace('Mixed:', ""))
             items = db.get_item_by_media_folder(library_id.replace('Mixed:', ""))
-            media = 'music' if library[1] == 'music' else 'video'
+            media = 'music' if library[2] == 'music' else 'video'
 
             if items:
                 count = 0
 
                 with self.ThreadingLock:
                     with database.Database(self.EmbyServer.Utils, media, True) as kodidb:
-                        if library[1] == 'mixed':
+                        if library[2] == 'mixed':
                             movies = [x for x in items if x[1] == 'Movie']
                             tvshows = [x for x in items if x[1] == 'Series']
                             MediaObject = core.movies.Movies(self.EmbyServer, embydb, kodidb).remove
 
                             for item in movies:
                                 MediaObject(item[0])
-                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library[0]))
+                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library[1]))
                                 count += 1
 
                             MediaObject = core.tvshows.TVShows(self.EmbyServer, embydb, kodidb).remove
 
                             for item in tvshows:
                                 MediaObject(item[0])
-                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library[0]))
+                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library[1]))
                                 count += 1
                         else:
                             if items[0][1] in ('Movie', 'BoxSet'):
@@ -455,7 +417,7 @@ class Sync():
 
                             for item in items:
                                 MediaObject(item[0])
-                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Translate('addon_name'), library[0]))
+                                dialog.update(int((float(count) / float(len(items)) * 100)), heading="%s: %s" % (self.EmbyServer.Utils.Basics.Translate('addon_name'), library[1]))
                                 count += 1
 
         dialog.close()

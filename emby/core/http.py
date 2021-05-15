@@ -66,34 +66,34 @@ class HTTP():
                 r = self._requests(self.session or requests, data.pop('type', "GET"), **data)
                 r.content # release the connection
                 r.raise_for_status()
-            except requests.exceptions.ConnectionError as error:
+            except requests.exceptions.ConnectionError:
                 retry = _retry(retry)
 
                 if retry:
                     continue
 
-                self.LOG.error(error)
+                self.LOG.error("[ ServerUnreachable ]")
 
                 if MSGs:
                     xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerUnreachable", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
 
-            except requests.exceptions.ReadTimeout as error:
+            except requests.exceptions.ReadTimeout:
                 retry = _retry(retry)
 
                 if retry:
                     continue
 
-                self.LOG.error(error)
+                self.LOG.error("[ ServerTimeout ]")
 
                 if MSGs:
                     xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerTimeout", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
 
-            except requests.exceptions.HTTPError as error:
-                self.LOG.error(error)
+            except requests.exceptions.HTTPError:
+#                self.LOG.error(error)
 
                 if r.status_code == 401:
                     if 'X-Application-Error-Code' in r.headers:
@@ -105,15 +105,21 @@ class HTTP():
                     return False
 
                 if r.status_code == 500: # log and ignore.
-                    self.LOG.error("--[ 500 response ] %s" % error)
-                    return
-                elif r.status_code == 400: # log and ignore.
-                    self.LOG.error("--[ 400 response ] %s" % error)
-                    return
-                elif r.status_code == 404: # log and ignore.
-                    self.LOG.error("--[ 404 response ] %s" % error)
-                    return
-                elif r.status_code == 502:
+#                    self.LOG.error("--[ 500 response ] %s" % error)
+                    self.LOG.error("[ 500 response ]")
+                    return False
+
+                if r.status_code == 400: # log and ignore.
+#                    self.LOG.error("--[ 400 response ] %s" % error)
+                    self.LOG.error("[ 400 response ]")
+                    return False
+
+                if r.status_code == 404: # log and ignore.
+#                    self.LOG.error("--[ 404 response ] %s" % error)
+                    self.LOG.error("[ 404 response ]")
+                    return False
+
+                if r.status_code == 502:
                     retry = _retry(retry)
 
                     if retry:
@@ -125,8 +131,8 @@ class HTTP():
                         continue
 
                 return False
-            except requests.exceptions.MissingSchema as error:
-                self.LOG.error(error)
+            except requests.exceptions.MissingSchema:
+                self.LOG.error("[ MissingSchema ]")
                 return False
             except Exception as error:
                 self.LOG.error(error)
@@ -197,8 +203,6 @@ class HTTP():
 
         if 'Authorization' not in data['headers']:
             self._authorization(data)
-#            if not self._authorization(data):
-#                return False
 
         return data
 

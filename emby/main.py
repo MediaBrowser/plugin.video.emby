@@ -15,11 +15,11 @@ class Emby():
         self.server_id = server_id
         self.Utils = Utils
         self.API = api.API(self)
-        self.Data = {'http.user_agent': None, 'http.timeout': 30, 'http.max_retries': 3, 'auth.server': None, 'auth.user_id': None, 'auth.token': None, 'auth.ssl': None, 'app.name': None, 'app.version': None, 'app.device_name': None, 'app.device_id': self.Utils.get_device_id(False), 'app.capabilities': None}
+        self.Data = {'http.user_agent': None, 'http.timeout': 30, 'http.max_retries': 3, 'auth.server': None, 'auth.user_id': None, 'auth.token': None, 'auth.ssl': None, 'app.name': None, 'app.version': None, 'app.device_name': None, 'app.device_id': self.Utils.get_device_id(False), 'app.capabilities': None, 'auth.server-name': None}
         self.LOG.info("---[ INIT EMBYCLIENT: ]---")
 
     def set_state(self):
-        state = self.Utils.window('emby.server.%s.state.json' % self.server_id)
+        state = self.Utils.Basics.window('emby.server.%s.state.json' % self.server_id)
         self.Data = state['config']
         self.logged_in = True
         self.auth.credentials.set_credentials(state['credentials'] or {})
@@ -27,8 +27,8 @@ class Emby():
         self.LOG.info("---[ SET EMBYCLIENT: %s ]---" % self.server_id)
 
     def save_state(self):
-        self.Utils.window('emby.server.%s.state.json' % self.server_id, {'config': self.Data, 'credentials': self.auth.credentials.get_credentials()})
-        self.Utils.window('emby.servers.json', {self.server_id : 'online'})
+        self.Utils.Basics.window('emby.server.%s.state.json' % self.server_id, {'config': self.Data, 'credentials': self.auth.credentials.get_credentials()})
+        self.Utils.Basics.window('emby.servers.json', {self.server_id : self.Data['auth.server-name']})
 
     def authenticate(self, credentials, options):
         self.auth.credentials.set_credentials(credentials or {})
@@ -68,10 +68,10 @@ class Emby():
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
 
-        if self.Utils.settings('addUsers'):
+        if self.Utils.Basics.settings('addUsers'):
             session = self.API.get_device()
-            users = self.Utils.settings('addUsers').split(',')
-            hidden = None if self.Utils.settings('addUsersHidden.bool') else False
+            users = self.Utils.Basics.settings('addUsers').split(',')
+            hidden = None if self.Utils.Basics.settings('addUsersHidden.bool') else False
             all_users = self.API.get_users(False, hidden)
 
             for additional in users:
@@ -81,13 +81,13 @@ class Emby():
 
             #add additional users
             for i in range(10):
-                self.Utils.window('emby.AdditionalUserImage.%s' % i, clear=True)
+                self.Utils.Basics.window('emby.AdditionalUserImage.%s' % i, clear=True)
 
             for index, user in enumerate(session[0]['AdditionalUsers']):
-                info = self.API.get_user(user['UserId'])
+#                info = self.API.get_user(user['UserId'])
                 image = self.API.get_user_artwork(user['UserId'])
-                self.Utils.window('emby.AdditionalUserImage.%s' % index, image)
-                self.Utils.window('emby.AdditionalUserPosition.%s' % user['UserId'], str(index))
+                self.Utils.Basics.window('emby.AdditionalUserImage.%s' % index, image)
+                self.Utils.Basics.window('emby.AdditionalUserPosition.%s' % user['UserId'], str(index))
 
         self.save_state()
 
@@ -97,6 +97,9 @@ class Emby():
 
     def stop(self):
         self.LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
-        self.wsock.close()
+
+        if self.wsock:
+            self.wsock.close()
+
         self.wsock = None
         self.http.stop_session()

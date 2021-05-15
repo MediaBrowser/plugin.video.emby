@@ -1,21 +1,33 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-
 import helper.api
 import helper.loghandler
 from . import obj_ops
 
 class ListItem():
-    def __init__(self, ssl, Utils):
-        self.objects = obj_ops.Objects(Utils)
-        self.API = helper.api.API(Utils, ssl)
+    def __init__(self, ssl, Basics):
+        self.objects = obj_ops.Objects()
+        self.API = helper.api.API(Basics, ssl)
 
-    def set(self, item, listitem, db_id, seektime):
-        listitem = listitem or xbmcgui.ListItem()
+    def set(self, item):
+        listitem = xbmcgui.ListItem()
         Properties = {}
-        ArtworkData = {}
+        art = {
+            'clearart': "Art",
+            'clearlogo': "Logo",
+            'discart': "Disc",
+            'fanart_image': "Backdrop",
+            'landscape': "Thumb",
+            'thumb': "Primary",
+            'fanart': "Backdrop"
+        }
 
-        if item['Type'] in ("Movie", "MusicVideo", 'Episode', 'Season', 'Series', 'Video', 'BoxSet', 'AudioBook', 'Folder', 'Trailer'):
+        if item['Type'] == 'Genre':
+            obj = self.objects.map(item, 'BrowseGenre')
+            obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
+            Properties['IsFolder'] = 'true'
+            Properties['IsPlayable'] = 'false'
+        elif item['Type'] in ("Movie", "MusicVideo", 'Episode', 'Season', 'Series', 'Video', 'BoxSet', 'AudioBook', 'Folder', 'Trailer', 'Studio', 'Person', 'Program', 'CollectionFolder', 'UserView'):
             obj = self.objects.map(item, 'BrowseVideo')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'ArtworkParent'), True)
             obj['Genres'] = " / ".join(obj['Genres'] or [])
@@ -28,9 +40,8 @@ class ListItem():
             obj['Writers'] = " / ".join(obj['Writers'] or [])
             obj['Plot'] = self.API.get_overview(obj['Plot'], item)
             obj['ShortPlot'] = self.API.get_overview(obj['ShortPlot'], item)
-            obj['DateAdded'] = obj['DateAdded'].split('.')[0].replace('T', " ")
             obj['Rating'] = obj['Rating'] or 0
-            obj['FileDate'] = "%s.%s.%s" % tuple(reversed(obj['DateAdded'].split('T')[0].split('-')))
+            obj['DateAdded'], obj['FileDate'] = self.API.get_DateAdded(obj['DateAdded'])
             obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
             obj['Resume'] = self.API.adjust_resume((obj['Resume'] or 0) / 10000000.0)
             obj['PlayCount'] = self.API.get_playcount(obj['Played'], obj['PlayCount']) or 0
@@ -56,15 +67,6 @@ class ListItem():
 
             Folder = False
             Properties['totaltime'] = str(obj['Runtime'])
-            art = {
-                'clearart': "Art",
-                'clearlogo': "Logo",
-                'discart': "Disc",
-                'fanart_image': "Backdrop",
-                'landscape': "Thumb",
-                'thumb': "Primary",
-                'fanart': "Backdrop"
-            }
             metadata = {
                 'title': obj['Title'],
                 'originaltitle': obj['OriginalTitle'],
@@ -84,12 +86,14 @@ class ListItem():
                 'writer': obj['Writers'],
                 'premiered': obj['Premiere'],
                 'votes': obj['Votes'],
-                'dateadded': obj['DateAdded'],
                 'date': obj['Premiere'] or obj['FileDate'],
                 'lastplayed': obj['DatePlayed'],
                 'duration': obj['Runtime'],
                 'aired': obj['Year']
             }
+
+            if obj['DateAdded']:
+                metadata['dateadded'] = obj['DateAdded']
 
             if item['Type'] == 'Movie':
                 metadata['imdbnumber'] = obj['UniqueId']
@@ -162,16 +166,13 @@ class ListItem():
                 Folder = True
                 art['poster'] = "Primary"
 
-            if db_id:
-                metadata['dbid'] = db_id
-
             if not Folder:
-                if obj['Resume'] and obj['Runtime'] and seektime != False:
-                    Properties['resumetime'] = str(obj['Resume'])
-                    Properties['StartPercent'] = str(((obj['Resume'] / obj['Runtime']) * 100))
-                else:
-                    Properties['resumetime'] = '0'
-                    Properties['StartPercent'] = '0'
+#                if obj['Resume'] and obj['Runtime'] and seektime != False:
+#                    Properties['resumetime'] = str(obj['Resume'])
+#                    Properties['StartPercent'] = str(((obj['Resume'] / obj['Runtime']) * 100))
+#                else:
+                Properties['resumetime'] = '0'
+                Properties['StartPercent'] = '0'
 
                 for track in obj['Streams']['video']:
                     listitem.addStreamInfo('video', {
@@ -188,29 +189,14 @@ class ListItem():
                 for track in obj['Streams']['subtitle']:
                     listitem.addStreamInfo('subtitle', {'language': track})
 
-            for kodi, emby in list(art.items()):
-                if emby == 'Backdrop':
-                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
-                else:
-                    ArtworkData[kodi] = obj['Artwork'].get(emby, " ")
-
             listitem.setInfo('video', metadata)
-        elif item['Type'] in ("Music", "Audio", "MusicAlbum", "MusicArtist", "Artist"):
+        elif item['Type'] in ("Music", "Audio", "MusicAlbum", "MusicArtist", "Artist", "MusicGenre", "Channel"):
             obj = self.objects.map(item, 'BrowseAudio')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'ArtworkMusic'), True)
             obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
             obj['PlayCount'] = self.API.get_playcount(obj['Played'], obj['PlayCount']) or 0
             obj['Rating'] = obj['Rating'] or 0
-            obj['FileDate'] = "%s.%s.%s" % tuple(reversed(obj['DateAdded'].split('T')[0].split('-')))
-            art = {
-                'clearart': "Art",
-                'clearlogo': "Logo",
-                'discart': "Disc",
-                'fanart_image': "Backdrop",
-                'landscape': "Thumb",
-                'thumb': "Primary",
-                'fanart': "Backdrop"
-            }
+            obj['DateAdded'], obj['FileDate'] = self.API.get_DateAdded(obj['DateAdded'])
             metadata = {
                 'title': obj['Title'],
                 'genre': obj['Genre'],
@@ -218,9 +204,11 @@ class ListItem():
                 'album': obj['Album'],
                 'artist': obj['Artists'],
                 'rating': obj['Rating'],
-                'comment': obj['Comment'],
-                'date': obj['FileDate'],
+                'comment': obj['Comment']
             }
+
+            if obj['FileDate']:
+                metadata['date'] = obj['DateAdded']
 
             if item['Type'] == 'Music':
                 metadata['mediatype'] = "music"
@@ -237,35 +225,21 @@ class ListItem():
             elif item['Type'] == 'MusicAlbum':
                 metadata['mediatype'] = "album"
                 metadata['musicbrainzalbumid'] = obj['UniqueId']
+                Properties['IsFolder'] = 'true'
             elif item['Type'] in ("MusicArtist", "Artist"):
                 metadata['mediatype'] = "artist"
                 metadata['musicbrainzartistid'] = obj['UniqueId']
-
-            for kodi, emby in list(art.items()):
-                if emby == 'Backdrop':
-                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
-                else:
-                    ArtworkData[kodi] = obj['Artwork'].get(emby, " ")
+                Properties['IsFolder'] = 'true'
 
             listitem.setInfo('music', metadata)
         elif item['Type'] in ("Photo", "PhotoAlbum"):
             obj = self.objects.map(item, 'BrowsePhoto')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
             obj['Overview'] = self.API.get_overview(obj['Overview'], item)
-            obj['FileDate'] = "%s.%s.%s" % tuple(reversed(obj['DateAdded'].split('T')[0].split('-')))
-            art = {
-                'clearart': "Art",
-                'clearlogo': "Logo",
-                'discart': "Disc",
-                'fanart_image': "Backdrop",
-                'landscape': "Thumb",
-                'thumb': "Primary",
-                'fanart': "Backdrop"
-            }
+            obj['DateAdded'], obj['FileDate'] = self.API.get_DateAdded(obj['DateAdded'])
             metadata = {
                 'title': obj['Title'],
                 'picturepath': obj['Artwork']['Primary'],
-                'date': obj['FileDate'],
                 'exif:width': str(obj.get('Width', 0)),
                 'exif:height': str(obj.get('Height', 0)),
                 'size': obj['Size'],
@@ -275,43 +249,22 @@ class ListItem():
                 'exif:focallength': str(obj['FocalLength'])
             }
 
+            if obj['FileDate']:
+                metadata['date'] = obj['DateAdded']
+
             if item['Type'] == 'Photo':
                 Properties['IsFolder'] = 'false'
             else:
                 Properties['IsFolder'] = 'true'
 
-            Properties['path'] = obj['Artwork']['Primary']
             Properties['plot'] = obj['Overview']
             Properties['IsPlayable'] = 'false'
-
-            for kodi, emby in list(art.items()):
-                if emby == 'Backdrop':
-                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
-                else:
-                    ArtworkData[kodi] = obj['Artwork'].get(emby, " ")
-
             listitem.setInfo('pictures', metadata)
         elif item['Type'] == 'Playlist':
             obj = self.objects.map(item, 'BrowseFolder')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
-            Properties['path'] = obj['Artwork']['Primary']
             Properties['IsFolder'] = 'true'
             Properties['IsPlayable'] = 'false'
-            art = {
-                'clearart': "Art",
-                'clearlogo': "Logo",
-                'discart': "Disc",
-                'fanart_image': "Backdrop",
-                'landscape': "Thumb",
-                'thumb': "Primary",
-                'fanart': "Backdrop"
-            }
-
-            for kodi, emby in list(art.items()):
-                if emby == 'Backdrop':
-                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
-                else:
-                    ArtworkData[kodi] = obj['Artwork'].get(emby, " ")
         elif item['Type'] == 'TvChannel':
             obj = self.objects.map(item, 'BrowseChannel')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
@@ -328,31 +281,30 @@ class ListItem():
                 'playcount': obj['PlayCount'],
                 'overlay': obj['Overlay']
             }
-            art = {
-                'clearart': "Art",
-                'clearlogo': "Logo",
-                'discart': "Disc",
-                'fanart_image': "Backdrop",
-                'landscape': "Thumb",
-                'thumb': "Primary",
-                'fanart': "Backdrop"
-            }
             Properties['totaltime'] = str(obj['Runtime'])
             Properties['IsFolder'] = 'false'
             Properties['IsPlayable'] = 'true'
-
-            for kodi, emby in list(art.items()):
-                if emby == 'Backdrop':
-                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
-                else:
-                    ArtworkData[kodi] = obj['Artwork'].get(emby, " ")
-
             listitem.setInfo('video', metadata)
 
         if Properties:
             listitem.setProperties(Properties)
 
-        listitem.setArt(ArtworkData)
+        if obj['Artwork']:
+            ArtworkData = {}
+
+            for kodi, emby in list(art.items()):
+                if emby == 'Backdrop':
+                    ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
+                else:
+                    ArtworkData[kodi] = obj['Artwork'][emby]
+
+            listitem.setArt(ArtworkData)
+
         listitem.setLabel(obj['Title'])
         listitem.setContentLookup(False)
+
+        if 'People' in obj:
+            if obj['People']:
+                listitem.setCast(self.API.get_actors(obj['People']))
+
         return listitem
