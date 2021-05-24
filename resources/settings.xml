@@ -23,11 +23,10 @@
         <setting label="33111" type="lsep" />
         <setting label="30511" id="useDirectPaths" type="enum" lvalues="33036|33037" default="0" />
         <setting label="33175" type="lsep" />
-        <setting label="30515" id="limitIndex" type="number" default="15" option="int" />
-        <setting label="33174" id="limitThreads" type="number" default="3" option="int" />
+        <setting label="30515" id="limitIndex" type="number" default="50" option="int" />
+        <setting label="33174" id="limitThreads" type="number" default="5" option="int" />
         <setting label="33176" type="lsep" />
         <setting label="Enable userrating" id="userRating" type="bool" default="true" />
-        <setting id="enableMusic" visible="false" default="false" />
         <setting id="ReloadSkin" visible="false" type="bool" default="false" />
     </category>	
     <category label="30516"><!-- Playback -->
@@ -35,7 +34,7 @@
         <setting label="30518" id="enableCinema" type="bool" default="false" />
         <setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
         <setting label="Transcode" type="lsep" />
-        <setting label="30522" id="transcode_h265" type="bool" default="false" visible="true" />
+        <setting label="30522" id="transcodeH265" type="bool" default="false" visible="true" />
         <setting label="33214" id="transcodeDivx" type="bool" default="false" visible="true" />
         <setting label="33215" id="transcodeXvid" type="bool" default="false" visible="true" />
         <setting label="33216" id="transcodeMpeg2" type="bool" default="false" visible="true" />
@@ -58,12 +57,10 @@
         <setting label="33105" id="enableContext" type="bool" default="true" />
         <setting label="33143" id="enableContextDelete" type="bool" visible="eq(-1,true)" default="true" subsetting="true" />
         <setting label="33107" type="lsep" />
-        <setting label="30528" id="addUsers" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=adduser&amp;permanent=true)" option="close" />
         <setting label="33210" id="addUsersHidden" type="bool" default="false" />
         <setting type="sep"/>
         <setting label="30534" type="lsep" />
         <setting label="30249" id="connectMsg" type="bool" default="true" />
-        <setting label="30545" id="offlinetMsg" type="bool" default="true" />
         <setting label="30530" id="restartMsg" type="bool" default="true" />
         <setting label="30547" id="displayMessage" type="slider" default="4" range="4,1,20" option="int" />
         <setting label="33108" type="lsep" />
@@ -71,6 +68,7 @@
         <setting label="30531" id="newContent" type="bool" default="false" />
         <setting label="30532" id="newvideotime" type="number" visible="eq(-1,true)" default="5" option="int" subsetting="true" />
         <setting label="30533" id="newmusictime" type="number" visible="eq(-2,true)" default="2" option="int" subsetting="true" />
+        <setting id="Users" type="text" visible="false" default="" />
     </category>
     <category label="Dynamic libraries"><!-- Plugin -->
         <setting id="getDateCreated" type="bool" label="Date info" default="false" />
@@ -94,10 +92,8 @@
         <setting label="33092" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=backup)" visible="!eq(-1,)" option="close" />
         <setting id="LastIncrementalSync" type="text" visible="false" />
         <setting id="MinimumSetup" type="text" visible="false" />
-        <setting id="MusicRescan" type="bool" visible="false" />
         <setting id="SyncInstallRunDone" type="bool" visible="false" />
         <setting id="groupedSets" type="bool" visible="false" />
-        <setting id="changelog" type="bool" visible="false" />
         <setting id="Migrate" type="bool" visible="false" />
     </category>
 </settings>

@@ -61,7 +61,7 @@ class Connect():
     def register(self, options):
         self.LOG.info("--[ server/%s ]" % "DEFAULT")
         credentials = self.get_credentials()
-        new_credentials = self.register_client(credentials, options, not self.Utils.Basics.settings('SyncInstallRunDone.bool'))
+        new_credentials = self.register_client(credentials, options, not self.Utils.Settings.SyncInstallRunDone)
 
         if new_credentials:
             server_id = new_credentials['Servers'][0]['Id']
@@ -73,7 +73,7 @@ class Connect():
         return False, None
 
     def save_credentials(self, credentials):
-        path = self.Utils.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
         if not xbmcvfs.exists(path):
             xbmcvfs.mkdirs(path)
@@ -84,7 +84,7 @@ class Connect():
             outfile.write(credentials.encode('utf-8'))
 
     def get_credentials(self):
-        path = self.Utils.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
         if not xbmcvfs.exists(path):
             xbmcvfs.mkdirs(path)
@@ -98,11 +98,6 @@ class Connect():
         credentials['Servers'] = credentials.get('Servers', [])
         return credentials
 
-    #Returns boolean value.
-    #True: verify connection.
-    def get_ssl(self):
-        return self.Utils.Basics.settings('sslverify.bool')
-
     #Set Emby client
     def set_client(self):
         self.EmbyServer.Data['app.name'] = "Kodi"
@@ -111,7 +106,7 @@ class Connect():
         self.EmbyServer.Data['app.device_id'] = self.Utils.device_info['DeviceId']
         self.EmbyServer.Data['app.capabilities'] = None
         self.EmbyServer.Data['http.user_agent'] = "Emby-Kodi/%s" % self.Utils.device_info['Version']
-        self.EmbyServer.Data['auth.ssl'] = self.Utils.Basics.settings('sslverify.bool')
+        self.EmbyServer.Data['auth.ssl'] = self.Utils.Settings.sslverify
 
     def register_client(self, credentials, options, server_selection):
         self.set_client()
@@ -150,10 +145,10 @@ class Connect():
     def get_user(self):
         self.user = self.EmbyServer.API.get_user(None)
         self.config = self.EmbyServer.API.get_system_info()
-        self.Utils.Basics.settings('username', self.user['Name'])
+        self.Utils.Settings.set_settings('username', self.user['Name'])
 
         if 'PrimaryImageTag' in self.user:
-            self.Utils.Basics.window('emby.UserImage', self.EmbyServer.API.get_user_artwork(self.user['Id']))
+            self.Utils.Settings.emby_UserImage = self.EmbyServer.API.get_user_artwork(self.user['Id'])
 
     def select_servers(self, state):
         if not state:
@@ -269,7 +264,7 @@ class Connect():
 
     #Allow user to setup ssl verification for additional servers
     def set_ssl(self, server_id):
-        value = self.Utils.Dialog("yesno", heading="{emby}", line1=self.Utils.Basics.Translate(33217))
+        value = self.Utils.Dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33217))
         credentials = self.get_credentials()
 
         for server in credentials['Servers']:

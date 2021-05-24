@@ -100,14 +100,14 @@ class ConnectionManager():
         request = {
             'type': "POST",
             'url': self.get_emby_url(server, "Users/AuthenticateByName"),
-            'json': {
+            'params': {
                 'username': username,
                 'pw': password or "",
             }
         }
 
         if clear:
-            request['json']['pw'] = password or ""
+            request['params']['pw'] = password or ""
 
         result = self._request_url(request, False, True)
 
@@ -505,12 +505,11 @@ class ConnectionManager():
 
         self.credentials.add_update_server(credentials['Servers'], server)
         self.credentials.get_credentials(credentials)
-        self.EmbyServer.server_id = server['Id']
 
         # Update configs
         self.EmbyServer.Data['auth.server'] = self.get_server_address(server, connection_mode)
         self.EmbyServer.Data['auth.server-name'] = server['Name']
-        self.EmbyServer.Data['auth.server=id'] = server['Id']
+        self.EmbyServer.server_id = server['Id']
         self.EmbyServer.Data['auth.ssl'] = options.get('ssl', self.EmbyServer.Data['auth.ssl'])
         result = {'Servers': [server], 'ConnectUser': self.user}
         result['State'] = 3 if server.get('AccessToken') else 2 #SignedIn...ServerSignIn

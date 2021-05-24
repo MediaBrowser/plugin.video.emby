@@ -65,7 +65,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
         if not self.emby_connect: # Change connect user
-            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % self.Utils.Basics.Translate(30618))
+            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % self.Utils.Translate(30618))
 
         if self.servers:
             self.setFocus(self.list_)
@@ -102,14 +102,14 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
 
     def _connect_server(self):
         server = self.connect_manager.get_server_info()
-        self.message.setLabel("%s %s..." % (self.Utils.Basics.Translate(30610), server['Name']))
+        self.message.setLabel("%s %s..." % (self.Utils.Translate(30610), server['Name']))
         self.message_box.setVisibleCondition('true')
         self.busy.setVisibleCondition('true')
         result = self.connect_manager.connect_to_server(server, {})
 
         if result['State'] == 0: #Unavailable
             self.busy.setVisibleCondition('false')
-            self.message.setLabel(self.Utils.Basics.Translate(30609))
+            self.message.setLabel(self.Utils.Translate(30609))
             return False
 
         xbmc.sleep(1000)

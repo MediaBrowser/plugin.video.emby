@@ -26,7 +26,7 @@ class MusicVideos():
         self.MusicVideosDBIO = MusicVideosDBIO(videodb.cursor)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
 
     def musicvideo(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
@@ -63,9 +63,9 @@ class MusicVideos():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']

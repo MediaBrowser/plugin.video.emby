@@ -30,27 +30,17 @@ class HTTP():
         except Exception as error:
             self.LOG.warning("The requests session could not be terminated: %s" % error)
 
-    def _replace_user_info(self, string):
-        if '{server}' in string:
-            if self.EmbyServer.Data['auth.server']:
-                string = string.replace("{server}", self.EmbyServer.Data['auth.server'])
-            else:
-                return False
-
-        if '{UserId}'in string:
-            if self.EmbyServer.Data['auth.user_id']:
-                string = string.replace("{UserId}", self.EmbyServer.Data['auth.user_id'])
-            else:
-                return False
-
-        return string
-
     def request(self, data, MSGs=True): #MSGs are disabled on initial sync and reconnection. Only send msgs if connection is unexpectly interrupted
-        data = self._request(data)
+        if 'url' not in data:
+            data['url'] = "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], data.pop('handler', ""))
+
+        data = self.get_header(data)
 
         if not data:
             return False
 
+        data['timeout'] = self.EmbyServer.Data['http.timeout']
+        data['verify'] = self.EmbyServer.Data['auth.ssl']
         self.LOG.debug("--->[ http ] %s" % json.dumps(data, indent=4))
         retry = data.pop('retry', 5)
 
@@ -78,7 +68,6 @@ class HTTP():
                     xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerUnreachable", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
-
             except requests.exceptions.ReadTimeout:
                 retry = _retry(retry)
 
@@ -91,7 +80,6 @@ class HTTP():
                     xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % ("plugin.video.emby-next-gen", "ServerTimeout", '"[%s]"' % json.dumps({'ServerId': self.EmbyServer.server_id}).replace('"', '\\"')))
 
                 return False
-
             except requests.exceptions.HTTPError:
 #                self.LOG.error(error)
 
@@ -159,37 +147,6 @@ class HTTP():
                 except ValueError:
                     return r.content
 
-    def _request(self, data):
-        if 'url' not in data:
-            data['url'] = "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], data.pop('handler', ""))
-
-        self.get_header(data)
-        data['timeout'] = data.get('timeout') or self.EmbyServer.Data['http.timeout']
-        data['url'] = self._replace_user_info(data['url'])
-
-        if not data['url']:
-            return False
-
-        if data.get('verify') is None:
-            if self.EmbyServer.Data['auth.ssl'] is None:
-                data['verify'] = data['url'].startswith('https')
-            else:
-                data['verify'] = self.EmbyServer.Data['auth.ssl']
-
-        self._process_params(data.get('params') or {})
-        self._process_params(data.get('json') or {})
-        return data
-
-    def _process_params(self, params):
-        for key in params:
-            value = params[key]
-
-            if isinstance(value, dict):
-                self._process_params(value)
-
-            if isinstance(value, (str, unicode)):
-                params[key] = self._replace_user_info(value)
-
     def get_header(self, data):
         data['headers'] = data.setdefault('headers', {})
 
@@ -202,7 +159,7 @@ class HTTP():
             })
 
         if 'Authorization' not in data['headers']:
-            self._authorization(data)
+            data = self._authorization(data)
 
         return data
 

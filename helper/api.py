@@ -5,9 +5,8 @@ except:
     from urllib.parse import urlencode
 
 class API():
-    def __init__(self, Basics, ssl):
-        self.Basics = Basics
-        self.verify_ssl = ssl
+    def __init__(self, Utils):
+        self.Utils = Utils
 
     def get_playcount(self, played, playcount):
         return (playcount or 1) if played else None
@@ -99,7 +98,7 @@ class API():
 
         if resume_seconds:
             resume = round(float(resume_seconds), 6)
-            jumpback = int(self.Basics.settings('resumeJumpBack'))
+            jumpback = int(self.Utils.Settings.resumeJumpBack)
 
             if resume > jumpback:
                 # To avoid negative bookmark
@@ -160,15 +159,15 @@ class API():
         if path is None:
             path = item.get('Path')
 
-        path = self.Basics.StringMod(path)
+        path = self.Utils.StringMod(path)
 
         #Addonmode replace filextensions
         if path.endswith('.strm'):
             path = path.replace('.strm', "")
 
             if 'Container' in item:
-                if not path.endswith(self.Basics.StringMod(item['Container'])):
-                    path = path + "." + self.Basics.StringMod(item['Container'])
+                if not path.endswith(self.Utils.StringMod(item['Container'])):
+                    path = path + "." + self.Utils.StringMod(item['Container'])
 
         if not path:
             return ""
@@ -253,10 +252,6 @@ class API():
         for index, tag in enumerate(tags):
             query.append(('Tag', tag))
             artwork = "http://127.0.0.1:57578/%s/Images/Backdrop/%s?%s" % (item_id, index, urlencode(query))
-
-            if not self.verify_ssl:
-                artwork += "|verifypeer=false"
-
             backdrops.append(artwork)
 
         return backdrops
@@ -272,8 +267,4 @@ class API():
             query.append(('Tag', tag))
 
         artwork = "http://127.0.0.1:57578/%s/Images/%s/0?%s" % (item_id, image, urlencode(query))
-
-        if not self.verify_ssl:
-            artwork += "|verifypeer=false"
-
         return artwork

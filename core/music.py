@@ -23,11 +23,8 @@ class Music():
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.MusicDBIO = MusicDBIO(self.music.cursor, self.EmbyServer.Utils.DatabaseFiles['music-version'])
         self.ArtworkDBIO = artwork.Artwork(musicdb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
-
-        if not self.EmbyServer.Utils.Basics.settings('MusicRescan.bool'):
-            self.MusicDBIO.disable_rescan()
-            self.EmbyServer.Utils.Basics.settings('MusicRescan.bool', True)
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
+        self.MusicDBIO.disable_rescan()
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
