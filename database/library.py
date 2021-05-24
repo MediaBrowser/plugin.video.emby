@@ -35,9 +35,6 @@ class Library(threading.Thread):
         self.screensaver = None
         self.progress_updates = None
         self.total_updates = 0
-        self.LIMIT = min(int(self.EmbyServer.Utils.Basics.settings('limitIndex') or 15), 50)
-        self.DTHREADS = min(int(self.EmbyServer.Utils.Basics.settings('limitThreads') or 3), 3)
-        self.MinsyncProgress = int(self.EmbyServer.Utils.Basics.settings('syncProgress') or 50)
         self.updated_queue = Queue.Queue()
         self.userdata_queue = Queue.Queue()
         self.removed_queue = Queue.Queue()
@@ -102,18 +99,18 @@ class Library(threading.Thread):
 
         self.LOG.debug("--[ pdialog (%s/%s) ]" % (queue_size, self.total_updates))
 
-        if self.total_updates < self.MinsyncProgress:
+        if self.total_updates < int(self.EmbyServer.Utils.Settings.syncProgress):
             return
 
         if self.progress_updates is None:
             self.LOG.info("-->[ pdialog ]")
             self.progress_updates = xbmcgui.DialogProgressBG()
-            self.progress_updates.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), self.EmbyServer.Utils.Basics.Translate(33178))
+            self.progress_updates.create(self.EmbyServer.Utils.Translate('addon_name'), self.EmbyServer.Utils.Translate(33178))
 
     def update_progress_dialog(self, item):
         if self.progress_updates:
             message = self.get_naming(item)
-            self.progress_updates.update(self.progress_percent, message="%s: %s" % (self.EmbyServer.Utils.Basics.Translate(33178), message))
+            self.progress_updates.update(self.progress_percent, message="%s: %s" % (self.EmbyServer.Utils.Translate(33178), message))
 
     def run(self):
         self.LOG.warning("--->[ library ]")
@@ -125,13 +122,13 @@ class Library(threading.Thread):
                 self.SyncSkipResume = True
 
             self.sync.FullSync()
-        elif not self.EmbyServer.Utils.Basics.settings('SyncInstallRunDone.bool'):
+        elif not self.EmbyServer.Utils.Settings.SyncInstallRunDone:
             self.Xmls.sources()
 
             if not self.sync.mapping(False):
                 if self.SyncLater:
-                    self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Basics.Translate(33129))
-                    self.EmbyServer.Utils.Basics.settings('SyncInstallRunDone.bool', True)
+                    self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33129))
+                    self.EmbyServer.Utils.Settings.set_settings_bool('SyncInstallRunDone', True)
                     self.EmbyServer.Utils.SyncData['Libraries'] = []
                     self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData)
 
@@ -168,7 +165,7 @@ class Library(threading.Thread):
 
         PlayingVideo = self.Player.isPlayingVideo()
 
-        if not PlayingVideo or self.EmbyServer.Utils.Basics.settings('syncDuringPlay.bool') or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
+        if not PlayingVideo or self.EmbyServer.Utils.Settings.syncDuringPlay or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
             if not PlayingVideo or xbmc.getCondVisibility('VideoPlayer.Content(livetv)'):
                 if not self.SyncSkipResume:
                     if self.EmbyServer.Utils.SyncData['Libraries']:
@@ -197,7 +194,7 @@ class Library(threading.Thread):
         if self.pending_refresh:
             self.set_progress_dialog()
 
-            if not self.EmbyServer.Utils.Basics.settings('dbSyncScreensaver.bool') and self.screensaver is None:
+            if not self.EmbyServer.Utils.Settings.dbSyncScreensaver and self.screensaver is None:
                 xbmc.executebuiltin('InhibitIdleShutdown(true)')
                 self.screensaver = self.EmbyServer.Utils.Screensaver
                 self.EmbyServer.Utils.set_screensaver(value="")
@@ -212,7 +209,7 @@ class Library(threading.Thread):
                 self.progress_updates.close()
                 self.progress_updates = None
 
-            if not self.EmbyServer.Utils.Basics.settings('dbSyncScreensaver.bool') and self.screensaver is not None:
+            if not self.EmbyServer.Utils.Settings.dbSyncScreensaver and self.screensaver is not None:
                 xbmc.executebuiltin('InhibitIdleShutdown(false)')
                 self.EmbyServer.Utils.set_screensaver(value=self.screensaver)
                 self.screensaver = None
@@ -272,7 +269,7 @@ class Library(threading.Thread):
     #Get items from emby and place them in the appropriate queues
     def worker_downloads(self):
         for queue in ((self.updated_queue, self.updated_output), (self.userdata_queue, self.userdata_output)):
-            if queue[0].qsize() and len(self.download_threads) < self.DTHREADS:
+            if queue[0].qsize() and len(self.download_threads) < int(self.EmbyServer.Utils.Settings.limitThreads):
                 new_thread = GetItemWorker(self, queue[0], queue[1])
                 self.LOG.info("-->[ q:download/%s ]" % id(new_thread))
                 self.download_threads.append(new_thread)
@@ -391,8 +388,8 @@ class Library(threading.Thread):
     def get_fast_sync(self):
         enable_fast_sync = False
 
-        if self.EmbyServer.Utils.Basics.settings('SyncInstallRunDone.bool'):
-            if self.EmbyServer.Utils.Basics.settings('kodiCompanion.bool'):
+        if self.EmbyServer.Utils.Settings.SyncInstallRunDone:
+            if self.EmbyServer.Utils.Settings.kodiCompanion:
                 for plugin in self.EmbyServer.API.get_plugins():
                     if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
                         enable_fast_sync = True
@@ -403,7 +400,7 @@ class Library(threading.Thread):
 
     #Movie and userdata not provided by server yet
     def fast_sync(self, plugin):
-        last_sync = self.EmbyServer.Utils.Basics.settings('LastIncrementalSync')
+        last_sync = self.EmbyServer.Utils.Settings.LastIncrementalSync
         self.LOG.info("--[ retrieve changes ] %s" % last_sync)
         LibraryViews = {}
 
@@ -412,7 +409,7 @@ class Library(threading.Thread):
             result = db.get_views()
 
             for Data in result:
-                LibID, _, LibContent = Data
+                LibID, _, LibContent, _ = Data
                 LibraryViews[LibID] = LibContent
 
             for library in self.EmbyServer.Utils.SyncData['Whitelist']:
@@ -487,14 +484,14 @@ class Library(threading.Thread):
                 available = [x for x in self.EmbyServer.Utils.SyncData['SortedViews'] if x not in whitelist]
 
                 for library in available:
-                    _, name, media = db.get_view(library)
+                    _, name, media, _ = db.get_view(library)
 
                     if media in ('movies', 'tvshows', 'musicvideos', 'mixed', 'music'):
                         libraries.append({'Id': library, 'Name': name})
 
         choices = [x['Name'] for x in libraries]
-        choices.insert(0, self.EmbyServer.Utils.Basics.Translate(33121))
-        selection = self.EmbyServer.Utils.dialog("multi", self.EmbyServer.Utils.Basics.Translate(33120), choices)
+        choices.insert(0, self.EmbyServer.Utils.Translate(33121))
+        selection = self.EmbyServer.Utils.dialog("multi", self.EmbyServer.Utils.Translate(33120), choices)
 
         if selection is None:
             return
@@ -532,7 +529,7 @@ class Library(threading.Thread):
     def userdata(self, data):
         items = [x['ItemId'] for x in data]
 
-        for item in self.EmbyServer.Utils.split_list(items, self.LIMIT):
+        for item in self.EmbyServer.Utils.split_list(items):
             self.userdata_queue.put(item)
 
         self.total_updates += len(items)
@@ -540,7 +537,7 @@ class Library(threading.Thread):
 
     #Add item_id to updated queue
     def updated(self, data):
-        for item in self.EmbyServer.Utils.split_list(data, self.LIMIT):
+        for item in self.EmbyServer.Utils.split_list(data):
             self.updated_queue.put(item)
 
         self.total_updates += len(data)
@@ -571,7 +568,7 @@ class UpdatedWorker(threading.Thread):
         self.LOG = helper.loghandler.LOG('EMBY.library.UpdatedWorker')
         self.library = library
         self.queue = queue
-        self.notify = self.library.EmbyServer.Utils.Basics.settings('newContent.bool')
+        self.notify = self.library.EmbyServer.Utils.Settings.newContent
         self.DB = database.Database(self.library.EmbyServer.Utils, DB, True)
         self.library.set_progress_dialog()
         self.is_done = False
@@ -748,8 +745,8 @@ class NotifyWorker(threading.Thread):
     def __init__(self, library):
         self.LOG = helper.loghandler.LOG('EMBY.library.NotifyWorker')
         self.library = library
-        self.video_time = int(self.library.EmbyServer.Utils.Basics.settings('newvideotime')) * 1000
-        self.music_time = int(self.library.EmbyServer.Utils.Basics.settings('newmusictime')) * 1000
+        self.video_time = int(self.library.EmbyServer.Utils.Settings.newvideotime) * 1000
+        self.music_time = int(self.library.EmbyServer.Utils.Settings.newmusictime) * 1000
         self.is_done = False
         threading.Thread.__init__(self)
         self.start()
@@ -763,7 +760,7 @@ class NotifyWorker(threading.Thread):
             time = self.music_time if item['Type'] == 'Audio' else self.video_time
 
             if time and (not self.library.Player.isPlayingVideo() or xbmc.getCondVisibility('VideoPlayer.Content(livetv)')):
-                self.library.EmbyServer.Utils.dialog("notification", heading="%s %s" % (self.library.EmbyServer.Utils.Basics.Translate(33049), item['Type']), message=item['Name'], icon="{emby}", time=time, sound=False)
+                self.library.EmbyServer.Utils.dialog("notification", heading="%s %s" % (self.library.EmbyServer.Utils.Translate(33049), item['Type']), message=item['Name'], icon="{emby}", time=time, sound=False)
 
             if self.library.stop_thread:
                 break
@@ -802,7 +799,7 @@ class GetItemWorker(threading.Thread):
             clean_list = [str(x) for x in item_ids]
             request = {
                 'type': "GET",
-                'handler': "Users/{UserId}/Items",
+                'handler': "Users/%s/Items" % self.library.EmbyServer.Data['auth.user_id'],
                 'params': {
                     'Ids': ','.join(clean_list),
                     'Fields': self.info

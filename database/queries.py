@@ -54,7 +54,7 @@ add_reference_mvideo_obj = ["{Id}", "{MvideoId}", "{FileId}", "{PathId}", "Music
 add_reference_artist_obj = ["{Id}", "{ArtistId}", None, None, "{ArtistType}", "artist", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_album_obj = ["{Id}", "{AlbumId}", None, None, "MusicAlbum", "album", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_song_obj = ["{Id}", "{SongId}", None, "{PathId}", "Audio", "song", "{AlbumId}", "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
-add_view = """INSERT OR REPLACE INTO view(view_id, view_name, media_type) VALUES (?, ?, ?)"""
+add_view = """INSERT OR REPLACE INTO view(view_id, view_name, media_type, server_id) VALUES (?, ?, ?, ?)"""
 add_version = """INSERT OR REPLACE INTO version(idVersion) VALUES (?)"""
 update_reference = """ UPDATE emby SET checksum = ?, presentation_key = ? WHERE emby_id = ?"""
 update_reference_obj = ["{Checksum}", "{PresentationKey}", "{Id}"]

@@ -22,7 +22,7 @@ class Movies():
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.MoviesDBIO = MoviesDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -66,9 +66,9 @@ class Movies():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']
@@ -160,7 +160,7 @@ class Movies():
         obj['PathId'] = self.KodiDBIO.add_path(*self.EmbyServer.Utils.values(obj, queries_videos.add_path_obj))
         obj['FileId'] = self.KodiDBIO.add_file(*self.EmbyServer.Utils.values(obj, queries_videos.add_file_obj))
 
-        if self.EmbyServer.Utils.UserRatingSync:
+        if self.EmbyServer.Utils.Settings.userRating:
             self.MoviesDBIO.add(*self.EmbyServer.Utils.values(obj, queries_videos.add_movie_obj))
         else:
             self.MoviesDBIO.add_nouserrating(*self.EmbyServer.Utils.values(obj, queries_videos.add_movie_nouserrating_obj))
@@ -193,7 +193,7 @@ class Movies():
                 temp_obj = dict(obj, ProviderName=provider, UniqueId=unique_id, Unique=self.MoviesDBIO.create_entry_unique_id())
                 self.MoviesDBIO.add_unique_id(*self.EmbyServer.Utils.values(temp_obj, queries_videos.add_unique_id_movie_obj))
 
-        if self.EmbyServer.Utils.UserRatingSync:
+        if self.EmbyServer.Utils.Settings.userRating:
             self.MoviesDBIO.update(*self.EmbyServer.Utils.values(obj, queries_videos.update_movie_obj))
         else:
             self.MoviesDBIO.update_nouserrating(*self.EmbyServer.Utils.values(obj, queries_videos.update_movie_nouserrating_obj))
@@ -208,7 +208,7 @@ class Movies():
 
                 if self.EmbyServer.Utils.direct_path:
                     obj['Trailer'] = self.APIHelper.get_file_path(trailer[0]['Path'], trailer)
-                    obj['Trailer'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Trailer'])
+                    obj['Trailer'] = self.EmbyServer.Utils.StringDecode(obj['Trailer'])
                 else:
                     obj['Trailer'] = "plugin://plugin.video.emby-next-gen/trailer?id=%s&mode=play" % trailer[0]['Id']
             elif obj['Trailer']:

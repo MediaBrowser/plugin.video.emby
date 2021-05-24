@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby-next-gen" version="5.2.07" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby-next-gen" version="5.3.0" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="script.module.requests" version="2.22.0"/>
         <import addon="script.module.dateutil" version="2.8.1"/>
@@ -29,6 +29,10 @@
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
+            <screenshot>resources/screenshot1.jpg</screenshot>
+            <screenshot>resources/screenshot2.jpg</screenshot>
+            <screenshot>resources/screenshot3.jpg</screenshot>
+            <screenshot>resources/screenshot4.jpg</screenshot>
         </assets>
     </extension>
 </addon>

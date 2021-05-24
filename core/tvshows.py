@@ -26,7 +26,7 @@ class TVShows():
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.TVShowsDBIO = TVShowsDBIO(videodb.cursor)
         self.ArtworkDBIO = artwork.Artwork(videodb.cursor, self.EmbyServer.Utils)
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
 
     def tvshow(self, item, library, pooling=None, redirect=None):
         e_item = self.emby_db.get_item_by_id(item['Id'])
@@ -209,8 +209,8 @@ class TVShows():
                 obj['Path'] = "%s/" % obj['Path']
                 obj['TopLevel'] = "%s/" % ntpath.dirname(ntpath.dirname(obj['Path']))
 
-            obj['Path'] = self.EmbyServer.Utils.Basics.StringDecode(obj['Path'])
-            obj['TopLevel'] = self.EmbyServer.Utils.Basics.StringDecode(obj['TopLevel'])
+            obj['Path'] = self.EmbyServer.Utils.StringDecode(obj['Path'])
+            obj['TopLevel'] = self.EmbyServer.Utils.StringDecode(obj['TopLevel'])
 
             if not self.EmbyServer.Utils.validate(obj['Path']):
                 return False
@@ -302,9 +302,9 @@ class TVShows():
             obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
             #don't use 3d movies as default
-            if "3d" in self.EmbyServer.Utils.Basics.StringMod(obj['Item']['MediaSources'][0]['Path']):
+            if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
                 for DataSource in obj['Item']['MediaSources']:
-                    if not "3d" in self.EmbyServer.Utils.Basics.StringMod(DataSource['Path']):
+                    if not "3d" in self.EmbyServer.Utils.StringMod(DataSource['Path']):
                         DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
                         obj['Path'] = DataSource['Path']
                         obj['MediaSourceID'] = DataSource['Id']

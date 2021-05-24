@@ -20,42 +20,42 @@ class Views():
         self.limit = 25
         self.media_folders = None
         self.LOG = helper.loghandler.LOG('EMBY.emby.views.Views')
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils.Basics, self.EmbyServer.Data['auth.ssl'])
+        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
         self.LibraryIcons = {}
         self.NODES = {
             'tvshows': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultTVShows.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Basics.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
-                ('recentlyaddedepisodes', self.EmbyServer.Utils.Basics.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
-                ('inprogress', self.EmbyServer.Utils.Basics.Translate(30171), 'DefaultInProgressShows.png'),
-                ('inprogressepisodes', self.EmbyServer.Utils.Basics.Translate(30178), 'DefaultInProgressShows.png'),
+                ('recentlyadded', self.EmbyServer.Utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
+                ('recentlyaddedepisodes', self.EmbyServer.Utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
+                ('inprogress', self.EmbyServer.Utils.Translate(30171), 'DefaultInProgressShows.png'),
+                ('inprogressepisodes', self.EmbyServer.Utils.Translate(30178), 'DefaultInProgressShows.png'),
                 ('genres', "Genres", 'DefaultGenre.png'),
-                ('random', self.EmbyServer.Utils.Basics.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('recommended', self.EmbyServer.Utils.Basics.Translate(30230), 'DefaultFavourites.png'),
-                ('years', self.EmbyServer.Utils.Basics.Translate(33218), 'DefaultYear.png'),
-                ('actors', self.EmbyServer.Utils.Basics.Translate(33219), 'DefaultActor.png'),
-                ('tags', self.EmbyServer.Utils.Basics.Translate(33220), 'DefaultTags.png'),
+                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+                ('recommended', self.EmbyServer.Utils.Translate(30230), 'DefaultFavourites.png'),
+                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultYear.png'),
+                ('actors', self.EmbyServer.Utils.Translate(33219), 'DefaultActor.png'),
+                ('tags', self.EmbyServer.Utils.Translate(33220), 'DefaultTags.png'),
                 ('unwatched', "Unwatched TV Shows", 'OverlayUnwatched.png'),
                 ('unwatchedepisodes', "Unwatched Episodes", 'OverlayUnwatched.png'),
                 ('studios', "Studios", 'DefaultStudios.png'),
                 ('recentlyplayed', 'Recently played TV Show', 'DefaultMusicRecentlyPlayed.png'),
                 ('recentlyplayedepisode', 'Recently played Episode', 'DefaultMusicRecentlyPlayed.png'),
-                ('nextepisodes', self.EmbyServer.Utils.Basics.Translate(30179), 'DefaultInProgressShows.png')
+                ('nextepisodes', self.EmbyServer.Utils.Translate(30179), 'DefaultInProgressShows.png')
             ],
             'movies': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultMovies.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Basics.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
-                ('inprogress', self.EmbyServer.Utils.Basics.Translate(30177), 'DefaultInProgressShows.png'),
-                ('unwatched', self.EmbyServer.Utils.Basics.Translate(30189), 'OverlayUnwatched.png'),
+                ('recentlyadded', self.EmbyServer.Utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
+                ('inprogress', self.EmbyServer.Utils.Translate(30177), 'DefaultInProgressShows.png'),
+                ('unwatched', self.EmbyServer.Utils.Translate(30189), 'OverlayUnwatched.png'),
                 ('sets', "Sets", 'DefaultSets.png'),
                 ('genres', "Genres", 'DefaultGenre.png'),
-                ('random', self.EmbyServer.Utils.Basics.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('recommended', self.EmbyServer.Utils.Basics.Translate(30230), 'DefaultFavourites.png'),
-                ('years', self.EmbyServer.Utils.Basics.Translate(33218), 'DefaultYear.png'),
-                ('actors', self.EmbyServer.Utils.Basics.Translate(33219), 'DefaultActor.png'),
-                ('tags', self.EmbyServer.Utils.Basics.Translate(33220), 'DefaultTags.png'),
+                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+                ('recommended', self.EmbyServer.Utils.Translate(30230), 'DefaultFavourites.png'),
+                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultYear.png'),
+                ('actors', self.EmbyServer.Utils.Translate(33219), 'DefaultActor.png'),
+                ('tags', self.EmbyServer.Utils.Translate(33220), 'DefaultTags.png'),
                 ('studios', "Studios", 'DefaultStudios.png'),
                 ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
                 ('directors', 'Directors', 'DefaultDirector.png'),
@@ -64,20 +64,20 @@ class Views():
             'musicvideos': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultMusicVideos.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Basics.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
-                ('years', self.EmbyServer.Utils.Basics.Translate(33218), 'DefaultMusicYears.png'),
+                ('recentlyadded', self.EmbyServer.Utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultMusicYears.png'),
                 ('genres', "Genres", 'DefaultGenre.png'),
-                ('inprogress', self.EmbyServer.Utils.Basics.Translate(30257), 'DefaultInProgressShows.png'),
-                ('random', self.EmbyServer.Utils.Basics.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('unwatched', self.EmbyServer.Utils.Basics.Translate(30258), 'OverlayUnwatched.png'),
+                ('inprogress', self.EmbyServer.Utils.Translate(30257), 'DefaultInProgressShows.png'),
+                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+                ('unwatched', self.EmbyServer.Utils.Translate(30258), 'OverlayUnwatched.png'),
                 ('artists', "Artists", 'DefaultMusicArtists.png'),
                 ('albums', "Albums", 'DefaultMusicAlbums.png'),
                 ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png')
             ],
             'music': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
-                ('all', None, 'DefaultMusicVideos.png'),
-                ('years', self.EmbyServer.Utils.Basics.Translate(33218), 'DefaultMusicYears.png'),
+                ('all', None, 'DefaultAddonMusic.png'),
+                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultMusicYears.png'),
                 ('genres', "Genres", 'DefaultMusicGenres.png'),
                 ('artists', "Artists", 'DefaultMusicArtists.png'),
                 ('albums', "Albums", 'DefaultMusicAlbums.png'),
@@ -91,8 +91,8 @@ class Views():
 
     def IconDownload(self, URL, FileID):
         request = {'type': "GET", 'url': URL, 'params': {}}
-        Filename = self.EmbyServer.Utils.Basics.PathToFilenameReplaceSpecialCharecters(FileID)# + ".jpg")
-        FilePath = self.EmbyServer.Utils.Basics.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/") + Filename
+        Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(FileID)# + ".jpg")
+        FilePath = self.EmbyServer.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/") + Filename
 
         if not xbmcvfs.exists(FilePath):
             return self.EmbyServer.Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
@@ -100,7 +100,7 @@ class Views():
         return FilePath
 
     def add_favorites(self, index, view):
-        path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/video")
+        path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
         filepath = os.path.join(path, "emby_%s.xml" % view['Tag'].replace(" ", ""))
 
         try:
@@ -111,7 +111,7 @@ class Views():
             else:
                 xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "filter"})
 
-            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.Basics.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/DefaultFavourites.png")
+            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/DefaultFavourites.png")
             xml.etree.ElementTree.SubElement(xmlData, 'label')
             xml.etree.ElementTree.SubElement(xmlData, 'match')
             xml.etree.ElementTree.SubElement(xmlData, 'content')
@@ -148,7 +148,7 @@ class Views():
         index = 0
 
         #Favorites
-        for single in [{'Name': self.EmbyServer.Utils.Basics.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.EmbyServer.Utils.Basics.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.EmbyServer.Utils.Basics.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
+        for single in [{'Name': self.EmbyServer.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.EmbyServer.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.EmbyServer.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
             self.add_favorites(index, single)
             index += 1
 
@@ -162,14 +162,14 @@ class Views():
                 view = db.get_view(library)
 
                 if view:
-                    view = {'LibraryId': library, 'Name': view[1], 'Tag': view[1], 'Media': view[2], "Icon": self.LibraryIcons[library], 'NameClean': self.EmbyServer.Utils.Basics.StringDecode(view[1]).replace(" ", ""), 'MediaClean': view[2].replace(" ", "")}
+                    view = {'LibraryId': library, 'Name': view[1], 'Tag': view[1], 'Media': view[2], "Icon": self.LibraryIcons[library], 'NameClean': self.EmbyServer.Utils.StringDecode(view[1]).replace(" ", ""), 'MediaClean': view[2].replace(" ", "")}
 
                     if view['Media'] == 'music':
-                        node_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/music")
-                        playlist_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/playlists/music")
+                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/music")
+                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/music")
                     else:
-                        node_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/video")
-                        playlist_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/playlists/video")
+                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
+                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
 
                     if view['Media'] == 'mixed':
                         for media in ('movies', 'tvshows'):
@@ -185,15 +185,13 @@ class Views():
 
                     index += 1
 
-        node_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/video")
-        playlist_path = self.EmbyServer.Utils.Basics.translatePath("special://profile/playlists/video")
+        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
+        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
         self.window_nodes()
 
     def window_nodes(self):
         with database.database.Database(self.EmbyServer.Utils, 'emby', False) as embydb:
             libraries = database.emby_db.EmbyDatabase(embydb.cursor).get_views()
-
-        index = 0
 
         for library in libraries:
             if library[0] in self.LibraryIcons:
@@ -211,9 +209,9 @@ class Views():
                 elif library[2] == 'music':
                     icon = 'DefaultMusicVideos.png'
                 else:
-                    icon = self.EmbyServer.Utils.Basics.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
+                    icon = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
-            view = {'LibraryId': library[0], 'Name': library[1], 'Tag': library[1], 'Media': library[2], 'Icon': icon, 'NameClean': self.EmbyServer.Utils.Basics.StringDecode(library[1]).replace(" ", ""), 'MediaClean': library[2].replace(" ", "")}
+            view = {'LibraryId': library[0], 'Name': library[1], 'Tag': library[1], 'Media': library[2], 'Icon': icon, 'NameClean': self.EmbyServer.Utils.StringDecode(library[1]).replace(" ", ""), 'MediaClean': library[2].replace(" ", "")}
 
             if library[0] in [x.replace('Mixed:', "") for x in self.EmbyServer.Utils.SyncData['Whitelist']]: # Synced libraries
                 if view['Media'] in ('movies', 'tvshows', 'musicvideos', 'mixed', 'music'):
@@ -222,26 +220,22 @@ class Views():
                             temp_view = view
                             temp_view['Media'] = media
                             temp_view['MediaClean'] = media.replace(" ", "")
-                            self.window_node(index, temp_view, False, True)
-                            index += 1
+                            self.window_node(temp_view, False, True)
                     else:
-                        self.window_node(index, view, False, False)
-                        index += 1
+                        self.window_node(view, False, False)
             else: #Dynamic entry
-                self.window_node(index, view, True, False)
-                index += 1
-
-        self.EmbyServer.Utils.Basics.window('emby.nodes.%s.total' % self.EmbyServer.server_id, str(index))
+                self.window_node(view, True, False)
 
     #Leads to another listing of nodes
-    def window_node(self, index, view, dynamic, mixed):
+    def window_node(self, view, dynamic, mixed):
         NodeData = {}
 
         if dynamic:
             params = {
                 'mode': "browse",
                 'type': view['Media'],
-                'name': view['Name'].encode('utf-8')
+                'name': view['Name'].encode('utf-8'),
+                'server': self.EmbyServer.server_id
             }
 
             if view.get('LibraryId'):
@@ -264,14 +258,14 @@ class Views():
         NodeData['id'] = view['LibraryId']
         NodeData['type'] = view['Media']
         NodeData['icon'] = view['Icon']
-        self.EmbyServer.Utils.Basics.window('Emby.nodes.%s.%s.json' % (self.EmbyServer.server_id, index), NodeData)
+        self.EmbyServer.Nodes.append(NodeData)
 
     def update_views(self):
         ViewsData = self.EmbyServer.API.get_views()['Items']
         Total = len(ViewsData)
         Counter = 1
         Progress = xbmcgui.DialogProgressBG()
-        Progress.create(self.EmbyServer.Utils.Basics.Translate('addon_name'), "Update views")
+        Progress.create(self.EmbyServer.Utils.Translate('addon_name'), "Update views")
         self.EmbyServer.Utils.SyncData['SortedViews'] = [x['Id'] for x in ViewsData]
 
         with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
@@ -285,7 +279,7 @@ class Views():
                 else:
                     library['Media'] = library.get('CollectionType', "mixed")
 
-                database.emby_db.EmbyDatabase(embydb.cursor).add_view(library['Id'], library['Name'], library['Media'])
+                database.emby_db.EmbyDatabase(embydb.cursor).add_view(library['Id'], library['Name'], library['Media'], self.EmbyServer.server_id)
 
                 #Cache artwork
                 icon = self.APIHelper.get_artwork(library['Id'], 'Primary', None, [('Index', 0)])
@@ -357,7 +351,7 @@ class Views():
                 elif view['Media'] == 'music':
                     Icon = 'DefaultMusicVideos.png'
                 else:
-                    Icon = self.EmbyServer.Utils.Basics.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
+                    Icon = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
             xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Icon
             self.EmbyServer.Utils.indent(xmlData, 0)
@@ -439,7 +433,7 @@ class Views():
             xmlData.set('order', '0')
             xmlData.set('type', "folder")
             xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.Basics.translatePath(node[2])
+            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.translatePath(node[2])
             self.EmbyServer.Utils.indent(xmlData, 0)
             self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
 
@@ -485,34 +479,34 @@ class Views():
             xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
             xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
             xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("&")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("Ä")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("Ö")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("Ü")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("!")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("(")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(")")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("@")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("#")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("$")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("^")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("*")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("-")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("=")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("+")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("{")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("}")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("[")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("]")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("?")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(":")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(";")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("'")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(",")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(".")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("<")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode(">")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.Basics.StringDecode("~")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("&")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ä")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ö")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ü")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("!")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("(")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(")")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("@")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("#")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("$")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("^")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("*")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("-")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("=")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("+")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("{")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("}")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("[")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("]")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("?")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(":")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(";")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("'")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(",")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(".")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("<")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(">")
+            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("~")
             xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
             self.EmbyServer.Utils.indent(xmlData, 0)
             self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
@@ -564,7 +558,7 @@ class Views():
 
     #Remove all emby playlists
     def delete_playlists(self):
-        path = self.EmbyServer.Utils.Basics.translatePath("special://profile/playlists/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
         _, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -573,7 +567,7 @@ class Views():
 
     #Remove playlist based based on view_id
     def delete_playlist_by_id(self, view_id):
-        path = self.EmbyServer.Utils.Basics.translatePath("special://profile/playlists/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
         _, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -586,7 +580,7 @@ class Views():
 
     #Remove node and children files
     def delete_nodes(self):
-        path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
         dirs, files = xbmcvfs.listdir(path)
 
         for filename in files:
@@ -603,7 +597,7 @@ class Views():
                 xbmcvfs.rmdir(os.path.join(path, directory))
 
     def delete_node_by_id(self, view_id):
-        path = self.EmbyServer.Utils.Basics.translatePath("special://profile/library/video/")
+        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
         dirs, files = xbmcvfs.listdir(path)
 
         for directory in dirs:

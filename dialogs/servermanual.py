@@ -69,7 +69,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], self.Utils.Basics.Translate('empty_server'))
+                self._error(ERROR['Empty'], self.Utils.Translate('empty_server'))
                 self.LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
@@ -96,11 +96,11 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
-        self._message("%s %s..." % (self.Utils.Basics.Translate(30610), server_address))
+        self._message("%s %s..." % (self.Utils.Translate(30610), server_address))
         result = self.connect_manager.connect_to_address(server_address, {})
 
         if result['State'] == 0: #Unavailable
-            self._message(self.Utils.Basics.Translate(30609))
+            self._message(self.Utils.Translate(30609))
             return False
 
         self._server = result['Servers'][0]

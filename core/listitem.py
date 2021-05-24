@@ -5,9 +5,9 @@ import helper.loghandler
 from . import obj_ops
 
 class ListItem():
-    def __init__(self, ssl, Basics):
+    def __init__(self, Utils):
         self.objects = obj_ops.Objects()
-        self.API = helper.api.API(Basics, ssl)
+        self.API = helper.api.API(Utils)
 
     def set(self, item):
         listitem = xbmcgui.ListItem()
@@ -262,9 +262,13 @@ class ListItem():
             listitem.setInfo('pictures', metadata)
         elif item['Type'] == 'Playlist':
             obj = self.objects.map(item, 'BrowseFolder')
+            metadata = {
+                'title': obj['Title']
+            }
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
             Properties['IsFolder'] = 'true'
             Properties['IsPlayable'] = 'false'
+            listitem.setInfo('video', metadata)
         elif item['Type'] == 'TvChannel':
             obj = self.objects.map(item, 'BrowseChannel')
             obj['Artwork'] = self.API.get_all_artwork(self.objects.map(item, 'Artwork'), False)
@@ -296,7 +300,8 @@ class ListItem():
                 if emby == 'Backdrop':
                     ArtworkData[kodi] = obj['Artwork'][emby][0] if obj['Artwork'][emby] else ""
                 else:
-                    ArtworkData[kodi] = obj['Artwork'][emby]
+                    if emby in obj['Artwork']:
+                        ArtworkData[kodi] = obj['Artwork'][emby]
 
             listitem.setArt(ArtworkData)
 

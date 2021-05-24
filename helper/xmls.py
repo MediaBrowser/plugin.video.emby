@@ -14,7 +14,7 @@ class Xmls():
     #Create master lock compatible sources.
     #Also add the kodi.emby.media source.
     def sources(self):
-        path = self.Utils.Basics.translatePath('special://profile/')
+        path = self.Utils.translatePath('special://profile/')
         Filepath = os.path.join(path, 'sources.xml')
 
         try:
@@ -118,7 +118,7 @@ class Xmls():
     #It is incompatible with plugin paths.
     def advanced_settings(self):
         video = None
-        path = self.Utils.Basics.translatePath('special://profile/')
+        path = self.Utils.translatePath('special://profile/')
         Filepath = os.path.join(path, 'advancedsettings.xml')
 
         if xbmcvfs.exists(Filepath):
@@ -133,12 +133,12 @@ class Xmls():
                 video.remove(cleanonupdate)
                 self.Utils.indent(xmlData, 0)
                 self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), Filepath)
-                self.Utils.dialog("ok", heading="{emby}", line1=self.Utils.Basics.Translate(33097))
+                self.Utils.dialog("ok", heading="{emby}", line1=self.Utils.Translate(33097))
                 xbmc.executebuiltin('RestartApp')
 
     def advanced_settings_add_timeouts(self):
         WriteData = False
-        path = self.Utils.Basics.translatePath('special://profile/')
+        path = self.Utils.translatePath('special://profile/')
         Filepath = os.path.join(path, 'advancedsettings.xml')
 
         if xbmcvfs.exists(Filepath):

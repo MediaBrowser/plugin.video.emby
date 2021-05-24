@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import threading
-import socketserver as SocketServer
 
-try:
-    from http.server import BaseHTTPRequestHandler #,HTTPServer
+try: #Python 3.X (Kodi 19)
+    from http.server import HTTPServer, BaseHTTPRequestHandler
     import http.client as httplib
-except ImportError:
+except ImportError: #Python 2.X (Kodi 18)
     import BaseHTTPServer
+    HTTPServer = BaseHTTPServer.HTTPServer
     BaseHTTPRequestHandler = BaseHTTPServer.BaseHTTPRequestHandler
     import httplib
 
@@ -16,7 +16,6 @@ import xbmc
 #Run a webservice to capture playback and incomming events.
 class WebService(threading.Thread):
     def __init__(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken, EnableCoverArt, CompressArt):
-        self.SocketServer = SocketServer.TCPServer.allow_reuse_address = True
         self.server = TCPServer(('127.0.0.1', 57578), RequestHandler)
         self.server.timeout = 9999
         self.WebserviceEventOut = WebserviceEventOut
@@ -48,7 +47,7 @@ class WebService(threading.Thread):
         xbmc.log(self.LOG + "---<[ webservice/57578 ]", xbmc.LOGWARNING)
 
 #Http server that reacts to self.stop flag.
-class TCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class TCPServer(HTTPServer):
     timeout = 9999
 
     def serve_forever(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken, EnableCoverArt, CompressArt):
