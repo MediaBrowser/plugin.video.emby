@@ -27,7 +27,7 @@ class Menu():
 
     #Display all emby nodes and dynamic entries when appropriate
     def listing(self, Handle):
-        if not self.wait_online:
+        if not self.wait_online():
             return
 
         Handle = int(Handle)
@@ -74,7 +74,7 @@ class Menu():
 
     #Browse dynamically content
     def browse(self, Handle, media, view_id, folder, name, extra, server_id):
-        if not self.wait_online:
+        if not self.wait_online():
             return
 
         server_id = self.verify_serverid(server_id)
