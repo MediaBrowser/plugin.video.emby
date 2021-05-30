@@ -30,7 +30,7 @@ class HTTP():
         except Exception as error:
             self.LOG.warning("The requests session could not be terminated: %s" % error)
 
-    def request(self, data, MSGs=True): #MSGs are disabled on initial sync and reconnection. Only send msgs if connection is unexpectly interrupted
+    def request(self, data, MSGs=True, Binary=False): #MSGs are disabled on initial sync and reconnection. Only send msgs if connection is unexpectly interrupted
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.EmbyServer.Data['auth.server'], data.pop('handler', ""))
 
@@ -129,23 +129,26 @@ class HTTP():
                 elapsed = int(r.elapsed.total_seconds() * 1000)
                 self.LOG.debug("---<[ http ][%s ms]" % elapsed)
 
-                try:
-                    self.EmbyServer.Data['server-time'] = r.headers['Date']
-
-                    if r.status_code == 204:
-                        # return, because there is no response
-                        return
-
-                    response = r.json()
-
-                    try:
-                        self.LOG.debug(json.dumps(response, indent=4))
-                    except Exception:
-                        self.LOG.debug(response)
-
-                    return response
-                except ValueError:
+                if Binary:
                     return r.content
+                else:
+                    try:
+                        self.EmbyServer.Data['server-time'] = r.headers['Date']
+
+                        if r.status_code == 204:
+                            # return, because there is no response
+                            return
+
+                        response = r.json()
+
+                        try:
+                            self.LOG.debug(json.dumps(response, indent=4))
+                        except Exception:
+                            self.LOG.debug(response)
+
+                        return response
+                    except ValueError:
+                        return r.content
 
     def get_header(self, data):
         data['headers'] = data.setdefault('headers', {})

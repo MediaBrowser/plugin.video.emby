@@ -277,7 +277,7 @@ class Monitor(xbmc.Monitor):
         Data = database.database.get_kodiID(self.Service.Utils, str(EmbyID))
 
         if Data: #Requested video is synced to KodiDB. No additional info required
-            if Data[0][1] == "audio":
+            if Data[0][1] in ("song", "album", "artist"):
                 playlistID = 0
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
             else:
@@ -285,6 +285,7 @@ class Monitor(xbmc.Monitor):
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
             Pos = self.GetPlaylistPos(Position, playlist, Offset)
+
             helper.jsonrpc.JSONRPC('Playlist.Insert').execute({'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}})
         else:
             listitems = core.listitem.ListItem(self.Service.Utils)

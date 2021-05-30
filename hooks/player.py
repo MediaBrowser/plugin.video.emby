@@ -87,7 +87,7 @@ class PlayerEvents(xbmc.Player):
             else:
                 kodi_id = data['item']['id']
                 media_type = data['item']['type']
-                item = database.database.get_item(EmbyServer.Utils, kodi_id, media_type)
+                item = database.database.get_item_complete(EmbyServer.Utils, kodi_id, media_type)
 
                 if item:
                     self.CurrentItem['Id'] = item[0]
@@ -96,6 +96,11 @@ class PlayerEvents(xbmc.Player):
                     return #Kodi internal Source
 
             if EmbyServer.Utils.direct_path: #native mode
+                PresentationKey = item[10].split("-")
+                self.ItemSkipUpdate.append(PresentationKey[0])
+                self.ItemSkipUpdate.append(self.CurrentItem['Id'])
+                self.ItemSkipUpdateAfterStop.append(PresentationKey[0])
+                self.ItemSkipUpdateAfterStop.append(self.CurrentItem['Id'])
                 self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
 
             self.CurrentItem['Tracking'] = True
