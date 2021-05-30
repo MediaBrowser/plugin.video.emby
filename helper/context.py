@@ -47,9 +47,10 @@ class Context():
             if not self.load_item():
                 return
 
-        self.EmbyServers[self.server_id].API.delete_item(self.item[0])
-        self.library[self.server_id].removed([self.item[0]])
-        self.library[self.server_id].delay_verify([self.item[0]])
+        if self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33015)):
+            self.EmbyServers[self.server_id].API.delete_item(self.item[0])
+            self.library[self.server_id].removed([self.item[0]])
+            self.library[self.server_id].delay_verify([self.item[0]])
 
     def select_menu(self):
         options = []

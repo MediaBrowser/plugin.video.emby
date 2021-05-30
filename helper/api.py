@@ -257,7 +257,7 @@ class API():
         return backdrops
 
     #Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
-    def get_artwork(self, item_id, image, tag, query):
+    def get_artwork(self, item_id, image, tag, query, Native=False):
         query = list(query) if query else []
 
         if item_id is None:
@@ -266,5 +266,8 @@ class API():
         if tag is not None:
             query.append(('Tag', tag))
 
-        artwork = "http://127.0.0.1:57578/%s/Images/%s/0?%s" % (item_id, image, urlencode(query))
+        if Native:
+            artwork = "%s/emby/Items/%s/Images/%s/0?%s" % (Native, item_id, image, urlencode(query))
+        else:
+            artwork = "http://127.0.0.1:57578/%s/Images/%s/0?%s" % (item_id, image, urlencode(query))
         return artwork

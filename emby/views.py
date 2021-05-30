@@ -282,7 +282,7 @@ class Views():
                 database.emby_db.EmbyDatabase(embydb.cursor).add_view(library['Id'], library['Name'], library['Media'], self.EmbyServer.server_id)
 
                 #Cache artwork
-                icon = self.APIHelper.get_artwork(library['Id'], 'Primary', None, [('Index', 0)])
+                icon = self.APIHelper.get_artwork(library['Id'], 'Primary', None, [('Index', 0), ('api_key', self.EmbyServer.Data['auth.token'])], self.EmbyServer.Data['auth.server'])
                 iconpath = self.IconDownload(icon, "%s_%s" % (self.EmbyServer.Data['auth.server-name'], library['Id']))
                 self.LibraryIcons[library['Id']] = iconpath
 

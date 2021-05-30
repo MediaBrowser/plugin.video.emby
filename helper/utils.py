@@ -216,7 +216,7 @@ class Utils():
             xbmcvfs.mkdir(temp)
 
         path = os.path.join(temp, filename)
-        response = EmbyServer.http.request(request)
+        response = EmbyServer.http.request(request, True, True)
 
         if response:
             with open(path, 'wb') as f:
