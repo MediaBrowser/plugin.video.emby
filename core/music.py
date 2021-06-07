@@ -24,6 +24,7 @@ class Music():
         self.ArtworkDBIO = artwork.Artwork(musicdb.cursor, self.EmbyServer.Utils)
         self.APIHelper = helper.api.API(self.EmbyServer.Utils)
         self.MusicDBIO.disable_rescan()
+        self.library = None
 
     #If item does not exist, entry will be added.
     #If item exists, entry will be updated
@@ -31,7 +32,7 @@ class Music():
         e_item = self.emby_db.get_item_by_id(item['Id'])
         self.library = self.Common.library_check(e_item, item, library)
 
-        if not library:
+        if not self.library:
             return False
 
         obj = self.objects.map(item, 'Artist')
@@ -99,7 +100,7 @@ class Music():
         e_item = self.emby_db.get_item_by_id(item['Id'])
         self.library = self.Common.library_check(e_item, item, library)
 
-        if not library:
+        if not self.library:
             return False
 
         obj = self.objects.map(item, 'Album')
