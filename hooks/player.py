@@ -39,8 +39,6 @@ class PlayerEvents(xbmc.Player):
         self.PlayerLastItem = ""
         self.PlayerLastItemID = "-1"
         self.ItemSkipUpdate = []
-        self.ItemSkipUpdateAfterStop = []
-        self.ItemSkipUpdateReset = False
         self.SyncPause = False
         self.ProgressThread = None
         self.PlaySessionId = ""
@@ -73,8 +71,6 @@ class PlayerEvents(xbmc.Player):
             self.ProgressThread.Stop()
             self.ProgressThread = None
 
-        self.SyncPause = True
-
         if not self.Trailer:
             if not "id" in data['item']:
                 DynamicID = EmbyServer.Utils.ReplaceSpecialCharecters(data['item']['title'])
@@ -99,20 +95,16 @@ class PlayerEvents(xbmc.Player):
                 PresentationKey = item[10].split("-")
                 self.ItemSkipUpdate.append(PresentationKey[0])
                 self.ItemSkipUpdate.append(self.CurrentItem['Id'])
-                self.ItemSkipUpdateAfterStop.append(PresentationKey[0])
-                self.ItemSkipUpdateAfterStop.append(self.CurrentItem['Id'])
                 self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
 
             self.CurrentItem['Tracking'] = True
             self.CurrentItem['Type'] = data['item']['type']
-            self.CurrentItem['Volume'], self.CurrentItem['Muted'] = self.get_volume()
             self.CurrentItem['MediaSourceId'] = self.MediasourceID
-            self.CurrentItem['EmbyServer'] = EmbyServer
             self.CurrentItem['RunTime'] = 0
             self.CurrentItem['CurrentPosition'] = 0
             self.CurrentItem['Paused'] = False
+            self.CurrentItem['EmbyServer'] = EmbyServer
             self.CurrentItem['library'] = library
-            self.CurrentItem['MediaSourceId'] = self.MediasourceID
             self.CurrentItem['Volume'], self.CurrentItem['Muted'] = self.get_volume()
 
     def onAVChange(self):
@@ -123,6 +115,7 @@ class PlayerEvents(xbmc.Player):
 
     def onPlayBackStarted(self):
         self.LOG.info("[ onPlayBackStarted ]")
+        self.SyncPause = True
 
         if self.ReloadStream():#Media reload (3D Movie)
             return
@@ -156,7 +149,6 @@ class PlayerEvents(xbmc.Player):
         self.PlayerLastItemID = "-1"
         self.PlayerLastItem = ""
         self.Trailer = False
-        self.SyncPause = True
         self.stop_playback(False)
         self.LOG.info("--<[ playback ]")
 
@@ -184,13 +176,13 @@ class PlayerEvents(xbmc.Player):
 
         self.PlayerLastItemID = "-1"
         self.PlayerLastItem = ""
-        self.SyncPause = True
         self.stop_playback(False)
         self.LOG.info("--<<[ playback ]")
 
     #Threaded to ThreadAVStarted
     def onAVStarted(self):
         self.LOG.info("[ onAVStarted ]")
+        self.SyncPause = True
         new_thread = PlayerWorker(self, "ThreadAVStarted")
         new_thread.start()
 
@@ -322,8 +314,6 @@ class PlayerEvents(xbmc.Player):
                 self.CurrentlyPlaying['EmbyServer'].API.close_transcode()
 
         if not Init:
-            self.ItemSkipUpdate = self.ItemSkipUpdateAfterStop
-            self.ItemSkipUpdateReset = True
             self.SyncPause = False
 
             #Offer delete
@@ -497,7 +487,6 @@ class WebserviceOnPlay(threading.Thread):
                         if EmbyDBItem[1]:
                             PresentationKey = EmbyDBItem[1].split("-")
                             self.Player.ItemSkipUpdate.append(PresentationKey[0])
-                            self.Player.ItemSkipUpdateAfterStop.append(PresentationKey[0])
 
                         self.KodiID = str(EmbyDBItem[0])
                         self.KodiFileID = str(EmbyDBItem[2])
@@ -719,7 +708,6 @@ class WebserviceOnPlay(threading.Thread):
 
             self.Player.SyncPause = True
             self.Player.ItemSkipUpdate.append(Data[0])
-            self.Player.ItemSkipUpdateAfterStop.append(Data[0])
             self.EmbyID = Data[0]
             self.MediasourceID = Data[1]
 

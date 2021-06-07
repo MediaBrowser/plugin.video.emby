@@ -145,7 +145,7 @@ class Menu():
         elif media == 'playlists':
             listing = self.EmbyServers[server_id].API.get_filtered_section({'ViewId': ID, 'extra': extra, 'recursive': False})
         elif media == 'homevideos':
-            listing = self.EmbyServers[server_id].API.get_filtered_section({'ViewId': ID, 'extra': extra, 'media': "Video,PhotoAlbum,Photo", 'recursive': False})
+            listing = self.EmbyServers[server_id].API.get_filtered_section({'ViewId': ID, 'extra': extra, 'media': "Video,Folder,PhotoAlbum,Photo", 'recursive': False})
         elif media == 'mixed':
             listing = self.EmbyServers[server_id].API.get_filtered_section({'ViewId': ID, 'extra': extra, 'media': "Movie,Series,Video", 'recursive': False})
 

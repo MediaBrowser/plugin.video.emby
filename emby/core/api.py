@@ -53,6 +53,19 @@ class API():
 
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.Data['auth.user_id'], {'params': params})
 
+    def get_recently_added(self, media, parent_id, limit):
+        params = {
+            'Limit': limit,
+            'IncludeItemTypes': media,
+            'ParentId': parent_id,
+            'Fields': self.browse_info
+        }
+
+        if media and 'Photo' in media:
+            params['Fields'] += ",Width,Height"
+
+        return self._http("GET", "Users/%s/Items/Latest" % self.EmbyServer.Data['auth.user_id'], {'params': params})
+
     #Get dynamic listings
     def get_filtered_section(self, data):
         if not 'ViewId' in data:
@@ -72,7 +85,6 @@ class API():
             'IncludeItemTypes': data['media'],
             'Recursive': data['recursive'],
             'Limit': data['limit'],
-            'SortBy': "Random",
             'Fields': self.browse_info
         }
 
@@ -95,19 +107,6 @@ class API():
                 params.update(data['extra'])
 
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.Data['auth.user_id'], {'params': params})
-
-    def get_recently_added(self, media, parent_id, limit):
-        params = {
-            'Limit': limit,
-            'IncludeItemTypes': media,
-            'ParentId': parent_id,
-            'Fields': self.browse_info
-        }
-
-        if media and 'Photo' in media:
-            params['Fields'] += ",Width,Height"
-
-        return self._http("GET", "Users/%s/Items/Latest" % self.EmbyServer.Data['auth.user_id'], {'params': params})
 
     def get_movies_by_boxset(self, boxset_id):
         for items in self.get_itemsSync(boxset_id, "Movie", False, None):

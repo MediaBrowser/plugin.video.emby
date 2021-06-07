@@ -128,6 +128,19 @@ def reset(Utils, Force):
     Utils.Settings.set_settings_bool('SyncInstallRunDone', False)
     Utils.Settings.set_settings_bool('Migrate', True)
     Utils.dialog("ok", heading="{emby}", line1=Utils.Translate(33088))
+
+
+
+
+
+
+
+#delete emby.db
+
+
+
+
+
     xbmc.executebuiltin('RestartApp')
 
 def reset_kodi(Utils):
