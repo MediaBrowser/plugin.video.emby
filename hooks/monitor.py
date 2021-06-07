@@ -621,7 +621,7 @@ class Monitor(xbmc.Monitor):
             self.Service.Utils.dialog("notification", heading="{emby}", message="%s %s" % (self.Service.Utils.Translate(33000), self.Service.Utils.StringMod(users)), icon="{emby}", time=1500, sound=False)
 
     #Mark as watched/unwatched updates
-    def VideoLibrary_OnUpdate22222(self, data):
+    def VideoLibrary_OnUpdate(self, data):
         for server_id in self.EmbyServers: ######################## WORKAROUND!!!!!!!!!!!  ADD Serverid info in emby.db and query from there
             break
 
