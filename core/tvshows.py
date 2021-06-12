@@ -21,7 +21,6 @@ class TVShows():
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
         self.objects = obj_ops.Objects()
-        self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.TVShowsDBIO = TVShowsDBIO(videodb.cursor)
@@ -112,7 +111,6 @@ class TVShows():
         self.KodiDBIO.add_genres(*self.EmbyServer.Utils.values(obj, queries_videos.add_genres_tvshow_obj))
         self.KodiDBIO.add_studios(*self.EmbyServer.Utils.values(obj, queries_videos.add_studios_tvshow_obj))
         self.ArtworkDBIO.add(obj['Artwork'], obj['ShowId'], "tvshow")
-        self.item_ids.append(obj['Id'])
 
         if "StackTimes" in obj:
             self.KodiDBIO.add_stacktimes(*self.EmbyServer.Utils.values(obj, queries_videos.add_stacktimes_obj))
@@ -136,7 +134,6 @@ class TVShows():
 
             try:
                 self.emby_db.get_item_by_id(season['Id'])[0]
-                self.item_ids.append(season['Id'])
             except TypeError:
                 self.season(season, library, obj['ShowId'])
 
@@ -243,7 +240,6 @@ class TVShows():
 
         if obj['Location'] != 'Virtual':
             self.emby_db.add_reference(*self.EmbyServer.Utils.values(obj, database.queries.add_reference_season_obj))
-            self.item_ids.append(obj['Id'])
 
         self.ArtworkDBIO.add(obj['Artwork'], obj['SeasonId'], "season")
         self.LOG.info("UPDATE season [%s/%s] %s: %s" % (obj['ShowId'], obj['SeasonId'], obj['Title'] or obj['Index'], obj['Id']))
@@ -362,7 +358,6 @@ class TVShows():
         self.KodiDBIO.add_streams(*self.EmbyServer.Utils.values(obj, queries_videos.add_streams_obj))
         self.KodiDBIO.add_playstate(*self.EmbyServer.Utils.values(obj, queries_videos.add_bookmark_obj))
         self.ArtworkDBIO.update(obj['Artwork']['Primary'], obj['EpisodeId'], "episode", "thumb")
-        self.item_ids.append(obj['Id'])
         return not update
 
     #Add object to kodi
@@ -433,7 +428,6 @@ class TVShows():
         else:
             obj['ShowId'] = obj['ShowId'][0]
 
-        self.item_ids.append(obj['SeriesId'])
         return True
 
     #This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

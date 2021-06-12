@@ -14,6 +14,7 @@ get_song_by_id = """ SELECT * FROM song WHERE idSong = ? """
 get_song_by_id_obj = ["{SongId}"]
 get_album = """ SELECT idAlbum FROM album WHERE strMusicBrainzAlbumID = ? """
 get_album_by_name = """ SELECT idAlbum FROM album WHERE strAlbum = ? AND strArtistDisp = ? """
+get_album_by_name_type = """ SELECT idAlbum FROM album WHERE strAlbum = ? AND strArtistDisp = ?  AND strType = ? """
 get_album_artist = """ SELECT strArtistDisp FROM album WHERE idAlbum = ? """
 get_album_artist_obj = ["{AlbumId}", "{strAlbumArtists}"]
 get_genre = """ SELECT idGenre FROM genre WHERE strGenre = ? COLLATE NOCASE """

@@ -56,6 +56,7 @@ class Library(threading.Thread):
         self.Views = emby.views.Views(self.EmbyServer)
         self.progress_percent = 0
         self.Xmls = helper.xmls.Xmls(self.EmbyServer.Utils)
+
         threading.Thread.__init__(self)
         self.start()
 
@@ -114,6 +115,8 @@ class Library(threading.Thread):
 
     def run(self):
         self.LOG.warning("--->[ library ]")
+        self.Xmls.advanced_settings()
+        self.Xmls.advanced_settings_add_timeouts()
         self.Views.update_views()
         self.sync.update_library = False
 

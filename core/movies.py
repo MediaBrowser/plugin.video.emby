@@ -17,7 +17,6 @@ class Movies():
         self.video = videodb
         self.emby_db = database.emby_db.EmbyDatabase(embydb.cursor)
         self.objects = obj_ops.Objects()
-        self.item_ids = []
         self.Common = common.Common(self.emby_db, self.objects, self.EmbyServer)
         self.KodiDBIO = kodi.Kodi(videodb.cursor, self.EmbyServer.Utils)
         self.MoviesDBIO = MoviesDBIO(videodb.cursor)
@@ -128,7 +127,6 @@ class Movies():
         self.KodiDBIO.add_people(*self.EmbyServer.Utils.values(obj, queries_videos.add_people_movie_obj))
         self.KodiDBIO.add_streams(*self.EmbyServer.Utils.values(obj, queries_videos.add_streams_obj))
         self.ArtworkDBIO.add(obj['Artwork'], obj['MovieId'], "movie")
-        self.item_ids.append(obj['Id'])
 
         if "StackTimes" in obj:
             self.KodiDBIO.add_stacktimes(*self.EmbyServer.Utils.values(obj, queries_videos.add_stacktimes_obj))

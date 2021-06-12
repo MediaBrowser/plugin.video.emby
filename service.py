@@ -10,7 +10,7 @@ import hooks.monitor
 import database.database
 import helper.setup
 import helper.utils
-import helper.xmls
+#import helper.xmls
 import helper.loghandler
 
 class Service():
@@ -28,9 +28,9 @@ class Service():
         self.Delay = int(self.Utils.Settings.startupDelay)
         self.Monitor = hooks.monitor.Monitor(self)
         database.database.EmbyDatabaseBuild(self.Utils)
-        Xmls = helper.xmls.Xmls(self.Utils)
-        Xmls.advanced_settings()
-        Xmls.advanced_settings_add_timeouts()
+#        Xmls = helper.xmls.Xmls(self.Utils)
+#        Xmls.advanced_settings()
+#        Xmls.advanced_settings_add_timeouts()
         self.ServerReconnecting = {}
 
         if not self.Setup.Migrate(): #Check Migrate

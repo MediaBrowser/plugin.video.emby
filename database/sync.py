@@ -190,15 +190,6 @@ class Sync():
                                 dialog.close()
                                 return
 
-                    #Compare entries from library to what's in the embydb. Remove surplus
-                    if self.update_library:
-                        items = emby_db.EmbyDatabase(embydb.cursor).get_item_by_media_folder(library['Id'])
-                        current = MoviesObject.item_ids
-
-                        for x in items:
-                            if x[0] not in current and x[1] == 'Movie':
-                                MoviesObject.remove(x[0])
-
         dialog.close()
 
     def tvshows(self, library):
@@ -229,19 +220,6 @@ class Sync():
                                             dialog.close()
                                             return
 
-                    #Compare entries from library to what's in the embydb. Remove surplus
-                    if self.update_library:
-                        items = emby_db.EmbyDatabase(embydb.cursor).get_item_by_media_folder(library['Id'])
-
-                        for x in list(items):
-                            items.extend(TVShowsObject.get_child(x[0]))
-
-                        current = TVShowsObject.item_ids
-
-                        for x in items:
-                            if x[0] not in current and x[1] == 'Series':
-                                TVShowsObject.remove(x[0])
-
         dialog.close()
 
     def musicvideos(self, library):
@@ -265,15 +243,6 @@ class Sync():
                             if self.Player.SyncPause:
                                 dialog.close()
                                 return
-
-                    #Compare entries from library to what's in the embydb. Remove surplus
-                    if self.update_library:
-                        items = emby_db.EmbyDatabase(embydb.cursor).get_item_by_media_folder(library['Id'])
-                        current = MusicVideosObject.item_ids
-
-                        for x in items:
-                            if x[0] not in current and x[1] == 'MusicVideo':
-                                MusicVideosObject.remove(x[0])
 
         dialog.close()
 
@@ -312,19 +281,6 @@ class Sync():
                                     if self.Player.SyncPause:
                                         dialog.close()
                                         return
-
-                    #Compare entries from library to what's in the embydb. Remove surplus
-                    if self.update_library:
-                        items = emby_db.EmbyDatabase(embydb.cursor).get_item_by_media_folder(library['Id'])
-
-                        for x in list(items):
-                            items.extend(MusicObject.get_child(x[0]))
-
-                        current = MusicObject.item_ids
-
-                        for x in items:
-                            if x[0] not in current and x[1] == 'MusicArtist':
-                                MusicObject.remove(x[0])
 
         dialog.close()
 

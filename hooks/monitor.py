@@ -29,6 +29,7 @@ class Monitor(xbmc.Monitor):
     def __init__(self, Service):
         self.LOG = helper.loghandler.LOG('EMBY.hooks.monitor.Monitor')
         self.sleep = False
+        self.ItemSkipUpdateReset = False
         self.EmbyServers = {}
         self.library = {}
         self.ServerIP = None
@@ -418,6 +419,11 @@ class Monitor(xbmc.Monitor):
             return
 
         self.LOG.info("[ UserDataChanged ] %s" % data)
+
+        if not self.player.SyncPause and not self.ItemSkipUpdateReset:
+            self.player.ItemSkipUpdate = []
+            self.LOG.info("[ reset skip after playback ]")
+
         UpdateData = []
 
         for ItemData in data['UserDataList']:
@@ -439,10 +445,9 @@ class Monitor(xbmc.Monitor):
         if UpdateData:
             self.library[data['ServerId']].userdata(UpdateData)
 
-        if self.player.ItemSkipUpdateReset:
-            self.player.ItemSkipUpdateReset = False
+        if self.ItemSkipUpdateReset:
             self.player.ItemSkipUpdate = []
-            self.LOG.info("[ skip reset ]")
+            self.LOG.info("[ reset skip after video library update ]")
 
     def LibraryChanged(self, data):
         self.LOG.info("[ LibraryChanged ] %s" % data)
@@ -620,6 +625,8 @@ class Monitor(xbmc.Monitor):
         for server_id in self.EmbyServers: ######################## WORKAROUND!!!!!!!!!!!  ADD Serverid info in emby.db and query from there
             break
 
+        self.LOG.info("[ VideoLibraryUpdate ] %s" % data)
+
         if 'item' in data:
             if 'playcount' in data:
                 kodi_id = data['item']['id']
@@ -628,22 +635,12 @@ class Monitor(xbmc.Monitor):
 
                 if item:
                     if not item[0] in self.player.ItemSkipUpdate: #Check EmbyID
-                        if media == "tvshow": #Search for all items in TVShow and update them
-                            PresentationKey = item[10].split("-")
-                            items = database.database.get_ItemsByPresentationkey(self.Service.Utils, PresentationKey[0])
-
-                            for item2 in items:
-                                self.player.ItemSkipUpdate.append(item2[0])
-                                self.EmbyServers[server_id].API.item_played(item2[0], bool(data['playcount']))
-
+                        if media in ("season", "tvshow"):
                             return
 
-                        self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
-
-                    else:
+                        self.ItemSkipUpdateReset = True
                         self.player.ItemSkipUpdate.append(item[0])
-
-            self.player.ItemSkipUpdateReset = True
+                        self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
 
     #Emby backup
     def Backup(self, data):
