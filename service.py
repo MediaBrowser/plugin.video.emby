@@ -1,176 +1,186 @@
 # -*- coding: utf-8 -*-
-import logging
-import _strptime # Workaround for threads using datetime: _striptime is locked
-import sys
-import threading
-import datetime
+import shutil
+import os
+import xml.etree.ElementTree
+
 import xbmc
+import xbmcvfs
 
 import hooks.monitor
 import database.database
-import emby.main
-import emby.views
-import helper.loghandler
 import helper.setup
-import helper.translate
 import helper.utils
+import helper.xmls
+import helper.loghandler
 
 class Service():
     def __init__(self):
-        helper.loghandler.reset()
-        helper.loghandler.config()
-        self.server_thread = []
-        self.last_progress = datetime.datetime.today()
-        self.last_progress_report = datetime.datetime.today()
-        self.running = True
-        self.LOG = logging.getLogger("EMBY.entrypoint.Service")
+        self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
+        self.ShouldStop = False
+        self.Startup()
+
+    def Startup(self):
+        self.ShouldStop = False
         self.Utils = helper.utils.Utils()
-        self.Utils.window('emby_should_stop', clear=True)
-        self.Utils.window('emby_sleep.bool', False)
-        self.Utils.window('emby_sync_skip_resume.bool', False)
-        self.profile = self.Utils.translatePath('special://profile/')
-        self.Utils.window('emby_kodiProfile', value=self.profile)
-        self.Utils.settings('platformDetected', self.Utils.get_platform())
-        self.Utils.settings('distroDetected', self.Utils.get_distro())
-        self.Utils.window('emby_reloadskin.bool', True)
+        self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
+        self.KodiDefaultNodes()
         self.Setup = helper.setup.Setup(self.Utils)
-        memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
-        self.Delay = int(self.Utils.settings('startupDelay'))
-        self.LOG.warning("--->>>[ %s ]", self.Utils.get_addon_name())
-        self.LOG.warning("Version: %s", self.Utils.get_version())
-        self.LOG.warning("KODI Version: %s", xbmc.getInfoLabel('System.BuildVersion'))
-        self.LOG.warning("Platform: %s", self.Utils.settings('platformDetected'))
-        self.LOG.warning("OS: %s/%sMB", self.Utils.settings('distroDetected'), memory)
-        self.LOG.warning("Python Version: %s", sys.version)
-        self.Monitor = None
-        Views = emby.views.Views(self.Utils)
-        Views.verify_kodi_defaults()
-        database.database.test_databases()
+        self.Delay = int(self.Utils.Settings.startupDelay)
+        self.Monitor = hooks.monitor.Monitor(self)
+        database.database.EmbyDatabaseBuild(self.Utils)
+        Xmls = helper.xmls.Xmls(self.Utils)
+        Xmls.advanced_settings()
+        Xmls.advanced_settings_add_timeouts()
+        self.ServerReconnecting = {}
 
-        try:
-            Views.get_nodes()
-        except Exception as error:
-            self.LOG.error(error)
-
-        self.Utils.window('emby.connected.bool', True)
-        self.Utils.settings('groupedSets.bool', self.Utils.get_grouped_set())
-        self.Utils.window('emby_playerreloadindex', '-1')
-
-    def Start(self):
         if not self.Setup.Migrate(): #Check Migrate
             xbmc.executebuiltin('RestartApp')
-            return False
+            return
 
-        self.Monitor = hooks.monitor.Monitor()
-        self.Monitor.ServiceHandle(self)
-        self.Server(self.Delay)
-        return True
+    def KodiDefaultNodes(self):
+        node_path = self.Utils.translatePath("special://profile/library/video")
 
-    def WatchDog(self):
-        while self.running:
-            if self.Utils.window('emby_online.bool'):
-                if self.profile != self.Utils.window('emby_kodiProfile'):
-                    self.LOG.info("[ profile switch ] %s", self.profile)
-                    break
-
-            if self.Utils.window('emby.restart.bool'):
-                self.Utils.window('emby.restart.bool', False)
-                self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33193), icon="{emby}", time=1000, sound=False)
-                raise Exception('RestartService')
-
+        if not xbmcvfs.exists(node_path):
             try:
-                if xbmc.Monitor().waitForAbort(1):
-                    break
+                shutil.copytree(src=self.Utils.translatePath("special://xbmc/system/library/video"), dst=self.Utils.translatePath("special://profile/library/video"))
+            except Exception as error:
+                xbmcvfs.mkdir(node_path)
 
-                if self.Utils.window('emby_sleep.bool'):
-                    self.Monitor.System_OnWake()
+        for index, node in enumerate(['movies', 'tvshows', 'musicvideos']):
+            filename = os.path.join(node_path, node, "index.xml")
+
+            if xbmcvfs.exists(filename):
+                try:
+                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
+                except Exception as error:
+                    self.LOG.error(error)
                     continue
 
-                if self.Utils.window('emby_should_stop.bool'):
-                    break
-            except:
+                xmlData.set('order', str(17 + index))
+                self.Utils.indent(xmlData, 0)
+                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+
+        playlist_path = self.Utils.translatePath("special://profile/playlists/video")
+
+        if not xbmcvfs.exists(playlist_path):
+            xbmcvfs.mkdirs(playlist_path)
+
+        node_path = self.Utils.translatePath("special://profile/library/music")
+
+        if not xbmcvfs.exists(node_path):
+            try:
+                shutil.copytree(src=self.Utils.translatePath("special://xbmc/system/library/music"), dst=self.Utils.translatePath("special://profile/library/music"))
+            except Exception as error:
+                xbmcvfs.mkdir(node_path)
+
+        for index, node in enumerate(['music']):
+            filename = os.path.join(node_path, node, "index.xml")
+
+            if xbmcvfs.exists(filename):
+                try:
+                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
+                except Exception as error:
+                    self.LOG.error(error)
+                    continue
+
+                xmlData.set('order', str(17 + index))
+                self.Utils.indent(xmlData, 0)
+                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+
+        playlist_path = self.Utils.translatePath("special://profile/playlists/music")
+
+        if not xbmcvfs.exists(playlist_path):
+            xbmcvfs.mkdirs(playlist_path)
+
+    def ServerConnect(self):
+        if self.Delay:
+            if self.Monitor.waitForAbort(self.Delay):
+                self.shutdown()
+                return False
+
+        while True:
+            server_id = self.Monitor.EmbyServer_Connect()
+
+            if server_id:
                 break
 
-        try:
-            self.shutdown()
-        except:
-            raise Exception("ExitService")
+            if self.Monitor.waitForAbort(10):
+                return False
 
-    def Server(self, delay=None, close=False):
-        if not self.server_thread:
-            thread = StartDefaultServer(self, delay, close)
-            self.server_thread.append(thread)
+        self.Setup.setup()
+        self.Monitor.LibraryLoad(server_id)
+        return True
+
+    def ServerReconnectingInProgress(self, server_id):
+        if server_id in self.ServerReconnecting:
+            return self.ServerReconnecting[server_id]
+
+        return False
+
+    def ServerReconnect(self, server_id, Terminate=True):
+        self.ServerReconnecting[server_id] = True
+        self.Monitor.player.SyncPause = False
+
+        if Terminate:
+            if server_id in self.Monitor.EmbyServers:
+                self.Monitor.EmbyServers[server_id].stop()
+                self.Monitor.LibraryStop(server_id)
+
+        while True:
+            if self.Monitor.waitForAbort(10):
+                return
+
+            server_id = self.Monitor.EmbyServer_Connect()
+
+            if server_id:
+                self.ServerReconnecting[server_id] = False
+                break
+
+        self.Monitor.LibraryLoad(server_id)
+        self.ServerReconnecting[server_id] = False
+
+    def WatchDog(self):
+        while True:
+            if self.Monitor.waitForAbort(1):
+                self.shutdown()
+                return False
+
+            if self.Utils.Settings.emby_shouldstop:
+                self.ShouldStop = True
+
+            if self.Utils.Settings.emby_restart:
+                self.Utils.Settings.emby_restart = False
+                self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Translate(33193), icon="{emby}", time=1000, sound=False)
+                self.shutdown()
+                self.LOG.warning("[ RESTART ]")
+                return True
+
+            if self.Monitor.sleep:
+                xbmc.sleep(5000)
+                self.Monitor.System_OnWake()
+
+            if self.ShouldStop:
+                self.shutdown()
+                return False
 
     def shutdown(self):
         self.LOG.warning("---<[ EXITING ]")
-        self.Utils.window('emby_should_stop.bool', True)
-        properties = [
-            "emby_online", "emby.connected", "emby_deviceId",
-            "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause",
-            "emby.server.state", "emby.server.states"
-        ]
-
-        for server in self.Utils.window('emby.server.states.json') or []:
-            properties.append("emby.server.%s.state" % server)
-
-        for prop in properties:
-            self.Utils.window(prop, clear=True)
-
+        self.Monitor.player.SyncPause = True
+        self.ShouldStop = True
         self.Monitor.QuitThreads()
-        emby.main.Emby.close_all()
-        self.Monitor.LibraryStop()
-        self.LOG.warning("---<<<[ %s ]", self.Utils.get_addon_name())
-        helper.loghandler.reset()
-        raise Exception("ExitService")
-
-class StartDefaultServer(threading.Thread):
-    def __init__(self, service, retry=None, close=False):
-        self.service = service
-        self.retry = retry
-        self.close = close
-        threading.Thread.__init__(self)
-        self.start()
-
-    #This is a thread to not block the main service thread
-    def run(self):
-        try:
-            if 'default' in emby.main.Emby.client:
-                self.service.Utils.window('emby_online', clear=True)
-                emby.main.Emby().close()
-                self.service.Monitor.LibraryStop()
-
-                if self.close:
-                    raise Exception("terminate default server thread")
-
-            if self.retry and xbmc.Monitor().waitForAbort(self.retry) or not self.service.running:
-                raise Exception("abort default server thread")
-
-            self.service.Monitor.Register()
-            self.service.Setup.setup()
-            self.service.Monitor.LibraryLoad()
-            self.service.Monitor.PlayMode = self.service.Utils.settings('useDirectPaths')
-        except Exception as error:
-            #LOG.error(error) # we don't really case, self.Utils.event will retrigger if need be.
-            pass
-
-        self.service.server_thread.remove(self)
+        self.Monitor.EmbyServer_DisconnectAll()
+        self.Monitor.LibraryStopAll()
 
 if __name__ == "__main__":
+    serviceOBJ = Service()
+
     while True:
-        serviceOBJ = None
+        serviceOBJ.ServerConnect()
 
-        try:
-            serviceOBJ = Service()
+        if serviceOBJ.WatchDog():
+            serviceOBJ.Startup()
+            continue #Restart
 
-            if not serviceOBJ.Start():
-                break
+        break
 
-            serviceOBJ.WatchDog()
-        except Exception as error:
-            if serviceOBJ is not None:
-                if 'ExitService' in error.args:
-                    break
-                elif 'RestartService' in error.args:
-                    continue
-                elif 'Unknown addon id' in error.args[0]:
-                    break
+    serviceOBJ = None

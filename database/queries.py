@@ -21,7 +21,7 @@ get_checksum = """SELECT emby_id, checksum FROM emby WHERE emby_type = ?"""
 get_view_name = """SELECT view_name FROM view WHERE view_id = ?"""
 get_media_by_id = """SELECT emby_type FROM emby WHERE emby_id = ?"""
 get_media_by_parent_id = """SELECT emby_id, emby_type, kodi_id, kodi_fileid FROM emby WHERE emby_parent_id = ?"""
-get_view = """SELECT view_name, media_type FROM view WHERE view_id = ?"""
+get_view = """SELECT * FROM view WHERE view_id = ?"""
 get_views = """SELECT * FROM view"""
 get_views_by_media = """SELECT * FROM view WHERE media_type = ?"""
 get_items_by_media = """SELECT emby_id, checksum FROM emby WHERE media_type = ?"""
@@ -35,7 +35,7 @@ add_videostreams = """INSERT OR REPLACE INTO VideoStreams(emby_id, MediaIndex, V
 get_videostreams = """SELECT * FROM VideoStreams WHERE emby_id = ? AND MediaIndex = ?"""
 get_mediasourceid = """SELECT Id FROM MediaSources WHERE emby_id = ?"""
 get_mediasource = """SELECT * FROM MediaSources WHERE emby_id = ?"""
-get_kodiid = """SELECT kodi_id, presentation_key FROM emby WHERE emby_id = ?"""
+get_kodiid = """SELECT kodi_id, presentation_key, kodi_fileid FROM emby WHERE emby_id = ?"""
 get_AudioStreams = """SELECT * FROM AudioStreams WHERE emby_id = ? AND MediaIndex = ?"""
 get_Subtitles = """SELECT * FROM Subtitle WHERE emby_id = ? AND MediaIndex = ?"""
 get_kodifileid = """SELECT kodi_fileid FROM emby WHERE emby_id = ?"""
@@ -47,14 +47,14 @@ add_subtitles = """INSERT OR REPLACE INTO Subtitle(emby_id, MediaIndex, Subtitle
 add_reference_movie_obj = ["{Id}", "{MovieId}", "{FileId}", "{PathId}", "Movie", "movie", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_boxset_obj = ["{Id}", "{SetId}", None, None, "BoxSet", "set", None, "{Checksum}", None, None, "{PresentationKey}"]
 add_reference_tvshow_obj = ["{Id}", "{ShowId}", None, "{PathId}", "Series", "tvshow", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
-add_reference_season_obj = ["{Id}", "{SeasonId}", None, None, "Season", "season", "{ShowId}", None, "{LibraryId}", None, "{PresentationKey}"]
+add_reference_season_obj = ["{Id}", "{SeasonId}", None, None, "Season", "season", "{ShowId}", None, "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_pool_obj = ["{SeriesId}", "{ShowId}", None, "{PathId}", "Series", "tvshow", None, "{Checksum}", "{LibraryId}", None, "{PresentationKey}"]
 add_reference_episode_obj = ["{Id}", "{EpisodeId}", "{FileId}", "{PathId}", "Episode", "episode", "{SeasonId}", "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_mvideo_obj = ["{Id}", "{MvideoId}", "{FileId}", "{PathId}", "MusicVideo", "musicvideo", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_artist_obj = ["{Id}", "{ArtistId}", None, None, "{ArtistType}", "artist", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_album_obj = ["{Id}", "{AlbumId}", None, None, "MusicAlbum", "album", None, "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
 add_reference_song_obj = ["{Id}", "{SongId}", None, "{PathId}", "Audio", "song", "{AlbumId}", "{Checksum}", "{LibraryId}", "{EmbyParentId}", "{PresentationKey}"]
-add_view = """INSERT OR REPLACE INTO view(view_id, view_name, media_type) VALUES (?, ?, ?)"""
+add_view = """INSERT OR REPLACE INTO view(view_id, view_name, media_type, server_id) VALUES (?, ?, ?, ?)"""
 add_version = """INSERT OR REPLACE INTO version(idVersion) VALUES (?)"""
 update_reference = """ UPDATE emby SET checksum = ?, presentation_key = ? WHERE emby_id = ?"""
 update_reference_obj = ["{Checksum}", "{PresentationKey}", "{Id}"]

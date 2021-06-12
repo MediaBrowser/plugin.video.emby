@@ -5,38 +5,24 @@ except:
     from urllib.parse import urlencode
 
 class API():
-    def __init__(self, item, Utils, server=None):
-        ''' Get item information in special cases.
-            server is the server address, provide if your functions requires it.
-        '''
+    def __init__(self, Utils):
         self.Utils = Utils
-        self.item = item
-        self.server = server
-        self.verify_ssl = True
-
-        if server and server.startswith('https') and not self.Utils.settings('sslverify.bool'):
-            self.verify_ssl = False
 
     def get_playcount(self, played, playcount):
-        ''' Convert Emby played/playcount into
-            the Kodi equivalent. The playcount is tied to the watch status.
-        '''
         return (playcount or 1) if played else None
 
-    def get_actors(self):
+    def get_actors(self, people):
         cast = []
+        self.get_people_artwork(people)
 
-        if 'People' in self.item:
-            self.get_people_artwork(self.item['People'])
-
-            for person in self.item['People']:
-                if person['Type'] == "Actor":
-                    cast.append({
-                        'name': person['Name'],
-                        'role': person.get('Role', "Unknown"),
-                        'order': len(cast) + 1,
-                        'thumbnail': person['imageurl']
-                    })
+        for person in people:
+            if person['Type'] == "Actor":
+                cast.append({
+                    'name': person['Name'],
+                    'role': person.get('Role', "Unknown"),
+                    'order': len(cast) + 1,
+                    'thumbnail': person['imageurl']
+                })
 
         return cast
 
@@ -47,7 +33,7 @@ class API():
             'subtitle': subtitles or []
         }
 
-    def video_streams(self, tracks, container=None):
+    def video_streams(self, tracks, container, item):
         if container:
             container = container.split(',')[0]
 
@@ -57,7 +43,7 @@ class API():
                 'profile': track.get('Profile', "").lower(),
                 'height': track.get('Height'),
                 'width': track.get('Width'),
-                '3d': self.item.get('Video3DFormat'),
+                '3d': item.get('Video3DFormat'),
                 'aspect': 1.85
             })
 
@@ -72,14 +58,14 @@ class API():
                     track['codec'] = "avc1"
 
             try:
-                width, height = self.item.get('AspectRatio', track.get('AspectRatio', "0")).split(':')
+                width, height = item.get('AspectRatio', track.get('AspectRatio', "0")).split(':')
                 track['aspect'] = round(float(width) / float(height), 6)
             except (ValueError, ZeroDivisionError):
 
                 if track['width'] and track['height']:
                     track['aspect'] = round(float(track['width'] / track['height']), 6)
 
-            track['duration'] = self.get_runtime()
+            track['duration'] = self.get_runtime(item)
 
         return tracks
 
@@ -99,21 +85,20 @@ class API():
 
         return tracks
 
-    def get_runtime(self):
+    def get_runtime(self, item):
         try:
-            runtime = self.item['RunTimeTicks'] / 10000000.0
+            runtime = item['RunTimeTicks'] / 10000000.0
         except KeyError:
-            runtime = self.item.get('CumulativeRunTimeTicks', 0) / 10000000.0
+            runtime = item.get('CumulativeRunTimeTicks', 0) / 10000000.0
 
         return runtime
 
-    @classmethod
-    def adjust_resume(cls, resume_seconds, Utils):
+    def adjust_resume(self, resume_seconds):
         resume = 0
 
         if resume_seconds:
             resume = round(float(resume_seconds), 6)
-            jumpback = int(Utils.settings('resumeJumpBack'))
+            jumpback = int(self.Utils.Settings.resumeJumpBack)
 
             if resume > jumpback:
                 # To avoid negative bookmark
@@ -135,8 +120,8 @@ class API():
         }
         return studios.get(studio_name.lower(), studio_name)
 
-    def get_overview(self, overview=None):
-        overview = overview or self.item.get('Overview')
+    def get_overview(self, overview, item):
+        overview = overview or item.get('Overview')
 
         if not overview:
             return
@@ -147,8 +132,16 @@ class API():
         overview = overview.replace("<br>", "[CR]")
         return overview
 
-    def get_mpaa(self, rating=None):
-        mpaa = rating or self.item.get('OfficialRating', "")
+    def get_DateAdded(self, DateInfo):
+        if DateInfo:
+            DateAdded = DateInfo.split('.')[0].replace('T', " ")
+            FileDate = "%s.%s.%s" % tuple(reversed(DateAdded.split('T')[0].split('-')))
+            return DateAdded, FileDate
+
+        return None, None
+
+    def get_mpaa(self, rating, item):
+        mpaa = rating or item.get('OfficialRating', "")
 
         if mpaa in ("NR", "UR"):
             # Kodi seems to not like NR, but will accept Not Rated
@@ -157,11 +150,14 @@ class API():
         if "FSK-" in mpaa:
             mpaa = mpaa.replace("-", " ")
 
+        if "GB-" in mpaa:
+            mpaa = mpaa.replace("GB-", "UK:")
+
         return mpaa
 
-    def get_file_path(self, path=None):
+    def get_file_path(self, path, item):
         if path is None:
-            path = self.item.get('Path')
+            path = item.get('Path')
 
         path = self.Utils.StringMod(path)
 
@@ -169,9 +165,9 @@ class API():
         if path.endswith('.strm'):
             path = path.replace('.strm', "")
 
-            if 'Container' in self.item:
-                if not path.endswith(self.Utils.StringMod(self.item['Container'])):
-                    path = path + "." + self.Utils.StringMod(self.item['Container'])
+            if 'Container' in item:
+                if not path.endswith(self.Utils.StringMod(item['Container'])):
+                    path = path + "." + self.Utils.StringMod(item['Container'])
 
         if not path:
             return ""
@@ -179,10 +175,10 @@ class API():
         if path.startswith('\\\\'):
             path = path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
-        if 'Container' in self.item:
-            if self.item['Container'] == 'dvd':
+        if 'Container' in item:
+            if item['Container'] == 'dvd':
                 path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
-            elif self.item['Container'] == 'bluray':
+            elif item['Container'] == 'bluray':
                 path = "%s/BDMV/index.bdmv" % path
 
         path = path.replace('\\\\', "\\")
@@ -196,14 +192,8 @@ class API():
 
         return path
 
-    def get_user_artwork(self, user_id):
-        ''' Get emby user profile picture.
-        '''
-        return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.server, user_id)
-
+    #Get people (actor, director, etc) artwork.
     def get_people_artwork(self, people):
-        ''' Get people (actor, director, etc) artwork.
-        '''
         for person in people:
             if 'PrimaryImageTag' in person:
                 #query = [('MaxWidth', 400), ('MaxHeight', 400), ('Index', 0)]
@@ -214,12 +204,8 @@ class API():
 
         return people
 
+    #Get all artwork possible. If parent_info is True, it will fill missing artwork with parent artwork.
     def get_all_artwork(self, obj, parent_info=False):
-        ''' Get all artwork possible. If parent_info is True,
-            it will fill missing artwork with parent artwork.
-
-            obj is from objects.Objects().map(item, 'Artwork')
-        '''
         query = []
         all_artwork = {
             'Primary': "",
@@ -231,11 +217,6 @@ class API():
             'Disc': "",
             'Backdrop': []
         }
-
-        if self.Utils.settings('compressArt.bool'):
-            query.append(('Quality', 70))
-
-        query.append(('EnableImageEnhancers', self.Utils.settings('enableCoverArt.bool')))
         all_artwork['Backdrop'] = self.get_backdrops(obj['Id'], obj['BackdropTags'] or [], query)
 
         for artwork in (obj['Tags'] or []):
@@ -260,9 +241,8 @@ class API():
 
         return all_artwork
 
-    def get_backdrops(self, item_id, tags, query=None):
-        ''' Get backdrops based of "BackdropImageTags" in the emby object.
-        '''
+    #Get backdrops based of "BackdropImageTags" in the emby object.
+    def get_backdrops(self, item_id, tags, query):
         query = list(query) if query else []
         backdrops = []
 
@@ -272,17 +252,12 @@ class API():
         for index, tag in enumerate(tags):
             query.append(('Tag', tag))
             artwork = "http://127.0.0.1:57578/%s/Images/Backdrop/%s?%s" % (item_id, index, urlencode(query))
-
-            if not self.verify_ssl:
-                artwork += "|verifypeer=false"
-
             backdrops.append(artwork)
 
         return backdrops
 
-    def get_artwork(self, item_id, image, tag=None, query=None):
-        ''' Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
-        '''
+    #Get any type of artwork: Primary, Art, Banner, Logo, Thumb, Disc
+    def get_artwork(self, item_id, image, tag, query, Native=False):
         query = list(query) if query else []
 
         if item_id is None:
@@ -291,9 +266,8 @@ class API():
         if tag is not None:
             query.append(('Tag', tag))
 
-        artwork = "http://127.0.0.1:57578/%s/Images/%s/0?%s" % (item_id, image, urlencode(query))
-
-        if not self.verify_ssl:
-            artwork += "|verifypeer=false"
-
+        if Native:
+            artwork = "%s/emby/Items/%s/Images/%s/0?%s" % (Native, item_id, image, urlencode(query))
+        else:
+            artwork = "http://127.0.0.1:57578/%s/Images/%s/0?%s" % (item_id, image, urlencode(query))
         return artwork

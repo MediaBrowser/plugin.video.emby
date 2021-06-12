@@ -1,61 +1,66 @@
 # -*- coding: utf-8 -*-
-try:
-    import socketserver as SocketServer
-    from http.server import SimpleHTTPRequestHandler
-    import http.client as httplib
-except ImportError:
-    import SocketServer
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
-    import httplib
-
 import threading
+
+try: #Python 3.X (Kodi 19)
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    import http.client as httplib
+except ImportError: #Python 2.X (Kodi 18)
+    import BaseHTTPServer
+    HTTPServer = BaseHTTPServer.HTTPServer
+    BaseHTTPRequestHandler = BaseHTTPServer.BaseHTTPRequestHandler
+    import httplib
 
 import xbmcvfs
 import xbmc
 
 #Run a webservice to capture playback and incomming events.
 class WebService(threading.Thread):
-    def __init__(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken):
-        self.SocketServer = SocketServer.TCPServer.allow_reuse_address = True
+    def __init__(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken, EnableCoverArt, CompressArt):
         self.server = TCPServer(('127.0.0.1', 57578), RequestHandler)
         self.server.timeout = 9999
         self.WebserviceEventOut = WebserviceEventOut
         self.WebserviceEventIn = WebserviceEventIn
         self.ServerIP = ServerIP
         self.ServerToken = ServerToken
+        self.EnableCoverArt = EnableCoverArt
+        self.CompressArt = CompressArt
         self.LOG = "EMBY.hooks.webservice.WebService"
         threading.Thread.__init__(self)
 
     def stop(self):
-        conn = httplib.HTTPConnection("127.0.0.1:57578", timeout=0.5)
+        conn = httplib.HTTPConnection("127.0.0.1:57578", timeout=1)
         conn.request("QUIT", "/")
+        conn.getresponse()
 
+        #resend as precaution
         try:
-            conn.getresponse()
             conn.request("QUIT", "/")
             conn.getresponse()
         except:
             pass
+
         self.server.server_close()
 
     def run(self):
         xbmc.log(self.LOG + "--->[ webservice/57578 ]", xbmc.LOGWARNING)
-        self.server.serve_forever(self.WebserviceEventOut, self.WebserviceEventIn, self.ServerIP, self.ServerToken)
+        self.server.serve_forever(self.WebserviceEventOut, self.WebserviceEventIn, self.ServerIP, self.ServerToken, self.EnableCoverArt, self.CompressArt)
         xbmc.log(self.LOG + "---<[ webservice/57578 ]", xbmc.LOGWARNING)
 
 #Http server that reacts to self.stop flag.
-class TCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class TCPServer(HTTPServer):
     timeout = 9999
 
-    def serve_forever(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken):
+    def serve_forever(self, WebserviceEventOut, WebserviceEventIn, ServerIP, ServerToken, EnableCoverArt, CompressArt):
         self.RequestHandlerClass.Stop = False
-        self.WebserviceEventIn = WebserviceEventIn
-        self.WebserviceEventOut = WebserviceEventOut
-        self.ServerIP = ServerIP
-        self.ServerToken = ServerToken
+        self.RequestHandlerClass.WebserviceEventIn = WebserviceEventIn
+        self.RequestHandlerClass.WebserviceEventOut = WebserviceEventOut
+        self.RequestHandlerClass.ServerIP = ServerIP
+        self.RequestHandlerClass.ServerToken = ServerToken
+        self.RequestHandlerClass.EnableCoverArt = EnableCoverArt
+        self.RequestHandlerClass.CompressArt = CompressArt
         blankfile = xbmcvfs.File("special://home/addons/plugin.video.emby-next-gen/resources/blank.m4v")
-        self.blankfileSize = blankfile.size()
-        self.blankfileData = blankfile.readBytes()
+        self.RequestHandlerClass.blankfileSize = blankfile.size()
+        self.RequestHandlerClass.blankfileData = blankfile.readBytes()
         blankfile.close()
 
         try:
@@ -65,18 +70,17 @@ class TCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             return
 
 #Http request handler. Do not use LOG here, it will hang requests in Kodi > show information dialog.
-class RequestHandler(SimpleHTTPRequestHandler):
-    timeout = 9999
+class RequestHandler(BaseHTTPRequestHandler):
+    timeout = 0.5
     Stop = False
-
-    def __init__(self, request, client_address, server):
-        self.ServerIP = server.ServerIP
-        self.ServerToken = server.ServerToken
-        self.WebserviceEventIn = server.WebserviceEventIn
-        self.WebserviceEventOut = server.WebserviceEventOut
-        self.blankfileSize = server.blankfileSize
-        self.blankfileData = server.blankfileData
-        SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
+    WebserviceEventIn = None
+    WebserviceEventOut = None
+    ServerIP = ""
+    ServerToken = ""
+    EnableCoverArt = False
+    CompressArt = False
+    blankfileSize = 0
+    blankfileData = b''
 
     #Mute the webservice requests
     def log_message(self, format, *args):
@@ -90,17 +94,34 @@ class RequestHandler(SimpleHTTPRequestHandler):
     def do_HEAD(self):
         if 'stream' in self.path:
             self.send_response(200)
+            self.send_header('Content-type', 'video/mp4')
             self.end_headers()
         else:
             self.do_GET()
 
     def do_GET(self):
         if 'extrafanart' in self.path or 'extrathumbs' in self.path or 'Extras/' in self.path or self.path.endswith('.nfo'):
-            raise Exception("UnknownRequest")
+            self.send_response(404)
+            self.end_headers()
+            return
 
         if 'Images' in self.path:
             self.send_response(301)
-            self.send_header('Location', self.ServerIP + "/emby/Items" + self.path + "&api_key=" + self.ServerToken)
+
+            if self.EnableCoverArt:
+                ExtendedParameter = "&EnableImageEnhancers=True"
+            else:
+                ExtendedParameter = "&EnableImageEnhancers=False"
+
+            if self.CompressArt:
+                ExtendedParameter += "&Quality=70"
+
+            if "?" in self.path:
+                Query = self.ServerIP + "/emby/Items" + self.path + "&api_key=" + self.ServerToken + ExtendedParameter
+            else:
+                Query = self.ServerIP + "/emby/Items" + self.path + "?api_key=" + self.ServerToken + ExtendedParameter
+
+            self.send_header('Location', Query)
             self.end_headers()
             return
 
@@ -120,5 +141,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.send_header('Location', Response)
             self.end_headers()
             return
-            
-        raise Exception("UnknownRequest")
+
+        self.send_response(404)
+        self.end_headers()
+        return

@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
-import logging
+import helper.loghandler
 import database.queries
 
 class Common():
-    def __init__(self, emby_db, objects, Utils, direct_path, Server):
-        self.LOG = logging.getLogger("EMBY.core.common.Common")
-        self.Utils = Utils
+    def __init__(self, emby_db, objects, EmbyServer):
+        self.LOG = helper.loghandler.LOG('EMBY.core.common.Common')
         self.emby_db = emby_db
         self.objects = objects
-        self.direct_path = direct_path
-        self.server = Server
+        self.EmbyServer = EmbyServer
 
     #Add streamdata
     def Streamdata_add(self, obj, Update):
         if Update:
             self.emby_db.remove_item_streaminfos(obj['Id'])
 
-        if "3d" in self.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
+        if "3d" in self.EmbyServer.Utils.StringMod(obj['Item']['MediaSources'][0]['Path']):
             if len(obj['Item']['MediaSources']) >= 2:
                 Temp = obj['Item']['MediaSources'][1]
                 obj['Item']['MediaSources'][1] = obj['Item']['MediaSources'][0]
@@ -35,7 +33,7 @@ class Common():
             CountMediaSubtitle = 0
             CountStreamSources = 0
             DataSource = self.objects.MapMissingData(DataSource, 'MediaSources')
-            self.emby_db.add_mediasource(*self.Utils.values(DataSource, database.queries.add_mediasource_obj))
+            self.emby_db.add_mediasource(*self.EmbyServer.Utils.values(DataSource, database.queries.add_mediasource_obj))
 
             for DataStream in DataSource['MediaStreams']:
                 DataStream['emby_id'] = obj['Item']['Id']
@@ -45,17 +43,17 @@ class Common():
                 if DataStream['Type'] == "Video":
                     DataStream = self.objects.MapMissingData(DataStream, 'VideoStreams')
                     DataStream['VideoIndex'] = CountMediaStreamVideo
-                    self.emby_db.add_videostreams(*self.Utils.values(DataStream, database.queries.add_videostreams_obj))
+                    self.emby_db.add_videostreams(*self.EmbyServer.Utils.values(DataStream, database.queries.add_videostreams_obj))
                     CountMediaStreamVideo += 1
                 elif DataStream['Type'] == "Audio":
                     DataStream = self.objects.MapMissingData(DataStream, 'AudioStreams')
                     DataStream['AudioIndex'] = CountMediaStreamAudio
-                    self.emby_db.add_audiostreams(*self.Utils.values(DataStream, database.queries.add_audiostreams_obj))
+                    self.emby_db.add_audiostreams(*self.EmbyServer.Utils.values(DataStream, database.queries.add_audiostreams_obj))
                     CountMediaStreamAudio += 1
                 elif DataStream['Type'] == "Subtitle":
                     DataStream = self.objects.MapMissingData(DataStream, 'Subtitles')
                     DataStream['SubtitleIndex'] = CountMediaSubtitle
-                    self.emby_db.add_subtitles(*self.Utils.values(DataStream, database.queries.add_subtitles_obj))
+                    self.emby_db.add_subtitles(*self.EmbyServer.Utils.values(DataStream, database.queries.add_subtitles_obj))
                     CountMediaSubtitle += 1
 
                 CountStreamSources += 1
@@ -66,38 +64,43 @@ class Common():
 
     def get_path_filename(self, obj, MediaID):
         #Native Kodi plugins starts with plugin:// -> If native Kodi plugin, drop the link directly in Kodi DB. Emby server cannot play Kodi-Plugins
-        KodiPluginPath = False
+        ForceNativeMode = False
+        Plugin = False
+        Temp = obj['Path'].lower()
 
-        if obj['Path'].startswith("plugin://"):
-            KodiPluginPath = True
+        if Temp.startswith("plugin://"):
+            ForceNativeMode = True
+            Plugin = True
+        elif Temp.endswith(".iso") or Temp.endswith(".bdmv"):
+            ForceNativeMode = True
 
-        if self.direct_path or KodiPluginPath:
-            if KodiPluginPath:
+        if self.EmbyServer.Utils.direct_path or ForceNativeMode:
+            if Plugin:
                 obj['Filename'] = obj['Path']
             else:
                 obj['Filename'] = obj['Path'].rsplit('\\', 1)[1] if '\\' in obj['Path'] else obj['Path'].rsplit('/', 1)[1]
 
-            obj['Path'] = self.Utils.StringDecode(obj['Path'])
-            obj['Filename'] = self.Utils.StringDecode(obj['Filename'])
+            obj['Path'] = self.EmbyServer.Utils.StringDecode(obj['Path'])
+            obj['Filename'] = self.EmbyServer.Utils.StringDecode(obj['Filename'])
 
-            if not self.Utils.validate(obj['Path']):
-                raise Exception("Failed to validate path. User stopped.")
+            if not self.EmbyServer.Utils.validate(obj['Path']):
+                return False, obj
 
             obj['Path'] = obj['Path'].replace(obj['Filename'], "")
 
             if MediaID == "audio":
-                return obj
+                return True, obj
 
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
                 if (obj['Item']['PartCount']) >= 2:
-                    AdditionalParts = self.server['api'].get_additional_parts(obj['Id'])
+                    AdditionalParts = self.EmbyServer.API.get_additional_parts(obj['Id'])
                     obj['Filename'] = obj['Path'] + obj['Filename']
                     obj['StackTimes'] = str(obj['Runtime'])
 
                     for AdditionalItem in AdditionalParts['Items']:
                         AdditionalItem = self.objects.MapMissingData(AdditionalItem, 'MediaSources')
-                        Path = self.Utils.StringDecode(AdditionalItem['Path'])
+                        Path = self.EmbyServer.Utils.StringDecode(AdditionalItem['Path'])
                         obj['Filename'] = obj['Filename'] + " , " + Path
                         RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
                         obj['Runtime'] = obj['Runtime'] + RunTimePart
@@ -105,7 +108,7 @@ class Common():
 
                     obj['Filename'] = "stack://" + obj['Filename']
         else:
-            Filename = self.Utils.PathToFilenameReplaceSpecialCharecters(obj['Path'])
+            Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(obj['Path'])
 
             if MediaID == "tvshows":
                 obj['Path'] = "http://127.0.0.1:57578/tvshows/%s/" % obj['SeriesId']
@@ -114,7 +117,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['Item']['MediaSources'][0]['Id'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "movies":
                 obj['Path'] = "http://127.0.0.1:57578/movies/%s/" % obj['LibraryId']
 
@@ -122,7 +125,7 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['MediaSourceID'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "musicvideos":
                 obj['Path'] = "http://127.0.0.1:57578/musicvideos/%s/" % obj['LibraryId']
 
@@ -130,22 +133,22 @@ class Common():
                     obj['Filename'] = "%s-%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], obj['Streams']['video'][0]['BitRate'], Filename)
                 except:
                     obj['Filename'] = "%s-%s-stream-%s" % (obj['Id'], obj['PresentationKey'], Filename)
-                    self.LOG.warning("No video bitrate available %s", self.Utils.StringMod(obj['Item']['Path']))
+                    self.LOG.warning("No video bitrate available %s" % self.EmbyServer.Utils.StringMod(obj['Item']['Path']))
             elif MediaID == "audio":
                 obj['Path'] = "http://127.0.0.1:57578/audio/%s/" % obj['Id']
                 obj['Filename'] = "%s-stream-%s" % (obj['Id'], Filename)
-                return obj
+                return True, obj
 
             #Detect Multipart videos
             if 'PartCount' in obj['Item']:
                 if (obj['Item']['PartCount']) >= 2:
-                    AdditionalParts = self.server['api'].get_additional_parts(obj['Id'])
+                    AdditionalParts = self.EmbyServer.API.get_additional_parts(obj['Id'])
                     obj['Filename'] = obj['Path'] + obj['Filename']
                     obj['StackTimes'] = str(obj['Runtime'])
 
                     for AdditionalItem in AdditionalParts['Items']:
                         AdditionalItem = self.objects.MapMissingData(AdditionalItem, 'MediaSources')
-                        Filename = self.Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
+                        Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
 
                         try:
                             obj['Filename'] = obj['Filename'] + " , " + obj['Path'] + "%s--%s-stream-%s" % (AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], Filename)
@@ -158,7 +161,7 @@ class Common():
 
                     obj['Filename'] = "stack://" + obj['Filename']
 
-        return obj
+        return True, obj
 
     def library_check(self, e_item, item, library):
         if library is None:
@@ -166,7 +169,7 @@ class Common():
                 view_id = e_item[6]
                 view_name = self.emby_db.get_view_name(view_id)
             else:
-                ancestors = self.server['api'].get_ancestors(item['Id'])
+                ancestors = self.EmbyServer.API.get_ancestors(item['Id'])
 
                 if not ancestors:
                     if item['Type'] == 'MusicArtist':
@@ -195,13 +198,11 @@ class Common():
 
                             break
 
-            sync = database.database.get_sync()
-
             if not library:
                 library = {}
 
-            if view_id not in [x.replace('Mixed:', "") for x in sync['Whitelist'] + sync['Libraries']]:
-                self.LOG.info("Library %s is not synced. Skip update.", view_id)
+            if view_id not in [x.replace('Mixed:', "") for x in self.EmbyServer.Utils.SyncData['Whitelist'] + self.EmbyServer.Utils.SyncData['Libraries']]:
+                self.LOG.info("Library %s is not synced. Skip update." % view_id)
                 return False
 
             library['Id'] = view_id

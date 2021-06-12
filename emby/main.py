@@ -1,75 +1,87 @@
-import logging
-from . import client
-
-LOG = logging.getLogger('EMBY')
-
-def has_attribute(obj, name):
-    try:
-        object.__getattribute__(obj, name)
-        return True
-    except AttributeError:
-        return False
-
-def ensure_client():
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
-            if self.client.get(self.server_id) is None:
-                self.construct()
-
-            return func(self, *args, **kwargs)
-
-        return wrapper
-    return decorator
+# -*- coding: utf-8 -*-
+import helper.loghandler
+from .core import api
+from .core import http
+from .core import ws_client
+from .core import connection_manager
 
 class Emby():
-    client = {}
-    server_id = "default"
+    def __init__(self, Utils):
+        self.LOG = helper.loghandler.LOG('EMBY.emby.main')
+        self.logged_in = False
+        self.wsock = None
+        self.http = http.HTTP(self)
+        self.auth = connection_manager.ConnectionManager(self)
+        self.server_id = None
+        self.Online = False
 
-    def __init__(self, server_id=None):
-        self.server_id = server_id or "default"
 
-    def get_client(self):
-        return self.client[self.server_id]
+        self.Nodes = []
 
-    def close(self):
-        if self.server_id not in self.client:
-            return
 
-        self.client[self.server_id].stop()
-        self.client.pop(self.server_id, None)
-        LOG.info("---[ STOPPED EMBYCLIENT: %s ]---", self.server_id)
+        self.Utils = Utils
+        self.API = api.API(self)
+        self.Data = {'http.user_agent': None, 'http.timeout': 30, 'http.max_retries': 3, 'auth.server': None, 'auth.user_id': None, 'auth.token': None, 'auth.ssl': None, 'app.name': None, 'app.version': None, 'app.device_name': None, 'app.device_id': self.Utils.get_device_id(False), 'app.capabilities': None, 'auth.server-name': None}
+        self.LOG.info("---[ INIT EMBYCLIENT: ]---")
 
-    @classmethod
-    def close_all(cls):
-        for clientData in dict(cls.client):
-            cls.client[clientData].stop()
+    def authenticate(self, credentials, options):
+        self.auth.credentials.set_credentials(credentials or {})
+        state = self.auth.connect(options or {})
 
-        cls.client = {}
-        LOG.info("---[ STOPPED ALL EMBYCLIENTS ]---")
+        if not state:
+            return False
 
-    @classmethod
-    def get_active_clients(cls):
-        return cls.client
+        if state['State'] == 3: #SignedIn
+            self.logged_in = True
+            self.LOG.info("User is authenticated.")
 
-    @ensure_client()
-    def __setattr__(self, name, value):
-        if has_attribute(self, name):
-            return super(Emby, self).__setattr__(name, value)
+        state['Credentials'] = self.auth.credentials.get_credentials()
+        return state
 
-        setattr(self.client[self.server_id], name, value)
+    def start(self):
+        if not self.logged_in:
+            self.LOG.error("User is not logged in.")
+            return False #"User is not authenticated."
 
-    @ensure_client()
-    def __getattr__(self, name):
-        return getattr(self.client[self.server_id], name)
+        self.LOG.info("---[ START EMBYCLIENT: %s ]---" % self.server_id)
+        self.http.start_session()
+        self.API.post_capabilities({
+            'PlayableMediaTypes': "Audio,Video",
+            'SupportsMediaControl': True,
+            'SupportedCommands': (
+                "MoveUp,MoveDown,MoveLeft,MoveRight,Select,"
+                "Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,"
+                "GoHome,PageUp,NextLetter,GoToSearch,"
+                "GoToSettings,PageDown,PreviousLetter,TakeScreenshot,"
+                "VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,"
+                "SetAudioStreamIndex,SetSubtitleStreamIndex,"
+                "SetRepeatMode,"
+                "Mute,Unmute,SetVolume,"
+                "Play,Playstate,PlayNext,PlayMediaSource"
+            ),
+            'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
+        })
 
-    @ensure_client()
-    def __getitem__(self, key):
-        return self.client[self.server_id][key]
+        if self.Utils.Settings.Users:
+            session = self.API.get_device()
+            users = self.Utils.Settings.Users.split(',')
+            hidden = None if self.Utils.Settings.addUsersHidden else False
+            all_users = self.API.get_users(False, hidden)
 
-    def construct(self):
-        self.client[self.server_id] = client.EmbyClient()
+            for additional in users:
+                for user in all_users:
+                    if user['Id'] == additional:
+                        self.API.session_add_user(session[0]['Id'], user['Id'], True)
 
-        if self.server_id == 'default':
-            LOG.info("---[ START EMBYCLIENT ]---")
-        else:
-            LOG.info("---[ START EMBYCLIENT: %s ]---", self.server_id)
+        #Websocket
+        self.wsock = ws_client.WSClient(self.Data['auth.server'], self.Data['app.device_id'], self.Data['auth.token'], self.server_id)
+        self.wsock.start()
+
+    def stop(self):
+        self.LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
+
+        if self.wsock:
+            self.wsock.close()
+
+        self.wsock = None
+        self.http.stop_session()

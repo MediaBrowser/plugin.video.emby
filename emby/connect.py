@@ -1,34 +1,30 @@
 # -*- coding: utf-8 -*-
-import logging
+import json
+import os
 
-import xbmc
 import xbmcaddon
-import database.database
+import xbmcvfs
+
 import dialogs.serverconnect
 import dialogs.usersconnect
 import dialogs.loginconnect
 import dialogs.loginmanual
 import dialogs.servermanual
-import helper.translate
-import helper.api
-from . import main
-from .core import connection_manager
-from .core import exceptions
+import helper.loghandler
+import emby.main
 
 class Connect():
-    pending = []
-
     def __init__(self, Utils):
         self.Utils = Utils
-        self.info = self.Utils.get_info()
-        self.XML_PATH = (xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), "default", "1080i")
-        self.LOG = logging.getLogger("EMBY.connect.Connect")
+        self.XML_PATH = (xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), "default", "1080i")
+        self.LOG = helper.loghandler.LOG('EMBY.emby.connect.Connect')
         self.user = None
         self.config = None
         self.connect_manager = None
+        self.EmbyServer = emby.main.Emby(self.Utils)
 
-    def _save_servers(self, new_servers, default=False):
-        credentials = database.database.get_credentials()
+    def _save_servers(self, new_servers, default):
+        credentials = self.get_credentials()
 
         if not new_servers:
             return credentials
@@ -62,279 +58,218 @@ class Connect():
 
     #Login into server. If server is None, then it will show the proper prompts to login, etc.
     #If a server id is specified then only a login dialog will be shown for that server.
-    def register(self, server_id=None, options={}):
-        self.LOG.info("--[ server/%s ]", server_id or 'default')
+    def register(self, options):
+        self.LOG.info("--[ server/%s ]" % "DEFAULT")
+        credentials = self.get_credentials()
+        new_credentials = self.register_client(credentials, options, not self.Utils.Settings.SyncInstallRunDone)
 
-        if (server_id) in self.pending:
-            self.LOG.info("[ server/%s ] is already being registered", server_id or 'default')
-            return
-
-        self.pending.append(server_id)
-        credentials = database.database.get_credentials()
-
-        if server_id is None and credentials['Servers']:
-            credentials['Servers'] = [credentials['Servers'][0]]
-        elif credentials['Servers']:
-            for server in credentials['Servers']:
-                if server['Id'] == server_id:
-                    credentials['Servers'] = [server]
-
-        server_select = bool(server_id is None and not self.Utils.settings('SyncInstallRunDone.bool'))
-
-        try:
-            new_credentials = self.register_client(credentials, options, server_id, server_select)
-            credentials = self._save_servers(new_credentials['Servers'], server_id is None)
+        if new_credentials:
+            server_id = new_credentials['Servers'][0]['Id']
+            credentials = self._save_servers(new_credentials['Servers'], server_id)
             new_credentials.update(credentials)
-            database.database.save_credentials(new_credentials)
-            main.Emby(server_id).start(not bool(server_id), True)
-        except exceptions.HTTPException as error:
-            if error.status == 'ServerUnreachable':
-                self.pending.remove(server_id)
-                raise
-        except ValueError as error:
-            self.LOG.error(error)
+            self.save_credentials(new_credentials)
+            return server_id, self.EmbyServer
 
-        self.pending.remove(server_id)
+        return False, None
 
-    #Returns boolean value.
-    #True: verify connection.
-    def get_ssl(self):
-        return self.Utils.settings('sslverify.bool')
+    def save_credentials(self, credentials):
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
-    #Get Emby client
-    def get_client(self, server, server_id=None):
-        client = main.Emby(server_id)
-        client['config/app']("Kodi", self.info['Version'], self.info['DeviceName'], self.info['DeviceId'])
-        client['config']['http.user_agent'] = "Emby-Kodi/%s" % self.info['Version']
-        client['config']['auth.ssl'] = server.get('verify', self.get_ssl())
-        return client
+        if not xbmcvfs.exists(path):
+            xbmcvfs.mkdirs(path)
 
-    def register_client(self, credentials=None, options=None, server_id=None, server_selection=False):
-        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {}, server_id)
-        self.connect_manager = client.auth
+        credentials = json.dumps(credentials, sort_keys=True, indent=4, ensure_ascii=False)
 
-        if server_id is None:
-            client['config']['app.default'] = True
+        with open(os.path.join(path, 'data.json'), 'wb') as outfile:
+            outfile.write(credentials.encode('utf-8'))
 
-        try:
-            state = client.authenticate(credentials or {}, options or {})
+    def get_credentials(self):
+        path = self.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/")
 
-            if state['State'] == connection_manager.CONNECTION_STATE['SignedIn']:
-                client.callback_ws = self.Utils.event
+        if not xbmcvfs.exists(path):
+            xbmcvfs.mkdirs(path)
 
-                if server_id is None: # Only assign for default server
-                    client.callback = self.Utils.event
-                    self.get_user(client)
-                    self.Utils.settings('serverName', client['config/auth.server-name'])
-                    self.Utils.settings('server', client['config/auth.server'])
+        if xbmcvfs.exists(os.path.join(path, "data.json")):
+            with open(os.path.join(path, 'data.json'), 'rb') as infile:
+                credentials = json.load(infile)
+        else:
+            credentials = {}
 
-                self.Utils.event('LoadServer', {'ServerId': server_id})
+        credentials['Servers'] = credentials.get('Servers', [])
+        return credentials
+
+    #Set Emby client
+    def set_client(self):
+        self.EmbyServer.Data['app.name'] = "Kodi"
+        self.EmbyServer.Data['app.version'] = self.Utils.device_info['Version']
+        self.EmbyServer.Data['app.device_name'] = self.Utils.device_info['DeviceName']
+        self.EmbyServer.Data['app.device_id'] = self.Utils.device_info['DeviceId']
+        self.EmbyServer.Data['app.capabilities'] = None
+        self.EmbyServer.Data['http.user_agent'] = "Emby-Kodi/%s" % self.Utils.device_info['Version']
+        self.EmbyServer.Data['auth.ssl'] = self.Utils.Settings.sslverify
+
+    def register_client(self, credentials, options, server_selection):
+        self.set_client()
+        self.connect_manager = self.EmbyServer.auth
+        state = self.EmbyServer.authenticate(credentials or {}, options or {})
+
+        if state:
+            if state['State'] == 3: #SignedIn
+                server_id = state['Servers'][0]['Id']
+                self.EmbyServer.server_id = server_id
                 return state['Credentials']
 
-            if (server_selection or state['State'] in (connection_manager.CONNECTION_STATE['ConnectSignIn'], connection_manager.CONNECTION_STATE['ServerSelection']) or state['State'] == connection_manager.CONNECTION_STATE['Unavailable'] and not self.Utils.settings('SyncInstallRunDone.bool')):
-                self.select_servers(state)
-            elif state['State'] == connection_manager.CONNECTION_STATE['ServerSignIn']:
+            if state['State'] == 0: #Unavailable
+                return False
+
+            if server_selection or state['State'] in (4, 1): #ConnectSignIn or ServerSelection
+                result = self.select_servers(state)
+
+                if not result: #Cancel
+                    return False
+            elif state['State'] == 2: #ServerSignIn
                 if 'ExchangeToken' not in state['Servers'][0]:
-                    self.login()
-            elif state['State'] == connection_manager.CONNECTION_STATE['Unavailable']:
-                raise exceptions.HTTPException('ServerUnreachable', {})
+                    result = self.login()
 
-            return self.register_client(state['Credentials'], options, server_id, False)
-        except RuntimeError as error:
-            self.LOG.exception(error)
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % self.Utils.addon_id())
-            raise Exception('User sign in interrupted')
-        except exceptions.HTTPException as error:
-            if error.status == 'ServerUnreachable':
-                self.Utils.event('ServerUnreachable', {'ServerId': server_id})
-                raise
+                    if not result:
+                        return False
 
-            return client.get_credentials()
+            elif state['State'] == 0: #Unavailable
+                return False
+
+            return self.register_client(state['Credentials'], options, False)
+
+        return False
 
     #Save user info
-    def get_user(self, client):
-        self.user = client['api'].get_user()
-        self.config = client['api'].get_system_info()
-        self.Utils.settings('username', self.user['Name'])
+    def get_user(self):
+        self.user = self.EmbyServer.API.get_user(None)
+        self.config = self.EmbyServer.API.get_system_info()
+        self.Utils.Settings.set_settings('username', self.user['Name'])
 
         if 'PrimaryImageTag' in self.user:
-            self.Utils.window('EmbyUserImage', helper.api.API(self.user, self.Utils, client['auth/server-address']).get_user_artwork(self.user['Id']))
+            self.Utils.Settings.emby_UserImage = self.EmbyServer.API.get_user_artwork(self.user['Id'])
 
-    def select_servers(self, state=None):
-        state = state or self.connect_manager.connect({'enableAutoLogin': False})
+    def select_servers(self, state):
+        if not state:
+            state = self.connect_manager.connect({'enableAutoLogin': False})
+
+            if not state:
+                return False
+
         user = state.get('ConnectUser') or {}
-        self.Utils.dialog = dialogs.serverconnect.ServerConnect("script-emby-connect-server.xml", *self.XML_PATH)
-        self.Utils.dialog.set_args(**{
+        Dialog = dialogs.serverconnect.ServerConnect("script-emby-connect-server.xml", *self.XML_PATH)
+        Dialog.set_args(**{
             'connect_manager': self.connect_manager,
             'username': user.get('DisplayName', ""),
             'user_image': user.get('ImageUrl'),
             'servers': state.get('Servers', []),
             'emby_connect': not user
         })
-        self.Utils.dialog.doModal()
+        Dialog.doModal()
 
-        if self.Utils.dialog.is_server_selected():
-            self.LOG.debug("Server selected: %s", self.Utils.dialog.get_server())
-            return
+        if Dialog.is_server_selected():
+            self.LOG.debug("Server selected: %s" % Dialog.get_server())
+            return True
 
-        if self.Utils.dialog.is_connect_login():
+        if Dialog.is_connect_login():
             self.LOG.debug("Login with emby connect")
-
-            try:
-                self.login_connect()
-            except RuntimeError:
-                pass
-        elif self.Utils.dialog.is_manual_server():
+            self.login_connect(None)
+        elif Dialog.is_manual_server():
             self.LOG.debug("Adding manual server")
-
-            try:
-                self.manual_server()
-            except RuntimeError:
-                pass
+            self.manual_server(None)
         else:
-            raise RuntimeError("No server selected")
+            return False #"No server selected"
 
-        return self.select_servers()
-
-    #Setup manual servers
-    def setup_manual_server(self):
-        credentials = database.database.get_credentials()
-        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
-        client.set_credentials(credentials)
-        manager = client.auth
-
-        try:
-            self.manual_server(manager)
-        except RuntimeError:
-            return
-
-        new_credentials = client.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'])
-        database.database.save_credentials(credentials)
+        return self.select_servers(None)
 
     #Return server or raise error
-    def manual_server(self, manager=None):
-        self.Utils.dialog = dialogs.servermanual.ServerManual("script-emby-connect-server-manual.xml", *self.XML_PATH)
-        self.Utils.dialog.set_args(**{'connect_manager': manager or self.connect_manager})
-        self.Utils.dialog.doModal()
+    def manual_server(self, manager):
+        Dialog = dialogs.servermanual.ServerManual("script-emby-connect-server-manual.xml", *self.XML_PATH)
+        Dialog.set_args(**{'connect_manager': manager or self.connect_manager})
+        Dialog.doModal()
 
-        if self.Utils.dialog.is_connected():
-            return self.Utils.dialog.get_server()
+        if Dialog.is_connected():
+            return Dialog.get_server()
 
-        raise RuntimeError("Server is not connected")
-
-    #Setup emby connect by itself
-    def setup_login_connect(self):
-        credentials = database.database.get_credentials()
-        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
-        client.set_credentials(credentials)
-        manager = client.auth
-
-        try:
-            self.login_connect(manager)
-        except RuntimeError:
-            return
-
-        new_credentials = client.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'])
-        database.database.save_credentials(credentials)
+        #raise RuntimeError("Server is not connected")
+        return False
 
     #Return connect user or raise error
-    def login_connect(self, manager=None):
-        self.Utils.dialog = dialogs.loginconnect.LoginConnect("script-emby-connect-login.xml", *self.XML_PATH)
-        self.Utils.dialog.set_args(**{'connect_manager': manager or self.connect_manager})
-        self.Utils.dialog.doModal()
+    def login_connect(self, manager):
+        Dialog = dialogs.loginconnect.LoginConnect("script-emby-connect-login.xml", *self.XML_PATH)
+        Dialog.set_args(**{'connect_manager': manager or self.connect_manager})
+        Dialog.doModal()
 
-        if self.Utils.dialog.is_logged_in():
-            return self.Utils.dialog.get_user()
+        if Dialog.is_logged_in():
+            return Dialog.get_user()
 
-        raise RuntimeError("Connect user is not logged in")
+        return False #"Connect user is not logged in"
 
     def login(self):
-        users = self.connect_manager['public-users']
-        server = self.connect_manager['server-address']
+        users = self.EmbyServer.API.get_public_users()
+        server = self.EmbyServer.auth.get_serveraddress()
 
         if not users:
-            try:
-                return self.login_manual()
-            except RuntimeError:
-                raise RuntimeError("No user selected")
+            return self.login_manual(None, None)
 
-        self.Utils.dialog = dialogs.usersconnect.UsersConnect("script-emby-connect-users.xml", *self.XML_PATH)
-        self.Utils.dialog.set_args(**{'server': server, 'users': users})
-        self.Utils.dialog.doModal()
+        Dialog = dialogs.usersconnect.UsersConnect("script-emby-connect-users.xml", *self.XML_PATH)
+        Dialog.set_args(**{'server': server, 'users': users})
+        Dialog.doModal()
 
-        if self.Utils.dialog.is_user_selected():
-            user = self.Utils.dialog.get_user()
+        if Dialog.is_user_selected():
+            user = Dialog.get_user()
             username = user['Name']
 
             if user['HasPassword']:
                 self.LOG.debug("User has password, present manual login")
+                Result = self.login_manual(username, None)
 
-                try:
-                    return self.login_manual(username)
-                except RuntimeError:
-                    pass
+                if Result:
+                    return Result
             else:
-                return self.connect_manager['login'](server, username)
-        elif self.Utils.dialog.is_manual_login():
-            try:
-                return self.login_manual()
-            except RuntimeError:
-                pass
+                return self.connect_manager.login(server, username, None, True, {})
+        elif Dialog.is_manual_login():
+            Result = self.login_manual(None, None)
+
+            if Result:
+                return Result
         else:
-            raise RuntimeError("No user selected")
+            return False #"No user selected"
 
         return self.login()
 
-    #Setup manual login by itself for default server
-    def setup_login_manual(self):
-        credentials = database.database.get_credentials()
-        client = self.get_client(credentials['Servers'][0] if credentials['Servers'] else {})
-        client.set_credentials(credentials)
-        manager = client.auth
-
-        try:
-            self.login_manual(manager=manager)
-        except RuntimeError:
-            return
-
-        new_credentials = client.get_credentials()
-        credentials = self._save_servers(new_credentials['Servers'])
-        database.database.save_credentials(credentials)
-
     #Return manual login user authenticated or raise error
-    def login_manual(self, user=None, manager=None):
-        self.Utils.dialog = dialogs.loginmanual.LoginManual("script-emby-connect-login-manual.xml", *self.XML_PATH)
-        self.Utils.dialog.set_args(**{'connect_manager': manager or self.connect_manager, 'username': user or {}})
-        self.Utils.dialog.doModal()
+    def login_manual(self, user, manager):
+        Dialog = dialogs.loginmanual.LoginManual("script-emby-connect-login-manual.xml", *self.XML_PATH)
+        Dialog.set_args(**{'connect_manager': manager or self.connect_manager, 'username': user or {}})
+        Dialog.doModal()
 
-        if self.Utils.dialog.is_logged_in():
-            return self.Utils.dialog.get_user()
+        if Dialog.is_logged_in():
+            return Dialog.get_user()
 
-        raise RuntimeError("User is not authenticated")
+        return False #"User is not authenticated"
 
     #Stop client and remove server
     def remove_server(self, server_id):
-        main.Emby(server_id).close()
-        credentials = database.database.get_credentials()
+        credentials = self.get_credentials()
 
         for server in credentials['Servers']:
             if server['Id'] == server_id:
                 credentials['Servers'].remove(server)
                 break
 
-        database.database.save_credentials(credentials)
-        self.LOG.info("[ remove server ] %s", server_id)
+        self.save_credentials(credentials)
+        self.LOG.info("[ remove server ] %s" % server_id)
 
     #Allow user to setup ssl verification for additional servers
     def set_ssl(self, server_id):
-        value = self.Utils.dialog("yesno", heading="{emby}", line1=helper.translate._(33217))
-        credentials = database.database.get_credentials()
+        value = self.Utils.Dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33217))
+        credentials = self.get_credentials()
 
         for server in credentials['Servers']:
             if server['Id'] == server_id:
                 server['verify'] = bool(value)
-                database.database.save_credentials(credentials)
-                self.LOG.info("[ ssl/%s/%s ]", server_id, server['verify'])
+                self.save_credentials(credentials)
+                self.LOG.info("[ ssl/%s/%s ]" % (server_id, server['verify']))
                 break

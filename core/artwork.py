@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-import logging
 import os
+import threading
 
 try:
     from urllib import urlencode
 except:
     from urllib.parse import urlencode
 
-import threading
-import requests
 import xbmcgui
 import xbmcvfs
 
-import helper.translate
 import database.database
-import emby.main
+import helper.loghandler
 from . import queries_videos
 from . import queries_music
 from . import queries_texture
@@ -25,11 +22,10 @@ class Artwork():
             cursor.execute("PRAGMA database_list;")
             self.is_music = 'MyMusic' in cursor.fetchall()[0][2]
 
-        self.LOG = logging.getLogger("EMBY.core.artwork.Artwork")
+        self.LOG = helper.loghandler.LOG('EMBY.core.artwork.Artwork')
         self.Utils = Utils
         self.cursor = cursor
         self.threads = []
-        self.server = emby.main.Emby()
         self.CacheAllEntriesThread = None
 
     #Update artwork in the video database.
@@ -40,21 +36,21 @@ class Artwork():
         if image == 'poster' and media in ('song', 'artist', 'album'):
             return
 
-        try:
-            self.cursor.execute(queries_videos.get_art, (kodi_id, media, image,))
-            url = self.cursor.fetchone()[0]
-        except TypeError:
-            self.LOG.debug("ADD to kodi_id %s art: %s", kodi_id, image_url)
-            self.cursor.execute(queries_videos.add_art, (kodi_id, media, image, image_url))
-        else:
+        self.cursor.execute(queries_videos.get_art, (kodi_id, media, image,))
+        result = self.cursor.fetchone()
+
+        if result:
+            url = result[0]
+
             if url != image_url:
-                self.delete_cache(url)
+                self.delete_cache(url, False)
 
-                if not image_url:
-                    return
-
-                self.LOG.info("UPDATE to kodi_id %s art: %s", kodi_id, image_url)
-                self.cursor.execute(queries_videos.update_art, (image_url, kodi_id, media, image))
+                if image_url:
+                    self.LOG.info("UPDATE to kodi_id %s art: %s" % (kodi_id, image_url))
+                    self.cursor.execute(queries_videos.update_art, (image_url, kodi_id, media, image))
+        else:
+            self.LOG.debug("ADD to kodi_id %s art: %s" % (kodi_id, image_url))
+            self.cursor.execute(queries_videos.add_art, (kodi_id, media, image, image_url))
 
     #Add all artworks
     def add(self, artwork, *args):
@@ -91,38 +87,39 @@ class Artwork():
         self.cursor.execute(queries_videos.get_art_url, args)
 
         for row in self.cursor.fetchall():
-            self.delete_cache(row[0])
+            self.delete_cache(row[0], True)
 
     #Delete cached artwork
-    def delete_cache(self, url):
-        with database.database.Database('texture') as texturedb:
+    def delete_cache(self, url, CompleteRemove):
+        with database.database.Database(self.Utils, 'texture', True) as texturedb:
             cursor = texturedb.cursor
+            cursor.execute(queries_texture.get_cache, (url,))
+            result = cursor.fetchone()
 
-            try:
-                cursor.execute(queries_texture.get_cache, (url,))
-                cached = cursor.fetchone()[0]
-            except TypeError:
-                self.LOG.debug("Could not find cached url: %s", url)
-            else:
+            if result:
+                cached = result[0]
                 thumbnails = self.Utils.translatePath("special://thumbnails/%s" % cached)
                 xbmcvfs.delete(thumbnails)
                 cursor.execute(queries_texture.delete_cache, (url,))
 
-                if self.is_music:
-                    self.cursor.execute(queries_music.delete_artwork, (url,))
-                else:
-                    self.cursor.execute(queries_videos.delete_artwork, (url,))
+                if CompleteRemove:
+                    if self.is_music:
+                        self.cursor.execute(queries_music.delete_artwork, (url,))
+                    else:
+                        self.cursor.execute(queries_videos.delete_artwork, (url,))
 
-                self.LOG.info("DELETE cached %s", cached)
+                self.LOG.info("DELETE cached %s" % cached)
+            else:
+                self.LOG.debug("Could not find cached url: %s" % url)
 
     #This method will sync all Kodi artwork to textures13.dband cache them locally. This takes diskspace!
     def cache_textures(self):
-        if not self.Utils.set_web_server():
+        if not self.Utils.Settings.WebserverData['Enabled']:
             return
 
         self.LOG.info("<[ cache textures ]")
 
-        if self.Utils.dialog("yesno", heading="{emby}", line1=helper.translate._(33044)):
+        if self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33044)):
             self.delete_all_cache()
 
         self._cache_all_video_entries()
@@ -134,17 +131,17 @@ class Artwork():
         cache = self.Utils.translatePath('special://thumbnails/')
 
         if xbmcvfs.exists(cache):
-            dirs, ignored = xbmcvfs.listdir(cache)
+            dirs, _ = xbmcvfs.listdir(cache)
 
             for directory in dirs:
-                ignored, files = xbmcvfs.listdir(os.path.join(cache, directory))
+                _, files = xbmcvfs.listdir(os.path.join(cache, directory))
 
                 for Filename in files:
                     cached = os.path.join(cache, directory, Filename)
                     xbmcvfs.delete(cached)
-                    self.LOG.debug("DELETE cached %s", cached)
+                    self.LOG.debug("DELETE cached %s" % cached)
 
-        with database.database.Database('texture') as kodidb:
+        with database.database.Database(self.Utils, 'texture', True) as kodidb:
             kodidb.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
 
             for table in kodidb.cursor.fetchall():
@@ -155,7 +152,7 @@ class Artwork():
 
     #Cache all artwork from video db. Don't include actors
     def _cache_all_video_entries(self):
-        with database.database.Database('video') as kodidb:
+        with database.database.Database(self.Utils, 'video', True) as kodidb:
             kodidb.cursor.execute(queries_videos.get_artwork)
             urls = kodidb.cursor.fetchall()
 
@@ -164,7 +161,7 @@ class Artwork():
 
     #Cache all artwork from music db
     def _cache_all_music_entries(self):
-        with database.database.Database('music') as kodidb:
+        with database.database.Database(self.Utils, 'music', True) as kodidb:
             kodidb.cursor.execute(queries_music.get_artwork)
             urls = kodidb.cursor.fetchall()
 
@@ -177,22 +174,20 @@ class CacheAllEntries(threading.Thread):
         self.urls = urls
         self.Label = Label
         self.progress_updates = xbmcgui.DialogProgressBG()
-        self.progress_updates.create(helper.translate._('addon_name'), helper.translate._(33045))
+        self.progress_updates.create(self.Utils.Translate('addon_name'), self.Utils.Translate(33045))
         threading.Thread.__init__(self)
 
     #Cache all entries
     def run(self):
-        webServerPort = self.Utils.window('webServerPort')
-        webServerUser = self.Utils.window('webServerUser')
-        webServerPass = self.Utils.window('webServerPass')
+        import requests
         total = len(self.urls)
 
         for index, url in enumerate(self.urls):
-            if self.Utils.window('emby_should_stop.bool'):
+            if self.Utils.Settings.emby_shouldstop:
                 break
 
             Value = int((float(float(index)) / float(total)) * 100)
-            self.progress_updates.update(Value, message="%s: %s" % (helper.translate._(33045), self.Label + ": " + str(index)))
+            self.progress_updates.update(Value, message="%s: %s" % (self.Utils.Translate(33045), self.Label + ": " + str(index)))
 
             if url[0]:
                 url = urlencode({'blahblahblah': url[0]})
@@ -201,7 +196,7 @@ class CacheAllEntries(threading.Thread):
                 url = url[13:]
 
                 try:
-                    requests.head("http://127.0.0.1:%s/image/image://%s" % (webServerPort, url), auth=(webServerUser, webServerPass))
+                    requests.head("http://127.0.0.1:%s/image/image://%s" % (self.Utils.Settings.WebserverData['webServerPort'], url), auth=(self.Utils.Settings.WebserverData['webServerUser'], self.Utils.Settings.WebserverData['webServerPass']))
                 except:
                     break
 

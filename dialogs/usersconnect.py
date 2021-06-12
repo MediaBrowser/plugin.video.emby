@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 import xbmcgui
+
+import helper.loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -16,7 +17,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
         self._user = None
         self._manual_login = False
         self.list_ = None
-        self.LOG = logging.getLogger("EMBY.dialogs.userconnect.UsersConnect")
+        self.LOG = helper.loghandler.LOG('EMBY.dialogs.userconnect.UsersConnect')
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     #connect_manager, user_image, servers, emby_connect
@@ -56,7 +57,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
             if self.getFocusId() == LIST:
                 user = self.list_.getSelectedItem()
                 selected_id = user.getProperty('id')
-                self.LOG.info('User Id selected: %s', selected_id)
+                self.LOG.info('User Id selected: %s' % selected_id)
 
                 for user in self.users:
                     if user['Id'] == selected_id:

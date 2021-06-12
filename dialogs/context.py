@@ -1,20 +1,22 @@
-import logging
+# -*- coding: utf-8 -*-
 import os
 
 import xbmcgui
 import xbmcaddon
+
 import helper.utils
+import helper.loghandler
 
 class ContextMenu(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self._options = []
         self.selected_option = None
         self.list_ = None
-        self.LOG = logging.getLogger("EMBY.dialogs.context.ContextMenu")
+        self.LOG = helper.loghandler.LOG('EMBY.dialogs.context.ContextMenu')
         self.Utils = helper.utils.Utils()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def set_options(self, options=[]):
+    def set_options(self, options):
         self._options = options
 
     def is_selected(self):
@@ -24,10 +26,10 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        if self.Utils.window('EmbyUserImage'):
-            self.getControl(150).setImage(self.Utils.window('EmbyUserImage'))
+        if self.Utils.Settings.emby_UserImage:
+            self.getControl(150).setImage(self.Utils.Settings.emby_UserImage)
 
-        self.LOG.info("options: %s", self._options)
+        self.LOG.info("options: %s" % self._options)
         self.list_ = self.getControl(155)
 
         for option in self._options:
@@ -43,11 +45,11 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
             if self.getFocusId() == 155:
                 option = self.list_.getSelectedItem()
                 self.selected_option = option.getLabel()
-                self.LOG.info('option selected: %s', self.selected_option)
+                self.LOG.info('option selected: %s' % self.selected_option)
                 self.close()
 
     def _add_editcontrol(self, x, y, height, width):
-        media = os.path.join(xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
+        media = os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlImage(0, 0, 0, 0, filename=os.path.join(media, "white.png"), aspectRatio=0, colorDiffuse="ff111111")
         control.setPosition(x, y)
         control.setHeight(height)
@@ -55,6 +57,5 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         self.addControl(control)
         return control
 
-    @classmethod
-    def _add_listitem(cls, label):
+    def _add_listitem(self, label):
         return xbmcgui.ListItem(label)
