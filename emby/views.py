@@ -652,7 +652,7 @@ class Views():
 
     def node_nextepisodes(self, root, LibraryName):
         params = {
-            'libraryname': LibraryName,
+            'libraryname': LibraryName.encode('utf-8'),
             'mode': "nextepisodes",
             'limit': 25
         }
