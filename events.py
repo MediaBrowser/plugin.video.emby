@@ -63,9 +63,9 @@ class Events():
         self.LOG.debug("path: %s params: %s" % (Parameter[2], json.dumps(params, indent=4)))
 
         #Events
-#        if mode == 'refreshboxsets':
-#            self.event('SyncLibrary', {'Id': "Boxsets: Refresh", 'Update': False, 'ServerId': self.server_id})
-        if mode == 'nextepisodes':
+        if mode == 'refreshboxsets':
+            self.event('SyncLibrary', {'Id': "Boxsets: Refresh", 'ServerId': self.server_id})
+        elif mode == 'nextepisodes':
             self.EmbyQueryData('nextepisodes', {'Handle': Handle, 'libraryname': params.get('libraryname')})
         elif mode == 'photoviewer':
             xbmc.executebuiltin('ShowPicture(http://127.0.0.1:57578/%s/Images/Primary)' %  params['id'])

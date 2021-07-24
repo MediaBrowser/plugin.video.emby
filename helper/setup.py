@@ -2,6 +2,7 @@
 import xbmc
 import xbmcvfs
 
+import helper.xmls
 import database.database
 from . import loghandler
 
@@ -94,3 +95,7 @@ class Setup():
 
         #Setup completed
         self.Utils.Settings.set_settings('MinimumSetup', minimum)
+        self.Xmls = helper.xmls.Xmls(self.Utils)
+        self.Xmls.advanced_settings()
+        self.Xmls.sources()
+        self.Xmls.advanced_settings_add_timeouts()

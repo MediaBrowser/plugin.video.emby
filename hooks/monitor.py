@@ -458,6 +458,9 @@ class Monitor(xbmc.Monitor):
     def WebSocketRestarting(self, data):
         self.library[data['ServerId']].get_fast_sync()
 
+    def SyncLibrary(self, data):
+        self.library[data['ServerId']].add_library(data['Id'], False)
+
     def SyncLibrarySelection(self, data):
         self.library[data['ServerId']].select_libraries("SyncLibrarySelection")
 
@@ -503,7 +506,7 @@ class Monitor(xbmc.Monitor):
         self.library[data['ServerId']].patch_music(data.get('Notification', True))
 
     def Unauthorized(self, data):
-        self.EmbyServers[data['ServerId']].Online = False
+#        self.EmbyServers[data['ServerId']].Online = False
         self.Service.Utils.dialog("notification", heading="{emby}", message=self.Service.Utils.Translate(33147))
 
     def System_OnQuit(self):
@@ -574,7 +577,28 @@ class Monitor(xbmc.Monitor):
         if self.Service.ShouldStop or self.sleep:
             return
 
+        xspplaylistsPreviousValue = self.Service.Utils.Settings.xspplaylists
         self.Service.Utils.Settings.InitSettings()
+
+        #Toggle xsp playlists
+        if xspplaylistsPreviousValue != self.Service.Utils.Settings.xspplaylists:
+            if self.Service.Utils.Settings.xspplaylists:
+                for server_id in self.EmbyServers:
+
+                    Views = emby.views.Views(self.EmbyServers[server_id])
+                    Views.update_nodes()
+            else:
+                #delete playlists
+                playlistfolders = {"special://userdata/playlists/mixed/", "special://userdata/playlists/video/", "special://userdata/playlists/music/"}
+
+                for playlistfolder in playlistfolders:
+                    folder = self.Service.Utils.translatePath(playlistfolder)
+
+                    if xbmcvfs.exists(folder):
+                        _, files = xbmcvfs.listdir(folder)
+
+                        for Filename in files:
+                            xbmcvfs.delete(os.path.join(folder, Filename))
 
     def Application_OnVolumeChanged(self, data):
         self.player.SETVolume(data['volume'], data['muted'])
@@ -835,7 +859,7 @@ class MonitorWorker(threading.Thread):
         if self.sender == 'plugin.video.emby-next-gen':
             self.method = self.method.split('.')[1]
 
-            if self.method not in ('ReportProgressRequested', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer', 'ServerOnline', 'ServerConnect', 'AddUser', 'AddServer', 'RemoveServer', 'SetServerSSL', 'UserDataChanged', 'LibraryChanged', 'WebSocketRestarting', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection', 'GUI.OnScreensaverDeactivated', 'PatchMusic', 'UserConfigurationUpdated', 'UserPolicyUpdated', 'ServerUnreachable', 'ServerShuttingDown', 'ServerRestarting', 'Unauthorized', 'SyncThemes', 'Backup'):
+            if self.method not in ('ReportProgressRequested', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer', 'ServerOnline', 'ServerConnect', 'AddUser', 'AddServer', 'RemoveServer', 'SetServerSSL', 'UserDataChanged', 'LibraryChanged', 'WebSocketRestarting', 'SyncLibrary', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection', 'GUI.OnScreensaverDeactivated', 'PatchMusic', 'UserConfigurationUpdated', 'UserPolicyUpdated', 'ServerUnreachable', 'ServerShuttingDown', 'ServerRestarting', 'Unauthorized', 'SyncThemes', 'Backup'):
                 return
 
             self.data = json.loads(self.data)[0]

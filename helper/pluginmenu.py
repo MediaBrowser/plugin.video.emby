@@ -61,7 +61,7 @@ class Menu():
     def manage_libraries(self, Handle, server_id):
         Handle = int(Handle)
         self.ListItemData = []
-#        self.add_ListItem(self.Utils.Translate(33098), "plugin://plugin.video.emby-next-gen/?mode=refreshboxsets&server=%s" % self.server_id, False, None, None)
+        self.add_ListItem(self.Utils.Translate(33098), "plugin://plugin.video.emby-next-gen/?mode=refreshboxsets&server=%s" % server_id, False, None, None)
         self.add_ListItem(self.Utils.Translate(33154), "plugin://plugin.video.emby-next-gen/?mode=addlibs&server=%s" % server_id, False, None, None)
         self.add_ListItem(self.Utils.Translate(33139), "plugin://plugin.video.emby-next-gen/?mode=updatelibs&server=%s" % server_id, False, None, None)
         self.add_ListItem(self.Utils.Translate(33140), "plugin://plugin.video.emby-next-gen/?mode=repairlibs&server=%s" % server_id, False, None, None)
