@@ -20,6 +20,7 @@ class Settings():
 
         #Settings
         self.limitThreads = ""
+        self.xspplaylists = False
         self.TranscodeFormatVideo = ""
         self.TranscodeFormatAudio = ""
         self.videoBitrate = ""
@@ -111,6 +112,7 @@ class Settings():
         self.load_settings('deviceName')
         self.load_settings('askSyncIndicator')
         self.load_settings('Users')
+        self.load_settings_bool('xspplaylists')
         self.load_settings_bool('Migrate')
         self.load_settings_bool('SyncInstallRunDone')
         self.load_settings_bool('newContent')

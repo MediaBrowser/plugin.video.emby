@@ -16,7 +16,6 @@ import core.musicvideos
 import core.tvshows
 import core.music
 import emby.views
-import helper.xmls
 import helper.loghandler
 from . import database
 from . import sync
@@ -55,8 +54,6 @@ class Library(threading.Thread):
         self.sync = sync.Sync(self.EmbyServer, self.Player, self.ThreadingLock)
         self.Views = emby.views.Views(self.EmbyServer)
         self.progress_percent = 0
-        self.Xmls = helper.xmls.Xmls(self.EmbyServer.Utils)
-
         threading.Thread.__init__(self)
         self.start()
 
@@ -115,8 +112,6 @@ class Library(threading.Thread):
 
     def run(self):
         self.LOG.warning("--->[ library ]")
-        self.Xmls.advanced_settings()
-        self.Xmls.advanced_settings_add_timeouts()
         self.Views.update_views()
         self.sync.update_library = False
 
@@ -126,8 +121,6 @@ class Library(threading.Thread):
 
             self.sync.FullSync()
         elif not self.EmbyServer.Utils.Settings.SyncInstallRunDone:
-            self.Xmls.sources()
-
             if not self.sync.mapping(False):
                 if self.SyncLater:
                     self.EmbyServer.Utils.dialog("ok", heading="{emby}", line1=self.EmbyServer.Utils.Translate(33129))

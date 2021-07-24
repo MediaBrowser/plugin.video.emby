@@ -161,8 +161,13 @@ class Views():
                 library = library.replace('Mixed:', "")
                 view = db.get_view(library)
 
+                if library in self.LibraryIcons:
+                    icon = self.LibraryIcons[library]
+                else:
+                    icon = None
+
                 if view:
-                    view = {'LibraryId': library, 'Name': view[1], 'Tag': view[1], 'Media': view[2], "Icon": self.LibraryIcons[library], 'NameClean': self.EmbyServer.Utils.StringDecode(view[1]).replace(" ", ""), 'MediaClean': view[2].replace(" ", "")}
+                    view = {'LibraryId': library, 'Name': view[1], 'Tag': view[1], 'Media': view[2], "Icon": icon, 'NameClean': self.EmbyServer.Utils.StringDecode(view[1]).replace(" ", ""), 'MediaClean': view[2].replace(" ", "")}
 
                     if view['Media'] == 'music':
                         node_path = self.EmbyServer.Utils.translatePath("special://profile/library/music")
@@ -301,6 +306,9 @@ class Views():
 
     #Create or update the xps file
     def add_playlist(self, path, view, mixed):
+        if not self.EmbyServer.Utils.Settings.xspplaylists:
+            return
+
         filepath = os.path.join(path, "emby_%s.xsp" % (view['Name'].replace(" ", "_")))
 
         try:
