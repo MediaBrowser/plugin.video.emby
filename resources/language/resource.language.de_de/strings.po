@@ -262,8 +262,8 @@ msgid "Enable artwork caching"
 msgstr "Artwork Cache aktivieren"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Maximal parallel abgefragte Serverelemente (Standard: 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Maximal parallel abgefragte Serverelemente (Standard: 50)"
 
 msgctxt "#30516"
 msgid "Playback"

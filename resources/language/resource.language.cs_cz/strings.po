@@ -257,8 +257,8 @@ msgid "Enable artwork caching"
 msgstr "Povolit ukládání obrázků do mezipaměti"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Stránkování - maximální požadovaný počet položek (výchozí: 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Stránkování - maximální požadovaný počet položek (výchozí: 50)"
 
 msgctxt "#30516"
 msgid "Playback"

@@ -259,8 +259,8 @@ msgid "Enable artwork caching"
 msgstr "Activer la mise en cache des illustrations"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Pagination − nombre maximum d'éléments demandés (par défaut : 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Pagination − nombre maximum d'éléments demandés (par défaut : 50)"
 
 msgctxt "#30516"
 msgid "Playback"

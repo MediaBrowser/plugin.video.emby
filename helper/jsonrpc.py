@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
-
 import xbmc
-class JSONRPC():
+
+
+class JSONRPC:
     def __init__(self, method, **kwargs):
         self.method = method
         self.params = False

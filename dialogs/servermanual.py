@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-
 import xbmcgui
 import xbmcaddon
-
-import helper.utils
 import helper.loghandler
+import helper.utils as Utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -14,29 +12,25 @@ CONNECT = 200
 CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
-ERROR = {
-    'Invalid': 1,
-    'Empty': 2
-}
+ERROR = {'Invalid': 1, 'Empty': 2}
+LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual.ServerManual')
+
 
 class ServerManual(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self._server = None
+        self.connect_manager = None
         self.error = None
-        self.Utils = helper.utils.Utils()
         self.connect_button = None
         self.cancel_button = None
         self.error_toggle = None
         self.error_msg = None
         self.host_field = None
         self.port_field = None
-        self.LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual.ServerManual')
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    #connect_manager, user_image, servers, emby_connect
-    def set_args(self, **kwargs):
-        for key, value in list(kwargs.items()):
-            setattr(self, key, value)
+    def PassVar(self, connect_manager):
+        self.connect_manager = connect_manager
 
     def is_connected(self):
         return bool(self._server)
@@ -69,12 +63,12 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], self.Utils.Translate('empty_server'))
-                self.LOG.error("Server cannot be null")
+                self._error(ERROR['Empty'], Utils.Translate('empty_server'))
+                LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
                 self.close()
-        #Remind me later
+        # Remind me later
         elif control == CANCEL:
             self.close()
 
@@ -96,11 +90,11 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
-        self._message("%s %s..." % (self.Utils.Translate(30610), server_address))
-        result = self.connect_manager.connect_to_address(server_address, {})
+        self._message("%s %s..." % (Utils.Translate(30610), server_address))
+        result = self.connect_manager.connect_to_address(server_address)
 
-        if result['State'] == 0: #Unavailable
-            self._message(self.Utils.Translate(30609))
+        if result['State'] == 0:  # Unavailable
+            self._message(Utils.Translate(30609))
             return False
 
         self._server = result['Servers'][0]

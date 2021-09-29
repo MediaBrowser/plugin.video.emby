@@ -260,8 +260,8 @@ msgid "Enable artwork caching"
 msgstr "启用艺术图缓存"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "分页 - 获取最大项目数（默认值：15）"
+msgid "Paging - max items requested (default: 50)"
+msgstr "分页 - 获取最大项目数（默认值：50）"
 
 msgctxt "#30516"
 msgid "Playback"
