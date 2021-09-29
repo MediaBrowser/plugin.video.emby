@@ -251,7 +251,7 @@ msgid "Enable artwork caching"
 msgstr ""
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
+msgid "Paging - max items requested (default: 50)"
 msgstr ""
 
 msgctxt "#30516"

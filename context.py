@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import json
 import xbmc
 
 if __name__ == "__main__":
-    data = {}
-    data = '"[%s]"' % json.dumps(data).replace('"', '\\"')
-    xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s, %s)' % ("context", data))
+    if xbmc.getCondVisibility('System.HasAddon(plugin.video.emby-next-gen)'):
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen,context)')
+    else:
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby,context)')

@@ -1,39 +1,33 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="29999"><!-- Emby -->
-        <setting label="30003" id="idMethod" type="enum" values="Manual|Emby Connect" default="0" />
-        <setting label="30024" id="username" type="text" default="" visible="eq(-1,0)" />
-        <setting label="30543" id="connectUsername" type="text" default="" visible="!eq(0,) + eq(-2,1)" />
-        <setting label="30600" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=connect)" visible="eq(-3,1) + eq(-1,)" option="close" />
-        <setting label="30618" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=connect)" visible="eq(-4,1) + !eq(-2,)" option="close" />
-        <setting label="30001" id="serverName" type="text" default="" />
-        <setting label="30000" id="server" type="text" default="" visible="true" />
+        <setting label="30614" type="action" action="NotifyAll(plugin.video.emby-next-gen,addserver)" visible="true" option="close" />
+        <setting label="33054" type="action" action="NotifyAll(plugin.video.emby-next-gen,adduserselection)" visible="true" option="close" />
         <setting label="30500" id="sslverify" type="bool" default="true" visible="true" />
+        <setting label="33192" type="action" action="NotifyAll(plugin.video.emby-next-gen,restartservice)" visible="true" option="close" />
         <setting type="sep" />
         <setting label="33110" type="lsep" />
         <setting label="30504" id="deviceNameOpt" type="bool" default="false" />
         <setting label="30016" id="deviceName" type="text" default="Kodi" visible="eq(-1,true)" subsetting="true" />
     </category>
     <category label="30506"><!-- Sync Options -->
-        <setting label="33186" type="lsep" />
-        <setting label="33137" id="kodiCompanion" type="bool" default="true" />
-        <setting label="33207" id="askSyncIndicator" type="number" default="9999" visible="eq(-1,true)" subsetting="true" />
-        <setting label="33185" id="syncDuringPlay" type="bool" default="true" />
-        <setting label="30536" id="dbSyncScreensaver" type="bool" default="true" />
-        <setting label="Enable xsp playlists (this can cause Kodi crashes)" id="xspplaylists" type="bool" default="false" />
+        <setting label="Sync" type="lsep" />
+        <setting label="33194" type="action" action="NotifyAll(plugin.video.emby-next-gen,managelibsselection)" visible="true" />
+        <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" />
+        <setting label="Enable smart playlists (this could cause Kodi crashes)" id="xspplaylists" type="bool" default="false" />
+        <setting label="Enable userrating" id="userRating" type="bool" default="true" />
+        <setting label="33058" type="action" action="NotifyAll(plugin.video.emby-next-gen,databasereset)" visible="true" />
         <setting label="33111" type="lsep" />
-        <setting label="30511" id="useDirectPaths" type="enum" lvalues="33036|33037" default="0" />
         <setting label="33175" type="lsep" />
         <setting label="30515" id="limitIndex" type="number" default="50" option="int" />
-        <setting label="33174" id="limitThreads" type="number" default="5" option="int" />
-        <setting label="33176" type="lsep" />
-        <setting label="Enable userrating" id="userRating" type="bool" default="true" />
-        <setting id="ReloadSkin" visible="false" type="bool" default="false" />
-    </category>	
+        <setting label="30511" id="useDirectPaths" type="bool" default="false" visible="false"/>
+    </category>
     <category label="30516"><!-- Playback -->
         <setting label="33113" type="lsep" />
         <setting label="30518" id="enableCinema" type="bool" default="false" />
         <setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
+        <setting label="Enable local trailers" id="localTrailers" type="bool" default="true" visible="eq(-2,true)" subsetting="true" />
+        <setting label="Enable trailers" id="Trailers" type="bool" default="true" visible="eq(-3,true)" subsetting="true" />
         <setting label="Transcode" type="lsep" />
         <setting label="30522" id="transcodeH265" type="bool" default="false" visible="true" />
         <setting label="33214" id="transcodeDivx" type="bool" default="false" visible="true" />
@@ -53,8 +47,9 @@
         <setting label="30116" id="deleteMovies" type="bool" visible="eq(-2,true)" default="false" subsetting="true" />
     </category>	
     <category label="30235"><!-- Interface -->
-        <setting label="30157" id="enableCoverArt" type="bool" default="true" />
+        <setting label="30157" id="enableCoverArt" type="bool" default="false" />
         <setting label="33116" id="compressArt" type="bool" default="false" />
+        <setting label="Reload skin after start" id="reloadskin" type="bool" default="true" />
         <setting label="33105" id="enableContext" type="bool" default="true" />
         <setting label="33143" id="enableContextDelete" type="bool" visible="eq(-1,true)" default="true" subsetting="true" />
         <setting label="33107" type="lsep" />
@@ -65,11 +60,10 @@
         <setting label="30530" id="restartMsg" type="bool" default="true" />
         <setting label="30547" id="displayMessage" type="slider" default="4" range="4,1,20" option="int" />
         <setting label="33108" type="lsep" />
-        <setting label="33177" id="syncProgress" type="number" default="15" visible="true" />
+        <setting label="Show options in plugin menu" id="menuOptions" type="bool" default="false" />
         <setting label="30531" id="newContent" type="bool" default="false" />
         <setting label="30532" id="newvideotime" type="number" visible="eq(-1,true)" default="5" option="int" subsetting="true" />
         <setting label="30533" id="newmusictime" type="number" visible="eq(-2,true)" default="2" option="int" subsetting="true" />
-        <setting id="Users" type="text" visible="false" default="" />
     </category>
     <category label="Dynamic libraries"><!-- Plugin -->
         <setting id="getDateCreated" type="bool" label="Date info" default="false" />
@@ -81,20 +75,16 @@
         <setting id="getCast" type="bool" label="33124" default="false" />
     </category>
     <category label="30022"><!-- Advanced -->
-        <setting label="30239" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=reset)" option="close" />
-        <setting label="30535" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=deviceid)" option="close" />
+        <setting label="30535" type="action" action="NotifyAll(plugin.video.emby-next-gen,reset_device_id)" visible="true" option="close" />
         <setting label="33196" type="lsep" />
-        <setting label="33195" id="enableAddon" type="bool" default="true" />
-        <setting label="33180" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=restartservice)" option="close" />
+        <setting label="33180" type="action" action="NotifyAll(plugin.video.emby-next-gen,restartservice)" visible="true" option="close" />
         <setting label="30529" id="startupDelay" type="number" default="0" option="int" />
+        <setting label="Compatibility mode" id="compatibilitymode" type="bool" default="false" />
         <setting type="sep" />
         <setting label="33104" type="lsep"/>
         <setting label="33093" type="folder" id="backupPath" option="writeable" />
-        <setting label="33092" type="action" action="RunPlugin(plugin://plugin.video.emby-next-gen?mode=backup)" visible="!eq(-1,)" option="close" />
-        <setting id="LastIncrementalSync" type="text" visible="false" />
+        <setting label="33092" type="action" action="NotifyAll(plugin.video.emby-next-gen,backup)" visible="!eq(-1,)"  option="close" />
+        <setting label="Restore a backup" type="action" action="NotifyAll(plugin.video.emby-next-gen,restore)" visible="!eq(-2,)"  option="close" />
         <setting id="MinimumSetup" type="text" visible="false" />
-        <setting id="SyncInstallRunDone" type="bool" visible="false" />
-        <setting id="groupedSets" type="bool" visible="false" />
-        <setting id="Migrate" type="bool" visible="false" />
     </category>
 </settings>

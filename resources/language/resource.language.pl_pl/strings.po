@@ -255,8 +255,8 @@ msgid "Enable artwork caching"
 msgstr "Włącz pobieranie grafiki"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Paginacja - maksymalna ilość pobieranych pozycji (domyślnie: 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Paginacja - maksymalna ilość pobieranych pozycji (domyślnie: 50)"
 
 msgctxt "#30516"
 msgid "Playback"

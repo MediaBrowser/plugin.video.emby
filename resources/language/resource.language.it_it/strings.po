@@ -256,8 +256,8 @@ msgid "Enable artwork caching"
 msgstr "Abilita caching artwork"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Chiamata - elementi richiesti massimi (default: 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Chiamata - elementi richiesti massimi (default: 50)"
 
 msgctxt "#30516"
 msgid "Playback"

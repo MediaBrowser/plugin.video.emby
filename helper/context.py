@@ -1,79 +1,108 @@
 # -*- coding: utf-8 -*-
-import json
-
 import xbmc
 import xbmcaddon
-
-import database.database
-import helper.utils
-import helper.loghandler
+import database.db_open
 import dialogs.context
+import emby.listitem as ListItem
+from . import loghandler
+from . import utils as Utils
 
-class Context():
-    def __init__(self, Utils, EmbyServers, library):
-        self.LOG = helper.loghandler.LOG('EMBY.context.Context')
+XmlPath = (xbmcaddon.Addon(Utils.PluginId).getAddonInfo('path'), "default", "1080i")
+SelectOptions = {'Refresh': Utils.Translate(30410), 'Delete': Utils.Translate(30409), 'Addon': Utils.Translate(30408), 'AddFav': Utils.Translate(30405), 'RemoveFav': Utils.Translate(30406), 'SpecialFeatures': "Special Features"}
+LOG = loghandler.LOG('EMBY.context.Context')
+
+
+class Context:
+    def __init__(self, EmbyServers):
         self._selected_option = None
-        self.Utils = Utils
         self.item = None
         self.EmbyServers = EmbyServers
-        self.library = library
-        self.XML_PATH = (xbmcaddon.Addon('plugin.video.emby-next-gen').getAddonInfo('path'), "default", "1080i")
         self.server_id = None
-        self.OPTIONS = {
-            'Refresh': self.Utils.Translate(30410),
-            'Delete': self.Utils.Translate(30409),
-            'Addon': self.Utils.Translate(30408),
-            'AddFav': self.Utils.Translate(30405),
-            'RemoveFav': self.Utils.Translate(30406),
-            'Transcode': self.Utils.Translate(30412)
-        }
+        self.SpecialFeaturesSelections = []
 
     def load_item(self):
-        for server_id in self.EmbyServers: ######################## WORKAROUND!!!!!!!!!!!
+        Found = False
+
+        for server_id in self.EmbyServers:
             self.server_id = server_id
-            break
+            kodi_id = xbmc.getInfoLabel('ListItem.DBID')
+            media = xbmc.getInfoLabel('ListItem.DBTYPE')
 
-        kodi_id = xbmc.getInfoLabel('ListItem.DBID')
-        media = xbmc.getInfoLabel('ListItem.DBTYPE')
-        self.item = database.database.get_item(self.Utils, kodi_id, media)
+            with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
+                self.item = embydb.get_full_item_by_kodi_id(kodi_id, media)
 
-        if not self.item:
-            return False
+            if self.item:
+                Found = True
+                break
 
-        return True
+        return Found
 
-    def delete_item(self, LoadItem=False):
+    def delete_item(self, LoadItem):
         if LoadItem:
             if not self.load_item():
                 return
 
-        if self.Utils.dialog("yesno", heading="{emby}", line1=self.Utils.Translate(33015)):
+        if Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33015)):
             self.EmbyServers[self.server_id].API.delete_item(self.item[0])
-            self.library[self.server_id].removed([self.item[0]])
-            self.library[self.server_id].delay_verify([self.item[0]])
+            self.EmbyServers[self.server_id].library.removed([self.item[0]])
+
+    def SelectSpecialFeatures(self):
+        MenuData = []
+
+        for SpecialFeaturesSelection in self.SpecialFeaturesSelections:
+            MenuData.append(SpecialFeaturesSelection['Name'])
+
+        resp = Utils.dialog("select", "Special Features", MenuData)
+
+        if resp < 0:
+            return
+
+        ItemData = self.SpecialFeaturesSelections[resp]
+        item = self.EmbyServers[self.server_id].API.get_item(ItemData['Id'])
+        li = ListItem.set_ListItem(item, self.server_id)
+
+        if len(item['MediaSources'][0]['MediaStreams']) >= 1:
+            path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+        else:
+            path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], "0", "", Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+
+        li.setProperty('path', path)
+        playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+        Pos = playlist.getposition() + 1
+        playlist.add(path, li, index=Pos)
+        xbmc.Player().play(playlist, li, False, Pos)
 
     def select_menu(self):
         options = []
+        self.SpecialFeaturesSelections = []
 
         if not self.load_item():
             return
 
-        Userdata = json.loads(self.item[4]) if self.item[4] else {}
+        # Load SpecialFeatures
+        with database.db_open.io(Utils.DatabaseFiles, self.server_id, False) as embydb:
+            SpecialFeaturesIds = embydb.get_special_features(self.item[0])
 
-        if self.item[3] not in 'Season':
-            if Userdata.get('IsFavorite'):
-                options.append(self.OPTIONS['RemoveFav'])
-            else:
-                options.append(self.OPTIONS['AddFav'])
+            for SpecialFeaturesId in SpecialFeaturesIds:
+                SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
+                self.SpecialFeaturesSelections.append({"Name": SpecialFeaturesMediasources[0][4], "Id": SpecialFeaturesId[0]})
 
-        options.append(self.OPTIONS['Refresh'])
+        if self.item[4]:
+            options.append(SelectOptions['RemoveFav'])
+        else:
+            options.append(SelectOptions['AddFav'])
 
-        if self.Utils.Settings.enableContextDelete:
-            options.append(self.OPTIONS['Delete'])
+        options.append(SelectOptions['Refresh'])
 
-        options.append(self.OPTIONS['Addon'])
-        context_menu = dialogs.context.ContextMenu("script-emby-context.xml", *self.XML_PATH)
-        context_menu.set_options(options)
+        if self.SpecialFeaturesSelections:
+            options.append(SelectOptions['SpecialFeatures'])
+
+        if Utils.enableContextDelete:
+            options.append(SelectOptions['Delete'])
+
+        options.append(SelectOptions['Addon'])
+        context_menu = dialogs.context.ContextMenu("script-emby-context.xml", *XmlPath)
+        context_menu.PassVar(options)
         context_menu.doModal()
 
         if context_menu.is_selected():
@@ -83,15 +112,17 @@ class Context():
             self.action_menu()
 
     def action_menu(self):
-        selected = self.Utils.StringDecode(self._selected_option)
+        selected = Utils.StringDecode(self._selected_option)
 
-        if selected == self.OPTIONS['Refresh']:
+        if selected == SelectOptions['Refresh']:
             self.EmbyServers[self.server_id].API.refresh_item(self.item[0])
-        elif selected == self.OPTIONS['AddFav']:
+        elif selected == SelectOptions['AddFav']:
             self.EmbyServers[self.server_id].API.favorite(self.item[0], True)
-        elif selected == self.OPTIONS['RemoveFav']:
+        elif selected == SelectOptions['RemoveFav']:
             self.EmbyServers[self.server_id].API.favorite(self.item[0], False)
-        elif selected == self.OPTIONS['Addon']:
-            xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
-        elif selected == self.OPTIONS['Delete']:
+        elif selected == SelectOptions['Addon']:
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % Utils.PluginId)
+        elif selected == SelectOptions['Delete']:
             self.delete_item(False)
+        elif selected == SelectOptions['SpecialFeatures']:
+            self.SelectSpecialFeatures()
