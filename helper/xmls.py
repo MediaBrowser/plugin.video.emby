@@ -218,11 +218,14 @@ def WriteXmlFile(FilePath, Data):
     outputfile.close()
 
 def KodiDefaultNodes():
-    if xbmcvfs.exists(Utils.FolderLibraryVideo):
-        Utils.copytree(Utils.FolderXbmcLibraryVideo, Utils.FolderLibraryVideo)
+    if not xbmcvfs.exists(Utils.FolderLibraryVideo):
+        xbmcvfs.mkdirs(Utils.FolderLibraryVideo)
 
-    if xbmcvfs.exists(Utils.FolderLibraryMusic):
-        Utils.copytree(Utils.FolderXbmcLibraryMusic, Utils.FolderLibraryMusic)
+    if not xbmcvfs.exists(Utils.FolderLibraryMusic):
+        xbmcvfs.mkdirs(Utils.FolderLibraryMusic)
+
+    Utils.copytree(Utils.FolderXbmcLibraryVideo, Utils.FolderLibraryVideo)
+    Utils.copytree(Utils.FolderXbmcLibraryMusic, Utils.FolderLibraryMusic)
 
     for index, node in enumerate(['movies', 'tvshows', 'musicvideos']):
         filename = os.path.join(Utils.FolderLibraryVideo, node, "index.xml")
