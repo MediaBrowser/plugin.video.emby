@@ -255,13 +255,20 @@ class Library:
 
                             LibraryType = Item['Type']
 
-                        if LibraryType not in ('Movie', 'BoxSet', 'MusicVideo', 'Series', 'Episode', 'MusicAlbum', 'Audio', 'MusicArtist', 'AlbumArtist', 'Season', 'Video'):
+                        if LibraryType not in ('Movie', 'BoxSet', 'MusicVideo', 'Series', 'Episode', 'MusicAlbum', 'Audio', 'MusicArtist', 'AlbumArtist', 'Season', 'Video', 'Recording'):
                             progress_updates.update(ProgressValue, message="%s: media not found %s" % (Utils.Translate(33178), LibraryType))
                             LOG.error("Media Type not found: %s/%s" % (LibraryType, Id))
                             LOG.debug("Media Type not found: %s" % Item)
                             embydb.delete_UpdateItem(Id)
                             ItemCounter -= 1
                             continue
+
+                        if LibraryType == 'Recording':
+                            if Item['IsSeries']:
+                                LibraryType = 'Episode'
+
+                            else:
+                                LibraryType = 'Movie'
 
                         if LibraryType in ('Movie', 'Video'):
                             ItemsMovie.append((Id, LibraryData))
@@ -1017,9 +1024,13 @@ class Library:
                                 EmbyType = item[1]
                                 LibraryId = item[2]
                             else:  # update via Websocket
-                                EmbyId = item
-                                EmbyType = None
-                                LibraryId = None
+                                if item.isnumeric():
+                                    EmbyId = item
+                                    EmbyType = None
+                                    LibraryId = None
+                                else:
+                                    LOG.info("Skip invalid remove item: %s" % item)
+                                    continue
 
                             embydb.add_RemoveItem(EmbyId, EmbyType, LibraryId)
 

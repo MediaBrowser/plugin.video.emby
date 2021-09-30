@@ -234,7 +234,7 @@ def get_path(obj, MediaID):
         Temp2 = obj['FullPath'].rsplit('\\', 1)[1] if '\\' in obj['FullPath'] else obj['FullPath'].rsplit('/', 1)[1]
         Temp2 = Utils.StringDecode(Temp2)
         Path = Utils.StringDecode(obj['FullPath']).replace(Temp2, "")
-        PathChar = Path[:-1]
+        PathChar = Path[-1]
 
         if MediaID == "tvshows":
             obj['PathParent'] = Path
