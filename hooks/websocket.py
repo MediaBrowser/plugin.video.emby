@@ -496,10 +496,6 @@ def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbySer
 
                         PlaylistStartIndex = Pos + Offset
                         xbmc.Player().play(item=playlist, startpos=PlaylistStartIndex)
-
-                        if StartPositionTicks != -1:
-                            xbmc.Player().StartTime = StartPositionTicks / 10000000
-
                         Offset = 0
                         FirstItem = False
             else:

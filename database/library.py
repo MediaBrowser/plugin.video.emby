@@ -266,7 +266,6 @@ class Library:
                         if LibraryType == 'Recording':
                             if Item['IsSeries']:
                                 LibraryType = 'Episode'
-
                             else:
                                 LibraryType = 'Movie'
 

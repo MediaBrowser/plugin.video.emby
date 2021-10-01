@@ -167,39 +167,40 @@ class Movies:
             self.video_db.add_stacktimes(obj['KodiFileId'], obj['StackTimes'])
 
         # Add Special features
-        if int(obj['Item']['SpecialFeatureCount']):
-            SpecialFeatures = self.EmbyServer.API.get_specialfeatures(obj['Id'])
+        if 'SpecialFeatureCount' in obj['Item']:
+            if int(obj['Item']['SpecialFeatureCount']):
+                SpecialFeatures = self.EmbyServer.API.get_specialfeatures(obj['Id'])
 
-            for SpecialFeature_item in SpecialFeatures:
-                eSF_item = self.emby_db.get_item_by_id(SpecialFeature_item['Id'])
-                objF = Objects.mapitem(SpecialFeature_item, 'Movie')
-                objF['EmbyParentId'] = obj['Id']
-                objF['Item'] = SpecialFeature_item
-                objF['LibraryId'] = library['Id']
-                objF['LibraryName'] = library['Name']
-                objF['ServerId'] = self.EmbyServer.server_id
-                objF['FullPath'] = Common.SwopMediaSources(objF, item)  # 3D
+                for SpecialFeature_item in SpecialFeatures:
+                    eSF_item = self.emby_db.get_item_by_id(SpecialFeature_item['Id'])
+                    objF = Objects.mapitem(SpecialFeature_item, 'Movie')
+                    objF['EmbyParentId'] = obj['Id']
+                    objF['Item'] = SpecialFeature_item
+                    objF['LibraryId'] = library['Id']
+                    objF['LibraryName'] = library['Name']
+                    objF['ServerId'] = self.EmbyServer.server_id
+                    objF['FullPath'] = Common.SwopMediaSources(objF, item)  # 3D
 
-                if not objF['FullPath']:  # Invalid Path
-                    LOG.error("Invalid path: %s" % objF['Id'])
-                    LOG.debug("Invalid path: %s" % objF)
-                    return False
+                    if not objF['FullPath']:  # Invalid Path
+                        LOG.error("Invalid path: %s" % objF['Id'])
+                        LOG.debug("Invalid path: %s" % objF)
+                        return False
 
-                objF['Path'] = Common.get_path(objF, "movies")
-                objF['KodiMovieId'] = None
-                objF['KodiFileId'] = None
-                objF['KodiPathId'] = None
+                    objF['Path'] = Common.get_path(objF, "movies")
+                    objF['KodiMovieId'] = None
+                    objF['KodiFileId'] = None
+                    objF['KodiPathId'] = None
 
-                if eSF_item:
-                    Common.Streamdata_add(objF, self.emby_db, True)
-                    objF['Filename'] = Common.get_filename(objF, "movies", self.EmbyServer.API)
-                    self.emby_db.update_reference(objF['PresentationKey'], objF['Favorite'], objF['Id'])
-                    LOG.info("UPDATE SpecialFeature %s: %s" % (objF['Id'], objF['Title']))
-                else:
-                    Common.Streamdata_add(objF, self.emby_db, False)
-                    objF['Filename'] = Common.get_filename(objF, "movies", self.EmbyServer.API)
-                    self.emby_db.add_reference(objF['Id'], objF['KodiMovieId'], objF['KodiFileId'], objF['KodiPathId'], "SpecialFeature", None, None, objF['LibraryId'], objF['EmbyParentId'], objF['PresentationKey'], objF['Favorite'])
-                    LOG.info("ADD SpecialFeature %s: %s" % (objF['Id'], objF['Title']))
+                    if eSF_item:
+                        Common.Streamdata_add(objF, self.emby_db, True)
+                        objF['Filename'] = Common.get_filename(objF, "movies", self.EmbyServer.API)
+                        self.emby_db.update_reference(objF['PresentationKey'], objF['Favorite'], objF['Id'])
+                        LOG.info("UPDATE SpecialFeature %s: %s" % (objF['Id'], objF['Title']))
+                    else:
+                        Common.Streamdata_add(objF, self.emby_db, False)
+                        objF['Filename'] = Common.get_filename(objF, "movies", self.EmbyServer.API)
+                        self.emby_db.add_reference(objF['Id'], objF['KodiMovieId'], objF['KodiFileId'], objF['KodiPathId'], "SpecialFeature", None, None, objF['LibraryId'], objF['EmbyParentId'], objF['PresentationKey'], objF['Favorite'])
+                        LOG.info("ADD SpecialFeature %s: %s" % (objF['Id'], objF['Title']))
 
         Common.add_Multiversion(obj, self.emby_db, "Movie", self.EmbyServer.API)
         return not update
