@@ -3,7 +3,7 @@ import threading
 import helper.utils as Utils
 import helper.loghandler
 
-info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,PartCount,SpecialFeatureCount"
+info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,MediaSources,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount"
 music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,CommunityRating,DateCreated,MediaStreams,People,ProviderIds,Overview,PresentationUniqueKey,Path,ParentId"
 LOG = helper.loghandler.LOG('EMBY.emby.api.API')
 
