@@ -1,4 +1,4 @@
-6.0.11 (beta)
+6.0.13 (beta)
 =============
 Improvements:
 -------------
@@ -195,6 +195,8 @@ clean code
 fix remove item issue
 fix recording issue
 fix native season path
+fix mutiversion selection
+fix live tv
 
 
 6.0.10 (beta)
