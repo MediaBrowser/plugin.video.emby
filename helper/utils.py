@@ -2,6 +2,7 @@
 import os
 import uuid
 import json
+import threading
 from datetime import datetime, timedelta
 from dateutil import tz, parser
 import xbmcvfs
@@ -9,7 +10,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from . import loghandler
-
 
 if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
     unicode = str
@@ -20,6 +20,8 @@ else:
     Python3 = False
 
 LOG = loghandler.LOG('EMBY.helper.utils')
+KodiDBLockMusic = threading.Lock()
+KodiDBLockVideo = threading.Lock()
 Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
@@ -77,7 +79,6 @@ getProductionLocations = False
 getCast = False
 deviceNameOpt = False
 sslverify = False
-reloadskin = False
 syncDuringPlay = False
 VideoCodecID = ""
 AudioCodecID = ""
@@ -107,6 +108,7 @@ STRINGS = {
     'task_success': 33203,
     'task_fail': 33204
 }
+
 
 def currenttime():
     return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -561,7 +563,6 @@ def InitSettings():
     load_settings_bool('compressArt')
     load_settings_bool('getDateCreated')
     load_settings_bool('getGenres')
-    load_settings_bool('reloadskin')
     load_settings_bool('getStudios')
     load_settings_bool('getTaglines')
     load_settings_bool('getOverview')

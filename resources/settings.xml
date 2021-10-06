@@ -49,7 +49,6 @@
     <category label="30235"><!-- Interface -->
         <setting label="30157" id="enableCoverArt" type="bool" default="false" />
         <setting label="33116" id="compressArt" type="bool" default="false" />
-        <setting label="Reload skin after start" id="reloadskin" type="bool" default="true" />
         <setting label="33105" id="enableContext" type="bool" default="true" />
         <setting label="33143" id="enableContextDelete" type="bool" visible="eq(-1,true)" default="true" subsetting="true" />
         <setting label="33107" type="lsep" />

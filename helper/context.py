@@ -27,9 +27,9 @@ class Context:
             self.server_id = server_id
             kodi_id = xbmc.getInfoLabel('ListItem.DBID')
             media = xbmc.getInfoLabel('ListItem.DBTYPE')
-
-            with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-                self.item = embydb.get_full_item_by_kodi_id(kodi_id, media)
+            embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+            self.item = embydb.get_full_item_by_kodi_id(kodi_id, media)
+            database.db_open.DBClose(server_id, False)
 
             if self.item:
                 Found = True
@@ -80,12 +80,14 @@ class Context:
             return
 
         # Load SpecialFeatures
-        with database.db_open.io(Utils.DatabaseFiles, self.server_id, False) as embydb:
-            SpecialFeaturesIds = embydb.get_special_features(self.item[0])
+        embydb = database.db_open.DBOpen(Utils.DatabaseFiles, self.server_id)
+        SpecialFeaturesIds = embydb.get_special_features(self.item[0])
 
-            for SpecialFeaturesId in SpecialFeaturesIds:
-                SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
-                self.SpecialFeaturesSelections.append({"Name": SpecialFeaturesMediasources[0][4], "Id": SpecialFeaturesId[0]})
+        for SpecialFeaturesId in SpecialFeaturesIds:
+            SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
+            self.SpecialFeaturesSelections.append({"Name": SpecialFeaturesMediasources[0][4], "Id": SpecialFeaturesId[0]})
+
+        database.db_open.DBClose(self.server_id, False)
 
         if self.item[4]:
             options.append(SelectOptions['RemoveFav'])

@@ -116,7 +116,7 @@ class MusicVideos:
         self.video_db.add_tags(obj['Tags'], obj['KodiMvideoId'], "musicvideo")
         self.video_db.add_genres(obj['Genres'], obj['KodiMvideoId'], "musicvideo")
         self.video_db.add_studios(obj['Studios'], obj['KodiMvideoId'], "musicvideo")
-        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'], "DVDPlayer", 1)
+        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
         self.video_db.add_people(obj['People'], obj['KodiMvideoId'], "musicvideo")
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiMvideoId'], "musicvideo")
@@ -143,12 +143,12 @@ class MusicVideos:
             self.video_db.remove_tag("Favorite musicvideos", KodiMvideoId, "musicvideo")
 
         LOG.debug("New resume point %s: %s" % (ItemUserdata['ItemId'], Resume))
-        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime, "DVDPlayer", 1)
+        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA musicvideo [%s/%s] %s: %s" % (KodiFileId, KodiMvideoId, ItemUserdata['ItemId'], MusicvideoData[2]))
 
     # Remove mvideoid, fileid, pathid, emby reference
-    def remove(self, EmbyItemId):
+    def remove(self, EmbyItemId, Delete):
         e_item = self.emby_db.get_item_by_id(EmbyItemId)
 
         if e_item:
@@ -160,20 +160,23 @@ class MusicVideos:
         else:
             return
 
-        StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "MusicVideo")
+        if not Delete:
+            StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "MusicVideo")
 
-        if len(StackedIds) > 1:
-            self.emby_db.remove_item(EmbyItemId)
-            LOG.info("DELETE stacked musicvideo from embydb %s" % EmbyItemId)
+            if len(StackedIds) > 1:
+                self.emby_db.remove_item(EmbyItemId)
+                LOG.info("DELETE stacked musicvideo from embydb %s" % EmbyItemId)
 
-            for StackedId in StackedIds:
-                StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
+                for StackedId in StackedIds:
+                    StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
 
-                if StackedItem:
-                    library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
-                    LibraryData = {"Id": emby_folder, "Name": library_name}
-                    LOG.info("UPDATE remaining stacked musicvideo from embydb %s" % StackedItem['Id'])
-                    self.musicvideo(StackedItem, LibraryData)  # update all stacked items
+                    if StackedItem:
+                        library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
+                        LibraryData = {"Id": emby_folder, "Name": library_name}
+                        LOG.info("UPDATE remaining stacked musicvideo from embydb %s" % StackedItem['Id'])
+                        self.musicvideo(StackedItem, LibraryData)  # update all stacked items
+            else:
+                self.remove_musicvideo(KodiId, KodiFileId, EmbyItemId)
         else:
             self.remove_musicvideo(KodiId, KodiFileId, EmbyItemId)
 

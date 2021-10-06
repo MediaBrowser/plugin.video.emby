@@ -158,7 +158,7 @@ class Movies:
         self.video_db.add_tags(obj['Tags'], obj['KodiMovieId'], "movie")
         self.video_db.add_genres(obj['Genres'], obj['KodiMovieId'], "movie")
         self.video_db.add_studios(obj['Studios'], obj['KodiMovieId'], "movie")
-        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'], "DVDPlayer", 1)
+        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
         self.video_db.add_people(obj['People'], obj['KodiMovieId'], "movie")
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiMovieId'], "movie")
@@ -218,46 +218,44 @@ class Movies:
         obj['Checksum'] = obj['Etag']
 
         if e_item:
-            obj['SetId'] = e_item[0]
-            self.video_db.update_boxset(obj['Title'], obj['Overview'], obj['SetId'])
+            obj['KodiSetId'] = e_item[0]
+            self.video_db.update_boxset(obj['Title'], obj['Overview'], obj['KodiSetId'])
         else:
             LOG.debug("SetId %s not found" % obj['Id'])
-            obj['SetId'] = self.video_db.add_boxset(obj['Title'], obj['Overview'])
+            obj['KodiSetId'] = self.video_db.add_boxset(obj['Title'], obj['Overview'])
 
         # BoxSets
-        try:
-            current = self.emby_db.get_item_id_by_parent_id(obj['SetId'], "movie")
-            movies = dict(current)
-        except ValueError:
-            movies = {}
+        CurrentBoxSetMovies = self.emby_db.get_item_id_by_parent_id(obj['KodiSetId'], "movie")
 
-        obj['Current'] = movies
+        if CurrentBoxSetMovies:
+            CurrentBoxSetMovies = dict(CurrentBoxSetMovies)
+        else:
+            CurrentBoxSetMovies = {}
 
-        for all_movies in self.EmbyServer.API.get_movies_by_boxset(obj['Id']):
-            for movie in all_movies['Items']:
-                Data = self.emby_db.get_item_by_id(movie['Id'])
+        for AllBoxSetMovies in self.EmbyServer.API.get_movies_by_boxset(obj['Id']):
+            for movie in AllBoxSetMovies['Items']:
+                if movie['Id'] not in CurrentBoxSetMovies:
+                    Data = self.emby_db.get_item_by_id(movie['Id'])
 
-                if not Data:
-                    LOG.info("Failed to process %s to boxset." % movie['Name'])
-                    continue
+                    if not Data:
+                        LOG.info("Failed to process %s to boxset." % movie['Name'])
+                        continue
 
-                if movie['Id'] not in obj['Current']:
-                    self.video_db.set_boxset(obj['SetId'], Data[0])
-                    self.emby_db.update_parent_id(obj['SetId'], movie['Id'])
-                    LOG.info("ADD to boxset [%s/%s] %s: %s to boxset" % (obj['SetId'], Data[0], movie['Name'], movie['Id']))
+                    self.video_db.set_boxset(obj['KodiSetId'], Data[0])
+                    self.emby_db.update_parent_id(obj['KodiSetId'], movie['Id'])
+                    LOG.info("ADD to boxset [%s/%s] %s: %s to boxset" % (obj['KodiSetId'], Data[0], movie['Name'], movie['Id']))
                 else:
-                    obj['Current'].pop(movie['Id'])
+                    del CurrentBoxSetMovies[movie['Id']]
+
+        for EmbyMovieId in CurrentBoxSetMovies:
+            self.video_db.remove_from_boxset(CurrentBoxSetMovies[EmbyMovieId])
+            self.emby_db.update_parent_id(None, EmbyMovieId)
+            LOG.info("DELETE from boxset [%s] %s %s: %s" % (obj['Id'], obj['KodiSetId'], obj['Title'], CurrentBoxSetMovies[EmbyMovieId]))
 
         obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
-
-        for movie in obj['Current']:
-            self.video_db.remove_from_boxset(obj['Current'][movie])
-            self.emby_db.update_parent_id(None, movie)
-            LOG.info("DELETE from boxset [%s] %s: %s" % (obj['SetId'], obj['Title'], obj['Current'][movie]))
-
-        self.video_db.common_db.add_artwork(obj['Artwork'], obj['SetId'], "set")
-        self.emby_db.add_reference(obj['Id'], obj['SetId'], None, None, "BoxSet", "set", None, obj['LibraryId'], None, obj['PresentationKey'], obj['Favorite'])
-        LOG.info("UPDATE boxset [%s] %s" % (obj['SetId'], obj['Title']))
+        self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiSetId'], "set")
+        self.emby_db.add_reference(obj['Id'], obj['KodiSetId'], None, None, "BoxSet", "set", None, obj['LibraryId'], None, obj['PresentationKey'], obj['Favorite'])
+        LOG.info("UPDATE boxset [%s] %s %s" % (obj['Id'], obj['KodiSetId'], obj['Title']))
         return True
 
     # Special function to remove all existing boxsets
@@ -265,7 +263,7 @@ class Movies:
         boxsets = self.emby_db.get_items_by_media('set', library_id)
 
         for boxset in boxsets:
-            self.remove(boxset[0])
+            self.remove(boxset[0], False)
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     def userdata(self, e_item, ItemUserdata):
@@ -283,13 +281,13 @@ class Movies:
             self.video_db.remove_tag("Favorite movies", KodiMovieId, "movie")
 
         LOG.debug("New resume point %s: %s" % (ItemUserdata['ItemId'], Resume))
-        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime, "DVDPlayer", 1)
+        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA [%s/%s] %s: %s" % (KodiFileId, KodiMovieId, ItemUserdata['ItemId'], MovieData[2]))
 
     # Remove movieid, fileid, emby reference.
     # Remove artwork, boxset
-    def remove(self, EmbyItemId):
+    def remove(self, EmbyItemId, Delete):
         e_item = self.emby_db.get_item_by_id(EmbyItemId)
 
         if e_item:
@@ -303,20 +301,23 @@ class Movies:
             return
 
         if KodiType == 'movie':
-            StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "Movie")
+            if not Delete:
+                StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "Movie")
 
-            if len(StackedIds) > 1:
-                self.emby_db.remove_item(EmbyItemId)
-                LOG.info("DELETE stacked movie from embydb %s" % EmbyItemId)
+                if len(StackedIds) > 1:
+                    self.emby_db.remove_item(EmbyItemId)
+                    LOG.info("DELETE stacked movie from embydb %s" % EmbyItemId)
 
-                for StackedId in StackedIds:
-                    StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
+                    for StackedId in StackedIds:
+                        StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
 
-                    if StackedItem:
-                        library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
-                        LibraryData = {"Id": emby_folder, "Name": library_name}
-                        LOG.info("UPDATE remaining stacked movie from embydb %s" % StackedItem['Id'])
-                        self.movie(StackedItem, LibraryData)  # update all stacked items
+                        if StackedItem:
+                            library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
+                            LibraryData = {"Id": emby_folder, "Name": library_name}
+                            LOG.info("UPDATE remaining stacked movie from embydb %s" % StackedItem['Id'])
+                            self.movie(StackedItem, LibraryData)  # update all stacked items
+                else:
+                    self.remove_movie(KodiId, KodiFileId, EmbyItemId)
             else:
                 self.remove_movie(KodiId, KodiFileId, EmbyItemId)
         elif KodiType == 'set':

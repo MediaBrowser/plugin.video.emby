@@ -238,7 +238,7 @@ def get_path(obj, MediaID):
 
         if MediaID == "tvshows":
             obj['PathParent'] = Path
-            Path = "%s%s" % (obj['FullPath'], PathChar)
+            Path = "%s%s" % (Utils.StringDecode(obj['FullPath']), PathChar)
     else:
         if MediaID == "tvshows":
             obj['PathParent'] = "http://127.0.0.1:57578/tvshows/%s/" % obj['LibraryId']

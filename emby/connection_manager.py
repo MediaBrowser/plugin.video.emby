@@ -50,10 +50,7 @@ class ConnectionManager:
         result = self.request_url({
             'type': "POST",
             'url': get_connect_url("user/authenticate"),
-            'data': {
-                'nameOrEmail': username,
-                'rawpw': password
-            },
+            'data': {'nameOrEmail': username, 'rawpw': password},
             'dataType': "json"
         }, True, False)
 
@@ -76,10 +73,7 @@ class ConnectionManager:
         request = {
             'type': "POST",
             'url': get_emby_url(server, "Users/AuthenticateByName"),
-            'params': {
-                'username': username,
-                'pw': password or "",
-            }
+            'params': {'username': username, 'pw': password or ""}
         }
 
         if clear:
@@ -103,10 +97,7 @@ class ConnectionManager:
         address = normalize_address(address)
         public_info = self._try_connect(address, False)
         LOG.info("connectToAddress %s succeeded" % address)
-        self.EmbyServer.ServerData = {
-            'ManualAddress': address,
-            'LastConnectionMode': 2  # Manual
-        }
+        self.EmbyServer.ServerData = {'ManualAddress': address, 'LastConnectionMode': 2}  # Manual
         self._update_server_info(public_info)
         self.EmbyServer.ServerData = self.connect_to_server()
 
@@ -135,28 +126,22 @@ class ConnectionManager:
 
     def connect(self):
         LOG.info("Begin connect")
+
+        if self.EmbyServer.ServerData:
+            if "Name" in self.EmbyServer.ServerData:
+                self.Found_Servers.append(self.EmbyServer.ServerData)
+                return self.connect_to_server()
+
+
         self.get_available_servers()
-        return self._connect_to_servers()
+        self._ensure_connect_user()
+        return {'State': 4 if (not self.Found_Servers and not self.user) else 1, 'ConnectUser': self.user}  # ConnectSignIn...ServerSelection
 
     def request_url(self, request, headers, ServerConnect):
         if headers:
             get_headers(request)
 
         return self.EmbyServer.http.request(request, ServerConnect, False)
-
-    def _connect_to_servers(self):
-        LOG.info("Begin connectToServers, with %s servers" % len(self.Found_Servers))
-
-        if not self.Found_Servers:
-            if self.EmbyServer.ServerData:
-                self.Found_Servers.append(self.EmbyServer.ServerData)
-
-        if self.EmbyServer.ServerData:
-            if "Name" in self.EmbyServer.ServerData:
-                return self.connect_to_server()
-
-        self._ensure_connect_user()
-        return {'State': 4 if (not self.Found_Servers and not self.user) else 1, 'ConnectUser': self.user}  # ConnectSignIn...ServerSelection
 
     def _try_connect(self, url, ServerConnect):
         url = get_emby_url(url, "system/info/public")
@@ -210,9 +195,7 @@ class ConnectionManager:
             'type': "GET",
             'url': url,
             'dataType': "json",
-            'headers': {
-                'X-Connect-UserToken': self.EmbyServer.ServerData['ConnectAccessToken']
-            }
+            'headers': {'X-Connect-UserToken': self.EmbyServer.ServerData['ConnectAccessToken']}
         }
 
         result = self.request_url(request, True, False)
@@ -228,7 +211,7 @@ class ConnectionManager:
                 'Name': server['Name'],
                 'RemoteAddress': server['Url'],
                 'LocalAddress': server['LocalAddress'],
-                'UserLinkType': "Guest" if server['UserType'].lower() == "guest" else "LinkedUser",
+                'UserLinkType': "Guest" if server['UserType'].lower() == "guest" else "LinkedUser"
             })
 
     def _ensure_connect_user(self):
@@ -262,13 +245,8 @@ class ConnectionManager:
             'url': get_emby_url(self.get_server_address(connection_mode), "Connect/Exchange"),
             'type': "GET",
             'dataType': "json",
-            'params': {
-                'ConnectUserId': self.EmbyServer.ServerData['ConnectUserId']
-            },
-            'headers': {
-                'X-Emby-Token': self.EmbyServer.ServerData['ExchangeToken'],
-                'Authorization': auth
-            }
+            'params': {'ConnectUserId': self.EmbyServer.ServerData['ConnectUserId']},
+            'headers': {'X-Emby-Token': self.EmbyServer.ServerData['ExchangeToken'], 'Authorization': auth}
         }, True, False)
 
         if not auth:
@@ -305,9 +283,7 @@ class ConnectionManager:
             'type': "GET",
             'url': get_emby_url(self.get_server_address(connection_mode), "System/Info"),
             'dataType': "json",
-            'headers': {
-                'X-Emby-Token': self.EmbyServer.ServerData['AccessToken']
-            }
+            'headers': {'X-Emby-Token': self.EmbyServer.ServerData['AccessToken']}
         }, True, False)
 
         if not system_info:
@@ -344,9 +320,7 @@ class ConnectionManager:
             'type': "GET",
             'url': get_connect_url('user?id=%s' % user_id),
             'dataType': "json",
-            'headers': {
-                'X-Connect-UserToken': access_token
-            }
+            'headers': {'X-Connect-UserToken': access_token}
         }, True, False)
 
 def get_connect_url(handler):
@@ -388,7 +362,10 @@ def server_discovery():
     while True:
         try:
             data, _ = sock.recvfrom(1024)  # buffer size
-            servers.append(json.loads(data))
+            IncommingData = json.loads(data)
+
+            if IncommingData not in servers:
+                servers.append(IncommingData)
         except socket.timeout:
             LOG.info("Found Servers: %s" % servers)
             return servers
@@ -432,11 +409,7 @@ def find_servers(found_servers):
             LOG.warning("Server %s has no address." % found_server)
             continue
 
-        info = {
-            'Id': found_server['Id'],
-            'LocalAddress': server or found_server['Address'],
-            'Name': found_server['Name']
-        }
+        info = {'Id': found_server['Id'], 'LocalAddress': server or found_server['Address'], 'Name': found_server['Name']}
         servers.append(info)
 
     return servers

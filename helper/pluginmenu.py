@@ -119,10 +119,12 @@ class Menu:
     def favepisodes(self, Handle):
         Handle = int(Handle)
         list_li = []
+        episodes_kodiId = ()
 
         for server_id in self.EmbyServers:
-            with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-                episodes_kodiId = embydb.get_episode_fav()
+            embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+            episodes_kodiId = embydb.get_episode_fav()
+            database.db_open.DBClose(server_id, False)
 
         for episode_kodiId in episodes_kodiId:
             Details = Utils.load_VideoitemFromKodiDB("episode", str(episode_kodiId[0]))

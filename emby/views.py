@@ -135,12 +135,8 @@ class Views:
         self.ViewsData = {}
         self.Nodes = []
 
-    def update_nodes(self, UpdateViews):
+    def update_nodes(self):
         index = 0
-
-        if UpdateViews:
-            self.update_views()
-
         self.Nodes = []
         WhitelistedLibraryIDs = []
 
@@ -265,27 +261,27 @@ class Views:
 
         Progress.close()
 
-    # Remove playlist based based on view_id
-    def delete_playlist_by_id(self, view_id):
-        if self.ViewItems[view_id][1] in ('music', 'audiobooks', 'podcasts'):
+    # Remove playlist based based on LibraryId
+    def delete_playlist_by_id(self, LibraryId):
+        if self.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
             path = Utils.FolderPlaylistsMusic
         else:
             path = Utils.FolderPlaylistsVideo
 
-        filename = 'emby_%s.xsp' % self.ViewItems[view_id][0].replace(" ", "_")
+        filename = 'emby_%s.xsp' % self.ViewItems[LibraryId][0].replace(" ", "_")
         PlaylistPath = os.path.join(path, filename)
 
         if xbmcvfs.exists(PlaylistPath):
             xbmcvfs.delete(PlaylistPath)
 
-    def delete_node_by_id(self, view_id):
+    def delete_node_by_id(self, LibraryId):
         mediatypes = []
 
-        if view_id.find('Mixed:') != -1:
+        if self.ViewItems[LibraryId][1].find('Mixed:') != -1:
             mediatypes.append('movies')
             mediatypes.append('tvshows')
         else:
-            mediatypes.append(self.ViewItems[view_id][1])
+            mediatypes.append(self.ViewItems[LibraryId][1])
 
         for mediatype in mediatypes:
             if mediatype in ('music', 'audiobooks', 'podcasts'):
@@ -293,7 +289,7 @@ class Views:
             else:
                 path = Utils.FolderLibraryVideo
 
-            SubFolder = 'emby_%s_%s/' % (mediatype, self.ViewItems[view_id][0].replace(" ", "_"))
+            SubFolder = 'emby_%s_%s/' % (mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
             NodePath = os.path.join(path, SubFolder)
 
             if xbmcvfs.exists(NodePath):

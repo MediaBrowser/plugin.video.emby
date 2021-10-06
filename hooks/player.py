@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import threading
+import json
 import xbmc
 import database.db_open
 import helper.jsonrpc
@@ -106,19 +107,22 @@ class PlayerEvents(xbmc.Player):
 
                     for server_id in self.EmbyServers:
                         self.EmbyServer = self.EmbyServers[server_id]
+                        embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+                        EmbyId = embydb.get_EmbyID_by_path(PlayingFile)
 
-                        with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-                            EmbyId = embydb.get_EmbyID_by_path(PlayingFile)
+                        if EmbyId:
+                            Data = embydb.get_item_by_id(EmbyId[0])
+                            kodi_id = Data[0]
+                            media_type = Data[4]
+                            Path = PlayingFile
 
-                            if EmbyId:
-                                Data = embydb.get_item_by_id(EmbyId[0])
-                                kodi_id = Data[0]
-                                media_type = Data[4]
-                                Path = PlayingFile
+                        database.db_open.DBClose(server_id, False)
 
             self.MultiselectionDone = False
 
             if Path and not Path.startswith("http://127.0.0.1:57578"):  # native mode
+                MediasourceID = ""
+
                 if not kodi_id:
                     kodi_id = PlayerItem.getDbId()
 
@@ -127,50 +131,52 @@ class PlayerEvents(xbmc.Player):
 
                 for server_id in self.EmbyServers:
                     self.EmbyServer = self.EmbyServers[server_id]
+                    embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+                    item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media_type)
 
-                    with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-                        item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media_type)
+                    if not item:
+                        database.db_open.DBClose(server_id, False)
+                        continue
 
-                        if not item:
-                            continue
+                    EmbyId = item[0]
 
-                        EmbyId = item[0]
+                    # Multiversion
+                    MediaSources = embydb.get_mediasource(EmbyId)
+                    database.db_open.DBClose(server_id, False)
+                    MediasourceID = ""
 
-                        # Multiversion
-                        MediaSources = embydb.get_mediasource(EmbyId)
-                        MediasourceID = ""
+                    if len(MediaSources) > 1:
+                        self.pause()
+                        Selection = []
 
-                        if len(MediaSources) > 1:
+                        for Data in MediaSources:
+                            Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
+
+                        MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
+
+                        if MediaIndex <= 0:
+                            MediasourceID = MediaSources[0][2]
+                            EmbyId = MediaSources[0][0]
                             self.pause()
-                            Selection = []
+                        else:
+                            self.MultiselectionDone = True
+                            Details = Utils.load_VideoitemFromKodiDB(media_type, str(kodi_id))
+                            li = Utils.CreateListitem(media_type, Details)
+                            Path = MediaSources[MediaIndex][3]
 
-                            for Data in MediaSources:
-                                Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
+                            if Path.startswith('\\\\'):
+                                Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
-                            MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
+                            li.setPath(Path)
+                            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                            playlistIndex = playlist.getposition()
+                            playlist.add(Path, li, playlistIndex + 1)
+                            MediasourceID = MediaSources[MediaIndex][2]
+                            EmbyId = MediaSources[MediaIndex][0]
+                            self.playnext()
+                            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":' + str(playlistIndex) + '}}')
 
-                            if MediaIndex <= 0:
-                                MediasourceID = MediaSources[0][2]
-                                EmbyId = MediaSources[0][0]
-                                self.pause()
-                            else:
-                                self.MultiselectionDone = True
-                                Details = Utils.load_VideoitemFromKodiDB(media_type, str(kodi_id))
-                                li = Utils.CreateListitem(media_type, Details)
-                                Path = MediaSources[MediaIndex][3]
-
-                                if Path.startswith('\\\\'):
-                                    Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
-
-                                li.setPath(Path)
-                                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-                                playlistIndex = playlist.getposition()
-                                playlist.add(Path, li, playlistIndex + 1)
-                                MediasourceID = MediaSources[MediaIndex][2]
-                                EmbyId = MediaSources[MediaIndex][0]
-                                self.playnext()
-                                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":' + str(playlistIndex) + '}}')
-
+                        database.db_open.DBClose(server_id, False)
                         break
 
                 if EmbyId:
@@ -209,11 +215,12 @@ class PlayerEvents(xbmc.Player):
 
         SeekPosition = int(time * 10000)
 
-        if SeekPosition > self.PlayingItem['RunTimeTicks']:
-            SeekPosition = self.PlayingItem['RunTimeTicks']
+        if 'RunTimeTicks' in self.PlayingItem:
+            if SeekPosition > self.PlayingItem['RunTimeTicks']:
+                SeekPosition = self.PlayingItem['RunTimeTicks']
 
-        self.PlayingItem['PositionTicks'] = SeekPosition
-        self.EmbyServer.API.session_progress(self.PlayingItem)
+            self.PlayingItem['PositionTicks'] = SeekPosition
+            self.EmbyServer.API.session_progress(self.PlayingItem)
 
     def onPlayBackPaused(self):
         LOG.info("[ onPlayBackPaused ]")
@@ -257,12 +264,13 @@ class PlayerEvents(xbmc.Player):
         self.stop_playback(True)
         LOG.info("--<<[ playback ]")
 
-    def SETVolume(self, Volume, Mute):
+    def SETVolume(self, data):
         if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
             return
 
-        self.PlayingItem['VolumeLevel'] = Volume
-        self.PlayingItem['IsMuted'] = Mute
+        data = json.loads(data)
+        self.PlayingItem['VolumeLevel'] = data['volume']
+        self.PlayingItem['IsMuted'] = data['muted']
         self.EmbyServer.API.session_progress(self.PlayingItem)
 
     def onPlayBackError(self):

@@ -58,9 +58,6 @@ class Monitor(xbmc.Monitor):
         self.WebServiceThread = webservice.WebService()
         self.WebServiceThread.start()
 
-        if Utils.reloadskin:
-            xbmc.executebuiltin('ReloadSkin()')
-
     def QueryData(self):
         QuerySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         QuerySocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -122,7 +119,7 @@ class Monitor(xbmc.Monitor):
         elif method == 'Other.addserver':
             threading.Thread(target=self.ServerConnect, args=(None,)).start()
         elif method == 'Other.adduserselection':
-            self.Menu.select_adduser()
+            threading.Thread(target=self.Menu.select_adduser).start()
         elif method == 'Other.databasereset':
             threading.Thread(target=self.databasereset).start()
         elif method == 'Other.texturecache':
@@ -141,10 +138,8 @@ class Monitor(xbmc.Monitor):
         elif method == 'System.OnQuit':
             threading.Thread(target=self.System_OnQuit).start()
         elif method == 'Application.OnVolumeChanged':
-            data = json.loads(data)
-            threading.Thread(target=self.player.SETVolume, args=(data['volume'], data['muted'],)).start()
+            threading.Thread(target=self.player.SETVolume, args=(data,)).start()
         elif method == 'VideoLibrary.OnUpdate':
-            data = json.loads(data)
             threading.Thread(target=self.VideoLibrary_OnUpdate, args=(data,)).start()
 
     def EmbyServer_ReconnectAll(self):
@@ -158,8 +153,22 @@ class Monitor(xbmc.Monitor):
     def onScanStarted(self, library):
         LOG.info("-->[ kodi scan/%s ]" % library)
 
+        if library == "music":
+            if not Utils.KodiDBLockMusic.locked():
+                Utils.KodiDBLockMusic.acquire()
+        else:
+            if not Utils.KodiDBLockVideo.locked():
+                Utils.KodiDBLockVideo.acquire()
+
     def onScanFinished(self, library):
         LOG.info("--<[ kodi scan/%s ]" % library)
+
+        if library == "music":
+            if Utils.KodiDBLockMusic.locked():
+                Utils.KodiDBLockMusic.release()
+        else:
+            if Utils.KodiDBLockVideo.locked():
+                Utils.KodiDBLockVideo.release()
 
     def ServerConnect(self, ServerSettings):
         EmbyServerObj = emby.emby.EmbyServer(self.UserDataChanged, ServerSettings, self.RunLibraryJobs)
@@ -177,40 +186,30 @@ class Monitor(xbmc.Monitor):
             if not ServerSettings:  # First run
                 threading.Thread(target=self.EmbyServers[server_id].library.select_libraries, args=("AddLibrarySelection",)).start()
 
+        xbmc.executebuiltin('UpdateLibrary(video)')
+        xbmc.executebuiltin('UpdateLibrary(music)')
+
     def UserDataChanged(self, server_id, UserDataList, UserId):
         if UserId != self.EmbyServers[server_id].user_id:
             return
 
         LOG.info("[ UserDataChanged ] %s" % UserDataList)
         UpdateData = []
-        RemoveData = []
 
-        with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-            for ItemData in UserDataList:
-                if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
-                    item = embydb.get_kodiid(ItemData['ItemId'])
+        for ItemData in UserDataList:
+            if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
+                UpdateData.append(ItemData)
+            else:
+                LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
 
-                    if item:
-                        PresentationKey = item[1].split("-")
-
-                        if PresentationKey[0] not in self.player.ItemSkipUpdate:  # Check PresentationKey
-                            UpdateData.append(ItemData)
-                        else:
-                            LOG.info("[ UserDataChanged skip update/%s (PresentationKey/%s) ]" % (ItemData['ItemId'], PresentationKey[0]))
-                            RemoveData.append(PresentationKey[0])
-                            RemoveData.append(ItemData['ItemId'])
-                    else:
-                        UpdateData.append(ItemData)
+                if 'ItemId' in self.player.PlayingItem:
+                    if self.player.PlayingItem['ItemId'] != str(ItemData['ItemId']):
+                        self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
                 else:
-                    LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-                    RemoveData.append(ItemData['ItemId'])
+                    self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
 
         if UpdateData:
             self.EmbyServers[server_id].library.userdata(UpdateData)
-
-        for ItemId in RemoveData:
-            if ItemId in self.player.ItemSkipUpdate:
-                self.player.ItemSkipUpdate.remove(ItemId)
 
     def System_OnQuit(self):
         for EmbyServer in list(self.EmbyServers.values()):
@@ -256,7 +255,7 @@ class Monitor(xbmc.Monitor):
         if xspplaylistsPreviousValue != Utils.xspplaylists:
             if Utils.xspplaylists:
                 for EmbyServer in list(self.EmbyServers.values()):
-                    EmbyServer.Views.update_nodes(True)
+                    EmbyServer.Views.update_nodes()
             else:
                 # delete playlists
                 for playlistfolder in [Utils.FolderPlaylistsVideo, Utils.FolderPlaylistsMusic]:
@@ -343,22 +342,19 @@ class Monitor(xbmc.Monitor):
 
     # Mark as watched/unwatched updates
     def VideoLibrary_OnUpdate(self, data):
+        data = json.loads(data)
+
         if 'item' in data and 'playcount' in data:
             kodi_id = data['item']['id']
             media = data['item']['type']
 
             for server_id in self.EmbyServers:
-                with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-                    item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+                item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                database.db_open.DBClose(server_id, False)
 
                 if item:
-                    if item[0] not in self.player.ItemSkipUpdate:  # Check EmbyID
-                        PresentationKey = item[9].split("-")
-
-                        if PresentationKey[0] in self.player.ItemSkipUpdate:  # Check PresentationKey
-                            LOG.info("[ VideoLibrary_OnUpdate skip update/%s (PresentationKey/%s) ]" % (item[0], PresentationKey[0]))
-                            return
-
+                    if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
                         if media in ("season", "tvshow"):
                             return
 
@@ -407,7 +403,6 @@ class Monitor(xbmc.Monitor):
         Utils.copytree(RestoreFolderAddonData, Utils.FolderAddonUserdata)
         RestoreFolderDatabase = os.path.join(RestoreFolder, "Database")
         Utils.copytree(RestoreFolderDatabase, Utils.FolderDatabase)
-        Utils.set_settings_bool('ReloadSkin', True)
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
         xbmc.executebuiltin('RestartApp')
 
@@ -475,17 +470,17 @@ class Monitor(xbmc.Monitor):
                         xbmcvfs.delete(cached)
                         LOG.debug("DELETE cached %s" % cached)
 
-            with database.db_open.io(Utils.DatabaseFiles, "texture", True) as texturedb:
-                texturedb.delete_tables("Texture")
+            texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
+            texturedb.delete_tables("Texture")
+            database.db_open.DBClose("texture", True)
 
-        with database.db_open.io(Utils.DatabaseFiles, "video", False) as videodb:
-            urls = videodb.common_db.get_urls()
-
+        videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+        urls = videodb.common_db.get_urls()
+        database.db_open.DBClose("video", False)
         threading.Thread(target=self.CacheAllEntries, args=(webServerUrl, urls, "video", webServerUser, webServerPass,)).start()
-
-        with database.db_open.io(Utils.DatabaseFiles, "music", False) as musicdb:
-            urls = musicdb.common_db.get_urls()
-
+        musicdb = database.db_open.DBOpen(Utils.DatabaseFiles, "music")
+        urls = musicdb.common_db.get_urls()
+        database.db_open.DBClose("music", False)
         threading.Thread(target=self.CacheAllEntries, args=(webServerUrl, urls, "music", webServerUser, webServerPass,)).start()
 
     # Cache all entries
@@ -532,14 +527,12 @@ class Monitor(xbmc.Monitor):
             return
 
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-
-        with database.db_open.io(Utils.DatabaseFiles, "video", True) as videodb:
-            videodb.common_db.delete_tables("Video")
-
-        with database.db_open.io(Utils.DatabaseFiles, "music", True) as musicdb:
-            musicdb.common_db.delete_tables("Music")
-
-
+        videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+        videodb.common_db.delete_tables("Video")
+        database.db_open.DBClose("video", True)
+        musicdb = database.db_open.DBOpen(Utils.DatabaseFiles, "music")
+        musicdb.common_db.delete_tables("Music")
+        database.db_open.DBClose("music", True)
         _, ServerIds, _ = self.Menu.get_EmbyServerList()
 
         for ServerId in ServerIds:
@@ -550,9 +543,9 @@ class Monitor(xbmc.Monitor):
 
             if DeleteTextureCache:
                 Utils.DeleteThumbnails()
-
-                with database.db_open.io(Utils.DatabaseFiles, "texture", True) as texturedb:
-                    texturedb.delete_tables("Texture")
+                texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
+                texturedb.delete_tables("Texture")
+                database.db_open.DBClose("texture", True)
 
             if DeleteSettings:
                 SettingsPath = os.path.join(Utils.FolderAddonUserdata, "settings.xml")

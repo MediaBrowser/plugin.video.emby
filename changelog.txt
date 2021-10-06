@@ -1,3 +1,215 @@
+6.1.0 (beta)
+=============
+Improvements:
+-------------
+sync 
+event queue 
+player
+library nodes
+Music libraries
+multiselection for 3d and native content
+file io changed api 
+
+Fixes:
+------
+multipart iso
+recently added
+watched status
+add user to session
+TV-Show pooling
+Trailers
+timestamp issue <1970 (Windows only)
+musicvideo track info
+trakt issues
+warning notification when websocket connection is offline
+db lockup
+
+New:
+----
+multiserver support
+multivideo selection for native mode
+mixed native/addon content support
+Audiobook support
+iptvsimple sync support
+compatibility mode
+multiselection bluray iso files
+toggle playlist
+local trailers support
+mixed content libs -> added music support
+podcasts sync support
+partial sync for homevideos
+
+Known issues:
+-------------
+probably sync issue on active recordings
+some translations pending
+
+Feature requests:
+-----------------
+none
+
+Details:
+--------
+sync performance
+event performance
+multiserver support
+menu restructure
+player improvements
+multivideo selection in native mode
+mixed native/addon content supported
+multipart iso fixed
+recently added fixed
+pluginmenu fixed
+watched status fixed
+add user to session fixed
+favorites fixed
+delete option fixed
+multipart videos fixed
+nodes changes (custom skin node updates are required, if library names have spaces in the label)
+sleepmode issue fixed
+dynamic librearies: Added folder node
+Audiobook support (dynamic and synced)
+Music db, multiple fixes and massive sync performance improvements (music db still needs additional testing)
+bugfixes for transcoding
+TV-Show pooling
+Fix artwork issues
+xsp playlist optional
+iptvsimple sync support
+compatibility mode
+livetv stream init changed
+livetv epg fix
+fix artwork for pooling tvshows
+additional fixes for live tv
+configuration files changed (reset required)
+several minor bugfixes
+Added additional nodes (SD, HD, 4K)
+fixes for item updates and item removal
+improvement for multiselection blueray iso files
+sync issues
+Pluginmenu fixes
+blueray multiselection fixes
+Kodi 18 bugfix
+multiselection improvements for 3d and native content
+minor Trailer bugfixes
+starttime fixed for remote content
+add library
+mandatory db reset (on Kodi start)
+manual db reset
+hide password
+tvtunes
+several minor fixes
+sync issues (virtual Emby server)
+toggle playlist
+kodi profile support
+timestamp issue <1970 (Windows only)
+Sync Boxsets
+add option to shows "manage libraries" in plugin menu
+realtime sync issues
+Kodi 18 issue
+code improvements
+fix musicvideo track info
+delete shortcuts
+additional users menu
+context menu
+add/remove season
+add parent artwork for seasons
+added special feature selection to context menu
+favourites
+subtitle selection
+optimize code
+improve progress updates
+redesign sync
+fix trakt issue
+fix invalid content sync
+(edge case) sync issue fixed
+extended info in progress bar for (initial) TV shows syncs
+Kodi 18 fixes
+added a warning notification when websocket connection is offline
+local trailers support for cinnema mode and library sync
+minor sync fixes
+plugin strm files fixed (testing required)
+some websocket fixes
+studio info fixed
+cast fixed
+rating fixed
+fix progress report when playing native Kodi content
+fix for musicvideo progress
+fix unicode loghandler issue
+fix cast tvshows
+fix music progress for native content
+mixed content libs -> added music support
+potcasts syncable (no realtime updates available, on sync on Kodi restart -> seems to be a Emby server limitation)
+some nodes fixes
+music sync is now working also if Artist info not available
+removed local trailers from library sync options (even technically possible, makes no sense to me). Anyway, still available via info screen as it should be.
+music content sync fixes
+minor improvements in http requests
+Timestamps updates to dual mode (boxset fixes)
+artwork cache changes
+tvshow sync issues
+minor realtime syncs issues fixed (doulbe updates in some edge cases)
+Favourite icons added
+unicode issues for Kodi 18
+Minor sync queue improvements
+Add episode info to progress info on init sync
+Fix browseinfo for episodes
+Fix resume for dynamic content
+workaround for native Kodi refresh commands
+podcast fixes in dynamic nodes
+add partial sync for homevideos
+minor sync queue inprovements
+add user when using multi Emby server
+db lockup (important fix)
+multiserver queue jobs
+rollback userrating modification. Value is back from 0-10 not 0-100
+fix xsp playlists
+fix item remove queue issue
+add artwork cache in pluginmenu (optional)
+artwork cache fix
+delete artwork cache optional for mandatory db resyncs
+manual db reset fixes when keeping settings
+artwork cache double start
+add more fucntions to plugin menu
+add update libraries option
+fix multiserver manual db reset
+fix backup restore
+file io changed api
+fix add/remove multi video
+fix tv show removal items
+fix tvshow info
+remove vote counts (not support by Emby server)
+remove useless class abstractions
+add option to reload skin after plugin start -> default = true
+improve music nodes abstraction
+fix photos
+fix homevideo updates
+progress bar value fix for update worker
+fix compatibility mode
+fix doublelogin to Emby server after sleepmode
+minor progress update fixes
+fix music artworks
+music sync (kodi 18)
+mediathek fixes
+progress update fix
+clean code
+fix remove item issue
+fix recording issue
+fix native season path
+fix mutiversion selection
+fix live tv
+reduce (Kodi) DB open time to minimum to avoid (exclusive open) delays
+give kodi priority db access
+add db delete option
+progress bar fixes
+fix unicode issue in native mode
+fix websocket updates (remove item)
+artwork changes
+fix multiple server detection
+improve library remove/repair
+fix subtitle selection
+
+
+
 6.0.13 (beta)
 =============
 Improvements:

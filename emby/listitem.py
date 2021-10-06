@@ -242,9 +242,7 @@ def set_ListItem(item, server_id):
         listitem.setInfo('pictures', metadata)
     elif item['Type'] == 'Playlist':
         obj = Objects.mapitem(item, 'BrowseFolder')
-        metadata = {
-            'title': obj['Title']
-        }
+        metadata = {'title': obj['Title']}
         obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, server_id)
         Properties['IsFolder'] = 'true'
         Properties['IsPlayable'] = 'false'
@@ -270,12 +268,7 @@ def set_ListItem(item, server_id):
             if 'Thumb' not in obj['Backdrop']:
                 obj['Artwork']['Backdrop'] = ["special://home/addons/plugin.video.emby-next-gen/resources/fanart.jpg"]
 
-        metadata = {
-            'title': obj['Title'],
-            'originaltitle': obj['Title'],
-            'playcount': obj['PlayCount'],
-            'overlay': obj['Overlay']
-        }
+        metadata = {'title': obj['Title'], 'originaltitle': obj['Title'], 'playcount': obj['PlayCount'], 'overlay': obj['Overlay']}
         Properties['totaltime'] = str(obj['Runtime'])
         Properties['IsFolder'] = 'false'
         Properties['IsPlayable'] = 'true'

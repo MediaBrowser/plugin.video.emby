@@ -59,15 +59,16 @@ class WebService(threading.Thread):
         while not self.Stop:
             (client, address) = self.socket.accept()
             client.settimeout(None)
-            threading.Thread(target=self.Query, args=(client, address)).start()
+            data = client.recv(1024).decode()
+            threading.Thread(target=self.Query, args=(client, address, data)).start()
 
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
             pass
 
-    def Query(self, client, address):
-        data = client.recv(1024).decode()
+    def Query(self, client, address, data):
+
 
         if not self.EmbyServers:
             SendResponseOK(client)
@@ -95,10 +96,9 @@ class WebService(threading.Thread):
 
     def LoadISO(self, QueryData, MediaIndex):
         self.Player.MultiselectionDone = True
-
-        with database.db_open.io(Utils.DatabaseFiles, QueryData['ServerId'], False) as self.embydb:
-            QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
-
+        self.embydb = database.db_open.DBOpen(Utils.DatabaseFiles, QueryData['ServerId'])
+        QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
+        database.db_open.DBClose(QueryData['ServerId'], False)
         Details = Utils.load_VideoitemFromKodiDB(QueryData['MediaType'], QueryData['KodiId'])
         li = Utils.CreateListitem(QueryData['MediaType'], Details)
         Path = QueryData['MediaSources'][MediaIndex][3]
@@ -220,74 +220,83 @@ class WebService(threading.Thread):
                         self.SendResponse(client, URL, False, QueryData, True)
                         return
 
-        with database.db_open.io(Utils.DatabaseFiles, QueryData['ServerId'], False) as self.embydb:
-            # Select mediasources, Audiostreams, Subtitles
-            if QueryData['KodiId']:  # Item synced to Kodi DB
-                PresentationKey = QueryData['PresentationKey'].split("_")
-                self.Player.ItemSkipUpdate.append(PresentationKey[0])
-                self.Player.ItemSkipUpdate.append(QueryData['EmbyID'])
+        # Select mediasources, Audiostreams, Subtitles
+        self.embydb = database.db_open.DBOpen(Utils.DatabaseFiles, QueryData['ServerId'])
 
-                if QueryData['MediasourcesCount'] == 1:
-                    if QueryData['Type'] == 'embyiso':
-                        self.LoadISO(QueryData, 0)
-                        self.SendResponse(client, 'RELOAD', False, QueryData)
-                    else:
-                        self.SendResponse(client, self.LoadData(0, QueryData), False, QueryData)
+        if QueryData['KodiId']:  # Item synced to Kodi DB
+            self.Player.ItemSkipUpdate.append(QueryData['EmbyID'])
 
-                    return
-
-                # Multiversion
-                Selection = []
-                QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
-
-                for Data in QueryData['MediaSources']:
-                    Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
-
-                MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
-
-                if MediaIndex <= 0:
-                    MediaIndex = 0
-
-                # check if multiselection must be forced as native
-                if QueryData['MediaSources'][MediaIndex][3].lower().endswith(".iso"):
-                    self.LoadISO(QueryData, MediaIndex)
+            if QueryData['MediasourcesCount'] == 1:
+                if QueryData['Type'] == 'embyiso':
+                    self.LoadISO(QueryData, 0)
                     self.SendResponse(client, 'RELOAD', False, QueryData)
-                    return
+                else:
+                    self.SendResponse(client, self.LoadData(0, QueryData), False, QueryData)
 
-                QueryData['MediasourceID'] = QueryData['MediaSources'][MediaIndex][2]
-                self.SendResponse(client, self.LoadData(MediaIndex, QueryData), False, QueryData)
+                database.db_open.DBClose(QueryData['ServerId'], False)
                 return
 
-            self.IntrosIndex = 0
-            self.SubTitlesAdd(0, QueryData)
-            self.Player.Transcoding = IsTranscoding(QueryData['BitrateFromURL'], None, QueryData)
+            # Multiversion
+            Selection = []
+            QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
 
-            if self.Player.Transcoding:
-                URL = self.GETTranscodeURL(QueryData['Filename'], False, False, QueryData)
-            else:
-                URL = "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
+            for Data in QueryData['MediaSources']:
+                Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
 
-            self.SendResponse(client, URL, False, QueryData)
+            MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
+
+            if MediaIndex <= 0:
+                MediaIndex = 0
+
+            # check if multiselection must be forced as native
+            if QueryData['MediaSources'][MediaIndex][3].lower().endswith(".iso"):
+                self.LoadISO(QueryData, MediaIndex)
+                self.SendResponse(client, 'RELOAD', False, QueryData)
+                database.db_open.DBClose(QueryData['ServerId'], False)
+                return
+
+            QueryData['MediasourceID'] = QueryData['MediaSources'][MediaIndex][2]
+            self.SendResponse(client, self.LoadData(MediaIndex, QueryData), False, QueryData)
+            database.db_open.DBClose(QueryData['ServerId'], False)
             return
+
+        self.IntrosIndex = 0
+        self.SubTitlesAdd(0, QueryData)
+        self.Player.Transcoding = IsTranscoding(QueryData['BitrateFromURL'], None, QueryData)
+
+        if self.Player.Transcoding:
+            URL = self.GETTranscodeURL(QueryData['Filename'], False, False, QueryData)
+        else:
+            URL = "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
+
+        self.SendResponse(client, URL, False, QueryData)
+        database.db_open.DBClose(QueryData['ServerId'], False)
 
     # Load SRT subtitles
     def SubTitlesAdd(self, MediaIndex, QueryData):
         Subtitles = self.embydb.get_Subtitles(QueryData['EmbyID'], MediaIndex)
+
+        if not Subtitles:
+            return
+
         CounterSubTitle = 0
         DefaultSubtitlePath = ""
         EnableSubtitle = False
+        SRTFound = False
 
         for Data in Subtitles:
             CounterSubTitle += 1
 
             if Data[3] == "srt":
+                SRTFound = True
                 SubTitleURL = "%s/emby/videos/%s/%s/Subtitles/%s/stream.srt" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], Data[2])
                 request = {'type': "GET", 'url': SubTitleURL, 'params': {}}
 
                 # Get Subtitle Settings
-                with database.db_open.io(Utils.DatabaseFiles, "video", False) as videodb:
-                    videodb.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (QueryData['KodiFileId'],))
-                    FileSettings = videodb.cursor.fetchone()
+                videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+                videodb.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (QueryData['KodiFileId'],))
+                FileSettings = videodb.cursor.fetchone()
+                database.db_open.DBClose("video", False)
 
                 if FileSettings:
                     EnableSubtitle = bool(FileSettings[9])
@@ -308,11 +317,18 @@ class WebService(threading.Thread):
                 if Path:
                     if self.DefaultVideoSettings["SubtitlesLanguage"].lower() in Data[5].lower():
                         DefaultSubtitlePath = Path
+
+                        if self.DefaultVideoSettings["SubtitlesLanguage"].lower() == "forced_only" and "forced" in Data[5].lower():
+                            DefaultSubtitlePath = Path
+                        else:
+                            self.Player.setSubtitles(Path)
                     else:
                         self.Player.setSubtitles(Path)
 
-        if DefaultSubtitlePath:
-            self.Player.setSubtitles(DefaultSubtitlePath)
+        if SRTFound:
+            if DefaultSubtitlePath:
+                self.Player.setSubtitles(DefaultSubtitlePath)
+
             self.Player.showSubtitles(EnableSubtitle)
 
     def LoadData(self, MediaIndex, QueryData):
@@ -440,7 +456,7 @@ class WebService(threading.Thread):
             QueryData['Type'] = "embyimage"
         elif Data[0] in ("embyvideo", "embyiso"):  # Video
             QueryData['MediasourceID'] = Data[3]
-            QueryData['PresentationKey'] = Data[4]
+#            QueryData['PresentationKey'] = Data[4]
 #            QueryData['EmbyParentId'] = Data[5]
             QueryData['KodiId'] = Data[6]
             QueryData['KodiFileId'] = Data[7]
@@ -454,7 +470,7 @@ class WebService(threading.Thread):
             QueryData['Filename'] = Data[15]
             QueryData['Type'] = Data[0]
         elif Data[0] == "embyaudio":  # Audio
-            QueryData['PresentationKey'] = Data[3]
+#            QueryData['PresentationKey'] = Data[3]
             QueryData['MediaType'] = Data[4]
             QueryData['Filename'] = Data[5]
             QueryData['MediasourceID'] = ""
