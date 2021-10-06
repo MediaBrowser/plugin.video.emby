@@ -413,8 +413,9 @@ def Playstate(Command, SeekPositionTicks):
         LOG.info("[ command/%s ]" % Command)
 
 def AddPlaylistItem(Position, EmbyID, server_id, Offset, EmbyServer):
-    with database.db_open.io(Utils.DatabaseFiles, server_id, False) as embydb:
-        Data = embydb.get_item_by_wild_id(str(EmbyID))
+    embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+    Data = embydb.get_item_by_wild_id(str(EmbyID))
+    database.db_open.DBClose(server_id, False)
 
     if Data:  # Requested video is synced to KodiDB. No additional info required
         if Data[0][1] in ("song", "album", "artist"):

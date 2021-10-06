@@ -110,9 +110,9 @@ class EmbyServer:
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
 
-        with database.db_open.io(Utils.DatabaseFiles, self.server_id, True) as embydb:
-            embydb.init_EmbyDB()
-
+        embydb = database.db_open.DBOpen(Utils.DatabaseFiles, self.server_id)
+        embydb.init_EmbyDB()
+        database.db_open.DBClose(self.server_id, True)
         self.load_credentials()
 
         if 'Users' in self.ServerData:
@@ -124,7 +124,7 @@ class EmbyServer:
 
         self.Views.update_views()
         self.library = database.library.Library(self)
-        self.Views.update_nodes(False)
+        self.Views.update_nodes()
         self.Websocket = hooks.websocket.WSClient(self)
         self.Websocket.start()
         self.Online = True

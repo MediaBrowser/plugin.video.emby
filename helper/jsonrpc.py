@@ -12,11 +12,7 @@ class JSONRPC:
             self.arg = kwargs[arg]
 
     def _query(self):
-        query = {
-            'jsonrpc': "2.0",
-            'id': 1,
-            'method': self.method,
-        }
+        query = {'jsonrpc': "2.0", 'id': 1, 'method': self.method}
 
         if self.params:
             query['params'] = self.params

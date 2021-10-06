@@ -41,7 +41,7 @@ class HTTP:
         if ServerConnecting:  # Server connect
             data['timeout'] = 5
         else:
-            data['timeout'] = 60
+            data['timeout'] = 120
 
         data['verify'] = Utils.sslverify
         LOG.debug("--->[ http ] %s" % json.dumps(data, indent=4))
@@ -80,7 +80,7 @@ class HTTP:
 
                 return {}
             except requests.exceptions.ReadTimeout:
-                LOG.error("[ ServerTimeout ]")
+                LOG.error("[ ServerTimeout ] %s" % data)
                 return {}
             except Exception as error:
                 LOG.error(error)

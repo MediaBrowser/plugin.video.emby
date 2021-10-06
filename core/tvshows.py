@@ -28,7 +28,7 @@ class TVShows:
 
         if not obj['RecursiveCount']:
             LOG.info("Skipping empty show %s: %s" % (obj['Title'], obj['Id']))
-            self.remove(obj['Id'])
+            self.remove(obj['Id'], False)
             return False
 
         if e_item:
@@ -296,9 +296,15 @@ class TVShows:
 
         self.video_db.add_people(obj['People'], obj['KodiEpisodeId'], "episode")
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
-        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'], "DVDPlayer", 1)
+        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiEpisodeId'], "episode")
-        Common.add_Multiversion(obj, self.emby_db, "Episode", self.EmbyServer.API)
+        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "Episode", self.EmbyServer.API)
+
+        # Remove existing Item
+        if ExistingItem and not update:
+            self.video_db.common_db.delete_artwork(ExistingItem[0], "episode")
+            self.video_db.delete_episode(ExistingItem[0], ExistingItem[1])
+
         return not update
 
     def get_show_id(self, obj):
@@ -340,14 +346,14 @@ class TVShows:
             PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
             DatePlayed = Utils.currenttime()
             Info = EpisodeData[2]
-            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime, "DVDPlayer", 1)
+            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA [%s/%s/%s] %s: %s" % (KodiType, KodiFileId, KodiId, ItemUserdata['ItemId'], Info))
 
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons
-    def remove(self, EmbyItemId):
+    def remove(self, EmbyItemId, Delete):
         e_item = self.emby_db.get_item_by_id(EmbyItemId)
 
         if e_item:
@@ -361,69 +367,78 @@ class TVShows:
             return
 
         if KodiType == 'episode':
-            StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "Episode")
+            if not Delete:
+                StackedIds = self.emby_db.get_stacked_embyid(emby_presentation_key, emby_folder, "Episode")
 
-            if len(StackedIds) > 1:
-                self.emby_db.remove_item(EmbyItemId)
-                LOG.info("DELETE stacked episode from embydb %s" % EmbyItemId)
+                if len(StackedIds) > 1:
+                    self.emby_db.remove_item(EmbyItemId)
+                    LOG.info("DELETE stacked episode from embydb %s" % EmbyItemId)
 
-                for StackedId in StackedIds:
-                    StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
+                    for StackedId in StackedIds:
+                        StackedItem = self.EmbyServer.API.get_item_multiversion(StackedId[0])
 
-                    if StackedItem:
-                        library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
-                        LibraryData = {"Id": emby_folder, "Name": library_name}
-                        LOG.info("UPDATE remaining stacked episode from embydb %s" % StackedItem['Id'])
-                        self.episode(StackedItem, LibraryData)  # update all stacked items
+                        if StackedItem:
+                            library_name = self.emby_db.get_Libraryname_by_Id(emby_folder)
+                            LibraryData = {"Id": emby_folder, "Name": library_name}
+                            LOG.info("UPDATE remaining stacked episode from embydb %s" % StackedItem['Id'])
+                            self.episode(StackedItem, LibraryData)  # update all stacked items
+                else:
+                    KodiSeasonData = self.emby_db.get_full_item_by_kodi_id(KodiParentId, "season")
+                    self.remove_episode(KodiId, KodiFileId, EmbyItemId)
+
+                    # delete empty season
+                    if KodiSeasonData:
+                        if not self.emby_db.get_item_by_parent_id(KodiParentId, "episode"):
+                            KodiTVShowData = self.emby_db.get_full_item_by_kodi_id(KodiSeasonData[1], "tvshow")
+                            self.remove_season(KodiParentId, KodiSeasonData[0])
+
+                            # delete empty tvshow
+                            if KodiTVShowData:
+                                if not self.emby_db.get_item_by_parent_id(KodiSeasonData[1], "season"):
+                                    self.remove_tvshow(KodiSeasonData[1], KodiTVShowData[0])
             else:
-                KodiSeasonData = self.emby_db.get_full_item_by_kodi_id(KodiParentId, "season")
                 self.remove_episode(KodiId, KodiFileId, EmbyItemId)
-
-                # delete empty season
-                if KodiSeasonData:
-                    if not self.emby_db.get_item_by_parent_id(KodiParentId, "episode"):
-                        KodiTVShowData = self.emby_db.get_full_item_by_kodi_id(KodiSeasonData[1], "tvshow")
-                        self.remove_season(KodiParentId, KodiSeasonData[0])
-
-                        # delete empty tvshow
-                        if KodiTVShowData:
-                            if not self.emby_db.get_item_by_parent_id(KodiSeasonData[1], "season"):
-                                self.remove_tvshow(KodiSeasonData[1], KodiTVShowData[0])
         elif KodiType == 'tvshow':
-            if self.emby_db.check_stacked(emby_presentation_key, emby_folder, "Series"):
-                self.emby_db.remove_item(EmbyItemId)
-                LOG.info("DELETE stacked t [%s] %s" % (KodiId, EmbyItemId))
-                StackedItems = self.emby_db.get_items_by_embyparentid(EmbyItemId, emby_folder, "Episode")
+            if not Delete:
+                if self.emby_db.check_stacked(emby_presentation_key, emby_folder, "Series"):
+                    self.emby_db.remove_item(EmbyItemId)
+                    LOG.info("DELETE stacked t [%s] %s" % (KodiId, EmbyItemId))
+                    StackedItems = self.emby_db.get_items_by_embyparentid(EmbyItemId, emby_folder, "Episode")
 
-                for StackedItem in StackedItems:
-                    self.remove_episode(StackedItem[4], StackedItem[5], StackedItem[0])
-                    LOG.info("DELETE stacked episode [%s/%s] %s" % (StackedItem[4], StackedItem[5], StackedItem[0]))
+                    for StackedItem in StackedItems:
+                        self.remove_episode(StackedItem[4], StackedItem[5], StackedItem[0])
+                        LOG.info("DELETE stacked episode [%s/%s] %s" % (StackedItem[4], StackedItem[5], StackedItem[0]))
+                else:
+                    # delete seasons
+                    for season in self.emby_db.get_item_by_parent_id(KodiId, "season"):
+                        # delete episodes
+                        for episode in self.emby_db.get_item_by_parent_id(season[1], "episode"):
+                            self.remove_episode(episode[1], episode[2], episode[0])
+
+                        self.remove_season(season[1], season[0])
+
+                    self.remove_tvshow(KodiId, EmbyItemId)
             else:
-                # delete seasons
-                for season in self.emby_db.get_item_by_parent_id(KodiId, "season"):
-                    # delete episodes
-                    for episode in self.emby_db.get_item_by_parent_id(season[1], "episode"):
-                        self.remove_episode(episode[1], episode[2], episode[0])
-
-                    self.remove_season(season[1], season[0])
-
                 self.remove_tvshow(KodiId, EmbyItemId)
         elif KodiType == 'season':
-            if self.emby_db.check_stacked(emby_presentation_key, emby_folder, "Season"):
-                self.emby_db.remove_item(EmbyItemId)
-                LOG.info("DELETE stacked season [%s] %s" % (KodiId, EmbyItemId))
+            if not Delete:
+                if self.emby_db.check_stacked(emby_presentation_key, emby_folder, "Season"):
+                    self.emby_db.remove_item(EmbyItemId)
+                    LOG.info("DELETE stacked season [%s] %s" % (KodiId, EmbyItemId))
+                else:
+                    KodiSeasonData = self.emby_db.get_full_item_by_kodi_id(KodiId, "season")
+
+                    # delete episodes
+                    for episode in self.emby_db.get_item_by_parent_id(KodiId, "episode"):
+                        self.remove_episode(episode[1], episode[2], episode[0])
+
+                    self.remove_season(KodiId, EmbyItemId)
+
+                    # delete empty tvshow
+                    if not self.emby_db.get_item_by_parent_id(KodiSeasonData[1], "season"):
+                        self.remove_tvshow(KodiSeasonData[1], KodiSeasonData[0])
             else:
-                KodiSeasonData = self.emby_db.get_full_item_by_kodi_id(KodiId, "season")
-
-                # delete episodes
-                for episode in self.emby_db.get_item_by_parent_id(KodiId, "episode"):
-                    self.remove_episode(episode[1], episode[2], episode[0])
-
                 self.remove_season(KodiId, EmbyItemId)
-
-                # delete empty tvshow
-                if not self.emby_db.get_item_by_parent_id(KodiSeasonData[1], "season"):
-                    self.remove_tvshow(KodiSeasonData[1], KodiSeasonData[0])
 
     def remove_tvshow(self, KodiTVShowId, EmbyItemId):
         self.video_db.common_db.delete_artwork(KodiTVShowId, "tvshow")

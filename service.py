@@ -25,8 +25,12 @@ class Service:
 
     def Startup(self):
         LOG.warning("--->>>[ Emby ]")
+        Ret = setup()
 
-        if not setup():  # db reset required
+        if Ret == "stop":  # db upgrade declined
+            return False
+
+        if not Ret:  # db reset required
             LOG.warning("[ Kodi restart ]")
             xbmc.executebuiltin('RestartApp')
             return False
@@ -112,6 +116,12 @@ def setup():
         LOG.info("Add-on playback: %s" % Utils.useDirectPaths == "0")
         return True
 
+
+    value = Utils.dialog("yesno", heading="{emby}", line1="Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version.")
+
+    if not value:
+        return "stop"
+
     Utils.dialog("notification", heading="{emby}", message="Database reset required, wait for Kodi restart", icon="{emby}", time=960000, sound=True)
     DeleteArtwork = Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33086))
     xbmc.sleep(5000)  # Give Kodi time to complete startup before reset
@@ -129,17 +139,11 @@ def setup():
         if Filename.startswith('emby'):
             xbmcvfs.delete(os.path.join(Utils.FolderDatabase, Filename))
 
-    with database.db_open.io(Utils.DatabaseFiles, "video", True) as videodb:
-        videodb.common_db.delete_tables("Video")
-
-    with database.db_open.io(Utils.DatabaseFiles, "music", True) as musicdb:
-        musicdb.common_db.delete_tables("Music")
-
     if DeleteArtwork:
         Utils.DeleteThumbnails()
-
-        with database.db_open.io(Utils.DatabaseFiles, "texture", True) as texturedb:
-            texturedb.delete_tables("Texture")
+        texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
+        texturedb.delete_tables("Texture")
+        database.db_open.DBClose("texture", True)
 
     Utils.delete_playlists()
     Utils.delete_nodes()

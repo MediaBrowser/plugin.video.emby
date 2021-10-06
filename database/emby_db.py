@@ -4,7 +4,7 @@ class EmbyDatabase:
         self.cursor = cursor
 
     def get_EmbyID_by_path(self, Path):
-        self.cursor.execute("SELECT emby_id FROM MediaSources WHERE Path LIKE ?", ("%" + Path,))
+        self.cursor.execute("SELECT emby_id FROM MediaSources WHERE Path LIKE ?", ("%%%s" % Path,))
         return self.cursor.fetchone()
 
     def init_EmbyDB(self):
@@ -21,7 +21,7 @@ class EmbyDatabase:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS PendingSync (emby_folder TEXT, library_type TEXT, library_name TEXT, RestorePoint TEXT)")
 
     def remove_items_by_emby_parent_id(self, emby_parent_id, emby_folder, emby_type):
-        self.cursor.execute("DELETE FROM mapping WHERE emby_parent_id = ? AND emby_type = ? AND emby_folder = ?", (emby_parent_id, emby_type, emby_folder,))
+        self.cursor.execute("DELETE FROM mapping WHERE emby_parent_id = ? AND emby_type = ? AND emby_folder = ?", (emby_parent_id, emby_type, emby_folder))
 
     def add_Userdata(self, Data):
         self.cursor.execute("INSERT INTO UserdataItems (Data) VALUES (?)", (Data,))
@@ -34,17 +34,17 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM UserdataItems WHERE Data = ?", (Data,))
 
     def add_PendingSync(self, emby_folder, library_type, library_name, RestorePoint):
-        self.cursor.execute("INSERT INTO PendingSync (emby_folder, library_type, library_name, RestorePoint) VALUES (?, ?, ?, ?)", (emby_folder, library_type, library_name, RestorePoint,))
+        self.cursor.execute("INSERT INTO PendingSync (emby_folder, library_type, library_name, RestorePoint) VALUES (?, ?, ?, ?)", (emby_folder, library_type, library_name, RestorePoint))
 
     def get_PendingSync(self):
         self.cursor.execute("SELECT * FROM PendingSync")
         return self.cursor.fetchall()
 
     def update_Restorepoint(self, emby_folder, library_type, library_name, RestorePoint):
-        self.cursor.execute("UPDATE PendingSync SET RestorePoint = ? WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (RestorePoint, emby_folder, library_type, library_name,))
+        self.cursor.execute("UPDATE PendingSync SET RestorePoint = ? WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (RestorePoint, emby_folder, library_type, library_name))
 
     def remove_PendingSync(self, emby_folder, library_type, library_name):
-        self.cursor.execute("DELETE FROM PendingSync WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name,))
+        self.cursor.execute("DELETE FROM PendingSync WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
 
     def remove_PendingSyncAll(self):
         self.cursor.execute("DELETE FROM PendingSync")
@@ -63,21 +63,21 @@ class EmbyDatabase:
         return self.cursor.fetchall()
 
     def add_Whitelist(self, emby_folder, library_type, library_name):
-        self.cursor.execute("SELECT * FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name,))
+        self.cursor.execute("SELECT * FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
 
         if not self.cursor.fetchone():
-            self.cursor.execute("INSERT INTO Whitelist (emby_folder, library_type, library_name) VALUES (?, ?, ?)", (emby_folder, library_type, library_name,))
+            self.cursor.execute("INSERT INTO Whitelist (emby_folder, library_type, library_name) VALUES (?, ?, ?)", (emby_folder, library_type, library_name))
 
         return self.get_Whitelist()
 
     def remove_Whitelist(self, emby_folder, library_type, library_name):
-        self.cursor.execute("DELETE FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name,))
+        self.cursor.execute("DELETE FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
         return self.get_Whitelist()
 
     def get_update_LastIncrementalSync(self, LastIncrementalSync, Type):
         self.cursor.execute("SELECT * FROM LastIncrementalSync WHERE Type = ?", (Type,))
         Data = self.cursor.fetchone()
-        self.cursor.execute("INSERT OR REPLACE INTO LastIncrementalSync (Type, Date) VALUES (?, ?)", (Type, LastIncrementalSync,))
+        self.cursor.execute("INSERT OR REPLACE INTO LastIncrementalSync (Type, Date) VALUES (?, ?)", (Type, LastIncrementalSync))
 
         if Data:
             return Data[1]
@@ -85,17 +85,26 @@ class EmbyDatabase:
         return None
 
     def add_UpdateItem(self, EmbyId, LibraryId, LibraryName, emby_type):
-        self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (emby_id, emby_folder, emby_name, emby_type) VALUES (?, ?, ?, ?)", (EmbyId, LibraryId, LibraryName, emby_type,))
+        self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (emby_id, emby_folder, emby_name, emby_type) VALUES (?, ?, ?, ?)", (EmbyId, LibraryId, LibraryName, emby_type))
 
-    def get_UpdateItem(self):
-        self.cursor.execute("SELECT * FROM UpdateItems LIMIT 500")
+    def get_UpdateItem_number_of_records(self):
+        self.cursor.execute("SELECT Count(*) FROM UpdateItems")
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return 0
+
+    def get_UpdateItem(self, Limit):
+        self.cursor.execute("SELECT * FROM UpdateItems LIMIT %s" % Limit)
         return self.cursor.fetchall()
 
     def delete_UpdateItem(self, EmbyId):
         self.cursor.execute("DELETE FROM UpdateItems WHERE emby_id = ?", (EmbyId,))
 
     def add_RemoveItem(self, EmbyId, EmbyType, emby_folder):
-        self.cursor.execute("INSERT OR REPLACE INTO RemoveItems (emby_id, emby_type, emby_folder) VALUES (?, ?, ?)", (EmbyId, EmbyType, emby_folder,))
+        self.cursor.execute("INSERT OR REPLACE INTO RemoveItems (emby_id, emby_type, emby_folder) VALUES (?, ?, ?)", (EmbyId, EmbyType, emby_folder))
 
     def get_RemoveItem(self):
         self.cursor.execute("SELECT * FROM RemoveItems")
@@ -105,7 +114,7 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM RemoveItems WHERE emby_id = ?", (EmbyId,))
 
     def get_item_by_emby_folder_wild(self, emby_folder):
-        self.cursor.execute("SELECT emby_id, emby_type FROM mapping WHERE emby_folder LIKE ?", ("%" + emby_folder + "%",))
+        self.cursor.execute("SELECT emby_id, emby_type FROM mapping WHERE emby_folder LIKE ?", ("%%%s%%" % emby_folder,))
         return self.cursor.fetchall()
 
     def get_libraryname_by_libraryid(self, Id):
@@ -122,7 +131,7 @@ class EmbyDatabase:
     def add_reference_library_id(self, emby_id, existing_emby_folder, emby_folder):
         if emby_folder not in existing_emby_folder:
             new_emby_folder = "%s;%s" % (existing_emby_folder, emby_folder)
-            self.cursor.execute("UPDATE mapping SET emby_folder = ? WHERE emby_id = ?", (new_emby_folder, emby_id,))
+            self.cursor.execute("UPDATE mapping SET emby_folder = ? WHERE emby_id = ?", (new_emby_folder, emby_id))
 
     def update_reference(self, *args):
         self.cursor.execute("UPDATE mapping SET emby_presentation_key = ?, emby_favourite = ? WHERE emby_id = ?", args)
@@ -131,7 +140,7 @@ class EmbyDatabase:
         self.cursor.execute("UPDATE mapping SET emby_favourite = ? WHERE emby_id = ?", args)
 
     def get_episode_fav(self):
-        self.cursor.execute("SELECT kodi_id FROM mapping WHERE kodi_type = ? AND emby_favourite = ?", ("episode", "1",))
+        self.cursor.execute("SELECT kodi_id FROM mapping WHERE kodi_type = ? AND emby_favourite = ?", ("episode", "1"))
         return self.cursor.fetchall()
 
     def add_mediasource(self, *args):
@@ -158,7 +167,7 @@ class EmbyDatabase:
         return self.cursor.fetchall()
 
     def get_item_by_wild_id(self, item_id):
-        self.cursor.execute("SELECT kodi_id, kodi_type FROM mapping WHERE emby_id LIKE ?", (item_id + "%",))
+        self.cursor.execute("SELECT kodi_id, kodi_type FROM mapping WHERE emby_id LIKE ?", ("%s%%" % item_id,))
         return self.cursor.fetchall()
 
     def get_full_item_by_kodi_id(self, *args):
@@ -206,9 +215,9 @@ class EmbyDatabase:
         self.cursor.execute("SELECT * FROM Subtitle WHERE emby_id = ? AND MediaIndex = ?", args)
         return self.cursor.fetchall()
 
-    def remove_item(self, *args):
-        self.cursor.execute("DELETE FROM mapping WHERE emby_id = ?", args)
-        self.remove_item_streaminfos(args[0])
+    def remove_item(self, Id):
+        self.cursor.execute("DELETE FROM mapping WHERE emby_id = ?", (Id,))
+        self.remove_item_streaminfos(Id)
 
     def remove_item_music(self, *args):
         self.cursor.execute("DELETE FROM mapping WHERE emby_id = ?", args)
@@ -231,26 +240,26 @@ class EmbyDatabase:
             self.cursor.execute("DELETE FROM mapping WHERE emby_id = ?", (emby_id,))
         else:
             NewLibraryInfo = NewLibraryInfo[:-1]  # remove trailing ";"
-            self.cursor.execute("UPDATE mapping SET emby_folder = ? WHERE emby_id = ?", (NewLibraryInfo, emby_id,))
+            self.cursor.execute("UPDATE mapping SET emby_folder = ? WHERE emby_id = ?", (NewLibraryInfo, emby_id))
 
-    def remove_item_streaminfos(self, *args):
-        self.cursor.execute("DELETE FROM MediaSources WHERE emby_id = ?", args)
-        self.cursor.execute("DELETE FROM VideoStreams WHERE emby_id = ?", args)
-        self.cursor.execute("DELETE FROM AudioStreams WHERE emby_id = ?", args)
-        self.cursor.execute("DELETE FROM Subtitle WHERE emby_id = ?", args)
+    def remove_item_streaminfos(self, Id):
+        self.cursor.execute("DELETE FROM MediaSources WHERE emby_id = ?", (Id,))
+        self.cursor.execute("DELETE FROM VideoStreams WHERE emby_id = ?", (Id,))
+        self.cursor.execute("DELETE FROM AudioStreams WHERE emby_id = ?", (Id,))
+        self.cursor.execute("DELETE FROM Subtitle WHERE emby_id = ?", (Id,))
 
     def remove_items_by_parent_id(self, *args):
         self.cursor.execute("DELETE FROM mapping WHERE kodi_parent_id = ? AND kodi_type = ?", args)
 
     def remove_wild_item(self, item_id):
-        self.cursor.execute("DELETE FROM mapping WHERE emby_id LIKE ?", (item_id + "%",))
+        self.cursor.execute("DELETE FROM mapping WHERE emby_id LIKE ?", ("%s%%" % item_id,))
 
     def get_items_by_media(self, *args):
         self.cursor.execute("SELECT emby_id FROM mapping WHERE kodi_type = ? AND emby_folder = ?", args)
         return self.cursor.fetchall()
 
     def get_items_by_embyparentid(self, emby_parent_id, emby_folder, emby_type):
-        self.cursor.execute("SELECT * FROM mapping WHERE emby_parent_id = ? AND emby_type = ? AND emby_folder = ?", (emby_parent_id, emby_type, emby_folder,))
+        self.cursor.execute("SELECT * FROM mapping WHERE emby_parent_id = ? AND emby_type = ? AND emby_folder = ?", (emby_parent_id, emby_type, emby_folder))
         Data = self.cursor.fetchall()
 
         if Data:
@@ -259,7 +268,7 @@ class EmbyDatabase:
         return {}
 
     def get_stacked_kodiid(self, emby_presentation_key, emby_folder, emby_type):
-        self.cursor.execute("SELECT kodi_id FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder,))
+        self.cursor.execute("SELECT kodi_id FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -268,7 +277,7 @@ class EmbyDatabase:
         return None
 
     def check_stacked(self, emby_presentation_key, emby_folder, emby_type):
-        self.cursor.execute("SELECT * FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder,))
+        self.cursor.execute("SELECT * FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder))
         Data = self.cursor.fetchall()
 
         if len(Data) > 1:
@@ -277,7 +286,7 @@ class EmbyDatabase:
         return False
 
     def get_stacked_embyid(self, emby_presentation_key, emby_folder, emby_type):
-        self.cursor.execute("SELECT emby_id FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder,))
+        self.cursor.execute("SELECT emby_id FROM mapping WHERE emby_presentation_key = ? AND emby_type = ? AND emby_folder = ?", (emby_presentation_key, emby_type, emby_folder))
         Data = self.cursor.fetchall()
 
         if Data:

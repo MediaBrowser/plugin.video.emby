@@ -3,7 +3,7 @@ import threading
 import helper.utils as Utils
 import helper.loghandler
 
-info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,ItemCounts,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,CriticRatingSummary,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,SpecialEpisodeNumbers,Status,EndDate,MediaSources,RecursiveItemCount,PrimaryImageAspectRatio,DisplayOrder,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount"
+info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount"
 music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,CommunityRating,DateCreated,MediaStreams,People,ProviderIds,Overview,PresentationUniqueKey,Path,ParentId"
 LOG = helper.loghandler.LOG('EMBY.emby.api.API')
 
@@ -151,6 +151,16 @@ class API:
         for items in self._get_items(query):
             yield items
 
+    def get_itemsFastSync(self, parent_id, item_type, TimeStamp, UserSync):
+        params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'Recursive': True}
+
+        if UserSync:
+            params['MinDateLastSavedForUser'] = TimeStamp
+        else:
+            params['MinDateLastSaved'] = TimeStamp
+
+        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
+
     def get_itemsSync(self, parent_id, item_type, basic, params):
         query = {
             'url': "Users/%s/Items" % self.EmbyServer.user_id,
@@ -173,24 +183,8 @@ class API:
         for items in self._get_items(query):
             yield items
 
-    def get_item_library_type(self, Id):
-        params = {
-            'Ids': Id
-        }
-        return self._http("GET", "Items", {'params': params})
-
-    def get_item_library_music(self, Id):
-        params = {
-            'Ids': Id,
-            'Fields': music_info
-        }
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    def get_item_library_video(self, Id):
-        params = {
-            'Ids': Id,
-            'Fields': info
-        }
+    def get_item_library(self, Id):
+        params = {'Ids': Id, 'Fields': info}
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
 
     def get_itemsForSyncQueue(self, parent_id, item_type):  # query absolute minimum, used for loading sync queue
@@ -266,19 +260,13 @@ class API:
             yield items
 
     def get_albums_by_artist(self, parent_id, artist_id, basic):
-        params = {
-            'ParentId': parent_id,
-            'ArtistIds': artist_id
-        }
+        params = {'ParentId': parent_id, 'ArtistIds': artist_id}
 
         for items in self.get_itemsSync(None, "MusicAlbum", basic, params):
             yield items
 
     def get_songs_by_artist(self, parent_id, artist_id, basic):
-        params = {
-            'ParentId': parent_id,
-            'ArtistIds': artist_id
-        }
+        params = {'ParentId': parent_id, 'ArtistIds': artist_id}
 
         for items in self.get_itemsSync(None, "Audio", basic, params):
             yield items
@@ -298,7 +286,7 @@ class API:
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})['TotalRecordCount']
 
     def _get_items(self, query):
-        LIMIT = int(Utils.limitIndex)
+        Limit = int(Utils.limitIndex)
         items = {'Items': [], 'RestorePoint': {}}
         url = query['url']
         params = query.get('params', {})
@@ -306,7 +294,7 @@ class API:
 
         while True:
             params['StartIndex'] = index
-            params['Limit'] = LIMIT
+            params['Limit'] = Limit
 
             try:
                 result = self._http("GET", url, {'params': params}) or {'Items': []}
@@ -322,7 +310,7 @@ class API:
             items['RestorePoint'] = query
             yield items
             del items['Items'][:]
-            index += LIMIT
+            index += Limit
 
     def artwork(self, item_id, art, max_width, ext, index):
         if index is None:

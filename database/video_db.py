@@ -161,7 +161,7 @@ class VideoDatabase:
         self.cursor.execute("INSERT OR REPLACE INTO tvshowlinkpath(idShow, idPath) VALUES (?, ?)", args)
 
     def get_season(self, KodiShowId, Season):
-        self.cursor.execute("SELECT idSeason FROM seasons WHERE idShow = ? AND season = ?", (KodiShowId, Season,))
+        self.cursor.execute("SELECT idSeason FROM seasons WHERE idShow = ? AND season = ?", (KodiShowId, Season))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -229,9 +229,9 @@ class VideoDatabase:
         path_id = self.common_db.create_entry_path()
 
         if MediaType:
-            self.cursor.execute("INSERT OR REPLACE INTO path(idPath, strPath, strContent, strScraper, noUpdate, idParentPath) VALUES (?, ?, ?, ?, ?, ?)", (path_id, Path, MediaType, 'metadata.local', 1, LinkId,))
+            self.cursor.execute("INSERT OR REPLACE INTO path(idPath, strPath, strContent, strScraper, noUpdate, idParentPath) VALUES (?, ?, ?, ?, ?, ?)", (path_id, Path, MediaType, 'metadata.local', 1, LinkId))
         else:
-            self.cursor.execute("INSERT OR REPLACE INTO path(idPath, strPath, strContent, strScraper, noUpdate, idParentPath) VALUES (?, ?, ?, ?, ?, ?)", (path_id, Path, MediaType, None, 1, LinkId,))
+            self.cursor.execute("INSERT OR REPLACE INTO path(idPath, strPath, strContent, strScraper, noUpdate, idParentPath) VALUES (?, ?, ?, ?, ?, ?)", (path_id, Path, MediaType, None, 1, LinkId))
 
         return path_id
 
@@ -258,22 +258,6 @@ class VideoDatabase:
 
         return ""
 
-    def update_person(self, image_url, kodi_id, media, image):
-        if image == 'poster' and media in ('song', 'artist', 'album'):
-            return
-
-        self.cursor.execute("SELECT url FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (kodi_id, media, image,))
-        result = self.cursor.fetchone()
-
-        if result:
-            url = result[0]
-
-            if url != image_url:
-                if image_url:
-                    self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND media_type = ? AND type = ?", (image_url, kodi_id, media, image))
-        else:
-            self.cursor.execute("INSERT OR REPLACE INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", (kodi_id, media, image, image_url))
-
     def add_people(self, people, KodiId, MediaType):
         cast_order = 0
 
@@ -285,7 +269,7 @@ class VideoDatabase:
 
             if person['Type'] == 'Actor':
                 role = person.get('Role')
-                self.cursor.execute("INSERT OR REPLACE INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)", (person_id, KodiId, MediaType, role, cast_order,))
+                self.cursor.execute("INSERT OR REPLACE INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)", (person_id, KodiId, MediaType, role, cast_order))
                 cast_order += 1
             elif person['Type'] == 'Director':
                 self.add_link('director_link', person_id, KodiId, MediaType)
@@ -299,11 +283,11 @@ class VideoDatabase:
                 if "writing" in art:
                     art = "writer"
 
-                self.update_person(person['imageurl'], person_id, art, "thumb")
+                self.common_db.update_artwork(person['imageurl'], person_id, art, "thumb")
 
     def add_person(self, PersonName, imageurl):
         person_id = self.create_entry_person()
-        self.cursor.execute("INSERT OR REPLACE INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl,))
+        self.cursor.execute("INSERT OR REPLACE INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl))
         return person_id
 
     def get_person(self, PersonName, imageurl):
@@ -339,11 +323,11 @@ class VideoDatabase:
     def add_studios(self, studios, KodiId, MediaType):
         for studio in studios:
             studio_id = self.get_studio(studio)
-            self.cursor.execute("INSERT OR REPLACE INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)", (studio_id, KodiId, MediaType,))
+            self.cursor.execute("INSERT OR REPLACE INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)", (studio_id, KodiId, MediaType))
 
     def add_studio(self, studio):
         studio_id = self.create_entry_studio()
-        self.cursor.execute("INSERT OR REPLACE INTO studio(studio_id, name) VALUES (?, ?)", (studio_id, studio,))
+        self.cursor.execute("INSERT OR REPLACE INTO studio(studio_id, name) VALUES (?, ?)", (studio_id, studio))
         return studio_id
 
     def get_studio(self, studio):
@@ -387,13 +371,13 @@ class VideoDatabase:
 
     # Delete the existing resume point
     # Set the watched count
-    def add_playstate(self, file_id, playcount, date_played, resume, *args):
+    def add_playstate(self, file_id, playcount, date_played, resume, Runtime):
         self.cursor.execute("DELETE FROM bookmark WHERE idFile = ?", (file_id,))
         self.set_playcount(playcount, date_played, file_id)
 
         if resume:
             bookmark_id = self.create_entry_bookmark()
-            self.cursor.execute("INSERT OR REPLACE INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume,) + args)
+            self.cursor.execute("INSERT OR REPLACE INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume, Runtime, "DVDPlayer", 1))
 
     def set_playcount(self, *args):
         self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", args)
