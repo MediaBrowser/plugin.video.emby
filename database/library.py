@@ -1127,6 +1127,9 @@ class Library:
                     else:  # update via Websocket
                         item = str(item)
 
+                        if not Utils.Python3:
+                            item = unicode(item, 'utf-8')
+
                         if item.isnumeric():
                             EmbyId = item
                             LibraryId = None
@@ -1155,6 +1158,9 @@ class Library:
                         LibraryId = item[2]
                     else:  # update via Websocket
                         item = str(item)
+
+                        if not Utils.Python3:
+                            item = unicode(item, 'utf-8')
 
                         if item.isnumeric():
                             EmbyId = item

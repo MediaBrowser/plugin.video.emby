@@ -298,7 +298,13 @@ class TVShows:
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
         self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiEpisodeId'], "episode")
-        Common.add_Multiversion(obj, self.emby_db, "Episode", self.EmbyServer.API)
+        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "Episode", self.EmbyServer.API)
+
+        # Remove existing Item
+        if ExistingItem and not update:
+            self.video_db.common_db.delete_artwork(ExistingItem[0], "episode")
+            self.video_db.delete_episode(ExistingItem[0], ExistingItem[1])
+
         return not update
 
     def get_show_id(self, obj):

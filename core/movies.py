@@ -202,7 +202,13 @@ class Movies:
                         self.emby_db.add_reference(objF['Id'], objF['KodiMovieId'], objF['KodiFileId'], objF['KodiPathId'], "SpecialFeature", None, None, objF['LibraryId'], objF['EmbyParentId'], objF['PresentationKey'], objF['Favorite'])
                         LOG.info("ADD SpecialFeature %s: %s" % (objF['Id'], objF['Title']))
 
-        Common.add_Multiversion(obj, self.emby_db, "Movie", self.EmbyServer.API)
+        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "Movie", self.EmbyServer.API)
+
+        # Remove existing Item
+        if ExistingItem and not update:
+            self.video_db.common_db.delete_artwork(ExistingItem[0], "movie")
+            self.video_db.delete_movie(ExistingItem[0], ExistingItem[1])
+
         return not update
 
     def boxset(self, item, library):

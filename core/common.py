@@ -13,6 +13,7 @@ LOG = helper.loghandler.LOG('EMBY.core.common')
 
 def add_Multiversion(obj, emby_db, emby_type, API):
     MediaStreamsTotal = len(obj['Item']['MediaSources'])
+    ExistingItem = None
 
     if MediaStreamsTotal > 0:
         for DataSource in obj['Item']['MediaSources']:
@@ -36,6 +37,9 @@ def add_Multiversion(obj, emby_db, emby_type, API):
             else:
                 emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
                 Streamdata_add(obj, emby_db, True)
+                ExistingItem = e_MultiItem
+
+    return ExistingItem
 
 def library_check(e_item, ItemId, library, API, Whitelist):
     if not library:
