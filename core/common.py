@@ -15,7 +15,7 @@ def add_Multiversion(obj, emby_db, emby_type, API):
     MediaStreamsTotal = len(obj['Item']['MediaSources'])
     ExistingItem = None
 
-    if MediaStreamsTotal > 0:
+    if MediaStreamsTotal > 1:
         for DataSource in obj['Item']['MediaSources']:
             ItemReferenced = API.get_item(DataSource['Id'])
 

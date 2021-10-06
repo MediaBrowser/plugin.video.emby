@@ -85,9 +85,6 @@ class MusicVideos:
             if len(Temp) > 1:
                 Track = Temp[0].strip()
 
-                if not Utils.Python3:
-                    Track = unicode(Track, 'utf-8')
-
                 if Track.isnumeric():
                     obj['Index'] = str(int(Track))  # remove leading zero e.g. 01
 
