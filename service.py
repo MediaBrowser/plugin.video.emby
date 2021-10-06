@@ -89,7 +89,6 @@ def setup():
         return True
 
     cached = Utils.MinimumSetup
-    Utils.set_settings('MinimumSetup', Utils.MinimumVersion)
     xmls.KodiDefaultNodes()
     xmls.sources()
     xmls.advanced_settings()
@@ -122,6 +121,7 @@ def setup():
     if not value:
         return "stop"
 
+    Utils.set_settings('MinimumSetup', Utils.MinimumVersion)
     Utils.dialog("notification", heading="{emby}", message="Database reset required, wait for Kodi restart", icon="{emby}", time=960000, sound=True)
     DeleteArtwork = Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33086))
     xbmc.sleep(5000)  # Give Kodi time to complete startup before reset

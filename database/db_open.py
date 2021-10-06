@@ -25,7 +25,7 @@ def DBOpen(DatabaseFiles, DBID):
         else:
             DBConnectionsOpenCounters[DBID] += 1
 
-        LOG.info("--->[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
+        LOG.debug("--->[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
 
         if DBID == 'video':
             return video_db.VideoDatabase(DBConnections[DBID].cursor())
@@ -51,7 +51,7 @@ def DBClose(DBID, commit_close):
                 DBConnections[DBID].commit()
 
         DBConnectionsOpenCounters[DBID] += -1
-        LOG.info("---<[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
+        LOG.debug("---<[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
 
         if DBConnectionsOpenCounters[DBID] == 0:
             DBConnections[DBID].cursor().close()
