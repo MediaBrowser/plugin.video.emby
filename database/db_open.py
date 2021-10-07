@@ -7,25 +7,28 @@ from . import video_db
 from . import music_db
 from . import common_db
 
-DBIOLock = threading.Lock()
+DBIOLock = {}
 DBConnections = {}
-DBConnectionsOpenCounters = {}
 LOG = helper.loghandler.LOG('EMBY.database.db_open')
 
 
 def DBOpen(DatabaseFiles, DBID):
-    with DBIOLock:
-        global DBConnections
-        global DBConnectionsOpenCounters
+    global DBIOLock
 
-        if DBID not in DBConnectionsOpenCounters:
+    if DBID not in DBIOLock:
+        DBIOLock[DBID] = threading.Lock()
+
+    with DBIOLock[DBID]:
+        global DBConnections
+
+        if DBID not in DBConnections:
             DBConnections[DBID] = sqlite3.connect(DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
             DBConnections[DBID].execute("PRAGMA journal_mode=WAL")
-            DBConnectionsOpenCounters[DBID] = 1
+            DBConnections["%s_count" % DBID] = 1
         else:
-            DBConnectionsOpenCounters[DBID] += 1
+            DBConnections["%s_count" % DBID] += 1
 
-        LOG.debug("--->[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
+        LOG.info("--->[ database: %s/%s ]" % (DBID, DBConnections["%s_count" % DBID]))
 
         if DBID == 'video':
             return video_db.VideoDatabase(DBConnections[DBID].cursor())
@@ -39,9 +42,8 @@ def DBOpen(DatabaseFiles, DBID):
         return emby_db.EmbyDatabase(DBConnections[DBID].cursor())
 
 def DBClose(DBID, commit_close):
-    with DBIOLock:
+    with DBIOLock[DBID]:
         global DBConnections
-        global DBConnectionsOpenCounters
 
         if commit_close:
             changes = DBConnections[DBID].total_changes
@@ -50,11 +52,10 @@ def DBClose(DBID, commit_close):
             if changes:
                 DBConnections[DBID].commit()
 
-        DBConnectionsOpenCounters[DBID] += -1
-        LOG.debug("---<[ database: %s/%s ]" % (DBID, DBConnectionsOpenCounters[DBID]))
+        DBConnections["%s_count" % DBID] += -1
+        LOG.info("---<[ database: %s/%s ]" % (DBID, DBConnections["%s_count" % DBID]))
 
-        if DBConnectionsOpenCounters[DBID] == 0:
+        if DBConnections["%s_count" % DBID] == 0:
             DBConnections[DBID].cursor().close()
             DBConnections[DBID].close()
             del DBConnections[DBID]
-            del DBConnectionsOpenCounters[DBID]

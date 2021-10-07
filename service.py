@@ -113,10 +113,11 @@ def setup():
             Utils.set_settings_bool('useDirectPaths', False)
 
         LOG.info("Add-on playback: %s" % Utils.useDirectPaths == "0")
+        Utils.set_settings('MinimumSetup', Utils.MinimumVersion)
         return True
 
 
-    value = Utils.dialog("yesno", heading="{emby}", line1="Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version.")
+    value = Utils.dialog("yesno", heading="{emby}", line1="FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version.")
 
     if not value:
         return "stop"

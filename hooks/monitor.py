@@ -251,6 +251,9 @@ class Monitor(xbmc.Monitor):
         compatibilitymodePreviousValue = Utils.compatibilitymode
         Utils.InitSettings()
 
+        for EmbyServer in list(self.EmbyServers.values()):
+            EmbyServer.API.update_settings()
+
         # Toggle xsp playlists
         if xspplaylistsPreviousValue != Utils.xspplaylists:
             if Utils.xspplaylists:
