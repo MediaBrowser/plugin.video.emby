@@ -169,6 +169,15 @@ class VideoDatabase:
 
         return None
 
+    def get_season_by_name(self, KodiShowId, SeasonName):
+        self.cursor.execute("SELECT idSeason FROM seasons WHERE idShow = ? AND name = ?", (KodiShowId, SeasonName))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
+
     def add_season(self, *args):
         self.cursor.execute("INSERT OR REPLACE INTO seasons(idSeason, idShow, season, name) VALUES (?, ?, ?, ?)", args)
 

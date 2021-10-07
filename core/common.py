@@ -2,6 +2,7 @@
 import helper.loghandler
 import helper.utils as Utils
 
+
 if Utils.Python3:
     from urllib.parse import quote, urlparse
 else:
@@ -16,14 +17,18 @@ def add_Multiversion(obj, emby_db, emby_type, API):
     ExistingItem = None
 
     if MediaStreamsTotal > 1:
+        CurrentId = obj['Id']
+        LOG.debug("Multiversion video detected: %s" % CurrentId)
+
         for DataSource in obj['Item']['MediaSources']:
             ItemReferenced = API.get_item(DataSource['Id'])
 
             if not ItemReferenced:  # Server restarted
                 return
 
+            LOG.debug("Multiversion video detected, referenced item: %s" % ItemReferenced['Id'])
+            e_MultiItem = emby_db.get_item_by_id(ItemReferenced['Id'])
             obj['Id'] = ItemReferenced['Id']
-            e_MultiItem = emby_db.get_item_by_id(obj['Id'])
 
             if not e_MultiItem:
                 if emby_type == "Episode":
@@ -35,9 +40,19 @@ def add_Multiversion(obj, emby_db, emby_type, API):
 
                 Streamdata_add(obj, emby_db, False)
             else:
-                emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
+                if emby_type == "Episode":
+                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['KodiPathId'], obj['KodiSeasonId'])
+                elif emby_type == "Movie":
+                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiMovieId'], obj['KodiFileId'], obj['KodiPathId'], None)
+                elif emby_type == "MusicVideo":
+                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiMvideoId'], obj['KodiFileId'], obj['KodiPathId'], None)
+
                 Streamdata_add(obj, emby_db, True)
-                ExistingItem = e_MultiItem
+                LOG.debug("Multiversion video detected, referenced item exists: %s" % ItemReferenced['Id'])
+
+                # check if referenced Kodi item changed on multivideos and return old item to read Kodiid and Kodi fileid -> used to remove old item
+                if CurrentId != obj['Id']:
+                    ExistingItem = e_MultiItem
 
     return ExistingItem
 

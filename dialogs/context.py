@@ -28,7 +28,7 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         self.list_ = self.getControl(155)
 
         for option in self._options:
-            self.list_.addItem(add_listitem(option))
+            self.list_.addItem(xbmcgui.ListItem(option))
 
         self.setFocus(self.list_)
 
@@ -51,6 +51,3 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         control.setWidth(width)
         self.addControl(control)
         return control
-
-def add_listitem(label):
-    return xbmcgui.ListItem(label)

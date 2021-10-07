@@ -136,6 +136,9 @@ class EmbyDatabase:
     def update_reference(self, *args):
         self.cursor.execute("UPDATE mapping SET emby_presentation_key = ?, emby_favourite = ? WHERE emby_id = ?", args)
 
+    def update_reference_multiversion(self, emby_id, emby_presentation_key, emby_favourite, kodi_id, kodi_fileid, kodi_pathid, kodi_parentid):
+        self.cursor.execute("UPDATE mapping SET emby_presentation_key = ?, emby_favourite = ?, kodi_id = ?, kodi_fileid = ?, kodi_pathid = ?, kodi_parent_id = ? WHERE emby_id = ?", (emby_presentation_key, emby_favourite, kodi_id, kodi_fileid, kodi_pathid, kodi_parentid, emby_id))
+
     def update_reference_userdatachanged(self, *args):
         self.cursor.execute("UPDATE mapping SET emby_favourite = ? WHERE emby_id = ?", args)
 

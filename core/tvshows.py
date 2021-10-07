@@ -237,6 +237,13 @@ class TVShows:
 
         obj['KodiSeasonId'] = self.video_db.get_season(obj['KodiShowId'], obj['Season'])
 
+        # check if episode info has a different season number than the actual referenced season
+        if not obj['KodiSeasonId']:
+            obj['KodiSeasonId'] = self.video_db.get_season_by_name(obj['KodiShowId'], obj['SeasonName'])
+
+            if obj['KodiSeasonId']:
+                LOG.warning("Episode season number not matching season's number: [%s] %s %s %s" % (obj['Id'], obj['SeriesName'], obj['SeasonName'], obj['Title']))
+
         # Season missing, adding...
         if not obj['KodiSeasonId']:
             if 'SeasonId' in obj['Item']:

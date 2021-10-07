@@ -3,7 +3,8 @@ import xbmcgui
 import core.common as Common
 from . import obj_ops as Objects
 
-art = {'clearart': "Art", 'clearlogo': "Logo", 'discart': "Disc", 'fanart_image': "Backdrop", 'landscape': "Thumb", 'thumb': "Primary", 'fanart': "Backdrop"}
+art = {'clearart': "Art", 'clearlogo': "Logo", 'discart': "Disc", 'fanart_image': "Backdrop", 'landscape': "Thumb", 'thumb': "Primary", 'fanart': "Backdrop", 'banner': "Banner"}
+
 
 def set_ListItem(item, server_id):
     listitem = xbmcgui.ListItem()

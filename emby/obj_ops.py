@@ -91,6 +91,7 @@ objects = {
         "Id": "Id",
         "Title": "Name",
         "SeasonName": "SeasonName",
+        "SeriesName": "SeriesName",
         "Path": "Path",
         "Plot": "Overview",
         "People": "People",

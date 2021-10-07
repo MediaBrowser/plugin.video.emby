@@ -1,4 +1,4 @@
-6.1.0 (beta)
+6.1.2 (beta)
 =============
 Improvements:
 -------------
@@ -207,6 +207,10 @@ artwork changes
 fix multiple server detection
 improve library remove/repair
 fix subtitle selection
+fix multiversion videos
+fix episode sync if episode season info not matching parent season info
+fix boxset refresh
+fix dynamic lists info
 
 
 

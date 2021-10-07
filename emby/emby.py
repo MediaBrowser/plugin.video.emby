@@ -31,7 +31,7 @@ class EmbyServer:
         self.config = None
         self.connect_manager = None
         self.logged_in = False
-        self.http = http.HTTP(self, self.ServerUnreachable, Unauthorized)
+        self.http = http.HTTP(self, self.ServerUnreachable)
         self.connect_manager = connection_manager.ConnectionManager(self)
         self.server_id = ""
         self.ServerSettings = ServerSettings
@@ -325,6 +325,3 @@ class EmbyServer:
             return Dialog.get_user()
 
         return False  # User is not authenticated
-
-def Unauthorized():
-    Utils.dialog("notification", heading="{emby}", message=Utils.Translate(33147))

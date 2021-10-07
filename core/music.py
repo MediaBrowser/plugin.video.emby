@@ -118,8 +118,30 @@ class Music:
             self.emby_db.add_reference(obj['Id'], obj['AlbumId'], None, None, "MusicAlbum", "album", None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
             LOG.info("ADD album [%s] %s: %s" % (obj['AlbumId'], obj['Title'], obj['Id']))
 
-        self.artist_link(obj)
-        self.artist_discography(obj)
+        # Assign main artists to album.
+        # Artist does not exist in emby database, create the reference
+        for artist in (obj['AlbumArtists'] or []):
+            Data = self.emby_db.get_item_by_id(artist['Id'])
+
+            if Data:
+                ArtistId = Data[0]
+            else:
+                self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
+                ArtistId = self.ArtistID
+
+            self.music_db.update_artist_name(artist['Name'], ArtistId, obj['LibraryId_Name'])
+            self.music_db.link(ArtistId, obj['AlbumId'], artist['Name'])
+
+        # Update the artist's discography
+        for artist in (obj['ArtistItems'] or []):
+            Data = self.emby_db.get_item_by_id(artist['Id'])
+
+            if not Data:
+                continue
+
+            self.music_db.add_discography(Data[0], obj['Title'], obj['Year'])
+            self.emby_db.update_parent_id(Data[0], obj['Id'])
+
         self.music_db.common_db.add_artwork(obj['Artwork'], obj['AlbumId'], "album")
         self.AlbumID = obj['AlbumId']
         return not update
@@ -227,7 +249,20 @@ class Music:
         if obj['Artist'] == "--NO INFO--":
             self.music_db.link_song_artist(obj['ArtistId'], obj['SongId'], 1, 1, "--NO INFO--")
         else:
-            self.song_artist_link(obj)
+            # Assign main artists to song.
+            # Artist does not exist in emby database, create the reference
+            if 'ArtistItems' in obj:
+                for index, artist in enumerate(obj['ArtistItems']):
+                    Data = self.emby_db.get_item_by_id(artist['Id'])
+
+                    if Data:
+                        ArtistId = Data[0]
+                    else:
+                        LOG.warning("Possible Artist/Albumartist inconsistency (Link the artist's song): %s %s %s" % (obj['Artist'], obj['AlbumArtists'], obj['Title']))
+                        self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
+                        ArtistId = self.ArtistID
+
+                    self.music_db.link_song_artist(ArtistId, obj['SongId'], 1, index, artist['Name'])
 
         if AlbumTitleSingle:
             if "ArtistId" not in obj:
@@ -243,7 +278,23 @@ class Music:
             obj['AlbumArtist'] = " / ".join(obj['AlbumArtists'])
             self.music_db.link(obj['ArtistId'], obj['AlbumId'], obj['AlbumArtist'])
         else:
-            self.song_artist_discography(obj)
+            # Update the artist's discography
+            artists = []
+
+            for artist in (obj['AlbumArtists'] or []):
+                artists.append(artist['Name'])
+                Data = self.emby_db.get_item_by_id(artist['Id'])
+
+                if Data:
+                    ArtistId = Data[0]
+                else:
+                    LOG.warning("Possible Artist/Albumartist inconsistency (Update the artist's discography): %s %s %s" % (obj['Artist'], obj['AlbumArtist'], obj['Title']))
+                    self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
+                    ArtistId = self.ArtistID
+
+                self.music_db.link(ArtistId, obj['AlbumId'], artist['Name'])
+
+            obj['AlbumArtists'] = artists
             obj['AlbumArtist'] = " / ".join(obj['AlbumArtists'])
             self.music_db.get_album_artist(obj['AlbumId'], obj['AlbumArtist'])
 
@@ -254,65 +305,6 @@ class Music:
             self.music_db.common_db.add_artwork(obj['Artwork'], obj['AlbumId'], "album")
 
         return not update
-
-    # Update the artist's discography
-    def artist_discography(self, obj):
-        for artist in (obj['ArtistItems'] or []):
-            Data = self.emby_db.get_item_by_id(artist['Id'])
-
-            if not Data:
-                continue
-
-            self.music_db.add_discography(Data[0], obj['Title'], obj['Year'])
-            self.emby_db.update_parent_id(Data[0], obj['Id'])
-
-    # Assign main artists to album.
-    # Artist does not exist in emby database, create the reference
-    def artist_link(self, obj):
-        for artist in (obj['AlbumArtists'] or []):
-            Data = self.emby_db.get_item_by_id(artist['Id'])
-
-            if Data:
-                ArtistId = Data[0]
-            else:
-                self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
-                ArtistId = self.ArtistID
-
-            self.music_db.update_artist_name(artist['Name'], ArtistId, obj['LibraryId_Name'])
-            self.music_db.link(ArtistId, obj['AlbumId'], artist['Name'])
-
-    # Assign main artists to song.
-    # Artist does not exist in emby database, create the reference
-    def song_artist_link(self, obj):
-        if 'ArtistItems' in obj:
-            for index, artist in enumerate(obj['ArtistItems']):
-                Data = self.emby_db.get_item_by_id(artist['Id'])
-
-                if Data:
-                    ArtistId = Data[0]
-                else:
-                    self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
-                    ArtistId = self.ArtistID
-
-                self.music_db.link_song_artist(ArtistId, obj['SongId'], 1, index, artist['Name'])
-
-    # Update the artist's discography
-    def song_artist_discography(self, obj):
-        artists = []
-
-        for artist in (obj['AlbumArtists'] or []):
-            artists.append(artist['Name'])
-            Data = self.emby_db.get_item_by_id(artist['Id'])
-
-            if Data:
-                ArtistId = Data[0]
-            else:
-                self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
-                ArtistId = self.ArtistID
-
-            self.music_db.link(ArtistId, obj['AlbumId'], artist['Name'])
-
-        obj['AlbumArtists'] = artists
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     # Poster with progress bar

@@ -9,11 +9,10 @@ LOG = helper.loghandler.LOG('EMBY.core.HTTP')
 
 
 class HTTP:
-    def __init__(self, EmbyServer, ServerUnreachable, Unauthorized):
+    def __init__(self, EmbyServer, ServerUnreachable):
         self.session = None
         self.EmbyServer = EmbyServer
         self.ServerUnreachable = ServerUnreachable
-        self.Unauthorized = Unauthorized
 
     def start_session(self):
         self.session = requests.Session()
@@ -59,7 +58,7 @@ class HTTP:
                     return r.json()
 
                 if r.status_code == 401:
-                    threading.Thread(target=self.Unauthorized).start()
+                    Utils.dialog("notification", heading="{emby}", message=Utils.Translate(33147))
 
                 LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
 

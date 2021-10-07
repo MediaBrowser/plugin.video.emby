@@ -240,7 +240,7 @@ class Movies:
 
         for AllBoxSetMovies in self.EmbyServer.API.get_movies_by_boxset(obj['Id']):
             for movie in AllBoxSetMovies['Items']:
-                if movie['Id'] not in CurrentBoxSetMovies:
+                if int(movie['Id']) not in CurrentBoxSetMovies:
                     Data = self.emby_db.get_item_by_id(movie['Id'])
 
                     if not Data:
@@ -251,7 +251,8 @@ class Movies:
                     self.emby_db.update_parent_id(obj['KodiSetId'], movie['Id'])
                     LOG.info("ADD to boxset [%s/%s] %s: %s to boxset" % (obj['KodiSetId'], Data[0], movie['Name'], movie['Id']))
                 else:
-                    del CurrentBoxSetMovies[movie['Id']]
+
+                    del CurrentBoxSetMovies[int(movie['Id'])]
 
         for EmbyMovieId in CurrentBoxSetMovies:
             self.video_db.remove_from_boxset(CurrentBoxSetMovies[EmbyMovieId])

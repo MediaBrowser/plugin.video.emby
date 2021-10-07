@@ -10,7 +10,11 @@ LOG = helper.loghandler.LOG('EMBY.emby.api.API')
 
 class API:
     def __init__(self, EmbyServer):
+        self.browse_info = ""
         self.EmbyServer = EmbyServer
+        self.update_settings()
+
+    def update_settings(self):
         self.browse_info = "Path"
 
         if Utils.getDateCreated:
