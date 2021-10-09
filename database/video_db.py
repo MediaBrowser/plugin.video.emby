@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from . import common_db
 
-
 class VideoDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
@@ -284,8 +283,6 @@ class VideoDatabase:
                 self.add_link('director_link', person_id, KodiId, MediaType)
             elif person['Type'] == 'Writer':
                 self.add_link('writer_link', person_id, KodiId, MediaType)
-            elif person['Type'] == 'Artist':
-                self.add_link('actor_link', person_id, KodiId, MediaType)
 
             if person['imageurl']:
                 art = person['Type'].lower()
@@ -293,6 +290,36 @@ class VideoDatabase:
                     art = "writer"
 
                 self.common_db.update_artwork(person['imageurl'], person_id, art, "thumb")
+
+    # use "art_urls" field as unique ID for each musicvideo library
+    def add_musicvideo_artist(self, people, KodiId, LibraryId):
+        for person in people:
+            if 'Name' not in person:
+                continue
+
+            self.cursor.execute("SELECT actor_id FROM actor WHERE name LIKE ? AND art_urls = ?", ("%s%%" % person['Name'], LibraryId))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                person_id = Data[0]
+            else:
+                person_id = self.create_entry_person()
+
+                # Unify Artist
+                try:
+                    self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, person['Name'], LibraryId))
+                except:
+                    while True:
+                        person['Name'] += " "
+
+                        try:
+                            self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, person['Name'], LibraryId))
+                        except:
+                            continue
+
+                        break
+
+            self.add_link('actor_link', person_id, KodiId, "musicvideo")
 
     def add_person(self, PersonName, imageurl):
         person_id = self.create_entry_person()

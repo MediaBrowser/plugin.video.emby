@@ -353,9 +353,11 @@ def add_favorites(index, view):
 
     filepath = os.path.join(path, "emby_%s.xml" % view['Tag'].replace(" ", "_"))
 
-    if xbmcvfs.exists(filepath):
+    try:  # Apple TV issue with xbmcvfs.exists
+#    if xbmcvfs.exists(filepath):
         xmlData = xml.etree.ElementTree.parse(filepath).getroot()
-    else:
+#    else:
+    except:
         if view['MediaType'] == 'episodes':
             xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "folder"})
         else:
@@ -383,9 +385,7 @@ def add_favorites(index, view):
 
         node_all(xmlData)
     else:
-        params = {
-            'mode': "favepisodes"
-        }
+        params = {'mode': "favepisodes"}
         path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
         node_favepisodes(xmlData, path)
 

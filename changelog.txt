@@ -1,4 +1,4 @@
-6.1.2 (beta)
+6.1.3 (beta)
 =============
 Improvements:
 -------------
@@ -211,6 +211,10 @@ fix multiversion videos
 fix episode sync if episode season info not matching parent season info
 fix boxset refresh
 fix dynamic lists info
+fix sync updates
+unify musicvideo artists
+disable music scan in native mode
+fix Apple TV issue
 
 
 
