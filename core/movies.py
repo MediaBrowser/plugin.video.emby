@@ -251,7 +251,6 @@ class Movies:
                     self.emby_db.update_parent_id(obj['KodiSetId'], movie['Id'])
                     LOG.info("ADD to boxset [%s/%s] %s: %s to boxset" % (obj['KodiSetId'], Data[0], movie['Name'], movie['Id']))
                 else:
-
                     del CurrentBoxSetMovies[int(movie['Id'])]
 
         for EmbyMovieId in CurrentBoxSetMovies:

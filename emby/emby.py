@@ -154,7 +154,10 @@ class EmbyServer:
         LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
         Utils.SyncPause = True
         self.Online = False
-        self.Websocket.close()
+
+        if self.Websocket:
+            self.Websocket.close()
+
         self.http.stop_session()
 
     # Login into server. If server is None, then it will show the proper prompts to login, etc.

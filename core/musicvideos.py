@@ -117,7 +117,7 @@ class MusicVideos:
         self.video_db.add_genres(obj['Genres'], obj['KodiMvideoId'], "musicvideo")
         self.video_db.add_studios(obj['Studios'], obj['KodiMvideoId'], "musicvideo")
         self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
-        self.video_db.add_people(obj['People'], obj['KodiMvideoId'], "musicvideo")
+        self.video_db.add_musicvideo_artist(obj['People'], obj['KodiMvideoId'], obj['LibraryId'])
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiMvideoId'], "musicvideo")
 

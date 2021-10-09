@@ -116,16 +116,15 @@ class Library:
             embydb.get_update_LastIncrementalSync(Utils.currenttime(), "realtime")
             db_open.DBClose(self.EmbyServer.server_id, True)
 
-        LOG.info("--<[ worker userdata completed ]")
-        self.worker_running["userdata"] = False
+            if isMusic and not Utils.useDirectPaths:
+                xbmc.executebuiltin('UpdateLibrary(music)')
 
-        if isMusic:
-            xbmc.executebuiltin('UpdateLibrary(music)')
+            if isVideo:
+                xbmc.executebuiltin('UpdateLibrary(video)')
 
-        if isVideo:
-            xbmc.executebuiltin('UpdateLibrary(video)')
-
-        return True
+            self.worker_running["userdata"] = False
+            LOG.info("--<[ worker userdata completed ]")
+            return True
 
     def worker_update(self):
         if self.worker_running["update"]:
@@ -405,18 +404,18 @@ class Library:
             embydb.get_update_LastIncrementalSync(Utils.currenttime(), "realtime")
             db_open.DBClose(self.EmbyServer.server_id, True)
 
-        if progress_updates:
-            progress_updates.close()
+            if progress_updates:
+                progress_updates.close()
 
-        if isMusic:
-            xbmc.executebuiltin('UpdateLibrary(music)')
+            if isMusic and not Utils.useDirectPaths:
+                xbmc.executebuiltin('UpdateLibrary(music)')
 
-        if isVideo:
-            xbmc.executebuiltin('UpdateLibrary(video)')
+            if isVideo:
+                xbmc.executebuiltin('UpdateLibrary(video)')
 
-        LOG.info("--<[ worker update completed ]")
-        self.worker_running["update"] = False
-        return True
+            LOG.info("--<[ worker update completed ]")
+            self.worker_running["update"] = False
+            return True
 
     def worker_remove(self):
         if self.worker_running["remove"]:
@@ -536,19 +535,18 @@ class Library:
             embydb.get_update_LastIncrementalSync(Utils.currenttime(), "realtime")
             db_open.DBClose(self.EmbyServer.server_id, True)
 
-        if progress_updates:
-            progress_updates.close()
+            if progress_updates:
+                progress_updates.close()
 
-        LOG.info("--<[ worker remove completed ]")
-        self.worker_running["remove"] = False
+            if isMusic and not Utils.useDirectPaths:
+                xbmc.executebuiltin('UpdateLibrary(music)')
 
-        if isMusic:
-            xbmc.executebuiltin('UpdateLibrary(music)')
+            if isVideo:
+                xbmc.executebuiltin('UpdateLibrary(video)')
 
-        if isVideo:
-            xbmc.executebuiltin('UpdateLibrary(video)')
-
-        return True
+            self.worker_running["remove"] = False
+            LOG.info("--<[ worker remove completed ]")
+            return True
 
     def worker_library(self):
         if self.worker_running["library"]:
@@ -860,7 +858,7 @@ class Library:
 
                     embydb.remove_PendingSync(library_id, library_type, library_name)
 
-                    if isMusic:
+                    if isMusic and not Utils.useDirectPaths:
                         xbmc.executebuiltin('UpdateLibrary(music)')
 
                     if isVideo:
@@ -868,16 +866,16 @@ class Library:
 
             db_open.DBClose(self.EmbyServer.server_id, True)
 
-        if progress_updates:
-            progress_updates.close()
+            if progress_updates:
+                progress_updates.close()
 
-        self.EmbyServer.Views.update_nodes()
-        xbmc.sleep(1000)  # give Kodi time for updates
-        LOG.info("[ reload skin ]")
-        xbmc.executebuiltin('ReloadSkin()')
-        LOG.info("--<[ worker library completed ]")
-        self.worker_running["library"] = False
-        return True
+            self.EmbyServer.Views.update_nodes()
+            xbmc.sleep(1000)  # give Kodi time for updates
+            LOG.info("[ reload skin ]")
+            xbmc.executebuiltin('ReloadSkin()')
+            self.worker_running["library"] = False
+            LOG.info("--<[ worker library completed ]")
+            return True
 
     def RunJobs(self):
         if self.worker_remove():

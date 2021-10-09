@@ -93,6 +93,9 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self._message("%s %s..." % (Utils.Translate(30610), server_address))
         result = self.connect_manager.connect_to_address(server_address)
 
+        if not result:
+            return False
+
         if result['State'] == 0:  # Unavailable
             self._message(Utils.Translate(30609))
             return False

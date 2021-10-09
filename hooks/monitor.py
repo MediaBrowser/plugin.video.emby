@@ -187,7 +187,9 @@ class Monitor(xbmc.Monitor):
                 threading.Thread(target=self.EmbyServers[server_id].library.select_libraries, args=("AddLibrarySelection",)).start()
 
         xbmc.executebuiltin('UpdateLibrary(video)')
-        xbmc.executebuiltin('UpdateLibrary(music)')
+
+        if not Utils.useDirectPaths:
+            xbmc.executebuiltin('UpdateLibrary(music)')
 
     def UserDataChanged(self, server_id, UserDataList, UserId):
         if UserId != self.EmbyServers[server_id].user_id:
