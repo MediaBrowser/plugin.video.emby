@@ -61,15 +61,15 @@ class MusicDatabase:
 
         if Data:
             LibraryInfo = Data[0]
-            LibraryInfo = LibraryInfo.replace(LibraryId_Name + ";", "")
-            LibraryInfo += LibraryId_Name + ";"
+            LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
+            LibraryInfo += "%s;" % LibraryId_Name
             self.cursor.execute("UPDATE artist SET strArtist = ?, strDisambiguation = ? WHERE idArtist = ?", (ArtistName, LibraryInfo, ArtistId))
 
     def update_artist(self, Genre, Bio, Thumb, Backdrops, LastScraped, SortName, DateAdded, ArtistId, LibraryId_Name):
         self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ?", (ArtistId,))
         LibraryInfo = self.cursor.fetchone()[0]
-        LibraryInfo = LibraryInfo.replace(LibraryId_Name + ";", "")
-        LibraryInfo += LibraryId_Name + ";"
+        LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
+        LibraryInfo += "%s;" % LibraryId_Name
 
         if Utils.DatabaseFiles['music-version'] >= 82:
             self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ?, strDisambiguation = ? WHERE idArtist = ?", (Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryInfo, ArtistId))
@@ -97,7 +97,7 @@ class MusicDatabase:
         self.cursor.execute("INSERT INTO discography(idArtist, strAlbum, strYear) VALUES (?, ?, ?)", args)
 
     def validate_artist(self, ArtistId, LibraryId_Name):
-        LibraryId_Name = "%" + LibraryId_Name + "%"
+        LibraryId_Name = "%%%s%%" % LibraryId_Name
         self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ? AND strDisambiguation LIKE ?", (ArtistId, LibraryId_Name))
         Data = self.cursor.fetchone()
 
@@ -116,7 +116,7 @@ class MusicDatabase:
         return False
 
     def validate_album(self, AlbumId, LibraryId_Name):
-        LibraryId_Name = "%" + LibraryId_Name + "%"
+        LibraryId_Name = "%%%s%%" % LibraryId_Name
         self.cursor.execute("SELECT strType FROM album WHERE idAlbum = ? AND strType LIKE ?", (AlbumId, LibraryId_Name))
         Data = self.cursor.fetchone()
 
@@ -135,7 +135,7 @@ class MusicDatabase:
         return False
 
     def validate_song(self, SongId, LibraryId_Name):
-        LibraryId_Name = "%" + LibraryId_Name + "%"
+        LibraryId_Name = "%%%s%%" % LibraryId_Name
         self.cursor.execute("SELECT comment FROM song WHERE idSong = ? AND comment LIKE ?", (SongId, LibraryId_Name))
         Data = self.cursor.fetchone()
 
@@ -163,8 +163,8 @@ class MusicDatabase:
             LibraryInfo = result[1]
 
             if LibraryInfo.find(LibraryId_Name) == -1:
-                LibraryInfo = LibraryInfo.replace(LibraryId_Name + ";", "")
-                LibraryInfo += LibraryId_Name + ";"
+                LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
+                LibraryInfo += "%s;" % LibraryId_Name
                 self.cursor.execute("UPDATE artist SET strDisambiguation = ? WHERE idArtist = ?", (LibraryInfo, artist_id))
         else:
             artist_id = self.create_entry_artist()
@@ -204,7 +204,7 @@ class MusicDatabase:
         return artist_id
 
     def get_artistID(self, name, LibraryId_Name):
-        LibraryId_Name = "%" + LibraryId_Name + "%"
+        LibraryId_Name = "%%%s%%" % LibraryId_Name
         self.cursor.execute("SELECT idArtist FROM artist WHERE strArtist = ? and strDisambiguation LIKE ?", (name, LibraryId_Name))
         Data = self.cursor.fetchone()
 
@@ -222,8 +222,8 @@ class MusicDatabase:
             LibraryInfo = result[1]
 
             if LibraryInfo.find(LibraryId_Name) == -1:
-                LibraryInfo = LibraryInfo.replace(LibraryId_Name + ";", "")
-                LibraryInfo += LibraryId_Name + ";"
+                LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
+                LibraryInfo += "%s;" % LibraryId_Name
                 self.cursor.execute("UPDATE album SET strType = ? WHERE idAlbum = ?", (LibraryInfo, album_id))
         else:
             album_id = self.create_entry_album()
@@ -239,8 +239,8 @@ class MusicDatabase:
     def update_album(self, Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, AlbumId, LibraryId_Name):
         self.cursor.execute("SELECT strType FROM album WHERE idAlbum = ?", (AlbumId,))
         LibraryInfo = self.cursor.fetchone()[0]
-        LibraryInfo = LibraryInfo.replace(LibraryId_Name + ";", "")
-        LibraryInfo += LibraryId_Name + ";"
+        LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
+        LibraryInfo += "%s;" % LibraryId_Name
 
         if Utils.DatabaseFiles['music-version'] >= 82:
             self.cursor.execute("UPDATE album SET strArtistDisp = ?, strReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, bScrapedMBID = 1, dateAdded = ?, strType = ? WHERE idAlbum = ?", (Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, LibraryInfo, AlbumId))

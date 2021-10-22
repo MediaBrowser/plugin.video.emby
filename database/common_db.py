@@ -52,7 +52,7 @@ class CommonDatabase:
                 'Disc': "discart",
                 'Backdrop': "fanart"
             }
-        elif KodiMediaType == "tvshow":
+        elif KodiMediaType in ("tvshow", "movie"):
             ArtMapping = {
                 'Thumb': "landscape",
                 'Primary': 'poster',

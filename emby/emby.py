@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
-import os
 import uuid
 import xbmcaddon
 import xbmc
-import xbmcvfs
 import dialogs.serverconnect
 import dialogs.usersconnect
 import dialogs.loginconnect
@@ -51,7 +49,7 @@ class EmbyServer:
 
     def ServerUnreachable(self):
         if not self.ServerReconnecting:
-            Utils.dialog("notification", heading="{emby}", message=Utils.Translate(33146))
+            Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33146))
             self.ServerReconnect()
 
     def ServerReconnect(self, Terminate=True):
@@ -120,7 +118,7 @@ class EmbyServer:
                 self.API.session_add_user(session[0]['Id'], UserId, True)
 
         if Utils.connectMsg:
-            Utils.dialog("notification", heading="{emby}", message="%s %s" % (Utils.Translate(33000), Utils.StringDecode(session[0]['UserName'])), icon="{emby}", time=1500, sound=False)
+            Utils.dialog("notification", heading=Utils.addon_name, message="%s %s" % (Utils.Translate(33000), Utils.StringDecode(session[0]['UserName'])), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1500, sound=False)
 
         self.Views.update_views()
         self.library = database.library.Library(self)
@@ -177,17 +175,14 @@ class EmbyServer:
         credentials = json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False)
 
         if not self.ServerSettings:
-            self.ServerSettings = os.path.join(Utils.FolderAddonUserdata, 'servers_%s.json' % self.server_id)
+            self.ServerSettings = "%s%s" % (Utils.FolderAddonUserdata, 'servers_%s.json' % self.server_id)
 
-        outfile = xbmcvfs.File(self.ServerSettings, "w")
-        outfile.write(credentials.encode('utf-8'))
-        outfile.close()
+        Utils.writeFileString(self.ServerSettings, credentials)
 
     def load_credentials(self):
         if self.ServerSettings:
-            infile = xbmcvfs.File(self.ServerSettings)
-            self.ServerData = json.loads(infile.readBytes().decode('utf-8'))
-            infile.close()
+            FileData = Utils.readFileString(self.ServerSettings)
+            self.ServerData = json.loads(FileData)
         else:
             self.ServerData = {}
 
@@ -200,7 +195,7 @@ class EmbyServer:
         if state:
             if state['State'] == 3:  # SignedIn
                 self.server_id = state['Servers'][0]['Id']
-                Utils.DatabaseFiles[self.server_id] = os.path.join(Utils.FolderDatabase, "emby_%s.db" % self.server_id)
+                Utils.DatabaseFiles[self.server_id] = Utils.translatePath("special://profile/Database/emby_%s.db" % self.server_id)
                 self.save_credentials()
                 return True
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
 import xbmcgui
-import xbmcaddon
 import helper.loghandler
 import helper.utils as Utils
 
@@ -70,7 +68,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
             if not user:
                 # Display error
-                self._error(ERROR['Empty'], Utils.Translate('empty_user'))
+                self._error(ERROR['Empty'], Utils.Translate(30613))
                 LOG.error("Username cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -86,7 +84,6 @@ class LoginManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width, password):
-        os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
         control.setPosition(x, y)
         control.setHeight(height)
@@ -103,7 +100,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         result = self.connect_manager.login(server, username, password, True)
 
         if not result:
-            self._error(ERROR['Invalid'], Utils.Translate('invalid_auth'))
+            self._error(ERROR['Invalid'], Utils.Translate(33009))
             return False
 
         self._user = result

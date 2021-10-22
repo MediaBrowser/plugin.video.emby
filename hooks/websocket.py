@@ -10,7 +10,6 @@ import socket
 import ssl
 import xbmc
 import helper.loghandler
-import helper.jsonrpc
 import helper.utils as Utils
 import database.db_open
 import emby.listitem as ListItem
@@ -48,7 +47,7 @@ class ABNF:
         self.get_mask_key = os.urandom
 
     def __str__(self):
-        return "fin=" + str(self.fin) + " opcode=" + str(self.opcode) + " data=" + str(self.data)
+        return "fin=%s opcode=%s data=%s" % (self.fin, self.opcode, self.data)
 
     def format(self):
         length = len(self.data)
@@ -182,7 +181,7 @@ class WSClient(threading.Thread):
         result = headers.get("sec-websocket-accept", None)
 
         if not result:
-            Utils.dialog("notification", heading="{emby}", icon="DefaultIconError.png", message="Websocket is offline", sound=True)
+            Utils.dialog("notification", heading=Utils.addon_name, icon="DefaultIconError.png", message=Utils.Translate(33235), sound=True)
             return False
 
     def sendCommands(self, payload, opcode):
@@ -311,7 +310,7 @@ class WSClient(threading.Thread):
 
         if IncommingData['MessageType'] == 'GeneralCommand':
             if IncommingData['Data']['Name'] == 'DisplayMessage':
-                Utils.dialog("notification", heading=IncommingData['Data']['Arguments']['Header'], message=IncommingData['Data']['Arguments']['Text'], icon="{emby}", time=int(Utils.displayMessage) * 1000)
+                Utils.dialog("notification", heading=IncommingData['Data']['Arguments']['Header'], message=IncommingData['Data']['Arguments']['Text'], icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=int(Utils.displayMessage) * 1000)
             elif IncommingData['Data']['Name'] in ('Mute', 'Unmute'):
                 xbmc.executebuiltin('Mute')
             elif IncommingData['Data']['Name'] == 'SetVolume':
@@ -319,19 +318,20 @@ class WSClient(threading.Thread):
             elif IncommingData['Data']['Name'] == 'SetRepeatMode':
                 xbmc.executebuiltin('xbmc.PlayerControl(%s)' % IncommingData['Data']['Arguments']['RepeatMode'])
             elif IncommingData['Data']['Name'] == 'SendString':
-                helper.jsonrpc.JSONRPC('Input.SendText').execute({'text': IncommingData['Data']['Arguments']['String'], 'done': False})
+                params = {'text': IncommingData['Data']['Arguments']['String'], 'done': False}
+                xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetTVShows', 'params': params}))
             elif IncommingData['Data']['Name'] == 'GoHome':
-                helper.jsonrpc.JSONRPC('GUI.ActivateWindow').execute({'window': "home"})
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "home"}}')
             elif IncommingData['Data']['Name'] == 'Guide':
-                helper.jsonrpc.JSONRPC('GUI.ActivateWindow').execute({'window': "tvguide"})
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "tvguide"}}')
             elif IncommingData['Data']['Name'] == 'MoveUp':
-                helper.jsonrpc.JSONRPC("Input.Up").execute(False)
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Input.Up"}')
             elif IncommingData['Data']['Name'] == 'MoveDown':
-                helper.jsonrpc.JSONRPC("Input.Down").execute(False)
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Input.Down"}')
             elif IncommingData['Data']['Name'] == 'MoveRight':
-                helper.jsonrpc.JSONRPC("Input.Right").execute(False)
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Input.Right"}')
             elif IncommingData['Data']['Name'] == 'MoveLeft':
-                helper.jsonrpc.JSONRPC("Input.Left").execute(False)
+                xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Input.Left"}')
             elif IncommingData['Data']['Name'] == 'ToggleFullscreen':
                 xbmc.executebuiltin('Action(FullScreen)')
             elif IncommingData['Data']['Name'] == 'ToggleOsdMenu':
@@ -377,16 +377,16 @@ class WSClient(threading.Thread):
             self.EmbyServer.library.updated(UpdateItems)
         elif IncommingData['MessageType'] == 'ServerRestarting':
             if Utils.restartMsg:
-                Utils.dialog("notification", heading="{emby}", message=Utils.Translate(33006), icon="{emby}")
+                Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33006), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
             self.EmbyServer.Online = False
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'ServerShuttingDown':
-            Utils.dialog("notification", heading="{emby}", message="Enable server shutdown")
+            Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33236))
             self.EmbyServer.Online = False
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'RestartRequired':
-            Utils.dialog("notification", heading="{emby}", message="Enable server restart required")
+            Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33237))
         elif IncommingData['MessageType'] == 'Play':
             Play(IncommingData['Data']['ItemIds'], self.EmbyServer.server_id, IncommingData['Data']['PlayCommand'], int(IncommingData['Data'].get('StartIndex', -1)), int(IncommingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
         elif IncommingData['MessageType'] == 'Playstate':
@@ -426,36 +426,18 @@ def AddPlaylistItem(Position, EmbyID, server_id, Offset, EmbyServer):
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
         Pos = GetPlaylistPos(Position, playlist, Offset)
-        helper.jsonrpc.JSONRPC('Playlist.Insert').execute({'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}})
+        params = {'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}}
+        xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'Playlist.Insert', 'params': params}))
     else:
         item = EmbyServer.API.get_item(EmbyID)
         li = ListItem.set_ListItem(item, server_id)
-        path = ""
-
-        if item['Type'] == "MusicVideo":
-            Type = "musicvideo"
-        elif item['Type'] == "Movie":
-            Type = "movie"
-        elif item['Type'] == "Episode":
-            Type = "episode"
-        elif item['Type'] == "Audio":
-            path = "http://127.0.0.1:57578/embyaudioremote-%s-%s-%s-%s" % (server_id, item['Id'], "audio", Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
-            Type = "audio"
-        elif item['Type'] == "Video":
-            Type = "video"
-        elif item['Type'] == "Trailer":
-            Type = "trailer"
-        elif item['Type'] == "TvChannel":
-            Type = "tvchannel"
-            path = "http://127.0.0.1:57578/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
-        else:
-            return None
+        path, Type = Utils.get_path_type_from_item(server_id, item)
 
         if not path:
-            if len(item['MediaSources'][0]['MediaStreams']) >= 1:
-                path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
-            else:
-                path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], "0", "", Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+            return None
+
+        if Type == "picture":
+            return path
 
         li.setProperty('path', path)
 
@@ -473,9 +455,9 @@ def AddPlaylistItem(Position, EmbyID, server_id, Offset, EmbyServer):
 def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
     FirstItem = True
     Offset = 0
-    playlist = None
 
     for ID in ItemIds:
+        playlist = None
         Offset += 1
 
         if PlayCommand == "PlayNow":
@@ -484,6 +466,13 @@ def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbySer
             playlist = AddPlaylistItem("current", ID, ServerId, Offset, EmbyServer)
         elif PlayCommand == "PlayLast":
             playlist = AddPlaylistItem("last", ID, ServerId, 0, EmbyServer)
+
+        if not playlist:
+            continue
+
+        if isinstance(playlist, str):  # picture
+            xbmc.executebuiltin(playlist)
+            return
 
         # Play Item
         if PlayCommand == "PlayNow":
@@ -497,6 +486,7 @@ def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbySer
 
                         PlaylistStartIndex = Pos + Offset
                         xbmc.Player().play(item=playlist, startpos=PlaylistStartIndex)
+                        setPlayerPosition(StartPositionTicks)
                         Offset = 0
                         FirstItem = False
             else:
@@ -507,12 +497,26 @@ def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbySer
                         Pos = 0
 
                     xbmc.Player().play(item=playlist, startpos=Pos + Offset)
-
-                    if StartPositionTicks != -1:
-                        xbmc.Player().seekTime(StartPositionTicks / 10000000)
-
+                    setPlayerPosition(StartPositionTicks)
                     Offset = 0
                     FirstItem = False
+
+def setPlayerPosition(StartPositionTicks):
+    if StartPositionTicks != -1:
+        Position = StartPositionTicks / 10000000
+
+        for _ in range(10):
+            if xbmc.Player().isPlaying():
+                for _ in range(10):
+                    xbmc.Player().seekTime(Position)
+                    CurrentTime = xbmc.Player().getTime()
+
+                    if CurrentTime >= Position - 10:
+                        return
+
+                    xbmc.sleep(250)
+            else:
+                xbmc.sleep(500)
 
 def GetPlaylistPos(Position, playlist, Offset):
     if Position == "current":

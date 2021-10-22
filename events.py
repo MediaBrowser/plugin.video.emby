@@ -31,11 +31,11 @@ if __name__ == "__main__":
     ServerId = params.get('server')
 
     if mode == 'photoviewer':
-        xbmc.executebuiltin('ShowPicture(http://127.0.0.1:57578/%s/Images/Primary)' % params['id'])
+        xbmc.executebuiltin('ShowPicture(http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s)' % (ServerId, params['id'], params['imageid']))
     elif mode == 'nextepisodes':
         EmbyQueryData('nextepisodes', params.get('libraryname', ""), ServerId, Handle)
     elif mode == 'browse':
-        EmbyQueryData('browse', params.get('type', "") + ";" + params.get('id', "") + ";" + params.get('folder', "") + ";" + params.get('name', "") + ";" + params.get('extra', ""), ServerId, Handle)
+        EmbyQueryData('browse', "%s;%s;%s;%s;%s" % (params.get('type', ""), params.get('id', ""), params.get('folder', ""), params.get('name', ""), params.get('extra', "")), ServerId, Handle)
     elif mode in ('texturecache', 'delete', 'managelibsselection', 'favepisodes', 'settings', 'restartservice', 'databasereset'):
         EmbyQueryData(mode, "", ServerId, Handle)
     else:

@@ -237,7 +237,7 @@ class ConnectionManager:
             return False
 
         auth = "Emby "
-        auth += "Client=Kodi, "
+        auth += "Client=%s, " % Utils.addon_name
         auth += "Device=%s, " % Utils.device_name
         auth += "DeviceId=%s, " % Utils.device_id
         auth += "Version=%s " % Utils.addon_version
@@ -338,7 +338,7 @@ def get_headers(request):
         headers['Accept-encoding'] = "gzip"
         request.pop('dataType')
 
-    headers['X-Application'] = "Kodi/%s" % Utils.addon_version
+    headers['X-Application'] = "%s/%s" % (Utils.addon_name, Utils.addon_version)
     headers['Content-type'] = request.get('contentType', 'application/x-www-form-urlencoded; charset=UTF-8')
 
 def server_discovery():

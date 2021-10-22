@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
 import xbmcgui
-import xbmcaddon
 import helper.loghandler
 import helper.utils as Utils
 
@@ -63,7 +61,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], Utils.Translate('empty_server'))
+                self._error(ERROR['Empty'], Utils.Translate(30617))
                 LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
@@ -80,7 +78,6 @@ class ServerManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width):
-        os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
         control.setPosition(x, y)
         control.setHeight(height)

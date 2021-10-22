@@ -24,7 +24,7 @@ def add_Multiversion(obj, emby_db, emby_type, API):
             ItemReferenced = API.get_item(DataSource['Id'])
 
             if not ItemReferenced:  # Server restarted
-                return
+                return None
 
             LOG.debug("Multiversion video detected, referenced item: %s" % ItemReferenced['Id'])
             e_MultiItem = emby_db.get_item_by_id(ItemReferenced['Id'])
@@ -131,14 +131,14 @@ def get_filename(obj, MediaID, API):
 
                 for AdditionalItem in AdditionalParts['Items']:
                     Path = Utils.StringDecode(AdditionalItem['Path'])
-                    Filename = Filename + " , " + Path
+                    Filename = "%s , %s" % (Filename, Path)
 
                     if 'RunTimeTicks' not in AdditionalItem:
                         AdditionalItem['RunTimeTicks'] = 0
 
                     RunTimePart = round(float((AdditionalItem['RunTimeTicks']) / 10000000.0), 6)
                     obj['Runtime'] += RunTimePart
-                    obj['StackTimes'] = str(obj['StackTimes']) + "," + str(obj['Runtime'])
+                    obj['StackTimes'] = "%s,%s" % (obj['StackTimes'], obj['Runtime'])
 
                 Filename = "stack://" + Filename
 
@@ -201,9 +201,9 @@ def get_filename(obj, MediaID, API):
                 AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
 
                 try:
-                    StackedFilename = StackedFilename + " , " + obj['Path'] + "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], obj['CodecVideo'], AdditionalFilename)
+                    StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], obj['CodecVideo'], AdditionalFilename)
                 except:
-                    StackedFilename = StackedFilename + " , " + obj['Path'] + "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", "", obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
+                    StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", "", obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
 
                 if 'RunTimeTicks' in AdditionalItem:
                     RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
@@ -211,7 +211,7 @@ def get_filename(obj, MediaID, API):
                     RunTimePart = 0
 
                 obj['Runtime'] += RunTimePart
-                obj['StackTimes'] = str(obj['StackTimes']) + "," + str(obj['Runtime'])
+                obj['StackTimes'] = "%s,%s" % (obj['StackTimes'], obj['Runtime'])
 
             Filename = "stack://" + StackedFilename
 
@@ -398,7 +398,7 @@ def get_file_path(path, item):
 
         if 'Container' in item:
             if not path.endswith(Utils.StringEncode(item['Container'])):
-                path = path + "." + Utils.StringEncode(item['Container'])
+                path = "%s.%s" %(path, Utils.StringEncode(item['Container']))
 
     if not path:
         return ""

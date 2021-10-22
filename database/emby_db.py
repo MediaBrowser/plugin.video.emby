@@ -87,17 +87,8 @@ class EmbyDatabase:
     def add_UpdateItem(self, EmbyId, LibraryId, LibraryName, emby_type):
         self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (emby_id, emby_folder, emby_name, emby_type) VALUES (?, ?, ?, ?)", (EmbyId, LibraryId, LibraryName, emby_type))
 
-    def get_UpdateItem_number_of_records(self):
-        self.cursor.execute("SELECT Count(*) FROM UpdateItems")
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return 0
-
-    def get_UpdateItem(self, Limit):
-        self.cursor.execute("SELECT * FROM UpdateItems LIMIT %s" % Limit)
+    def get_UpdateItem(self):
+        self.cursor.execute("SELECT * FROM UpdateItems")
         return self.cursor.fetchall()
 
     def delete_UpdateItem(self, EmbyId):

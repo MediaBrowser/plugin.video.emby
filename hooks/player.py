@@ -3,7 +3,6 @@ import threading
 import json
 import xbmc
 import database.db_open
-import helper.jsonrpc
 import helper.loghandler
 import helper.utils as Utils
 
@@ -26,8 +25,11 @@ class PlayerEvents(xbmc.Player):
         self.PlayingVideo = True
         self.MultiselectionDone = False
         self.PlayerSkipItem = "-1"
-        self.PositionTrackerThread = threading.Thread(target=self.PositionTracker)
-        self.PositionTrackerThread.start()
+        self.PositionTrackerThread = None
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Application.GetProperties", "params": {"properties": ["volume", "muted"]}}'))
+        result = result.get('result', {})
+        self.volume = result.get('volume', 0)
+        self.muted = result.get('muted', False)
 
     def StartUp(self, EmbyServers):
         self.EmbyServers = EmbyServers
@@ -63,7 +65,8 @@ class PlayerEvents(xbmc.Player):
         self.QueuedPlayingItem['MediaSourceId'] = MediasourceID
         self.QueuedPlayingItem['PositionTicks'] = 0
         self.QueuedPlayingItem['RunTimeTicks'] = 0
-        self.QueuedPlayingItem['VolumeLevel'], self.QueuedPlayingItem['IsMuted'] = get_volume()
+        self.QueuedPlayingItem['VolumeLevel'] = self.volume
+        self.QueuedPlayingItem['IsMuted'] = self.muted
 
     def onAVStarted(self):
         LOG.info("[ onAVStarted ]")
@@ -72,7 +75,7 @@ class PlayerEvents(xbmc.Player):
         if self.PlayerSkipItem != "-1":
             if self.PlayerSkipItem != "TRAILER":
                 self.playnext()
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":' + self.PlayerSkipItem + '}}')
+                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % self.PlayerSkipItem)
 
             return
 
@@ -82,10 +85,10 @@ class PlayerEvents(xbmc.Player):
             EmbyId = None
 
             try:
-                try:
+                try:  # self.isPlayingVideo()
                     PlayerItem = self.getVideoInfoTag()
                     Path = PlayerItem.getPath()
-                except:
+                except:  # self.isPlayingAudio()
                     PlayerItem = self.getMusicInfoTag()
                     Path = PlayerItem.getURL()
 
@@ -150,7 +153,7 @@ class PlayerEvents(xbmc.Player):
                         Selection = []
 
                         for Data in MediaSources:
-                            Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
+                            Selection.append("%s - %s" % (Data[4], Utils.SizeToText(float(Data[5]))))
 
                         MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
 
@@ -174,7 +177,7 @@ class PlayerEvents(xbmc.Player):
                             MediasourceID = MediaSources[MediaIndex][2]
                             EmbyId = MediaSources[MediaIndex][0]
                             self.playnext()
-                            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":' + str(playlistIndex) + '}}')
+                            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % playlistIndex)
 
                         database.db_open.DBClose(server_id, False)
                         break
@@ -194,8 +197,12 @@ class PlayerEvents(xbmc.Player):
             if self.EmbyServer and 'ItemId' in self.PlayingItem:
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
-    def PositionTracker(self):  # position required for delete option after playback ("stop_playback")
-        while True:
+                if not self.PositionTrackerThread:
+                    self.PositionTrackerThread = threading.Thread(target=self.PositionTracker)
+                    self.PositionTrackerThread.start()
+
+    def PositionTracker(self):
+        while self.EmbyServer and "ItemId" in self.PlayingItem:
             if xbmc.Monitor().waitForAbort(4):
                 break
 
@@ -206,6 +213,9 @@ class PlayerEvents(xbmc.Player):
                     PositionTicks = 0
 
                 self.PlayingItem['PositionTicks'] = PositionTicks
+                self.EmbyServer.API.session_progress(self.PlayingItem)
+
+        self.PositionTrackerThread = None
 
     def onPlayBackSeek(self, time, seekOffset):  # Only for Audio, Video is covered by "onAVChange"
         LOG.info("[ onPlayBackSeek ]")
@@ -265,12 +275,15 @@ class PlayerEvents(xbmc.Player):
         LOG.info("--<<[ playback ]")
 
     def SETVolume(self, data):
+        data = json.loads(data)
+        self.muted = data["muted"]
+        self.volume = data["volume"]
+
         if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
             return
 
-        data = json.loads(data)
-        self.PlayingItem['VolumeLevel'] = data['volume']
-        self.PlayingItem['IsMuted'] = data['muted']
+        self.PlayingItem['VolumeLevel'] = self.volume
+        self.PlayingItem['IsMuted'] = self.muted
         self.EmbyServer.API.session_progress(self.PlayingItem)
 
     def onPlayBackError(self):
@@ -312,12 +325,5 @@ class PlayerEvents(xbmc.Player):
         if self.isPlaying():
             return
 
-        threading.Thread(target=self.EmbyServer.RunLibraryJobs).start()
         self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
-
-def get_volume():
-    result = helper.jsonrpc.JSONRPC('Application.GetProperties').execute({'properties': ["volume", "muted"]})
-    result = result.get('result', {})
-    volume = result.get('volume')
-    muted = result.get('muted')
-    return volume, muted
+        threading.Thread(target=self.EmbyServer.RunLibraryJobs).start()
