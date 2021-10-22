@@ -1229,16 +1229,22 @@ def CheckKodiDBIO(Id, DBType):
             LOG.info("[ worker %s delay due to kodi music db io ]" % Id)
             db_open.DBClose(DBType, True)
 
-            with Utils.KodiDBLockMusic:
-                LOG.info("[ worker %s release kodi music db io ]" % Id)
+            try:  # prevents error if already unlocked in monitor thread (scan event)
+                with Utils.KodiDBLockMusic:
+                    LOG.info("[ worker %s release kodi music db io ]" % Id)
+                    return db_open.DBOpen(Utils.DatabaseFiles, DBType)
+            except:
                 return db_open.DBOpen(Utils.DatabaseFiles, DBType)
     else:
         if Utils.KodiDBLockVideo.locked():
             LOG.info("[ worker %s delay due to kodi video db io ]" % Id)
             db_open.DBClose(DBType, True)
 
-            with Utils.KodiDBLockVideo:
-                LOG.info("[ worker %s release kodi video db io ]" % Id)
+            try:  # prevents error if already unlocked in monitor thread (scan event)
+                with Utils.KodiDBLockVideo:
+                    LOG.info("[ worker %s release kodi video db io ]" % Id)
+                    return db_open.DBOpen(Utils.DatabaseFiles, DBType)
+            except:
                 return db_open.DBOpen(Utils.DatabaseFiles, DBType)
 
     return None
