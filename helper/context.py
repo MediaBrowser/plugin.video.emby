@@ -42,7 +42,7 @@ class Context:
             if not self.load_item():
                 return
 
-        if Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33015)):
+        if Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33015)):
             self.EmbyServers[self.server_id].API.delete_item(self.item[0])
             self.EmbyServers[self.server_id].library.removed([self.item[0]])
 
@@ -52,7 +52,7 @@ class Context:
         for SpecialFeaturesSelection in self.SpecialFeaturesSelections:
             MenuData.append(SpecialFeaturesSelection['Name'])
 
-        resp = Utils.dialog("select", "Special Features", MenuData)
+        resp = Utils.dialog(Utils.Translate(33230), Utils.Translate(33231), MenuData)
 
         if resp < 0:
             return

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import threading
 import socket
-import xbmcvfs
 import xbmc
 import database.db_open
 import helper.loghandler
@@ -21,10 +20,8 @@ class WebService(threading.Thread):
         self.embydb = None
         self.IntrosIndex = 0
         self.SkipItemVideo = ""
-        blankfile = xbmcvfs.File("special://home/addons/plugin.video.emby-next-gen/resources/blank.m4v")
-        self.blankfileSize = blankfile.size()
-        self.blankfileData = blankfile.readBytes()
-        blankfile.close()
+        self.blankfileData = Utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.m4v")
+        self.blankfileSize = len(self.blankfileData)
         self.TrailerInitialItem = ""
         self.socket = None
         self.QueryDataPrevious = {}
@@ -48,26 +45,30 @@ class WebService(threading.Thread):
 
     def close(self):
         self.Stop = True
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(("127.0.0.1", 57578))
-        s.send('QUIT QUIT'.encode())
-        s.shutdown(socket.SHUT_RDWR)
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(("127.0.0.1", 57578))
+            s.send('QUIT QUIT'.encode())
+            s.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
 
     def Listen(self):
         self.socket.listen(50)
 
         while not self.Stop:
-            (client, address) = self.socket.accept()
+            client, _ = self.socket.accept()
             client.settimeout(None)
             data = client.recv(1024).decode()
-            threading.Thread(target=self.Query, args=(client, address, data)).start()
+            threading.Thread(target=self.Query, args=(client, data)).start()
 
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
             pass
 
-    def Query(self, client, address, data):
+    def Query(self, client, data):
 
 
         if not self.EmbyServers:
@@ -90,7 +91,7 @@ class WebService(threading.Thread):
         client.close()
 
     def SendBlankFile(self, client):
-        Response = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: ' + str(self.blankfileSize) + '\r\nContent-type: video/mp4\r\n\r\n'
+        Response = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: %s\r\nContent-type: video/mp4\r\n\r\n' % self.blankfileSize
         Response = Response.encode()
         client.send(Response + self.blankfileData)
 
@@ -148,7 +149,7 @@ class WebService(threading.Thread):
             SendResponseOK(client)
             return
 
-        QueryData = self.GetParametersFromURLQuery(Payload)
+        QueryData = GetParametersFromURLQuery(Payload)
 
         if Payload.endswith('.nfo'):  # metadata scraper queries item info. Due to lag of nfo file, the item will be removed by scraper. Workaround: -> trigger item resync from Emby server
             LOG.info("[ nfo query -> refresh item %s ]" % Payload)
@@ -200,11 +201,16 @@ class WebService(threading.Thread):
 
         # Cinnemamode
         if Utils.enableCinema and (Utils.localTrailers or Utils.Trailers):
+
+
+
+
+
             if not self.TrailerInitialItem == QueryData['Payload']:  # Trailer init (load)
                 PlayTrailer = True
 
                 if Utils.askCinema:
-                    PlayTrailer = Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33016))
+                    PlayTrailer = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33016))
 
                 if PlayTrailer:
                     URL = self.play_Trailer(True, QueryData)
@@ -241,7 +247,7 @@ class WebService(threading.Thread):
             QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
 
             for Data in QueryData['MediaSources']:
-                Selection.append(Data[4] + " - " + Utils.SizeToText(float(Data[5])))
+                Selection.append("%s - %s" % (Data[4], Utils.SizeToText(float(Data[5]))))
 
             MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
 
@@ -311,7 +317,7 @@ class WebService(threading.Thread):
                 else:
                     SubtileLanguage = "unknown"
 
-                Filename = Utils.PathToFilenameReplaceSpecialCharecters(str(CounterSubTitle) + "." + SubtileLanguage + ".srt")
+                Filename = Utils.PathToFilenameReplaceSpecialCharecters("%s.%s.srt" % (CounterSubTitle, SubtileLanguage))
                 Path = Utils.download_file_from_Embyserver(request, Filename, self.EmbyServers[QueryData['ServerId']])
 
                 if Path:
@@ -339,7 +345,7 @@ class WebService(threading.Thread):
                 if QueryData['ExternalSubtitle'] == "1":
                     self.SubTitlesAdd(0, QueryData)
 
-                return self.EmbyServers[QueryData['ServerId']].server + "/emby/videos/" + QueryData['EmbyID'] + "/stream?static=true&MediaSourceId=" + QueryData['MediasourceID'] + "&PlaySessionId=" + self.EmbyServers[QueryData['ServerId']].PlaySessionId + "&DeviceId=" + Utils.device_id + "&api_key=" + self.EmbyServers[QueryData['ServerId']].Token + "&" + QueryData['Filename']
+                return "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
         else:
             VideoStreams = self.embydb.get_videostreams(QueryData['EmbyID'], MediaIndex)
             QueryData['KodiId'] = str(self.embydb.get_kodiid(QueryData['EmbyID'])[0])
@@ -442,81 +448,7 @@ class WebService(threading.Thread):
             Filename = "&stream-" + Filename
 
         self.QueryDataPrevious = QueryData.copy()
-        return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, Utils.VideoCodecID, Utils.AudioCodecID, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
-
-    def GetParametersFromURLQuery(self, Payload):
-        Temp = Payload[Payload.rfind("/") + 1:]
-        Data = Temp.split("-")
-        QueryData = {'MediaSources': [], 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0, 'Payload': Payload, 'ServerId': Data[1], 'EmbyID': Data[2]}
-
-        if Data[0] == "embyimage":  # Image
-            QueryData['ImageIndex'] = Data[3]
-            QueryData['ImageType'] = Data[4]
-            QueryData['ImageTag'] = Data[5]
-            QueryData['Type'] = "embyimage"
-        elif Data[0] in ("embyvideo", "embyiso"):  # Video
-            QueryData['MediasourceID'] = Data[3]
-#            QueryData['PresentationKey'] = Data[4]
-#            QueryData['EmbyParentId'] = Data[5]
-            QueryData['KodiId'] = Data[6]
-            QueryData['KodiFileId'] = Data[7]
-            QueryData['MediaType'] = Data[8]
-            QueryData['BitrateFromURL'] = int(Data[9])
-            QueryData['ExternalSubtitle'] = Data[10]
-            QueryData['MediasourcesCount'] = int(Data[11])
-#            QueryData['VideostreamCount'] = int(Data[12])
-#            QueryData['AudiostreamCount'] = int(Data[13])
-            QueryData['CodecVideo'] = Data[14]
-            QueryData['Filename'] = Data[15]
-            QueryData['Type'] = Data[0]
-        elif Data[0] == "embyaudio":  # Audio
-#            QueryData['PresentationKey'] = Data[3]
-            QueryData['MediaType'] = Data[4]
-            QueryData['Filename'] = Data[5]
-            QueryData['MediasourceID'] = ""
-            QueryData['Type'] = "embyaudio"
-        elif Data[0] == "embylivetv":  # Dynamic item
-            QueryData['Filename'] = Data[3]
-            QueryData['MediaType'] = "live"
-            QueryData['MediasourceID'] = None
-            QueryData['Type'] = "embylivetv"
-        elif Data[0] == "embyvideodynamic":  # Dynamic item
-            QueryData['MediaType'] = Data[3]
-            QueryData['Filename'] = Data[4]
-            Result = self.EmbyServers[QueryData['ServerId']].API.get_item(QueryData['EmbyID'])
-            QueryData['MediasourceID'] = Result['MediaSources'][0]['Id']
-
-            try:
-                QueryData['BitrateFromURL'] = Result['MediaSources'][0]['MediaStreams'][0]['BitRate']
-                QueryData['CodecVideo'] = Result['MediaSources'][0]['MediaStreams'][0]['Codec']
-            except:
-                QueryData['BitrateFromURL'] = 0
-                QueryData['CodecVideo'] = ""
-
-            QueryData['KodiId'] = None
-            QueryData['Type'] = "embyvideodynamic"
-        elif Data[0] == "embyaudiodynamic" or Data[0] == "embyaudioremote":  # Dynamic item
-            QueryData['MediaType'] = Data[3]
-            QueryData['Filename'] = Data[4]
-            QueryData['KodiId'] = None
-            QueryData['Type'] = "embyaudio"
-            QueryData['MediasourceID'] = None
-        elif Data[0] == "embyvideoremote":  # Dynamic item
-            QueryData['MediaType'] = Data[3]
-            QueryData['MediasourceID'] = Data[4]
-            QueryData['BitrateFromURL'] = int(Data[5])
-            QueryData['CodecVideo'] = Data[6]
-            QueryData['Filename'] = Data[7]
-            QueryData['KodiId'] = None
-            QueryData['Type'] = "embyvideo"
-        else:  # embythemeaudio, embythemevideo
-            QueryData['MediasourceID'] = Data[3]
-            QueryData['MediaType'] = Data[4]
-            QueryData['Filename'] = Data[5]
-            QueryData['KodiId'] = None
-            QueryData['Type'] = Data[0]
-
-        return QueryData
+        return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, Utils.TranscodeFormatVideo, Utils.TranscodeFormatAudio, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
 
     def play_Trailer(self, Init, QueryData):
         if Init:
@@ -589,3 +521,62 @@ def SendResponseOK(client):
     header = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'
     response = header.encode()
     client.send(response)
+
+def GetParametersFromURLQuery(Payload):
+    Temp = Payload[Payload.rfind("/") + 1:]
+    Data = Temp.split("-")
+    QueryData = {'MediaSources': [], 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0, 'Payload': Payload, 'ServerId': Data[1], 'EmbyID': Data[2]}
+
+    if Data[0] == "embyimage":  # Image
+        QueryData['ImageIndex'] = Data[3]
+        QueryData['ImageType'] = Data[4]
+        QueryData['ImageTag'] = Data[5]
+        QueryData['Type'] = "embyimage"
+    elif Data[0] in ("embyvideo", "embyiso"):  # Video
+        QueryData['MediasourceID'] = Data[3]
+#        QueryData['PresentationKey'] = Data[4]
+#        QueryData['EmbyParentId'] = Data[5]
+        QueryData['KodiId'] = Data[6]
+        QueryData['KodiFileId'] = Data[7]
+        QueryData['MediaType'] = Data[8]
+        QueryData['BitrateFromURL'] = int(Data[9])
+        QueryData['ExternalSubtitle'] = Data[10]
+        QueryData['MediasourcesCount'] = int(Data[11])
+#        QueryData['VideostreamCount'] = int(Data[12])
+#        QueryData['AudiostreamCount'] = int(Data[13])
+        QueryData['CodecVideo'] = Data[14]
+        QueryData['Filename'] = Data[15]
+        QueryData['Type'] = Data[0]
+    elif Data[0] == "embyaudio":  # Audio
+#        QueryData['PresentationKey'] = Data[3]
+        QueryData['MediaType'] = Data[4]
+        QueryData['Filename'] = Data[5]
+        QueryData['MediasourceID'] = ""
+        QueryData['Type'] = "embyaudio"
+    elif Data[0] == "embylivetv":  # Dynamic item
+        QueryData['Filename'] = Data[3]
+        QueryData['MediaType'] = "live"
+        QueryData['MediasourceID'] = None
+        QueryData['Type'] = "embylivetv"
+    elif Data[0] == "embyaudiodynamic":  # Dynamic item
+        QueryData['MediaType'] = Data[3]
+        QueryData['Filename'] = Data[4]
+        QueryData['KodiId'] = None
+        QueryData['Type'] = "embyaudio"
+        QueryData['MediasourceID'] = None
+    elif Data[0] == "embyvideodynamic":  # Dynamic item
+        QueryData['MediaType'] = Data[3]
+        QueryData['MediasourceID'] = Data[4]
+        QueryData['BitrateFromURL'] = int(Data[5])
+        QueryData['CodecVideo'] = Data[6]
+        QueryData['Filename'] = Data[7]
+        QueryData['KodiId'] = None
+        QueryData['Type'] = "embyvideo"
+    else:  # embythemeaudio, embythemevideo
+        QueryData['MediasourceID'] = Data[3]
+        QueryData['MediaType'] = Data[4]
+        QueryData['Filename'] = Data[5]
+        QueryData['KodiId'] = None
+        QueryData['Type'] = Data[0]
+
+    return QueryData

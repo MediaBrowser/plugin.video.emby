@@ -1064,3 +1064,75 @@ msgstr "Nach Schauspieler"
 msgctxt "#33220"
 msgid "By Tag"
 msgstr "Nach Kennzeichen"
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr "Userrating Synchronisation aktivieren"
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr "LETZTE WARNING: Kompletter Datenbank Neuaufbau ist notwendig! Wenn nicht gewünscht, bitte hier abbrechen und MANUELL die vorherige Version installieren."
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr "Kompletter Datenbank Neuaufbau ist notwendig, bitte auf Kodi Neustart warten."
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr "Ungültiger Backup Pfad"
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr "Ungültiges Backup"
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr "Bild Zwischenspeicherung ist am Laufen"
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr "Webserver muss eingeschaltet werden für Bild Zwischenspeicherung"
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr "Kein Passwort gefunden, es wird das Passwort auf 'kodi' gesetzt."
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr "Kein Backup Pfad gesetzt"
+
+msgctxt "#33230"
+msgid "select"
+msgstr "Auswahl"
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr "Spezial Features"
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr "Live TV Syncronisation beendet"
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr "Bitte iptv iptvsimple einschalten"
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr "Syncronisation Live TV"
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr "Websocket ist offline"
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr "Emby Server wird heruntergefahren"
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr "Emby Server Neustart notwendig"
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr "Bibliotheken hinzufügen"

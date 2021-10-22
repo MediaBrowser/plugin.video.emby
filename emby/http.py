@@ -21,12 +21,9 @@ class HTTP:
         if self.session is None:
             return
 
-        try:
-            LOG.warning("--<[ session/%s ]" % id(self.session))
-            self.session.close()
-            self.session = None
-        except Exception as error:
-            LOG.warning("The requests session could not be terminated: %s" % error)
+        LOG.warning("--<[ session/%s ]" % id(self.session))
+        self.session.close()
+        self.session = None
 
     def request(self, data, ServerConnecting, Binary):
         if 'url' not in data:
@@ -58,7 +55,7 @@ class HTTP:
                     return r.json()
 
                 if r.status_code == 401:
-                    Utils.dialog("notification", heading="{emby}", message=Utils.Translate(33147))
+                    Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33147))
 
                 LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
 
@@ -77,12 +74,23 @@ class HTTP:
 
                     threading.Thread(target=self.ServerUnreachable).start()
 
+                if Binary:
+                    return b""
+
                 return {}
             except requests.exceptions.ReadTimeout:
                 LOG.error("[ ServerTimeout ] %s" % data)
+
+                if Binary:
+                    return b""
+
                 return {}
             except Exception as error:
                 LOG.error(error)
+
+                if Binary:
+                    return b""
+
                 return {}
 
     def get_header(self, data):
@@ -93,7 +101,7 @@ class HTTP:
                 'Content-type': "application/json",
                 'Accept-Charset': "UTF-8,*",
                 'Accept-encoding': "gzip",
-                'User-Agent': "Kodi/%s" % Utils.addon_version
+                'User-Agent': "%s/%s" % (Utils.addon_name, Utils.addon_version)
             })
 
         if 'Authorization' not in data['headers']:
@@ -103,7 +111,7 @@ class HTTP:
 
     def _authorization(self, data):
         auth = "Emby "
-        auth += "Client=Kodi, "
+        auth += "Client=%s, " % Utils.addon_name
         auth += "Device=%s, " % Utils.device_name
         auth += "DeviceId=%s, " % Utils.device_id
         auth += "Version=%s" % Utils.addon_version

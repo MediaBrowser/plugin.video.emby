@@ -15,7 +15,7 @@ class API:
         self.update_settings()
 
     def update_settings(self):
-        self.browse_info = "Path"
+        self.browse_info = "Path,MediaStreams"
 
         if Utils.getDateCreated:
             self.browse_info += ",DateCreated"
@@ -299,12 +299,11 @@ class API:
         while True:
             params['StartIndex'] = index
             params['Limit'] = Limit
+            result = self._http("GET", url, {'params': params}) or {'Items': []}
 
-            try:
-                result = self._http("GET", url, {'params': params}) or {'Items': []}
-            except Exception as error:
-                LOG.error("ERROR: %s" % error)
-                result = {'Items': []}
+            if 'Items' not in result:
+                items['TotalRecordCount'] = index
+                break
 
             if not result['Items']:
                 items['TotalRecordCount'] = index

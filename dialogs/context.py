@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
 import xbmcgui
-import xbmcaddon
 import helper.loghandler
 
 LOG = helper.loghandler.LOG('EMBY.dialogs.context.ContextMenu')
@@ -42,12 +40,3 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
                 self.selected_option = option.getLabel()
                 LOG.info('option selected: %s' % self.selected_option)
                 self.close()
-
-    def _add_editcontrol(self, x, y, height, width):
-        media = os.path.join(xbmcaddon.Addon("plugin.video.emby-next-gen").getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
-        control = xbmcgui.ControlImage(0, 0, 0, 0, filename=os.path.join(media, "white.png"), aspectRatio=0, colorDiffuse="ff111111")
-        control.setPosition(x, y)
-        control.setHeight(height)
-        control.setWidth(width)
-        self.addControl(control)
-        return control

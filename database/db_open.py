@@ -13,49 +13,43 @@ LOG = helper.loghandler.LOG('EMBY.database.db_open')
 
 
 def DBOpen(DatabaseFiles, DBID):
-    global DBIOLock
+    if DBID not in globals()["DBIOLock"]:
+        globals()["DBIOLock"][DBID] = threading.Lock()
 
-    if DBID not in DBIOLock:
-        DBIOLock[DBID] = threading.Lock()
-
-    with DBIOLock[DBID]:
-        global DBConnections
-
-        if DBID not in DBConnections:
-            DBConnections[DBID] = sqlite3.connect(DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
-            DBConnections[DBID].execute("PRAGMA journal_mode=WAL")
-            DBConnections["%s_count" % DBID] = 1
+    with globals()["DBIOLock"][DBID]:
+        if DBID not in globals()["DBConnections"]:
+            globals()["DBConnections"][DBID] = sqlite3.connect(DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
+            globals()["DBConnections"][DBID].execute("PRAGMA journal_mode=WAL")
+            globals()["DBConnections"]["%s_count" % DBID] = 1
         else:
-            DBConnections["%s_count" % DBID] += 1
+            globals()["DBConnections"]["%s_count" % DBID] += 1
 
-        LOG.debug("--->[ database: %s/%s ]" % (DBID, DBConnections["%s_count" % DBID]))
+        LOG.debug("--->[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
 
         if DBID == 'video':
-            return video_db.VideoDatabase(DBConnections[DBID].cursor())
+            return video_db.VideoDatabase(globals()["DBConnections"][DBID].cursor())
 
         if DBID == 'music':
-            return music_db.MusicDatabase(DBConnections[DBID].cursor())
+            return music_db.MusicDatabase(globals()["DBConnections"][DBID].cursor())
 
         if DBID == 'texture':
-            return common_db.CommonDatabase(DBConnections[DBID].cursor())
+            return common_db.CommonDatabase(globals()["DBConnections"][DBID].cursor())
 
-        return emby_db.EmbyDatabase(DBConnections[DBID].cursor())
+        return emby_db.EmbyDatabase(globals()["DBConnections"][DBID].cursor())
 
 def DBClose(DBID, commit_close):
-    with DBIOLock[DBID]:
-        global DBConnections
-
+    with globals()["DBIOLock"][DBID]:
         if commit_close:
-            changes = DBConnections[DBID].total_changes
+            changes = globals()["DBConnections"][DBID].total_changes
             LOG.info("[%s] %s rows updated." % (DBID, changes))
 
             if changes:
-                DBConnections[DBID].commit()
+                globals()["DBConnections"][DBID].commit()
 
-        DBConnections["%s_count" % DBID] += -1
-        LOG.debug("---<[ database: %s/%s ]" % (DBID, DBConnections["%s_count" % DBID]))
+        globals()["DBConnections"]["%s_count" % DBID] += -1
+        LOG.debug("---<[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
 
-        if DBConnections["%s_count" % DBID] == 0:
-            DBConnections[DBID].cursor().close()
-            DBConnections[DBID].close()
-            del DBConnections[DBID]
+        if globals()["DBConnections"]["%s_count" % DBID] == 0:
+            globals()["DBConnections"][DBID].cursor().close()
+            globals()["DBConnections"][DBID].close()
+            del globals()["DBConnections"][DBID]

@@ -2,15 +2,12 @@
 import json
 import threading
 import socket
-import os
 import xml.etree.ElementTree
 import requests
 import xbmc
-import xbmcvfs
 import xbmcgui
 import xbmcplugin
 import helper.loghandler
-import helper.jsonrpc
 import helper.context
 import helper.pluginmenu
 import helper.utils as Utils
@@ -111,7 +108,7 @@ class Monitor(xbmc.Monitor):
         if method == 'Other.managelibsselection':
             threading.Thread(target=self.Menu.select_managelibs).start()
         elif method == 'Other.backup':
-            threading.Thread(target=self.Backup).start()
+            threading.Thread(target=Backup).start()
         elif method == 'Other.restore':
             threading.Thread(target=self.BackupRestore).start()
         elif method == 'Other.reset_device_id':
@@ -263,12 +260,12 @@ class Monitor(xbmc.Monitor):
                     EmbyServer.Views.update_nodes()
             else:
                 # delete playlists
-                for playlistfolder in [Utils.FolderPlaylistsVideo, Utils.FolderPlaylistsMusic]:
-                    if xbmcvfs.exists(playlistfolder):
-                        _, files = xbmcvfs.listdir(playlistfolder)
+                for playlistfolder in ['special://profile/playlists/video/', 'special://profile/playlists/music/']:
+                    if Utils.checkFolderExists(playlistfolder):
+                        _, files = Utils.listDir(playlistfolder)
 
                         for Filename in files:
-                            xbmcvfs.delete(os.path.join(playlistfolder, Filename))
+                            Utils.delFile("%s%s" % (playlistfolder, Filename))
 
         # Toggle compatibility mode
         if compatibilitymodePreviousValue != Utils.compatibilitymode:
@@ -283,43 +280,26 @@ class Monitor(xbmc.Monitor):
 
             # update script files
             for PatchFile in PatchFiles:
-                XMLFile = Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/skins/default/1080i/") + PatchFile
-                xmlData = xml.etree.ElementTree.parse(XMLFile).getroot()
+                FileName = "special://home/addons/plugin.video.emby-next-gen/resources/skins/default/1080i/%s" % PatchFile
+                xmlData = Utils.readFileString(FileName)
+                xmlData = xml.etree.ElementTree.fromstring(xmlData)
 
                 for elem in xmlData.iter():
                     if elem.tag == 'label':
                         if elem.text.find(PluginIDPrevious) != -1:
                             elem.text = elem.text.replace(PluginIDPrevious, PluginID)
 
-                xmls.WriteXmlFile(XMLFile, xmlData)
+                xmls.WriteXmlFile(FileName, xmlData)
 
             # update addon.xml id
-            xmlData = xml.etree.ElementTree.parse(Utils.FileAddonXML).getroot()
+            xmlData = Utils.readFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml")
+            xmlData = xml.etree.ElementTree.fromstring(xmlData)
             xmlData.attrib['id'] = PluginID
-            xmls.WriteXmlFile(Utils.FileAddonXML, xmlData)
+            xmls.WriteXmlFile("special://home/addons/plugin.video.emby-next-gen/addon.xml", xmlData)
 
             # rename settings folder
-            SourceFolder = Utils.translatePath("special://profile/addon_data/%s/" % PluginIDPrevious)
-            DestinationFolder = Utils.translatePath("special://profile/addon_data/%s/" % PluginID)
-
-            if xbmcvfs.exists(DestinationFolder):
-                folders, files = xbmcvfs.listdir(DestinationFolder)
-
-                for Foldername in folders:
-                    SearchSubFolder = os.path.join(DestinationFolder, Foldername)
-                    _, subfolderfiles = xbmcvfs.listdir(SearchSubFolder)
-
-                    for SubfolderFilename in subfolderfiles:
-                        xbmcvfs.delete(os.path.join(SearchSubFolder, SubfolderFilename))
-
-                    xbmcvfs.rmdir(SearchSubFolder, False)
-
-                for filename in files:
-                    xbmcvfs.delete(os.path.join(DestinationFolder, filename))
-
-                xbmcvfs.rmdir(DestinationFolder, False)
-
-            xbmcvfs.rename(SourceFolder, DestinationFolder)
+            Utils.delFolder("special://profile/addon_data/%s/" % PluginID)
+            Utils.renameFolder("special://profile/addon_data/%s/" % PluginIDPrevious, "special://profile/addon_data/%s/" % PluginID)
 
             # Restart App
             xbmc.executebuiltin('RestartApp')
@@ -373,41 +353,39 @@ class Monitor(xbmc.Monitor):
 
     def BackupRestore(self):
         RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=Utils.backupPath)
-        MinVersionPath = os.path.join(RestoreFolder, 'minimumversion.txt')
+        MinVersionPath = "%s%s" % (RestoreFolder, 'minimumversion.txt')
 
-        if not xbmcvfs.exists(MinVersionPath):
-            Utils.dialog("notification", heading="{emby}", icon="{emby}", message="Invalid backup path", sound=False)
+        if not Utils.checkFileExists(MinVersionPath):
+            Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33224), sound=False)
             return
 
-        infile = xbmcvfs.File(MinVersionPath)
-        BackupVersion = infile.read()
-        infile.close()
+        BackupVersion = Utils.readFileString(MinVersionPath)
 
         if BackupVersion != Utils.MinimumVersion:
-            Utils.dialog("notification", heading="{emby}", icon="{emby}", message="Invalid backup", sound=False)
+            Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33225), sound=False)
             return
 
         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
         self.PluginCommands.put('stop')
         xbmc.sleep(5000)
-        _, files = xbmcvfs.listdir(Utils.FolderAddonUserdata)
+        _, files = Utils.listDir(Utils.FolderAddonUserdata)
 
         for Filename in files:
-            xbmcvfs.delete(os.path.join(Utils.FolderAddonUserdata, Filename))
+            Utils.delFile("%s%s" % (Utils.FolderAddonUserdata, Filename))
 
         # delete database
-        _, files = xbmcvfs.listdir(Utils.FolderDatabase)
+        _, files = Utils.listDir("special://profile/Database/")
 
         for Filename in files:
             if Filename.startswith('emby') or Filename.startswith('My') or Filename.startswith('Textures'):
-                xbmcvfs.delete(os.path.join(Utils.FolderDatabase, Filename))
+                Utils.delFile("special://profile/Database/%s" % Filename)
 
         Utils.delete_playlists()
         Utils.delete_nodes()
-        RestoreFolderAddonData = os.path.join(RestoreFolder, "addon_data", Utils.PluginId)
+        RestoreFolderAddonData = "%s/addon_data/%s/" % (RestoreFolder, Utils.PluginId)
         Utils.copytree(RestoreFolderAddonData, Utils.FolderAddonUserdata)
-        RestoreFolderDatabase = os.path.join(RestoreFolder, "Database")
-        Utils.copytree(RestoreFolderDatabase, Utils.FolderDatabase)
+        RestoreFolderDatabase = "%s/Database/" % RestoreFolder
+        Utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
         xbmc.executebuiltin('RestartApp')
 
@@ -416,44 +394,42 @@ class Monitor(xbmc.Monitor):
         LOG.info("<[ cache textures ]")
 
         if self.texturecache_running:
-            Utils.dialog("notification", heading="{emby}", icon="{emby}", message="Artwork chache in progress", sound=False)
+            Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33226), sound=False)
             return
 
         EnableWebserver = False
-        get_setting = helper.jsonrpc.JSONRPC('Settings.GetSettingValue')
-        result = helper.jsonrpc.JSONRPC('Settings.GetSettingValue').execute({'setting': "services.webserver"})
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
         webServerEnabled = (result['result']['value'] or False)
 
         if not webServerEnabled:
-            if not Utils.dialog("yesno", heading="{emby}", line1="Webserver must be enabled for artwork cache. Enable now?"):
+            if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33227)):
                 return
 
             EnableWebserver = True
 
-        result = get_setting.execute({'setting': "services.webserverpassword"})
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverpassword"}}'))
 
         if not result['result']['value']:  # set password, cause mandatory in Kodi 19
-
-            helper.jsonrpc.JSONRPC('Settings.SetSettingValue').execute({'setting': "services.webserverpassword", 'value': 'kodi'})
+            xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserverpassword", "value": "kodi"}}')
             webServerPass = 'kodi'
-            Utils.dialog("ok", heading="{emby}", line1="No password found, set password to 'kodi'")
+            Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33228))
         else:
             webServerPass = str(result['result']['value'])
 
         if EnableWebserver:
-            helper.jsonrpc.JSONRPC('Settings.SetSettingValue').execute({'setting': "services.webserver", 'value': True})
-            result = helper.jsonrpc.JSONRPC('Settings.GetSettingValue').execute({'setting': "services.webserver"})
+            xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserver", "value": True}}')
+            result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
             webServerEnabled = (result['result']['value'] or False)
 
         if not webServerEnabled:  # check if webserver is now enabled
-            Utils.dialog("ok", heading="{emby}", line1=Utils.Translate(33103))
+            Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33103))
             return
 
-        result = get_setting.execute({'setting': "services.webserverport"})
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverport"}}'))
         webServerPort = str(result['result']['value'] or "")
-        result = get_setting.execute({'setting': "services.webserverusername"})
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverusername"}}'))
         webServerUser = str(result['result']['value'] or "")
-        result = get_setting.execute({'setting': "services.webserverssl"})
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverssl"}}'))
         webServerSSL = (result['result']['value'] or False)
 
         if webServerSSL:
@@ -461,18 +437,18 @@ class Monitor(xbmc.Monitor):
         else:
             webServerUrl = "http://127.0.0.1:%s" % webServerPort
 
-        if Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33044)):
+        if Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33044)):
             LOG.info("[ delete all thumbnails ]")
 
-            if xbmcvfs.exists(Utils.FolderThumbnails):
-                dirs, _ = xbmcvfs.listdir(Utils.FolderThumbnails)
+            if Utils.checkFolderExists('special://thumbnails/'):
+                dirs, _ = Utils.listDir('special://thumbnails/')
 
                 for directory in dirs:
-                    _, files = xbmcvfs.listdir(os.path.join(Utils.FolderThumbnails, directory))
+                    _, files = Utils.listDir('special://thumbnails/%s' % directory)
 
                     for Filename in files:
-                        cached = os.path.join(Utils.FolderThumbnails, directory, Filename)
-                        xbmcvfs.delete(cached)
+                        cached = 'special://thumbnails/%s%s' % (directory, Filename)
+                        Utils.delFile(cached)
                         LOG.debug("DELETE cached %s" % cached)
 
             texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
@@ -498,7 +474,7 @@ class Monitor(xbmc.Monitor):
         with requests.Session() as session:
             for index, url in enumerate(urls):
                 Value = int((float(float(index)) / float(total)) * 100)
-                progress_updates.update(Value, message="%s: %s" % (Utils.Translate(33045), Label + ": " + str(index)))
+                progress_updates.update(Value, message="%s: %s / %s" % (Utils.Translate(33045), Label, index))
 
                 if url[0]:
                     url = quote_plus(url[0])
@@ -516,12 +492,12 @@ class Monitor(xbmc.Monitor):
 
     # Reset both the emby database and the kodi database.
     def databasereset(self):
-        if not Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33074)):
+        if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33074)):
             return
 
         LOG.warning("[ reset kodi ]")
-        DeleteTextureCache = Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33086))
-        DeleteSettings = Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33087))
+        DeleteTextureCache = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33086))
+        DeleteSettings = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33087))
         xbmc.executebuiltin('Dialog.Close(addonsettings)')
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
         xbmc.executebuiltin('activatewindow(home)')
@@ -541,10 +517,8 @@ class Monitor(xbmc.Monitor):
         _, ServerIds, _ = self.Menu.get_EmbyServerList()
 
         for ServerId in ServerIds:
-            DBPath = os.path.join(Utils.FolderDatabase, 'emby_%s.db' % ServerId)
-
-            if xbmcvfs.exists(DBPath):
-                xbmcvfs.delete(DBPath)
+            DBPath = "special://profile/Database/emby_%s.db" % ServerId
+            Utils.delFile(DBPath)
 
             if DeleteTextureCache:
                 Utils.DeleteThumbnails()
@@ -553,40 +527,34 @@ class Monitor(xbmc.Monitor):
                 database.db_open.DBClose("texture", True)
 
             if DeleteSettings:
-                SettingsPath = os.path.join(Utils.FolderAddonUserdata, "settings.xml")
-
-                if xbmcvfs.exists(SettingsPath):
-                    xbmcvfs.delete(SettingsPath)
-
-                ServerFile = os.path.join(Utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
-
-                if xbmcvfs.exists(ServerFile):
-                    xbmcvfs.delete(ServerFile)
-
+                SettingsPath = "%s%s" % (Utils.FolderAddonUserdata, "settings.xml")
+                Utils.delFile(SettingsPath)
+                ServerFile = "%s%s" % (Utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
+                Utils.delFile(ServerFile)
                 LOG.info("[ reset settings ]")
 
-            SyncFile = os.path.join(Utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
-
-            if xbmcvfs.exists(SyncFile):
-                xbmcvfs.delete(SyncFile)
+            SyncFile = "%s%s" % (Utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
+            Utils.delFile(SyncFile)
 
         Utils.delete_playlists()
         Utils.delete_nodes()
-        Utils.dialog("ok", heading="{emby}", line1=Utils.Translate(33088))
+        Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33088))
         xbmc.executebuiltin('RestartApp')
 
 
 def get_next_episodes(Handle, libraryname):
     Handle = int(Handle)
-    result = helper.jsonrpc.JSONRPC('VideoLibrary.GetTVShows').execute({
-        'sort': {'order': "descending", 'method': "lastplayed"},
+    params = {
+        'sort': {'order': 'descending', 'method': 'lastplayed'},
         'filter': {
             'and': [
-                {'operator': "true", 'field': "inprogress", 'value': ""},
-                {'operator': "is", 'field': "tag", 'value': "%s" % libraryname}
+                {'operator': 'true', 'field': 'inprogress', 'value': ''},
+                {'operator': 'is', 'field': 'tag', 'value': '%s' % libraryname}
             ]},
         'properties': ['title', 'studio', 'mpaa', 'file', 'art']
-    })
+    }
+
+    result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetTVShows', 'params': params})))
     items = result['result']['tvshows']
     list_li = []
 
@@ -604,7 +572,7 @@ def get_next_episodes(Handle, libraryname):
             ],
             'limits': {"end": 1}
         }
-        result = helper.jsonrpc.JSONRPC('VideoLibrary.GetEpisodes').execute(params)
+        result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetEpisodes', 'params': params})))
         episodes = result['result']['episodes']
 
         for episode in episodes:
@@ -620,40 +588,13 @@ def get_next_episodes(Handle, libraryname):
 def reset_device_id():
     Utils.device_id = ""
     Utils.get_device_id(True)
-    Utils.dialog("ok", heading="{emby}", line1=Utils.Translate(33033))
+    Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33033))
     xbmc.executebuiltin('RestartApp')
-
-# Delete objects from kodi cache
-def delete_folder(path):
-    LOG.debug("--[ delete folder ]")
-    delete_path = path is not None
-    path = path or Utils.FolderEmbyTemp
-    dirs, files = xbmcvfs.listdir(path)
-    delete_recursive(path, dirs)
-
-    for Filename in files:
-        xbmcvfs.delete(os.path.join(path, Filename))
-
-    if delete_path:
-        xbmcvfs.delete(path)
-
-    LOG.warning("DELETE %s" % path)
-
-# Delete files and dirs recursively
-def delete_recursive(path, dirs):
-    for directory in dirs:
-        dirs2, files = xbmcvfs.listdir(os.path.join(path, directory))
-
-        for Filename in files:
-            xbmcvfs.delete(os.path.join(path, directory, Filename))
-
-        delete_recursive(os.path.join(path, directory), dirs2)
-        xbmcvfs.rmdir(os.path.join(path, directory))
 
 # Emby backup
 def Backup():
     if not Utils.backupPath:
-        Utils.dialog("notification", heading="{emby}", icon="{emby}", message="No backup path set", sound=False)
+        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33229), sound=False)
         return None
 
     path = Utils.backupPath
@@ -663,39 +604,41 @@ def Backup():
     if not folder_name:
         return None
 
-    backup = os.path.join(path, folder_name)
+    backup = "%s%s/" % (path, folder_name)
 
-    if xbmcvfs.exists(backup + '/'):
-        if not Utils.dialog("yesno", heading="{emby}", line1=Utils.Translate(33090)):
+    if Utils.checkFolderExists(backup):
+        if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33090)):
             return Backup()
 
-        delete_folder(backup)
+        Utils.delFolder(backup)
 
-    destination_data = os.path.join(backup, "addon_data", Utils.PluginId)
-    destination_databases = os.path.join(backup, "Database")
+    destination_data = "%saddon_data/%s/" % (backup, Utils.PluginId)
+    destination_databases = "%sDatabase/" % backup
+    Utils.mkDir(backup)
+    Utils.mkDir("%saddon_data/" % backup)
+    Utils.mkDir(destination_data)
+    Utils.mkDir(destination_databases)
 
-    if not xbmcvfs.mkdirs(path) or not xbmcvfs.mkdirs(destination_databases):
-        LOG.info("Unable to create all directories")
-        Utils.dialog("notification", heading="{emby}", icon="{emby}", message=Utils.Translate(33165), sound=False)
-        return None
+#    if not xbmcvfs.mkdirs(path) or not xbmcvfs.mkdirs(destination_databases):
+#        LOG.info("Unable to create all directories")
+#        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33165), sound=False)
+#        return None
 
     Utils.copytree(Utils.FolderAddonUserdata, destination_data)
-    _, files = xbmcvfs.listdir(Utils.FolderDatabase)
+    _, files = Utils.listDir("special://profile/Database/")
 
     for Temp in files:
         if 'MyVideos' in Temp:
-            xbmcvfs.copy(os.path.join(Utils.FolderDatabase, Temp), os.path.join(destination_databases, Temp))
+            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
         elif 'emby' in Temp:
-            xbmcvfs.copy(os.path.join(Utils.FolderDatabase, Temp), os.path.join(destination_databases, Temp))
+            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
         elif 'MyMusic' in Temp:
-            xbmcvfs.copy(os.path.join(Utils.FolderDatabase, Temp), os.path.join(destination_databases, Temp))
+            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
 
-    outfile = xbmcvfs.File(os.path.join(backup, 'minimumversion.txt'), "w")
-    outfile.write(Utils.MinimumVersion)
-    outfile.close()
+    Utils.writeFileString("%s%s" % (backup, 'minimumversion.txt'), Utils.MinimumVersion)
     LOG.info("backup completed")
-    Utils.dialog("ok", heading="{emby}", line1="%s %s" % (Utils.Translate(33091), backup))
+    Utils.dialog("ok", heading=Utils.addon_name, line1="%s %s" % (Utils.Translate(33091), backup))
     return None

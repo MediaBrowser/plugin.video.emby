@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
 import xml.etree.ElementTree
-import xbmcvfs
 import xbmcgui
 import helper.loghandler
 import helper.xmls as xmls
@@ -11,6 +9,7 @@ if Utils.Python3:
     from urllib.parse import urlencode
 else:
     from urllib import urlencode
+
 
 limit = 25
 SyncNodes = {
@@ -136,17 +135,11 @@ class Views:
         self.Nodes = []
 
     def update_nodes(self):
-        index = 0
         self.Nodes = []
         WhitelistedLibraryIDs = []
 
         for library_id, _, _ in self.EmbyServer.library.Whitelist:
             WhitelistedLibraryIDs.append(library_id)
-
-        # Favorites
-        for single in [{'Name': Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'MediaType': "episodes"}]:
-            add_favorites(index, single)
-            index += 1
 
         for library_id in self.ViewItems:
             view = {'LibraryId': library_id, 'Name': Utils.StringDecode(self.ViewItems[library_id][0]), 'Tag': Utils.StringDecode(self.ViewItems[library_id][0]), 'MediaType': self.ViewItems[library_id][1], "Icon": self.ViewItems[library_id][2], 'NameClean': Utils.StringDecode(self.ViewItems[library_id][0]).replace(" ", "_")}
@@ -195,7 +188,7 @@ class Views:
             elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
                 view['Icon'] = 'DefaultMusicVideos.png'
             else:
-                view['Icon'] = Utils.FileIcon
+                view['Icon'] = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
 
         self.window_node(view, Dynamic)
 
@@ -218,9 +211,9 @@ class Views:
             NodeData['title'] = "%s (%s)" % (view['Name'], self.EmbyServer.Name)
         else:
             if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                path = "library://music/emby_%s_%s" % (view['MediaType'], view['NameClean'])
+                path = "library://music/emby_%s_%s/" % (view['MediaType'], view['NameClean'])
             else:
-                path = "library://video/emby_%s_%s" % (view['MediaType'], view['NameClean'])
+                path = "library://video/emby_%s_%s/" % (view['MediaType'], view['NameClean'])
 
             NodeData['title'] = view['Name']
 
@@ -249,13 +242,16 @@ class Views:
             else:
                 library['MediaType'] = library.get('CollectionType', "mixed")
 
-            # Cache artwork
-            request = {'type': "GET", 'url': "%s/emby/Items/%s/Images/Primary" % (self.EmbyServer.server, library['Id']), 'params': {}}
-            Filename = Utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
-            iconpath = os.path.join(Utils.FolderEmbyTemp, Filename)
+            if "Primary" in library["ImageTags"]:
+                # Cache artwork
+                request = {'type': "GET", 'url': "%s/emby/Items/%s/Images/Primary" % (self.EmbyServer.server, library['Id']), 'params': {}}
+                Filename = Utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
+                iconpath = "%s%s" % (Utils.FolderEmbyTemp, Filename)
 
-            if not xbmcvfs.exists(iconpath):
-                iconpath = Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
+                if not Utils.checkFileExists(iconpath):
+                    iconpath = Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
+            else:
+                iconpath = ""
 
             self.ViewItems[library['Id']] = [library['Name'], library['MediaType'], iconpath]
 
@@ -264,15 +260,12 @@ class Views:
     # Remove playlist based based on LibraryId
     def delete_playlist_by_id(self, LibraryId):
         if self.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
-            path = Utils.FolderPlaylistsMusic
+            path = 'special://profile/playlists/music/'
         else:
-            path = Utils.FolderPlaylistsVideo
+            path = 'special://profile/playlists/video/'
 
-        filename = 'emby_%s.xsp' % self.ViewItems[LibraryId][0].replace(" ", "_")
-        PlaylistPath = os.path.join(path, filename)
-
-        if xbmcvfs.exists(PlaylistPath):
-            xbmcvfs.delete(PlaylistPath)
+        PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
+        Utils.delFolder(PlaylistPath)
 
     def delete_node_by_id(self, LibraryId):
         mediatypes = []
@@ -285,35 +278,20 @@ class Views:
 
         for mediatype in mediatypes:
             if mediatype in ('music', 'audiobooks', 'podcasts'):
-                path = Utils.FolderLibraryMusic
+                path = "special://profile/library/music/"
             else:
-                path = Utils.FolderLibraryVideo
+                path = "special://profile/library/video/"
 
-            SubFolder = 'emby_%s_%s/' % (mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
-            NodePath = os.path.join(path, SubFolder)
-
-            if xbmcvfs.exists(NodePath):
-                _, files = xbmcvfs.listdir(NodePath)
-
-                for filename in files:
-                    xbmcvfs.delete(os.path.join(NodePath, filename))
-
-                SearchLetterFolder = os.path.join(NodePath, "letter")
-                _, letterfolderfiles = xbmcvfs.listdir(SearchLetterFolder)
-
-                for LetterFilename in letterfolderfiles:
-                    xbmcvfs.delete(os.path.join(SearchLetterFolder, LetterFilename))
-
-                xbmcvfs.rmdir(SearchLetterFolder)
-                xbmcvfs.rmdir(NodePath)
+            NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
+            Utils.delFolder(NodePath)
 
 def get_node_playlist_path(MediaType):
     if MediaType in ('music', 'audiobooks', 'podcasts'):
-        node_path = Utils.FolderLibraryMusic
-        playlist_path = Utils.FolderPlaylistsMusic
+        node_path = "special://profile/library/music/"
+        playlist_path = 'special://profile/playlists/music/'
     else:
-        node_path = Utils.FolderLibraryVideo
-        playlist_path = Utils.FolderPlaylistsVideo
+        node_path = "special://profile/library/video/"
+        playlist_path = 'special://profile/playlists/video/'
 
     return node_path, playlist_path
 
@@ -322,10 +300,11 @@ def add_playlist(path, view):
     if not Utils.xspplaylists:
         return
 
-    filepath = os.path.join(path, "emby_%s_%s.xsp" % (view['MediaType'], view['NameClean']))
+    filepath = "%s%s" % (path, "emby_%s_%s.xsp" % (view['MediaType'], view['NameClean']))
+    xmlData = Utils.readFileString(filepath)
 
-    if xbmcvfs.exists(filepath):
-        xmlData = xml.etree.ElementTree.parse(filepath).getroot()
+    if xmlData:
+        xmlData = xml.etree.ElementTree.fromstring(xmlData)
     else:
         xmlData = xml.etree.ElementTree.Element('smartplaylist', {'type': view['MediaType']})
         xml.etree.ElementTree.SubElement(xmlData, 'name')
@@ -345,64 +324,22 @@ def add_playlist(path, view):
 
     xmls.WriteXmlFile(filepath, xmlData)
 
-def add_favorites(index, view):
-    path = Utils.FolderLibraryVideo
-
-    if not xbmcvfs.exists(path):
-        xbmcvfs.mkdir(path)
-
-    filepath = os.path.join(path, "emby_%s.xml" % view['Tag'].replace(" ", "_"))
-
-    try:  # Apple TV issue with xbmcvfs.exists
-#    if xbmcvfs.exists(filepath):
-        xmlData = xml.etree.ElementTree.parse(filepath).getroot()
-#    else:
-    except:
-        if view['MediaType'] == 'episodes':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "folder"})
-        else:
-            xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "filter"})
-
-        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = 'DefaultFavourites.png'
-        xml.etree.ElementTree.SubElement(xmlData, 'label')
-        xml.etree.ElementTree.SubElement(xmlData, 'match')
-        xml.etree.ElementTree.SubElement(xmlData, 'content')
-
-    label = xmlData.find('label')
-    label.text = "EMBY: %s" % view['Name']
-    content = xmlData.find('content')
-    content.text = view['MediaType']
-    match = xmlData.find('match')
-    match.text = "all"
-
-    if view['MediaType'] != 'episodes':
-        for rule in xmlData.findall('.//value'):
-            if rule.text == view['Tag']:
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
-
-        node_all(xmlData)
-    else:
-        params = {'mode': "favepisodes"}
-        path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
-        node_favepisodes(xmlData, path)
-
-    xmls.WriteXmlFile(filepath, xmlData)
-
 # Create or update the video node file
 def add_nodes(path, view):
-    folder = os.path.join(path, "emby_%s_%s" % (view['MediaType'], view['NameClean']))
+    folder = "%semby_%s_%s/" % (path, view['MediaType'], view['NameClean'])
+    Utils.mkDir(folder)
+    filepath = "%s%s" % (folder, "index.xml")
 
-    if not xbmcvfs.exists(folder):
-        xbmcvfs.mkdir(folder)
+    if not Utils.checkFileExists(filepath):
+        if view['MediaType'] == 'movies':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
+        elif view['MediaType'] == 'tvshows':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
+        elif view['MediaType'] == 'musicvideos':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
+        else:
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
 
-    # index.xml (root)
-    filepath = os.path.join(folder, "index.xml")
-
-    if not xbmcvfs.exists(filepath):
-        xmlData = xml.etree.ElementTree.Element('node', {'order': "0"})
         xml.etree.ElementTree.SubElement(xmlData, 'label').text = "EMBY: %s (%s)" % (view['Name'], view['MediaType'])
 
         if view['Icon']:
@@ -417,7 +354,7 @@ def add_nodes(path, view):
             elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
                 Icon = 'DefaultMusicVideos.png'
             else:
-                Icon = Utils.FileIcon
+                Icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
 
         xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Icon
         xmls.WriteXmlFile(filepath, xmlData)
@@ -432,9 +369,9 @@ def add_nodes(path, view):
         if node[0] == "letter":
             node_letter(view, folder, node)
         else:
-            filepath = os.path.join(folder, "%s.xml" % node[0])
+            filepath = "%s%s.xml" % (folder, node[0])
 
-            if not xbmcvfs.exists(filepath):
+            if not Utils.checkFileExists(filepath):
                 if node[0] == 'nextepisodes':
                     NodeType = 'folder'
                 else:
@@ -487,26 +424,31 @@ def add_nodes(path, view):
 # Nodes
 def node_letter(View, folder, node):
     Index = 1
-    FolderPath = os.path.join(folder, "letter/")
-
-    if not xbmcvfs.exists(FolderPath):
-        xbmcvfs.mkdir(FolderPath)
+    FolderPath = "%sletter/" % folder
+    Utils.mkDir(FolderPath)
 
     # index.xml
-    FileName = os.path.join(FolderPath, "index.xml")
+    FileName = "%s%s" % (FolderPath, "index.xml")
 
-    if not xbmcvfs.exists(FileName):
-        xmlData = xml.etree.ElementTree.Element('node')
-        xmlData.set('order', '0')
+    if not Utils.checkFileExists(FileName):
+        if View['MediaType'] == 'movies':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
+        elif View['MediaType'] == 'tvshows':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
+        elif View['MediaType'] == 'musicvideos':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
+        else:
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
+
         xmlData.set('type', "folder")
         xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
         xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Utils.translatePath(node[2])
         xmls.WriteXmlFile(FileName, xmlData)
 
     # 0-9.xml
-    FileName = os.path.join(FolderPath, "0-9.xml")
+    FileName = "%s%s" % (FolderPath, "0-9.xml")
 
-    if not xbmcvfs.exists(FileName):
+    if not Utils.checkFileExists(FileName):
         xmlData = xml.etree.ElementTree.Element('node')
         xmlData.set('order', str(Index))
         xmlData.set('type', "filter")
@@ -582,9 +524,9 @@ def node_letter(View, folder, node):
 
         for FileName in FileNames:
             Index += 1
-            FilePath = os.path.join(FolderPath, "%s.xml" % FileName)
+            FilePath = "%s%s" % (FolderPath, "%s.xml" % FileName)
 
-            if not xbmcvfs.exists(FilePath):
+            if not Utils.checkFileExists(FilePath):
                 xmlData = xml.etree.ElementTree.Element('node')
                 xmlData.set('order', str(Index))
                 xmlData.set('type', "filter")
@@ -951,19 +893,6 @@ def node_inprogressepisodes(root):
 
     content = root.find('content')
     content.text = "episodes"
-
-def node_favepisodes(root, path):
-    for rule in root.findall('.//path'):
-        rule.text = path
-        break
-    else:
-        xml.etree.ElementTree.SubElement(root, 'path').text = path
-
-    for rule in root.findall('.//content'):
-        rule.text = "episodes"
-        break
-    else:
-        xml.etree.ElementTree.SubElement(root, 'content').text = "episodes"
 
 def node_randomalbums(root):
     for rule in root.findall('.//order'):
