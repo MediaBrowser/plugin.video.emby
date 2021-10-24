@@ -36,7 +36,7 @@ if __name__ == "__main__":
         EmbyQueryData('nextepisodes', params.get('libraryname', ""), ServerId, Handle)
     elif mode == 'browse':
         EmbyQueryData('browse', "%s;%s;%s;%s;%s" % (params.get('type', ""), params.get('id', ""), params.get('folder', ""), params.get('name', ""), params.get('extra', "")), ServerId, Handle)
-    elif mode in ('texturecache', 'delete', 'managelibsselection', 'favepisodes', 'settings', 'restartservice', 'databasereset'):
+    elif mode in ('texturecache', 'delete', 'managelibsselection', 'favepisodes', 'settings', 'databasereset'):
         EmbyQueryData(mode, "", ServerId, Handle)
     else:
         EmbyQueryData('listing', "", ServerId, Handle)

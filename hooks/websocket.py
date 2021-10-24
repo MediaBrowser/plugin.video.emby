@@ -126,6 +126,12 @@ class WSClient(threading.Thread):
         port = parsed.port
         is_secure = scheme == "wss"
 
+        if not port:
+            if scheme == "http":
+                port = 80
+            else:
+                port = 443
+
         # Connect
         self.sock.connect((hostname, port))
         self.sock.settimeout(None)
@@ -200,11 +206,11 @@ class WSClient(threading.Thread):
 
     def ping(self):
         while True:
-            if xbmc.Monitor().waitForAbort(10):
-                return
+            for _ in range(10):
+                xbmc.sleep(1)
 
-            if self.stop:
-                return
+                if self.stop or Utils.SystemShutdown:
+                    return
 
             self.sendCommands(b"", 0x9)
 
@@ -380,10 +386,12 @@ class WSClient(threading.Thread):
                 Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33006), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
             self.EmbyServer.Online = False
+            xbmc.sleep(5000)
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'ServerShuttingDown':
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33236))
             self.EmbyServer.Online = False
+            xbmc.sleep(5000)
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'RestartRequired':
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33237))

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import uuid
+import threading
 import xbmcaddon
 import xbmc
 import dialogs.serverconnect
@@ -23,28 +24,27 @@ LOG = helper.loghandler.LOG('EMBY.emby.emby.EmbyServer')
 
 
 class EmbyServer:
-    def __init__(self, UserDataChanged, ServerSettings, RunLibraryJobs):
-        self.RunLibraryJobs = RunLibraryJobs
+    def __init__(self, UserDataChanged, ServerSettings):
         self.UserDataChanged = UserDataChanged
+        self.Websocket = None
         self.config = None
-        self.connect_manager = None
         self.logged_in = False
-        self.http = http.HTTP(self, self.ServerUnreachable)
-        self.connect_manager = connection_manager.ConnectionManager(self)
         self.server_id = ""
         self.ServerSettings = ServerSettings
         self.ServerData = {}
-        self.API = api.API(self)
-        self.Views = views.Views(self)
         self.Name = None
         self.Token = None
         self.user_id = None
         self.server = None
-        self.Websocket = None
         self.library = None
         self.Online = False
         self.ServerReconnecting = False
         self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
+        self.http = http.HTTP(self)
+        self.connect_manager = connection_manager.ConnectionManager(self)
+        self.API = api.API(self)
+        self.Views = views.Views(self)
+        self.library = database.library.Library(self)
         LOG.info("---[ INIT EMBYCLIENT: ]---")
 
     def ServerUnreachable(self):
@@ -55,18 +55,27 @@ class EmbyServer:
     def ServerReconnect(self, Terminate=True):
         if not self.ServerReconnecting:
             self.ServerReconnecting = True
+            Tries = 0
 
             if Terminate:
                 self.stop()
 
             while True:
-                if xbmc.Monitor().waitForAbort(10):
+                if Utils.SystemShutdown:
+                    self.ServerReconnecting = False
                     return
 
                 SignedIn, _ = self.register()
 
                 if SignedIn:
                     break
+
+                # Delay reconnect: Fast 40 re-tries (first 10 seconds), after delay by 5 seconds
+                if Tries > 40:
+                    xbmc.sleep(5000)
+                else:
+                    Tries += 1
+                    xbmc.sleep(250)
 
             self.ServerReconnecting = False
 
@@ -86,11 +95,15 @@ class EmbyServer:
     def start(self):
         if not self.logged_in:
             LOG.error("User is not logged in.")
-            return
+            return False
 
         LOG.info("---[ START EMBYCLIENT: %s ]---" % self.server_id)
         self.http.start_session()
         session = self.API.get_device()
+
+        if not session:
+            return False
+
         self.API.post_capabilities({
             'Id': session[0]['Id'],
             'PlayableMediaTypes': "Audio,Video",
@@ -107,7 +120,6 @@ class EmbyServer:
             ),
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
-
         embydb = database.db_open.DBOpen(Utils.DatabaseFiles, self.server_id)
         embydb.init_EmbyDB()
         database.db_open.DBClose(self.server_id, True)
@@ -121,13 +133,26 @@ class EmbyServer:
             Utils.dialog("notification", heading=Utils.addon_name, message="%s %s" % (Utils.Translate(33000), Utils.StringDecode(session[0]['UserName'])), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1500, sound=False)
 
         self.Views.update_views()
-        self.library = database.library.Library(self)
         self.Views.update_nodes()
+        threading.Thread(target=self.library.InitSync).start()  # start initial sync
         self.Websocket = hooks.websocket.WSClient(self)
         self.Websocket.start()
         self.Online = True
         Utils.SyncPause = False
         LOG.info("[ Server Online ]")
+        return True
+
+    def stop(self):
+        LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
+        Utils.SyncPause = True
+        self.Online = False
+
+        if self.Websocket:
+            self.Websocket.close()
+            self.Websocket.join()
+            self.Websocket = None
+
+        self.http.stop_session()
 
     def add_AdditionalUser(self, UserId):
         if 'Users' not in self.ServerData:
@@ -148,16 +173,6 @@ class EmbyServer:
         session = self.API.get_device()
         self.API.session_add_user(session[0]['Id'], UserId, False)
 
-    def stop(self):
-        LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
-        Utils.SyncPause = True
-        self.Online = False
-
-        if self.Websocket:
-            self.Websocket.close()
-
-        self.http.stop_session()
-
     # Login into server. If server is None, then it will show the proper prompts to login, etc.
     # If a server id is specified then only a login dialog will be shown for that server.
     def register(self):
@@ -166,8 +181,10 @@ class EmbyServer:
         SignedIn = self.register_client(True)
 
         if SignedIn:
-            self.start()
-            return self.server_id, self
+            if self.start():
+                return self.server_id, self
+
+            return False, None
 
         return SignedIn, None
 
@@ -270,17 +287,6 @@ class EmbyServer:
 
         return False
 
-    # Return connect user or raise error
-    def login_connect(self):
-        Dialog = dialogs.loginconnect.LoginConnect("script-emby-connect-login.xml", *XmlPath)
-        Dialog.PassVar(self.connect_manager)
-        Dialog.doModal()
-
-        if Dialog.is_logged_in():
-            return Dialog.get_user()
-
-        return False  # Connect user is not logged in
-
     def login(self):
         users = self.API.get_public_users()
 
@@ -313,7 +319,7 @@ class EmbyServer:
 
         return self.login()
 
-    # Return manual login user authenticated or raise error
+    # Return manual login user authenticated
     def login_manual(self, user):
         Dialog = dialogs.loginmanual.LoginManual("script-emby-connect-login-manual.xml", *XmlPath)
         Dialog.PassVar(self.connect_manager, user)
@@ -323,3 +329,14 @@ class EmbyServer:
             return Dialog.get_user()
 
         return False  # User is not authenticated
+
+    # Return connect user
+    def login_connect(self):
+        Dialog = dialogs.loginconnect.LoginConnect("script-emby-connect-login.xml", *XmlPath)
+        Dialog.PassVar(self.connect_manager)
+        Dialog.doModal()
+
+        if Dialog.is_logged_in():
+            return Dialog.get_user()
+
+        return False  # Connect user is not logged in

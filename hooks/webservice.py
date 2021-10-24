@@ -201,11 +201,6 @@ class WebService(threading.Thread):
 
         # Cinnemamode
         if Utils.enableCinema and (Utils.localTrailers or Utils.Trailers):
-
-
-
-
-
             if not self.TrailerInitialItem == QueryData['Payload']:  # Trailer init (load)
                 PlayTrailer = True
 

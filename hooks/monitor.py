@@ -26,12 +26,11 @@ LOG = helper.loghandler.LOG('EMBY.hooks.monitor.Monitor')
 
 
 class Monitor(xbmc.Monitor):
-    def __init__(self, PluginCommands):
+    def __init__(self):
         self.WebServiceThread = None
         self.WebserviceStart()
         self.sleep = False
         self.EmbyServers = {}
-        self.PluginCommands = PluginCommands
         self.player = player.PlayerEvents()
         self.player.StartUp(self.EmbyServers)  # python 2.X workaround
         self.Context = helper.context.Context(self.EmbyServers)
@@ -39,12 +38,6 @@ class Monitor(xbmc.Monitor):
         self.texturecache_running = False
         self.QueryDataThread = threading.Thread(target=self.QueryData)
         self.QueryDataThread.start()
-
-    def RunLibraryJobs(self):  # Run queue jobs for multiserver
-        ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration
-
-        for ServerId in ServerIds:
-            self.EmbyServers[ServerId].library.RunJobs()
 
     def WebserviceStart(self):
         if self.WebServiceThread:
@@ -54,6 +47,13 @@ class Monitor(xbmc.Monitor):
 
         self.WebServiceThread = webservice.WebService()
         self.WebServiceThread.start()
+
+    def shutdown(self):
+        LOG.warning("---<[ EXITING ]")
+        Utils.SyncPause = True
+        Utils.SystemShutdown = True
+        self.QuitThreads()
+        self.EmbyServer_DisconnectAll()
 
     def QueryData(self):
         QuerySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,8 +83,6 @@ class Monitor(xbmc.Monitor):
                 threading.Thread(target=self.Menu.select_managelibs).start()
             elif Data[0] == 'texturecache':
                 threading.Thread(target=self.cache_textures).start()
-            elif Data[0] == 'restartservice':
-                self.PluginCommands.put("restart")
             elif Data[0] == 'databasereset':
                 threading.Thread(target=self.databasereset).start()
             elif Data[0] == 'delete':
@@ -101,10 +99,6 @@ class Monitor(xbmc.Monitor):
         threading.Thread(target=self.settingschanged).start()
 
     def onNotification(self, sender, method, data):
-        if self.sleep:
-            LOG.info("System.OnSleep detected, ignore monitor request.")
-            return
-
         if method == 'Other.managelibsselection':
             threading.Thread(target=self.Menu.select_managelibs).start()
         elif method == 'Other.backup':
@@ -126,8 +120,6 @@ class Monitor(xbmc.Monitor):
             threading.Thread(target=self.cache_textures).start()
         elif method == 'Other.context':
             threading.Thread(target=self.Context.select_menu).start()
-        elif method == 'Other.restartservice':
-            self.PluginCommands.put("restart")
         elif method == 'System.OnWake':
             threading.Thread(target=self.System_OnWake).start()
         elif method == 'System.OnSleep':
@@ -168,10 +160,10 @@ class Monitor(xbmc.Monitor):
                 Utils.KodiDBLockVideo.release()
 
     def ServerConnect(self, ServerSettings):
-        EmbyServerObj = emby.emby.EmbyServer(self.UserDataChanged, ServerSettings, self.RunLibraryJobs)
+        EmbyServerObj = emby.emby.EmbyServer(self.UserDataChanged, ServerSettings)
         server_id, EmbyServer = EmbyServerObj.register()
 
-        if not server_id or server_id == 'cancel' or xbmc.Monitor().waitForAbort(0.1):
+        if not server_id or server_id == 'cancel' or Utils.SystemShutdown:
             LOG.error("EmbyServer Connect error")
             return
 
@@ -215,7 +207,7 @@ class Monitor(xbmc.Monitor):
             if self.player.Transcoding:
                 EmbyServer.API.close_transcode()
 
-        self.PluginCommands.put('stop')
+        self.shutdown()
 
     def QuitThreads(self):
         if self.WebServiceThread:
@@ -323,7 +315,6 @@ class Monitor(xbmc.Monitor):
         Utils.SyncPause = True
         self.QuitThreads()
         self.sleep = True
-        self.PluginCommands.put("sleep")
 
     # Mark as watched/unwatched updates
     def VideoLibrary_OnUpdate(self, data):
@@ -366,7 +357,7 @@ class Monitor(xbmc.Monitor):
             return
 
         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-        self.PluginCommands.put('stop')
+        self.shutdown()
         xbmc.sleep(5000)
         _, files = Utils.listDir(Utils.FolderAddonUserdata)
 
@@ -502,11 +493,8 @@ class Monitor(xbmc.Monitor):
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
         xbmc.executebuiltin('activatewindow(home)')
         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-        self.PluginCommands.put("stop")
-
-        if xbmc.Monitor().waitForAbort(5):
-            return
-
+        self.shutdown()
+        xbmc.sleep(5000)
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
         videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
         videodb.common_db.delete_tables("Video")

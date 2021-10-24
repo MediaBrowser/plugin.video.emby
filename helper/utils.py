@@ -96,6 +96,8 @@ addon_name = Addon.getAddonInfo('name')
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
+SystemShutdown = False
+
 
 # Delete objects from kodi cache
 def delFolder(path):
@@ -226,7 +228,7 @@ def listDir(Path):
             FilesFoldersPath = os.path.join(Path, FilesFolders)
 
             if os.path.isdir(FilesFoldersPath):
-                FilesFolders = os.path.join(FilesFolders, "".encode('utf-8'))  # add trailing /
+                FilesFolders = os.path.join(FilesFolders, b"")  # add trailing / or \
                 Folders += (FilesFolders.decode('utf-8'),)
             else:
                 Files += (FilesFolders.decode('utf-8'),)

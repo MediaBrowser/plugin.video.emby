@@ -139,7 +139,6 @@ class MusicVideos:
         KodiFileId = e_item[1]
         Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
         MusicvideoData = self.video_db.get_musicvideos_data(KodiMvideoId)
-        Runtime = round(float(MusicvideoData[6]) / 10000000.0, 6)
         PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
         DatePlayed = Utils.currenttime()
 
@@ -149,7 +148,7 @@ class MusicVideos:
             self.video_db.remove_tag("Favorite musicvideos", KodiMvideoId, "musicvideo")
 
         LOG.debug("New resume point %s: %s" % (ItemUserdata['ItemId'], Resume))
-        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
+        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, MusicvideoData[6])
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA musicvideo [%s/%s] %s: %s" % (KodiFileId, KodiMvideoId, ItemUserdata['ItemId'], MusicvideoData[2]))
 

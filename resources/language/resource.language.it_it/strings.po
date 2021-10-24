@@ -885,7 +885,7 @@ msgstr "Per Iniziale"
 
 msgctxt "#33172"
 msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
-msgstr "Hai {number} aggiornamenti in sospeso. Questo potrebbe richiedere un po' di tempo prima di poter vedere i nuovi contenuti. Potrebbe essere più rapido "aggiornare le tue librerie avviando l'add-on di Emby > Aggiorna librerie.  Procedere comunque?"
+msgstr "Hai {number} aggiornamenti in sospeso. Questo potrebbe richiedere un po' di tempo prima di poter vedere i nuovi contenuti. Potrebbe essere più rapido aggiornare le tue librerie avviando l'add-on di Emby > Aggiorna librerie.  Procedere comunque?"
 
 msgctxt "#33173"
 msgid "Forget about the previous sync? This is not recommended."
@@ -1133,4 +1133,72 @@ msgstr ""
 
 msgctxt "#33238"
 msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr ""
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr ""
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr ""
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr ""
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr ""
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr ""
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr ""
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr ""
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr ""
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr ""
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr ""
+
+msgctxt "#33255"
+msgid "Restore backup"
 msgstr ""

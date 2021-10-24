@@ -291,7 +291,7 @@ msgstr "Beim Fortsetzen zurückspringen (in Sekunden)"
 
 msgctxt "#30522"
 msgid "Transcode H265/HEVC"
-msgstr "H265/HEVC transkodieren"
+msgstr "Transkodiere (H265/HEVC)"
 
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"
@@ -399,7 +399,7 @@ msgstr "Emby Connect Benutzer wechseln"
 
 msgctxt "#30614"
 msgid "Connect to server"
-msgstr "mit Server verbinden"
+msgstr "Server verbinden"
 
 msgctxt "#30615"
 msgid "Host"
@@ -519,7 +519,7 @@ msgstr "Lokale Datenbank zurücksetzen"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr "Cache alle Artworks"
+msgstr "Artworks zwischenspeicher"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -1039,15 +1039,15 @@ msgstr "Aktiviere Markierung für Multi Episoden zB. | # | Titel"
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr "Transkodier Divx (MSMPEG4V3)"
+msgstr "Transkodiere Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr "Transkodier Xvid (MPEG4)"
+msgstr "Transkodiere Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
-msgstr "Transkodier Dvd (MPEG2)"
+msgstr "Transkodiere Dvd (MPEG2)"
 
 msgctxt "#33217"
 msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
@@ -1136,3 +1136,72 @@ msgstr "Emby Server Neustart notwendig"
 msgctxt "#33238"
 msgid "Add library"
 msgstr "Bibliotheken hinzufügen"
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr "Smart Playlisten einschalten (kann Kodi zum Absturz bringen)"
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr "Bewertung einschalten"
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Lokale Trailers einschalten"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Trailers einschalten"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkodierung"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Ausgabe Format Video"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Ausgabe Format Audio"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Zeige Optionen im Plugin Menü"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Datum Info"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Genres"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studios"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Beschriftungen"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Übersicht"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Produktions Standorte"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dynamische Bibliotheken"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Kompatibilitäts Modus"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Backup einspielen"
+

@@ -9,10 +9,9 @@ LOG = helper.loghandler.LOG('EMBY.core.HTTP')
 
 
 class HTTP:
-    def __init__(self, EmbyServer, ServerUnreachable):
+    def __init__(self, EmbyServer):
         self.session = None
         self.EmbyServer = EmbyServer
-        self.ServerUnreachable = ServerUnreachable
 
     def start_session(self):
         self.session = requests.Session()
@@ -72,7 +71,7 @@ class HTTP:
                         LOG.error("[ ServerUnreachable/retries %s ]" % Retries)
                         continue
 
-                    threading.Thread(target=self.ServerUnreachable).start()
+                    threading.Thread(target=self.EmbyServer.ServerUnreachable).start()
 
                 if Binary:
                     return b""

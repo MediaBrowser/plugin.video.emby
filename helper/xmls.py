@@ -40,7 +40,8 @@ def sources():
 # Create tvtunes.nfo
 def tvtunes_nfo(path, urls):
     if Utils.checkFileExists(path):
-        xmlData = xml.etree.ElementTree.fromstring(path)
+        xmlData = Utils.readFileString(path)
+        xmlData = xml.etree.ElementTree.fromstring(xmlData)
     else:
         xmlData = xml.etree.ElementTree.Element('tvtunes')
 

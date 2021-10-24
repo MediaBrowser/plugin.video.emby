@@ -202,9 +202,8 @@ class PlayerEvents(xbmc.Player):
                     self.PositionTrackerThread.start()
 
     def PositionTracker(self):
-        while self.EmbyServer and "ItemId" in self.PlayingItem:
-            if xbmc.Monitor().waitForAbort(4):
-                break
+        while self.EmbyServer and "ItemId" in self.PlayingItem and not Utils.SystemShutdown:
+            xbmc.sleep(4000)
 
             if self.isPlaying():
                 PositionTicks = int(self.getTime() * 10000000)
@@ -326,4 +325,9 @@ class PlayerEvents(xbmc.Player):
             return
 
         self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
-        threading.Thread(target=self.EmbyServer.RunLibraryJobs).start()
+
+        # Continue sync jobs
+        ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration
+
+        for ServerId in ServerIds:
+            threading.Thread(target=self.EmbyServers[ServerId].library.RunJobs).start()
