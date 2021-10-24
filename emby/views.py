@@ -224,7 +224,13 @@ class Views:
         self.Nodes.append(NodeData)
 
     def update_views(self):
-        self.ViewsData = self.EmbyServer.API.get_views()['Items']
+        Data = self.EmbyServer.API.get_views()
+
+        if 'Items' in Data:
+            self.ViewsData = Data['Items']
+        else:
+            return
+
         Total = len(self.ViewsData)
         Counter = 1
         Progress = xbmcgui.DialogProgressBG()

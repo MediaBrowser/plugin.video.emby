@@ -51,7 +51,6 @@ class Menu:
             self.add_ListItem(Utils.Translate(33194), "plugin://%s/?mode=managelibsselection"  % Utils.PluginId, False, None, None)
             self.add_ListItem(Utils.Translate(33059), "plugin://%s/?mode=texturecache"  % Utils.PluginId, False, None, None)
             self.add_ListItem(Utils.Translate(5), "plugin://%s/?mode=settings"  % Utils.PluginId, False, None, None)
-            self.add_ListItem(Utils.Translate(33192), "plugin://%s/?mode=restartservice"  % Utils.PluginId, False, None, None)
             self.add_ListItem(Utils.Translate(33058), "plugin://%s/?mode=databasereset"  % Utils.PluginId, False, None, None)
 
         xbmcplugin.addDirectoryItems(Handle, self.ListItemData, len(self.ListItemData))
@@ -243,7 +242,7 @@ class Menu:
             listing = listing if isinstance(listing, list) else listing.get('Items', [])
 
             for item in listing:
-                if xbmc.Monitor().waitForAbort(0.0001):
+                if Utils.SystemShutdown:
                     return
 
                 li = ListItem.set_ListItem(item, server_id)
@@ -456,7 +455,7 @@ class Menu:
                 if self.EmbyServers[server_id].Online:
                     return True
 
-            if xbmc.Monitor().waitForAbort(1):
+            if Utils.SystemShutdown:
                 return False
 
         return False
@@ -482,7 +481,7 @@ class Menu:
 
         xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
 
-        for LibraryID, LibraryInfo in list(self.EmbyServers[server_id].Views.items()):
+        for LibraryID, LibraryInfo in list(self.EmbyServers[server_id].Views.ViewItems.items()):
             if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
                 views.append(LibraryID)
 
@@ -500,7 +499,7 @@ class Menu:
                     items[item['Id']] = folder
 
         for item in items:
-            nfo_path = "%s%s" % (Utils.FolderAddonUserdataLibrary, items[item])
+            nfo_path = "%s%s/" % (Utils.FolderAddonUserdataLibrary, items[item])
             nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
             Utils.mkDir(nfo_path)
             themes = self.EmbyServers[server_id].API.get_themes(item)

@@ -349,11 +349,10 @@ class TVShows:
         elif KodiType == "episode":
             Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
             EpisodeData = self.video_db.get_episode_data(KodiId)
-            Runtime = round(float(EpisodeData[11]) / 10000000.0, 6)
             PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
             DatePlayed = Utils.currenttime()
             Info = EpisodeData[2]
-            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
+            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, EpisodeData[11])
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA [%s/%s/%s] %s: %s" % (KodiType, KodiFileId, KodiId, ItemUserdata['ItemId'], Info))

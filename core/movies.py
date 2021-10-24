@@ -240,7 +240,9 @@ class Movies:
 
         for AllBoxSetMovies in self.EmbyServer.API.get_movies_by_boxset(obj['Id']):
             for movie in AllBoxSetMovies['Items']:
-                if int(movie['Id']) not in CurrentBoxSetMovies:
+                MovieID = int(movie['Id'])
+
+                if MovieID not in CurrentBoxSetMovies:
                     Data = self.emby_db.get_item_by_id(movie['Id'])
 
                     if not Data:
@@ -251,7 +253,7 @@ class Movies:
                     self.emby_db.update_parent_id(obj['KodiSetId'], movie['Id'])
                     LOG.info("ADD to boxset [%s/%s] %s: %s to boxset" % (obj['KodiSetId'], Data[0], movie['Name'], movie['Id']))
                 else:
-                    del CurrentBoxSetMovies[int(movie['Id'])]
+                    del CurrentBoxSetMovies[MovieID]
 
         for EmbyMovieId in CurrentBoxSetMovies:
             self.video_db.remove_from_boxset(CurrentBoxSetMovies[EmbyMovieId])
@@ -277,7 +279,6 @@ class Movies:
         KodiFileId = e_item[1]
         Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
         MovieData = self.video_db.get_movie_data(KodiMovieId)
-        Runtime = round(float(MovieData[13]) / 10000000.0, 6)
         PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
         DatePlayed = Utils.currenttime()
 
@@ -287,7 +288,7 @@ class Movies:
             self.video_db.remove_tag("Favorite movies", KodiMovieId, "movie")
 
         LOG.debug("New resume point %s: %s" % (ItemUserdata['ItemId'], Resume))
-        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, Runtime)
+        self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, MovieData[13])
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA [%s/%s] %s: %s" % (KodiFileId, KodiMovieId, ItemUserdata['ItemId'], MovieData[2]))
 

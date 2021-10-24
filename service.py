@@ -7,80 +7,37 @@ import helper.utils as Utils
 import helper.xmls as xmls
 import helper.loghandler
 
-if Utils.Python3:
-    import queue as Queue
-else:
-    import Queue
-
-Delay = int(Utils.startupDelay)
+Monitor = hooks.monitor.Monitor()
 LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
 
 
-class Service:
-    def __init__(self):
-        self.Monitor = None
-        self.PluginCommands = Queue.Queue()
+def ServersConnect():
+    if Utils.startupDelay:
+        xbmc.sleep(int(Utils.startupDelay) * 1000)
 
-    def Startup(self):
-        LOG.warning("--->>>[ Emby ]")
-        Ret = setup()
+        if Utils.SystemShutdown:
+            return
 
-        if Ret == "stop":  # db upgrade declined
-            return False
+    _, files = Utils.listDir(Utils.FolderAddonUserdata)
+    ServersSettings = []
 
-        if not Ret:  # db reset required
-            LOG.warning("[ Kodi restart ]")
-            xbmc.executebuiltin('RestartApp')
-            return False
+    for Filename in files:
+        if Filename.startswith('server'):
+            ServersSettings.append("%s%s" % (Utils.FolderAddonUserdata, Filename))
 
-        self.Monitor = hooks.monitor.Monitor(self.PluginCommands)
-        return True
+    if not ServersSettings:  # First run
+        threading.Thread(target=Monitor.ServerConnect, args=(None,)).start()
+    else:
+        for ServerSettings in ServersSettings:
+            threading.Thread(target=Monitor.ServerConnect, args=(ServerSettings,)).start()
 
-    def ServersConnect(self):
-        if Delay:
-            if self.Monitor.waitForAbort(Delay):
-                return
+    # Shutdown
+    xbmc.Monitor().waitForAbort()
 
-        _, files = Utils.listDir(Utils.FolderAddonUserdata)
-        ServersSettings = []
-
-        for Filename in files:
-            if Filename.startswith('server'):
-                ServersSettings.append("%s%s" % (Utils.FolderAddonUserdata, Filename))
-
-        if not ServersSettings:  # First run
-            threading.Thread(target=self.Monitor.ServerConnect, args=(None,)).start()
-        else:
-            for ServerSettings in ServersSettings:
-                threading.Thread(target=self.Monitor.ServerConnect, args=(ServerSettings,)).start()
-
-    def Commands(self):
-        while True:
-            try:
-                Command = self.PluginCommands.get(timeout=1)
-
-                if Command == "sleep":
-                    xbmc.sleep(5000)
-                    self.Monitor.System_OnWake()
-                elif Command == "stop":
-                    self.shutdown()
-                    return False
-                elif Command == "restart":
-                    Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33193), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
-                    self.shutdown()
-                    LOG.warning("[ Restart Emby-next-gen ]")
-                    return True
-            except Queue.Empty:
-                if self.Monitor.waitForAbort(0.1):
-                    self.shutdown()
-                    return False
-
-    def shutdown(self):
-        LOG.warning("---<[ EXITING ]")
+    if not Utils.SystemShutdown:
         Utils.SyncPause = True
-        self.Monitor.QuitThreads()
-        self.Monitor.EmbyServer_DisconnectAll()
-        self.Monitor.libraries = {}
+        Monitor.QuitThreads()
+        Monitor.EmbyServer_DisconnectAll()
 
 def setup():
     xmls.KodiDefaultNodes()
@@ -138,6 +95,13 @@ def setup():
         if Filename.startswith('emby'):
             Utils.delFile("special://profile/Database/%s" % Filename)
 
+    videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+    videodb.common_db.delete_tables("Video")
+    database.db_open.DBClose("video", True)
+    musicdb = database.db_open.DBOpen(Utils.DatabaseFiles, "music")
+    musicdb.common_db.delete_tables("Music")
+    database.db_open.DBClose("music", True)
+
     if DeleteArtwork:
         Utils.DeleteThumbnails()
         texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
@@ -147,20 +111,19 @@ def setup():
     Utils.delete_playlists()
     Utils.delete_nodes()
     LOG.info("[ complete reset ]")
-    xbmc.sleep(5000)  # Give Kodi time to before restart
     return False
 
 if __name__ == "__main__":
-    serviceOBJ = Service()
+    LOG.warning("[ Start Emby-next-gen ]")
+    Ret = setup()
 
-    if serviceOBJ.Startup():
-        while True:
-            serviceOBJ.ServersConnect()  # threading
-
-            if serviceOBJ.Commands():
-                serviceOBJ.Startup()
-                continue  # Restart
-
-            break
-
-    xbmc.log("[ Shutdown Emby-next-gen ]", xbmc.LOGWARNING)
+    if Ret == "stop":  # db upgrade declined
+        Monitor.QuitThreads()
+        LOG.error("[ DB upgrade declined, Shutdown Emby-next-gen ]")
+    elif not Ret:  # db reset required
+        LOG.warning("[ DB reset required, Kodi restart ]")
+        Monitor.QuitThreads()
+        xbmc.executebuiltin('RestartApp')
+    else:  # Regular start
+        ServersConnect()  # Waiting/blocking function till Kodi stops
+        LOG.warning("[ Shutdown Emby-next-gen ]")

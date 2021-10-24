@@ -1,4 +1,4 @@
-6.1.3 (beta)
+6.1.5 (beta)
 =============
 Improvements:
 -------------
@@ -215,6 +215,28 @@ fix sync updates
 unify musicvideo artists
 disable music scan in native mode
 fix Apple TV issue
+fix progress updates
+use Kodi api for file io
+remove smb and http from sources.xml
+fix node update on librery removal
+fix translations
+add db locks, especially for Android -> thread safty
+fix folder remove
+change landscape artwork for movie content
+update nodes (following Kodi "standard")
+fix playposition on remote controlled playback
+fix Apple TV node issues
+remove unneseccary workers on progress updates
+improve threading
+Plugin start optimized
+Improve wake up -> faster reconnect
+fix resume progress indicator
+connection improvements
+add fallback ports for websocket connection (port 80, 443 is not set for some reason)
+fix Italian language file
+fix db migrate
+fix tvtunes
+add settings translation
 
 
 

@@ -26,24 +26,102 @@ class Library:
         self.LastRealtimeSync = None
         self.LastStartSync = None
 
+    def InitSync(self):
         # Load previous sync information and update timestamp
         embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
         self.Whitelist = embydb.get_Whitelist()
         self.LastRealtimeSync = embydb.get_update_LastIncrementalSync(Utils.currenttime(), "realtime")
         self.LastStartSync = embydb.get_update_LastIncrementalSync(Utils.currenttime(), "start")
         db_open.DBClose(self.EmbyServer.server_id, True)
-        threading.Thread(target=self.Start).start()
-
-    def Start(self):
-        enable_fast_sync = False
+        KodiCompanion = False
 
         for plugin in self.EmbyServer.API.get_plugins():
             if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
-                enable_fast_sync = True
+                KodiCompanion = True
                 break
 
         if self.LastRealtimeSync:
-            self.fast_sync(enable_fast_sync)
+            UpdateData = []
+            Items = {}
+            LOG.info("-->[ retrieve changes ] %s / %s" % (self.LastRealtimeSync, self.LastStartSync))
+
+            for LibraryId, library_type, library_name in self.Whitelist:
+                if LibraryId not in self.EmbyServer.Views.ViewItems:
+                    LOG.info("[ fast_sync remove library %s ]" % LibraryId)
+                    continue
+
+                if library_type == "musicvideos":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicVideo", self.LastRealtimeSync, False)
+                elif library_type == "movies":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Movie", self.LastRealtimeSync, False)
+                elif library_type == "homevideos":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Video", self.LastRealtimeSync, False)
+                elif library_type == "boxsets":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "BoxSet", self.LastStartSync, False)
+                elif library_type == "tvshows":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Series,Season,Episode", self.LastRealtimeSync, False)
+                elif library_type in ("music", "audiobooks"):
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, False)
+                elif library_type == "podcasts":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastStartSync, False)
+
+                if 'Items' in Items:
+                    ItemCounter = 0
+                    ItemTemp = len(Items['Items']) * [(None, None, None, None)]  # allocate memory for array (much faster than append each item)
+
+                    for item in Items['Items']:
+                        ItemData = (item['Id'], LibraryId, library_name, item['Type'])
+
+                        if ItemData not in UpdateData:
+                            ItemTemp[ItemCounter] = ItemData
+                            ItemCounter += 1
+
+                    UpdateData += ItemTemp
+
+            for LibraryId, library_type, library_name in self.Whitelist:
+                if LibraryId not in self.EmbyServer.Views.ViewItems:
+                    LOG.info("[ fast_sync remove library %s ]" % LibraryId)
+                    continue
+
+                if library_type == "musicvideos":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicVideo", self.LastRealtimeSync, True)
+                elif library_type == "movies":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Movie", self.LastRealtimeSync, True)
+                elif library_type == "homevideos":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Video", self.LastRealtimeSync, True)
+                elif library_type == "boxsets":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "BoxSet", self.LastStartSync, True)
+                elif library_type == "tvshows":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Series,Season,Episode", self.LastRealtimeSync, True)
+                elif library_type in ("music", "audiobooks"):
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, True)
+                elif library_type == "podcasts":
+                    Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastStartSync, True)
+
+                if 'Items' in Items:
+                    ItemCounter = 0
+                    ItemTemp = len(Items['Items']) * [(None, None, None, None)]  # allocate memory for array (much faster than append each item)
+
+                    for item in Items['Items']:
+                        ItemData = (item['Id'], LibraryId, library_name, item['Type'])
+
+                        if ItemData not in UpdateData:
+                            ItemTemp[ItemCounter] = ItemData
+                            ItemCounter += 1
+
+                    UpdateData += ItemTemp
+
+            UpdateData = list(filter(None, UpdateData))
+
+            self.updated(UpdateData)
+            del UpdateData  # unload array
+
+            if KodiCompanion:
+                result = self.EmbyServer.API.get_sync_queue(self.LastRealtimeSync, None)  # Kodi companion
+
+                if 'ItemsRemoved' in result:
+                    self.removed(result['ItemsRemoved'])
+
             LOG.info("--<[ retrieve changes ]")
 
         threading.Thread(target=self.RunJobs).start()
@@ -120,7 +198,6 @@ class Library:
 
             self.worker_running["userdata"] = False
             LOG.info("--<[ worker userdata completed ]")
-            threading.Thread(target=self.RunJobs).start()
             return True
 
     def worker_update(self):
@@ -443,7 +520,6 @@ class Library:
             #Sort Items
             RemoveItemsAudio = []
             RemoveItemsVideo = []
-
 
             for RemoveItem in RemoveItems:
                 Id = RemoveItem[0]
@@ -870,6 +946,7 @@ class Library:
             threading.Thread(target=self.RunJobs).start()
             return True
 
+    # Run workers in specific order
     def RunJobs(self):
         if self.worker_remove():
             if self.worker_update():
@@ -903,86 +980,6 @@ class Library:
             return True
 
         return False
-
-    def fast_sync(self, plugin):
-        UpdateData = []
-        Items = {}
-        LOG.info("-->[ retrieve changes ] %s / %s" % (self.LastRealtimeSync, self.LastStartSync))
-
-        for LibraryId, library_type, library_name in self.Whitelist:
-            if LibraryId not in self.EmbyServer.Views.ViewItems:
-                LOG.info("[ fast_sync remove library %s ]" % LibraryId)
-                continue
-
-            if library_type == "musicvideos":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicVideo", self.LastRealtimeSync, False)
-            elif library_type == "movies":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Movie", self.LastRealtimeSync, False)
-            elif library_type == "homevideos":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Video", self.LastRealtimeSync, False)
-            elif library_type == "boxsets":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "BoxSet", self.LastStartSync, False)
-            elif library_type == "tvshows":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Series,Season,Episode", self.LastRealtimeSync, False)
-            elif library_type in ("music", "audiobooks"):
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, False)
-            elif library_type == "podcasts":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastStartSync, False)
-
-            if 'Items' in Items:
-                ItemCounter = 0
-                ItemTemp = len(Items['Items']) * [(None, None, None, None)]  # allocate memory for array (much faster than append each item)
-
-                for item in Items['Items']:
-                    ItemData = (item['Id'], LibraryId, library_name, item['Type'])
-
-                    if ItemData not in UpdateData:
-                        ItemTemp[ItemCounter] = ItemData
-                        ItemCounter += 1
-
-                UpdateData += ItemTemp
-
-        for LibraryId, library_type, library_name in self.Whitelist:
-            if LibraryId not in self.EmbyServer.Views.ViewItems:
-                LOG.info("[ fast_sync remove library %s ]" % LibraryId)
-                continue
-
-            if library_type == "musicvideos":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicVideo", self.LastRealtimeSync, True)
-            elif library_type == "movies":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Movie", self.LastRealtimeSync, True)
-            elif library_type == "homevideos":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Video", self.LastRealtimeSync, True)
-            elif library_type == "boxsets":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "BoxSet", self.LastStartSync, True)
-            elif library_type == "tvshows":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Series,Season,Episode", self.LastRealtimeSync, True)
-            elif library_type in ("music", "audiobooks"):
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, True)
-            elif library_type == "podcasts":
-                Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastStartSync, True)
-
-            if 'Items' in Items:
-                ItemCounter = 0
-                ItemTemp = len(Items['Items']) * [(None, None, None, None)]  # allocate memory for array (much faster than append each item)
-
-                for item in Items['Items']:
-                    ItemData = (item['Id'], LibraryId, library_name, item['Type'])
-
-                    if ItemData not in UpdateData:
-                        ItemTemp[ItemCounter] = ItemData
-                        ItemCounter += 1
-
-                UpdateData += ItemTemp
-
-        UpdateData = list(filter(None, UpdateData))
-
-        self.updated(UpdateData)
-        del UpdateData  # unload array
-
-        if plugin:
-            result = self.EmbyServer.API.get_sync_queue(self.LastRealtimeSync, None)  # Kodi companion plugin
-            self.removed(result['ItemsRemoved'])
 
     # Select from libraries synced. Either update or repair libraries.
     # Send event back to service.py
@@ -1056,7 +1053,7 @@ class Library:
 
             db_open.DBClose(self.EmbyServer.server_id, True)
 
-        threading.Thread(target=self.EmbyServer.RunLibraryJobs).start()
+        threading.Thread(target=self.RunJobs).start()
 
     def add_library(self, library_ids):
         if library_ids:
@@ -1084,7 +1081,7 @@ class Library:
 
                 db_open.DBClose(self.EmbyServer.server_id, True)
 
-            threading.Thread(target=self.EmbyServer.RunLibraryJobs).start()
+            threading.Thread(target=self.RunJobs).start()
 
     # Remove library by their id from the Kodi database
     def remove_library(self, library_ids):
@@ -1259,9 +1256,9 @@ def StringToDict(Data):
     return json.loads(Data)
 
 def WaitForDBUnlock():
-    LOG.info("-->[ WaitForDBUnlock ]")
+    LOG.debug("-->[ WaitForDBUnlock ]")
 
     while DBLock.locked():
         xbmc.sleep(1000)
 
-    LOG.info("--<[ WaitForDBUnlock ]")
+    LOG.debug("--<[ WaitForDBUnlock ]")

@@ -1137,3 +1137,71 @@ msgstr ""
 msgctxt "#33238"
 msgid "Add library"
 msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr ""
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr ""
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr ""
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr ""
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr ""
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr ""
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr ""
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr ""
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr ""
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr ""
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr ""
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr ""
