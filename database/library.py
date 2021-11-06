@@ -746,6 +746,9 @@ class Library:
                         if not Continue:
                             return False
 
+                        if Reload:
+                            DBObject = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
+
                         for itemsContent in self.EmbyServer.API.get_itemsSync(tvshow['Id'], "Season,Episode", False, {}):
                             # Sort
                             for item in itemsContent['Items']:
