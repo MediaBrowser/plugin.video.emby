@@ -12,7 +12,10 @@
     <category label="30506"><!-- Sync Options -->
         <setting label="Sync" type="lsep" />
         <setting label="33194" type="action" action="NotifyAll(plugin.video.emby-next-gen,managelibsselection)" visible="true" />
-        <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" />
+        <setting label="33259" id="syncdate" type="date" />
+        <setting label="33260" id="synctime" type="time" />
+        <setting id="artworkcacheenable" type="text" default="true" visible="false" />
+        <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" enable="eq(-1,true)" option="close" />
         <setting label="33239" id="xspplaylists" type="bool" default="false" />
         <setting label="33240" id="userRating" type="bool" default="true" />
         <setting label="33058" type="action" action="NotifyAll(plugin.video.emby-next-gen,databasereset)" visible="true" />

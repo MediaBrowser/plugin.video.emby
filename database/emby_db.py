@@ -74,15 +74,17 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
         return self.get_Whitelist()
 
-    def get_update_LastIncrementalSync(self, LastIncrementalSync, Type):
+    def get_LastIncrementalSync(self, Type):
         self.cursor.execute("SELECT * FROM LastIncrementalSync WHERE Type = ?", (Type,))
         Data = self.cursor.fetchone()
-        self.cursor.execute("INSERT OR REPLACE INTO LastIncrementalSync (Type, Date) VALUES (?, ?)", (Type, LastIncrementalSync))
 
         if Data:
             return Data[1]
 
         return None
+
+    def update_LastIncrementalSync(self, LastIncrementalSync, Type):
+        self.cursor.execute("INSERT OR REPLACE INTO LastIncrementalSync (Type, Date) VALUES (?, ?)", (Type, LastIncrementalSync))
 
     def add_UpdateItem(self, EmbyId, LibraryId, LibraryName, emby_type):
         self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (emby_id, emby_folder, emby_name, emby_type) VALUES (?, ?, ?, ?)", (EmbyId, LibraryId, LibraryName, emby_type))

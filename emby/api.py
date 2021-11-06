@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
 import helper.utils as Utils
 import helper.loghandler
 
@@ -42,15 +41,17 @@ class API:
         request.update({'type': action, 'handler': url})
 
         if action in ("POST", "DELETE"):
-            threading.Thread(target=self.EmbyServer.http.request, args=(request, False, False,)).start()
-        else:
-            return self.EmbyServer.http.request(request, False, False)
+            self.EmbyServer.http.request(request, False, False)
+            return None
 
-        return None
+        return self.EmbyServer.http.request(request, False, False)
 
     # Get emby user profile picture.
     def get_user_artwork(self, user_id):
         return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.EmbyServer.server, user_id)
+
+    def set_progress(self, item_id, Progress, PlayCount, LastPlayedDate):
+        self._http("POST", "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id), {'params': {"PlaybackPositionTicks": Progress, "PlayCount": PlayCount, "Played": bool(PlayCount), "LastPlayedDate": LastPlayedDate}})
 
     def browse_MusicByArtistId(self, Artist_id, Parent_id, Media, Extra):
         params = {
@@ -405,15 +406,12 @@ class API:
         self._http("DELETE", "Sessions/%s/Users/%s" % (session_id, user_id), {})
 
     def session_playing(self, data):
-        data['PlaySessionId'] = self.EmbyServer.PlaySessionId
         self._http("POST", "Sessions/Playing", {'params': data})
 
     def session_progress(self, data):
-        data['PlaySessionId'] = self.EmbyServer.PlaySessionId
         self._http("POST", "Sessions/Playing/Progress", {'params': data})
 
     def session_stop(self, data):
-        data['PlaySessionId'] = self.EmbyServer.PlaySessionId
         self._http("POST", "Sessions/Playing/Stopped", {'params': data})
 
     def item_played(self, item_id, watched):

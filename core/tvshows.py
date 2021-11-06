@@ -339,7 +339,6 @@ class TVShows:
         KodiId = e_item[0]
         KodiFileId = e_item[1]
         KodiType = e_item[4]
-        Info = KodiType
 
         if KodiType == "tvshow":
             if ItemUserdata['IsFavorite']:
@@ -349,13 +348,16 @@ class TVShows:
         elif KodiType == "episode":
             Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
             EpisodeData = self.video_db.get_episode_data(KodiId)
+
+            if not EpisodeData:
+                return
+
             PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
-            DatePlayed = Utils.currenttime()
-            Info = EpisodeData[2]
+            DatePlayed = Utils.currenttime_kodi_format()
             self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, EpisodeData[11])
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
-        LOG.info("USERDATA [%s/%s/%s] %s: %s" % (KodiType, KodiFileId, KodiId, ItemUserdata['ItemId'], Info))
+        LOG.info("USERDATA [%s/%s/%s] %s" % (KodiType, KodiFileId, KodiId, ItemUserdata['ItemId']))
 
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons

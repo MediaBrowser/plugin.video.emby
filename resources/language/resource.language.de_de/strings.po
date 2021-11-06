@@ -519,7 +519,7 @@ msgstr "Lokale Datenbank zurücksetzen"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr "Artworks zwischenspeicher"
+msgstr "Bilder zwischenspeichern"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -1205,3 +1205,22 @@ msgctxt "#33255"
 msgid "Restore backup"
 msgstr "Backup einspielen"
 
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Welche Bilder sollen zwischengespeichert werden?"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Video"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Musik"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Inkrementelles synchronisations Datum"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Inkrementelle synchronisations Zeit"

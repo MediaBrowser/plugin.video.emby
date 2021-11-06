@@ -13,16 +13,15 @@ def EmbyQueryData(Method, Data, server_id, handle):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     request = "%s;%s;%s;%s" % (Method, Data, server_id, handle)
 
-    for _ in range(10):
+    for _ in range(60):  # 60 seconds timeout
         try:
             sock.connect(('127.0.0.1', 60001))
             sock.send(request.encode('utf-8'))
-            sock.recv(16)
+            sock.recv(1)
             break
         except:
-            if xbmc.Monitor().waitForAbort(5):
+            if xbmc.Monitor().waitForAbort(1):
                 return
-
 
 if __name__ == "__main__":
     Handle = sys.argv[1]
@@ -36,7 +35,9 @@ if __name__ == "__main__":
         EmbyQueryData('nextepisodes', params.get('libraryname', ""), ServerId, Handle)
     elif mode == 'browse':
         EmbyQueryData('browse', "%s;%s;%s;%s;%s" % (params.get('type', ""), params.get('id', ""), params.get('folder', ""), params.get('name', ""), params.get('extra', "")), ServerId, Handle)
-    elif mode in ('texturecache', 'delete', 'managelibsselection', 'favepisodes', 'settings', 'databasereset'):
-        EmbyQueryData(mode, "", ServerId, Handle)
+    elif mode == 'favepisodes':
+        EmbyQueryData('favepisodes', "", ServerId, Handle)
+    elif mode in ('texturecache', 'delete', 'managelibsselection', 'settings', 'databasereset'):  # Simple commands
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s)' % mode)
     else:
         EmbyQueryData('listing', "", ServerId, Handle)

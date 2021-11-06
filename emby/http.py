@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import threading
 import requests
 import helper.utils as Utils
 import helper.loghandler
@@ -71,7 +70,7 @@ class HTTP:
                         LOG.error("[ ServerUnreachable/retries %s ]" % Retries)
                         continue
 
-                    threading.Thread(target=self.EmbyServer.ServerUnreachable).start()
+                    self.EmbyServer.ServerUnreachable()
 
                 if Binary:
                     return b""

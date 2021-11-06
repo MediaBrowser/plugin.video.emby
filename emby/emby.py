@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import uuid
 import threading
 import xbmcaddon
 import xbmc
@@ -39,18 +38,18 @@ class EmbyServer:
         self.library = None
         self.Online = False
         self.ServerReconnecting = False
-        self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
         self.http = http.HTTP(self)
         self.connect_manager = connection_manager.ConnectionManager(self)
         self.API = api.API(self)
         self.Views = views.Views(self)
         self.library = database.library.Library(self)
+        self.Firstrun = not bool(self.ServerSettings)
         LOG.info("---[ INIT EMBYCLIENT: ]---")
 
     def ServerUnreachable(self):
         if not self.ServerReconnecting:
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33146))
-            self.ServerReconnect()
+            threading.Thread(target=self.ServerReconnect).start()
 
     def ServerReconnect(self, Terminate=True):
         if not self.ServerReconnecting:
@@ -120,9 +119,8 @@ class EmbyServer:
             ),
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
-        embydb = database.db_open.DBOpen(Utils.DatabaseFiles, self.server_id)
-        embydb.init_EmbyDB()
-        database.db_open.DBClose(self.server_id, True)
+
+        self.library.load_settings()
         self.load_credentials()
 
         if 'Users' in self.ServerData:
@@ -134,7 +132,7 @@ class EmbyServer:
 
         self.Views.update_views()
         self.Views.update_nodes()
-        threading.Thread(target=self.library.InitSync).start()  # start initial sync
+        threading.Thread(target=self.library.InitSync, args=(self.Firstrun,)).start()  # start initial sync
         self.Websocket = hooks.websocket.WSClient(self)
         self.Websocket.start()
         self.Online = True
