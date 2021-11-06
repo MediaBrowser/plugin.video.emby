@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import uuid
 import threading
 import socket
 import xbmc
@@ -12,9 +13,9 @@ LOG = helper.loghandler.LOG('EMBY.hooks.webservice.WebService')
 
 # Run a webservice to capture playback and incomming events.
 class WebService(threading.Thread):
-    def __init__(self):
+    def __init__(self, Player):
+        self.Player = Player
         self.Stop = False
-        self.Player = None
         self.EmbyServers = {}
         self.Intros = []
         self.embydb = None
@@ -23,14 +24,14 @@ class WebService(threading.Thread):
         self.blankfileData = Utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.m4v")
         self.blankfileSize = len(self.blankfileData)
         self.TrailerInitialItem = ""
+        self.PlaySessionId = ""
         self.socket = None
         self.QueryDataPrevious = {}
         self.DefaultVideoSettings = {}
         threading.Thread.__init__(self)
 
-    def Update_EmbyServers(self, EmbyServers, Player):
+    def Update_EmbyServers(self, EmbyServers):
         self.EmbyServers = EmbyServers
-        self.Player = Player
         self.DefaultVideoSettings = xmls.load_defaultvideosettings()
 
     def run(self):
@@ -68,9 +69,7 @@ class WebService(threading.Thread):
         except:
             pass
 
-    def Query(self, client, data):
-
-
+    def Query(self, client, data):  # thread by caller
         if not self.EmbyServers:
             SendResponseOK(client)
             client.close()
@@ -103,7 +102,7 @@ class WebService(threading.Thread):
         Details = Utils.load_VideoitemFromKodiDB(QueryData['MediaType'], QueryData['KodiId'])
         li = Utils.CreateListitem(QueryData['MediaType'], Details)
         Path = QueryData['MediaSources'][MediaIndex][3]
-        self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediaSources'][MediaIndex][2])
+        self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediaSources'][MediaIndex][2], self.PlaySessionId)
 
         if Path.startswith('\\\\'):
             Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
@@ -124,7 +123,7 @@ class WebService(threading.Thread):
                 self.Player.PlayerSkipItem = "-1"
 
         if Data == "RELOAD":
-            self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediasourceID'])
+            self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediasourceID'], self.PlaySessionId)
             self.SendBlankFile(client)
             return
 
@@ -133,7 +132,7 @@ class WebService(threading.Thread):
         client.send(Response)
 
         if not SkipPlayerUpdate and not Trailer:
-            self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediasourceID'])
+            self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediasourceID'], self.PlaySessionId)
 
     def getQuery(self, client, Payload):
         if 'main.m3u8' in Payload:  # Dynamic Transcode query
@@ -175,6 +174,7 @@ class WebService(threading.Thread):
             return
 
         Utils.SyncPause = True
+        self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
 
         if self.Player.Transcoding:
             self.EmbyServers[QueryData['ServerId']].API.close_transcode()
@@ -183,20 +183,20 @@ class WebService(threading.Thread):
         self.Player.EmbyServer = self.EmbyServers[QueryData['ServerId']]
 
         if QueryData['Type'] == 'embythemeaudio':
-            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" %(self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
+            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" %(self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
             return
 
         if QueryData['Type'] in ('embythemevideo', 'embytrailerlocal'):
-            self.SendResponse(client, "%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
+            self.SendResponse(client, "%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
             return
 
         if QueryData['Type'] == 'embyaudio':
-            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), False, QueryData)
+            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), False, QueryData)
             return
 
         if QueryData['Type'] == 'embylivetv':
             self.Player.Transcoding = True
-            self.SendResponse(client, "%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token), False, QueryData)
+            self.SendResponse(client, "%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token), False, QueryData)
             return
 
         # Cinnemamode
@@ -268,7 +268,7 @@ class WebService(threading.Thread):
         if self.Player.Transcoding:
             URL = self.GETTranscodeURL(QueryData['Filename'], False, False, QueryData)
         else:
-            URL = "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
+            URL = "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
 
         self.SendResponse(client, URL, False, QueryData)
         database.db_open.DBClose(QueryData['ServerId'], False)
@@ -340,7 +340,7 @@ class WebService(threading.Thread):
                 if QueryData['ExternalSubtitle'] == "1":
                     self.SubTitlesAdd(0, QueryData)
 
-                return "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
+                return "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
         else:
             VideoStreams = self.embydb.get_videostreams(QueryData['EmbyID'], MediaIndex)
             QueryData['KodiId'] = str(self.embydb.get_kodiid(QueryData['EmbyID'])[0])
@@ -399,7 +399,7 @@ class WebService(threading.Thread):
 
             URL = self.GETTranscodeURL(Filename, str(AudioStream[2]), SubtitleStream, QueryData)
         else:  # stream
-            URL = "%s/emby/videos/%s/stream?static=true&api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, Filename)
+            URL = "%s/emby/videos/%s/stream?static=true&api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.PlaySessionId, Utils.device_id, Filename)
 
         li = Utils.CreateListitem(QueryData['MediaType'], Details)
 
@@ -443,7 +443,7 @@ class WebService(threading.Thread):
             Filename = "&stream-" + Filename
 
         self.QueryDataPrevious = QueryData.copy()
-        return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, Utils.TranscodeFormatVideo, Utils.TranscodeFormatAudio, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
+        return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.PlaySessionId, Utils.device_id, Utils.TranscodeFormatVideo, Utils.TranscodeFormatAudio, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
 
     def play_Trailer(self, Init, QueryData):
         if Init:
@@ -455,7 +455,7 @@ class WebService(threading.Thread):
 
                 for IntroLocal in IntrosLocal:
                     Filename = Utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-                    self.Intros.append("%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, IntroLocal['Id'], self.EmbyServers[QueryData['ServerId']].PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, Filename))
+                    self.Intros.append("%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, IntroLocal['Id'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, Filename))
 
             if Utils.Trailers:
                 Intros = self.EmbyServers[QueryData['ServerId']].API.get_intros(QueryData['EmbyID'])

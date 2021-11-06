@@ -45,7 +45,7 @@ class Music:
             obj['ArtistId'] = None
             LOG.debug("ArtistId %s not found" % obj['Id'])
 
-        obj['LastScraped'] = Utils.currenttime()
+        obj['LastScraped'] = Utils.currenttime_kodi_format()
         obj['ArtistType'] = "MusicArtist"
         obj['Genre'] = " / ".join(obj['Genres'] or [])
         obj['Bio'] = Common.get_overview(obj['Bio'], item)
@@ -97,7 +97,7 @@ class Music:
             LOG.debug("AlbumId %s not found" % obj['Id'])
 
         obj['Rating'] = 0
-        obj['LastScraped'] = Utils.currenttime()
+        obj['LastScraped'] = Utils.currenttime_kodi_format()
         obj['Genres'] = obj['Genres'] or []
         obj['Genre'] = " / ".join(obj['Genres'])
         obj['Bio'] = Common.get_overview(obj['Bio'], item)
@@ -204,7 +204,7 @@ class Music:
 
         obj['UniqueId'] = obj['UniqueId'] or None
         obj['Album'] = obj['Album'] or "Single"
-        obj['LastScraped'] = Utils.currenttime()
+        obj['LastScraped'] = Utils.currenttime_kodi_format()
 
         if obj['DateAdded']:
             obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
@@ -315,7 +315,7 @@ class Music:
         PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
 
         if Media == 'song':
-            DatePlayed = Utils.currenttime()
+            DatePlayed = Utils.currenttime_kodi_format()
             self.music_db.rate_song(PlayCount, DatePlayed, Rating, KodiPathId)
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['ItemId'], ItemUserdata['IsFavorite'])

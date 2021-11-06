@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
 import xbmc
 import hooks.monitor
 import database.db_open
@@ -26,10 +25,15 @@ def ServersConnect():
             ServersSettings.append("%s%s" % (Utils.FolderAddonUserdata, Filename))
 
     if not ServersSettings:  # First run
-        threading.Thread(target=Monitor.ServerConnect, args=(None,)).start()
+        Monitor.ServerConnect(None)
     else:
         for ServerSettings in ServersSettings:
-            threading.Thread(target=Monitor.ServerConnect, args=(ServerSettings,)).start()
+            Monitor.ServerConnect(ServerSettings)
+
+        xbmc.executebuiltin('UpdateLibrary(video)')
+
+        if not Utils.useDirectPaths:
+            xbmc.executebuiltin('UpdateLibrary(music)')
 
     # Shutdown
     xbmc.Monitor().waitForAbort()

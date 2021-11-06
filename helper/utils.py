@@ -3,7 +3,6 @@ import os
 import shutil
 import uuid
 import json
-import threading
 from datetime import datetime, timedelta
 from dateutil import tz, parser
 import xbmcvfs
@@ -28,8 +27,8 @@ else:
     PluginId = "plugin.video.emby"
 
 LOG = loghandler.LOG('EMBY.helper.utils')
-KodiDBLockMusic = threading.Lock()
-KodiDBLockVideo = threading.Lock()
+KodiDBLockMusic = False
+KodiDBLockVideo = False
 Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
@@ -87,16 +86,20 @@ getCast = False
 deviceNameOpt = False
 sslverify = False
 syncDuringPlay = False
+artworkcacheenable = True
 WebserverData = {}
 SkipUpdateSettings = 0
 device_id = ""
 SyncPause = False
+syncdate = ""
+synctime = ""
 addon_version = Addon.getAddonInfo('version')
 addon_name = Addon.getAddonInfo('name')
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
 SystemShutdown = False
+WorkerInProgress = False
 
 
 # Delete objects from kodi cache
@@ -244,6 +247,9 @@ def translatePath(Data):
 def currenttime():
     return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
+def currenttime_kodi_format():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 def StringDecode(Data):
     if Python3:
         return Data
@@ -271,7 +277,22 @@ def delete_nodes():
     delFolder("special://profile/library/video/")
     delFolder("special://profile/library/music/")
 
-# Convert the local datetime to local
+# Convert the gmt datetime to local
+def convert_to_gmt(local_time):
+    if not local_time:
+        return ""
+
+    if isinstance(local_time, (str, unicode)):
+        local_time = parser.parse(local_time.encode('utf-8'))
+        utc_zone = tz.tzutc()
+        local_zone = tz.tzlocal()
+        local_time = local_time.replace(tzinfo=local_zone)
+        utc_time = local_time.astimezone(utc_zone)
+        return utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    return ""
+
+# Convert the gmt datetime to local
 def convert_to_local(date):
     if not date:
         return ""
@@ -568,6 +589,8 @@ def InitSettings():
     load_settings('server')
     load_settings('deviceName')
     load_settings('useDirectPaths')
+    load_settings('syncdate')
+    load_settings('synctime')
     load_settings_bool('menuOptions')
     load_settings_bool('compatibilitymode')
     load_settings_bool('xspplaylists')
@@ -613,6 +636,11 @@ def InitSettings():
 
     if not globals()["device_name"]:
         globals()["device_name"] = "Kodi"
+
+def set_syncdate(timestamp):
+    TimeStamp = parser.parse(timestamp.encode('utf-8'))
+    set_settings("syncdate", TimeStamp.strftime('%Y-%m-%d'))
+    set_settings("synctime", TimeStamp.strftime('%H:%M'))
 
 def load_settings_bool(setting):
     value = Addon.getSetting(setting)
@@ -680,6 +708,7 @@ mkDir('special://profile/playlists/video/')
 mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
+set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")

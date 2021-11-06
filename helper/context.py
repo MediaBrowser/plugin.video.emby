@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import threading
 import xbmc
 import xbmcaddon
 import database.db_open
@@ -37,11 +38,7 @@ class Context:
 
         return Found
 
-    def delete_item(self, LoadItem):
-        if LoadItem:
-            if not self.load_item():
-                return
-
+    def delete_item(self):  # threaded by caller
         if Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33015)):
             self.EmbyServers[self.server_id].API.delete_item(self.item[0])
             self.EmbyServers[self.server_id].library.removed([self.item[0]])
@@ -62,9 +59,9 @@ class Context:
         li = ListItem.set_ListItem(item, self.server_id)
 
         if len(item['MediaSources'][0]['MediaStreams']) >= 1:
-            path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
         else:
-            path = "http://127.0.0.1:57578/embyvideoremote-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], "0", "", Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], "0", "", Utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
 
         li.setProperty('path', path)
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -125,6 +122,6 @@ class Context:
         elif selected == SelectOptions['Addon']:
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % Utils.PluginId)
         elif selected == SelectOptions['Delete']:
-            self.delete_item(False)
+            threading.Thread(target=self.delete_item).start()
         elif selected == SelectOptions['SpecialFeatures']:
             self.SelectSpecialFeatures()

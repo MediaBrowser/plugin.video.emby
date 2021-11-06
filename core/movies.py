@@ -279,8 +279,12 @@ class Movies:
         KodiFileId = e_item[1]
         Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
         MovieData = self.video_db.get_movie_data(KodiMovieId)
+
+        if not MovieData:
+            return
+
         PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
-        DatePlayed = Utils.currenttime()
+        DatePlayed = Utils.currenttime_kodi_format()
 
         if ItemUserdata['IsFavorite']:
             self.video_db.get_tag("Favorite movies", KodiMovieId, "movie")

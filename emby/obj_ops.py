@@ -119,7 +119,7 @@ objects = {
         "Video": "MediaSources/0/MediaStreams:?Type=Video",
         "Container": "MediaSources/0/Container",
         "Location": "LocationType",
-        "EmbyParentId": "SeriesId,ParentId",
+        "EmbyParentId": "SeasonId,ParentId",
         "PresentationKey": "PresentationUniqueKey",
         "OriginalTitle": "OriginalTitle",
         "Favorite": "UserData/IsFavorite"

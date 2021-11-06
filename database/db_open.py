@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlite3
-import threading
+import xbmc
 import helper.loghandler
 from . import emby_db
 from . import video_db
@@ -13,43 +13,53 @@ LOG = helper.loghandler.LOG('EMBY.database.db_open')
 
 
 def DBOpen(DatabaseFiles, DBID):
-    if DBID not in globals()["DBIOLock"]:
-        globals()["DBIOLock"][DBID] = threading.Lock()
+    if DBID in globals()["DBIOLock"]:
+        while globals()["DBIOLock"][DBID]:
+            xbmc.sleep(500)
 
-    with globals()["DBIOLock"][DBID]:
-        if DBID not in globals()["DBConnections"]:
-            globals()["DBConnections"][DBID] = sqlite3.connect(DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
-            globals()["DBConnections"][DBID].execute("PRAGMA journal_mode=WAL")
-            globals()["DBConnections"]["%s_count" % DBID] = 1
-        else:
-            globals()["DBConnections"]["%s_count" % DBID] += 1
+    globals()["DBIOLock"][DBID] = True
 
-        LOG.debug("--->[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
+    if DBID not in globals()["DBConnections"]:  # create curser
+        globals()["DBConnections"][DBID] = sqlite3.connect(DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
+        globals()["DBConnections"][DBID].execute("PRAGMA journal_mode=WAL")
+        globals()["DBConnections"]["%s_count" % DBID] = 1
+    else:  # re-use curser
+        globals()["DBConnections"]["%s_count" % DBID] += 1
 
-        if DBID == 'video':
-            return video_db.VideoDatabase(globals()["DBConnections"][DBID].cursor())
+    LOG.debug("--->[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
+    globals()["DBIOLock"][DBID] = False
 
-        if DBID == 'music':
-            return music_db.MusicDatabase(globals()["DBConnections"][DBID].cursor())
+    if DBID == 'video':
+        return video_db.VideoDatabase(globals()["DBConnections"][DBID].cursor())
 
-        if DBID == 'texture':
-            return common_db.CommonDatabase(globals()["DBConnections"][DBID].cursor())
+    if DBID == 'music':
+        return music_db.MusicDatabase(globals()["DBConnections"][DBID].cursor())
 
-        return emby_db.EmbyDatabase(globals()["DBConnections"][DBID].cursor())
+    if DBID == 'texture':
+        return common_db.CommonDatabase(globals()["DBConnections"][DBID].cursor())
+
+    return emby_db.EmbyDatabase(globals()["DBConnections"][DBID].cursor())
 
 def DBClose(DBID, commit_close):
-    with globals()["DBIOLock"][DBID]:
-        if commit_close:
-            changes = globals()["DBConnections"][DBID].total_changes
-            LOG.info("[%s] %s rows updated." % (DBID, changes))
+    if DBID in globals()["DBIOLock"]:
+        while globals()["DBIOLock"][DBID]:
+            xbmc.sleep(500)
 
-            if changes:
-                globals()["DBConnections"][DBID].commit()
+    globals()["DBIOLock"][DBID] = True
 
-        globals()["DBConnections"]["%s_count" % DBID] += -1
-        LOG.debug("---<[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
+    if commit_close:
+        changes = globals()["DBConnections"][DBID].total_changes
+        LOG.info("[%s] %s rows updated." % (DBID, changes))
 
-        if globals()["DBConnections"]["%s_count" % DBID] == 0:
-            globals()["DBConnections"][DBID].cursor().close()
-            globals()["DBConnections"][DBID].close()
-            del globals()["DBConnections"][DBID]
+        if changes:
+            globals()["DBConnections"][DBID].commit()
+
+    globals()["DBConnections"]["%s_count" % DBID] += -1
+    LOG.debug("---<[ database: %s/%s ]" % (DBID, globals()["DBConnections"]["%s_count" % DBID]))
+
+    if globals()["DBConnections"]["%s_count" % DBID] == 0:
+        globals()["DBConnections"][DBID].cursor().close()
+        globals()["DBConnections"][DBID].close()
+        del globals()["DBConnections"][DBID]
+
+    globals()["DBIOLock"][DBID] = False

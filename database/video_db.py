@@ -223,6 +223,17 @@ class VideoDatabase:
         self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
         return self.cursor.fetchone()[0] + 1
 
+    def get_bookmark(self, idFile):
+        self.cursor.execute("SELECT * FROM bookmark WHERE idFile = ?", (idFile,))
+        Data = self.cursor.fetchone()
+        return Data
+
+    def get_files(self, idFile):
+        self.cursor.execute("SELECT * FROM files WHERE idFile = ?", (idFile,))
+        Data = self.cursor.fetchone()
+
+        return Data
+
     def create_entry_tag(self):
         self.cursor.execute("SELECT coalesce(max(tag_id), 0) FROM tag")
         return self.cursor.fetchone()[0] + 1

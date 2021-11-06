@@ -1205,3 +1205,23 @@ msgstr ""
 msgctxt "#33255"
 msgid "Restore backup"
 msgstr ""
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr ""
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr ""
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr ""
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr ""
