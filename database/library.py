@@ -41,7 +41,6 @@ class Library:
         self.EmbyDBWritePriority = True
 
         if self.WorkerInProgressLocal:
-            self.WorkerPaused = False
             LOG.info("-->[ Wait for workers paused ]")
 
             while not self.WorkerPaused:
