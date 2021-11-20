@@ -310,7 +310,11 @@ def Streamdata_add(obj, emby_db, Update):
         CountMediaStreamVideo = 0
         CountMediaSubtitle = 0
         CountStreamSources = 0
-        emby_db.add_mediasource(DataSource['emby_id'], DataSource['MediaIndex'], DataSource['Id'], DataSource['Path'], DataSource['Name'], DataSource['Size'])
+
+        Path = DataSource.get('Path', None)
+        if Path is None:
+            LOG.warning("DataSource Path is not present: id:(%s) name(%s)" % (DataSource['Id'], DataSource['Name']))
+        emby_db.add_mediasource(DataSource['emby_id'], DataSource['MediaIndex'], DataSource['Id'], Path, DataSource['Name'], DataSource['Size'])
 
         for DataStream in DataSource['MediaStreams']:
             DataStream['emby_id'] = obj['Id']
