@@ -1,0 +1,8 @@
+- add API for external play commands
+- fix for remote control (external content)
+- fix websocket ping
+- limit max itemupdates
+
+pending:
+-review delete option
+-review NFS share with Chinese charecters

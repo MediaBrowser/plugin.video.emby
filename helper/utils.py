@@ -48,7 +48,7 @@ newmusictime = 1
 startupDelay = 0
 backupPath = ""
 MinimumSetup = ""
-limitIndex = 10000
+limitIndex = 50
 username = ""
 serverName = ""
 server = ""
@@ -708,6 +708,7 @@ mkDir('special://profile/playlists/video/')
 mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
+limitIndex = int(limitIndex)
 set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}

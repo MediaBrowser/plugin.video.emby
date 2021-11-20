@@ -11,8 +11,7 @@ import ssl
 import xbmc
 import helper.loghandler
 import helper.utils as Utils
-import database.db_open
-import emby.listitem as ListItem
+import helper.playerops as PlayerOps
 
 if Utils.Python3:
     from urllib.parse import urlparse
@@ -34,40 +33,6 @@ def maskData(mask_key, data):
 
     return _d.tostring()
 
-
-class ABNF:
-    def __init__(self, fin, rsv1, rsv2, rsv3, opcode, mask, data):
-        self.fin = fin
-        self.rsv1 = rsv1
-        self.rsv2 = rsv2
-        self.rsv3 = rsv3
-        self.opcode = opcode
-        self.mask = mask
-        self.data = data
-        self.get_mask_key = os.urandom
-
-    def __str__(self):
-        return "fin=%s opcode=%s data=%s" % (self.fin, self.opcode, self.data)
-
-    def format(self):
-        length = len(self.data)
-        frame_header = struct.pack("B", (self.fin << 7 | self.rsv1 << 6 | self.rsv2 << 5 | self.rsv3 << 4 | self.opcode))
-
-        if length < 0x7d:
-            frame_header += struct.pack("B", (self.mask << 7 | length))
-        elif length < 1 << 16:  # LENGTH_16
-            frame_header += struct.pack("B", (self.mask << 7 | 0x7e))
-            frame_header += struct.pack("!H", length)
-        else:
-            frame_header += struct.pack("B", (self.mask << 7 | 0x7f))
-            frame_header += struct.pack("!Q", length)
-
-        if not self.mask:
-            return frame_header + self.data
-
-        mask_key = self.get_mask_key(4)
-        return frame_header + mask_key + maskData(mask_key, self.data)
-
 class WSClient(threading.Thread):
     def __init__(self, EmbyServer):
         self.EmbyServer = EmbyServer
@@ -86,17 +51,20 @@ class WSClient(threading.Thread):
     def run(self):
         LOG.info("--->[ websocket ]")
         server = self.EmbyServer.server.replace('https', "wss") if self.EmbyServer.server.startswith('https') else self.EmbyServer.server.replace('http', "ws")
-        self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id))
-        threading.Thread(target=self.ping).start()
 
-        while not self.stop:
-            data = self.recv()
+        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id)):
+            threading.Thread(target=self.ping).start()
 
-            if data is None or self.stop:
-                break
+            while not self.stop:
+                data = self.recv()
 
-            if data:
-                threading.Thread(target=self.on_message, args=(data,)).start()
+                if data is None or self.stop:
+                    break
+
+                if data:
+                    threading.Thread(target=self.on_message, args=(data,)).start()
+        else:
+            LOG.info("[ websocket failed ]")
 
         LOG.info("---<[ websocket ]")
 
@@ -190,12 +158,26 @@ class WSClient(threading.Thread):
             Utils.dialog("notification", heading=Utils.addon_name, icon="DefaultIconError.png", message=Utils.Translate(33235), sound=True)
             return False
 
+        return True
+
     def sendCommands(self, payload, opcode):
         if opcode == 0x1:
             payload = payload.encode("utf-8")
 
-        frame = ABNF(1, 0, 0, 0, opcode, 1, payload)
-        data = frame.format()
+        length = len(payload)
+        frame_header = struct.pack("B", (1 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | opcode))
+
+        if length < 0x7d:
+            frame_header += struct.pack("B", (1 << 7 | length))
+        elif length < 1 << 16:  # LENGTH_16
+            frame_header += struct.pack("B", (1 << 7 | 0x7e))
+            frame_header += struct.pack("!H", length)
+        else:
+            frame_header += struct.pack("B", (1 << 7 | 0x7f))
+            frame_header += struct.pack("!Q", length)
+
+        mask_key = os.urandom(4)
+        data = frame_header + mask_key + maskData(mask_key, payload)
 
         while data:
             try:
@@ -207,7 +189,7 @@ class WSClient(threading.Thread):
     def ping(self):
         while True:
             for _ in range(10):
-                xbmc.sleep(1)
+                xbmc.sleep(1000)
 
                 if self.stop or Utils.SystemShutdown:
                     return
@@ -231,9 +213,6 @@ class WSClient(threading.Thread):
                 b2 = ord(self._frame_header[1])
 
             fin = b1 >> 7 & 1
-            rsv1 = b1 >> 6 & 1
-            rsv2 = b1 >> 5 & 1
-            rsv3 = b1 >> 4 & 1
             opcode = b1 & 0xf
             has_mask = b2 >> 7 & 1
 
@@ -257,7 +236,6 @@ class WSClient(threading.Thread):
             # Payload
             if self._frame_length:
                 payload = self._recv_strict(self._frame_length)
-
             else:
                 payload = b''
 
@@ -268,26 +246,25 @@ class WSClient(threading.Thread):
             self._frame_header = None
             self._frame_length = None
             self._frame_mask = None
-            frame = ABNF(fin, rsv1, rsv2, rsv3, opcode, has_mask, payload)
 
-            if frame.opcode in (0x2, 0x1, 0x0):
+            if opcode in (0x2, 0x1, 0x0):
                 if self._cont_data:
-                    self._cont_data[1] += frame.data
+                    self._cont_data[1] += payload
                 else:
-                    self._cont_data = [frame.opcode, frame.data]
+                    self._cont_data = [opcode, payload]
 
-                if frame.fin:
+                if fin:
                     data = self._cont_data
                     self._cont_data = None
                     return data
-            elif frame.opcode == 0x8:
+            elif opcode == 0x8:
                 self.sendCommands(struct.pack('!H', 1000) + b"", 0x8)
-                return None  # (frame.opcode, None)
-            elif frame.opcode == 0x9:
-                self.sendCommands(frame.data, 0xa)  # Pong
-                return False #frame.data
-            elif frame.opcode == 0xa:
-                return False #frame.data
+                return None
+            elif opcode == 0x9:
+                self.sendCommands(payload, 0xa)  # Pong
+                return False
+            elif opcode == 0xa:
+                return False
 
     def _recv_strict(self, bufsize):
         shortage = bufsize - sum(len(x) for x in self._recv_buffer)
@@ -396,7 +373,7 @@ class WSClient(threading.Thread):
         elif IncommingData['MessageType'] == 'RestartRequired':
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33237))
         elif IncommingData['MessageType'] == 'Play':
-            Play(IncommingData['Data']['ItemIds'], self.EmbyServer.server_id, IncommingData['Data']['PlayCommand'], int(IncommingData['Data'].get('StartIndex', -1)), int(IncommingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
+            PlayerOps.Play(IncommingData['Data']['ItemIds'], IncommingData['Data']['PlayCommand'], int(IncommingData['Data'].get('StartIndex', -1)), int(IncommingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
         elif IncommingData['MessageType'] == 'Playstate':
             Playstate(IncommingData['Data']['Command'], int(IncommingData['Data'].get('SeekPositionTicks', -1)))
 
@@ -419,129 +396,3 @@ def Playstate(Command, SeekPositionTicks):
     elif Command in actions:
         actions[Command]()
         LOG.info("[ command/%s ]" % Command)
-
-def AddPlaylistItem(Position, EmbyID, server_id, Offset, EmbyServer):
-    embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
-    Data = embydb.get_item_by_wild_id(str(EmbyID))
-    database.db_open.DBClose(server_id, False)
-
-    if Data:  # Requested video is synced to KodiDB. No additional info required
-        if Data[0][1] in ("song", "album", "artist"):
-            playlistID = 0
-            playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-        else:
-            playlistID = 1
-            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-
-        Pos = GetPlaylistPos(Position, playlist, Offset)
-        params = {'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}}
-        xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'Playlist.Insert', 'params': params}))
-    else:
-        item = EmbyServer.API.get_item(EmbyID)
-        li = ListItem.set_ListItem(item, server_id)
-        path, Type = Utils.get_path_type_from_item(server_id, item)
-
-        if not path:
-            return None
-
-        if Type == "picture":
-            return path
-
-        li.setProperty('path', path)
-
-        if Type == "audio":
-            playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-        else:
-            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-
-        Pos = GetPlaylistPos(Position, playlist, Offset)
-        playlist.add(path, li, index=Pos)
-
-    return playlist
-
-# Websocket command from Emby server
-def Play(ItemIds, ServerId, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
-    FirstItem = True
-    Offset = 0
-
-    for ID in ItemIds:
-        playlist = None
-        Offset += 1
-
-        if PlayCommand == "PlayNow":
-            playlist = AddPlaylistItem("current", ID, ServerId, Offset, EmbyServer)
-        elif PlayCommand == "PlayNext":
-            playlist = AddPlaylistItem("current", ID, ServerId, Offset, EmbyServer)
-        elif PlayCommand == "PlayLast":
-            playlist = AddPlaylistItem("last", ID, ServerId, 0, EmbyServer)
-
-        if not playlist:
-            continue
-
-        if isinstance(playlist, str):  # picture
-            xbmc.executebuiltin(playlist)
-            return
-
-        # Play Item
-        if PlayCommand == "PlayNow":
-            if StartIndex != -1:
-                if Offset == int(StartIndex + 1):
-                    if FirstItem:
-                        Pos = playlist.getposition()
-
-                        if Pos == -1:
-                            Pos = 0
-
-                        PlaylistStartIndex = Pos + Offset
-                        xbmc.Player().play(item=playlist, startpos=PlaylistStartIndex)
-                        setPlayerPosition(StartPositionTicks)
-                        Offset = 0
-                        FirstItem = False
-            else:
-                if FirstItem:
-                    Pos = playlist.getposition()
-
-                    if Pos == -1:
-                        Pos = 0
-
-                    xbmc.Player().play(item=playlist, startpos=Pos + Offset)
-                    setPlayerPosition(StartPositionTicks)
-                    Offset = 0
-                    FirstItem = False
-
-def setPlayerPosition(StartPositionTicks):
-    if StartPositionTicks != -1:
-        Position = StartPositionTicks / 10000000
-
-        for _ in range(10):
-            if xbmc.Player().isPlaying():
-                for _ in range(10):
-                    xbmc.Player().seekTime(Position)
-                    CurrentTime = xbmc.Player().getTime()
-
-                    if CurrentTime >= Position - 10:
-                        return
-
-                    xbmc.sleep(250)
-            else:
-                xbmc.sleep(500)
-
-def GetPlaylistPos(Position, playlist, Offset):
-    if Position == "current":
-        Pos = playlist.getposition()
-
-        if Pos == -1:
-            Pos = 0
-
-        Pos = Pos + Offset
-    elif Position == "previous":
-        Pos = playlist.getposition()
-
-        if Pos == -1:
-            Pos = 0
-    elif Position == "last":
-        Pos = playlist.size()
-    else:
-        Pos = Position
-
-    return Pos

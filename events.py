@@ -3,6 +3,7 @@ import sys
 import socket
 import xbmc
 
+
 if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
     from urllib.parse import parse_qsl
 else:
@@ -39,5 +40,21 @@ if __name__ == "__main__":
         EmbyQueryData('favepisodes', "", ServerId, Handle)
     elif mode in ('texturecache', 'delete', 'managelibsselection', 'settings', 'databasereset'):  # Simple commands
         xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s)' % mode)
+
+
+
+
+
+    elif mode == 'play':
+        ItemId = params.get('item')
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, play, "[\"%s\", \"%s\"]")' % (ServerId, ItemId))
+
+
+
+
+
+
+
+
     else:
         EmbyQueryData('listing', "", ServerId, Handle)

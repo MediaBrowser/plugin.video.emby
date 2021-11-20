@@ -11,6 +11,7 @@ import helper.loghandler
 import helper.context
 import helper.pluginmenu
 import helper.utils as Utils
+import helper.playerops as PlayerOps
 import helper.xmls as xmls
 import database.db_open
 import emby.emby
@@ -122,6 +123,9 @@ class Monitor(xbmc.Monitor):
             self.player.SETVolume(data)
         elif method == 'VideoLibrary.OnUpdate':
             self.VideoLibrary_OnUpdate(data)
+        elif method == 'Other.play':
+            data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
+            PlayerOps.Play((data[1],), "PlayNow", -1, -1, self.EmbyServers[data[0]])
 
     def EmbyServer_ReconnectAll(self):
         for EmbyServer in list(self.EmbyServers.values()):
