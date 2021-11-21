@@ -157,7 +157,7 @@ class API:
             yield items
 
     def get_itemsFastSync(self, parent_id, item_type, TimeStamp, UserSync):
-        params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'Recursive': True}
+        params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'Recursive': True, 'LocationTypes': "FileSystem,Remote,Offline"}
 
         if UserSync:
             params['MinDateLastSavedForUser'] = TimeStamp

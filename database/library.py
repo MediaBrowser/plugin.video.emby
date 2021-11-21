@@ -281,16 +281,7 @@ class Library:
         progress_updates.create("Emby", Utils.Translate(33178))
         ItemIds = []
         ItemLibraryData = []
-        ItemsAudio = []
-        ItemsMovie = []
-        ItemsBoxSet = []
-        ItemsMusicVideo = []
-        ItemsSeries = []
-        ItemsEpisode = []
-        ItemsMusicAlbum = []
-        ItemsMusicArtist = []
-        ItemsAlbumArtist = []
-        ItemsSeason = []
+        Intervalindex = 0
         LOG.info("[ worker update queue size ] %s" % ItemCounter)
 
         for UpdateItem in UpdateItems:
@@ -309,11 +300,23 @@ class Library:
             ItemIds.append(str(Id))
 
         # Load data from Emby server and cache them to minimize Kodi db open time
-        if ItemIds:
-            Items = self.EmbyServer.API.get_item_library(",".join(ItemIds))
+        while ItemIds:
+            ItemsAudio = []
+            ItemsMovie = []
+            ItemsBoxSet = []
+            ItemsMusicVideo = []
+            ItemsSeries = []
+            ItemsEpisode = []
+            ItemsMusicAlbum = []
+            ItemsMusicArtist = []
+            ItemsAlbumArtist = []
+            ItemsSeason = []
+            TempItemIds = ItemIds[:Utils.limitIndex]
+            Items = self.EmbyServer.API.get_item_library(",".join(TempItemIds))
 
             if 'Items' in Items:
                 for index, Item in enumerate(Items['Items']):
+                    index += Intervalindex
                     ItemType = 'Unknown'
 
                     if 'Type' in Item:
@@ -356,157 +359,163 @@ class Library:
                         Counter += 1
                         continue
 
-        if ItemsMovie or ItemsBoxSet or ItemsMusicVideo or ItemsSeries or ItemsSeason or ItemsEpisode:
-            videodb = db_open.DBOpen(Utils.DatabaseFiles, "video")
-            ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
+            Intervalindex += Utils.limitIndex
 
-            for Item, LibraryData in ItemsMovie:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Movie')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+            if ItemsMovie or ItemsBoxSet or ItemsMusicVideo or ItemsSeries or ItemsSeason or ItemsEpisode:
+                videodb = db_open.DBOpen(Utils.DatabaseFiles, "video")
+                ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsMovie:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Movie')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsBoxSet:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'BoxSet')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+                    if Reload:
+                        ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsBoxSet:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'BoxSet')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            ContentObj = core.musicvideos.MusicVideos(self.EmbyServer, embydb, videodb)
+                    if Reload:
+                        ContentObj = core.movies.Movies(self.EmbyServer, embydb, videodb)
 
-            for Item, LibraryData in ItemsMusicVideo:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicVideo')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+                ContentObj = core.musicvideos.MusicVideos(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsMusicVideo:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicVideo')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.musicvideos.MusicVideos(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
+                    if Reload:
+                        ContentObj = core.musicvideos.MusicVideos(self.EmbyServer, embydb, videodb)
 
-            for Item, LibraryData in ItemsSeries:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Series')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+                ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsSeries:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Series')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsSeason:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Season')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+                    if Reload:
+                        ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsSeason:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Season')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsEpisode:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Episode')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
+                    if Reload:
+                        ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsEpisode:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Episode')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, videodb, Reload = self.CheckSyncContinue("update", progress_updates, "video", embydb, videodb)
 
-                if Reload:
-                    ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
+                    if not Continue:
+                        return False
 
-            db_open.DBClose("video", True)
-            isVideo = True
+                    if Reload:
+                        ContentObj = core.tvshows.TVShows(self.EmbyServer, embydb, videodb)
 
-        if ItemsMusicArtist or ItemsAlbumArtist or ItemsMusicAlbum or ItemsAudio:
-            musicdb = db_open.DBOpen(Utils.DatabaseFiles, "music")
-            ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
+                db_open.DBClose("video", True)
+                isVideo = True
 
-            for Item, LibraryData in ItemsMusicArtist:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicArtist')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
+            if ItemsMusicArtist or ItemsAlbumArtist or ItemsMusicAlbum or ItemsAudio:
+                musicdb = db_open.DBOpen(Utils.DatabaseFiles, "music")
+                ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsMusicArtist:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicArtist')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
 
-                if Reload:
-                    ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsAlbumArtist:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'AlbumArtist')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
+                    if Reload:
+                        ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsAlbumArtist:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'AlbumArtist')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
 
-                if Reload:
-                    ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsMusicAlbum:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicAlbum')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
+                    if Reload:
+                        ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsMusicAlbum:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'MusicAlbum')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
 
-                if Reload:
-                    ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
+                    if not Continue:
+                        return False
 
-            for Item, LibraryData in ItemsAudio:
-                Counter += 1
-                ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
-                worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Audio')
-                ItemIds.remove(Item['Id'])
-                Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
+                    if Reload:
+                        ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
 
-                if not Continue:
-                    return False
+                for Item, LibraryData in ItemsAudio:
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    worker_update_process_item(Item, embydb, ContentObj, LibraryData, progress_updates, ProgressValue, 'Audio')
+                    ItemIds.remove(Item['Id'])
+                    Continue, embydb, musicdb, Reload = self.CheckSyncContinue("update", progress_updates, "music", embydb, musicdb)
 
-                if Reload:
-                    ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
+                    if not Continue:
+                        return False
 
-            musicdb.clean_music()
-            db_open.DBClose("music", True)
-            isMusic = True
+                    if Reload:
+                        ContentObj = core.music.Music(self.EmbyServer, embydb, musicdb)
 
-        for ItemID in ItemIds:
-            embydb.delete_UpdateItem(ItemID)
+                musicdb.clean_music()
+                db_open.DBClose("music", True)
+                isMusic = True
+
+            for ItemID in TempItemIds:
+                if ItemID in ItemIds:
+                    ItemIds.remove(ItemID)
+                    Counter += 1
+                    ProgressValue = int((float(Counter) / float(ItemCounter)) * 100)
+                    embydb.delete_UpdateItem(ItemID)
 
         embydb.update_LastIncrementalSync(Utils.currenttime(), "realtime")
         db_open.DBClose(self.EmbyServer.server_id, True)

@@ -1,4 +1,4 @@
-6.1.8 (beta)
+6.1.9 (beta)
 =============
 Improvements:
 -------------
@@ -255,7 +255,10 @@ fix movie specials
 fix multiserver issues
 fix threading lock issues
 fix workers pause/resume
-
+add API for external play commands
+fix for remote control (external content)
+fix websocket ping
+limit max itemupdates
 
 
 6.0.13 (beta)
