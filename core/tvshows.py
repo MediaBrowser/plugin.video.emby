@@ -175,7 +175,6 @@ class TVShows:
             return False
 
         obj = Objects.mapitem(item, 'Episode')
-        obj['Emby_Type'] = 'Episode'
         obj['Item'] = item
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
@@ -187,7 +186,7 @@ class TVShows:
 
         if e_item:
             update = True
-            obj['KodiEpisodeId'] = e_item[0]
+            obj['KodiItemId'] = e_item[0]
             obj['KodiFileId'] = e_item[1]
             obj['KodiPathId'] = e_item[2]
         else:
@@ -258,11 +257,11 @@ class TVShows:
         Common.Streamdata_add(obj, self.emby_db, update)
 
         if update:
-            obj['RatingId'] = self.video_db.get_rating_id("episode", obj['KodiEpisodeId'], "default")
-            self.video_db.update_ratings(obj['KodiEpisodeId'], "episode", "default", obj['Rating'], obj['RatingId'])
-            self.video_db.remove_unique_ids(obj['KodiEpisodeId'], "episode")
+            obj['RatingId'] = self.video_db.get_rating_id("episode", obj['KodiItemId'], "default")
+            self.video_db.update_ratings(obj['KodiItemId'], "episode", "default", obj['Rating'], obj['RatingId'])
+            self.video_db.remove_unique_ids(obj['KodiItemId'], "episode")
             obj['Unique'] = self.video_db.create_entry_unique_id()
-            self.video_db.add_unique_id(obj['Unique'], obj['KodiEpisodeId'], "episode", obj['UniqueId'], obj['ProviderName'])
+            self.video_db.add_unique_id(obj['Unique'], obj['KodiItemId'], "episode", obj['UniqueId'], obj['ProviderName'])
 
             for provider in obj['UniqueIds'] or {}:
                 unique_id = obj['UniqueIds'][provider]
@@ -270,20 +269,20 @@ class TVShows:
 
                 if provider != 'tvdb':
                     Unique = self.video_db.create_entry_unique_id()
-                    self.video_db.add_unique_id(Unique, obj['KodiEpisodeId'], "episode", unique_id, provider)
+                    self.video_db.add_unique_id(Unique, obj['KodiItemId'], "episode", unique_id, provider)
 
-            obj['Filename'] = Common.get_filename(obj, "tvshows", self.EmbyServer.API)
-            self.video_db.update_episode(obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'], obj['KodiShowId'], obj['KodiEpisodeId'])
+            obj['Filename'] = Common.get_filename(obj, "episode", self.EmbyServer.API)
+            self.video_db.update_episode(obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'], obj['KodiShowId'], obj['KodiItemId'])
             self.video_db.update_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
             self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
             self.emby_db.update_parent_id(obj['KodiSeasonId'], obj['Id'])
-            LOG.info("UPDATE episode [%s/%s/%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['Id'], obj['Title']))
+            LOG.info("UPDATE episode [%s/%s/%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['KodiItemId'], obj['KodiFileId'], obj['Id'], obj['Title']))
         else:
-            obj['KodiEpisodeId'] = self.video_db.create_entry_episode()
+            obj['KodiItemId'] = self.video_db.create_entry_episode()
             obj['RatingId'] = self.video_db.create_entry_rating()
-            self.video_db.add_ratings(obj['RatingId'], obj['KodiEpisodeId'], "episode", "default", obj['Rating'])
+            self.video_db.add_ratings(obj['RatingId'], obj['KodiItemId'], "episode", "default", obj['Rating'])
             obj['Unique'] = self.video_db.create_entry_unique_id()
-            self.video_db.add_unique_id(obj['Unique'], obj['KodiEpisodeId'], "episode", obj['UniqueId'], obj['ProviderName'])
+            self.video_db.add_unique_id(obj['Unique'], obj['KodiItemId'], "episode", obj['UniqueId'], obj['ProviderName'])
 
             for provider in obj['UniqueIds'] or {}:
                 unique_id = obj['UniqueIds'][provider]
@@ -291,21 +290,22 @@ class TVShows:
 
                 if provider != 'tvdb':
                     Unique = self.video_db.create_entry_unique_id()
-                    self.video_db.add_unique_id(Unique, obj['KodiEpisodeId'], "episode", unique_id, provider)
+                    self.video_db.add_unique_id(Unique, obj['KodiItemId'], "episode", unique_id, provider)
 
             obj['KodiPathId'] = self.video_db.get_add_path(obj['Path'], None)
             obj['KodiFileId'] = self.video_db.create_entry_file()
-            obj['Filename'] = Common.get_filename(obj, "tvshows", self.EmbyServer.API)
+            obj['Filename'] = Common.get_filename(obj, "episode", self.EmbyServer.API)
             self.video_db.add_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
-            self.video_db.add_episode(obj['KodiEpisodeId'], obj['KodiFileId'], obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['KodiShowId'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'])
-            self.emby_db.add_reference(obj['Id'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['KodiPathId'], "Episode", "episode", obj['KodiSeasonId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
-            LOG.info("ADD episode [%s/%s/%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['Id'], obj['Title']))
+            self.video_db.add_episode(obj['KodiItemId'], obj['KodiFileId'], obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['KodiShowId'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'])
+            self.emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "Episode", "episode", obj['KodiSeasonId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
+            LOG.info("ADD episode [%s/%s/%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['KodiItemId'], obj['KodiFileId'], obj['Id'], obj['Title']))
 
-        self.video_db.add_people(obj['People'], obj['KodiEpisodeId'], "episode")
+        Common.add_update_chapters(obj, self.video_db, self.EmbyServer.server_id)
+        self.video_db.add_people(obj['People'], obj['KodiItemId'], "episode")
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
-        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'])
-        self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiEpisodeId'], "episode")
-        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "Episode", self.EmbyServer.API)
+        self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'], False)
+        self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiItemId'], "episode")
+        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "episode", self.EmbyServer.API)
 
         # Remove existing Item
         if ExistingItem and not update:
@@ -354,7 +354,7 @@ class TVShows:
 
             PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
             DatePlayed = Utils.currenttime_kodi_format()
-            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, EpisodeData[11])
+            self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, EpisodeData[11], True)
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])
         LOG.info("USERDATA [%s/%s/%s] %s" % (KodiType, KodiFileId, KodiId, ItemUserdata['ItemId']))
@@ -460,8 +460,8 @@ class TVShows:
         self.emby_db.remove_item(EmbyItemId)
         LOG.info("DELETE season [%s] %s" % (KodiSeasonId, EmbyItemId))
 
-    def remove_episode(self, KodiEpisodeId, KodiFileId, EmbyItemId):
-        self.video_db.common_db.delete_artwork(KodiEpisodeId, "episode")
-        self.video_db.delete_episode(KodiEpisodeId, KodiFileId)
+    def remove_episode(self, KodiItemId, KodiFileId, EmbyItemId):
+        self.video_db.common_db.delete_artwork(KodiItemId, "episode")
+        self.video_db.delete_episode(KodiItemId, KodiFileId)
         self.emby_db.remove_item(EmbyItemId)
-        LOG.info("DELETE episode [%s/%s] %s" % (KodiEpisodeId, KodiFileId, EmbyItemId))
+        LOG.info("DELETE episode [%s/%s] %s" % (KodiItemId, KodiFileId, EmbyItemId))

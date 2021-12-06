@@ -5,6 +5,8 @@ import helper.utils as Utils
 import database.db_open
 import emby.listitem as ListItem
 
+XbmcMonitor = xbmc.Monitor()
+
 
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
     embydb = database.db_open.DBOpen(Utils.DatabaseFiles, EmbyServer.server_id)
@@ -53,6 +55,8 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
     for ID in ItemIds:
         playlist = None
         Offset += 1
+        Found = False
+        isPlaylist = False
 
         if PlayCommand == "PlayNow":
             Found, isPlaylist, playlist = AddPlaylistItem("current", ID, Offset, EmbyServer)
@@ -108,9 +112,11 @@ def setPlayerPosition(StartPositionTicks):
                     if CurrentTime >= Position - 10:
                         return
 
-                    xbmc.sleep(250)
+                    if XbmcMonitor.waitForAbort(0.5):
+                        return
             else:
-                xbmc.sleep(500)
+                if XbmcMonitor.waitForAbort(0.5):
+                    return
 
 def GetPlaylistPos(Position, playlist, Offset):
     if Position == "current":

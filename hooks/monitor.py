@@ -94,6 +94,10 @@ class Monitor(xbmc.Monitor):
     def Notification(self, sender, method, data):  # threaded by caller
         if method == 'Other.managelibsselection':
             self.Menu.select_managelibs()
+        elif method == 'Other.delete':
+            self.Context.delete_item()
+        elif method == 'Other.settings':
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % Utils.PluginId)
         elif method == 'Other.backup':
             Backup()
         elif method == 'Other.restore':
@@ -136,19 +140,11 @@ class Monitor(xbmc.Monitor):
             EmbyServer.stop()
 
     def onScanStarted(self, library):
-        if library == "music":
-            Utils.KodiDBLockMusic = True
-        else:
-            Utils.KodiDBLockVideo = True
-
+        Utils.KodiDBLock[library] = True
         LOG.info("-->[ kodi scan/%s ]" % library)
 
     def onScanFinished(self, library):
-        if library == "music":
-            Utils.KodiDBLockMusic = False
-        else:
-            Utils.KodiDBLockVideo = False
-
+        Utils.KodiDBLock[library] = False
         LOG.info("--<[ kodi scan/%s ]" % library)
 
     def ServerConnect(self, ServerSettings):

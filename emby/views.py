@@ -10,7 +10,6 @@ if Utils.Python3:
 else:
     from urllib import urlencode
 
-
 limit = 25
 SyncNodes = {
     'tvshows': [
@@ -136,15 +135,11 @@ class Views:
 
     def update_nodes(self):
         self.Nodes = []
-        WhitelistedLibraryIDs = []
-
-        for library_id, _, _ in self.EmbyServer.library.Whitelist:
-            WhitelistedLibraryIDs.append(library_id)
 
         for library_id in self.ViewItems:
             view = {'LibraryId': library_id, 'Name': Utils.StringDecode(self.ViewItems[library_id][0]), 'Tag': Utils.StringDecode(self.ViewItems[library_id][0]), 'MediaType': self.ViewItems[library_id][1], "Icon": self.ViewItems[library_id][2], 'NameClean': Utils.StringDecode(self.ViewItems[library_id][0]).replace(" ", "_")}
 
-            if library_id in WhitelistedLibraryIDs:
+            if library_id in self.EmbyServer.library.Whitelist.keys():
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
                     view['Tag'] = "-%s;" % view['Tag']
 

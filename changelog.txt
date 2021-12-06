@@ -1,4 +1,4 @@
-6.1.9 (beta)
+6.2.0 (beta)
 =============
 Improvements:
 -------------
@@ -259,6 +259,22 @@ add API for external play commands
 fix for remote control (external content)
 fix websocket ping
 limit max itemupdates
+optimize code
+fix homevideos sync
+fix audiobook sync
+fix podcast sync
+fix special features progress updates
+add translations
+add bookmarks
+fix movie progress update
+fix picture issue
+fix cancel option on multiselection
+improve websocket error detection and add additional logging
+fix delete item via context menu
+fix multivideo selection cancel option
+improve multiselection 3D-content loading time
+fix limitindex
+fix invalid timestamps 
 
 
 6.0.13 (beta)

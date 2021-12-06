@@ -219,15 +219,6 @@ class VideoDatabase:
         self.cursor.execute("SELECT coalesce(max(studio_id), 0) FROM studio")
         return self.cursor.fetchone()[0] + 1
 
-    def create_entry_bookmark(self):
-        self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
-        return self.cursor.fetchone()[0] + 1
-
-    def get_bookmark(self, idFile):
-        self.cursor.execute("SELECT * FROM bookmark WHERE idFile = ?", (idFile,))
-        Data = self.cursor.fetchone()
-        return Data
-
     def get_files(self, idFile):
         self.cursor.execute("SELECT * FROM files WHERE idFile = ?", (idFile,))
         Data = self.cursor.fetchone()
@@ -416,15 +407,33 @@ class VideoDatabase:
     def add_stream_sub(self, *args):
         self.cursor.execute("INSERT OR REPLACE INTO streamdetails(idFile, iStreamType, strSubtitleLanguage) VALUES (?, ?, ?)", args)
 
+    def create_entry_bookmark(self):
+        self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
+        return self.cursor.fetchone()[0] + 1
+
+    def get_bookmark(self, idFile):
+        self.cursor.execute("SELECT * FROM bookmark WHERE idFile = ? AND type = ?", (idFile, "1"))
+        Data = self.cursor.fetchone()
+        return Data
+
+    def delete_bookmark(self, file_id):
+        self.cursor.execute("DELETE FROM bookmark WHERE idFile = ?", (file_id,))
+
+    def add_bookmark(self, file_id, ChapterTime, Runtime, ChapterImage):
+        bookmark_id = self.create_entry_bookmark()
+        self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, thumbNailImage, player, type) VALUES (?, ?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, ChapterTime, Runtime, ChapterImage, "VideoPlayer", 0))
+
     # Delete the existing resume point
     # Set the watched count
-    def add_playstate(self, file_id, playcount, date_played, resume, Runtime):
-        self.cursor.execute("DELETE FROM bookmark WHERE idFile = ?", (file_id,))
+    def add_playstate(self, file_id, playcount, date_played, resume, Runtime, UserdataUpdate):
+        if UserdataUpdate:
+            self.cursor.execute("DELETE FROM bookmark WHERE idFile = ? AND type = ?", (file_id, "1"))
+
         self.set_playcount(playcount, date_played, file_id)
 
         if resume:
             bookmark_id = self.create_entry_bookmark()
-            self.cursor.execute("INSERT OR REPLACE INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume, Runtime, "DVDPlayer", 1))
+            self.cursor.execute("INSERT OR REPLACE INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume, Runtime, "VideoPlayer", 1))
 
     def set_playcount(self, *args):
         self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", args)

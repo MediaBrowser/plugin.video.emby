@@ -27,8 +27,7 @@ else:
     PluginId = "plugin.video.emby"
 
 LOG = loghandler.LOG('EMBY.helper.utils')
-KodiDBLockMusic = False
-KodiDBLockVideo = False
+KodiDBLock = {"music": False, "video": False}
 Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
@@ -308,12 +307,17 @@ def convert_to_local(date):
 
     timestamp = (date - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
 
-    if timestamp >= 0:
-        timestamp = datetime.fromtimestamp(timestamp)
-    else:
-        timestamp = datetime(1970, 1, 1) + timedelta(seconds=int(timestamp))
+    try:
+        if timestamp >= 0:
+            timestamp = datetime.fromtimestamp(timestamp)
+        else:
+            timestamp = datetime(1970, 1, 1) + timedelta(seconds=int(timestamp))
+    except:
+        LOG.warning("invalid timestamp")
+        return ""
 
     if timestamp.year < 1900:
+        LOG.warning("invalid timestamp < 1900")
         return ""
 
     return timestamp.strftime('%Y-%m-%dT%H:%M:%S')
@@ -671,7 +675,7 @@ def set_settings_bool(setting, value):
 def get_path_type_from_item(server_id, item):
     path = ""
 
-    if item['Type'] == 'Photo':
+    if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
         path = "plugin://%s/?mode=photoviewer&id=%s&server=%s&imageid=%s" % (PluginId, item['Id'], server_id, item['ImageTags']['Primary'])
         return path, "picture"
 
@@ -709,6 +713,7 @@ mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
 limitIndex = int(limitIndex)
+startupDelay = int(startupDelay)
 set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
