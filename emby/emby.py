@@ -20,7 +20,7 @@ from . import connection_manager
 
 XbmcMonitor = xbmc.Monitor()
 XmlPath = (xbmcaddon.Addon(Utils.PluginId).getAddonInfo('path'), "default", "1080i")
-LOG = helper.loghandler.LOG('EMBY.emby.emby.EmbyServer')
+LOG = helper.loghandler.LOG('EMBY.emby.emby')
 
 
 class EmbyServer:

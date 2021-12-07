@@ -90,7 +90,7 @@ def library_check(e_item, ItemId, library, API, Whitelist):
 def Check_LibraryIsSynced(library_id, Whitelist):
     Library_Name = ""
 
-    for LibraryId, Value in Whitelist.items():
+    for LibraryId, Value in list(Whitelist.items()):
         if library_id == LibraryId:
             Library_Name = Value[1]
             break

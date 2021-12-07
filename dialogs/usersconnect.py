@@ -10,7 +10,7 @@ ACTION_MOUSE_LEFT_CLICK = 100
 LIST = 155
 MANUAL = 200
 CANCEL = 201
-LOG = helper.loghandler.LOG('EMBY.dialogs.userconnect.UsersConnect')
+LOG = helper.loghandler.LOG('EMBY.dialogs.userconnect')
 
 
 class UsersConnect(xbmcgui.WindowXMLDialog):

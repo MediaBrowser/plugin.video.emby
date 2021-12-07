@@ -4,7 +4,7 @@ import requests
 import helper.utils as Utils
 import helper.loghandler
 
-LOG = helper.loghandler.LOG('EMBY.core.HTTP')
+LOG = helper.loghandler.LOG('EMBY.emby.http')
 
 
 class HTTP:

@@ -10,7 +10,7 @@ from . import utils as Utils
 
 XmlPath = (xbmcaddon.Addon(Utils.PluginId).getAddonInfo('path'), "default", "1080i")
 SelectOptions = {'Refresh': Utils.Translate(30410), 'Delete': Utils.Translate(30409), 'Addon': Utils.Translate(30408), 'AddFav': Utils.Translate(30405), 'RemoveFav': Utils.Translate(30406), 'SpecialFeatures': "Special Features"}
-LOG = loghandler.LOG('EMBY.context.Context')
+LOG = loghandler.LOG('EMBY.helper.context')
 
 
 class Context:

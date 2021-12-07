@@ -93,7 +93,7 @@ class Library:
             LOG.info("-->[ retrieve changes ] %s / %s" % (self.LastRealtimeSync, self.LastStartSync))
 
             for UserSync in (False, True):
-                for LibraryId, Value in self.Whitelist.items():
+                for LibraryId, Value in list(self.Whitelist.items()):
                     if LibraryId not in self.EmbyServer.Views.ViewItems:
                         LOG.info("[ InitSync remove library %s ]" % LibraryId)
                         continue
@@ -124,7 +124,7 @@ class Library:
 
                         UpdateData += ItemTemp
 
-            UpdateData = list(filter(None, UpdateData))
+            UpdateData = list([_f for _f in UpdateData if _f])
 
             if KodiCompanion:
                 result = self.EmbyServer.API.get_sync_queue(self.LastRealtimeSync, None)  # Kodi companion
@@ -733,7 +733,7 @@ class Library:
         libraries = []
 
         if mode in ('SyncLibrarySelection', 'RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
-            for LibraryId, Value in self.Whitelist.items():
+            for LibraryId, Value in list(self.Whitelist.items()):
                 AddData = {'Id': LibraryId, 'Name': Value[1]}
 
                 if AddData not in libraries:
@@ -744,7 +744,7 @@ class Library:
             for LibraryId in self.Whitelist:
                 del AvailableLibs[LibraryId]
 
-            for AvailableLibId, AvailableLib in AvailableLibs.items():
+            for AvailableLibId, AvailableLib in list(AvailableLibs.items()):
                 if AvailableLib[1] in ["movies", "musicvideos", "tvshows", "music", "audiobooks", "podcasts", "mixed", "homevideos"]:
                     libraries.append({'Id': AvailableLibId, 'Name': AvailableLib[0]})
 
@@ -789,7 +789,7 @@ class Library:
         xbmc.executebuiltin('activatewindow(home)')
         embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
 
-        for LibraryId, Value in self.Whitelist.items():
+        for LibraryId, Value in list(self.Whitelist.items()):
             if Value[0] == "movies":
                 embydb.add_PendingSync(LibraryId, "boxsets", Value[1], None)
 
@@ -974,7 +974,6 @@ def ItemsSort(Items, LibraryData):
             continue
 
     return ItemsAudio, ItemsMovie, ItemsBoxSet, ItemsMusicVideo, ItemsSeries, ItemsEpisode, ItemsMusicAlbum, ItemsMusicArtist, ItemsAlbumArtist, ItemsSeason
-
 
 def StringToDict(Data):
     Data = Data.replace("'", '"')

@@ -11,7 +11,7 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual.ServerManual')
+LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual')
 
 
 class ServerManual(xbmcgui.WindowXMLDialog):

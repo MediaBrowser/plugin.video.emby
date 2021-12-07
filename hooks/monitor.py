@@ -23,7 +23,7 @@ if Utils.Python3:
 else:
     from urllib import quote_plus
 
-LOG = helper.loghandler.LOG('EMBY.hooks.monitor.Monitor')
+LOG = helper.loghandler.LOG('EMBY.hooks.monitor')
 
 
 class Monitor(xbmc.Monitor):
@@ -89,7 +89,8 @@ class Monitor(xbmc.Monitor):
         client.send(b"1")
 
     def onNotification(self, sender, method, data):
-        threading.Thread(target=self.Notification, args=(sender, method, data,)).start()
+        if method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'VideoLibrary.OnUpdate', 'Other.play'): # Skip unsupported notifications -> "Playlist.OnAdd" floats threading! Never let that happen
+            threading.Thread(target=self.Notification, args=(sender, method, data,)).start()
 
     def Notification(self, sender, method, data):  # threaded by caller
         if method == 'Other.managelibsselection':

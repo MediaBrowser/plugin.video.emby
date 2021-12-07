@@ -13,7 +13,7 @@ else:
     from urllib import unquote_plus
 
 XbmcMonitor = xbmc.Monitor()
-LOG = helper.loghandler.LOG('EMBY.hooks.player.Player')
+LOG = helper.loghandler.LOG('EMBY.hooks.player')
 
 
 class PlayerEvents(xbmc.Player):

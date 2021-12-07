@@ -7,7 +7,7 @@ import helper.xmls as xmls
 import helper.loghandler
 
 Monitor = hooks.monitor.Monitor()
-LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
+LOG = helper.loghandler.LOG('EMBY.service')
 
 
 def ServersConnect():

@@ -4,7 +4,7 @@ import helper.utils as Utils
 import emby.obj_ops as Objects
 from . import common as Common
 
-LOG = helper.loghandler.LOG('EMBY.core.tvshows.TVShows')
+LOG = helper.loghandler.LOG('EMBY.core.tvshows')
 
 
 class TVShows:

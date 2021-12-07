@@ -10,7 +10,7 @@ import helper.xmls as xmls
 
 blankfileData = Utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.wav")
 blankfileSize = len(blankfileData)
-LOG = helper.loghandler.LOG('EMBY.hooks.webservice.WebService')
+LOG = helper.loghandler.LOG('EMBY.hooks.webservice')
 
 
 # Run a webservice to capture playback and incomming events.
