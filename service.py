@@ -7,12 +7,13 @@ import helper.xmls as xmls
 import helper.loghandler
 
 Monitor = hooks.monitor.Monitor()
-LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
+LOG = helper.loghandler.LOG('EMBY.service')
 
 
 def ServersConnect():
     if Utils.startupDelay:
-        xbmc.sleep(int(Utils.startupDelay) * 1000)
+        if Monitor.waitForAbort(Utils.startupDelay):
+            return
 
         if Utils.SystemShutdown:
             return
@@ -36,7 +37,7 @@ def ServersConnect():
             xbmc.executebuiltin('UpdateLibrary(music)')
 
     # Shutdown
-    xbmc.Monitor().waitForAbort()
+    Monitor.waitForAbort()
 
     if not Utils.SystemShutdown:
         Utils.SyncPause = True
@@ -52,10 +53,8 @@ def setup():
     if Utils.MinimumSetup == Utils.MinimumVersion:
         return True
 
-    cached = Utils.MinimumSetup
-
     # Clean installation
-    if not cached:
+    if not Utils.MinimumSetup:
         value = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33221))
 
         if value:
@@ -84,7 +83,9 @@ def setup():
     Utils.set_settings('MinimumSetup', Utils.MinimumVersion)
     Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33223), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=960000, sound=True)
     DeleteArtwork = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33086))
-    xbmc.sleep(5000)  # Give Kodi time to complete startup before reset
+
+    if Monitor.waitForAbort(5):  # Give Kodi time to complete startup before reset
+        return False
 
     # delete settings
     _, files = Utils.listDir(Utils.FolderAddonUserdata)

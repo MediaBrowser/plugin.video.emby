@@ -16,7 +16,7 @@ MESSAGE = 203
 BUSY = 204
 EMBY_CONNECT = 205
 MANUAL_SERVER = 206
-LOG = helper.loghandler.LOG('EMBY.dialogs.serverconnect.ServerConnect')
+LOG = helper.loghandler.LOG('EMBY.dialogs.serverconnect')
 
 
 class ServerConnect(xbmcgui.WindowXMLDialog):

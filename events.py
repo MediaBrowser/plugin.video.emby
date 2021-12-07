@@ -3,7 +3,6 @@ import sys
 import socket
 import xbmc
 
-
 if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
     from urllib.parse import parse_qsl
 else:

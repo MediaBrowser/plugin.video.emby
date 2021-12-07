@@ -12,7 +12,8 @@ if Utils.Python3:
 else:
     from urllib import unquote_plus
 
-LOG = helper.loghandler.LOG('EMBY.hooks.player.Player')
+XbmcMonitor = xbmc.Monitor()
+LOG = helper.loghandler.LOG('EMBY.hooks.player')
 
 
 class PlayerEvents(xbmc.Player):
@@ -157,7 +158,7 @@ class PlayerEvents(xbmc.Player):
                     MediasourceID = ""
 
                     if len(MediaSources) > 1:
-                        self.pause()
+                        self.pause()  # Player Pause
                         Selection = []
 
                         for Data in MediaSources:
@@ -165,10 +166,14 @@ class PlayerEvents(xbmc.Player):
 
                         MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
 
-                        if MediaIndex <= 0:
+                        if MediaIndex == -1:
+                            self.Cancel()
+                            return
+
+                        if MediaIndex == 0:
                             MediasourceID = MediaSources[0][2]
                             EmbyId = MediaSources[0][0]
-                            self.pause()
+                            self.pause()  # Player Resume
                         else:
                             self.MultiselectionDone = True
                             Details = Utils.load_VideoitemFromKodiDB(media_type, str(kodi_id))
@@ -203,6 +208,7 @@ class PlayerEvents(xbmc.Player):
             self.PlayingItem['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
 
             if self.EmbyServer and 'ItemId' in self.PlayingItem:
+                xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
@@ -211,16 +217,15 @@ class PlayerEvents(xbmc.Player):
 
     def PositionTracker(self):  # threaded
         while self.EmbyServer and "ItemId" in self.PlayingItem and not Utils.SystemShutdown:
-            xbmc.sleep(4000)
+            if not XbmcMonitor.waitForAbort(4):
+                if self.isPlaying():
+                    PositionTicks = int(self.getTime() * 10000000)
 
-            if self.isPlaying():
-                PositionTicks = int(self.getTime() * 10000000)
+                    if PositionTicks < 0:
+                        PositionTicks = 0
 
-                if PositionTicks < 0:
-                    PositionTicks = 0
-
-                self.PlayingItem['PositionTicks'] = PositionTicks
-                self.EmbyServer.API.session_progress(self.PlayingItem)
+                    self.PlayingItem['PositionTicks'] = PositionTicks
+                    self.EmbyServer.API.session_progress(self.PlayingItem)
 
         self.PositionTrackerThread = None
 
@@ -353,6 +358,16 @@ class PlayerEvents(xbmc.Player):
             return
 
         self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
+
+        # Continue sync jobs
+        ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration
+
+        for ServerId in ServerIds:
+            threading.Thread(target=self.EmbyServers[ServerId].library.RunJobs).start()
+
+    def Cancel(self):
+        self.stop()
+        Utils.SyncPause = False
 
         # Continue sync jobs
         ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration

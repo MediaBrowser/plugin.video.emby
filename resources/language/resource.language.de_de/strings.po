@@ -1224,3 +1224,7 @@ msgstr "Inkrementelles synchronisations Datum"
 msgctxt "#33260"
 msgid "Incremental sync time"
 msgstr "Inkrementelle synchronisations Zeit"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Sammle entfernte Objekte"

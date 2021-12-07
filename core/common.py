@@ -12,7 +12,7 @@ else:
 LOG = helper.loghandler.LOG('EMBY.core.common')
 
 
-def add_Multiversion(obj, emby_db, emby_type, API):
+def add_Multiversion(obj, emby_db, ItemType, API):
     MediaStreamsTotal = len(obj['Item']['MediaSources'])
     ExistingItem = None
 
@@ -31,21 +31,19 @@ def add_Multiversion(obj, emby_db, emby_type, API):
             obj['Id'] = ItemReferenced['Id']
 
             if not e_MultiItem:
-                if emby_type == "Episode":
-                    emby_db.add_reference(obj['Id'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['KodiPathId'], "Episode", "episode", obj['KodiSeasonId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
-                elif emby_type == "Movie":
-                    emby_db.add_reference(obj['Id'], obj['KodiMovieId'], obj['KodiFileId'], obj['KodiPathId'], "Movie", "movie", None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
-                elif emby_type == "MusicVideo":
-                    emby_db.add_reference(obj['Id'], obj['KodiMvideoId'], obj['KodiFileId'], obj['KodiPathId'], "MusicVideo", "musicvideo", None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
+                if ItemType == "episode":
+                    emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "Episode", ItemType, obj['KodiSeasonId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
+                elif ItemType == "movie":
+                    emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "Movie", ItemType, None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
+                elif ItemType == "musicvideo":
+                    emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "MusicVideo", ItemType, None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
 
                 Streamdata_add(obj, emby_db, False)
             else:
-                if emby_type == "Episode":
-                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiEpisodeId'], obj['KodiFileId'], obj['KodiPathId'], obj['KodiSeasonId'])
-                elif emby_type == "Movie":
-                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiMovieId'], obj['KodiFileId'], obj['KodiPathId'], None)
-                elif emby_type == "MusicVideo":
-                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiMvideoId'], obj['KodiFileId'], obj['KodiPathId'], None)
+                if ItemType == "episode":
+                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], obj['KodiSeasonId'])
+                else:
+                    emby_db.update_reference_multiversion(obj['Id'], obj['PresentationKey'], obj['Favorite'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], None)
 
                 Streamdata_add(obj, emby_db, True)
                 LOG.debug("Multiversion video detected, referenced item exists: %s" % ItemReferenced['Id'])
@@ -92,9 +90,9 @@ def library_check(e_item, ItemId, library, API, Whitelist):
 def Check_LibraryIsSynced(library_id, Whitelist):
     Library_Name = ""
 
-    for SyncedLib in Whitelist:
-        if library_id == SyncedLib[0]:
-            Library_Name = SyncedLib[2]
+    for LibraryId, Value in list(Whitelist.items()):
+        if library_id == LibraryId:
+            Library_Name = Value[1]
             break
 
     if not Library_Name:
@@ -158,62 +156,44 @@ def get_filename(obj, MediaID, API):
     else:
         CodecVideo = ""
 
-    if MediaID == "tvshows":
-        if Temp.endswith(".iso"):
-            Filename = "embyiso-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiEpisodeId'], obj['KodiFileId'], "episode", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, "iso-container.mp4")
-        else:
-            try:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiEpisodeId'], obj['KodiFileId'], "episode", obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-            except:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiEpisodeId'], obj['KodiFileId'], "episode", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-                LOG.warning("No video bitrate available %s" % Utils.StringEncode(obj['Item']['Path']))
-    elif MediaID == "movies":
-        if Temp.endswith(".iso"):
-            Filename = "embyiso-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMovieId'], obj['KodiFileId'], "movie", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, "iso-container.mp4")
-        else:
-            try:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMovieId'], obj['KodiFileId'], "movie", obj['Item']['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-            except:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMovieId'], obj['KodiFileId'], "movie", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-                LOG.warning("No video bitrate available %s" % Utils.StringEncode(obj['Item']['Path']))
-    elif MediaID == "musicvideos":
-        if Temp.endswith(".iso"):
-            Filename = "embyiso-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMvideoId'], obj['KodiFileId'], "musicvideo", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-        else:
-            try:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMvideoId'], obj['KodiFileId'], "musicvideo", obj['Streams']['video'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-            except:
-                Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiMvideoId'], obj['KodiFileId'], "musicvideo", 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-                LOG.warning("No video bitrate available %s" % Utils.StringEncode(obj['Item']['Path']))
-    elif MediaID == "audio":
+    if MediaID == "audio":
         Filename = "embyaudio-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], PresentationKey, "song", Filename)
         return Filename
 
-    # Detect Multipart videos
-    if 'PartCount' in obj['Item']:
-        if (obj['Item']['PartCount']) >= 2:
-            AdditionalParts = API.get_additional_parts(obj['Id'])
-            obj['StackTimes'] = str(obj['Runtime'])
-            StackedFilename = obj['Path'] + Filename
+    if Temp.endswith(".iso"):
+        Filename = "embyiso-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiItemId'], obj['KodiFileId'], MediaID, 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, "iso-container.mp4")
+    else:
+        try:
+            Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiItemId'], obj['KodiFileId'], MediaID, obj['Streams']['video'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
+        except:
+            Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiItemId'], obj['KodiFileId'], MediaID, 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
+            LOG.warning("No video bitrate available %s" % Utils.StringEncode(obj['Item']['Path']))
 
-            for AdditionalItem in AdditionalParts['Items']:
-                AdditionalFilename = Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
-                AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
+        # Detect Multipart videos
+        if 'PartCount' in obj['Item']:
+            if (obj['Item']['PartCount']) >= 2:
+                AdditionalParts = API.get_additional_parts(obj['Id'])
+                obj['StackTimes'] = str(obj['Runtime'])
+                StackedFilename = obj['Path'] + Filename
 
-                try:
-                    StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], obj['CodecVideo'], AdditionalFilename)
-                except:
-                    StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], "movie", "", obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
+                for AdditionalItem in AdditionalParts['Items']:
+                    AdditionalFilename = Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
+                    AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
 
-                if 'RunTimeTicks' in AdditionalItem:
-                    RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
-                else:
-                    RunTimePart = 0
+                    try:
+                        StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], MediaID, AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], obj['CodecVideo'], AdditionalFilename)
+                    except:
+                        StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], MediaID, "", obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
 
-                obj['Runtime'] += RunTimePart
-                obj['StackTimes'] = "%s,%s" % (obj['StackTimes'], obj['Runtime'])
+                    if 'RunTimeTicks' in AdditionalItem:
+                        RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
+                    else:
+                        RunTimePart = 0
 
-            Filename = "stack://" + StackedFilename
+                    obj['Runtime'] += RunTimePart
+                    obj['StackTimes'] = "%s,%s" % (obj['StackTimes'], obj['Runtime'])
+
+                Filename = "stack://" + StackedFilename
 
     return Filename
 
@@ -504,7 +484,6 @@ def get_runtime(item):
 
     return runtime
 
-
 def get_overview(overview, item):
     overview = overview or item.get('Overview')
 
@@ -552,7 +531,7 @@ def get_people_artwork(people, ServerId):
 
 # Get all artwork possible. If parent_info is True, it will fill missing artwork with parent artwork.
 def get_all_artwork(obj, parent_info, ServerId):
-    all_artwork = {'Backdrop': get_backdrops(obj['Id'], obj['BackdropTags'] or [], ServerId), 'Thumb': ""}
+    all_artwork = {'Backdrop': get_backdrops(obj['Id'], obj['BackdropTags'] or [], ServerId), 'Thumb': "", 'Primary': ""}
 
     for artwork in (obj['Tags'] or []):
         all_artwork[artwork] = "http://127.0.0.1:57578/embyimage-%s-%s-0-%s-%s" % (ServerId, obj['Id'], artwork, obj['Tags'][artwork])
@@ -590,3 +569,19 @@ def get_backdrops(item_id, tags, ServerId):
         backdrops.append(artwork)
 
     return backdrops
+
+# Update Chapters
+def add_update_chapters(obj, video_db, server_id):
+    video_db.delete_bookmark(obj['KodiFileId'])
+
+    if 'Chapters' in obj['Item']:
+        if len(obj["Item"]['Chapters']) > 3:
+            if "01" not in obj["Item"]['Chapters']:  # some magic to detect autogenerated chapters
+                if int(obj["Item"]['Chapters'][1]["StartPositionTicks"]) % 3000000000 == 0 or int(obj["Item"]['Chapters'][3]["StartPositionTicks"]) % 3000000000 == 0:  # some more magic: modulo -> detect autogenerated chapters (2nd and 3rd chapter)
+                    for index, Chapter in enumerate(obj["Item"]['Chapters']):
+                        if "ImageTag" in Chapter:
+                            ChapterImage = "http://127.0.0.1:57578/embyimage-%s-%s-%s-Chapter-%s" % (server_id, obj['Id'], index, Chapter['ImageTag'])
+                        else:
+                            ChapterImage = None
+
+                        video_db.add_bookmark(obj['KodiFileId'], round(float((Chapter["StartPositionTicks"] or 0) / 10000000.0), 6), obj['Runtime'], ChapterImage)

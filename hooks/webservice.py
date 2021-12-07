@@ -8,7 +8,9 @@ import helper.loghandler
 import helper.utils as Utils
 import helper.xmls as xmls
 
-LOG = helper.loghandler.LOG('EMBY.hooks.webservice.WebService')
+blankfileData = Utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.wav")
+blankfileSize = len(blankfileData)
+LOG = helper.loghandler.LOG('EMBY.hooks.webservice')
 
 
 # Run a webservice to capture playback and incomming events.
@@ -21,13 +23,12 @@ class WebService(threading.Thread):
         self.embydb = None
         self.IntrosIndex = 0
         self.SkipItemVideo = ""
-        self.blankfileData = Utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.m4v")
-        self.blankfileSize = len(self.blankfileData)
         self.TrailerInitialItem = ""
         self.PlaySessionId = ""
         self.socket = None
         self.QueryDataPrevious = {}
         self.DefaultVideoSettings = {}
+        self.Cancel = False
         threading.Thread.__init__(self)
 
     def Update_EmbyServers(self, EmbyServers):
@@ -89,11 +90,6 @@ class WebService(threading.Thread):
 
         client.close()
 
-    def SendBlankFile(self, client):
-        Response = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: %s\r\nContent-type: video/mp4\r\n\r\n' % self.blankfileSize
-        Response = Response.encode()
-        client.send(Response + self.blankfileData)
-
     def LoadISO(self, QueryData, MediaIndex):
         self.Player.MultiselectionDone = True
         self.embydb = database.db_open.DBOpen(Utils.DatabaseFiles, QueryData['ServerId'])
@@ -124,7 +120,7 @@ class WebService(threading.Thread):
 
         if Data == "RELOAD":
             self.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaType'], QueryData['MediasourceID'], self.PlaySessionId)
-            self.SendBlankFile(client)
+            SendBlankFile(client)
             return
 
         Response = 'HTTP/1.1 302 Found\r\nServer: Emby-Next-Gen\r\nLocation: %s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % Data
@@ -146,6 +142,12 @@ class WebService(threading.Thread):
 
         if "emby" not in Payload:  # nfo query for folder, not for item -> return
             SendResponseOK(client)
+            return
+
+        if self.Cancel:
+            self.Cancel = False
+            SendBlankFile(client)
+            self.Player.Cancel()
             return
 
         QueryData = GetParametersFromURLQuery(Payload)
@@ -246,8 +248,10 @@ class WebService(threading.Thread):
 
             MediaIndex = Utils.dialog("select", heading="Select Media Source:", list=Selection)
 
-            if MediaIndex <= 0:
-                MediaIndex = 0
+            if MediaIndex == -1:
+                self.Cancel = True
+                SendBlankFile(client)
+                return
 
             # check if multiselection must be forced as native
             if QueryData['MediaSources'][MediaIndex][3].lower().endswith(".iso"):
@@ -516,6 +520,11 @@ def SendResponseOK(client):
     header = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'
     response = header.encode()
     client.send(response)
+
+def SendBlankFile(client):
+    Response = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: %s\r\nContent-type: audio/wav\r\n\r\n' % blankfileSize
+    Response = Response.encode()
+    client.send(Response + blankfileData)
 
 def GetParametersFromURLQuery(Payload):
     Temp = Payload[Payload.rfind("/") + 1:]

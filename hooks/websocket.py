@@ -7,6 +7,7 @@ import struct
 import uuid
 import base64
 import socket
+import hashlib
 import ssl
 import xbmc
 import helper.loghandler
@@ -18,6 +19,7 @@ if Utils.Python3:
 else:
     from urlparse import urlparse
 
+XbmcMonitor = xbmc.Monitor()
 LOG = helper.loghandler.LOG('Emby.hooks.websocket')
 
 
@@ -65,6 +67,7 @@ class WSClient(threading.Thread):
                     threading.Thread(target=self.on_message, args=(data,)).start()
         else:
             LOG.info("[ websocket failed ]")
+            self.close()
 
         LOG.info("---<[ websocket ]")
 
@@ -112,8 +115,8 @@ class WSClient(threading.Thread):
         hostport = "%s:%d" % (hostname, port)
         headers.append("Host: %s" % hostport)
         uid = uuid.uuid4()
-        key = base64.b64encode(uid.bytes).strip().decode('utf-8')
-        headers.append("Sec-WebSocket-Key: %s" % key)
+        EncodingKey = base64.b64encode(uid.bytes).strip().decode('utf-8')
+        headers.append("Sec-WebSocket-Key: %s" % EncodingKey)
         headers.append("Sec-WebSocket-Version: 13")
         headers.append("")
         headers.append("")
@@ -150,6 +153,13 @@ class WSClient(threading.Thread):
                 if len(kv) == 2:
                     key, value = kv
                     headers[key.lower()] = value.strip()
+                else:
+                    LOG.debug("invalid haeader")
+                    return False
+
+        if status != 101:
+            LOG.debug("Handshake status %d" % status)
+            return False
 
         # Validate Headers
         result = headers.get("sec-websocket-accept", None)
@@ -158,7 +168,10 @@ class WSClient(threading.Thread):
             Utils.dialog("notification", heading=Utils.addon_name, icon="DefaultIconError.png", message=Utils.Translate(33235), sound=True)
             return False
 
-        return True
+        value = EncodingKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+        value = value.encode("utf-8")
+        hashed = base64.b64encode(hashlib.sha1(value).digest()).strip().lower().decode('utf-8')
+        return hashed == result.lower()
 
     def sendCommands(self, payload, opcode):
         if opcode == 0x1:
@@ -189,7 +202,8 @@ class WSClient(threading.Thread):
     def ping(self):
         while True:
             for _ in range(10):
-                xbmc.sleep(1000)
+                if XbmcMonitor.waitForAbort(1):
+                    return
 
                 if self.stop or Utils.SystemShutdown:
                     return
@@ -265,6 +279,9 @@ class WSClient(threading.Thread):
                 return False
             elif opcode == 0xa:
                 return False
+            else:
+                LOG.error("Uncovered opcode: %s" % opcode)
+                return False
 
     def _recv_strict(self, bufsize):
         shortage = bufsize - sum(len(x) for x in self._recv_buffer)
@@ -289,6 +306,7 @@ class WSClient(threading.Thread):
 
     def on_message(self, IncommingData):  # threaded
         IncommingData = IncommingData[1].decode('utf-8')
+        LOG.debug("Incomming data: %s" % IncommingData)
         IncommingData = json.loads(IncommingData)
 
         if IncommingData['MessageType'] == 'GeneralCommand':
@@ -363,12 +381,18 @@ class WSClient(threading.Thread):
                 Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33006), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
             self.EmbyServer.Online = False
-            xbmc.sleep(5000)
+
+            if XbmcMonitor.waitForAbort(5):
+                return
+
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'ServerShuttingDown':
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33236))
             self.EmbyServer.Online = False
-            xbmc.sleep(5000)
+
+            if XbmcMonitor.waitForAbort(5):
+                return
+
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'RestartRequired':
             Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33237))

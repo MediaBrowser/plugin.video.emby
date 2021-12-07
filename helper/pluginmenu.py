@@ -15,7 +15,7 @@ if Utils.Python3:
 else:
     from urllib import urlencode
 
-LOG = loghandler.LOG('EMBY.helper.pluginmenu.Menu')
+LOG = loghandler.LOG('EMBY.helper.pluginmenu')
 
 
 class Menu:

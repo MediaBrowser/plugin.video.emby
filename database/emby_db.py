@@ -20,6 +20,9 @@ class EmbyDatabase:
         self.cursor.execute("CREATE TABLE IF NOT EXISTS LastIncrementalSync (Type TEXT UNIQUE, Date TEXT)")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS PendingSync (emby_folder TEXT, library_type TEXT, library_name TEXT, RestorePoint TEXT)")
 
+        # remove boxsets
+        self.cursor.execute("DELETE FROM Whitelist WHERE library_type = 'boxsets'")
+
     def remove_items_by_emby_parent_id(self, emby_parent_id, emby_folder, emby_type):
         self.cursor.execute("DELETE FROM mapping WHERE emby_parent_id = ? AND emby_type = ? AND emby_folder = ?", (emby_parent_id, emby_type, emby_folder))
 
@@ -60,7 +63,18 @@ class EmbyDatabase:
 
     def get_Whitelist(self):
         self.cursor.execute("SELECT * FROM Whitelist")
-        return self.cursor.fetchall()
+
+        Libs = self.cursor.fetchall()
+
+        if Libs:
+            SyncedLibs = {}
+
+            for Lib in Libs:
+                SyncedLibs[Lib[0]] = (Lib[1], Lib[2])
+
+            return SyncedLibs
+
+        return {}
 
     def add_Whitelist(self, emby_folder, library_type, library_name):
         self.cursor.execute("SELECT * FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
@@ -68,11 +82,11 @@ class EmbyDatabase:
         if not self.cursor.fetchone():
             self.cursor.execute("INSERT INTO Whitelist (emby_folder, library_type, library_name) VALUES (?, ?, ?)", (emby_folder, library_type, library_name))
 
-        return self.get_Whitelist()
-
     def remove_Whitelist(self, emby_folder, library_type, library_name):
         self.cursor.execute("DELETE FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))
-        return self.get_Whitelist()
+
+    def remove_Whitelist_wild(self, emby_folder):
+        self.cursor.execute("DELETE FROM Whitelist WHERE emby_folder = ?", (emby_folder,))
 
     def get_LastIncrementalSync(self, Type):
         self.cursor.execute("SELECT * FROM LastIncrementalSync WHERE Type = ?", (Type,))
@@ -174,17 +188,12 @@ class EmbyDatabase:
         self.cursor.execute("SELECT * FROM mapping WHERE kodi_id = ? AND kodi_type = ?", args)
         return self.cursor.fetchone()
 
-    def get_media_by_id(self, *args):
-        self.cursor.execute("SELECT emby_type FROM mapping WHERE emby_id = ?", args)
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return None
-
     def get_media_by_parent_id(self, *args):
-        self.cursor.execute("SELECT emby_id, emby_type, kodi_id, kodi_fileid FROM mapping WHERE emby_parent_id = ?", args)
+        self.cursor.execute("SELECT emby_id, emby_type, kodi_id, kodi_fileid, emby_folder FROM mapping WHERE emby_parent_id = ?", args)
+        return self.cursor.fetchall()
+
+    def get_media_by_id(self, *args):
+        self.cursor.execute("SELECT emby_id, emby_type, kodi_id, kodi_fileid, emby_folder FROM mapping WHERE emby_id = ?", args)
         return self.cursor.fetchall()
 
     def get_special_features(self, *args):

@@ -11,7 +11,7 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = helper.loghandler.LOG('EMBY.dialogs.loginconnect.LoginConnect')
+LOG = helper.loghandler.LOG('EMBY.dialogs.loginconnect')
 
 
 class LoginConnect(xbmcgui.WindowXMLDialog):

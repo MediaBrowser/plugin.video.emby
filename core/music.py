@@ -4,7 +4,7 @@ import helper.utils as Utils
 import emby.obj_ops as Objects
 from . import common as Common
 
-LOG = helper.loghandler.LOG('EMBY.core.music.Music')
+LOG = helper.loghandler.LOG('EMBY.core.music')
 
 
 class Music:
@@ -12,7 +12,6 @@ class Music:
         self.EmbyServer = EmbyServer
         self.emby_db = embydb
         self.music_db = musicdb
-        self.music_db.disable_rescan()
         self.library = None
         self.ArtistID = None
         self.AlbumID = None

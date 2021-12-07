@@ -2,7 +2,7 @@
 import xbmcgui
 import helper.loghandler
 
-LOG = helper.loghandler.LOG('EMBY.dialogs.context.ContextMenu')
+LOG = helper.loghandler.LOG('EMBY.dialogs.context')
 
 
 class ContextMenu(xbmcgui.WindowXMLDialog):

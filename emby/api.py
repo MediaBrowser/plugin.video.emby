@@ -2,9 +2,9 @@
 import helper.utils as Utils
 import helper.loghandler
 
-info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount"
+info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount,Chapters"
 music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,CommunityRating,DateCreated,MediaStreams,People,ProviderIds,Overview,PresentationUniqueKey,Path,ParentId"
-LOG = helper.loghandler.LOG('EMBY.emby.api.API')
+LOG = helper.loghandler.LOG('EMBY.emby.api')
 
 
 class API:
@@ -115,6 +115,7 @@ class API:
             'Limit': limit,
             'IncludeItemTypes': media,
             'ParentId': parent_id,
+            'LocationTypes': "FileSystem,Remote,Offline",
             'Fields': self.browse_info
         }
 
@@ -134,6 +135,7 @@ class API:
                 'EnableUserData': True,
                 'EnableImages': True,
                 'UserId': self.EmbyServer.user_id,
+                'LocationTypes': "FileSystem,Remote,Offline",
                 'Fields': info
             }
         }
@@ -189,22 +191,8 @@ class API:
             yield items
 
     def get_item_library(self, Id):
-        params = {'Ids': Id, 'Fields': info}
+        params = {'Ids': Id, 'Fields': info, 'LocationTypes': "FileSystem,Remote,Offline"}
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    def get_itemsForSyncQueue(self, parent_id, item_type):  # query absolute minimum, used for loading sync queue
-        query = {
-            'url': "Users/%s/Items" % self.EmbyServer.user_id,
-            'params': {
-                'ParentId': parent_id,
-                'IncludeItemTypes': item_type,
-                'EnableTotalRecordCount': False,
-                'Recursive': True
-            }
-        }
-
-        for items in self._get_items(query):
-            yield items
 
     def get_TotalRecordsArtists(self, parent_id):
         params = {

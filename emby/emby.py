@@ -18,8 +18,9 @@ from . import api
 from . import http
 from . import connection_manager
 
+XbmcMonitor = xbmc.Monitor()
 XmlPath = (xbmcaddon.Addon(Utils.PluginId).getAddonInfo('path'), "default", "1080i")
-LOG = helper.loghandler.LOG('EMBY.emby.emby.EmbyServer')
+LOG = helper.loghandler.LOG('EMBY.emby.emby')
 
 
 class EmbyServer:
@@ -61,8 +62,7 @@ class EmbyServer:
 
             while True:
                 if Utils.SystemShutdown:
-                    self.ServerReconnecting = False
-                    return
+                    break
 
                 SignedIn, _ = self.register()
 
@@ -71,10 +71,13 @@ class EmbyServer:
 
                 # Delay reconnect: Fast 40 re-tries (first 10 seconds), after delay by 5 seconds
                 if Tries > 40:
-                    xbmc.sleep(5000)
+                    if XbmcMonitor.waitForAbort(5):
+                        break
                 else:
                     Tries += 1
-                    xbmc.sleep(250)
+
+                    if XbmcMonitor.waitForAbort(0.25):
+                        break
 
             self.ServerReconnecting = False
 
