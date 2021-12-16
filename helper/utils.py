@@ -4,6 +4,7 @@ import shutil
 import uuid
 import json
 from datetime import datetime, timedelta
+import requests
 from dateutil import tz, parser
 import xbmcvfs
 import xbmc
@@ -99,7 +100,7 @@ FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
 SystemShutdown = False
 WorkerInProgress = False
-
+WorkerPaused = False
 
 # Delete objects from kodi cache
 def delFolder(path):
@@ -671,6 +672,29 @@ def set_settings_bool(setting, value):
         Addon.setSetting(setting, "true")
     else:
         Addon.setSetting(setting, "false")
+
+def load_Trailers(EmbyServer, EmbyId): # for native content
+    Intros = []
+
+    if localTrailers:
+        IntrosLocal = EmbyServer.API.get_local_trailers(EmbyId)
+
+        for IntroLocal in IntrosLocal:
+            Intros.append(IntroLocal)
+
+    if Trailers:
+        IntrosExternal = EmbyServer.API.get_intros(EmbyId)
+
+        if 'Items' in IntrosExternal:
+            for IntroExternal in IntrosExternal['Items']:
+                r = requests.head(IntroExternal['Path'], allow_redirects=True)
+
+                if IntroExternal['Path'] == r.url:
+                    Intros.append(IntroExternal)
+                else:  # filter URL redirections, mostly invalid links
+                    LOG.error("Invalid Trailer Path: %s" % IntroExternal['Path'])
+
+    return Intros
 
 def get_path_type_from_item(server_id, item):
     path = ""

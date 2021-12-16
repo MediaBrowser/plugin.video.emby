@@ -60,11 +60,22 @@ class WSClient(threading.Thread):
             while not self.stop:
                 data = self.recv()
 
-                if data is None or self.stop:
+                if self.stop:
                     break
 
                 if data:
                     threading.Thread(target=self.on_message, args=(data,)).start()
+
+                if data is None:  # reconnecting
+                    while not self.stop:
+                        self.close()
+                        LOG.info("--->[ websocket reconnecting ]")
+                        xbmc.sleep(1000)
+
+                        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id)):
+                            threading.Thread(target=self.ping).start()
+                            LOG.info("---<[ websocket reconnecting ]")
+                            break
         else:
             LOG.info("[ websocket failed ]")
             self.close()
@@ -273,7 +284,7 @@ class WSClient(threading.Thread):
                     return data
             elif opcode == 0x8:
                 self.sendCommands(struct.pack('!H', 1000) + b"", 0x8)
-                return None
+                return False
             elif opcode == 0x9:
                 self.sendCommands(payload, 0xa)  # Pong
                 return False

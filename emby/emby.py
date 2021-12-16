@@ -104,6 +104,7 @@ class EmbyServer:
         session = self.API.get_device()
 
         if not session:
+            LOG.error("---[ SESSION ERROR EMBYCLIENT: %s ] %s ---" % (self.server_id, session))
             return False
 
         self.API.post_capabilities({
