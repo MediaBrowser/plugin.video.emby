@@ -4,6 +4,7 @@ import threading
 import json
 import xbmc
 import database.db_open
+import emby.listitem as ListItem
 import helper.loghandler
 import helper.utils as Utils
 
@@ -32,20 +33,22 @@ class PlayerEvents(xbmc.Player):
         result = result.get('result', {})
         self.volume = result.get('volume', 0)
         self.muted = result.get('muted', False)
+        self.TrailerPath = ""
+        self.Intros = []
+        self.playlistIndex = -1
+        self.AddonModeTrailerItem = None
 
     def StartUp(self, EmbyServers):
         self.EmbyServers = EmbyServers
 
     def onPlayBackStarted(self):
-        threading.Thread(target=PlayBackStarted).start()
+        LOG.info("[ onPlayBackStarted ]")
+        Utils.SyncPause = True
 
     def onAVChange(self):
-        threading.Thread(target=self.AVChange).start()
-
-    def AVChange(self):  # threaded
         LOG.info("[ onAVChange ]")
 
-        if self.PlayerSkipItem != "-1" or not self.isPlaying():
+        if self.PlayerSkipItem != "-1" or not self.isPlaying() or self.AddonModeTrailerItem:
             LOG.debug("onAVChange not playing")
             return
 
@@ -74,17 +77,20 @@ class PlayerEvents(xbmc.Player):
         self.QueuedPlayingItem['IsMuted'] = self.muted
 
     def onAVStarted(self):
-        threading.Thread(target=self.AVStarted).start()
-
-    def AVStarted(self):  # threaded
         LOG.info("[ onAVStarted ]")
         Utils.SyncPause = True
 
-        if self.PlayerSkipItem != "-1":
-            if self.PlayerSkipItem != "TRAILER":
-                self.playnext()
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % self.PlayerSkipItem)
+        # Trailer from webserverice (addon mode)
+        if self.AddonModeTrailerItem:
+            if self.isPlaying():
+                self.updateInfoTag(self.AddonModeTrailerItem)
 
+            return
+
+        # 3D, ISO etc. content from webserverice (addon mode)
+        if self.PlayerSkipItem != "-1":
+            self.playnext()
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % self.PlayerSkipItem)
             return
 
         if self.isPlaying():
@@ -131,6 +137,7 @@ class PlayerEvents(xbmc.Player):
 
             self.MultiselectionDone = False
 
+            # native content
             if Path and not Path.startswith("http://127.0.0.1:57578"):  # native mode
                 PlaySessionId = str(uuid.uuid4()).replace("-", "")
                 MediasourceID = ""
@@ -152,10 +159,36 @@ class PlayerEvents(xbmc.Player):
 
                     EmbyId = item[0]
 
+                    # Cinnemamode
+                    if Utils.enableCinema and (Utils.localTrailers or Utils.Trailers):
+                        if self.TrailerPath != "SKIP":
+                            PlayingFile = self.getPlayingFile()
+
+                            if self.TrailerPath != PlayingFile:  # Trailer init (load)
+                                self.pause()  # Player Pause
+                                self.Intros = []
+                                PlayTrailer = True
+
+                                if Utils.askCinema:
+                                    PlayTrailer = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33016))
+
+                                if PlayTrailer:
+                                    self.Intros = Utils.load_Trailers(self.EmbyServer, EmbyId)
+
+                                if self.Intros:
+                                    self.play_Trailer()
+                                    database.db_open.DBClose(server_id, False)
+                                    return
+
+                                self.TrailerPath = ""
+                                self.pause()  # Player resume
+                        else:
+                            self.TrailerPath = ""
+
                     # Multiversion
                     MediaSources = embydb.get_mediasource(EmbyId)
                     database.db_open.DBClose(server_id, False)
-                    MediasourceID = ""
+                    MediasourceID = MediaSources[0][2]
 
                     if len(MediaSources) > 1:
                         self.pause()  # Player Pause
@@ -171,8 +204,6 @@ class PlayerEvents(xbmc.Player):
                             return
 
                         if MediaIndex == 0:
-                            MediasourceID = MediaSources[0][2]
-                            EmbyId = MediaSources[0][0]
                             self.pause()  # Player Resume
                         else:
                             self.MultiselectionDone = True
@@ -185,12 +216,11 @@ class PlayerEvents(xbmc.Player):
 
                             li.setPath(Path)
                             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-                            playlistIndex = playlist.getposition()
-                            playlist.add(Path, li, playlistIndex + 1)
+                            self.playlistIndex = playlist.getposition()
+                            playlist.add(Path, li, self.playlistIndex + 1)
                             MediasourceID = MediaSources[MediaIndex][2]
-                            EmbyId = MediaSources[MediaIndex][0]
                             self.playnext()
-                            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % playlistIndex)
+                            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % self.playlistIndex)
 
                         database.db_open.DBClose(server_id, False)
                         break
@@ -230,9 +260,6 @@ class PlayerEvents(xbmc.Player):
         self.PositionTrackerThread = None
 
     def onPlayBackSeek(self, time, seekOffset):
-        threading.Thread(target=self.PlayBackSeek, args=(time, seekOffset,)).start()
-
-    def PlayBackSeek(self, time, seekOffset):  # threaded;  Relevant for audio content only, video is covered by "onAVChange"
         LOG.info("[ onPlayBackSeek ]")
 
         if not self.EmbyServer or self.PlayerSkipItem != "-1" or 'ItemId' not in self.PlayingItem and not self.PlayingVideo:
@@ -248,9 +275,6 @@ class PlayerEvents(xbmc.Player):
             self.EmbyServer.API.session_progress(self.PlayingItem)
 
     def onPlayBackPaused(self):
-        threading.Thread(target=self.PlayBackPaused).start()
-
-    def PlayBackPaused(self):  # threaded
         LOG.info("[ onPlayBackPaused ]")
 
         if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
@@ -269,9 +293,6 @@ class PlayerEvents(xbmc.Player):
         LOG.debug("-->[ paused ]")
 
     def onPlayBackResumed(self):
-        threading.Thread(target=self.PlayBackResumed).start()
-
-    def PlayBackResumed(self):  # threaded
         LOG.info("[ onPlayBackResumed ]")
 
         if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
@@ -282,25 +303,19 @@ class PlayerEvents(xbmc.Player):
         LOG.debug("--<[ paused ]")
 
     def onPlayBackStopped(self):
-        threading.Thread(target=self.PlayBackStopped, args=(self.PlayingItem.copy(),)).start()
-
-    def PlayBackStopped(self, PlayingItem):  # threaded
         LOG.info("[ onPlayBackStopped ]")
 
         if self.EmbyServer and self.Transcoding:
             self.EmbyServer.API.close_transcode()
 
         Utils.SyncPause = False
-        self.stop_playback(PlayingItem, True)
+        self.stop_playback(True, True)
         LOG.info("--<[ playback ]")
 
     def onPlayBackEnded(self):
-        threading.Thread(target=self.PlayBackEnded, args=(self.PlayingItem.copy(),)).start()
-
-    def PlayBackEnded(self, PlayingItem):  # threaded
         LOG.info("[ onPlayBackEnded ]")
         Utils.SyncPause = False
-        self.stop_playback(PlayingItem, True)
+        self.stop_playback(True, False)
         LOG.info("--<<[ playback ]")
 
     def SETVolume(self, data):
@@ -316,43 +331,63 @@ class PlayerEvents(xbmc.Player):
         self.EmbyServer.API.session_progress(self.PlayingItem)
 
     def onPlayBackError(self):
-        threading.Thread(target=self.PlayBackError, args=(self.PlayingItem.copy(),)).start()
-
-    def PlayBackError(self, PlayingItem):  # threaded
         LOG.info("[ onPlayBackError ]")
         Utils.SyncPause = False
-        self.stop_playback(PlayingItem, False)
+        self.stop_playback(False, False)
 
-    def stop_playback(self, PlayingItem, delete):  # PlayingItem cached due to threading
+    def stop_playback(self, delete, Stopped):
         LOG.debug("[ played info ] %s" % self.PlayingItem)
 
-        if not self.EmbyServer or 'ItemId' not in PlayingItem:
+        # Trailer is playing, skip
+        if self.AddonModeTrailerItem:
+            self.AddonModeTrailerItem = None
             return
 
-        self.EmbyServer.API.session_stop(PlayingItem)
+        # Trailers for native content
+        if not Stopped:
+            # Play init item after native content trailer playback
+            if self.TrailerPath and not self.Intros:
+                self.TrailerPath = "SKIP"
+                self.Intros = []
+                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                self.play(playlist, None, False, self.playlistIndex)
+                return
+
+            # play trailers for native content
+            if self.Intros:
+                self.play_Trailer()
+                return
+
+        self.Intros = []
+        self.TrailerPath = ""
+
+        if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
+            return
+
+        self.EmbyServer.API.session_stop(self.PlayingItem)
 
         if self.Transcoding:
             self.EmbyServer.API.close_transcode()
 
         if delete:
             if Utils.offerDelete:
-                Runtime = int(PlayingItem['RunTimeTicks'])
+                Runtime = int(self.PlayingItem['RunTimeTicks'])
 
                 if Runtime > 10:
-                    if int(PlayingItem['PositionTicks']) > Runtime * 0.90:  # 90% Progress
+                    if int(self.PlayingItem['PositionTicks']) > Runtime * 0.90:  # 90% Progress
                         DeleteMsg = False
 
-                        if PlayingItem['Type'] == 'episode' and Utils.deleteTV:
+                        if self.PlayingItem['Type'] == 'episode' and Utils.deleteTV:
                             DeleteMsg = True
-                        elif PlayingItem['Type'] == 'movie' and Utils.deleteMovies:
+                        elif self.PlayingItem['Type'] == 'movie' and Utils.deleteMovies:
                             DeleteMsg = True
 
                         if DeleteMsg:
                             LOG.info("Offer delete option")
 
                         if Utils.dialog("yesno", heading=Utils.Translate(30091), line1=Utils.Translate(33015)):
-                            self.EmbyServer.API.delete_item(PlayingItem['ItemId'])
-                            threading.Thread(target=self.EmbyServer.library.removed, args=([PlayingItem['ItemId']],)).start()
+                            self.EmbyServer.API.delete_item(self.PlayingItem['ItemId'])
+                            threading.Thread(target=self.EmbyServer.library.removed, args=([self.PlayingItem['ItemId']],)).start()
 
         if self.isPlaying():
             return
@@ -375,6 +410,15 @@ class PlayerEvents(xbmc.Player):
         for ServerId in ServerIds:
             threading.Thread(target=self.EmbyServers[ServerId].library.RunJobs).start()
 
-def PlayBackStarted():  # threaded
-    LOG.info("[ onPlayBackStarted ]")
-    Utils.SyncPause = True
+    def play_Trailer(self): # for native content
+        Path = self.Intros[0]['Path']
+
+        li = ListItem.set_ListItem(self.Intros[0], self.EmbyServer.server_id)
+        del self.Intros[0]
+
+        if Path.startswith('\\\\'):
+            Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+
+        self.TrailerPath = Path
+        li.setPath(Path)
+        self.play(Path, li)

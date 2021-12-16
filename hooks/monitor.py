@@ -38,6 +38,8 @@ class Monitor(xbmc.Monitor):
         self.Menu = helper.pluginmenu.Menu(self.EmbyServers, self.player)
         self.QueryDataThread = threading.Thread(target=self.QueryData)
         self.QueryDataThread.start()
+        self.QueueItemsStatusupdate = ()
+        self.QueryItemStatusThread = None
 
     def WebserviceStart(self):
         if self.WebServiceThread:
@@ -89,14 +91,21 @@ class Monitor(xbmc.Monitor):
         client.send(b"1")
 
     def onNotification(self, sender, method, data):
-        if method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'VideoLibrary.OnUpdate', 'Other.play'): # Skip unsupported notifications -> "Playlist.OnAdd" floats threading! Never let that happen
-            threading.Thread(target=self.Notification, args=(sender, method, data,)).start()
+         # Skip unsupported notifications -> e.g. "Playlist.OnAdd" floats threading! -> Never let that happen
+        if method == 'VideoLibrary.OnUpdate':  # Buffer updated items -> not overloading threads
+            self.QueueItemsStatusupdate += (data,)
 
-    def Notification(self, sender, method, data):  # threaded by caller
+            if not self.QueryItemStatusThread:
+                self.QueryItemStatusThread = threading.Thread(target=self.VideoLibrary_OnUpdate)
+                self.QueryItemStatusThread.start()
+        elif method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
+            threading.Thread(target=self.Notification, args=(method, data,)).start()
+
+    def Notification(self, method, data):  # threaded by caller
         if method == 'Other.managelibsselection':
             self.Menu.select_managelibs()
         elif method == 'Other.delete':
-            self.Context.delete_item()
+            self.Context.delete_item(True)
         elif method == 'Other.settings':
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % Utils.PluginId)
         elif method == 'Other.backup':
@@ -126,8 +135,6 @@ class Monitor(xbmc.Monitor):
             self.System_OnQuit()
         elif method == 'Application.OnVolumeChanged':
             self.player.SETVolume(data)
-        elif method == 'VideoLibrary.OnUpdate':
-            self.VideoLibrary_OnUpdate(data)
         elif method == 'Other.play':
             data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
             PlayerOps.Play((data[1],), "PlayNow", -1, -1, self.EmbyServers[data[0]])
@@ -326,55 +333,61 @@ class Monitor(xbmc.Monitor):
         self.sleep = True
 
     # Mark as watched/unwatched updates
-    def VideoLibrary_OnUpdate(self, data):
-        data = json.loads(data)
-        item = None
-        kodi_fileId = None
-        server_id = None
+    def VideoLibrary_OnUpdate(self):
+        xbmc.sleep(1000)
+        UpdateItems = self.QueueItemsStatusupdate     #.copy()
+        self.QueueItemsStatusupdate = ()
+        self.QueryItemStatusThread = None
 
-        if 'item' in data:
-            kodi_id = data['item']['id']
-            media = data['item']['type']
-        else:
-            kodi_id = data['id']
-            media = data['type']
+        for UpdateItem in UpdateItems:
+            data = json.loads(UpdateItem)
+            item = None
+            kodi_fileId = None
+            server_id = None
 
-        for server_id in self.EmbyServers:
-            embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
-            item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
-            database.db_open.DBClose(server_id, False)
-
-            if item:
-                kodi_fileId = item[5]
-                break
-
-        if not item:
-            return
-
-        if 'item' in data and 'playcount' in data:
-            if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
-                if media in ("tvshow", "season"):
-                    LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
-                else:
-                    if str(item[0]) not in self.player.ItemSkipUpdate:
-                        self.player.ItemSkipUpdate.append(str(item[0]))
-
-                    LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
-                    self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
+            if 'item' in data:
+                kodi_id = data['item']['id']
+                media = data['item']['type']
             else:
-                LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
-        else:
-            if str(item[0]) not in self.player.ItemSkipUpdate:
-                self.player.ItemSkipUpdate.append(str(item[0]))
+                kodi_id = data['id']
+                media = data['type']
 
-            videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
-            BookmarkItem = videodb.get_bookmark(kodi_fileId)
-            FileItem = videodb.get_files(kodi_fileId)
-            database.db_open.DBClose("video", False)
+            for server_id in self.EmbyServers:
+                embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+                item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                database.db_open.DBClose(server_id, False)
 
-            if not BookmarkItem:
-                LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
-                self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                if item:
+                    kodi_fileId = item[5]
+                    break
+
+            if not item:
+                return
+
+            if 'item' in data and 'playcount' in data:
+                if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                    if media in ("tvshow", "season"):
+                        LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
+                    else:
+                        if str(item[0]) not in self.player.ItemSkipUpdate:
+                            self.player.ItemSkipUpdate.append(str(item[0]))
+
+                        LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
+                        self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
+                else:
+                    LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
+            else:
+                if str(item[0]) not in self.player.ItemSkipUpdate:
+                    self.player.ItemSkipUpdate.append(str(item[0]))
+
+                videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+                BookmarkItem = videodb.get_bookmark(kodi_fileId)
+                FileItem = videodb.get_files(kodi_fileId)
+                database.db_open.DBClose("video", False)
+
+                if not BookmarkItem:
+                    LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
+                    self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
 
 def BackupRestore():
     RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=Utils.backupPath)

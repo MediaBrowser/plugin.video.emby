@@ -4,6 +4,7 @@ import threading
 import socket
 import xbmc
 import database.db_open
+import emby.listitem as ListItem
 import helper.loghandler
 import helper.utils as Utils
 import helper.xmls as xmls
@@ -21,9 +22,8 @@ class WebService(threading.Thread):
         self.EmbyServers = {}
         self.Intros = []
         self.embydb = None
-        self.IntrosIndex = 0
         self.SkipItemVideo = ""
-        self.TrailerInitialItem = ""
+        self.TrailerInitPayload = ""
         self.PlaySessionId = ""
         self.socket = None
         self.QueryDataPrevious = {}
@@ -113,9 +113,7 @@ class WebService(threading.Thread):
 
     def SendResponse(self, client, Data, SkipPlayerUpdate, QueryData, Trailer=False):
         if not SkipPlayerUpdate:  # SkipPlayerUpdate = Audio, VideoTheme, Image
-            if Trailer:
-                self.Player.PlayerSkipItem = "TRAILER"
-            else:
+            if not Trailer:
                 self.Player.PlayerSkipItem = "-1"
 
         if Data == "RELOAD":
@@ -185,7 +183,7 @@ class WebService(threading.Thread):
         self.Player.EmbyServer = self.EmbyServers[QueryData['ServerId']]
 
         if QueryData['Type'] == 'embythemeaudio':
-            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" %(self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
+            self.SendResponse(client, "%s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename']), True, QueryData)
             return
 
         if QueryData['Type'] in ('embythemevideo', 'embytrailerlocal'):
@@ -202,26 +200,19 @@ class WebService(threading.Thread):
             return
 
         # Cinnemamode
-        if Utils.enableCinema and (Utils.localTrailers or Utils.Trailers):
-            if not self.TrailerInitialItem == QueryData['Payload']:  # Trailer init (load)
+        if Utils.enableCinema:
+            if self.TrailerInitPayload != QueryData['Payload']:  # Trailer init (load)
+                self.Intros = []
                 PlayTrailer = True
 
                 if Utils.askCinema:
                     PlayTrailer = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33016))
 
                 if PlayTrailer:
-                    URL = self.play_Trailer(True, QueryData)
+                    self.Intros = Utils.load_Trailers(self.EmbyServers[QueryData['ServerId']], QueryData['EmbyID'])
 
-                    if URL:
-                        self.SendResponse(client, URL, False, QueryData, True)
-                        return
-            else:  # play next trailer
-                if self.TrailerInitialItem == QueryData['Payload']:
-                    URL = self.play_Trailer(False, QueryData)
-
-                    if URL:
-                        self.SendResponse(client, URL, False, QueryData, True)
-                        return
+            if self.play_Trailer(QueryData, client):
+                return
 
         # Select mediasources, Audiostreams, Subtitles
         self.embydb = database.db_open.DBOpen(Utils.DatabaseFiles, QueryData['ServerId'])
@@ -265,7 +256,6 @@ class WebService(threading.Thread):
             database.db_open.DBClose(QueryData['ServerId'], False)
             return
 
-        self.IntrosIndex = 0
         self.SubTitlesAdd(0, QueryData)
         self.Player.Transcoding = IsTranscoding(QueryData['BitrateFromURL'], None, QueryData)
 
@@ -449,39 +439,23 @@ class WebService(threading.Thread):
         self.QueryDataPrevious = QueryData.copy()
         return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], self.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], self.PlaySessionId, Utils.device_id, Utils.TranscodeFormatVideo, Utils.TranscodeFormatAudio, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
 
-    def play_Trailer(self, Init, QueryData):
-        if Init:
-            self.TrailerInitialItem = QueryData['Payload']
-            self.Intros = []
-
-            if Utils.localTrailers:
-                IntrosLocal = self.EmbyServers[QueryData['ServerId']].API.get_local_trailers(QueryData['EmbyID'])
-
-                for IntroLocal in IntrosLocal:
-                    Filename = Utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-                    self.Intros.append("%s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (self.EmbyServers[QueryData['ServerId']].server, IntroLocal['Id'], self.PlaySessionId, Utils.device_id, self.EmbyServers[QueryData['ServerId']].Token, Filename))
-
-            if Utils.Trailers:
-                Intros = self.EmbyServers[QueryData['ServerId']].API.get_intros(QueryData['EmbyID'])
-
-                if 'Items' in Intros:
-                    for Intro in Intros['Items']:
-                        self.Intros.append(Intro['Path'])
-
-            self.IntrosIndex = 0
-
-        if not self.Intros:
-            return None
-
-        if len(self.Intros) > self.IntrosIndex:
+    def play_Trailer(self, QueryData, client):
+        if self.Intros:
             xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "one" }, "id": 1 }')
-            URL = self.Intros[self.IntrosIndex]
-            self.IntrosIndex += 1
-            return URL
+            URL = self.Intros[0]['Path']
+            LOG.debug("Trailer URL: %s" % URL)
+            li = ListItem.set_ListItem(self.Intros[0], self.EmbyServers[QueryData['ServerId']].server_id)
+            li.setPath("http://127.0.0.1:57578" + QueryData['Payload'])
+            self.Player.AddonModeTrailerItem = li
+            del self.Intros[0]
+            self.TrailerInitPayload = QueryData['Payload']
+            self.SendResponse(client, URL, False, QueryData, True)
+            return True
 
         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "off" }, "id": 1 }')
-        self.TrailerInitialItem = ""
-        return None
+        self.TrailerInitPayload = ""
+        self.Player.AddonModeTrailerItem = None
+        return False
 
 def IsTranscoding(Bitrate, Codec, QueryData):
     if Utils.transcodeH265:

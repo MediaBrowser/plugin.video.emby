@@ -38,10 +38,16 @@ class Context:
 
         return Found
 
-    def delete_item(self):  # threaded by caller
+    def delete_item(self, LoadItem=False):  # threaded by caller
         if Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33015)):
-            self.EmbyServers[self.server_id].API.delete_item(self.item[0])
-            self.EmbyServers[self.server_id].library.removed([self.item[0]])
+            ItemFound = True
+
+            if LoadItem:
+                ItemFound = self.load_item()
+
+            if ItemFound:
+                self.EmbyServers[self.server_id].API.delete_item(self.item[0])
+                self.EmbyServers[self.server_id].library.removed([self.item[0]])
 
     def SelectSpecialFeatures(self):
         MenuData = []

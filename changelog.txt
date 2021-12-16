@@ -1,4 +1,4 @@
-6.2.0 (beta)
+6.2.1 (beta)
 =============
 Improvements:
 -------------
@@ -274,7 +274,13 @@ fix delete item via context menu
 fix multivideo selection cancel option
 improve multiselection 3D-content loading time
 fix limitindex
-fix invalid timestamps 
+fix invalid timestamps
+improve notification threading
+add trailer infos in cinema mode
+add cinema mode support for native mode
+fix multiserver sync
+fix sync issue
+fix websocket connection timeout
 
 
 6.0.13 (beta)

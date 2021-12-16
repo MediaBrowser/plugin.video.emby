@@ -23,15 +23,17 @@ class Library:
         self.LastStartSync = ""
         self.LastRealtimeSync = ""
         self.EmbyDBWritePriority = False
-        self.WorkerPaused = False
-        self.WorkerInProgressLocal = False
         self.ContentObject = None
 
-    def set_WorkerInProgress(self, Value):
-        Utils.WorkerInProgress = Value
-        self.WorkerInProgressLocal = Value
+    def open_EmbyDB(self):
+        Utils.WorkerInProgress = True
+        return db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
 
-    def set_EmbyDBWritePriority(self):
+    def close_EmbyDB(self, Commit):
+        db_open.DBClose(self.EmbyServer.server_id, Commit)
+        Utils.WorkerInProgress = False
+
+    def open_EmbyDBPriority(self):
         if self.EmbyDBWritePriority:
             LOG.info("-->[ Wait for priority workers finished ]")
 
@@ -42,35 +44,39 @@ class Library:
 
         self.EmbyDBWritePriority = True
 
-        if self.WorkerInProgressLocal:
+        if Utils.WorkerInProgress:
             LOG.info("-->[ Wait for workers paused ]")
 
-            while not self.WorkerPaused:
+            while not Utils.WorkerPaused:
                 xbmc.sleep(500)
 
             LOG.info("--<[ Wait for workers paused ]")
 
+        return db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+
+    def close_EmbyDBPriority(self):
+        db_open.DBClose(self.EmbyServer.server_id, True)
+        self.EmbyDBWritePriority = False
+
     def set_syncdate(self, TimestampUTC):
         # Update sync update timestamp
-        self.set_EmbyDBWritePriority()
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+        embydb = self.open_EmbyDBPriority()
         embydb.update_LastIncrementalSync(TimestampUTC, "realtime")
         embydb.update_LastIncrementalSync(TimestampUTC, "start")
-        db_open.DBClose(self.EmbyServer.server_id, True)
         self.LastRealtimeSync = TimestampUTC
         self.LastStartSync = TimestampUTC
         LastRealtimeSyncLocalTime = Utils.convert_to_local(self.LastRealtimeSync)
         Utils.set_syncdate(LastRealtimeSyncLocalTime)
-        self.EmbyDBWritePriority = False
+        self.close_EmbyDBPriority()
 
     def load_settings(self):
         # Load previous sync information
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+        embydb = self.open_EmbyDBPriority()
         embydb.init_EmbyDB()
         self.Whitelist = embydb.get_Whitelist()
         self.LastRealtimeSync = embydb.get_LastIncrementalSync("realtime")
         self.LastStartSync = embydb.get_LastIncrementalSync("start")
-        db_open.DBClose(self.EmbyServer.server_id, True)
+        self.close_EmbyDBPriority()
 
     def InitSync(self, Firstrun):  # Threaded by caller -> emby.py
         if Firstrun:
@@ -147,22 +153,19 @@ class Library:
             LOG.info("[ worker userdata in progress ]")
             return False
 
-        LOG.info("[ worker userdata started ]")
-        isMusic = False
-        isVideo = False
-        self.set_WorkerInProgress(True)
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+        embydb = self.open_EmbyDB()
         UserDataItems = embydb.get_Userdata()
 
         if not UserDataItems:
-            LOG.info("[ worker userdata queue size ] 0")
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.set_WorkerInProgress(False)
+            LOG.info("[ worker userdata exit ] queue size: 0")
+            self.close_EmbyDB(False)
             return True
 
+        LOG.info("-->[ worker userdata started ] queue size: %d" % len(UserDataItems))
         progress_updates = xbmcgui.DialogProgressBG()
         progress_updates.create("Emby", "remove")
-        LOG.info("[ worker userdata queue size ] %s" % len(UserDataItems))
+        isMusic = False
+        isVideo = False
         MusicItems = []
         VideoItems = []
         index = 0
@@ -219,7 +222,6 @@ class Library:
             db_open.DBClose("video", True)
 
         embydb.update_LastIncrementalSync(Utils.currenttime(), "realtime")
-        db_open.DBClose(self.EmbyServer.server_id, True)
 
         if isMusic and not Utils.useDirectPaths:
             xbmc.executebuiltin('UpdateLibrary(music)')
@@ -228,8 +230,8 @@ class Library:
             xbmc.executebuiltin('UpdateLibrary(video)')
 
         progress_updates.close()
+        self.close_EmbyDB(True)
         LOG.info("--<[ worker userdata completed ]")
-        self.set_WorkerInProgress(False)
         self.RunJobs()
         return True
 
@@ -238,25 +240,22 @@ class Library:
             LOG.info("[ worker update in progress ]")
             return False
 
-        LOG.info("-->[ worker update started ]")
-        isMusic = False
-        isVideo = False
-        self.set_WorkerInProgress(True)
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
-        index = 0
+        embydb = self.open_EmbyDB()
         UpdateItems = embydb.get_UpdateItem()
 
         if not UpdateItems:
-            LOG.info("[ worker update queue size ] 0")
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.set_WorkerInProgress(False)
+            LOG.info("[ worker update exit ] queue size: 0")
+            self.close_EmbyDB(False)
             return True
 
         TotalRecords = len(UpdateItems)
+        LOG.info("-->[ worker update started ] queue size: %d" % TotalRecords)
         progress_updates = xbmcgui.DialogProgressBG()
         progress_updates.create("Emby", Utils.Translate(33178))
         QueryUpdateItems = {}
-        LOG.info("[ worker update queue size ] %s" % TotalRecords)
+        isMusic = False
+        isVideo = False
+        index = 0
 
         for UpdateItem in UpdateItems:
             Id = UpdateItem[0]
@@ -322,7 +321,6 @@ class Library:
                     embydb.delete_UpdateItem(QueryUpdateItemId)
 
         embydb.update_LastIncrementalSync(Utils.currenttime(), "realtime")
-        db_open.DBClose(self.EmbyServer.server_id, True)
         progress_updates.close()
 
         if isMusic and not Utils.useDirectPaths:
@@ -331,8 +329,8 @@ class Library:
         if isVideo:
             xbmc.executebuiltin('UpdateLibrary(video)')
 
+        self.close_EmbyDB(True)
         LOG.info("--<[ worker update completed ]")
-        self.set_WorkerInProgress(False)
         self.RunJobs()
         return True
 
@@ -341,19 +339,18 @@ class Library:
             LOG.info("[ worker remove in progress ]")
             return False
 
-        LOG.info("-->[ worker remove started ]")
-        isMusic = False
-        isVideo = False
-        self.set_WorkerInProgress(True)
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+        embydb = self.open_EmbyDB()
         RemoveItems = embydb.get_RemoveItem()
 
         if not RemoveItems:
-            LOG.info("[ worker remove queue size ] 0")
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.set_WorkerInProgress(False)
+            LOG.info("[ worker remove exit ] queue size: 0")
+            self.close_EmbyDB(False)
             return True
 
+        TotalRecords = len(RemoveItems)
+        LOG.info("-->[ worker remove started ] queue size: %d" % TotalRecords)
+        isMusic = False
+        isVideo = False
         progress_updates = xbmcgui.DialogProgressBG()
         progress_updates.create("Emby", Utils.Translate(33261))
 
@@ -361,7 +358,6 @@ class Library:
         AllRemoveItems = []
         QueryUpdateItems = {}
         index = 0
-        TotalRecords = len(RemoveItems)
 
         for RemoveItem in RemoveItems:
             Id = RemoveItem[0]
@@ -435,7 +431,7 @@ class Library:
             embydb.delete_RemoveItem(QueryUpdateItem)
 
         embydb.update_LastIncrementalSync(Utils.currenttime(), "realtime")
-        db_open.DBClose(self.EmbyServer.server_id, True)
+
         progress_updates.close()
 
         if isMusic and not Utils.useDirectPaths:
@@ -444,8 +440,8 @@ class Library:
         if isVideo:
             xbmc.executebuiltin('UpdateLibrary(video)')
 
+        self.close_EmbyDB(True)
         LOG.info("--<[ worker remove completed ]")
-        self.set_WorkerInProgress(False)
         self.RunJobs()
         return True
 
@@ -454,24 +450,27 @@ class Library:
             LOG.info("[ worker library in progress ]")
             return False
 
-        LOG.info("-->[ worker library started ]")
-        self.set_WorkerInProgress(True)
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
-        isMusic = False
-        isVideo = False
+        embydb = self.open_EmbyDB()
         SyncItems = embydb.get_PendingSync()
 
         if not SyncItems:
-            LOG.info("[ worker library queue size ] 0")
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.set_WorkerInProgress(False)
+            LOG.info("[ worker library exit ] queue size: 0")
+            self.close_EmbyDB(False)
             return True
 
+        LOG.info("-->[ worker library started ] queue size: %d" % len(SyncItems))
+        isMusic = False
+        isVideo = False
         progress_updates = xbmcgui.DialogProgressBG()
         progress_updates.create("Emby", "%s %s" % (Utils.Translate(33021), Utils.Translate(33238)))
-        LOG.info("[ worker library queue size ] %s" % len(SyncItems))
 
         for SyncItem in SyncItems:
+            if Utils.SyncPause:
+                LOG.info("[ worker library paused ]")
+                progress_updates.close()
+                self.close_EmbyDB(True)
+                return False
+
             library_id = SyncItem[0]
             library_type = SyncItem[1]
             library_name = SyncItem[2]
@@ -614,13 +613,12 @@ class Library:
             if isVideo:
                 xbmc.executebuiltin('UpdateLibrary(video)')
 
-        db_open.DBClose(self.EmbyServer.server_id, True)
         progress_updates.close()
         self.EmbyServer.Views.update_nodes()
         LOG.info("[ reload skin ]")
         xbmc.executebuiltin('ReloadSkin()')
+        self.close_EmbyDB(True)
         LOG.info("--<[ worker library completed ]")
-        self.set_WorkerInProgress(False)
         self.RunJobs()
         return True
 
@@ -668,35 +666,34 @@ class Library:
             progress_updates.update(ProgressValue, heading="Emby: %s" % ContentType, message=str(Parameter['ItemId']))
             self.ContentObject.userdata(Item, Parameter)
 
-        Continue = True
-
         # Check priority tasks
         if self.EmbyDBWritePriority:
             db_open.DBClose(self.EmbyServer.server_id, True)
-            self.WorkerPaused = True
+            Utils.WorkerPaused = True
             LOG.info("-->[ Priority Emby DB I/O in progress ]")
 
             while self.EmbyDBWritePriority:
                 xbmc.sleep(500)
 
-            self.WorkerPaused = False
+            Utils.WorkerPaused = False
             LOG.info("--<[ Priority Emby DB I/O in progress ]")
             embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
             self.load_libraryObject(ContentType, embydb, kodidb)
 
         # Check if Kodi db is open -> close db, wait, reopen db
-        if ContentCategory == "music":
-            if Utils.KodiDBLock[ContentCategory]:
-                LOG.info("[ worker delay due to kodi music db io ]")
-                db_open.DBClose(ContentCategory, True)
+        if Utils.KodiDBLock[ContentCategory]:
+            LOG.info("[ worker delay due to kodi %s db io ]" % ContentCategory)
+            db_open.DBClose(ContentCategory, True)
 
-                while Utils.KodiDBLock[ContentCategory]:
-                    xbmc.sleep(500)
+            while Utils.KodiDBLock[ContentCategory]:
+                xbmc.sleep(500)
 
-                kodidb = db_open.DBOpen(Utils.DatabaseFiles, ContentCategory)
-                self.load_libraryObject(ContentType, embydb, kodidb)
+            kodidb = db_open.DBOpen(Utils.DatabaseFiles, ContentCategory)
+            self.load_libraryObject(ContentType, embydb, kodidb)
 
         # Check sync pause
+        Continue = True
+
         if Utils.SyncPause:
             LOG.info("[ worker paused ]")
 
@@ -704,8 +701,7 @@ class Library:
                 progress_updates.close()
 
             db_open.DBClose(ContentCategory, True)
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.set_WorkerInProgress(False)
+            self.close_EmbyDB(True)
             Continue = False
 
         return Continue, embydb, kodidb
@@ -783,24 +779,21 @@ class Library:
             self.add_library(add_librarys)
 
     def refresh_boxsets(self):  # threaded by caller
-        self.set_EmbyDBWritePriority()
+        embydb = self.open_EmbyDBPriority()
         xbmc.executebuiltin('Dialog.Close(addonsettings)')
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
         xbmc.executebuiltin('activatewindow(home)')
-        embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
 
         for LibraryId, Value in list(self.Whitelist.items()):
             if Value[0] == "movies":
                 embydb.add_PendingSync(LibraryId, "boxsets", Value[1], None)
 
-        db_open.DBClose(self.EmbyServer.server_id, True)
-        self.EmbyDBWritePriority = False
+        self.close_EmbyDBPriority()
         self.worker_library()
 
     def add_library(self, library_ids):  # threaded by caller
         if library_ids:
-            self.set_EmbyDBWritePriority()
-            embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+            embydb = self.open_EmbyDBPriority()
 
             for library_id in library_ids:
                 ViewData = self.EmbyServer.Views.ViewItems[library_id]
@@ -820,16 +813,14 @@ class Library:
 
                 LOG.info("---[ added library: %s ]" % library_id)
 
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.EmbyDBWritePriority = False
+            self.close_EmbyDBPriority()
             self.worker_library()
 
     # Remove library by their id from the Kodi database
     def remove_library(self, LibraryIds):  # threaded by caller
         if LibraryIds:
-            self.set_EmbyDBWritePriority()
+            embydb = self.open_EmbyDBPriority()
             RemoveItems = []
-            embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
 
             for LibraryId in LibraryIds:
                 items = embydb.get_item_by_emby_folder_wild(LibraryId)
@@ -843,29 +834,25 @@ class Library:
                 self.EmbyServer.Views.delete_node_by_id(LibraryId)
                 LOG.info("---[ removed library: %s ]" % LibraryId)
 
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.EmbyDBWritePriority = False
+            self.close_EmbyDBPriority()
             self.EmbyServer.Views.update_nodes()
             self.removed(RemoveItems)
 
     # Add item_id to userdata queue
     def userdata(self, Data):  # threaded by caller -> websocket via monitor
         if Data:
-            self.set_EmbyDBWritePriority()
-            embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+            embydb = self.open_EmbyDBPriority()
 
             for item in Data:
                 embydb.add_Userdata(str(item))
 
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.EmbyDBWritePriority = False
+            self.close_EmbyDBPriority()
             self.worker_userdata()
 
     # Add item_id to updated queue
     def updated(self, Data):  # threaded by caller
         if Data:
-            self.set_EmbyDBWritePriority()
-            embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+            embydb = self.open_EmbyDBPriority()
 
             for item in Data:
                 if isinstance(item, tuple):
@@ -890,15 +877,13 @@ class Library:
 
                 embydb.add_UpdateItem(EmbyId, LibraryId, LibraryName, LibraryType)
 
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.EmbyDBWritePriority = False
+            self.close_EmbyDBPriority()
             self.worker_update()
 
     # Add item_id to removed queue
     def removed(self, Data):  # threaded by caller
         if Data:
-            self.set_EmbyDBWritePriority()
-            embydb = db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
+            embydb = self.open_EmbyDBPriority()
 
             for item in Data:
                 if isinstance(item, tuple):
@@ -921,8 +906,7 @@ class Library:
 
                 embydb.add_RemoveItem(EmbyId, EmbyType, LibraryId)
 
-            db_open.DBClose(self.EmbyServer.server_id, True)
-            self.EmbyDBWritePriority = False
+            self.close_EmbyDBPriority()
             self.worker_remove()
 
 def ItemsSort(Items, LibraryData):
@@ -971,6 +955,7 @@ def ItemsSort(Items, LibraryData):
         elif ItemType == 'Season':
             ItemsSeason.append((Item, LibraryData[Item["Id"]], 'Season'))
         else:
+            LOG.info("ItemType unknown: %s" % ItemType)
             continue
 
     return ItemsAudio, ItemsMovie, ItemsBoxSet, ItemsMusicVideo, ItemsSeries, ItemsEpisode, ItemsMusicAlbum, ItemsMusicArtist, ItemsAlbumArtist, ItemsSeason
