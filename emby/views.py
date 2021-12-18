@@ -456,7 +456,7 @@ def node_letter(View, folder, node):
         xml.etree.ElementTree.SubElement(xmlData, "label").text = "0-9"
         xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
 
-        if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+        if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
             xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
         else:
             xml.etree.ElementTree.SubElement(xmlData, "content").text = View['MediaType']
@@ -473,7 +473,7 @@ def node_letter(View, folder, node):
 
         xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
 
-        if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+        if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
             xmlRule.set('field', "artist")
         else:
             xmlRule.set('field', "sorttitle")
@@ -534,7 +534,7 @@ def node_letter(View, folder, node):
                 xml.etree.ElementTree.SubElement(xmlData, "label").text = FileName
                 xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
 
-                if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
                     xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
                 else:
                     xml.etree.ElementTree.SubElement(xmlData, "content").text = View['MediaType']
@@ -552,7 +552,7 @@ def node_letter(View, folder, node):
                 xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
                 xmlRule.text = FileName
 
-                if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
                     xmlRule.set('field', "artist")
                 else:
                     xmlRule.set('field', "sorttitle")

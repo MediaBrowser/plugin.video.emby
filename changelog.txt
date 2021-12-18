@@ -1,4 +1,4 @@
-6.2.1 (beta)
+6.2.2 (beta)
 =============
 Improvements:
 -------------
@@ -281,6 +281,10 @@ add cinema mode support for native mode
 fix multiserver sync
 fix sync issue
 fix websocket connection timeout
+fix realtime sync
+fix musicvideo letter nodes
+fix shutdown procedure
+add slideshow
 
 
 6.0.13 (beta)

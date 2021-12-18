@@ -700,10 +700,9 @@ def get_path_type_from_item(server_id, item):
     path = ""
 
     if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
-        path = "plugin://%s/?mode=photoviewer&id=%s&server=%s&imageid=%s" % (PluginId, item['Id'], server_id, item['ImageTags']['Primary'])
-        return path, "picture"
-
-    if item['Type'] == "MusicVideo":
+        path = "http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+        Type = "picture"
+    elif item['Type'] == "MusicVideo":
         Type = "musicvideo"
     elif item['Type'] == "Movie":
         Type = "movie"
