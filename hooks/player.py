@@ -45,9 +45,6 @@ class PlayerEvents(xbmc.Player):
         LOG.info("[ onPlayBackStarted ]")
         Utils.SyncPause = True
 
-    def onQueueNextItem(self):
-        LOG.info("[ onQueueNextItem ]")
-
     def onAVChange(self):
         LOG.info("[ onAVChange ]")
 

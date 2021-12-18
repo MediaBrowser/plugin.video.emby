@@ -294,6 +294,31 @@ class Menu:
 
             xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
 
+        # Set Sorting
+        if media in ('homevideos', 'Photo', 'PhotoAlbum'):
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+        elif media == 'playlists' or folder == 'random':
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+        elif media == 'Episode':
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+        else:
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+
         xbmcplugin.setContent(Handle, KodiType)
         xbmcplugin.endOfDirectory(Handle)
 
@@ -467,8 +492,6 @@ class Menu:
         else:
             Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33152))
             return
-
-        #xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
 
         for LibraryID, LibraryInfo in list(self.EmbyServers[server_id].Views.ViewItems.items()):
             if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):

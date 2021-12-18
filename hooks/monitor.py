@@ -140,12 +140,6 @@ class Monitor(xbmc.Monitor):
         for EmbyServer in list(self.EmbyServers.values()):
             EmbyServer.stop()
 
-    def OnCleanStarted(self, library):
-        LOG.info("-->[ kodi clean/%s ]" % library)
-
-    def OnCleanFinished(self, library):
-        LOG.info("--<[ kodi clean/%s ]" % library)
-
     def onScanStarted(self, library):
         Utils.KodiDBLock[library] = True
         LOG.info("-->[ kodi scan/%s ]" % library)

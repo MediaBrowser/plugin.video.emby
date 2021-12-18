@@ -1,0 +1,4 @@
+fix realtime sync
+fix musicvideo letter nodes
+fix shutdown procedure
+add slideshow
