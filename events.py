@@ -29,9 +29,7 @@ if __name__ == "__main__":
     mode = params.get('mode')
     ServerId = params.get('server')
 
-    if mode == 'photoviewer':
-        xbmc.executebuiltin('ShowPicture(http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s)' % (ServerId, params['id'], params['imageid']))
-    elif mode == 'nextepisodes':
+    if mode == 'nextepisodes':
         EmbyQueryData('nextepisodes', params.get('libraryname', ""), ServerId, Handle)
     elif mode == 'browse':
         EmbyQueryData('browse', "%s;%s;%s;%s;%s" % (params.get('type', ""), params.get('id', ""), params.get('folder', ""), params.get('name', ""), params.get('extra', "")), ServerId, Handle)
@@ -40,7 +38,6 @@ if __name__ == "__main__":
     elif mode in ('texturecache', 'delete', 'managelibsselection', 'settings', 'databasereset'):  # Simple commands
         xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, %s)' % mode)
     elif mode == 'play':
-        ItemId = params.get('item')
-        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, play, "[\"%s\", \"%s\"]")' % (ServerId, ItemId))
+        xbmc.executebuiltin('NotifyAll(plugin.video.emby-next-gen, play, "[\"%s\", \"%s\"]")' % (ServerId, params.get('item')))
     else:
         EmbyQueryData('listing', "", ServerId, Handle)

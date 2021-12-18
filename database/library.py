@@ -25,7 +25,17 @@ class Library:
         self.EmbyDBWritePriority = False
         self.ContentObject = None
 
+    def wait_EmbyDBWritePriority(self, TaskId):
+        if self.EmbyDBWritePriority:
+            LOG.info("-->[ %s: Wait for priority workers finished ]" % TaskId)
+
+            while self.EmbyDBWritePriority:
+                xbmc.sleep(500)
+
+            LOG.info("--<[ %s: Wait for priority workers finished ]" % TaskId)
+
     def open_EmbyDB(self):
+        self.wait_EmbyDBWritePriority("Regular")
         Utils.WorkerInProgress = True
         return db_open.DBOpen(Utils.DatabaseFiles, self.EmbyServer.server_id)
 
@@ -34,20 +44,13 @@ class Library:
         Utils.WorkerInProgress = False
 
     def open_EmbyDBPriority(self):
-        if self.EmbyDBWritePriority:
-            LOG.info("-->[ Wait for priority workers finished ]")
-
-            while self.EmbyDBWritePriority:
-                xbmc.sleep(500)
-
-            LOG.info("--<[ Wait for priority workers finished ]")
-
+        self.wait_EmbyDBWritePriority("Priority")
         self.EmbyDBWritePriority = True
 
         if Utils.WorkerInProgress:
             LOG.info("-->[ Wait for workers paused ]")
 
-            while not Utils.WorkerPaused:
+            while not Utils.WorkerPaused and Utils.WorkerInProgress:
                 xbmc.sleep(500)
 
             LOG.info("--<[ Wait for workers paused ]")
@@ -83,6 +86,10 @@ class Library:
             self.select_libraries("AddLibrarySelection")
 
         self.RunJobs()
+
+        if Utils.SystemShutdown:
+            return
+
         KodiCompanion = False
         RemovedItems = []
         UpdateData = []
@@ -149,7 +156,11 @@ class Library:
     # Get items from emby and place them in the appropriate queues
     # No progress bar needed, it's all internal an damn fast
     def worker_userdata(self):
-        if Utils.SyncPause or Utils.WorkerInProgress:
+        if Utils.SyncPause:
+            LOG.info("[ worker userdata sync paused ]")
+            return False
+
+        if Utils.WorkerInProgress:
             LOG.info("[ worker userdata in progress ]")
             return False
 
@@ -236,7 +247,11 @@ class Library:
         return True
 
     def worker_update(self):
-        if Utils.SyncPause or Utils.WorkerInProgress:
+        if Utils.SyncPause:
+            LOG.info("[ worker update sync paused ]")
+            return False
+
+        if Utils.WorkerInProgress:
             LOG.info("[ worker update in progress ]")
             return False
 
@@ -335,7 +350,11 @@ class Library:
         return True
 
     def worker_remove(self):
-        if Utils.SyncPause or Utils.WorkerInProgress:
+        if Utils.SyncPause:
+            LOG.info("[ worker remove sync paused ]")
+            return False
+
+        if Utils.WorkerInProgress:
             LOG.info("[ worker remove in progress ]")
             return False
 
@@ -446,7 +465,11 @@ class Library:
         return True
 
     def worker_library(self):
-        if Utils.SyncPause or Utils.WorkerInProgress:
+        if Utils.SyncPause:
+            LOG.info("[ worker library sync paused ]")
+            return False
+
+        if Utils.WorkerInProgress:
             LOG.info("[ worker library in progress ]")
             return False
 
@@ -682,12 +705,13 @@ class Library:
 
         # Check if Kodi db is open -> close db, wait, reopen db
         if Utils.KodiDBLock[ContentCategory]:
-            LOG.info("[ worker delay due to kodi %s db io ]" % ContentCategory)
+            LOG.info("-->[ worker delay due to kodi %s db io ]" % ContentCategory)
             db_open.DBClose(ContentCategory, True)
 
             while Utils.KodiDBLock[ContentCategory]:
                 xbmc.sleep(500)
 
+            LOG.info("--<[ worker delay due to kodi %s db io ]" % ContentCategory)
             kodidb = db_open.DBOpen(Utils.DatabaseFiles, ContentCategory)
             self.load_libraryObject(ContentType, embydb, kodidb)
 

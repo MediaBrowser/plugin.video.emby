@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import threading
 import unicodedata
 import xbmc
 import xbmcgui
@@ -159,6 +160,19 @@ class Menu:
         EmbyMediaID = {'musicvideos': 'MusicVideos', 'tvshows': "Series", 'music': 'MusicArtist', 'movies': 'Movie', 'livetv': 'LiveTv', 'channels': 'Songs', 'boxsets': 'BoxSet', 'playlists': 'Movie', 'Season': 'Season', 'Episode': 'Episode', 'MusicVideos': 'MusicVideos', 'MusicAlbum': 'MusicAlbum', 'Songs': 'Songs', 'Folder': 'Folder', 'PhotoAlbum': 'PhotoAlbum', 'Photo': 'Photo', 'homevideos': 'Video,PhotoAlbum,Photo', 'mixed': 'Movie,Series,Video', 'Genre': None, 'audiobooks': 'audiobooks', 'podcasts': 'channels'}
         KodiType = KodiMediaID[media]
         EmbyType = EmbyMediaID[media]
+        ReloadWindowId = 0
+        WindowId = xbmcgui.getCurrentWindowId()
+
+        if KodiType == "images" and WindowId in (10025, 10502):  # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml
+            ReloadWindowId = 10002
+        elif KodiType in ("albums", "artists", 'music', 'songs') and WindowId in (10025, 10002):
+            ReloadWindowId = 10502
+        elif WindowId in (10502, 10002) == 10002:
+            ReloadWindowId = 10025
+
+        if ReloadWindowId:
+            threading.Thread(target=ChangeContentWindow, args=("plugin://plugin.video.emby-next-gen/?id=%s&mode=browse&type=%s&name=%s&folder=%s&server=%s" % (view_id, media, name, folder, server_id), ReloadWindowId)).start()
+            return
 
         if view_id:
             xbmcplugin.setPluginCategory(Handle, name)
@@ -279,31 +293,6 @@ class Menu:
                     list_li.append((path, li, False))
 
             xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
-
-        # Set Sorting
-        if media in ('homevideos', 'Photo', 'PhotoAlbum'):
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-        elif media == 'playlists' or folder == 'random':
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-        elif media == 'Episode':
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-        else:
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
 
         xbmcplugin.setContent(Handle, KodiType)
         xbmcplugin.endOfDirectory(Handle)
@@ -479,7 +468,7 @@ class Menu:
             Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33152))
             return
 
-        xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+        #xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
 
         for LibraryID, LibraryInfo in list(self.EmbyServers[server_id].Views.ViewItems.items()):
             if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
@@ -734,3 +723,11 @@ def get_Subfolder(media, KodiType):
         return "Genre"
 
     return ""
+
+def ChangeContentWindow(Query, WindowId):  # threaded
+    xbmc.sleep(100)
+
+    while xbmc.getCondVisibility("System.HasActiveModalDialog"):  # check if modal dialogs are closed
+        xbmc.sleep(50)
+
+    xbmc.executebuiltin('ActivateWindow(%s,"%s",return)' % (WindowId, Query))

@@ -50,13 +50,6 @@ class Monitor(xbmc.Monitor):
         self.WebServiceThread = webservice.WebService(self.player)
         self.WebServiceThread.start()
 
-    def shutdown(self):
-        LOG.warning("---<[ EXITING ]")
-        Utils.SyncPause = True
-        Utils.SystemShutdown = True
-        self.QuitThreads()
-        self.EmbyServer_DisconnectAll()
-
     # List loading from events.py
     def QueryData(self):
         QuerySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -147,6 +140,12 @@ class Monitor(xbmc.Monitor):
         for EmbyServer in list(self.EmbyServers.values()):
             EmbyServer.stop()
 
+    def OnCleanStarted(self, library):
+        LOG.info("-->[ kodi clean/%s ]" % library)
+
+    def OnCleanFinished(self, library):
+        LOG.info("--<[ kodi clean/%s ]" % library)
+
     def onScanStarted(self, library):
         Utils.KodiDBLock[library] = True
         LOG.info("-->[ kodi scan/%s ]" % library)
@@ -203,11 +202,16 @@ class Monitor(xbmc.Monitor):
             self.EmbyServers[server_id].library.userdata(UpdateData)
 
     def System_OnQuit(self):
+        LOG.warning("---<[ EXITING ]")
+        Utils.SyncPause = True
+        Utils.SystemShutdown = True
+        self.QuitThreads()
+
         for EmbyServer in list(self.EmbyServers.values()):
             if self.player.Transcoding:
                 EmbyServer.API.close_transcode()
 
-        self.shutdown()
+        self.EmbyServer_DisconnectAll()
 
     def QuitThreads(self):
         if self.WebServiceThread:
@@ -669,12 +673,6 @@ def Backup():
     Utils.mkDir("%saddon_data/" % backup)
     Utils.mkDir(destination_data)
     Utils.mkDir(destination_databases)
-
-#    if not xbmcvfs.mkdirs(path) or not xbmcvfs.mkdirs(destination_databases):
-#        LOG.info("Unable to create all directories")
-#        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33165), sound=False)
-#        return None
-
     Utils.copytree(Utils.FolderAddonUserdata, destination_data)
     _, files = Utils.listDir("special://profile/Database/")
 
