@@ -287,6 +287,7 @@ fix shutdown procedure
 add slideshow
 fix websocket connection timeout (part 2)
 enable permanent ssl verification
+disable ssl verification for artwork cache
 
 6.0.13 (beta)
 =============

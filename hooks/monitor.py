@@ -18,6 +18,15 @@ import emby.emby
 from . import webservice
 from . import player
 
+
+
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
+
+
+
 if Utils.Python3:
     from urllib.parse import quote_plus
 else:
@@ -523,6 +532,8 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
     total = len(urls)
 
     with requests.Session() as session:
+        session.verify = False
+
         for index, url in enumerate(urls):
             Value = int((float(float(index)) / float(total)) * 100)
             progress_updates.update(Value, message="%s: %s / %s" % (Utils.Translate(33045), Label, index))
@@ -535,17 +546,11 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
                 url = quote_plus(url)
                 UrlSend = "%s/image/image://%s" % (webServerUrl, url)
 
-#                try:
-                session.head(UrlSend, auth=(webServerUser, webServerPass), verify=False)
-#                except:
-#                    LOG.warning("Artwork caching interrupted. %s / %s" % (Label, UrlSend))
-#                    break
-
-
-
-
-
-
+                try:
+                    session.head(UrlSend, auth=(webServerUser, webServerPass))
+                except:
+                    LOG.warning("Artwork caching interrupted. %s / %s" % (Label, UrlSend))
+                    break
 
     progress_updates.close()
 
