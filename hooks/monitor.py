@@ -19,14 +19,6 @@ from . import webservice
 from . import player
 
 
-
-import ssl
-
-ssl._create_default_https_context = ssl._create_unverified_context
-
-
-
-
 if Utils.Python3:
     from urllib.parse import quote_plus
 else:
