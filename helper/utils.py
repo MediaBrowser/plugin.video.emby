@@ -84,7 +84,6 @@ getOverview = False
 getProductionLocations = False
 getCast = False
 deviceNameOpt = False
-sslverify = False
 syncDuringPlay = False
 artworkcacheenable = True
 WebserverData = {}
@@ -627,7 +626,6 @@ def InitSettings():
     load_settings_bool('getProductionLocations')
     load_settings_bool('getCast')
     load_settings_bool('deviceNameOpt')
-    load_settings_bool('sslverify')
     load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])

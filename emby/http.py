@@ -37,7 +37,6 @@ class HTTP:
         else:
             data['timeout'] = 120
 
-        data['verify'] = Utils.sslverify
         LOG.debug("--->[ http ] %s" % json.dumps(data, indent=4))
         Retries = 0
 
@@ -56,6 +55,14 @@ class HTTP:
                     Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33147))
 
                 LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
+
+                if Binary:
+                    return b""
+
+                return {}
+            except requests.exceptions.SSLError:
+                LOG.error("[ SSL error ]")
+                Utils.dialog("notification", heading=Utils.addon_name, message="SSL Error")
 
                 if Binary:
                     return b""

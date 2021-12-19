@@ -96,6 +96,10 @@ class ConnectionManager:
 
         address = normalize_address(address)
         public_info = self._try_connect(address, False)
+
+        if not public_info:
+            return False
+
         LOG.info("connectToAddress %s succeeded" % address)
         self.EmbyServer.ServerData = {'ManualAddress': address, 'LastConnectionMode': 2}  # Manual
         self._update_server_info(public_info)

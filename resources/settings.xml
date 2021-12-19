@@ -3,7 +3,6 @@
     <category label="29999"><!-- Emby -->
         <setting label="30614" type="action" action="NotifyAll(plugin.video.emby-next-gen,addserver)" visible="true" option="close" />
         <setting label="33054" type="action" action="NotifyAll(plugin.video.emby-next-gen,adduserselection)" visible="true" option="close" />
-        <setting label="30500" id="sslverify" type="bool" default="true" visible="true" />
         <setting type="sep" />
         <setting label="33110" type="lsep" />
         <setting label="30504" id="deviceNameOpt" type="bool" default="false" />

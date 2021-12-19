@@ -535,11 +535,17 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
                 url = quote_plus(url)
                 UrlSend = "%s/image/image://%s" % (webServerUrl, url)
 
-                try:
-                    session.head(UrlSend, auth=(webServerUser, webServerPass))
-                except:
-                    LOG.warning("Artwork caching interrupted. %s / %s" % (Label, UrlSend))
-                    break
+#                try:
+                session.head(UrlSend, auth=(webServerUser, webServerPass), verify=False)
+#                except:
+#                    LOG.warning("Artwork caching interrupted. %s / %s" % (Label, UrlSend))
+#                    break
+
+
+
+
+
+
 
     progress_updates.close()
 

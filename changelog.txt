@@ -1,4 +1,4 @@
-6.2.2 (beta)
+6.2.3 (beta)
 =============
 Improvements:
 -------------
@@ -286,6 +286,7 @@ fix musicvideo letter nodes
 fix shutdown procedure
 add slideshow
 fix websocket connection timeout (part 2)
+enable permanent ssl verification
 
 6.0.13 (beta)
 =============
