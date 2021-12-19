@@ -285,7 +285,7 @@ fix realtime sync
 fix musicvideo letter nodes
 fix shutdown procedure
 add slideshow
-
+fix websocket connection timeout (part 2)
 
 6.0.13 (beta)
 =============

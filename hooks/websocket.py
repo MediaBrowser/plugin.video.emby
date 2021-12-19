@@ -40,9 +40,7 @@ class WSClient(threading.Thread):
         self.EmbyServer = EmbyServer
         self.stop = False
         LOG.debug("WSClient initializing...")
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.sock = None
         self._recv_buffer = []
         self._frame_header = None
         self._frame_length = None
@@ -70,12 +68,18 @@ class WSClient(threading.Thread):
                     while not self.stop:
                         self.close()
                         LOG.info("--->[ websocket reconnecting ]")
-                        xbmc.sleep(1000)
+
+                        if XbmcMonitor.waitForAbort(2):
+                            break
+
+                        self.stop = False
 
                         if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id)):
                             threading.Thread(target=self.ping).start()
                             LOG.info("---<[ websocket reconnecting ]")
                             break
+
+                        LOG.info("[ websocket reconnecting failed ]")
         else:
             LOG.info("[ websocket failed ]")
             self.close()
@@ -96,6 +100,10 @@ class WSClient(threading.Thread):
         self.sock.close()
 
     def connect(self, url):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         # Parse URL
         scheme, url = url.split(":", 1)
         parsed = urlparse(url, scheme="http")
@@ -115,7 +123,11 @@ class WSClient(threading.Thread):
                 port = 443
 
         # Connect
-        self.sock.connect((hostname, port))
+        try:
+            self.sock.connect((hostname, port))
+        except:
+            return False
+
         self.sock.settimeout(None)
 
         if is_secure:
@@ -143,6 +155,10 @@ class WSClient(threading.Thread):
 
             while True:
                 c = self.sock.recv(1).decode()
+
+                if not c:
+                    return False
+
                 line.append(c)
 
                 if c == "\n":

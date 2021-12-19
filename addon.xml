@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<addon id="plugin.video.emby-next-gen" name="Emby-next-gen" version="6.2.2" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby-next-gen" version="6.2.3" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="script.module.requests" version="2.22.0" />
         <import addon="script.module.dateutil" version="2.8.1" />
