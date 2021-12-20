@@ -24,6 +24,7 @@ class Menu:
         self.EmbyServers = EmbyServers
         self.player = player
         self.ListItemData = []
+        self.PluginMenuActive = False
 
     # Add directory listitem. context should be a list of tuples [(label, action)*]
     def add_ListItem(self, label, path, folder, artwork, fanart):
@@ -34,6 +35,7 @@ class Menu:
     # Build plugin menu
     def listing(self, Handle):
         self.ListItemData = []
+        self.PluginMenuActive = True
 
         for server_id in self.EmbyServers:
             for Node in self.EmbyServers[server_id].Views.Nodes:
@@ -160,19 +162,21 @@ class Menu:
         EmbyMediaID = {'musicvideos': 'MusicVideos', 'tvshows': "Series", 'music': 'MusicArtist', 'movies': 'Movie', 'livetv': 'LiveTv', 'channels': 'Songs', 'boxsets': 'BoxSet', 'playlists': 'Movie', 'Season': 'Season', 'Episode': 'Episode', 'MusicVideos': 'MusicVideos', 'MusicAlbum': 'MusicAlbum', 'Songs': 'Songs', 'Folder': 'Folder', 'PhotoAlbum': 'PhotoAlbum', 'Photo': 'Photo', 'homevideos': 'Video,PhotoAlbum,Photo', 'mixed': 'Movie,Series,Video', 'Genre': None, 'audiobooks': 'audiobooks', 'podcasts': 'channels'}
         KodiType = KodiMediaID[media]
         EmbyType = EmbyMediaID[media]
-        ReloadWindowId = 0
-        WindowId = xbmcgui.getCurrentWindowId()
 
-        if KodiType == "images" and WindowId in (10025, 10502):  # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml
-            ReloadWindowId = 10002
-        elif KodiType in ("albums", "artists", 'music', 'songs') and WindowId in (10025, 10002):
-            ReloadWindowId = 10502
-        elif WindowId in (10502, 10002) == 10002:
-            ReloadWindowId = 10025
+        if self.PluginMenuActive:
+            ReloadWindowId = 0
+            WindowId = xbmcgui.getCurrentWindowId()
 
-        if ReloadWindowId:
-            threading.Thread(target=ChangeContentWindow, args=("plugin://plugin.video.emby-next-gen/?id=%s&mode=browse&type=%s&name=%s&folder=%s&server=%s" % (view_id, media, name, folder, server_id), ReloadWindowId)).start()
-            return
+            if KodiType == "images" and WindowId in (10025, 10502):  # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml
+                ReloadWindowId = 10002
+            elif KodiType in ("albums", "artists", 'music', 'songs') and WindowId in (10025, 10002):
+                ReloadWindowId = 10502
+            elif WindowId in (10502, 10002) == 10002:
+                ReloadWindowId = 10025
+
+            if ReloadWindowId:
+                threading.Thread(target=ChangeContentWindow, args=("plugin://plugin.video.emby-next-gen/?id=%s&mode=browse&type=%s&name=%s&folder=%s&server=%s" % (view_id, media, name, folder, server_id), ReloadWindowId)).start()
+                return
 
         if view_id:
             xbmcplugin.setPluginCategory(Handle, name)
