@@ -30,8 +30,6 @@ else:
 LOG = loghandler.LOG('EMBY.helper.utils')
 KodiDBLock = {"music": False, "video": False}
 Dialog = xbmcgui.Dialog()
-VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
-AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
 MinimumVersion = "6.0.10"
 device_name = "Kodi"
 xspplaylists = False
@@ -39,8 +37,6 @@ TranscodeFormatVideo = ""
 TranscodeFormatAudio = ""
 videoBitrate = 0
 audioBitrate = 0
-VideoBitrate = 0
-AudioBitrate = 0
 resumeJumpBack = 0
 displayMessage = 0
 newvideotime = 1
@@ -628,8 +624,6 @@ def InitSettings():
     load_settings_bool('deviceNameOpt')
     load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
-    globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
-    globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
 
     if not globals()["deviceNameOpt"]:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
@@ -735,7 +729,10 @@ mkDir(FolderAddonUserdataLibrary)
 InitSettings()
 limitIndex = int(limitIndex)
 startupDelay = int(startupDelay)
+videoBitrate = int(videoBitrate)
+audioBitrate = int(audioBitrate)
 set_settings_bool('artworkcacheenable', True)
+set_settings('deviceName', device_name)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")

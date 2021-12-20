@@ -475,16 +475,16 @@ def IsTranscoding(Bitrate, Codec, QueryData):
             IsTranscodingByCodec(Bitrate, QueryData)
             return True
 
-    QueryData['TargetVideoBitrate'] = Utils.VideoBitrate
-    QueryData['TargetAudioBitrate'] = Utils.AudioBitrate
+    QueryData['TargetVideoBitrate'] = Utils.videoBitrate
+    QueryData['TargetAudioBitrate'] = Utils.audioBitrate
     QueryData['TranscodeReasons'] = "ContainerBitrateExceedsLimit"
     return Bitrate >= QueryData['TargetVideoBitrate']
 
 def IsTranscodingByCodec(Bitrate, QueryData):
-    if Bitrate >= Utils.VideoBitrate:
+    if Bitrate >= Utils.videoBitrate:
         QueryData['TranscodeReasons'] = "ContainerBitrateExceedsLimit"
-        QueryData['TargetVideoBitrate'] = Utils.VideoBitrate
-        QueryData['TargetAudioBitrate'] = Utils.AudioBitrate
+        QueryData['TargetVideoBitrate'] = Utils.videoBitrate
+        QueryData['TargetAudioBitrate'] = Utils.audioBitrate
     else:
         QueryData['TranscodeReasons'] = "VideoCodecNotSupported"
         QueryData['TargetVideoBitrate'] = 0

@@ -1,89 +1,542 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<settings>
-    <category label="29999"><!-- Emby -->
-        <setting label="30614" type="action" action="NotifyAll(plugin.video.emby-next-gen,addserver)" visible="true" option="close" />
-        <setting label="33054" type="action" action="NotifyAll(plugin.video.emby-next-gen,adduserselection)" visible="true" option="close" />
-        <setting type="sep" />
-        <setting label="33110" type="lsep" />
-        <setting label="30504" id="deviceNameOpt" type="bool" default="false" />
-        <setting label="30016" id="deviceName" type="text" default="Kodi" visible="eq(-1,true)" subsetting="true" />
-    </category>
-    <category label="30506"><!-- Sync Options -->
-        <setting label="Sync" type="lsep" />
-        <setting label="33194" type="action" action="NotifyAll(plugin.video.emby-next-gen,managelibsselection)" visible="true" />
-        <setting label="33259" id="syncdate" type="date" />
-        <setting label="33260" id="synctime" type="time" />
-        <setting id="artworkcacheenable" type="text" default="true" visible="false" />
-        <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" enable="eq(-1,true)" option="close" />
-        <setting label="33239" id="xspplaylists" type="bool" default="false" />
-        <setting label="33240" id="userRating" type="bool" default="true" />
-        <setting label="33058" type="action" action="NotifyAll(plugin.video.emby-next-gen,databasereset)" visible="true" />
-        <setting label="33111" type="lsep" />
-        <setting label="33175" type="lsep" />
-        <setting label="30515" id="limitIndex" type="number" default="50" option="int" />
-        <setting label="30511" id="useDirectPaths" type="bool" default="false" visible="false"/>
-    </category>
-    <category label="30516"><!-- Playback -->
-        <setting label="33113" type="lsep" />
-        <setting label="30518" id="enableCinema" type="bool" default="false" />
-        <setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
-        <setting label="33241" id="localTrailers" type="bool" default="true" visible="eq(-2,true)" subsetting="true" />
-        <setting label="33242" id="Trailers" type="bool" default="true" visible="eq(-3,true)" subsetting="true" />
-        <setting label="33243" type="lsep" />
-        <setting label="30522" id="transcodeH265" type="bool" default="false" visible="true" />
-        <setting label="33214" id="transcodeDivx" type="bool" default="false" visible="true" />
-        <setting label="33215" id="transcodeXvid" type="bool" default="false" visible="true" />
-        <setting label="33216" id="transcodeMpeg2" type="bool" default="false" visible="true" />
-        <setting type="sep" />
-        <setting label="33244" id="TranscodeFormatVideo" type="labelenum" values="h264|hevc" visible="true" default="h264" />
-        <setting label="33245" id="TranscodeFormatAudio" type="labelenum" values="aac|ac3" visible="true" default="aac" />
-        <setting label="33115" type="lsep" />
-        <setting label="30160" id="videoBitrate" type="enum" values="664 Kbps SD|996 Kbps HD|1.3 Mbps HD|2.0 Mbps HD|3.2 Mbps HD|4.7 Mbps HD|6.2 Mbps HD|7.7 Mbps HD|9.2 Mbps HD|10.7 Mbps HD|12.2 Mbps HD|13.7 Mbps HD|15.2 Mbps HD|16.7 Mbps HD|18.2 Mbps HD|20.0 Mbps HD|25.0 Mbps HD|30.0 Mbps HD|35.0 Mbps HD|40.0 Mbps HD|100.0 Mbps HD|1000.0 Mbps HD" visible="true" default="20" />
-        <setting label="Audio Bitrate" id="audioBitrate" type="enum" values="64 Kbps|96 Kbps|128 Kbps|192 Kbps|256 Kbps|320 Kbps|384 Kbps|448 Kbps|512 Kbps" visible="true" default="3" />
-        <setting type="sep" />
-        <setting label="33112" type="lsep" />
-        <setting label="30521" id="resumeJumpBack" type="slider" default="10" range="0,1,120" option="int" />
-        <setting label="30114" id="offerDelete" type="bool" default="false" />
-        <setting label="30115" id="deleteTV" type="bool" visible="eq(-1,true)" default="false" subsetting="true" />
-        <setting label="30116" id="deleteMovies" type="bool" visible="eq(-2,true)" default="false" subsetting="true" />
-    </category>	
-    <category label="30235"><!-- Interface -->
-        <setting label="30157" id="enableCoverArt" type="bool" default="false" />
-        <setting label="33116" id="compressArt" type="bool" default="false" />
-        <setting label="33105" id="enableContext" type="bool" default="true" />
-        <setting label="33143" id="enableContextDelete" type="bool" visible="eq(-1,true)" default="true" subsetting="true" />
-        <setting label="33107" type="lsep" />
-        <setting label="33210" id="addUsersHidden" type="bool" default="false" />
-        <setting type="sep"/>
-        <setting label="30534" type="lsep" />
-        <setting label="30249" id="connectMsg" type="bool" default="true" />
-        <setting label="30530" id="restartMsg" type="bool" default="true" />
-        <setting label="30547" id="displayMessage" type="slider" default="4" range="4,1,20" option="int" />
-        <setting label="33108" type="lsep" />
-        <setting label="33246" id="menuOptions" type="bool" default="false" />
-        <setting label="30531" id="newContent" type="bool" default="false" />
-        <setting label="30532" id="newvideotime" type="number" visible="eq(-1,true)" default="5" option="int" subsetting="true" />
-        <setting label="30533" id="newmusictime" type="number" visible="eq(-2,true)" default="2" option="int" subsetting="true" />
-    </category>
-    <category label="33253"><!-- Plugin -->
-        <setting label="33247" id="getDateCreated" type="bool" default="false" />
-        <setting label="33248" id="getGenres" type="bool" default="false" />
-        <setting label="33249" id="getStudios" type="bool" default="false" />
-        <setting label="33250" id="getTaglines" type="bool" default="false" />
-        <setting label="33251" id="getOverview" type="bool" default="false" />
-        <setting label="33252" id="getProductionLocations" type="bool" default="false" />
-        <setting label="33124" id="getCast" type="bool" default="false" />
-    </category>
-    <category label="30022"><!-- Advanced -->
-        <setting label="30535" type="action" action="NotifyAll(plugin.video.emby-next-gen,reset_device_id)" visible="true" option="close" />
-        <setting label="33196" type="lsep" />
-        <setting label="30529" id="startupDelay" type="number" default="0" option="int" />
-        <setting label="33254" id="compatibilitymode" type="bool" default="false" />
-        <setting type="sep" />
-        <setting label="33104" type="lsep"/>
-        <setting label="33093" type="folder" id="backupPath" option="writeable" />
-        <setting label="33092" type="action" action="NotifyAll(plugin.video.emby-next-gen,backup)" visible="!eq(-1,)"  option="close" />
-        <setting label="33255" type="action" action="NotifyAll(plugin.video.emby-next-gen,restore)" visible="!eq(-2,)"  option="close" />
-        <setting id="MinimumSetup" type="text" visible="false" />
-    </category>
+<?xml version="1.0" ?>
+<settings version="1">
+    <section id="plugin.video.emby-next-gen">
+        <category id="general" label="29999" help="">
+            <group id="1" label="30613">
+                <setting id="addserver" label="30614" type="action" help="33307">
+                    <data>NotifyAll(plugin.video.emby-next-gen,addserver)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting id="adduserselection" label="33054" type="action" help="33319">
+                    <data>NotifyAll(plugin.video.emby-next-gen,adduserselection)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting label="33210" id="addUsersHidden" type="boolean" help="33308">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="2" label="33110">
+                <setting label="30504" id="deviceNameOpt" type="boolean" help="33318">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30016" id="deviceName" type="string" help="33318">
+                    <level>0</level>
+                    <default>"Kodi"</default>
+                    <constraints>
+                        <allowempty>false</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="deviceNameOpt">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="edit" format="string">
+                        <heading>30016</heading>
+                    </control>
+                </setting>
+                <setting id="reset_device_id" label="30535" type="action" help="33306">
+                    <data>NotifyAll(plugin.video.emby-next-gen,reset_device_id)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                </setting>  
+            </group> 
+        </category>
+        <category id="sync" label="30506" help="">
+            <group id="1" label="30506">
+                <setting label="" id="artworkcacheenable" type="boolean" help="">
+                    <level>0</level>
+                    <visible>false</visible>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30511" id="useDirectPaths" type="boolean" help="">
+                    <level>0</level>
+                    <visible>false</visible>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="" id="MinimumSetup" type="string" help="">
+                    <level>0</level>
+                    <visible>false</visible>
+                    <default/>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+                <setting id="managelibsselection" label="33194" type="action" help="33309">
+                    <data>NotifyAll(plugin.video.emby-next-gen,managelibsselection)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                </setting>   
+                <setting id="texturecache" label="33059" type="action" help="33310">
+                    <data>NotifyAll(plugin.video.emby-next-gen,texturecache)</data>
+                    <level>0</level>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="artworkcacheenable">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting label="33239" id="xspplaylists" type="boolean" help="33311">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33240" id="userRating" type="boolean" help="33312">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>    
+                <setting id="databasereset" label="33058" type="action" help="33313">
+                    <data>NotifyAll(plugin.video.emby-next-gen,databasereset)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting label="33259" id="syncdate" type="date" help="33305">
+                    <level>3</level>
+                    <default>"2021-01-01"</default>
+                    <control type="button" format="date">
+                        <heading>33259</heading>
+                    </control>
+                </setting>
+                <setting label="33260" id="synctime" type="time" help="33305">
+                    <level>3</level>
+                    <default>00:00</default>
+                    <control type="button" format="time">
+                        <heading>33260</heading>
+                    </control>
+                </setting>
+            </group>
+            <group id="2" label="33175">
+                <setting id="limitIndex" type="integer" label="30515" help="33175">
+                    <level>0</level>
+                    <default>50</default>
+                    <control type="edit" format="integer"/>
+                </setting>
+            </group> 
+        </category>  
+        <category id="playback" label="30516" help="">
+            <group id="1" label="33298">
+                <setting label="30518" id="enableCinema" type="boolean" help="33314">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>        
+                <setting label="30519" id="askCinema" type="boolean" help="33314">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableCinema">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>   
+                <setting label="33241" id="localTrailers" type="boolean" help="33314">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableCinema">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>  
+                <setting label="33242" id="Trailers" type="boolean" help="33314">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableCinema">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>  
+            </group>
+            <group id="2" label="30409">
+                <setting label="30114" id="offerDelete" type="boolean" help="33304">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30115" id="deleteTV" type="boolean" help="33304">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="offerDelete">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>  
+                <setting label="30116" id="deleteMovies" type="boolean" help="33304">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="offerDelete">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="3" label="30516"> 
+                <setting id="resumeJumpBack" type="integer" label="30521" help="33320">
+                    <level>0</level>
+                    <default>10</default>
+                    <constraints>
+                        <minimum>5</minimum>
+                        <step>1</step>
+                        <maximum>60</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+            </group>
+            <group id="4" label="33243">
+                <setting label="30522" id="transcodeH265" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33214" id="transcodeDivx" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33215" id="transcodeXvid" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33216" id="transcodeMpeg2" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>      
+                <setting id="TranscodeFormatVideo" type="string" label="33244" help="">
+                    <level>0</level>
+                    <default>h264</default>
+                    <constraints>
+                        <options>
+                            <option label="33263">h264</option>
+                            <option label="33264">hevc</option>
+                        </options>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="TranscodeFormatAudio" type="string" label="33245" help="">
+                    <level>0</level>
+                    <default>aac</default>
+                    <constraints>
+                        <options>
+                            <option label="33265">aac</option>
+                            <option label="33266">ac3</option>
+                        </options>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="videoBitrate" type="integer" label="30160" help="33316">
+                    <level>0</level>
+                    <default>100000000</default>
+                    <constraints>
+                        <options>
+                            <option label="33267">664000</option>
+                            <option label="33268">996000</option>
+                            <option label="33269">1320000</option>
+                            <option label="33270">2000000</option>
+                            <option label="33271">3200000</option>
+                            <option label="33272">4700000</option>
+                            <option label="33273">6200000</option>
+                            <option label="33274">7700000</option>
+                            <option label="33275">9200000</option>
+                            <option label="33276">10700000</option>
+                            <option label="33277">12200000</option>
+                            <option label="33278">13700000</option>
+                            <option label="33279">15200000</option>
+                            <option label="33280">16700000</option>
+                            <option label="33281">18200000</option>
+                            <option label="33282">20000000</option>
+                            <option label="33283">25000000</option>
+                            <option label="33284">30000000</option>
+                            <option label="33285">35000000</option>
+                            <option label="33286">40000000</option>
+                            <option label="33287">100000000</option>
+                            <option label="33288">1000000000</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="audioBitrate" type="integer" label="33262" help="33315">
+                    <level>0</level>
+                    <default>192000</default>
+                    <constraints>
+                        <options>
+                            <option label="33289">64000</option>
+                            <option label="33290">96000</option>
+                            <option label="33291">128000</option>
+                            <option label="33292">192000</option>
+                            <option label="33293">256000</option>
+                            <option label="33294">320000</option>
+                            <option label="33295">384000</option>
+                            <option label="33296">448000</option>
+                            <option label="33297">512000</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>  
+        <category id="Interface" label="30235" help="">
+            <group id="1" label="33299">
+                <setting label="30157" id="enableCoverArt" type="boolean" help="33321">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33116" id="compressArt" type="boolean" help="33322">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="2" label="33300">
+                <setting label="33246" id="menuOptions" type="boolean" help="33323">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting> 
+                <setting label="33105" id="enableContext" type="boolean" help="33324">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33143" id="enableContextDelete" type="boolean" help="33304">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableContext">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="3" label="33108">
+                <setting label="30249" id="connectMsg" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30530" id="restartMsg" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="displayMessage" type="integer" label="30547" help="">
+                    <level>0</level>
+                    <default>10</default>
+                    <constraints>
+                        <minimum>2</minimum>
+                        <step>1</step>
+                        <maximum>15</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="connectMsg">true</condition>
+                                <condition operator="is" setting="restartMsg">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="30531" id="newContent" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="newvideotime" type="integer" label="30532" help="">
+                    <level>0</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>30</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="newContent">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="newmusictime" type="integer" label="30533" help="">
+                    <level>0</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>30</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="newContent">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
+        <category id="DynamicInfos" label="33253" help="33303">
+            <group id="1" label="33253">
+                <setting label="33247" id="getDateCreated" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33248" id="getGenres" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33249" id="getStudios" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33250" id="getTaglines" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33251" id="getOverview" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33252" id="getProductionLocations" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33124" id="getCast" type="boolean" help="33303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+        </category>
+        <category id="Advanced" label="30022" help="">
+            <group id="1" label="30022">
+                <setting id="startupDelay" type="integer" label="30529" help="33302">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>5</step>
+                        <maximum>120</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting label="33254" id="compatibilitymode" type="boolean" help="33301">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="2" label="33104">
+                <setting id="backupPath" type="path" label="33093" help="">
+                    <level>0</level>
+                    <default/>
+                    <constraints>
+                        <writable>true</writable>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="button" format="path">
+                        <heading>32025</heading>
+                    </control>
+                </setting>
+                <setting id="backup" label="33092" type="action" help="">
+                    <data>NotifyAll(plugin.video.emby-next-gen,backup)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="!is" setting="backupPath"></condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="restore" label="33255" type="action" help="">
+                    <data>NotifyAll(plugin.video.emby-next-gen,restore)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="!is" setting="backupPath"></condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
+    </section>
 </settings>

@@ -410,10 +410,6 @@ msgctxt "#30617"
 msgid "Server or port cannot be empty"
 msgstr "Le serveur et le port ne peuvent pas être vides"
 
-msgctxt "#30618"
-msgid "Change Emby Connect user"
-msgstr "Changer d’utilisateur Emby Connect"
-
 msgctxt "#33000"
 msgid "Welcome"
 msgstr "Bienvenue"
@@ -1228,4 +1224,252 @@ msgstr ""
 
 msgctxt "#33261"
 msgid "Collecting removed items"
+msgstr ""
+
+msgctxt "#33262"
+msgid "Audio Bitrate"
+msgstr ""
+
+msgctxt "#33263"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33264"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33265"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33266"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33267"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33268"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr ""
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr ""
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr ""
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr ""
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr ""
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity."
+msgstr ""
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr ""
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
+msgstr ""
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr ""
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr ""
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr ""
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr ""
+
+msgctxt "#33309"
+msgid "Add/Remove synced content."
+msgstr ""
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr ""
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr ""
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
+msgstr ""
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
+msgstr ""
+
+msgctxt "#33314"
+msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr ""
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr ""
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
+msgstr ""
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr ""
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr ""
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr ""
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr ""
+
+msgctxt "#33322"
+msgid "Can save bandwith"
+msgstr ""
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr ""
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
 msgstr ""
