@@ -35,7 +35,14 @@ class Library:
             LOG.info("--<[ %s: Wait for priority workers finished ]" % TaskId)
 
     def open_EmbyDB(self):
+        if utils.WorkerInProgress:
+            return None
+
         self.wait_EmbyDBWritePriority("Regular")
+
+        if utils.WorkerInProgress:  # verify again in case multithread has started simultan while waiting for EmbyDBWritePriority
+            return None
+
         utils.WorkerInProgress = True
         return dbio.DBOpen(utils.DatabaseFiles, self.EmbyServer.server_id)
 
@@ -107,6 +114,8 @@ class Library:
 
             for UserSync in (False, True):
                 for LibraryId, Value in list(self.Whitelist.items()):
+                    LOG.info("[ retrieve changes ] %s / %s / %s" % (LibraryId, Value[0], UserSync))
+
                     if LibraryId not in self.EmbyServer.Views.ViewItems:
                         LOG.info("[ InitSync remove library %s ]" % LibraryId)
                         continue
@@ -160,12 +169,13 @@ class Library:
             LOG.info("[ worker userdata sync paused ]")
             return False
 
-        if utils.WorkerInProgress:
+        embydb = self.open_EmbyDB()
+
+        if embydb:
+            UserDataItems = embydb.get_Userdata()
+        else:
             LOG.info("[ worker userdata in progress ]")
             return False
-
-        embydb = self.open_EmbyDB()
-        UserDataItems = embydb.get_Userdata()
 
         if not UserDataItems:
             LOG.info("[ worker userdata exit ] queue size: 0")
@@ -251,12 +261,13 @@ class Library:
             LOG.info("[ worker update sync paused ]")
             return False
 
-        if utils.WorkerInProgress:
+        embydb = self.open_EmbyDB()
+
+        if embydb:
+            UpdateItems = embydb.get_UpdateItem()
+        else:
             LOG.info("[ worker update in progress ]")
             return False
-
-        embydb = self.open_EmbyDB()
-        UpdateItems = embydb.get_UpdateItem()
 
         if not UpdateItems:
             LOG.info("[ worker update exit ] queue size: 0")
@@ -354,12 +365,13 @@ class Library:
             LOG.info("[ worker remove sync paused ]")
             return False
 
-        if utils.WorkerInProgress:
+        embydb = self.open_EmbyDB()
+
+        if embydb:
+            RemoveItems = embydb.get_RemoveItem()
+        else:
             LOG.info("[ worker remove in progress ]")
             return False
-
-        embydb = self.open_EmbyDB()
-        RemoveItems = embydb.get_RemoveItem()
 
         if not RemoveItems:
             LOG.info("[ worker remove exit ] queue size: 0")
@@ -469,12 +481,13 @@ class Library:
             LOG.info("[ worker library sync paused ]")
             return False
 
-        if utils.WorkerInProgress:
+        embydb = self.open_EmbyDB()
+
+        if embydb:
+            SyncItems = embydb.get_PendingSync()
+        else:
             LOG.info("[ worker library in progress ]")
             return False
-
-        embydb = self.open_EmbyDB()
-        SyncItems = embydb.get_PendingSync()
 
         if not SyncItems:
             LOG.info("[ worker library exit ] queue size: 0")

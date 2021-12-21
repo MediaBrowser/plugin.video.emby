@@ -291,6 +291,7 @@ disable ssl verification for artwork cache
 lock windowchange on regular ops
 optimize code
 fix multiserver sync issue
+add additional lock for multithreaded syncs
 
 6.0.13 (beta)
 =============
