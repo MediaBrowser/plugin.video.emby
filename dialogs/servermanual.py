@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -11,7 +11,7 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = helper.loghandler.LOG('EMBY.dialogs.servermanual')
+LOG = loghandler.LOG('EMBY.dialogs.servermanual')
 
 
 class ServerManual(xbmcgui.WindowXMLDialog):
@@ -61,7 +61,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], Utils.Translate(30617))
+                self._error(ERROR['Empty'], utils.Translate(30617))
                 LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
@@ -87,14 +87,14 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
-        self._message("%s %s..." % (Utils.Translate(30610), server_address))
+        self._message("%s %s..." % (utils.Translate(30610), server_address))
         result = self.connect_manager.connect_to_address(server_address)
 
         if not result:
             return False
 
         if result['State'] == 0:  # Unavailable
-            self._message(Utils.Translate(30609))
+            self._message(utils.Translate(30609))
             return False
 
         self._server = result['Servers'][0]

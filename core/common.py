@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-import helper.loghandler
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
 
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import quote, urlparse
 else:
     from urllib import quote
     from urlparse import urlparse
 
-LOG = helper.loghandler.LOG('EMBY.core.common')
+LOG = loghandler.LOG('EMBY.core.common')
 
 
 def add_Multiversion(obj, emby_db, ItemType, API):
@@ -113,9 +113,9 @@ def get_filename(obj, MediaID, API):
         ForceNativeMode = True
 
     # Native
-    if Utils.useDirectPaths or ForceNativeMode:
+    if utils.useDirectPaths or ForceNativeMode:
         Filename = obj['FullPath'].rsplit('\\', 1)[1] if '\\' in obj['FullPath'] else obj['FullPath'].rsplit('/', 1)[1]
-        Filename = Utils.StringDecode(Filename)
+        Filename = utils.StringDecode(Filename)
 
         if MediaID == "audio":
             return Filename
@@ -124,11 +124,11 @@ def get_filename(obj, MediaID, API):
         if 'PartCount' in obj['Item']:
             if (obj['Item']['PartCount']) >= 2:
                 AdditionalParts = API.get_additional_parts(obj['Id'])
-                Filename = Utils.StringDecode(obj['FullPath'])
+                Filename = utils.StringDecode(obj['FullPath'])
                 obj['StackTimes'] = str(obj['Runtime'])
 
                 for AdditionalItem in AdditionalParts['Items']:
-                    Path = Utils.StringDecode(AdditionalItem['Path'])
+                    Path = utils.StringDecode(AdditionalItem['Path'])
                     Filename = "%s , %s" % (Filename, Path)
 
                     if 'RunTimeTicks' not in AdditionalItem:
@@ -143,7 +143,7 @@ def get_filename(obj, MediaID, API):
         return Filename
 
     # Addon
-    Filename = Utils.PathToFilenameReplaceSpecialCharecters(obj['FullPath'])
+    Filename = utils.PathToFilenameReplaceSpecialCharecters(obj['FullPath'])
     Filename = Filename.replace("-", "_").replace(" ", "")
 
     if 'PresentationKey' in obj:
@@ -167,7 +167,7 @@ def get_filename(obj, MediaID, API):
             Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiItemId'], obj['KodiFileId'], MediaID, obj['Streams']['video'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
         except:
             Filename = "embyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (obj['ServerId'], obj['Id'], obj['MediaSourceID'], PresentationKey, obj['EmbyParentId'], obj['KodiItemId'], obj['KodiFileId'], MediaID, 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], CodecVideo, Filename)
-            LOG.warning("No video bitrate available %s" % Utils.StringEncode(obj['Item']['Path']))
+            LOG.warning("No video bitrate available %s" % utils.StringEncode(obj['Item']['Path']))
 
         # Detect Multipart videos
         if 'PartCount' in obj['Item']:
@@ -177,7 +177,7 @@ def get_filename(obj, MediaID, API):
                 StackedFilename = obj['Path'] + Filename
 
                 for AdditionalItem in AdditionalParts['Items']:
-                    AdditionalFilename = Utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
+                    AdditionalFilename = utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
                     AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
 
                     try:
@@ -202,7 +202,7 @@ def adjust_resume(resume_seconds):
 
     if resume_seconds:
         resume = round(float(resume_seconds), 6)
-        jumpback = int(Utils.resumeJumpBack)
+        jumpback = int(utils.resumeJumpBack)
 
         if resume > jumpback:
             # To avoid negative bookmark
@@ -229,15 +229,15 @@ def get_path(obj, MediaID):
         UrlPath = quote(UrlData[2])
         obj['FullPath'] = "%s://%s%s" % (UrlData[0], UrlData[1], UrlPath)
 
-    if Utils.useDirectPaths or ForceNativeMode:
+    if utils.useDirectPaths or ForceNativeMode:
         Temp2 = obj['FullPath'].rsplit('\\', 1)[1] if '\\' in obj['FullPath'] else obj['FullPath'].rsplit('/', 1)[1]
-        Temp2 = Utils.StringDecode(Temp2)
-        Path = Utils.StringDecode(obj['FullPath']).replace(Temp2, "")
+        Temp2 = utils.StringDecode(Temp2)
+        Path = utils.StringDecode(obj['FullPath']).replace(Temp2, "")
         PathChar = Path[-1]
 
         if MediaID == "tvshows":
             obj['PathParent'] = Path
-            Path = "%s%s" % (Utils.StringDecode(obj['FullPath']), PathChar)
+            Path = "%s%s" % (utils.StringDecode(obj['FullPath']), PathChar)
     else:
         if MediaID == "tvshows":
             obj['PathParent'] = "http://127.0.0.1:57578/tvshows/%s/" % obj['LibraryId']
@@ -260,12 +260,12 @@ def Streamdata_add(obj, emby_db, Update):
     if Update:
         emby_db.remove_item_streaminfos(obj['Id'])
 
-    PathTemp = Utils.StringEncode(obj['Item']['MediaSources'][0]['Path'])
+    PathTemp = utils.StringEncode(obj['Item']['MediaSources'][0]['Path'])
     Counter = 0
 
     if "3d" in PathTemp or ".iso" in PathTemp:
         for DataSource in obj['Item']['MediaSources']:
-            PathTemp = Utils.StringEncode(DataSource['Path'])
+            PathTemp = utils.StringEncode(DataSource['Path'])
 
             if "3d" not in PathTemp and ".iso" not in PathTemp:
                 Temp = DataSource
@@ -348,11 +348,11 @@ def SwopMediaSources(obj, item):
                 obj['Path'] = obj['Item']['MediaSources'][0]['Path']
 
                 # don't use 3d or iso movies as default
-                PathTemp = Utils.StringEncode(obj['Item']['MediaSources'][0]['Path'])
+                PathTemp = utils.StringEncode(obj['Item']['MediaSources'][0]['Path'])
 
                 if "3d" in PathTemp or ".iso" in PathTemp:
                     for DataSource in obj['Item']['MediaSources']:
-                        PathTemp = Utils.StringEncode(DataSource['Path'])
+                        PathTemp = utils.StringEncode(DataSource['Path'])
 
                         if "3d" not in PathTemp and ".iso" not in PathTemp:
                             obj['Path'] = DataSource['Path']
@@ -370,15 +370,15 @@ def get_file_path(path, item):
     if path is None:
         path = item.get('Path')
 
-    path = Utils.StringEncode(path)
+    path = utils.StringEncode(path)
 
     # Addonmode replace filextensions
     if path.endswith('.strm'):
         path = path.replace('.strm', "")
 
         if 'Container' in item:
-            if not path.endswith(Utils.StringEncode(item['Container'])):
-                path = "%s.%s" %(path, Utils.StringEncode(item['Container']))
+            if not path.endswith(utils.StringEncode(item['Container'])):
+                path = "%s.%s" %(path, utils.StringEncode(item['Container']))
 
     if not path:
         return ""

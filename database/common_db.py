@@ -100,7 +100,7 @@ class CommonDatabase:
             else:
                 if ArtMap in ArtworkEmby:
                     if ArtworkEmby[ArtMap]:
-                        self.update_artwork(ArtworkEmby[ArtMap], KodiId, KodiMediaType, ArtMapping[ArtMap])
+                        self.update_artwork(ArtworkEmby[ArtMap], KodiId, KodiMediaType, ArtMap)
 
                         # Primary as fallback for empty thumb
                         if 'Thumb' in ArtMapping and 'Primary' in ArtworkEmby:
@@ -109,7 +109,7 @@ class CommonDatabase:
 
                         continue
 
-                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, ArtMapping[ArtMap]))
+                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, ArtMap))
 
     # Delete artwork from kodi database and remove cache for backdrop/posters
     def delete_artwork(self, *args):

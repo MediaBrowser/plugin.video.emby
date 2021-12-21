@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import core.common as Common
-from . import obj_ops as Objects
+from core import common
+from . import obj_ops
 
 art = {'clearart': "Art", 'clearlogo': "Logo", 'discart': "Disc", 'fanart_image': "Backdrop", 'landscape': "Thumb", 'thumb': "Primary", 'fanart': "Backdrop", 'banner': "Banner"}
 
@@ -11,31 +11,31 @@ def set_ListItem(item, server_id):
     Properties = {}
 
     if item['Type'] == 'Genre':
-        obj = Objects.mapitem(item, 'BrowseGenre')
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, server_id)
+        obj = obj_ops.mapitem(item, 'BrowseGenre')
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, server_id)
         Properties['IsFolder'] = 'true'
         Properties['IsPlayable'] = 'false'
     elif item['Type'] in ("Movie", "MusicVideo", 'Episode', 'Season', 'Series', 'Video', 'BoxSet', 'AudioBook', 'Folder', 'Trailer', 'Studio', 'Person', 'Program', 'CollectionFolder', 'UserView', "Channel"):
-        obj = Objects.mapitem(item, 'BrowseVideo')
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkParent'), True, server_id)
+        obj = obj_ops.mapitem(item, 'BrowseVideo')
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkParent'), True, server_id)
         obj['Genres'] = " / ".join(obj['Genres'] or [])
         obj['Studios'] = " / ".join(obj['Studios'] or [])
-        obj['Mpaa'] = Common.get_mpaa(obj['Mpaa'], item)
+        obj['Mpaa'] = common.get_mpaa(obj['Mpaa'], item)
         obj['People'] = obj['People'] or []
         obj['Countries'] = " / ".join(obj['Countries'] or [])
         obj['Directors'] = " / ".join(obj['Directors'] or [])
         obj['Writers'] = " / ".join(obj['Writers'] or [])
-        obj['Plot'] = Common.get_overview(obj['Plot'], item)
-        obj['ShortPlot'] = Common.get_overview(obj['ShortPlot'], item)
+        obj['Plot'] = common.get_overview(obj['Plot'], item)
+        obj['ShortPlot'] = common.get_overview(obj['ShortPlot'], item)
         obj['Rating'] = obj['Rating'] or 0
-        obj['DateAdded'], obj['FileDate'] = Common.get_DateAdded(obj['DateAdded'])
+        obj['DateAdded'], obj['FileDate'] = common.get_DateAdded(obj['DateAdded'])
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
-        obj['Resume'] = Common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount']) or 0
+        obj['Resume'] = common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount']) or 0
         obj['Overlay'] = 7 if obj['Played'] else 6
-        obj['Video'] = Common.video_streams(obj['Video'] or [], obj['Container'], item)
-        obj['Audio'] = Common.audio_streams(obj['Audio'] or [])
-        obj['Streams'] = Common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
+        obj['Video'] = common.video_streams(obj['Video'] or [], obj['Container'], item)
+        obj['Audio'] = common.audio_streams(obj['Audio'] or [])
+        obj['Streams'] = common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
         obj['ChildCount'] = obj['ChildCount'] or 0
         obj['RecursiveCount'] = obj['RecursiveCount'] or 0
         obj['Unwatched'] = obj['Unwatched'] or 0
@@ -172,12 +172,12 @@ def set_ListItem(item, server_id):
 
         listitem.setInfo('video', metadata)
     elif item['Type'] in ("Music", "Audio", "MusicAlbum", "MusicArtist", "Artist", "MusicGenre"):
-        obj = Objects.mapitem(item, 'BrowseAudio')
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkMusic'), True, server_id)
+        obj = obj_ops.mapitem(item, 'BrowseAudio')
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkMusic'), True, server_id)
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount']) or 0
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount']) or 0
         obj['Rating'] = obj['Rating'] or 0
-        obj['DateAdded'], obj['FileDate'] = Common.get_DateAdded(obj['DateAdded'])
+        obj['DateAdded'], obj['FileDate'] = common.get_DateAdded(obj['DateAdded'])
         metadata = {
             'title': obj['Title'],
             'genre': obj['Genre'],
@@ -214,10 +214,10 @@ def set_ListItem(item, server_id):
 
         listitem.setInfo('music', metadata)
     elif item['Type'] in ("Photo", "PhotoAlbum"):
-        obj = Objects.mapitem(item, 'BrowsePhoto')
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, server_id)
-        obj['Overview'] = Common.get_overview(obj['Overview'], item)
-        obj['DateAdded'], obj['FileDate'] = Common.get_DateAdded(obj['DateAdded'])
+        obj = obj_ops.mapitem(item, 'BrowsePhoto')
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, server_id)
+        obj['Overview'] = common.get_overview(obj['Overview'], item)
+        obj['DateAdded'], obj['FileDate'] = common.get_DateAdded(obj['DateAdded'])
         metadata = {
             'title': obj['Title'],
             'picturepath': obj['Artwork']['Primary'],
@@ -242,18 +242,18 @@ def set_ListItem(item, server_id):
         Properties['IsPlayable'] = 'false'
         listitem.setInfo('pictures', metadata)
     elif item['Type'] == 'Playlist':
-        obj = Objects.mapitem(item, 'BrowseFolder')
+        obj = obj_ops.mapitem(item, 'BrowseFolder')
         metadata = {'title': obj['Title']}
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, server_id)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, server_id)
         Properties['IsFolder'] = 'true'
         Properties['IsPlayable'] = 'false'
         listitem.setInfo('video', metadata)
     elif item['Type'] == 'TvChannel':
-        obj = Objects.mapitem(item, 'BrowseChannel')
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, server_id)
+        obj = obj_ops.mapitem(item, 'BrowseChannel')
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, server_id)
         obj['Title'] = "%s - %s" % (obj['Title'], obj['ProgramName'])
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount']) or 0
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount']) or 0
         obj['Overlay'] = 7 if obj['Played'] else 6
 
         if 'Primary' not in obj['Artwork']:
@@ -297,6 +297,6 @@ def set_ListItem(item, server_id):
 
     if 'People' in obj:
         if obj['People']:
-            listitem.setCast(Common.get_actors(obj['People'], server_id))
+            listitem.setCast(common.get_actors(obj['People'], server_id))
 
     return listitem

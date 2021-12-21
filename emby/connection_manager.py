@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 import socket
-import helper.utils as Utils
-import helper.loghandler
+from helper import utils
+from helper import loghandler
 
-LOG = helper.loghandler.LOG('EMBY.core.connection_manager')
+LOG = loghandler.LOG('EMBY.core.connection_manager')
 
 
 class ConnectionManager:
@@ -30,7 +30,7 @@ class ConnectionManager:
         self.user = None
         self.EmbyServer.ServerData['ConnectAccessToken'] = None
         self.EmbyServer.ServerData['ConnectUserId'] = None
-        self.EmbyServer.ServerData['Servers'] = list()
+        self.EmbyServer.ServerData['Servers'] = []
         self.EmbyServer.server = None
         self.EmbyServer.user_id = None
         self.EmbyServer.Token = None
@@ -241,10 +241,10 @@ class ConnectionManager:
             return False
 
         auth = "Emby "
-        auth += "Client=%s, " % Utils.addon_name
-        auth += "Device=%s, " % Utils.device_name
-        auth += "DeviceId=%s, " % Utils.device_id
-        auth += "Version=%s " % Utils.addon_version
+        auth += "Client=%s, " % utils.addon_name
+        auth += "Device=%s, " % utils.device_name
+        auth += "DeviceId=%s, " % utils.device_id
+        auth += "Version=%s " % utils.addon_version
         auth = self.request_url({
             'url': get_emby_url(self.get_server_address(connection_mode), "Connect/Exchange"),
             'type': "GET",
@@ -342,7 +342,7 @@ def get_headers(request):
         headers['Accept-encoding'] = "gzip"
         request.pop('dataType')
 
-    headers['X-Application'] = "%s/%s" % (Utils.addon_name, Utils.addon_version)
+    headers['X-Application'] = "%s/%s" % (utils.addon_name, utils.addon_version)
     headers['Content-type'] = request.get('contentType', 'application/x-www-form-urlencoded; charset=UTF-8')
 
 def server_discovery():

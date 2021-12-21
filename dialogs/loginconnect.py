@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -11,7 +11,7 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = helper.loghandler.LOG('EMBY.dialogs.loginconnect')
+LOG = loghandler.LOG('EMBY.dialogs.loginconnect')
 
 
 class LoginConnect(xbmcgui.WindowXMLDialog):
@@ -60,7 +60,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
             if not user or not password:
                 # Display error
-                self._error(ERROR['Empty'], Utils.Translate(30608))
+                self._error(ERROR['Empty'], utils.Translate(30608))
                 LOG.error("Username or password cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -91,12 +91,12 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         result = self.connect_manager.login_to_connect(username, password)
 
         if not result:
-            self._error(ERROR['Invalid'], Utils.Translate(33009))
+            self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
         self._user = result
         username = result['User']['Name']
-        Utils.dialog("notification", heading=Utils.addon_name, message="%s %s" % (Utils.Translate(33000), Utils.StringDecode(username)), icon=result['User'].get('ImageUrl') or "special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=2000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), utils.StringDecode(username)), icon=result['User'].get('ImageUrl') or "special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=2000, sound=False)
         return True
 
     def _error(self, state, message):

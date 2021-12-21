@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -16,7 +16,7 @@ MESSAGE = 203
 BUSY = 204
 EMBY_CONNECT = 205
 MANUAL_SERVER = 206
-LOG = helper.loghandler.LOG('EMBY.dialogs.serverconnect')
+LOG = loghandler.LOG('EMBY.dialogs.serverconnect')
 
 
 class ServerConnect(xbmcgui.WindowXMLDialog):
@@ -64,7 +64,7 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
         if not self.emby_connect:  # Change connect user
-            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % Utils.Translate(30618))
+            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % utils.Translate(30618))
 
         if self.connect_manager.Found_Servers:
             self.setFocus(self.list_)
@@ -103,19 +103,19 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
                     server['ConnectUser'] = self.connect_manager.EmbyServer.ServerData['ConnectUser']
 
                 self.connect_manager.EmbyServer.ServerData = server
-                self.message.setLabel("%s %s..." % (Utils.Translate(30610), server['Name']))
+                self.message.setLabel("%s %s..." % (utils.Translate(30610), server['Name']))
                 self.message_box.setVisibleCondition('true')
                 self.busy.setVisibleCondition('true')
                 result = self.connect_manager.connect_to_server()
 
                 if not result:  # Unavailable
                     self.busy.setVisibleCondition('false')
-                    self.message.setLabel(Utils.Translate(30609))
+                    self.message.setLabel(utils.Translate(30609))
                     return False
 
                 if result['State'] == 0:  # Unavailable
                     self.busy.setVisibleCondition('false')
-                    self.message.setLabel(Utils.Translate(30609))
+                    self.message.setLabel(utils.Translate(30609))
                     return False
 
                 self._selected_server = result['Servers'][0]

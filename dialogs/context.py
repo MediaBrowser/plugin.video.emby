@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
+from helper import loghandler
 
-LOG = helper.loghandler.LOG('EMBY.dialogs.context')
+LOG = loghandler.LOG('EMBY.dialogs.context')
 
 
 class ContextMenu(xbmcgui.WindowXMLDialog):

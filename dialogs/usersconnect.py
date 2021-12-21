@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
+from helper import loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -10,7 +10,7 @@ ACTION_MOUSE_LEFT_CLICK = 100
 LIST = 155
 MANUAL = 200
 CANCEL = 201
-LOG = helper.loghandler.LOG('EMBY.dialogs.userconnect')
+LOG = loghandler.LOG('EMBY.dialogs.userconnect')
 
 
 class UsersConnect(xbmcgui.WindowXMLDialog):

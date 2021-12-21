@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree
 import xbmcgui
-import helper.loghandler
-import helper.xmls as xmls
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
+from helper import xmls
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import urlencode
 else:
     from urllib import urlencode
@@ -15,36 +15,36 @@ SyncNodes = {
     'tvshows': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultTVShows.png'),
-        ('recentlyadded', Utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
-        ('recentlyaddedepisodes', Utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
-        ('inprogress', Utils.Translate(30171), 'DefaultInProgressShows.png'),
-        ('inprogressepisodes', Utils.Translate(30178), 'DefaultInProgressShows.png'),
+        ('recentlyadded', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
+        ('recentlyaddedepisodes', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
+        ('inprogress', utils.Translate(30171), 'DefaultInProgressShows.png'),
+        ('inprogressepisodes', utils.Translate(30178), 'DefaultInProgressShows.png'),
         ('genres', "Genres", 'DefaultGenre.png'),
-        ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('recommended', Utils.Translate(30230), 'DefaultFavourites.png'),
-        ('years', Utils.Translate(33218), 'DefaultYear.png'),
-        ('actors', Utils.Translate(33219), 'DefaultActor.png'),
-        ('tags', Utils.Translate(33220), 'DefaultTags.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('recommended', utils.Translate(30230), 'DefaultFavourites.png'),
+        ('years', utils.Translate(33218), 'DefaultYear.png'),
+        ('actors', utils.Translate(33219), 'DefaultActor.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
         ('unwatched', "Unwatched TV Shows", 'OverlayUnwatched.png'),
         ('unwatchedepisodes', "Unwatched Episodes", 'OverlayUnwatched.png'),
         ('studios', "Studios", 'DefaultStudios.png'),
         ('recentlyplayed', 'Recently played TV Show', 'DefaultMusicRecentlyPlayed.png'),
         ('recentlyplayedepisode', 'Recently played Episode', 'DefaultMusicRecentlyPlayed.png'),
-        ('nextepisodes', Utils.Translate(30179), 'DefaultInProgressShows.png')
+        ('nextepisodes', utils.Translate(30179), 'DefaultInProgressShows.png')
     ],
     'movies': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultMovies.png'),
-        ('recentlyadded', Utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
-        ('inprogress', Utils.Translate(30177), 'DefaultInProgressShows.png'),
-        ('unwatched', Utils.Translate(30189), 'OverlayUnwatched.png'),
+        ('recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
+        ('inprogress', utils.Translate(30177), 'DefaultInProgressShows.png'),
+        ('unwatched', utils.Translate(30189), 'OverlayUnwatched.png'),
         ('sets', "Sets", 'DefaultSets.png'),
         ('genres', "Genres", 'DefaultGenre.png'),
-        ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('recommended', Utils.Translate(30230), 'DefaultFavourites.png'),
-        ('years', Utils.Translate(33218), 'DefaultYear.png'),
-        ('actors', Utils.Translate(33219), 'DefaultActor.png'),
-        ('tags', Utils.Translate(33220), 'DefaultTags.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('recommended', utils.Translate(30230), 'DefaultFavourites.png'),
+        ('years', utils.Translate(33218), 'DefaultYear.png'),
+        ('actors', utils.Translate(33219), 'DefaultActor.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
         ('studios', "Studios", 'DefaultStudios.png'),
         ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
         ('directors', 'Directors', 'DefaultDirector.png'),
@@ -56,12 +56,12 @@ SyncNodes = {
     'musicvideos': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultMusicVideos.png'),
-        ('recentlyadded', Utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
-        ('years', Utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', "Genres", 'DefaultGenre.png'),
-        ('inprogress', Utils.Translate(30257), 'DefaultInProgressShows.png'),
-        ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('unwatched', Utils.Translate(30258), 'OverlayUnwatched.png'),
+        ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
         ('artists', "Artists", 'DefaultMusicArtists.png'),
         ('albums', "Albums", 'DefaultMusicAlbums.png'),
         ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
@@ -72,12 +72,12 @@ SyncNodes = {
     'homevideos': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultMusicVideos.png'),
-        ('recentlyadded', Utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
-        ('years', Utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', "Genres", 'DefaultGenre.png'),
-        ('inprogress', Utils.Translate(30257), 'DefaultInProgressShows.png'),
-        ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('unwatched', Utils.Translate(30258), 'OverlayUnwatched.png'),
+        ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
         ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
         ('resolutionhd', "HD", 'DefaultIconInfo.png'),
         ('resolutionsd', "SD", 'DefaultIconInfo.png'),
@@ -86,7 +86,7 @@ SyncNodes = {
     'music': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultAddonMusic.png'),
-        ('years', Utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', "Genres", 'DefaultMusicGenres.png'),
         ('artists', "Artists", 'DefaultMusicArtists.png'),
         ('albums', "Albums", 'DefaultMusicAlbums.png'),
@@ -99,7 +99,7 @@ SyncNodes = {
     'audiobooks': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultAddonMusic.png'),
-        ('years', Utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', "Genres", 'DefaultMusicGenres.png'),
         ('artists', "Artists", 'DefaultMusicArtists.png'),
         ('albums', "Albums", 'DefaultMusicAlbums.png'),
@@ -112,7 +112,7 @@ SyncNodes = {
     'podcasts': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
         ('all', None, 'DefaultAddonMusic.png'),
-        ('years', Utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', "Genres", 'DefaultMusicGenres.png'),
         ('artists', "Artists", 'DefaultMusicArtists.png'),
         ('albums', "Albums", 'DefaultMusicAlbums.png'),
@@ -123,7 +123,7 @@ SyncNodes = {
         ('randomsongs', 'Random songs', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
     ]
 }
-LOG = helper.loghandler.LOG('EMBY.emby.views')
+LOG = loghandler.LOG('EMBY.emby.views')
 
 
 class Views:
@@ -136,8 +136,8 @@ class Views:
     def update_nodes(self):
         self.Nodes = []
 
-        for library_id in self.ViewItems:
-            view = {'LibraryId': library_id, 'Name': Utils.StringDecode(self.ViewItems[library_id][0]), 'Tag': Utils.StringDecode(self.ViewItems[library_id][0]), 'MediaType': self.ViewItems[library_id][1], "Icon": self.ViewItems[library_id][2], 'NameClean': Utils.StringDecode(self.ViewItems[library_id][0]).replace(" ", "_")}
+        for library_id, Data in list(self.ViewItems.items()):
+            view = {'LibraryId': library_id, 'Name': utils.StringDecode(Data[0]), 'Tag': utils.StringDecode(Data[0]), 'MediaType': Data[1], "Icon": Data[2], 'NameClean': utils.StringDecode(Data[0]).replace(" ", "_")}
 
             if library_id in list(self.EmbyServer.library.Whitelist.keys()):
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
@@ -202,7 +202,7 @@ class Views:
             if view.get('LibraryId'):
                 params['id'] = view['LibraryId']
 
-            path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
             NodeData['title'] = "%s (%s)" % (view['Name'], self.EmbyServer.Name)
         else:
             if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
@@ -246,11 +246,11 @@ class Views:
             if "Primary" in library["ImageTags"]:
                 # Cache artwork
                 request = {'type': "GET", 'url': "%s/emby/Items/%s/Images/Primary" % (self.EmbyServer.server, library['Id']), 'params': {}}
-                Filename = Utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
-                iconpath = "%s%s" % (Utils.FolderEmbyTemp, Filename)
+                Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
+                iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
 
-                if not Utils.checkFileExists(iconpath):
-                    iconpath = Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
+                if not utils.checkFileExists(iconpath):
+                    iconpath = utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
             else:
                 iconpath = ""
 
@@ -266,7 +266,7 @@ class Views:
             path = 'special://profile/playlists/video/'
 
         PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
-        Utils.delFolder(PlaylistPath)
+        utils.delFolder(PlaylistPath)
 
     def delete_node_by_id(self, LibraryId):
         mediatypes = []
@@ -284,7 +284,7 @@ class Views:
                 path = "special://profile/library/video/"
 
             NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
-            Utils.delFolder(NodePath)
+            utils.delFolder(NodePath)
 
 def get_node_playlist_path(MediaType):
     if MediaType in ('music', 'audiobooks', 'podcasts'):
@@ -298,11 +298,11 @@ def get_node_playlist_path(MediaType):
 
 # Create or update the xsp file
 def add_playlist(path, view):
-    if not Utils.xspplaylists:
+    if not utils.xspplaylists:
         return
 
     filepath = "%s%s" % (path, "emby_%s_%s.xsp" % (view['MediaType'], view['NameClean']))
-    xmlData = Utils.readFileString(filepath)
+    xmlData = utils.readFileString(filepath)
 
     if xmlData:
         xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -328,10 +328,10 @@ def add_playlist(path, view):
 # Create or update the video node file
 def add_nodes(path, view):
     folder = "%semby_%s_%s/" % (path, view['MediaType'], view['NameClean'])
-    Utils.mkDir(folder)
+    utils.mkDir(folder)
     filepath = "%s%s" % (folder, "index.xml")
 
-    if not Utils.checkFileExists(filepath):
+    if not utils.checkFileExists(filepath):
         if view['MediaType'] == 'movies':
             xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
         elif view['MediaType'] == 'tvshows':
@@ -372,7 +372,7 @@ def add_nodes(path, view):
         else:
             filepath = "%s%s.xml" % (folder, node[0])
 
-            if not Utils.checkFileExists(filepath):
+            if not utils.checkFileExists(filepath):
                 if node[0] == 'nextepisodes':
                     NodeType = 'folder'
                 else:
@@ -426,12 +426,12 @@ def add_nodes(path, view):
 def node_letter(View, folder, node):
     Index = 1
     FolderPath = "%sletter/" % folder
-    Utils.mkDir(FolderPath)
+    utils.mkDir(FolderPath)
 
     # index.xml
     FileName = "%s%s" % (FolderPath, "index.xml")
 
-    if not Utils.checkFileExists(FileName):
+    if not utils.checkFileExists(FileName):
         if View['MediaType'] == 'movies':
             xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
         elif View['MediaType'] == 'tvshows':
@@ -443,13 +443,13 @@ def node_letter(View, folder, node):
 
         xmlData.set('type', "folder")
         xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Utils.translatePath(node[2])
+        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2])
         xmls.WriteXmlFile(FileName, xmlData)
 
     # 0-9.xml
     FileName = "%s%s" % (FolderPath, "0-9.xml")
 
-    if not Utils.checkFileExists(FileName):
+    if not utils.checkFileExists(FileName):
         xmlData = xml.etree.ElementTree.Element('node')
         xmlData.set('order', str(Index))
         xmlData.set('type', "filter")
@@ -489,34 +489,34 @@ def node_letter(View, folder, node):
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
         xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("&")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("Ä")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("Ö")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("Ü")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("!")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("(")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(")")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("@")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("#")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("$")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("^")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("*")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("-")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("=")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("+")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("{")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("}")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("[")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("]")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("?")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(":")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(";")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("'")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(",")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(".")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("<")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode(">")
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = Utils.StringDecode("~")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("&")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ä")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ö")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ü")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("!")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("(")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(")")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("@")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("#")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("$")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("^")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("*")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("-")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("=")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("+")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("{")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("}")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("[")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("]")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("?")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(":")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(";")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("'")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(",")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(".")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("<")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(">")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("~")
         xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
         xmls.WriteXmlFile(FileName, xmlData)
 
@@ -527,7 +527,7 @@ def node_letter(View, folder, node):
             Index += 1
             FilePath = "%s%s" % (FolderPath, "%s.xml" % FileName)
 
-            if not Utils.checkFileExists(FilePath):
+            if not utils.checkFileExists(FilePath):
                 xmlData = xml.etree.ElementTree.Element('node')
                 xmlData.set('order', str(Index))
                 xmlData.set('type', "filter")
@@ -602,7 +602,7 @@ def node_countries(root):
         xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
 
 def node_nextepisodes(root, LibraryName):
-    path = "plugin://%s/?%s" % (Utils.PluginId, urlencode({'libraryname': LibraryName, 'mode': "nextepisodes", 'limit': 25}))
+    path = "plugin://%s/?%s" % (utils.PluginId, urlencode({'libraryname': LibraryName, 'mode': "nextepisodes", 'limit': 25}))
 
     for rule in root.findall('.//path'):
         rule.text = path

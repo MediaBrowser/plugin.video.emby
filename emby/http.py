@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 import requests
-import helper.utils as Utils
-import helper.loghandler
+from helper import utils
+from helper import loghandler
 
-LOG = helper.loghandler.LOG('EMBY.emby.http')
+LOG = loghandler.LOG('EMBY.emby.http')
 
 
 class HTTP:
@@ -52,7 +52,7 @@ class HTTP:
                     return r.json()
 
                 if r.status_code == 401:
-                    Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33147))
+                    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33147))
 
                 LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
 
@@ -62,7 +62,7 @@ class HTTP:
                 return {}
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
-                Utils.dialog("notification", heading=Utils.addon_name, message="SSL Error")
+                utils.dialog("notification", heading=utils.addon_name, message="SSL Error")
 
                 if Binary:
                     return b""
@@ -106,7 +106,7 @@ class HTTP:
                 'Content-type': "application/json",
                 'Accept-Charset': "UTF-8,*",
                 'Accept-encoding': "gzip",
-                'User-Agent': "%s/%s" % (Utils.addon_name, Utils.addon_version)
+                'User-Agent': "%s/%s" % (utils.addon_name, utils.addon_version)
             })
 
         if 'Authorization' not in data['headers']:
@@ -116,10 +116,10 @@ class HTTP:
 
     def _authorization(self, data):
         auth = "Emby "
-        auth += "Client=%s, " % Utils.addon_name
-        auth += "Device=%s, " % Utils.device_name
-        auth += "DeviceId=%s, " % Utils.device_id
-        auth += "Version=%s" % Utils.addon_version
+        auth += "Client=%s, " % utils.addon_name
+        auth += "Device=%s, " % utils.device_name
+        auth += "DeviceId=%s, " % utils.device_id
+        auth += "Version=%s" % utils.addon_version
         data['headers'].update({'Authorization': auth})
 
         if self.EmbyServer.Token and self.EmbyServer.user_id:

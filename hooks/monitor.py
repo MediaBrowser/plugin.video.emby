@@ -7,24 +7,24 @@ import requests
 import xbmc
 import xbmcgui
 import xbmcplugin
-import helper.loghandler
-import helper.context
-import helper.pluginmenu
-import helper.utils as Utils
-import helper.playerops as PlayerOps
-import helper.xmls as xmls
-import database.db_open
-import emby.emby
+from helper import loghandler
+from helper import context
+from helper import pluginmenu
+from helper import utils
+from helper import playerops
+from helper import xmls
+from database import dbio
+from emby import emby
 from . import webservice
 from . import player
 
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import quote_plus
 else:
     from urllib import quote_plus
 
-LOG = helper.loghandler.LOG('EMBY.hooks.monitor')
+LOG = loghandler.LOG('EMBY.hooks.monitor')
 
 
 class Monitor(xbmc.Monitor):
@@ -35,8 +35,8 @@ class Monitor(xbmc.Monitor):
         self.player = player.PlayerEvents()
         self.player.StartUp(self.EmbyServers)
         self.WebserviceStart()
-        self.Context = helper.context.Context(self.EmbyServers)
-        self.Menu = helper.pluginmenu.Menu(self.EmbyServers, self.player)
+        self.Context = context.Context(self.EmbyServers)
+        self.Menu = pluginmenu.Menu(self.EmbyServers, self.player)
         self.QueryDataThread = threading.Thread(target=self.QueryData)
         self.QueryDataThread.start()
         self.QueueItemsStatusupdate = ()
@@ -101,7 +101,7 @@ class Monitor(xbmc.Monitor):
         elif method == 'Other.delete':
             self.Context.delete_item(True)
         elif method == 'Other.settings':
-            xbmc.executebuiltin('Addon.OpenSettings(%s)' % Utils.PluginId)
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % utils.PluginId)
         elif method == 'Other.backup':
             Backup()
         elif method == 'Other.restore':
@@ -115,8 +115,8 @@ class Monitor(xbmc.Monitor):
         elif method == 'Other.databasereset':
             databasereset(self.EmbyServers)
         elif method == 'Other.texturecache':
-            if not Utils.artworkcacheenable:
-                Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33226), sound=False)
+            if not utils.artworkcacheenable:
+                utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33226), sound=False)
             else:
                 cache_textures()
         elif method == 'Other.context':
@@ -131,7 +131,7 @@ class Monitor(xbmc.Monitor):
             self.player.SETVolume(data)
         elif method == 'Other.play':
             data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
-            PlayerOps.Play((data[1],), "PlayNow", -1, -1, self.EmbyServers[data[0]])
+            playerops.Play((data[1],), "PlayNow", -1, -1, self.EmbyServers[data[0]])
 
     def EmbyServer_ReconnectAll(self):
         for EmbyServer in list(self.EmbyServers.values()):
@@ -142,18 +142,18 @@ class Monitor(xbmc.Monitor):
             EmbyServer.stop()
 
     def onScanStarted(self, library):
-        Utils.KodiDBLock[library] = True
+        utils.KodiDBLock[library] = True
         LOG.info("-->[ kodi scan/%s ]" % library)
 
     def onScanFinished(self, library):
-        Utils.KodiDBLock[library] = False
+        utils.KodiDBLock[library] = False
         LOG.info("--<[ kodi scan/%s ]" % library)
 
     def ServerConnect(self, ServerSettings):
-        EmbyServerObj = emby.emby.EmbyServer(self.UserDataChanged, ServerSettings)
+        EmbyServerObj = emby.EmbyServer(self.UserDataChanged, ServerSettings)
         server_id, EmbyServer = EmbyServerObj.register()
 
-        if not server_id or server_id == 'cancel' or Utils.SystemShutdown:
+        if not server_id or server_id == 'cancel' or utils.SystemShutdown:
             LOG.error("EmbyServer Connect error")
             return
 
@@ -169,7 +169,7 @@ class Monitor(xbmc.Monitor):
 
         LOG.info("[ UserDataChanged ] %s" % UserDataList)
         UpdateData = []
-        embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+        embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
 
         for ItemData in UserDataList:
             if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
@@ -191,15 +191,15 @@ class Monitor(xbmc.Monitor):
                 else:
                     self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
 
-        database.db_open.DBClose(server_id, False)
+        dbio.DBClose(server_id, False)
 
         if UpdateData:
             self.EmbyServers[server_id].library.userdata(UpdateData)
 
     def System_OnQuit(self):
         LOG.warning("---<[ EXITING ]")
-        Utils.SyncPause = True
-        Utils.SystemShutdown = True
+        utils.SyncPause = True
+        utils.SystemShutdown = True
         self.QuitThreads()
 
         for EmbyServer in list(self.EmbyServers.values()):
@@ -232,26 +232,24 @@ class Monitor(xbmc.Monitor):
         threading.Thread(target=self.settingschanged).start()
 
     def settingschanged(self):  # threaded by caller
-        if Utils.SkipUpdateSettings:
-            Utils.SkipUpdateSettings -= 1
+        if utils.SkipUpdateSettings:
+            utils.SkipUpdateSettings -= 1
+            utils.SkipUpdateSettings = max(utils.SkipUpdateSettings, 0)
 
-            if Utils.SkipUpdateSettings < 0:
-                Utils.SkipUpdateSettings = 0
-
-        if Utils.SkipUpdateSettings:
+        if utils.SkipUpdateSettings:
             return
 
         LOG.info("[ Reload settings ]")
-        syncdatePrevious = Utils.syncdate
-        synctimePrevious = Utils.synctime
-        xspplaylistsPreviousValue = Utils.xspplaylists
-        compatibilitymodePreviousValue = Utils.compatibilitymode
-        Utils.InitSettings()
+        syncdatePrevious = utils.syncdate
+        synctimePrevious = utils.synctime
+        xspplaylistsPreviousValue = utils.xspplaylists
+        compatibilitymodePreviousValue = utils.compatibilitymode
+        utils.InitSettings()
 
-        if syncdatePrevious != Utils.syncdate or synctimePrevious != Utils.synctime:
+        if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
             LOG.info("[ Trigger initsync due to setting changed ]")
-            SyncTimestamp = '%s %s:00' % (Utils.syncdate, Utils.synctime)
-            SyncTimestamp = Utils.convert_to_gmt(SyncTimestamp)
+            SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)
+            SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
 
             for EmbyServer in list(self.EmbyServers.values()):
                 EmbyServer.library.set_syncdate(SyncTimestamp)
@@ -261,22 +259,22 @@ class Monitor(xbmc.Monitor):
             EmbyServer.API.update_settings()
 
         # Toggle xsp playlists
-        if xspplaylistsPreviousValue != Utils.xspplaylists:
-            if Utils.xspplaylists:
+        if xspplaylistsPreviousValue != utils.xspplaylists:
+            if utils.xspplaylists:
                 for EmbyServer in list(self.EmbyServers.values()):
                     EmbyServer.Views.update_nodes()
             else:
                 # delete playlists
                 for playlistfolder in ['special://profile/playlists/video/', 'special://profile/playlists/music/']:
-                    if Utils.checkFolderExists(playlistfolder):
-                        _, files = Utils.listDir(playlistfolder)
+                    if utils.checkFolderExists(playlistfolder):
+                        _, files = utils.listDir(playlistfolder)
 
                         for Filename in files:
-                            Utils.delFile("%s%s" % (playlistfolder, Filename))
+                            utils.delFile("%s%s" % (playlistfolder, Filename))
 
         # Toggle compatibility mode
-        if compatibilitymodePreviousValue != Utils.compatibilitymode:
-            if Utils.compatibilitymode:
+        if compatibilitymodePreviousValue != utils.compatibilitymode:
+            if utils.compatibilitymode:
                 PluginID = "plugin.video.emby"
                 PluginIDPrevious = "plugin.video.emby-next-gen"
             else:
@@ -288,7 +286,7 @@ class Monitor(xbmc.Monitor):
             # update script files
             for PatchFile in PatchFiles:
                 FileName = "special://home/addons/plugin.video.emby-next-gen/resources/skins/default/1080i/%s" % PatchFile
-                xmlData = Utils.readFileString(FileName)
+                xmlData = utils.readFileString(FileName)
                 xmlData = xml.etree.ElementTree.fromstring(xmlData)
 
                 for elem in xmlData.iter():
@@ -299,14 +297,14 @@ class Monitor(xbmc.Monitor):
                 xmls.WriteXmlFile(FileName, xmlData)
 
             # update addon.xml id
-            xmlData = Utils.readFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml")
+            xmlData = utils.readFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml")
             xmlData = xml.etree.ElementTree.fromstring(xmlData)
             xmlData.attrib['id'] = PluginID
             xmls.WriteXmlFile("special://home/addons/plugin.video.emby-next-gen/addon.xml", xmlData)
 
             # rename settings folder
-            Utils.delFolder("special://profile/addon_data/%s/" % PluginID)
-            Utils.renameFolder("special://profile/addon_data/%s/" % PluginIDPrevious, "special://profile/addon_data/%s/" % PluginID)
+            utils.delFolder("special://profile/addon_data/%s/" % PluginID)
+            utils.renameFolder("special://profile/addon_data/%s/" % PluginIDPrevious, "special://profile/addon_data/%s/" % PluginID)
 
             # Restart App
             xbmc.executebuiltin('RestartApp')
@@ -323,11 +321,11 @@ class Monitor(xbmc.Monitor):
         self.QueryDataThread.start()
         self.WebserviceStart()
         self.WebServiceThread.Update_EmbyServers(self.EmbyServers)
-        Utils.SyncPause = False
+        utils.SyncPause = False
 
     def System_OnSleep(self):
         LOG.info("-->[ sleep ]")
-        Utils.SyncPause = True
+        utils.SyncPause = True
         self.QuitThreads()
         self.sleep = True
 
@@ -352,9 +350,9 @@ class Monitor(xbmc.Monitor):
                 media = data['type']
 
             for server_id in self.EmbyServers:
-                embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+                embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
                 item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
-                database.db_open.DBClose(server_id, False)
+                dbio.DBClose(server_id, False)
 
                 if item:
                     kodi_fileId = item[5]
@@ -379,48 +377,48 @@ class Monitor(xbmc.Monitor):
                 if str(item[0]) not in self.player.ItemSkipUpdate:
                     self.player.ItemSkipUpdate.append(str(item[0]))
 
-                videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+                videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
                 BookmarkItem = videodb.get_bookmark(kodi_fileId)
                 FileItem = videodb.get_files(kodi_fileId)
-                database.db_open.DBClose("video", False)
+                dbio.DBClose("video", False)
 
                 if not BookmarkItem:
                     LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
                     self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
 
 def BackupRestore():
-    RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=Utils.backupPath)
+    RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
     MinVersionPath = "%s%s" % (RestoreFolder, 'minimumversion.txt')
 
-    if not Utils.checkFileExists(MinVersionPath):
-        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33224), sound=False)
+    if not utils.checkFileExists(MinVersionPath):
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33224), sound=False)
         return
 
-    BackupVersion = Utils.readFileString(MinVersionPath)
+    BackupVersion = utils.readFileString(MinVersionPath)
 
-    if BackupVersion != Utils.MinimumVersion:
-        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33225), sound=False)
+    if BackupVersion != utils.MinimumVersion:
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33225), sound=False)
         return
 
     xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-    _, files = Utils.listDir(Utils.FolderAddonUserdata)
+    _, files = utils.listDir(utils.FolderAddonUserdata)
 
     for Filename in files:
-        Utils.delFile("%s%s" % (Utils.FolderAddonUserdata, Filename))
+        utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
 
     # delete database
-    _, files = Utils.listDir("special://profile/Database/")
+    _, files = utils.listDir("special://profile/Database/")
 
     for Filename in files:
         if Filename.startswith('emby') or Filename.startswith('My') or Filename.startswith('Textures'):
-            Utils.delFile("special://profile/Database/%s" % Filename)
+            utils.delFile("special://profile/Database/%s" % Filename)
 
-    Utils.delete_playlists()
-    Utils.delete_nodes()
-    RestoreFolderAddonData = "%s/addon_data/%s/" % (RestoreFolder, Utils.PluginId)
-    Utils.copytree(RestoreFolderAddonData, Utils.FolderAddonUserdata)
+    utils.delete_playlists()
+    utils.delete_nodes()
+    RestoreFolderAddonData = "%s/addon_data/%s/" % (RestoreFolder, utils.PluginId)
+    utils.copytree(RestoreFolderAddonData, utils.FolderAddonUserdata)
     RestoreFolderDatabase = "%s/Database/" % RestoreFolder
-    Utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
+    utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
     xbmc.executebuiltin('RestartApp')
 
@@ -434,7 +432,7 @@ def cache_textures():
     webServerEnabled = (result['result']['value'] or False)
 
     if not webServerEnabled:
-        if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33227)):
+        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33227)):
             return
 
         EnableWebserver = True
@@ -444,7 +442,7 @@ def cache_textures():
     if not result['result']['value']:  # set password, cause mandatory in Kodi 19
         xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserverpassword", "value": "kodi"}}')
         webServerPass = 'kodi'
-        Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33228))
+        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33228))
     else:
         webServerPass = str(result['result']['value'])
 
@@ -454,10 +452,10 @@ def cache_textures():
         webServerEnabled = (result['result']['value'] or False)
 
     if not webServerEnabled:  # check if webserver is now enabled
-        Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33103))
+        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33103))
         return
 
-    Utils.set_settings_bool('artworkcacheenable', False)
+    utils.set_settings_bool('artworkcacheenable', False)
     result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverport"}}'))
     webServerPort = str(result['result']['value'] or "")
     result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverusername"}}'))
@@ -470,27 +468,27 @@ def cache_textures():
     else:
         webServerUrl = "http://127.0.0.1:%s" % webServerPort
 
-    if Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33044)):
+    if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33044)):
         LOG.info("[ delete all thumbnails ]")
 
-        if Utils.checkFolderExists('special://thumbnails/'):
-            dirs, _ = Utils.listDir('special://thumbnails/')
+        if utils.checkFolderExists('special://thumbnails/'):
+            dirs, _ = utils.listDir('special://thumbnails/')
 
             for directory in dirs:
-                _, files = Utils.listDir('special://thumbnails/%s' % directory)
+                _, files = utils.listDir('special://thumbnails/%s' % directory)
 
                 for Filename in files:
                     cached = 'special://thumbnails/%s%s' % (directory, Filename)
-                    Utils.delFile(cached)
+                    utils.delFile(cached)
                     LOG.debug("DELETE cached %s" % cached)
 
-        texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
+        texturedb = dbio.DBOpen(utils.DatabaseFiles, "texture")
         texturedb.delete_tables("Texture")
-        database.db_open.DBClose("texture", True)
+        dbio.DBClose("texture", True)
 
     # Select content to be cached
-    choices = [Utils.Translate(33121), Utils.Translate(33257), Utils.Translate(33258)]
-    selection = Utils.dialog("multi", Utils.Translate(33256), choices)
+    choices = [utils.Translate(33121), utils.Translate(33257), utils.Translate(33258)]
+    selection = utils.dialog("multi", utils.Translate(33256), choices)
     CacheMusic = False
     CacheVideo = False
     selection = selection[0]
@@ -504,23 +502,23 @@ def cache_textures():
         CacheMusic = True
 
     if CacheVideo:
-        videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+        videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
         urls = videodb.common_db.get_urls()
-        database.db_open.DBClose("video", False)
+        dbio.DBClose("video", False)
         CacheAllEntries(webServerUrl, urls, "video", webServerUser, webServerPass)
 
     if CacheMusic:
-        musicdb = database.db_open.DBOpen(Utils.DatabaseFiles, "music")
+        musicdb = dbio.DBOpen(utils.DatabaseFiles, "music")
         urls = musicdb.common_db.get_urls()
-        database.db_open.DBClose("music", False)
+        dbio.DBClose("music", False)
         CacheAllEntries(webServerUrl, urls, "music", webServerUser, webServerPass)
 
-    Utils.set_settings_bool('artworkcacheenable', True)
+    utils.set_settings_bool('artworkcacheenable', True)
 
 # Cache all entries
 def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
     progress_updates = xbmcgui.DialogProgressBG()
-    progress_updates.create("Emby", Utils.Translate(33045))
+    progress_updates.create("Emby", utils.Translate(33045))
     total = len(urls)
 
     with requests.Session() as session:
@@ -528,9 +526,9 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
 
         for index, url in enumerate(urls):
             Value = int((float(float(index)) / float(total)) * 100)
-            progress_updates.update(Value, message="%s: %s / %s" % (Utils.Translate(33045), Label, index))
+            progress_updates.update(Value, message="%s: %s / %s" % (utils.Translate(33045), Label, index))
 
-            if Utils.SystemShutdown:
+            if utils.SystemShutdown:
                 break
 
             if url[0]:
@@ -548,50 +546,50 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
 
 # Reset both the emby database and the kodi database.
 def databasereset(EmbyServers):
-    if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33074)):
+    if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
         return
 
     LOG.warning("[ reset kodi ]")
-    Utils.SyncPause = True
-    DeleteTextureCache = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33086))
-    DeleteSettings = Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33087))
+    utils.SyncPause = True
+    DeleteTextureCache = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
+    DeleteSettings = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33087))
     xbmc.executebuiltin('Dialog.Close(addonsettings)')
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     xbmc.executebuiltin('activatewindow(home)')
     xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-    videodb = database.db_open.DBOpen(Utils.DatabaseFiles, "video")
+    videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
     videodb.common_db.delete_tables("Video")
-    database.db_open.DBClose("video", True)
-    musicdb = database.db_open.DBOpen(Utils.DatabaseFiles, "music")
+    dbio.DBClose("video", True)
+    musicdb = dbio.DBOpen(utils.DatabaseFiles, "music")
     musicdb.common_db.delete_tables("Music")
-    database.db_open.DBClose("music", True)
+    dbio.DBClose("music", True)
     ServerIds = list(EmbyServers)
 
     for ServerId in ServerIds:
         DBPath = "special://profile/Database/emby_%s.db" % ServerId
-        Utils.delFile(DBPath)
+        utils.delFile(DBPath)
 
         if DeleteTextureCache:
-            Utils.DeleteThumbnails()
-            texturedb = database.db_open.DBOpen(Utils.DatabaseFiles, "texture")
+            utils.DeleteThumbnails()
+            texturedb = dbio.DBOpen(utils.DatabaseFiles, "texture")
             texturedb.delete_tables("Texture")
-            database.db_open.DBClose("texture", True)
+            dbio.DBClose("texture", True)
 
         if DeleteSettings:
-            Utils.set_settings("MinimumSetup", "")
-            SettingsPath = "%s%s" % (Utils.FolderAddonUserdata, "settings.xml")
-            Utils.delFile(SettingsPath)
-            ServerFile = "%s%s" % (Utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
-            Utils.delFile(ServerFile)
+            utils.set_settings("MinimumSetup", "")
+            SettingsPath = "%s%s" % (utils.FolderAddonUserdata, "settings.xml")
+            utils.delFile(SettingsPath)
+            ServerFile = "%s%s" % (utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
+            utils.delFile(ServerFile)
             LOG.info("[ reset settings ]")
 
-        SyncFile = "%s%s" % (Utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
-        Utils.delFile(SyncFile)
+        SyncFile = "%s%s" % (utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
+        utils.delFile(SyncFile)
 
-    Utils.delete_playlists()
-    Utils.delete_nodes()
-    Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33088))
+    utils.delete_playlists()
+    utils.delete_nodes()
+    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33088))
     xbmc.executebuiltin('RestartApp')
 
 def get_next_episodes(Handle, libraryname):
@@ -629,7 +627,7 @@ def get_next_episodes(Handle, libraryname):
 
         for episode in episodes:
             FilePath = episode["file"]
-            li = Utils.CreateListitem("episode", episode)
+            li = utils.CreateListitem("episode", episode)
             list_li.append((FilePath, li, False))
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
@@ -638,53 +636,53 @@ def get_next_episodes(Handle, libraryname):
     xbmcplugin.endOfDirectory(Handle)
 
 def reset_device_id():
-    Utils.device_id = ""
-    Utils.get_device_id(True)
-    Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33033))
+    utils.device_id = ""
+    utils.get_device_id(True)
+    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33033))
     xbmc.executebuiltin('RestartApp')
 
 # Emby backup
 def Backup():
-    if not Utils.backupPath:
-        Utils.dialog("notification", heading=Utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=Utils.Translate(33229), sound=False)
+    if not utils.backupPath:
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33229), sound=False)
         return None
 
-    path = Utils.backupPath
+    path = utils.backupPath
     folder_name = "Kodi%s - %s-%s" % (xbmc.getInfoLabel('System.BuildVersion')[:2], xbmc.getInfoLabel('System.Date(yyyy-mm-dd)'), xbmc.getInfoLabel('System.Time(hh:mm:ss xx)'))
-    folder_name = Utils.dialog("input", heading=Utils.Translate(33089), defaultt=folder_name)
+    folder_name = utils.dialog("input", heading=utils.Translate(33089), defaultt=folder_name)
 
     if not folder_name:
         return None
 
     backup = "%s%s/" % (path, folder_name)
 
-    if Utils.checkFolderExists(backup):
-        if not Utils.dialog("yesno", heading=Utils.addon_name, line1=Utils.Translate(33090)):
+    if utils.checkFolderExists(backup):
+        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33090)):
             return Backup()
 
-        Utils.delFolder(backup)
+        utils.delFolder(backup)
 
-    destination_data = "%saddon_data/%s/" % (backup, Utils.PluginId)
+    destination_data = "%saddon_data/%s/" % (backup, utils.PluginId)
     destination_databases = "%sDatabase/" % backup
-    Utils.mkDir(backup)
-    Utils.mkDir("%saddon_data/" % backup)
-    Utils.mkDir(destination_data)
-    Utils.mkDir(destination_databases)
-    Utils.copytree(Utils.FolderAddonUserdata, destination_data)
-    _, files = Utils.listDir("special://profile/Database/")
+    utils.mkDir(backup)
+    utils.mkDir("%saddon_data/" % backup)
+    utils.mkDir(destination_data)
+    utils.mkDir(destination_databases)
+    utils.copytree(utils.FolderAddonUserdata, destination_data)
+    _, files = utils.listDir("special://profile/Database/")
 
     for Temp in files:
         if 'MyVideos' in Temp:
-            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
         elif 'emby' in Temp:
-            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
         elif 'MyMusic' in Temp:
-            Utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
             LOG.info("copied %s" % Temp)
 
-    Utils.writeFileString("%s%s" % (backup, 'minimumversion.txt'), Utils.MinimumVersion)
+    utils.writeFileString("%s%s" % (backup, 'minimumversion.txt'), utils.MinimumVersion)
     LOG.info("backup completed")
-    Utils.dialog("ok", heading=Utils.addon_name, line1="%s %s" % (Utils.Translate(33091), backup))
+    utils.dialog("ok", heading=utils.addon_name, line1="%s %s" % (utils.Translate(33091), backup))
     return None

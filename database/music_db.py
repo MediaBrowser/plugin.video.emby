@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import helper.utils as Utils
+from helper import utils
 from . import common_db
 
 class MusicDatabase:
@@ -31,7 +31,7 @@ class MusicDatabase:
     # Make sure rescan and kodi db set
     def disable_rescan(self):
         self.cursor.execute("DELETE FROM versiontagscan")
-        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan) VALUES (?, ?)", (str(Utils.DatabaseFiles['music-version']), "0"))
+        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan) VALUES (?, ?)", (str(utils.DatabaseFiles['music-version']), "0"))
 
     def create_entry_artist(self):
         self.cursor.execute("SELECT coalesce(max(idArtist), 1) FROM artist")
@@ -71,7 +71,7 @@ class MusicDatabase:
         LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
         LibraryInfo += "%s;" % LibraryId_Name
 
-        if Utils.DatabaseFiles['music-version'] >= 82:
+        if utils.DatabaseFiles['music-version'] >= 82:
             self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ?, strDisambiguation = ? WHERE idArtist = ?", (Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryInfo, ArtistId))
         else:
             if Backdrops:
@@ -183,7 +183,7 @@ class MusicDatabase:
         artist_id = self.create_entry_artist()
         LibraryId_Name += ";"
 
-        if Utils.DatabaseFiles['music-version'] >= 82:
+        if utils.DatabaseFiles['music-version'] >= 82:
             try:
                 self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, musicbrainz, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
             except:  # Duplicate musicbrainz
@@ -229,7 +229,7 @@ class MusicDatabase:
             album_id = self.create_entry_album()
             LibraryId_Name += ";"
 
-            if Utils.DatabaseFiles['music-version'] >= 82:
+            if utils.DatabaseFiles['music-version'] >= 82:
                 self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strImage, iUserrating, lastScraped, dateAdded, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (album_id, Title, Type, Artists, Year, Year, Genre, Thumb, Rating, LastScraped, DateAdded, LibraryId_Name))
             else:
                 self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strReleaseType, strArtistDisp, iYear, strGenres, strImage, iUserrating, lastScraped, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (album_id, Title, Type, Artists, Year, Genre, Thumb, LastScraped, DateAdded, LibraryId_Name))
@@ -242,7 +242,7 @@ class MusicDatabase:
         LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
         LibraryInfo += "%s;" % LibraryId_Name
 
-        if Utils.DatabaseFiles['music-version'] >= 82:
+        if utils.DatabaseFiles['music-version'] >= 82:
             self.cursor.execute("UPDATE album SET strArtistDisp = ?, strReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, bScrapedMBID = 1, dateAdded = ?, strType = ? WHERE idAlbum = ?", (Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, LibraryInfo, AlbumId))
         else:
             self.cursor.execute("UPDATE album SET strArtistDisp = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, strType = ? WHERE idAlbum = ?", (Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, LibraryInfo, AlbumId))
@@ -264,7 +264,7 @@ class MusicDatabase:
         SongId = self.create_entry_song()
         KodiPathId = self.get_add_path(Path)
 
-        if Utils.DatabaseFiles['music-version'] >= 82:
+        if utils.DatabaseFiles['music-version'] >= 82:
             try:
                 self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded))
             except:  # Duplicate track number for same album
@@ -282,7 +282,7 @@ class MusicDatabase:
     def update_song(self, AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId, LibraryId_Name):
         Comment = "%s;%s" % (Comment, LibraryId_Name)
 
-        if Utils.DatabaseFiles['music-version'] >= 82:
+        if utils.DatabaseFiles['music-version'] >= 82:
             try:
                 self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strReleaseDate = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ? WHERE idSong = ?", (AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId))
             except:  # Duplicate track number for same album

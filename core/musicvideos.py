@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import helper.loghandler
-import helper.utils as Utils
-import emby.obj_ops as Objects
-from . import common as Common
+from helper import loghandler
+from helper import utils
+from emby import obj_ops
+from . import common
 
-LOG = helper.loghandler.LOG('EMBY.core.musicvideos')
+LOG = loghandler.LOG('EMBY.core.musicvideos')
 
 
 class MusicVideos:
@@ -15,18 +15,18 @@ class MusicVideos:
 
     def musicvideo(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not library:
             return False
 
-        obj = Objects.mapitem(item, 'MusicVideo')
+        obj = obj_ops.mapitem(item, 'MusicVideo')
         obj['Item'] = item
         obj['Library'] = library
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
         obj['ServerId'] = self.EmbyServer.server_id
-        obj['FullPath'] = Common.SwopMediaSources(obj, item)  # 3D
+        obj['FullPath'] = common.SwopMediaSources(obj, item)  # 3D
 
         if not obj['FullPath']:  # Invalid Path
             LOG.error("Invalid path: %s" % obj['Id'])
@@ -43,29 +43,29 @@ class MusicVideos:
             LOG.debug("MvideoId for %s not found" % obj['Id'])
             obj['KodiItemId'] = self.video_db.create_entry_musicvideos()
 
-        obj['Path'] = Common.get_path(obj, "musicvideos")
+        obj['Path'] = common.get_path(obj, "musicvideos")
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
         obj['Genres'] = obj['Genres'] or []
         obj['ArtistItems'] = obj['ArtistItems'] or []
-        obj['Plot'] = Common.get_overview(obj['Plot'], item)
-        obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
-        obj['DatePlayed'] = None if not obj['DatePlayed'] else Utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount'])
-        obj['Resume'] = Common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
+        obj['Plot'] = common.get_overview(obj['Plot'], item)
+        obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
+        obj['DatePlayed'] = None if not obj['DatePlayed'] else utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount'])
+        obj['Resume'] = common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
 
         if not obj['Premiere']:
-            obj['Premiere'] = Utils.convert_to_local(obj['Year'])
+            obj['Premiere'] = utils.convert_to_local(obj['Year'])
 
         obj['Genre'] = " / ".join(obj['Genres'])
         obj['Studio'] = " / ".join(obj['Studios'] or [])
         obj['Artists'] = " / ".join(obj['Artists'] or [])
         obj['Directors'] = " / ".join(obj['Directors'] or [])
-        obj['Video'] = Common.video_streams(obj['Video'] or [], obj['Container'], item)
-        obj['Audio'] = Common.audio_streams(obj['Audio'] or [])
-        obj['Streams'] = Common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
+        obj['Video'] = common.video_streams(obj['Video'] or [], obj['Container'], item)
+        obj['Audio'] = common.audio_streams(obj['Audio'] or [])
+        obj['Streams'] = common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
 
         if obj['Premiere']:
             obj['Premiere'] = str(obj['Premiere']).split('.')[0].replace('T', " ")
@@ -74,7 +74,7 @@ class MusicVideos:
             artist['Type'] = "Artist"
 
         obj['People'] = obj['People'] or [] + obj['ArtistItems']
-        obj['People'] = Common.get_people_artwork(obj['People'], self.EmbyServer.server_id)
+        obj['People'] = common.get_people_artwork(obj['People'], self.EmbyServer.server_id)
 
         # Try to detect track number
         if obj['Index'] is None: # and obj['SortTitle'] is not None:
@@ -95,24 +95,24 @@ class MusicVideos:
             tags.append('Favorite musicvideos')
 
         obj['Tags'] = tags
-        Common.Streamdata_add(obj, self.emby_db, update)
+        common.Streamdata_add(obj, self.emby_db, update)
 
         if update:
             self.video_db.update_musicvideos(obj['Title'], obj['Runtime'], obj['Directors'], obj['Studio'], obj['Year'], obj['Plot'], obj['Album'], obj['Artists'], obj['Genre'], obj['Index'], obj['Premiere'], obj['KodiItemId'])
-            obj['Filename'] = Common.get_filename(obj, "musicvideo", self.EmbyServer.API)
+            obj['Filename'] = common.get_filename(obj, "musicvideo", self.EmbyServer.API)
             self.video_db.update_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
             self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
             LOG.info("UPDATE mvideo [%s/%s/%s] %s: %s" % (obj['KodiPathId'], obj['KodiFileId'], obj['KodiItemId'], obj['Id'], obj['Title']))
         else:
             obj['KodiPathId'] = self.video_db.get_add_path(obj['Path'], "musicvideos")
             obj['KodiFileId'] = self.video_db.create_entry_file()
-            obj['Filename'] = Common.get_filename(obj, "musicvideo", self.EmbyServer.API)
+            obj['Filename'] = common.get_filename(obj, "musicvideo", self.EmbyServer.API)
             self.video_db.add_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
             self.video_db.add_musicvideos(obj['KodiItemId'], obj['KodiFileId'], obj['Title'], obj['Runtime'], obj['Directors'], obj['Studio'], obj['Year'], obj['Plot'], obj['Album'], obj['Artists'], obj['Genre'], obj['Index'], obj['Premiere'])
             self.emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "MusicVideo", "musicvideo", None, obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
             LOG.info("ADD mvideo [%s/%s/%s] %s: %s" % (obj['KodiPathId'], obj['KodiFileId'], obj['KodiItemId'], obj['Id'], obj['Title']))
 
-        Common.add_update_chapters(obj, self.video_db, self.EmbyServer.server_id)
+        common.add_update_chapters(obj, self.video_db, self.EmbyServer.server_id)
         self.video_db.add_tags(obj['Tags'], obj['KodiItemId'], "musicvideo")
         self.video_db.add_genres(obj['Genres'], obj['KodiItemId'], "musicvideo")
         self.video_db.add_studios(obj['Studios'], obj['KodiItemId'], "musicvideo")
@@ -124,7 +124,7 @@ class MusicVideos:
         if "StackTimes" in obj:
             self.video_db.add_stacktimes(obj['KodiFileId'], obj['StackTimes'])
 
-        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "musicvideo", self.EmbyServer.API)
+        ExistingItem = common.add_Multiversion(obj, self.emby_db, "musicvideo", self.EmbyServer.API)
 
         # Remove existing Item
         if ExistingItem and not update:
@@ -137,14 +137,14 @@ class MusicVideos:
     def userdata(self, e_item, ItemUserdata):
         KodiItemId = e_item[0]
         KodiFileId = e_item[1]
-        Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
+        Resume = common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
         MusicvideoData = self.video_db.get_musicvideos_data(KodiItemId)
 
         if not MusicvideoData:
             return
 
-        PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
-        DatePlayed = Utils.currenttime_kodi_format()
+        PlayCount = common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
+        DatePlayed = utils.currenttime_kodi_format()
 
         if ItemUserdata['IsFavorite']:
             self.video_db.get_tag("Favorite musicvideos", KodiItemId, "musicvideo")

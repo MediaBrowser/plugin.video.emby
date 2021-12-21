@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import helper.utils as Utils
-import helper.loghandler
+from helper import utils
+from helper import loghandler
 
 info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount,Chapters"
 music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,CommunityRating,DateCreated,MediaStreams,People,ProviderIds,Overview,PresentationUniqueKey,Path,ParentId"
-LOG = helper.loghandler.LOG('EMBY.emby.api')
+LOG = loghandler.LOG('EMBY.emby.api')
 
 
 class API:
@@ -16,25 +16,25 @@ class API:
     def update_settings(self):
         self.browse_info = "Path,MediaStreams"
 
-        if Utils.getDateCreated:
+        if utils.getDateCreated:
             self.browse_info += ",DateCreated"
 
-        if Utils.getGenres:
+        if utils.getGenres:
             self.browse_info += ",Genres"
 
-        if Utils.getStudios:
+        if utils.getStudios:
             self.browse_info += ",Studios"
 
-        if Utils.getTaglines:
+        if utils.getTaglines:
             self.browse_info += ",Taglines"
 
-        if Utils.getOverview:
+        if utils.getOverview:
             self.browse_info += ",Overview"
 
-        if Utils.getProductionLocations:
+        if utils.getProductionLocations:
             self.browse_info += ",ProductionLocations"
 
-        if Utils.getCast:
+        if utils.getCast:
             self.browse_info += ",People"
 
     def _http(self, action, url, request):
@@ -279,7 +279,7 @@ class API:
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})['TotalRecordCount']
 
     def _get_items(self, query):
-        Limit = int(Utils.limitIndex)
+        Limit = int(utils.limitIndex)
         items = {'Items': [], 'RestorePoint': {}}
         url = query['url']
         params = query.get('params', {})
@@ -335,7 +335,7 @@ class API:
         return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': {'Ids': ','.join(str(x) for x in item_ids), 'Fields': info}})
 
     def get_device(self):
-        return self._http("GET", "Sessions", {'params': {'DeviceId': Utils.device_id}})
+        return self._http("GET", "Sessions", {'params': {'DeviceId': utils.device_id}})
 
     def get_genres(self, parent_id):
         return self._http("GET", "Genres", {'params': {'ParentId': parent_id, 'UserId': self.EmbyServer.user_id, 'Fields': self.browse_info}})
@@ -413,7 +413,7 @@ class API:
         return self._http("GET", "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.user_id, {'params': {'LastUpdateDT': date, 'filter': filters or None}})
 
     def close_transcode(self):
-        self._http("DELETE", "Videos/ActiveEncodings", {'params': {'DeviceId': Utils.device_id}})
+        self._http("DELETE", "Videos/ActiveEncodings", {'params': {'DeviceId': utils.device_id}})
 
     def delete_item(self, item_id):
         self._http("DELETE", "Items/%s" % item_id, {})

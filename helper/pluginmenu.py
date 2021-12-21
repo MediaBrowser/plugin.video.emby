@@ -5,13 +5,13 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
-import database.db_open
-import emby.listitem as ListItem
+from database import dbio
+from emby import listitem
 from . import xmls
 from . import loghandler
-from . import utils as Utils
+from . import utils
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import urlencode
 else:
     from urllib import urlencode
@@ -39,22 +39,22 @@ class Menu:
 
         for server_id in self.EmbyServers:
             for Node in self.EmbyServers[server_id].Views.Nodes:
-                label = Utils.StringDecode(Node['title'])
-                node = Utils.StringDecode(Node['type'])
+                label = utils.StringDecode(Node['title'])
+                node = utils.StringDecode(Node['type'])
                 LOG.debug("--[ listing/%s/%s ] %s" % (node, label, Node['path']))
                 self.add_ListItem(label, Node['path'], True, Node['icon'], None)
 
         # Common Items
         Handle = int(Handle)
-        self.add_ListItem(Utils.Translate(30180), "library://video/emby_Favorite_movies.xml", True, None, None)
-        self.add_ListItem(Utils.Translate(30181), "library://video/emby_Favorite_tvshows.xml", True, None, None)
-        self.add_ListItem(Utils.Translate(30182), "plugin://%s/?mode=favepisodes" % Utils.PluginId, True, None, None)
+        self.add_ListItem(utils.Translate(30180), "library://video/emby_Favorite_movies.xml", True, None, None)
+        self.add_ListItem(utils.Translate(30181), "library://video/emby_Favorite_tvshows.xml", True, None, None)
+        self.add_ListItem(utils.Translate(30182), "plugin://%s/?mode=favepisodes" % utils.PluginId, True, None, None)
 
-        if Utils.menuOptions:
-            self.add_ListItem(Utils.Translate(33194), "plugin://%s/?mode=managelibsselection"  % Utils.PluginId, False, None, None)
-            self.add_ListItem(Utils.Translate(33059), "plugin://%s/?mode=texturecache"  % Utils.PluginId, False, None, None)
-            self.add_ListItem(Utils.Translate(5), "plugin://%s/?mode=settings"  % Utils.PluginId, False, None, None)
-            self.add_ListItem(Utils.Translate(33058), "plugin://%s/?mode=databasereset"  % Utils.PluginId, False, None, None)
+        if utils.menuOptions:
+            self.add_ListItem(utils.Translate(33194), "plugin://%s/?mode=managelibsselection"  % utils.PluginId, False, None, None)
+            self.add_ListItem(utils.Translate(33059), "plugin://%s/?mode=texturecache"  % utils.PluginId, False, None, None)
+            self.add_ListItem(utils.Translate(5), "plugin://%s/?mode=settings"  % utils.PluginId, False, None, None)
+            self.add_ListItem(utils.Translate(33058), "plugin://%s/?mode=databasereset"  % utils.PluginId, False, None, None)
 
         xbmcplugin.addDirectoryItems(Handle, self.ListItemData, len(self.ListItemData))
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -75,7 +75,7 @@ class Menu:
         EmbyServersCounter, _, ServerItems = self.get_EmbyServerList()
 
         if EmbyServersCounter > 1:
-            Selection = xbmcgui.Dialog().select(Utils.Translate(33194), ServerItems)
+            Selection = xbmcgui.Dialog().select(utils.Translate(33194), ServerItems)
 
             if Selection > -1:
                 self.manage_libraries(Selection)
@@ -84,8 +84,8 @@ class Menu:
                 self.manage_libraries(0)
 
     def manage_libraries(self, ServerSelection):  # threaded by caller
-        MenuItems = [Utils.Translate(33098), Utils.Translate(33154), Utils.Translate(33140), Utils.Translate(33184), Utils.Translate(33139), Utils.Translate(33060), Utils.Translate(33234)]
-        Selection = xbmcgui.Dialog().select(Utils.Translate(33194), MenuItems)
+        MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060), utils.Translate(33234)]
+        Selection = xbmcgui.Dialog().select(utils.Translate(33194), MenuItems)
         ServerIds = list(self.EmbyServers)
         EmbyServerId = ServerIds[ServerSelection]
 
@@ -108,7 +108,7 @@ class Menu:
         EmbyServersCounter, ServerIds, ServerItems = self.get_EmbyServerList()
 
         if EmbyServersCounter > 1:
-            Selection = xbmcgui.Dialog().select(Utils.Translate(33054), ServerItems)
+            Selection = xbmcgui.Dialog().select(utils.Translate(33054), ServerItems)
 
             if Selection > -1:
                 AddUser(self.EmbyServers[ServerIds[Selection]])
@@ -122,14 +122,14 @@ class Menu:
         episodes_kodiId = ()
 
         for server_id in self.EmbyServers:
-            embydb = database.db_open.DBOpen(Utils.DatabaseFiles, server_id)
+            embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
             episodes_kodiId = embydb.get_episode_fav()
-            database.db_open.DBClose(server_id, False)
+            dbio.DBClose(server_id, False)
 
         for episode_kodiId in episodes_kodiId:
-            Details = Utils.load_VideoitemFromKodiDB("episode", str(episode_kodiId[0]))
+            Details = utils.load_VideoitemFromKodiDB("episode", str(episode_kodiId[0]))
             FilePath = Details["file"]
-            li = Utils.CreateListitem("episode", Details)
+            li = utils.CreateListitem("episode", Details)
             list_li.append((FilePath, li, False))
 
         xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
@@ -260,10 +260,10 @@ class Menu:
             listing = listing if isinstance(listing, list) else listing.get('Items', [])
 
             for item in listing:
-                if Utils.SystemShutdown:
+                if utils.SystemShutdown:
                     return
 
-                li = ListItem.set_ListItem(item, server_id)
+                li = listitem.set_ListItem(item, server_id)
 
                 if item.get('IsFolder') or item['Type'] in ('MusicArtist', 'MusicAlbum'):
                     params = {
@@ -275,7 +275,7 @@ class Menu:
                         'server': server_id
                     }
 
-                    path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+                    path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
                     list_li.append((path, li, True))
                 elif item['Type'] == 'Genre':
                     params = {
@@ -286,10 +286,10 @@ class Menu:
                         'name': name,
                         'server': server_id
                     }
-                    path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+                    path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
                     list_li.append((path, li, True))
                 else:
-                    path, _ = Utils.get_path_type_from_item(server_id, item)
+                    path, _ = utils.get_path_type_from_item(server_id, item)
 
                     if not path:
                         return
@@ -333,30 +333,30 @@ class Menu:
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultTVShows.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
-                ('genres', Utils.Translate(135), 'DefaultGenre.png'),
-                ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+                ('recentlyadded', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
+                ('genres', utils.Translate(135), 'DefaultGenre.png'),
+                ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
             ],
             'mixed': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultTVShows.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
-                ('inprogress', Utils.Translate(30171), 'DefaultInProgressShows.png'),
-                ('inprogressepisodes', Utils.Translate(30178), 'DefaultInProgressShows.png'),
-                ('genres', Utils.Translate(135), 'DefaultGenre.png'),
-                ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+                ('recentlyadded', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
+                ('inprogress', utils.Translate(30171), 'DefaultInProgressShows.png'),
+                ('inprogressepisodes', utils.Translate(30178), 'DefaultInProgressShows.png'),
+                ('genres', utils.Translate(135), 'DefaultGenre.png'),
+                ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
             ],
             'movies': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultMovies.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
-                ('inprogress', Utils.Translate(30177), 'DefaultInProgressShows.png'),
-                ('boxsets', Utils.Translate(20434), 'DefaultSets.png'),
-                ('favorite', Utils.Translate(33168), 'DefaultFavourites.png'),
-                ('genres', Utils.Translate(135), 'DefaultGenre.png'),
-                ('random', Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+                ('recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
+                ('inprogress', utils.Translate(30177), 'DefaultInProgressShows.png'),
+                ('boxsets', utils.Translate(20434), 'DefaultSets.png'),
+                ('favorite', utils.Translate(33168), 'DefaultFavourites.png'),
+                ('genres', utils.Translate(135), 'DefaultGenre.png'),
+                ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
             ],
             'boxsets': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
@@ -370,23 +370,23 @@ class Menu:
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultMusicVideos.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
-                ('inprogress', Utils.Translate(30257), 'DefaultInProgressShows.png'),
-                ('Unwatched', Utils.Translate(30258), 'OverlayUnwatched.png')
+                ('recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+                ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
+                ('Unwatched', utils.Translate(30258), 'OverlayUnwatched.png')
             ],
             'homevideos': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultAddonVideo.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(33167), '')
+                ('recentlyadded', utils.Translate(33167), '')
             ],
             'channels': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultTVShows.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(33167), ''),
-                ('inprogress', Utils.Translate(33169), ''),
-                ('favorite', Utils.Translate(33168), 'DefaultFavourites.png')
+                ('recentlyadded', utils.Translate(33167), ''),
+                ('inprogress', utils.Translate(33169), ''),
+                ('favorite', utils.Translate(33168), 'DefaultFavourites.png')
             ],
             'playlists': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
@@ -397,25 +397,25 @@ class Menu:
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, ''),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(33167), ''),
-                ('inprogress', Utils.Translate(33169), ''),
-                ('favorite', Utils.Translate(33168), 'DefaultFavourites.png')
+                ('recentlyadded', utils.Translate(33167), ''),
+                ('inprogress', utils.Translate(33169), ''),
+                ('favorite', utils.Translate(33168), 'DefaultFavourites.png')
             ],
             'audiobooks': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultMusicVideos.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(33167), ''),
-                ('inprogress', Utils.Translate(33169), ''),
-                ('favorite', Utils.Translate(33168), 'DefaultFavourites.png')
+                ('recentlyadded', utils.Translate(33167), ''),
+                ('inprogress', utils.Translate(33169), ''),
+                ('favorite', utils.Translate(33168), 'DefaultFavourites.png')
             ],
             'podcasts': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
                 ('all', None, 'DefaultTVShows.png'),
                 ('folder', 'Folder', 'DefaultFolder.png'),
-                ('recentlyadded', Utils.Translate(33167), ''),
-                ('inprogress', Utils.Translate(33169), ''),
-                ('favorite', Utils.Translate(33168), 'DefaultFavourites.png')
+                ('recentlyadded', utils.Translate(33167), ''),
+                ('inprogress', utils.Translate(33169), ''),
+                ('favorite', utils.Translate(33168), 'DefaultFavourites.png')
             ],
             'music': [
                 ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
@@ -435,7 +435,7 @@ class Menu:
                 'name': name,
                 'server': server_id
             }
-            path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
             self.add_ListItem(node[1] or name, path, True, node[2], None)
 
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -459,7 +459,7 @@ class Menu:
                 'name': name,
                 'server': server_id
             }
-            path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
             self.add_ListItem(node, path, True, None, None)
 
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -473,7 +473,7 @@ class Menu:
                 if self.EmbyServers[server_id].Online:
                     return True
 
-            if Utils.SystemShutdown:
+            if utils.SystemShutdown:
                 return False
 
         return False
@@ -486,15 +486,15 @@ class Menu:
         if xbmc.getCondVisibility('System.HasAddon(script.tvtunes)'):
             tvtunes = xbmcaddon.Addon(id="script.tvtunes")
             tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', Utils.FolderAddonUserdataLibrary)
+            tvtunes.setSetting('custom_path', utils.FolderAddonUserdataLibrary)
             LOG.info("TV Tunes custom path is enabled and set.")
         elif xbmc.getCondVisibility('System.HasAddon(service.tvtunes)'):
             tvtunes = xbmcaddon.Addon(id="service.tvtunes")
             tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', Utils.FolderAddonUserdataLibrary)
+            tvtunes.setSetting('custom_path', utils.FolderAddonUserdataLibrary)
             LOG.info("TV Tunes custom path is enabled and set.")
         else:
-            Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33152))
+            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33152))
             return
 
         for LibraryID, LibraryInfo in list(self.EmbyServers[server_id].Views.ViewItems.items()):
@@ -515,14 +515,14 @@ class Menu:
                     items[item['Id']] = folder
 
         for item in items:
-            nfo_path = "%s%s/" % (Utils.FolderAddonUserdataLibrary, items[item])
+            nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, item)
             nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
-            Utils.mkDir(nfo_path)
+            utils.mkDir(nfo_path)
             themes = self.EmbyServers[server_id].API.get_themes(item)
             paths = []
 
             for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:
-                if Utils.useDirectPaths:
+                if utils.useDirectPaths:
                     paths.append(theme['MediaSources'][0]['Path'])
                 else:
                     paths.append(direct_url(server_id, theme))
@@ -530,7 +530,7 @@ class Menu:
             xmls.tvtunes_nfo(nfo_file, paths)
 
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-        Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33153), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33153), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
 
     def SyncLiveTV(self, server_id):
         if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)') and xbmc.getCondVisibility('System.AddonIsEnabled(pvr.iptvsimple)'):
@@ -567,8 +567,8 @@ class Menu:
 
                     playlist += "%s\n" % StreamUrl
 
-                PlaylistFile = "%s%s" % (Utils.FolderEmbyTemp, 'livetv.m3u')
-                Utils.writeFileString(PlaylistFile, playlist)
+                PlaylistFile = "%s%s" % (utils.FolderEmbyTemp, 'livetv.m3u')
+                utils.writeFileString(PlaylistFile, playlist)
                 iptvsimple = xbmcaddon.Addon(id="pvr.iptvsimple")
                 iptvsimple.setSetting('m3uPathType', "0")
                 iptvsimple.setSetting('m3uPath', PlaylistFile)
@@ -577,7 +577,7 @@ class Menu:
                 epgdata = self.EmbyServers[server_id].API.get_channelprogram()
 
                 if epgdata:
-                    EPGFile = "%s%s" % (Utils.FolderEmbyTemp, 'livetv.epg')
+                    EPGFile = "%s%s" % (utils.FolderEmbyTemp, 'livetv.epg')
                     epg = '<?xml version="1.0" encoding="utf-8" ?>\n'
                     epg += '<tv>\n'
 
@@ -606,17 +606,17 @@ class Menu:
                         epg += '  </programme>\n'
                     epg += '</tv>'
 
-                    Utils.writeFileString(EPGFile, epg)
+                    utils.writeFileString(EPGFile, epg)
                     iptvsimple.setSetting('epgPathType', "0")
                     iptvsimple.setSetting('epgPath', EPGFile)
 
             xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-            Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33232))
+            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33232))
         else:
-            Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33233))
+            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33233))
 
 def direct_url(server_id, item):
-    FilenameURL = Utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
+    FilenameURL = utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
 
     if item['Type'] == 'Audio':
         return "http://127.0.0.1:57578/embythemeaudio-%s-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], "audio", FilenameURL)
@@ -626,7 +626,7 @@ def direct_url(server_id, item):
 # Add or remove users from the default server session
 def AddUser(EmbyServer):
     session = EmbyServer.API.get_device()
-    AllUsers = EmbyServer.API.get_users(False, Utils.addUsersHidden)
+    AllUsers = EmbyServer.API.get_users(False, utils.addUsersHidden)
 
     if not AllUsers:
         return
@@ -650,7 +650,7 @@ def AddUser(EmbyServer):
     for SessionAdditionalUser in session[0]['AdditionalUsers']:
         RemoveUserChoices.append({'UserName': SessionAdditionalUser['UserName'], 'UserId': SessionAdditionalUser['UserId']})
 
-    result = Utils.dialog("select", Utils.Translate(33061), [Utils.Translate(33062), Utils.Translate(33063)] if RemoveUserChoices else [Utils.Translate(33062)])
+    result = utils.dialog("select", utils.Translate(33061), [utils.Translate(33062), utils.Translate(33063)] if RemoveUserChoices else [utils.Translate(33062)])
 
     if result < 0:
         return
@@ -661,28 +661,28 @@ def AddUser(EmbyServer):
         for AddUserChoice in AddUserChoices:
             AddNameArray.append(AddUserChoice['UserName'])
 
-        resp = Utils.dialog("select", Utils.Translate(33064), AddNameArray)
+        resp = utils.dialog("select", utils.Translate(33064), AddNameArray)
 
         if resp < 0:
             return
 
         UserData = AddUserChoices[resp]
         EmbyServer.add_AdditionalUser(UserData['UserId'])
-        Utils.dialog("notification", heading=Utils.addon_name, message="%s %s" % (Utils.Translate(33067), UserData['UserName']), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33067), UserData['UserName']), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
     else:  # Remove user
         RemoveNameArray = []
 
         for RemoveUserChoice in RemoveUserChoices:
             RemoveNameArray.append(RemoveUserChoice['UserName'])
 
-        resp = Utils.dialog("select", Utils.Translate(33064), RemoveNameArray)
+        resp = utils.dialog("select", utils.Translate(33064), RemoveNameArray)
 
         if resp < 0:
             return
 
         UserData = RemoveUserChoices[resp]
         EmbyServer.remove_AdditionalUser(UserData['UserId'])
-        Utils.dialog("notification", heading=Utils.addon_name, message="%s %s" % (Utils.Translate(33066), UserData['UserName']), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33066), UserData['UserName']), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1000, sound=False)
 
 # For theme media, do not modify unless modified in TV Tunes.
 # Remove dots from the last character as windows can not have directories with dots at the end
@@ -698,7 +698,7 @@ def normalize_string(text):
     text = text.strip()
     text = text.rstrip('.')
 
-    if Utils.Python3:
+    if utils.Python3:
         text = unicodedata.normalize('NFKD', text)
     else:
         text = unicodedata.normalize('NFKD', text).encode('utf-8')
