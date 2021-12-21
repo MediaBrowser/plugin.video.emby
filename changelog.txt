@@ -290,6 +290,7 @@ enable permanent ssl verification
 disable ssl verification for artwork cache
 lock windowchange on regular ops
 optimize code
+fix multiserver sync issue
 
 6.0.13 (beta)
 =============

@@ -232,7 +232,7 @@ class Views:
         Progress.create("Emby", "Update views")
 
         for library in self.ViewsData:
-            Percent = int(Counter / Total * 100)
+            Percent = int(float(Counter) / float(Total) * 100)
             Counter += 1
             Progress.update(Percent, message="Update views")
 

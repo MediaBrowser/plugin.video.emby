@@ -381,22 +381,19 @@ class PlayerEvents(xbmc.Player):
             return
 
         self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
-
-        # Continue sync jobs
-        ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration
-
-        for ServerId in ServerIds:
-            threading.Thread(target=self.EmbyServers[ServerId].library.RunJobs).start()
+        threading.Thread(target=self.start_workers).start()
 
     def Cancel(self):
         self.stop()
         utils.SyncPause = False
+        threading.Thread(target=self.start_workers).start()
 
-        # Continue sync jobs
+    # Continue sync jobs
+    def start_workers(self):
         ServerIds = list(self.EmbyServers.keys()) # prevents error -> dictionary changed size during iteration
 
         for ServerId in ServerIds:
-            threading.Thread(target=self.EmbyServers[ServerId].library.RunJobs).start()
+            self.EmbyServers[ServerId].library.RunJobs()
 
     def play_Trailer(self): # for native content
         Path = self.Intros[0]['Path']
