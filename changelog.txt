@@ -293,6 +293,8 @@ optimize code
 fix multiserver sync issue
 add additional lock for multithreaded syncs
 simplify code and improvements
+fix artwork
+
 
 6.0.13 (beta)
 =============
