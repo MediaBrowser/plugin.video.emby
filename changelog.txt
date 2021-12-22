@@ -292,6 +292,7 @@ lock windowchange on regular ops
 optimize code
 fix multiserver sync issue
 add additional lock for multithreaded syncs
+simplify code and improvements
 
 6.0.13 (beta)
 =============

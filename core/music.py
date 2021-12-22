@@ -32,6 +32,7 @@ class Music:
 
         if e_item:
             obj['ArtistId'] = e_item[0]
+
             if not self.music_db.validate_artist(obj['ArtistId'], obj['LibraryId_Name']):
                 if not self.music_db.artist_exists(obj['ArtistId']):  # check if Artist not in music.db even if in emby.db
                     update = False

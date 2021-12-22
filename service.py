@@ -31,11 +31,6 @@ def ServersConnect():
         for ServerSettings in ServersSettings:
             Monitor.ServerConnect(ServerSettings)
 
-        xbmc.executebuiltin('UpdateLibrary(video)')
-
-        if not utils.useDirectPaths:
-            xbmc.executebuiltin('UpdateLibrary(music)')
-
     # Shutdown
     Monitor.waitForAbort()
 
