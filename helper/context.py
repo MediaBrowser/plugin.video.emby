@@ -28,7 +28,7 @@ class Context:
             self.server_id = server_id
             kodi_id = xbmc.getInfoLabel('ListItem.DBID')
             media = xbmc.getInfoLabel('ListItem.DBTYPE')
-            embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+            embydb = dbio.DBOpen(server_id)
             self.item = embydb.get_full_item_by_kodi_id(kodi_id, media)
             dbio.DBClose(server_id, False)
 
@@ -83,7 +83,7 @@ class Context:
             return
 
         # Load SpecialFeatures
-        embydb = dbio.DBOpen(utils.DatabaseFiles, self.server_id)
+        embydb = dbio.DBOpen(self.server_id)
         SpecialFeaturesIds = embydb.get_special_features(self.item[0])
 
         for SpecialFeaturesId in SpecialFeaturesIds:

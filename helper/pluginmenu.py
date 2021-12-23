@@ -122,7 +122,7 @@ class Menu:
         episodes_kodiId = ()
 
         for server_id in self.EmbyServers:
-            embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+            embydb = dbio.DBOpen(server_id)
             episodes_kodiId = embydb.get_episode_fav()
             dbio.DBClose(server_id, False)
 

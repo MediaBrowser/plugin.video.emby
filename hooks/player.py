@@ -120,7 +120,7 @@ class PlayerEvents(xbmc.Player):
 
                     for server_id in self.EmbyServers:
                         self.EmbyServer = self.EmbyServers[server_id]
-                        embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+                        embydb = dbio.DBOpen(server_id)
                         EmbyId = embydb.get_EmbyID_by_path(PlayingFile)
 
                         if EmbyId:
@@ -146,7 +146,7 @@ class PlayerEvents(xbmc.Player):
 
                 for server_id in self.EmbyServers:
                     self.EmbyServer = self.EmbyServers[server_id]
-                    embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+                    embydb = dbio.DBOpen(server_id)
                     item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media_type)
 
                     if not item:

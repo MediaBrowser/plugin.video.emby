@@ -18,7 +18,6 @@ from emby import emby
 from . import webservice
 from . import player
 
-
 if utils.Python3:
     from urllib.parse import quote_plus
 else:
@@ -169,7 +168,7 @@ class Monitor(xbmc.Monitor):
 
         LOG.info("[ UserDataChanged ] %s" % UserDataList)
         UpdateData = []
-        embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+        embydb = dbio.DBOpen(server_id)
 
         for ItemData in UserDataList:
             if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
@@ -350,7 +349,7 @@ class Monitor(xbmc.Monitor):
                 media = data['type']
 
             for server_id in self.EmbyServers:
-                embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+                embydb = dbio.DBOpen(server_id)
                 item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
                 dbio.DBClose(server_id, False)
 
@@ -377,7 +376,7 @@ class Monitor(xbmc.Monitor):
                 if str(item[0]) not in self.player.ItemSkipUpdate:
                     self.player.ItemSkipUpdate.append(str(item[0]))
 
-                videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
+                videodb = dbio.DBOpen("video")
                 BookmarkItem = videodb.get_bookmark(kodi_fileId)
                 FileItem = videodb.get_files(kodi_fileId)
                 dbio.DBClose("video", False)
@@ -482,7 +481,7 @@ def cache_textures():
                     utils.delFile(cached)
                     LOG.debug("DELETE cached %s" % cached)
 
-        texturedb = dbio.DBOpen(utils.DatabaseFiles, "texture")
+        texturedb = dbio.DBOpen("texture")
         texturedb.delete_tables("Texture")
         dbio.DBClose("texture", True)
 
@@ -502,13 +501,13 @@ def cache_textures():
         CacheMusic = True
 
     if CacheVideo:
-        videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
+        videodb = dbio.DBOpen("video")
         urls = videodb.common_db.get_urls()
         dbio.DBClose("video", False)
         CacheAllEntries(webServerUrl, urls, "video", webServerUser, webServerPass)
 
     if CacheMusic:
-        musicdb = dbio.DBOpen(utils.DatabaseFiles, "music")
+        musicdb = dbio.DBOpen("music")
         urls = musicdb.common_db.get_urls()
         dbio.DBClose("music", False)
         CacheAllEntries(webServerUrl, urls, "music", webServerUser, webServerPass)
@@ -558,10 +557,10 @@ def databasereset(EmbyServers):
     xbmc.executebuiltin('activatewindow(home)')
     xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-    videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
+    videodb = dbio.DBOpen("video")
     videodb.common_db.delete_tables("Video")
     dbio.DBClose("video", True)
-    musicdb = dbio.DBOpen(utils.DatabaseFiles, "music")
+    musicdb = dbio.DBOpen("music")
     musicdb.common_db.delete_tables("Music")
     dbio.DBClose("music", True)
     ServerIds = list(EmbyServers)
@@ -572,7 +571,7 @@ def databasereset(EmbyServers):
 
         if DeleteTextureCache:
             utils.DeleteThumbnails()
-            texturedb = dbio.DBOpen(utils.DatabaseFiles, "texture")
+            texturedb = dbio.DBOpen("texture")
             texturedb.delete_tables("Texture")
             dbio.DBClose("texture", True)
 
