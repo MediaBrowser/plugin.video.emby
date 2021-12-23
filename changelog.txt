@@ -295,6 +295,7 @@ add additional lock for multithreaded syncs
 simplify code and improvements
 fix artwork
 sync performance improvements
+artwork fixes
 
 
 6.0.13 (beta)
