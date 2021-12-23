@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
 import xbmc
-import helper.utils as Utils
-import database.db_open
-import emby.listitem as ListItem
+from helper import utils
+from database import dbio
+from emby import listitem
 
 XbmcMonitor = xbmc.Monitor()
 
 
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
-    embydb = database.db_open.DBOpen(Utils.DatabaseFiles, EmbyServer.server_id)
+    embydb = dbio.DBOpen(utils.DatabaseFiles, EmbyServer.server_id)
     Data = embydb.get_item_by_wild_id(str(EmbyID))
-    database.db_open.DBClose(EmbyServer.server_id, False)
+    dbio.DBClose(EmbyServer.server_id, False)
 
     if Data:  # Requested video is synced to KodiDB. No additional info required
         if Data[0][1] in ("song", "album", "artist"):
@@ -26,8 +26,8 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
         xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'Playlist.Insert', 'params': params}))
     else:
         item = EmbyServer.API.get_item(EmbyID)
-        li = ListItem.set_ListItem(item, EmbyServer.server_id)
-        path, Type = Utils.get_path_type_from_item(EmbyServer.server_id, item)
+        li = listitem.set_ListItem(item, EmbyServer.server_id)
+        path, Type = utils.get_path_type_from_item(EmbyServer.server_id, item)
 
         if not path:
             return False, False, None

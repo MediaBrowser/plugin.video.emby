@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcgui
-import helper.loghandler
-import helper.utils as Utils
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -11,7 +11,7 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = helper.loghandler.LOG('EMBY.dialogs.loginmanual')
+LOG = loghandler.LOG('EMBY.dialogs.loginmanual')
 
 
 class LoginManual(xbmcgui.WindowXMLDialog):
@@ -68,7 +68,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
 
             if not user:
                 # Display error
-                self._error(ERROR['Empty'], Utils.Translate(30613))
+                self._error(ERROR['Empty'], utils.Translate(30613))
                 LOG.error("Username cannot be null")
             elif self._login(user, password):
                 self.close()
@@ -100,7 +100,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         result = self.connect_manager.login(server, username, password, True)
 
         if not result:
-            self._error(ERROR['Invalid'], Utils.Translate(33009))
+            self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
         self._user = result

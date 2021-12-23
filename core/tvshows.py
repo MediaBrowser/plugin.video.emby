@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import helper.loghandler
-import helper.utils as Utils
-import emby.obj_ops as Objects
-from . import common as Common
+from helper import loghandler
+from helper import utils
+from emby import obj_ops
+from . import common
 
-LOG = helper.loghandler.LOG('EMBY.core.tvshows')
+LOG = loghandler.LOG('EMBY.core.tvshows')
 
 
 class TVShows:
@@ -16,12 +16,12 @@ class TVShows:
 
     def tvshow(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not library:
             return False
 
-        obj = Objects.mapitem(item, 'Series')
+        obj = obj_ops.mapitem(item, 'Series')
         obj['Item'] = item
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
@@ -45,22 +45,22 @@ class TVShows:
             else:
                 obj['KodiShowId'] = self.video_db.create_entry_tvshow()
 
-        obj['FullPath'] = Common.get_file_path(obj['Path'], item)
-        obj['Path'] = Common.get_path(obj, "tvshows")
+        obj['FullPath'] = common.get_file_path(obj['Path'], item)
+        obj['Path'] = common.get_path(obj, "tvshows")
         obj['Genres'] = obj['Genres'] or []
         obj['People'] = obj['People'] or []
-        obj['Mpaa'] = Common.get_mpaa(obj['Mpaa'], item)
+        obj['Mpaa'] = common.get_mpaa(obj['Mpaa'], item)
         obj['Genre'] = " / ".join(obj['Genres'])
-        obj['People'] = Common.get_people_artwork(obj['People'], self.EmbyServer.server_id)
-        obj['Plot'] = Common.get_overview(obj['Plot'], item)
+        obj['People'] = common.get_people_artwork(obj['People'], self.EmbyServer.server_id)
+        obj['Plot'] = common.get_overview(obj['Plot'], item)
         obj['Studio'] = " / ".join(obj['Studios'])
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
 
         if obj['Status'] != 'Ended':
             obj['Status'] = None
 
         if obj['Premiere']:
-            obj['Premiere'] = str(Utils.convert_to_local(obj['Premiere'])).split('.')[0].replace('T', " ")
+            obj['Premiere'] = str(utils.convert_to_local(obj['Premiere'])).split('.')[0].replace('T', " ")
 
         tags = []
         tags.extend(obj['TagItems'] or obj['Tags'] or [])
@@ -123,12 +123,12 @@ class TVShows:
 
     def season(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not library:
             return False
 
-        obj = Objects.mapitem(item, 'Season')
+        obj = obj_ops.mapitem(item, 'Season')
         obj['LibraryId'] = library['Id']
         obj['Index'] = obj['Index'] or 0
 
@@ -162,19 +162,19 @@ class TVShows:
             LOG.info("ADD season [%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['Title'] or obj['Index'], obj['Id']))
 
         self.KodiSeasonId = obj['KodiSeasonId']
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkParent'), True, self.EmbyServer.server_id)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkParent'), True, self.EmbyServer.server_id)
         self.emby_db.add_reference(obj['Id'], obj['KodiSeasonId'], None, None, "Season", "season", obj['KodiShowId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiSeasonId'], "season")
         return not update
 
     def episode(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not library:
             return False
 
-        obj = Objects.mapitem(item, 'Episode')
+        obj = obj_ops.mapitem(item, 'Episode')
         obj['Item'] = item
         obj['LibraryId'] = library['Id']
         obj['LibraryName'] = library['Name']
@@ -193,31 +193,31 @@ class TVShows:
             update = False
             LOG.debug("EpisodeId %s not found" % obj['Id'])
 
-        obj['FullPath'] = Common.SwopMediaSources(obj, item)  # 3D
+        obj['FullPath'] = common.SwopMediaSources(obj, item)  # 3D
 
         if not obj['FullPath']:  # Invalid Path
             LOG.error("Invalid path: %s" % obj['Id'])
             LOG.debug("Invalid path: %s" % obj)
             return False
 
-        obj['Path'] = Common.get_path(obj, "episodes")
+        obj['Path'] = common.get_path(obj, "episodes")
         obj['Index'] = obj['Index'] or 0
         obj['Writers'] = " / ".join(obj['Writers'] or [])
         obj['Directors'] = " / ".join(obj['Directors'] or [])
-        obj['Plot'] = Common.get_overview(obj['Plot'], item)
-        obj['Resume'] = Common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
+        obj['Plot'] = common.get_overview(obj['Plot'], item)
+        obj['Resume'] = common.adjust_resume((obj['Resume'] or 0) / 10000000.0)
         obj['Runtime'] = round(float((obj['Runtime'] or 0) / 10000000.0), 6)
-        obj['People'] = Common.get_people_artwork(obj['People'] or [], self.EmbyServer.server_id)
-        obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
-        obj['DatePlayed'] = None if not obj['DatePlayed'] else Utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount'])
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
-        obj['Video'] = Common.video_streams(obj['Video'] or [], obj['Container'], item)
-        obj['Audio'] = Common.audio_streams(obj['Audio'] or [])
-        obj['Streams'] = Common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
+        obj['People'] = common.get_people_artwork(obj['People'] or [], self.EmbyServer.server_id)
+        obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
+        obj['DatePlayed'] = None if not obj['DatePlayed'] else utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount'])
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'Artwork'), False, self.EmbyServer.server_id)
+        obj['Video'] = common.video_streams(obj['Video'] or [], obj['Container'], item)
+        obj['Audio'] = common.audio_streams(obj['Audio'] or [])
+        obj['Streams'] = common.media_streams(obj['Video'], obj['Audio'], obj['Subtitles'])
 
         if obj['Premiere']:
-            obj['Premiere'] = Utils.convert_to_local(obj['Premiere']).split('.')[0].replace('T', " ")
+            obj['Premiere'] = utils.convert_to_local(obj['Premiere']).split('.')[0].replace('T', " ")
 
         if obj['Season'] is None:
             if obj['AbsoluteNumber']:
@@ -254,7 +254,7 @@ class TVShows:
                 LOG.debug("No SeasonId: %s" % obj)
                 return False
 
-        Common.Streamdata_add(obj, self.emby_db, update)
+        common.Streamdata_add(obj, self.emby_db, update)
 
         if update:
             obj['RatingId'] = self.video_db.get_rating_id("episode", obj['KodiItemId'], "default")
@@ -271,7 +271,7 @@ class TVShows:
                     Unique = self.video_db.create_entry_unique_id()
                     self.video_db.add_unique_id(Unique, obj['KodiItemId'], "episode", unique_id, provider)
 
-            obj['Filename'] = Common.get_filename(obj, "episode", self.EmbyServer.API)
+            obj['Filename'] = common.get_filename(obj, "episode", self.EmbyServer.API)
             self.video_db.update_episode(obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'], obj['KodiShowId'], obj['KodiItemId'])
             self.video_db.update_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
             self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
@@ -294,18 +294,18 @@ class TVShows:
 
             obj['KodiPathId'] = self.video_db.get_add_path(obj['Path'], None)
             obj['KodiFileId'] = self.video_db.create_entry_file()
-            obj['Filename'] = Common.get_filename(obj, "episode", self.EmbyServer.API)
+            obj['Filename'] = common.get_filename(obj, "episode", self.EmbyServer.API)
             self.video_db.add_file(obj['KodiPathId'], obj['Filename'], obj['DateAdded'], obj['KodiFileId'])
             self.video_db.add_episode(obj['KodiItemId'], obj['KodiFileId'], obj['Title'], obj['Plot'], obj['RatingId'], obj['Writers'], obj['Premiere'], obj['Runtime'], obj['Directors'], obj['Season'], obj['Index'], obj['OriginalTitle'], obj['KodiShowId'], obj['AirsBeforeSeason'], obj['AirsBeforeEpisode'], obj['KodiSeasonId'])
             self.emby_db.add_reference(obj['Id'], obj['KodiItemId'], obj['KodiFileId'], obj['KodiPathId'], "Episode", "episode", obj['KodiSeasonId'], obj['LibraryId'], obj['EmbyParentId'], obj['PresentationKey'], obj['Favorite'])
             LOG.info("ADD episode [%s/%s/%s/%s] %s: %s" % (obj['KodiShowId'], obj['KodiSeasonId'], obj['KodiItemId'], obj['KodiFileId'], obj['Id'], obj['Title']))
 
-        Common.add_update_chapters(obj, self.video_db, self.EmbyServer.server_id)
+        common.add_update_chapters(obj, self.video_db, self.EmbyServer.server_id)
         self.video_db.add_people(obj['People'], obj['KodiItemId'], "episode")
         self.video_db.add_streams(obj['KodiFileId'], obj['Streams'], obj['Runtime'])
         self.video_db.add_playstate(obj['KodiFileId'], obj['PlayCount'], obj['DatePlayed'], obj['Resume'], obj['Runtime'], False)
         self.video_db.common_db.add_artwork(obj['Artwork'], obj['KodiItemId'], "episode")
-        ExistingItem = Common.add_Multiversion(obj, self.emby_db, "episode", self.EmbyServer.API)
+        ExistingItem = common.add_Multiversion(obj, self.emby_db, "episode", self.EmbyServer.API)
 
         # Remove existing Item
         if ExistingItem and not update:
@@ -346,14 +346,14 @@ class TVShows:
             else:
                 self.video_db.remove_tag("Favorite tvshows", KodiId, "tvshow")
         elif KodiType == "episode":
-            Resume = Common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
+            Resume = common.adjust_resume((ItemUserdata['PlaybackPositionTicks'] or 0) / 10000000.0)
             EpisodeData = self.video_db.get_episode_data(KodiId)
 
             if not EpisodeData:
                 return
 
-            PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
-            DatePlayed = Utils.currenttime_kodi_format()
+            PlayCount = common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
+            DatePlayed = utils.currenttime_kodi_format()
             self.video_db.add_playstate(KodiFileId, PlayCount, DatePlayed, Resume, EpisodeData[11], True)
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['IsFavorite'], ItemUserdata['ItemId'])

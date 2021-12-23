@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree
 from . import loghandler
-from . import utils as Utils
+from . import utils
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import urlencode
 else:
     from urllib import urlencode
@@ -15,7 +15,7 @@ LOG = loghandler.LOG('EMBY.helper.xmls')
 # Also add the kodi.emby.media source.
 def sources():
     Filepath = 'special://profile/sources.xml'
-    xmlData = Utils.readFileString(Filepath)
+    xmlData = utils.readFileString(Filepath)
 
     if xmlData:
         xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -39,8 +39,8 @@ def sources():
 
 # Create tvtunes.nfo
 def tvtunes_nfo(path, urls):
-    if Utils.checkFileExists(path):
-        xmlData = Utils.readFileString(path)
+    if utils.checkFileExists(path):
+        xmlData = utils.readFileString(path)
         xmlData = xml.etree.ElementTree.fromstring(xmlData)
     else:
         xmlData = xml.etree.ElementTree.Element('tvtunes')
@@ -59,7 +59,7 @@ def load_defaultvideosettings():
     SubtitlesLanguage = ""
     LocalSubtitlesLanguage = ""
     FilePath = 'special://profile/guisettings.xml'
-    xmlData = Utils.readFileString(FilePath)
+    xmlData = utils.readFileString(FilePath)
 
     if xmlData:
         xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -104,7 +104,7 @@ def load_defaultvideosettings():
 def advanced_settings():
     WriteData = False
     Filepath = 'special://profile/advancedsettings.xml'
-    xmlData = Utils.readFileString(Filepath)
+    xmlData = utils.readFileString(Filepath)
 
     if xmlData:
         xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -117,7 +117,7 @@ def advanced_settings():
                 LOG.warning("cleanonupdate disabled")
                 video.remove(cleanonupdate)
                 WriteData = True
-                Utils.dialog("ok", heading=Utils.addon_name, line1=Utils.Translate(33097))
+                utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33097))
 
         Network = xmlData.find('network')
 
@@ -185,17 +185,17 @@ def WriteXmlFile(FilePath, Data):
     # write xml
     Data = xml.etree.ElementTree.tostring(Data)
     Data = b"<?xml version='1.0' encoding='UTF-8'?>\n" + Data
-    Utils.writeFileBinary(FilePath, Data)
+    utils.writeFileBinary(FilePath, Data)
 
 def KodiDefaultNodes():
-    Utils.mkDir("special://profile/library/video/")
-    Utils.mkDir("special://profile/library/music/")
-    Utils.copytree("special://xbmc/system/library/video/", "special://profile/library/video/")
-    Utils.copytree("special://xbmc/system/library/music/", "special://profile/library/music/")
+    utils.mkDir("special://profile/library/video/")
+    utils.mkDir("special://profile/library/music/")
+    utils.copytree("special://xbmc/system/library/video/", "special://profile/library/video/")
+    utils.copytree("special://xbmc/system/library/music/", "special://profile/library/music/")
 
     for index, node in enumerate(['movies', 'tvshows', 'musicvideos']):
         filename = "%s%s/%s" % ("special://profile/library/video/", node, "index.xml")
-        xmlData = Utils.readFileString(filename)
+        xmlData = utils.readFileString(filename)
 
         if xmlData:
             xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -204,7 +204,7 @@ def KodiDefaultNodes():
 
     for index, node in enumerate(['music']):
         filename = "%s%s/%s" % ("special://profile/library/music/", node, "index.xml")
-        xmlData = Utils.readFileString(filename)
+        xmlData = utils.readFileString(filename)
 
         if xmlData:
             xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -212,13 +212,13 @@ def KodiDefaultNodes():
             WriteXmlFile(filename, xmlData)
 
 def add_favorites():
-    Utils.mkDir("special://profile/library/video/")
+    utils.mkDir("special://profile/library/video/")
     index = 0
 
-    for single in [{'Name': Utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': Utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': Utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}]:
+    for single in [{'Name': utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}]:
         index += 1
         filepath = "special://profile/library/video/emby_%s.xml" % single['Tag'].replace(" ", "_")
-        xmlData = Utils.readFileString(filepath)
+        xmlData = utils.readFileString(filepath)
 
         if xmlData:
             xmlData = xml.etree.ElementTree.fromstring(xmlData)
@@ -255,7 +255,7 @@ def add_favorites():
                 xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
         else:
             params = {'mode': "favepisodes"}
-            path = "plugin://%s/?%s" % (Utils.PluginId, urlencode(params))
+            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
 
             for rule in xmlData.findall('.//path'):
                 rule.text = path

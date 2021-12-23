@@ -10,27 +10,27 @@ import socket
 import hashlib
 import ssl
 import xbmc
-import helper.loghandler
-import helper.utils as Utils
-import helper.playerops as PlayerOps
+from helper import utils
+from helper import loghandler
+from helper import playerops
 
-if Utils.Python3:
+if utils.Python3:
     from urllib.parse import urlparse
 else:
     from urlparse import urlparse
 
 XbmcMonitor = xbmc.Monitor()
-LOG = helper.loghandler.LOG('Emby.hooks.websocket')
+LOG = loghandler.LOG('Emby.hooks.websocket')
 
 
 def maskData(mask_key, data):
     _m = array.array("B", mask_key)
     _d = array.array("B", data)
 
-    for i in range(len(_d)):
-        _d[i] ^= _m[i % 4]  # ixor
+    for i, d in enumerate(_d):
+        d[i] ^= _m[i % 4]  # ixor
 
-    if Utils.Python3:
+    if utils.Python3:
         return _d.tobytes()
 
     return _d.tostring()
@@ -40,9 +40,7 @@ class WSClient(threading.Thread):
         self.EmbyServer = EmbyServer
         self.stop = False
         LOG.debug("WSClient initializing...")
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.sock = None
         self._recv_buffer = []
         self._frame_header = None
         self._frame_length = None
@@ -54,7 +52,7 @@ class WSClient(threading.Thread):
         LOG.info("--->[ websocket ]")
         server = self.EmbyServer.server.replace('https', "wss") if self.EmbyServer.server.startswith('https') else self.EmbyServer.server.replace('http', "ws")
 
-        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id)):
+        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, utils.device_id)):
             threading.Thread(target=self.ping).start()
 
             while not self.stop:
@@ -70,12 +68,18 @@ class WSClient(threading.Thread):
                     while not self.stop:
                         self.close()
                         LOG.info("--->[ websocket reconnecting ]")
-                        xbmc.sleep(1000)
 
-                        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, Utils.device_id)):
+                        if XbmcMonitor.waitForAbort(2):
+                            break
+
+                        self.stop = False
+
+                        if self.connect("%s/embywebsocket?api_key=%s&device_id=%s" % (server, self.EmbyServer.Token, utils.device_id)):
                             threading.Thread(target=self.ping).start()
                             LOG.info("---<[ websocket reconnecting ]")
                             break
+
+                        LOG.info("[ websocket reconnecting failed ]")
         else:
             LOG.info("[ websocket failed ]")
             self.close()
@@ -96,6 +100,10 @@ class WSClient(threading.Thread):
         self.sock.close()
 
     def connect(self, url):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         # Parse URL
         scheme, url = url.split(":", 1)
         parsed = urlparse(url, scheme="http")
@@ -115,7 +123,11 @@ class WSClient(threading.Thread):
                 port = 443
 
         # Connect
-        self.sock.connect((hostname, port))
+        try:
+            self.sock.connect((hostname, port))
+        except:
+            return False
+
         self.sock.settimeout(None)
 
         if is_secure:
@@ -143,6 +155,10 @@ class WSClient(threading.Thread):
 
             while True:
                 c = self.sock.recv(1).decode()
+
+                if not c:
+                    return False
+
                 line.append(c)
 
                 if c == "\n":
@@ -176,7 +192,7 @@ class WSClient(threading.Thread):
         result = headers.get("sec-websocket-accept", None)
 
         if not result:
-            Utils.dialog("notification", heading=Utils.addon_name, icon="DefaultIconError.png", message=Utils.Translate(33235), sound=True)
+            utils.dialog("notification", heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33235), sound=True)
             return False
 
         value = EncodingKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -216,7 +232,7 @@ class WSClient(threading.Thread):
                 if XbmcMonitor.waitForAbort(1):
                     return
 
-                if self.stop or Utils.SystemShutdown:
+                if self.stop or utils.SystemShutdown:
                     return
 
             self.sendCommands(b"", 0x9)
@@ -230,7 +246,7 @@ class WSClient(threading.Thread):
                 if not self._frame_header:  # connection closed
                     return None
 
-            if Utils.Python3:
+            if utils.Python3:
                 b1 = self._frame_header[0]
                 b2 = self._frame_header[1]
             else:
@@ -322,7 +338,7 @@ class WSClient(threading.Thread):
 
         if IncommingData['MessageType'] == 'GeneralCommand':
             if IncommingData['Data']['Name'] == 'DisplayMessage':
-                Utils.dialog("notification", heading=IncommingData['Data']['Arguments']['Header'], message=IncommingData['Data']['Arguments']['Text'], icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=int(Utils.displayMessage) * 1000)
+                utils.dialog("notification", heading=IncommingData['Data']['Arguments']['Header'], message=IncommingData['Data']['Arguments']['Text'], icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=int(utils.displayMessage) * 1000)
             elif IncommingData['Data']['Name'] in ('Mute', 'Unmute'):
                 xbmc.executebuiltin('Mute')
             elif IncommingData['Data']['Name'] == 'SetVolume':
@@ -388,8 +404,8 @@ class WSClient(threading.Thread):
             LOG.debug("[ LibraryChanged UpdateItems ] %s" % UpdateItems)
             self.EmbyServer.library.updated(UpdateItems)
         elif IncommingData['MessageType'] == 'ServerRestarting':
-            if Utils.restartMsg:
-                Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33006), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
+            if utils.restartMsg:
+                utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33006), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
 
             self.EmbyServer.Online = False
 
@@ -398,7 +414,7 @@ class WSClient(threading.Thread):
 
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'ServerShuttingDown':
-            Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33236))
+            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33236))
             self.EmbyServer.Online = False
 
             if XbmcMonitor.waitForAbort(5):
@@ -406,9 +422,9 @@ class WSClient(threading.Thread):
 
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncommingData['MessageType'] == 'RestartRequired':
-            Utils.dialog("notification", heading=Utils.addon_name, message=Utils.Translate(33237))
+            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33237))
         elif IncommingData['MessageType'] == 'Play':
-            PlayerOps.Play(IncommingData['Data']['ItemIds'], IncommingData['Data']['PlayCommand'], int(IncommingData['Data'].get('StartIndex', -1)), int(IncommingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
+            playerops.Play(IncommingData['Data']['ItemIds'], IncommingData['Data']['PlayCommand'], int(IncommingData['Data'].get('StartIndex', -1)), int(IncommingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
         elif IncommingData['MessageType'] == 'Playstate':
             Playstate(IncommingData['Data']['Command'], int(IncommingData['Data'].get('SeekPositionTicks', -1)))
 

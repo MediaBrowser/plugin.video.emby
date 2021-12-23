@@ -55,6 +55,7 @@ class CommonDatabase:
         elif KodiMediaType in ("tvshow", "movie"):
             ArtMapping = {
                 'Thumb': "landscape",
+                'Thumb': "thumb",
                 'Primary': 'poster',
                 'Banner': "banner",
                 'Logo': "clearlogo",
@@ -82,8 +83,13 @@ class CommonDatabase:
                 'Backdrop': "fanart"
             }
 
-        for ArtMap in ArtMapping:
-            if ArtMap == 'Backdrop':
+        # Primary as fallback for empty thumb
+        if 'Thumb' in ArtworkEmby and 'Primary' in ArtworkEmby:
+            if not ArtworkEmby['Thumb'] and ArtworkEmby['Primary']:
+                ArtworkEmby['Thumb'] = ArtworkEmby['Primary']
+
+        for ArtKey, ArtValue in ArtMapping.items():
+            if ArtKey == 'Backdrop':
                 if 'Backdrop' in ArtworkEmby:
                     if ArtworkEmby['Backdrop']:
                         num_backdrops = len(ArtworkEmby['Backdrop'])
@@ -98,18 +104,12 @@ class CommonDatabase:
 
                 self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, "fanart"))
             else:
-                if ArtMap in ArtworkEmby:
-                    if ArtworkEmby[ArtMap]:
-                        self.update_artwork(ArtworkEmby[ArtMap], KodiId, KodiMediaType, ArtMapping[ArtMap])
-
-                        # Primary as fallback for empty thumb
-                        if 'Thumb' in ArtMapping and 'Primary' in ArtworkEmby:
-                            if not ArtworkEmby['Thumb'] and ArtworkEmby['Primary']:
-                                self.update_artwork(ArtworkEmby['Primary'], KodiId, KodiMediaType, "thumb")
-
+                if ArtKey in ArtworkEmby:
+                    if ArtworkEmby[ArtKey]:
+                        self.update_artwork(ArtworkEmby[ArtKey], KodiId, KodiMediaType, ArtValue)
                         continue
 
-                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, ArtMapping[ArtMap]))
+                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, ArtValue))
 
     # Delete artwork from kodi database and remove cache for backdrop/posters
     def delete_artwork(self, *args):

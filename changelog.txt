@@ -1,4 +1,4 @@
-6.2.2 (beta)
+6.2.3 (beta)
 =============
 Improvements:
 -------------
@@ -285,6 +285,17 @@ fix realtime sync
 fix musicvideo letter nodes
 fix shutdown procedure
 add slideshow
+fix websocket connection timeout (part 2)
+enable permanent ssl verification
+disable ssl verification for artwork cache
+lock windowchange on regular ops
+optimize code
+fix multiserver sync issue
+add additional lock for multithreaded syncs
+simplify code and improvements
+fix artwork
+sync performance improvements
+artwork fixes
 
 
 6.0.13 (beta)

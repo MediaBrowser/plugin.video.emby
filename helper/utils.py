@@ -84,7 +84,6 @@ getOverview = False
 getProductionLocations = False
 getCast = False
 deviceNameOpt = False
-sslverify = False
 syncDuringPlay = False
 artworkcacheenable = True
 WebserverData = {}
@@ -168,9 +167,9 @@ def readFileBinary(Path):
     Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
-        infile = open(Path, "rb")
-        data = infile.read()
-        infile.close()
+        with open(Path, "rb") as infile:
+            data = infile.read()
+
         return data
 
     return b""
@@ -180,9 +179,9 @@ def readFileString(Path):
     Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
-        infile = open(Path, "rb")
-        data = infile.read()
-        infile.close()
+        with open(Path, "rb") as infile:
+            data = infile.read()
+
         return data.decode('utf-8')
 
     return ""
@@ -191,16 +190,16 @@ def writeFileString(Path, Data):
     Data = Data.encode('utf-8')
     Path = translatePath(Path)
     Path = Path.encode('utf-8')
-    outfile = open(Path, "wb")
-    outfile.write(Data)
-    outfile.close()
+
+    with open(Path, "wb") as outfile:
+        outfile.write(Data)
 
 def writeFileBinary(Path, Data):
     Path = translatePath(Path)
     Path = Path.encode('utf-8')
-    outfile = open(Path, "wb")
-    outfile.write(Data)
-    outfile.close()
+
+    with open(Path, "wb") as outfile:
+        outfile.write(Data)
 
 def checkFileExists(Path):
     Path = translatePath(Path)
@@ -627,7 +626,6 @@ def InitSettings():
     load_settings_bool('getProductionLocations')
     load_settings_bool('getCast')
     load_settings_bool('deviceNameOpt')
-    load_settings_bool('sslverify')
     load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])

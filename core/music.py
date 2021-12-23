@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import helper.loghandler
-import helper.utils as Utils
-import emby.obj_ops as Objects
-from . import common as Common
+from helper import loghandler
+from helper import utils
+from emby import obj_ops
+from . import common
 
-LOG = helper.loghandler.LOG('EMBY.core.music')
+LOG = loghandler.LOG('EMBY.core.music')
 
 
 class Music:
@@ -20,18 +20,19 @@ class Music:
     # If item exists, entry will be updated
     def artist(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        self.library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        self.library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not self.library:
             return False
 
-        obj = Objects.mapitem(item, 'Artist')
+        obj = obj_ops.mapitem(item, 'Artist')
         obj['LibraryId'] = self.library['Id']
         obj['LibraryId_Name'] = "%s-%s" % (self.library['Id'], self.library['Name'])
         update = True
 
         if e_item:
             obj['ArtistId'] = e_item[0]
+
             if not self.music_db.validate_artist(obj['ArtistId'], obj['LibraryId_Name']):
                 if not self.music_db.artist_exists(obj['ArtistId']):  # check if Artist not in music.db even if in emby.db
                     update = False
@@ -44,15 +45,15 @@ class Music:
             obj['ArtistId'] = None
             LOG.debug("ArtistId %s not found" % obj['Id'])
 
-        obj['LastScraped'] = Utils.currenttime_kodi_format()
+        obj['LastScraped'] = utils.currenttime_kodi_format()
         obj['ArtistType'] = "MusicArtist"
         obj['Genre'] = " / ".join(obj['Genres'] or [])
-        obj['Bio'] = Common.get_overview(obj['Bio'], item)
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkMusic'), False, self.EmbyServer.server_id)
+        obj['Bio'] = common.get_overview(obj['Bio'], item)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkMusic'), False, self.EmbyServer.server_id)
         obj['Disambiguation'] = obj['LibraryId_Name']
 
         if obj['DateAdded']:
-            obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
+            obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if update:
             self.emby_db.update_reference(obj['PresentationKey'], obj['Id'], obj['Favorite'])
@@ -70,12 +71,12 @@ class Music:
     # Update object to kodi
     def album(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        self.library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        self.library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not self.library:
             return False
 
-        obj = Objects.mapitem(item, 'Album')
+        obj = obj_ops.mapitem(item, 'Album')
         obj['LibraryId'] = self.library['Id']
         obj['LibraryId_Name'] = "%s-%s" % (self.library['Id'], self.library['Name'])
         update = True
@@ -96,16 +97,16 @@ class Music:
             LOG.debug("AlbumId %s not found" % obj['Id'])
 
         obj['Rating'] = 0
-        obj['LastScraped'] = Utils.currenttime_kodi_format()
+        obj['LastScraped'] = utils.currenttime_kodi_format()
         obj['Genres'] = obj['Genres'] or []
         obj['Genre'] = " / ".join(obj['Genres'])
-        obj['Bio'] = Common.get_overview(obj['Bio'], item)
+        obj['Bio'] = common.get_overview(obj['Bio'], item)
         obj['Artist'] = " / ".join(obj['Artists'] or [])
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkMusic'), True, self.EmbyServer.server_id)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkMusic'), True, self.EmbyServer.server_id)
         obj['UniqueId'] = obj['UniqueId'] or None
 
         if obj['DateAdded']:
-            obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
+            obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if update:
             self.emby_db.update_reference(obj['PresentationKey'], obj['Id'], obj['Favorite'])
@@ -148,12 +149,12 @@ class Music:
     # Update object to kodi
     def song(self, item, library):
         e_item = self.emby_db.get_item_by_id(item['Id'])
-        self.library = Common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
+        self.library = common.library_check(e_item, item['Id'], library, self.EmbyServer.API, self.EmbyServer.library.Whitelist)
 
         if not self.library:
             return False
 
-        obj = Objects.mapitem(item, 'Song')
+        obj = obj_ops.mapitem(item, 'Song')
         obj['LibraryId'] = self.library['Id']
         obj['LibraryId_Name'] = "%s-%s" % (self.library['Id'], self.library['Name'])
         obj['ServerId'] = self.EmbyServer.server_id
@@ -179,12 +180,12 @@ class Music:
             LOG.warning("Path %s not found" % obj['Title'])
             return False
 
-        obj['FullPath'] = Common.get_file_path(obj['Path'], item)
-        obj['Path'] = Common.get_path(obj, "audio")
-        obj['Filename'] = Common.get_filename(obj, "audio", self.EmbyServer.API)
+        obj['FullPath'] = common.get_file_path(obj['Path'], item)
+        obj['Path'] = common.get_path(obj, "audio")
+        obj['Filename'] = common.get_filename(obj, "audio", self.EmbyServer.API)
         obj['Rating'] = 0
         obj['Genres'] = obj['Genres'] or []
-        obj['PlayCount'] = Common.get_playcount(obj['Played'], obj['PlayCount'])
+        obj['PlayCount'] = common.get_playcount(obj['Played'], obj['PlayCount'])
         obj['Runtime'] = (obj['Runtime'] or 0) / 10000000.0
         obj['Genre'] = " / ".join(obj['Genres'])
         obj['Artist'] = " / ".join(obj['Artists'] or [])
@@ -192,8 +193,8 @@ class Music:
         obj['Index'] = obj['Index'] or None
         obj['Disc'] = obj['Disc'] or 1
         obj['EmbedCover'] = False
-        obj['Comment'] = Common.get_overview(obj['Comment'], item)
-        obj['Artwork'] = Common.get_all_artwork(Objects.mapitem(item, 'ArtworkMusic'), True, self.EmbyServer.server_id)
+        obj['Comment'] = common.get_overview(obj['Comment'], item)
+        obj['Artwork'] = common.get_all_artwork(obj_ops.mapitem(item, 'ArtworkMusic'), True, self.EmbyServer.server_id)
 
         if not obj['Artist']:
             obj['Artist'] = "--NO INFO--"
@@ -203,13 +204,13 @@ class Music:
 
         obj['UniqueId'] = obj['UniqueId'] or None
         obj['Album'] = obj['Album'] or "Single"
-        obj['LastScraped'] = Utils.currenttime_kodi_format()
+        obj['LastScraped'] = utils.currenttime_kodi_format()
 
         if obj['DateAdded']:
-            obj['DateAdded'] = Utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
+            obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if obj['DatePlayed']:
-            obj['DatePlayed'] = Utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
+            obj['DatePlayed'] = utils.convert_to_local(obj['DatePlayed']).split('.')[0].replace('T', " ")
 
         if obj['Disc'] != 1 and obj['Index']:
             obj['Index'] = obj['Disc'] * 2 ** 16 + obj['Index']
@@ -311,10 +312,10 @@ class Music:
         KodiPathId = e_item[0]
         Media = e_item[4]
         Rating = 0
-        PlayCount = Common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
+        PlayCount = common.get_playcount(ItemUserdata['Played'], ItemUserdata['PlayCount'])
 
         if Media == 'song':
-            DatePlayed = Utils.currenttime_kodi_format()
+            DatePlayed = utils.currenttime_kodi_format()
             self.music_db.rate_song(PlayCount, DatePlayed, Rating, KodiPathId)
 
         self.emby_db.update_reference_userdatachanged(ItemUserdata['ItemId'], ItemUserdata['IsFavorite'])
