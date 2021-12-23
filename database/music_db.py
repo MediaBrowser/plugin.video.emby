@@ -155,7 +155,7 @@ class MusicDatabase:
 
     # Get artist or create the entry
     def get_add_artist(self, name, musicbrainz, LibraryId_Name):
-        self.cursor.execute("SELECT idArtist, strDisambiguation FROM artist WHERE strArtist = ? COLLATE NOCASE", (name,))
+        self.cursor.execute("SELECT idArtist, strDisambiguation FROM artist WHERE strArtist = ? ", (name,))
         result = self.cursor.fetchone()
 
         if result:
@@ -214,7 +214,7 @@ class MusicDatabase:
         return False
 
     def get_add_album(self, Title, Type, Artists, Year, Genre, Thumb, Rating, LastScraped, DateAdded, LibraryId_Name):
-        self.cursor.execute("SELECT idAlbum, strType FROM album WHERE strAlbum = ? COLLATE NOCASE AND strArtistDisp = ? COLLATE NOCASE", (Title, Artists))
+        self.cursor.execute("SELECT idAlbum, strType FROM album WHERE strAlbum = ?  AND strArtistDisp = ? ", (Title, Artists))
         result = self.cursor.fetchone()
 
         if result:
@@ -332,7 +332,7 @@ class MusicDatabase:
                 self.cursor.execute("INSERT OR REPLACE INTO song_genre(idGenre, idSong) VALUES (?, ?)", (genre_id, kodi_id))
 
     def get_genre(self, *args):
-        self.cursor.execute("SELECT idGenre FROM genre WHERE strGenre = ? COLLATE NOCASE", args)
+        self.cursor.execute("SELECT idGenre FROM genre WHERE strGenre = ? ", args)
         Data = self.cursor.fetchone()
 
         if Data:

@@ -94,7 +94,7 @@ class VideoDatabase:
         return country_id
 
     def get_country(self, *args):
-        self.cursor.execute("SELECT country_id FROM country WHERE name = ? COLLATE NOCASE", args)
+        self.cursor.execute("SELECT country_id FROM country WHERE name = ? ", args)
         Data = self.cursor.fetchone()
 
         if Data:
@@ -249,7 +249,7 @@ class VideoDatabase:
         self.cursor.execute("INSERT OR REPLACE INTO files(idPath, strFilename, dateAdded, idPath) VALUES (?, ?, ?, ?)", (path_id, filename, dateAdded, file_id))
 
     def add_link(self, link, person_id, KodiId, MediaType):
-        self.cursor.execute("SELECT * FROM {LinkType} WHERE actor_id = ? AND media_id = ? AND media_type = ? COLLATE NOCASE".replace("{LinkType}", link), (person_id, KodiId, MediaType))
+        self.cursor.execute("SELECT * FROM {LinkType} WHERE actor_id = ? AND media_id = ? AND media_type = ? ".replace("{LinkType}", link), (person_id, KodiId, MediaType))
         Temp = self.cursor.fetchone()
 
         # No primary Key in DB -> INSERT OR REPLACE not working -> check manually
@@ -329,7 +329,7 @@ class VideoDatabase:
         return person_id
 
     def get_person(self, PersonName, imageurl):
-        self.cursor.execute("SELECT actor_id FROM actor WHERE name = ? COLLATE NOCASE", (PersonName,))
+        self.cursor.execute("SELECT actor_id FROM actor WHERE name = ? ", (PersonName,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -350,7 +350,7 @@ class VideoDatabase:
         return genre_id
 
     def get_genre(self, *args):
-        self.cursor.execute("SELECT genre_id FROM genre WHERE name = ? COLLATE NOCASE", args)
+        self.cursor.execute("SELECT genre_id FROM genre WHERE name = ? ", args)
         Data = self.cursor.fetchone()
 
         if Data:
@@ -369,7 +369,7 @@ class VideoDatabase:
         return studio_id
 
     def get_studio(self, studio):
-        self.cursor.execute("SELECT studio_id FROM studio WHERE name = ? COLLATE NOCASE", (studio,))
+        self.cursor.execute("SELECT studio_id FROM studio WHERE name = ? ", (studio,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -450,7 +450,7 @@ class VideoDatabase:
         return tag_id
 
     def get_tag(self, tag, *args):
-        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? COLLATE NOCASE", (tag,))
+        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? ", (tag,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -462,7 +462,7 @@ class VideoDatabase:
         return tag_id
 
     def remove_tag(self, tag, *args):
-        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? COLLATE NOCASE", (tag,))
+        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? ", (tag,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -473,7 +473,7 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM tag_link WHERE tag_id = ? AND media_id = ? AND media_type = ?", (tag_id,) + args)
 
     def get_rating_id(self, *args):
-        self.cursor.execute("SELECT rating_id FROM rating WHERE media_type = ? AND media_id = ? AND rating_type = ? COLLATE NOCASE", args)
+        self.cursor.execute("SELECT rating_id FROM rating WHERE media_type = ? AND media_id = ? AND rating_type = ? ", args)
         Data = self.cursor.fetchone()
 
         if Data:

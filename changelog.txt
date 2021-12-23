@@ -294,6 +294,7 @@ fix multiserver sync issue
 add additional lock for multithreaded syncs
 simplify code and improvements
 fix artwork
+sync performance improvements
 
 
 6.0.13 (beta)
