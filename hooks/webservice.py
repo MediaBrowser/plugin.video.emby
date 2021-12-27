@@ -200,7 +200,7 @@ class WebService(threading.Thread):
             return
 
         # Cinnemamode
-        if utils.enableCinema:
+        if (utils.enableCinemaMovies and QueryData['MediaType'] == "movie") or (utils.enableCinemaEpisodes and QueryData['MediaType'] == "episode"):
             if self.TrailerInitPayload != QueryData['Payload']:  # Trailer init (load)
                 self.Intros = []
                 PlayTrailer = True

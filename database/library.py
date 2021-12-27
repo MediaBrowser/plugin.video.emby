@@ -201,7 +201,7 @@ class Library:
         if not embydb:
             return ReturnValue
 
-        progress_updates.create("Emby", "remove")
+        progress_updates.create("Emby", utils.Translate(33178))
         isMusic = False
         isVideo = False
         MusicItems = []
