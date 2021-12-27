@@ -297,6 +297,7 @@ fix artwork
 sync performance improvements
 artwork fixes
 minor artwork fix and apply sqlite thread save patches
+fix dbio issue
 
 
 6.0.13 (beta)

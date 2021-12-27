@@ -20,15 +20,15 @@ def DBOpen(DBID):
         while globals()["DBConnections"][DBIDThreadID][2]:  #Wait for db unlock
             xbmc.sleep(500)
 
-    if DBIDThreadID not in globals()["DBConnections"]:  # create curser
-        globals()["DBConnections"][DBIDThreadID] = [None, 1, 0, True]
+    if DBIDThreadID not in globals()["DBConnections"] or globals()["DBConnections"][DBIDThreadID][1] == 0:  # create curser
+        globals()["DBConnections"][DBIDThreadID] = [None, 1, True]
         globals()["DBConnections"][DBIDThreadID][0] = sqlite3.connect(utils.DatabaseFiles[DBID], timeout=999999)
         globals()["DBConnections"][DBIDThreadID][0].execute("PRAGMA journal_mode=WAL")
         globals()["DBConnections"][DBIDThreadID][2] = False
     else:  # re-use curser
         globals()["DBConnections"][DBIDThreadID][1] += 1
 
-    LOG.debug("--->[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
+    LOG.info("--->[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
 
     if DBID == 'video':
         return video_db.VideoDatabase(globals()["DBConnections"][DBIDThreadID][0].cursor())
@@ -59,11 +59,10 @@ def DBClose(DBID, commit_close):
         LOG.info("---<[%s] %s rows updated on db close" % (DBIDThreadID, changes))
 
     globals()["DBConnections"][DBIDThreadID][1] += -1
-    LOG.debug("---<[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
+    LOG.info("---<[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
 
     if globals()["DBConnections"][DBIDThreadID][1] == 0:  # last db access closed -> close db
         globals()["DBConnections"][DBIDThreadID][0].cursor().close()
         globals()["DBConnections"][DBIDThreadID][0].close()
-        del globals()["DBConnections"][DBIDThreadID]
-    else:
-        globals()["DBConnections"][DBIDThreadID][2] = False
+
+    globals()["DBConnections"][DBIDThreadID][2] = False
