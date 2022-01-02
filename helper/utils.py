@@ -66,7 +66,8 @@ transcodeH265 = False
 transcodeDivx = False
 transcodeXvid = False
 transcodeMpeg2 = False
-enableCinema = False
+enableCinemaMovies = False
+enableCinemaEpisodes = False
 askCinema = False
 localTrailers = False
 Trailers = False
@@ -608,7 +609,8 @@ def InitSettings():
     load_settings_bool('transcodeDivx')
     load_settings_bool('transcodeXvid')
     load_settings_bool('transcodeMpeg2')
-    load_settings_bool('enableCinema')
+    load_settings_bool('enableCinemaMovies')
+    load_settings_bool('enableCinemaEpisodes')
     load_settings_bool('askCinema')
     load_settings_bool('localTrailers')
     load_settings_bool('Trailers')

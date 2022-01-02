@@ -43,6 +43,8 @@ class CommonDatabase:
 
     # Add all artworks
     def add_artwork(self, ArtworkEmby, KodiId, KodiMediaType):
+        ExtraThumb = False
+
         if KodiMediaType == "episode":
             ArtMapping = {
                 'Primary': 'thumb',
@@ -55,7 +57,6 @@ class CommonDatabase:
         elif KodiMediaType in ("tvshow", "movie"):
             ArtMapping = {
                 'Thumb': "landscape",
-                'Thumb': "thumb",
                 'Primary': 'poster',
                 'Banner': "banner",
                 'Logo': "clearlogo",
@@ -63,6 +64,7 @@ class CommonDatabase:
                 'Disc': "discart",
                 'Backdrop': "fanart"
             }
+            ExtraThumb = True
         elif KodiMediaType in ('song', 'artist', 'album'):
             ArtMapping = {
                 'Primary': 'thumb',
@@ -110,6 +112,11 @@ class CommonDatabase:
                         continue
 
                 self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, ArtValue))
+
+        if ExtraThumb:
+            if 'Thumb' in ArtworkEmby:
+                if ArtworkEmby['Thumb']:
+                    self.update_artwork('Thumb', KodiId, KodiMediaType, "thumb")
 
     # Delete artwork from kodi database and remove cache for backdrop/posters
     def delete_artwork(self, *args):

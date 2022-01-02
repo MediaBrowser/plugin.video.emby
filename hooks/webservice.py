@@ -92,7 +92,7 @@ class WebService(threading.Thread):
 
     def LoadISO(self, QueryData, MediaIndex):
         self.Player.MultiselectionDone = True
-        self.embydb = dbio.DBOpen(utils.DatabaseFiles, QueryData['ServerId'])
+        self.embydb = dbio.DBOpen(QueryData['ServerId'])
         QueryData['MediaSources'] = self.embydb.get_mediasource(QueryData['EmbyID'])
         dbio.DBClose(QueryData['ServerId'], False)
         Details = utils.load_VideoitemFromKodiDB(QueryData['MediaType'], QueryData['KodiId'])
@@ -200,7 +200,7 @@ class WebService(threading.Thread):
             return
 
         # Cinnemamode
-        if utils.enableCinema:
+        if (utils.enableCinemaMovies and QueryData['MediaType'] == "movie") or (utils.enableCinemaEpisodes and QueryData['MediaType'] == "episode"):
             if self.TrailerInitPayload != QueryData['Payload']:  # Trailer init (load)
                 self.Intros = []
                 PlayTrailer = True
@@ -215,7 +215,7 @@ class WebService(threading.Thread):
                 return
 
         # Select mediasources, Audiostreams, Subtitles
-        self.embydb = dbio.DBOpen(utils.DatabaseFiles, QueryData['ServerId'])
+        self.embydb = dbio.DBOpen(QueryData['ServerId'])
 
         if QueryData['KodiId']:  # Item synced to Kodi DB
             self.Player.ItemSkipUpdate.append(QueryData['EmbyID'])
@@ -288,7 +288,7 @@ class WebService(threading.Thread):
                 request = {'type': "GET", 'url': SubTitleURL, 'params': {}}
 
                 # Get Subtitle Settings
-                videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
+                videodb = dbio.DBOpen("video")
                 videodb.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (QueryData['KodiFileId'],))
                 FileSettings = videodb.cursor.fetchone()
                 dbio.DBClose("video", False)

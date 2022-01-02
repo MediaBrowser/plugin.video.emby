@@ -1225,3 +1225,11 @@ msgstr ""
 msgctxt "#33261"
 msgid "Collecting removed items"
 msgstr ""
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr ""
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr ""

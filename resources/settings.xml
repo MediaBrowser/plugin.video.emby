@@ -24,11 +24,12 @@
         <setting label="30511" id="useDirectPaths" type="bool" default="false" visible="false"/>
     </category>
     <category label="30516"><!-- Playback -->
-        <setting label="33113" type="lsep" />
-        <setting label="30518" id="enableCinema" type="bool" default="false" />
-        <setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)" subsetting="true" />
-        <setting label="33241" id="localTrailers" type="bool" default="true" visible="eq(-2,true)" subsetting="true" />
-        <setting label="33242" id="Trailers" type="bool" default="true" visible="eq(-3,true)" subsetting="true" />
+        <setting label="33113" type="lsep" />      
+        <setting label="33262" id="enableCinemaMovies" type="bool" default="false" />
+        <setting label="33263" id="enableCinemaEpisodes" type="bool" default="false" />
+        <setting label="30519" id="askCinema" type="bool" default="false" visible="eq(-1,true)|eq(-2,true)" subsetting="true" />
+        <setting label="33241" id="localTrailers" type="bool" default="true" visible="eq(-2,true)|eq(-3,true)" subsetting="true" />
+        <setting label="33242" id="Trailers" type="bool" default="true" visible="eq(-3,true)|eq(-4,true)" subsetting="true" />
         <setting label="33243" type="lsep" />
         <setting label="30522" id="transcodeH265" type="bool" default="false" visible="true" />
         <setting label="33214" id="transcodeDivx" type="bool" default="false" visible="true" />

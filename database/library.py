@@ -55,7 +55,7 @@ class Library:
             return None, False, None, None
 
         utils.WorkerInProgress = True
-        embydb = dbio.DBOpen(utils.DatabaseFiles, self.EmbyServer.server_id)
+        embydb = dbio.DBOpen(self.EmbyServer.server_id)
 
         if Worker == "userdata":
             Items = embydb.get_Userdata()
@@ -93,7 +93,7 @@ class Library:
 
             LOG.info("--<[ Wait for workers paused ]")
 
-        return dbio.DBOpen(utils.DatabaseFiles, self.EmbyServer.server_id)
+        return dbio.DBOpen(self.EmbyServer.server_id)
 
     def close_EmbyDBPriority(self):
         dbio.DBClose(self.EmbyServer.server_id, True)
@@ -201,7 +201,7 @@ class Library:
         if not embydb:
             return ReturnValue
 
-        progress_updates.create("Emby", "remove")
+        progress_updates.create("Emby", utils.Translate(33178))
         isMusic = False
         isVideo = False
         MusicItems = []
@@ -228,7 +228,7 @@ class Library:
                 VideoItems.append((UserDataItem, e_item, e_item[5]))
 
         if MusicItems:
-            kodidb = dbio.DBOpen(utils.DatabaseFiles, "music")
+            kodidb = dbio.DBOpen("music")
             isMusic = True
             self.ContentObject = None
             TotalRecords = len(MusicItems)
@@ -244,7 +244,7 @@ class Library:
             dbio.DBClose("music", True)
 
         if VideoItems:
-            kodidb = dbio.DBOpen(utils.DatabaseFiles, "video")
+            kodidb = dbio.DBOpen("video")
             isVideo = True
             self.ContentObject = None
             TotalRecords = len(VideoItems)
@@ -305,7 +305,7 @@ class Library:
                 ItemsAudio = ItemsMusicArtist + ItemsAlbumArtist + ItemsMusicAlbum + ItemsAudio
 
                 if ItemsTVShows or ItemsMovies or ItemsMusicVideo:
-                    kodidb = dbio.DBOpen(utils.DatabaseFiles, "video")
+                    kodidb = dbio.DBOpen("video")
 
                     for Items in (ItemsTVShows, ItemsMovies, ItemsMusicVideo):
                         self.ContentObject = None
@@ -324,7 +324,7 @@ class Library:
                     isVideo = True
 
                 if ItemsAudio:
-                    kodidb = dbio.DBOpen(utils.DatabaseFiles, "music")
+                    kodidb = dbio.DBOpen("music")
                     self.ContentObject = None
 
                     for Item, LibraryData, ContentType in ItemsAudio:
@@ -403,7 +403,7 @@ class Library:
         ItemsAudio = ItemsMusicArtist + ItemsAlbumArtist + ItemsMusicAlbum + ItemsAudio
 
         if ItemsTVShows or ItemsMovies or ItemsMusicVideo:
-            kodidb = dbio.DBOpen(utils.DatabaseFiles, "video")
+            kodidb = dbio.DBOpen("video")
 
             for Items in (ItemsTVShows, ItemsMovies, ItemsMusicVideo):
                 self.ContentObject = None
@@ -422,7 +422,7 @@ class Library:
             isVideo = True
 
         if ItemsAudio:
-            kodidb = dbio.DBOpen(utils.DatabaseFiles, "music")
+            kodidb = dbio.DBOpen("music")
             self.ContentObject = None
 
             for Item, _, ContentType in ItemsAudio:
@@ -490,7 +490,7 @@ class Library:
                 SubContent = MediaEmbyMappedSubContent[library_type]
                 TotalRecords = int(self.EmbyServer.API.get_TotalRecordsRegular(library_id, SubContent))
                 index = int(RestorePoint.get('StartIndex', 0))
-                kodidb = dbio.DBOpen(utils.DatabaseFiles, "video")
+                kodidb = dbio.DBOpen("video")
                 self.ContentObject = None
 
                 for items in self.EmbyServer.API.get_itemsSync(library_id, SubContent, False, RestorePoint):
@@ -509,7 +509,7 @@ class Library:
                 isVideo = True
                 TotalRecords = int(self.EmbyServer.API.get_TotalRecordsRegular(library_id, "Series"))
                 index = int(RestorePoint.get('StartIndex', 0))
-                kodidb = dbio.DBOpen(utils.DatabaseFiles, "video")
+                kodidb = dbio.DBOpen("video")
                 self.ContentObject = None
 
                 for items in self.EmbyServer.API.get_itemsSync(library_id, 'Series', False, RestorePoint):
@@ -549,7 +549,7 @@ class Library:
             elif library_type == 'music':  #  Sync only if artist is valid - staggered sync (performance)
                 isMusic = True
                 TotalRecords = int(self.EmbyServer.API.get_TotalRecordsRegular(library_id, "MusicArtist"))
-                kodidb = dbio.DBOpen(utils.DatabaseFiles, "music")
+                kodidb = dbio.DBOpen("music")
                 self.ContentObject = None
                 index = int(RestorePoint.get('StartIndex', 0))
 
@@ -589,7 +589,7 @@ class Library:
                 dbio.DBClose("music", True)
             elif library_type in ('audiobooks', 'podcasts'):  # Sync even if artist is empty
                 isMusic = True
-                kodidb = dbio.DBOpen(utils.DatabaseFiles, "music")
+                kodidb = dbio.DBOpen("music")
                 self.ContentObject = None
                 MusicTypes = ("MusicArtist", "MusicAlbum", "Audio")
 
@@ -678,7 +678,7 @@ class Library:
 
             utils.WorkerPaused = False
             LOG.info("--<[ Priority Emby DB I/O in progress ]")
-            embydb = dbio.DBOpen(utils.DatabaseFiles, self.EmbyServer.server_id)
+            embydb = dbio.DBOpen(self.EmbyServer.server_id)
             self.load_libraryObject(ContentType, embydb, kodidb)
 
         # Check if Kodi db is open -> close db, wait, reopen db
@@ -690,7 +690,7 @@ class Library:
                 xbmc.sleep(500)
 
             LOG.info("--<[ worker delay due to kodi %s db io ]" % ContentCategory)
-            kodidb = dbio.DBOpen(utils.DatabaseFiles, ContentCategory)
+            kodidb = dbio.DBOpen(ContentCategory)
             self.load_libraryObject(ContentType, embydb, kodidb)
 
         # Check sync pause

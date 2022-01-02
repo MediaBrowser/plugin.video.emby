@@ -1228,3 +1228,11 @@ msgstr "Inkrementelle synchronisations Zeit"
 msgctxt "#33261"
 msgid "Collecting removed items"
 msgstr "Sammle entfernte Objekte"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Kinomodus aktivieren (Filme)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Kinomodus aktivieren (Serien)"

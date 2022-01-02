@@ -9,7 +9,7 @@ XbmcMonitor = xbmc.Monitor()
 
 
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
-    embydb = dbio.DBOpen(utils.DatabaseFiles, EmbyServer.server_id)
+    embydb = dbio.DBOpen(EmbyServer.server_id)
     Data = embydb.get_item_by_wild_id(str(EmbyID))
     dbio.DBClose(EmbyServer.server_id, False)
 

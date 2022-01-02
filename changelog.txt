@@ -296,6 +296,9 @@ simplify code and improvements
 fix artwork
 sync performance improvements
 artwork fixes
+minor artwork fix and apply sqlite thread save patches
+fix dbio issue
+add cinema mode option for movies and episodes
 
 
 6.0.13 (beta)

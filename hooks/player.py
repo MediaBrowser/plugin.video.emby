@@ -120,7 +120,7 @@ class PlayerEvents(xbmc.Player):
 
                     for server_id in self.EmbyServers:
                         self.EmbyServer = self.EmbyServers[server_id]
-                        embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+                        embydb = dbio.DBOpen(server_id)
                         EmbyId = embydb.get_EmbyID_by_path(PlayingFile)
 
                         if EmbyId:
@@ -146,7 +146,7 @@ class PlayerEvents(xbmc.Player):
 
                 for server_id in self.EmbyServers:
                     self.EmbyServer = self.EmbyServers[server_id]
-                    embydb = dbio.DBOpen(utils.DatabaseFiles, server_id)
+                    embydb = dbio.DBOpen(server_id)
                     item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media_type)
 
                     if not item:
@@ -156,7 +156,7 @@ class PlayerEvents(xbmc.Player):
                     EmbyId = item[0]
 
                     # Cinnemamode
-                    if utils.enableCinema and (utils.localTrailers or utils.Trailers):
+                    if (utils.enableCinemaMovies and item[3] == "movie") or (utils.enableCinemaEpisodes and item[3] == "episode"):
                         if self.TrailerPath != "SKIP":
                             PlayingFile = self.getPlayingFile()
 
@@ -218,7 +218,6 @@ class PlayerEvents(xbmc.Player):
                             self.playnext()
                             xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % self.playlistIndex)
 
-                        dbio.DBClose(server_id, False)
                         break
 
                 if EmbyId:

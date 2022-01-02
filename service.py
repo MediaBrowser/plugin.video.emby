@@ -95,16 +95,16 @@ def setup():
         if Filename.startswith('emby'):
             utils.delFile("special://profile/Database/%s" % Filename)
 
-    videodb = dbio.DBOpen(utils.DatabaseFiles, "video")
+    videodb = dbio.DBOpen("video")
     videodb.common_db.delete_tables("Video")
     dbio.DBClose("video", True)
-    musicdb = dbio.DBOpen(utils.DatabaseFiles, "music")
+    musicdb = dbio.DBOpen("music")
     musicdb.common_db.delete_tables("Music")
     dbio.DBClose("music", True)
 
     if DeleteArtwork:
         utils.DeleteThumbnails()
-        texturedb = dbio.DBOpen(utils.DatabaseFiles, "texture")
+        texturedb = dbio.DBOpen("texture")
         texturedb.delete_tables("Texture")
         dbio.DBClose("texture", True)
 
