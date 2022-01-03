@@ -1,4 +1,4 @@
-6.2.3 (beta)
+6.2.5 (beta)
 =============
 Improvements:
 -------------
@@ -299,6 +299,7 @@ artwork fixes
 minor artwork fix and apply sqlite thread save patches
 fix dbio issue
 add cinema mode option for movies and episodes
+add support for Kodi delete function
 
 
 6.0.13 (beta)

@@ -1237,3 +1237,7 @@ msgstr "Activar modo cine (movies)"
 msgctxt "#33263"
 msgid "Enable cinema mode (tv shows)"
 msgstr "Activar modo cine (tv shows)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr ""

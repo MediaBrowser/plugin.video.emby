@@ -90,7 +90,7 @@ class CommonDatabase:
             if not ArtworkEmby['Thumb'] and ArtworkEmby['Primary']:
                 ArtworkEmby['Thumb'] = ArtworkEmby['Primary']
 
-        for ArtKey, ArtValue in ArtMapping.items():
+        for ArtKey, ArtValue in list(ArtMapping.items()):
             if ArtKey == 'Backdrop':
                 if 'Backdrop' in ArtworkEmby:
                     if ArtworkEmby['Backdrop']:
