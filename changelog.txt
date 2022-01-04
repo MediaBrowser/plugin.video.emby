@@ -300,6 +300,7 @@ minor artwork fix and apply sqlite thread save patches
 fix dbio issue
 add cinema mode option for movies and episodes
 add support for Kodi delete function
+fix artwork issue (landscape)
 
 
 6.0.13 (beta)

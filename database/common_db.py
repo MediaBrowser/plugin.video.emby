@@ -85,10 +85,26 @@ class CommonDatabase:
                 'Backdrop': "fanart"
             }
 
-        # Primary as fallback for empty thumb
-        if 'Thumb' in ArtworkEmby and 'Primary' in ArtworkEmby:
-            if not ArtworkEmby['Thumb'] and ArtworkEmby['Primary']:
-                ArtworkEmby['Thumb'] = ArtworkEmby['Primary']
+        ThumbMissing = False
+
+        if not 'Thumb' in ArtworkEmby:
+            ThumbMissing = True
+        else:
+            if not ArtworkEmby['Thumb']:
+                ThumbMissing = True
+
+        # Thumb fallback to Backdrop
+        if ThumbMissing:
+            if 'Backdrop' in ArtworkEmby:
+                if ArtworkEmby['Backdrop']:
+                    ArtworkEmby['Thumb'] = ArtworkEmby['Backdrop'][0]
+                    ThumbMissing = False
+
+        # Thumb fallback to Primary
+        if ThumbMissing:
+            if 'Primary' in ArtworkEmby:
+                if ArtworkEmby['Primary']:
+                    ArtworkEmby['Thumb'] = ArtworkEmby['Primary']
 
         for ArtKey, ArtValue in list(ArtMapping.items()):
             if ArtKey == 'Backdrop':
