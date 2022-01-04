@@ -40,6 +40,8 @@ class Monitor(xbmc.Monitor):
         self.QueryDataThread.start()
         self.QueueItemsStatusupdate = ()
         self.QueryItemStatusThread = None
+        self.QueueItemsRemove = ()
+        self.QueryItemRemoveThread = None
 
     def WebserviceStart(self):
         if self.WebServiceThread:
@@ -91,6 +93,12 @@ class Monitor(xbmc.Monitor):
             if not self.QueryItemStatusThread:
                 self.QueryItemStatusThread = threading.Thread(target=self.VideoLibrary_OnUpdate)
                 self.QueryItemStatusThread.start()
+        elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
+            self.QueueItemsRemove += (data,)
+
+            if not self.QueryItemRemoveThread:
+                self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
+                self.QueryItemRemoveThread.start()
         elif method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
             threading.Thread(target=self.Notification, args=(method, data,)).start()
 
@@ -328,10 +336,47 @@ class Monitor(xbmc.Monitor):
         self.QuitThreads()
         self.sleep = True
 
+    # Remove Items
+    def VideoLibrary_OnRemove(self):
+        xbmc.sleep(1000)
+        RemoveItems = self.QueueItemsRemove
+        self.QueueItemsRemove = ()
+        self.QueryItemRemoveThread = None
+
+        if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33264)):
+            for RemoveItem in RemoveItems:
+                data = json.loads(RemoveItem)
+                item = None
+                kodi_fileId = None
+                server_id = None
+
+                if 'item' in data:
+                    kodi_id = data['item']['id']
+                    media = data['item']['type']
+                else:
+                    kodi_id = data['id']
+                    media = data['type']
+
+                if media in ("tvshow", "season"):
+                    continue
+
+                for server_id in self.EmbyServers:
+                    embydb = dbio.DBOpen(server_id)
+                    item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                    dbio.DBClose(server_id, False)
+
+                    if item:
+                        break
+
+                if not item:
+                    return
+
+                self.EmbyServers[server_id].API.delete_item(item[0])
+
     # Mark as watched/unwatched updates
     def VideoLibrary_OnUpdate(self):
         xbmc.sleep(1000)
-        UpdateItems = self.QueueItemsStatusupdate     #.copy()
+        UpdateItems = self.QueueItemsStatusupdate
         self.QueueItemsStatusupdate = ()
         self.QueryItemStatusThread = None
 
