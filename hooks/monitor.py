@@ -667,12 +667,15 @@ def get_next_episodes(Handle, libraryname):
             'limits': {"end": 1}
         }
         result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetEpisodes', 'params': params})))
-        episodes = result['result']['episodes']
 
-        for episode in episodes:
-            FilePath = episode["file"]
-            li = utils.CreateListitem("episode", episode)
-            list_li.append((FilePath, li, False))
+        if 'result' in result:
+            if 'episodes' in result['result']:
+                episodes = result['result']['episodes']
+
+                for episode in episodes:
+                    FilePath = episode["file"]
+                    li = utils.CreateListitem("episode", episode)
+                    list_li.append((FilePath, li, False))
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)

@@ -1,4 +1,4 @@
-6.2.5 (beta)
+6.2.6 (beta)
 =============
 Improvements:
 -------------
@@ -301,6 +301,7 @@ fix dbio issue
 add cinema mode option for movies and episodes
 add support for Kodi delete function
 fix artwork issue (landscape)
+fix get_next_episodes
 
 
 6.0.13 (beta)
