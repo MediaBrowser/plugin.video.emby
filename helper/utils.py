@@ -723,9 +723,12 @@ def get_path_type_from_item(server_id, item):
 
     if not path:
         if len(item['MediaSources'][0]['MediaStreams']) >= 1:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+            try:
+                path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+            except:  # no bitrate info available
+                path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], "", item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
         else:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], "0", "", PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], "", "", PathToFilenameReplaceSpecialCharecters(item['Path']))
 
     return path, Type
 
