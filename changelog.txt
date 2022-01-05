@@ -303,6 +303,7 @@ add support for Kodi delete function
 fix artwork issue (landscape)
 fix get_next_episodes
 fix playlist issue
+fix missing bitrates
 
 
 6.0.13 (beta)
