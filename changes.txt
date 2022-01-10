@@ -1,1 +1,1 @@
-force login after device id reset
+fix multiple Emby server instances on reconnection to same server

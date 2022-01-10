@@ -164,6 +164,11 @@ class Monitor(xbmc.Monitor):
             LOG.error("EmbyServer Connect error")
             return
 
+        # disconnect previous Emby server instance on manual reconnect to the same Emby server
+        if server_id in self.EmbyServers:
+            LOG.info("Close previous instance after reconnection to same Emby server")
+            self.EmbyServers[server_id].stop()
+
         self.EmbyServers[server_id] = EmbyServer
 
         if self.WebServiceThread:

@@ -307,6 +307,7 @@ fix missing bitrates
 fix special charecters issue in device name
 fix database reset when login was denied
 force login after device id reset
+fix multiple Emby server instances on reconnection to same server
 
 
 6.0.13 (beta)
