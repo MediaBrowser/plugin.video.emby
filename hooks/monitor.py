@@ -619,7 +619,7 @@ def databasereset():
         texturedb = dbio.DBOpen("texture")
         texturedb.delete_tables("Texture")
         dbio.DBClose("texture", True)
-    
+
     if DeleteSettings:
         LOG.info("[ reset settings ]")
         utils.set_settings("MinimumSetup", "")
@@ -637,7 +637,7 @@ def databasereset():
     for Filename in files:
         if Filename.startswith('emby'):
             utils.delFile("%s%s" % ("special://profile/Database/", Filename))
-                
+
     utils.delete_playlists()
     utils.delete_nodes()
     utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33088))

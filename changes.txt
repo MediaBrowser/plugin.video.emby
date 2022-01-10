@@ -1,1 +1,0 @@
-fix multiple Emby server instances on reconnection to same server
