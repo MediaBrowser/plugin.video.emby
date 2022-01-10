@@ -304,6 +304,7 @@ fix artwork issue (landscape)
 fix get_next_episodes
 fix playlist issue
 fix missing bitrates
+fix special charecters issue in device name
 
 
 6.0.13 (beta)

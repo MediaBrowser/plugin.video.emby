@@ -366,21 +366,6 @@ def PathToFilenameReplaceSpecialCharecters(Path):
 
     return Filename
 
-def ReplaceSpecialCharecters(Data):
-    if not Python3:
-        try:
-            Data = unicode(Data, 'utf-8')
-        except:
-            pass
-
-        Data = Data.encode('utf-8')
-        Data = quote(Data, safe=u':/'.encode('utf-8'))
-    else:
-        Data = quote(Data)
-
-    Data = Data.replace("%", "")
-    return Data
-
 def StringEncode(Data):
     if Python3:
         return Data
@@ -633,6 +618,7 @@ def InitSettings():
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
     globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
 
+    # Set devicename
     if not globals()["deviceNameOpt"]:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
     else:
@@ -641,6 +627,8 @@ def InitSettings():
 
     if not globals()["device_name"]:
         globals()["device_name"] = "Kodi"
+
+    globals()["device_name"] = quote(globals()["device_name"].encode('utf-8'))  # encode special charecters
 
 def set_syncdate(timestamp):
     TimeStamp = parser.parse(timestamp.encode('utf-8'))
