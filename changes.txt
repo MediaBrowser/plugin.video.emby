@@ -1,0 +1,1 @@
+force login after device id reset

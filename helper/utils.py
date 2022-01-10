@@ -558,6 +558,13 @@ def get_device_id(reset):
         globals()["device_id"] = str(uuid.uuid4())
         writeFileString(emby_guid, globals()["device_id"])
 
+    if reset:  # delete login data -> force new login
+        _, files = listDir(FolderAddonUserdata)
+
+        for Filename in files:
+            if Filename.startswith('servers_'):
+                delFile("%s%s" % (FolderAddonUserdata, Filename))
+
     LOG.info("device_id loaded: %s" % globals()["device_id"])
 
 # Kodi Settings
