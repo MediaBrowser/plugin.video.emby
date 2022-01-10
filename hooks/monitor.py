@@ -120,7 +120,7 @@ class Monitor(xbmc.Monitor):
         elif method == 'Other.adduserselection':
             self.Menu.select_adduser()
         elif method == 'Other.databasereset':
-            databasereset(self.EmbyServers)
+            databasereset()
         elif method == 'Other.texturecache':
             if not utils.artworkcacheenable:
                 utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33226), sound=False)
@@ -589,7 +589,7 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
     progress_updates.close()
 
 # Reset both the emby database and the kodi database.
-def databasereset(EmbyServers):
+def databasereset():
     if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
         return
 
@@ -608,29 +608,31 @@ def databasereset(EmbyServers):
     musicdb = dbio.DBOpen("music")
     musicdb.common_db.delete_tables("Music")
     dbio.DBClose("music", True)
-    ServerIds = list(EmbyServers)
 
-    for ServerId in ServerIds:
-        DBPath = "special://profile/Database/emby_%s.db" % ServerId
-        utils.delFile(DBPath)
+    if DeleteTextureCache:
+        utils.DeleteThumbnails()
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
+    
+    if DeleteSettings:
+        LOG.info("[ reset settings ]")
+        utils.set_settings("MinimumSetup", "")
+        utils.delFolder(utils.FolderAddonUserdata)
+    else:
+        _, files = utils.listDir(utils.FolderAddonUserdata)
 
-        if DeleteTextureCache:
-            utils.DeleteThumbnails()
-            texturedb = dbio.DBOpen("texture")
-            texturedb.delete_tables("Texture")
-            dbio.DBClose("texture", True)
+        for Filename in files:
+            if Filename.startswith('sync_'):
+                utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-        if DeleteSettings:
-            utils.set_settings("MinimumSetup", "")
-            SettingsPath = "%s%s" % (utils.FolderAddonUserdata, "settings.xml")
-            utils.delFile(SettingsPath)
-            ServerFile = "%s%s" % (utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
-            utils.delFile(ServerFile)
-            LOG.info("[ reset settings ]")
+    # Delete Kodi's emby database(s)
+    _, files = utils.listDir("special://profile/Database/")
 
-        SyncFile = "%s%s" % (utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
-        utils.delFile(SyncFile)
-
+    for Filename in files:
+        if Filename.startswith('emby'):
+            utils.delFile("%s%s" % ("special://profile/Database/", Filename))
+                
     utils.delete_playlists()
     utils.delete_nodes()
     utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33088))
