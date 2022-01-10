@@ -94,11 +94,12 @@ class Monitor(xbmc.Monitor):
                 self.QueryItemStatusThread = threading.Thread(target=self.VideoLibrary_OnUpdate)
                 self.QueryItemStatusThread.start()
         elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
-            self.QueueItemsRemove += (data,)
+            if utils.enableDeleteByKodiEvent:
+                self.QueueItemsRemove += (data,)
 
-            if not self.QueryItemRemoveThread:
-                self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
-                self.QueryItemRemoveThread.start()
+                if not self.QueryItemRemoveThread:
+                    self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
+                    self.QueryItemRemoveThread.start()
         elif method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
             threading.Thread(target=self.Notification, args=(method, data,)).start()
 

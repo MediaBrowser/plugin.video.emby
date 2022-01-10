@@ -309,6 +309,7 @@ fix database reset when login was denied
 force login after device id reset
 fix multiple Emby server instances on reconnection to same server
 fix artist sync issue
+add additional safty for delete files on Kodi events
 
 
 6.0.13 (beta)

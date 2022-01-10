@@ -59,6 +59,7 @@ menuOptions = False
 newContent = False
 restartMsg = False
 connectMsg = False
+enableDeleteByKodiEvent = False
 addUsersHidden = False
 enableContextDelete = False
 enableContext = False
@@ -622,6 +623,7 @@ def InitSettings():
     load_settings_bool('deviceNameOpt')
     load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
+    load_settings_bool('enableDeleteByKodiEvent')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
     globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
 
