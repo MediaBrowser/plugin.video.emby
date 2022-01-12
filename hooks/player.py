@@ -233,7 +233,7 @@ class PlayerEvents(xbmc.Player):
             self.PlayingItem['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
 
             if self.EmbyServer and 'ItemId' in self.PlayingItem:
-                xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+                #xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
