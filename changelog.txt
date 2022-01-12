@@ -314,6 +314,7 @@ fix remove library on Emby server
 fix remove item issue
 fix audioplayer focus
 fix trakt issue/progress updates
+change season artwork fallback
 
 
 6.0.13 (beta)

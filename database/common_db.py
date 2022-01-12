@@ -93,8 +93,8 @@ class CommonDatabase:
             if not ArtworkEmby['Thumb']:
                 ThumbMissing = True
 
-        # Thumb fallback to Backdrop
-        if ThumbMissing:
+        # Thumb fallback to Backdrop (skip for seasons)
+        if ThumbMissing and KodiMediaType != "season":
             if 'Backdrop' in ArtworkEmby:
                 if ArtworkEmby['Backdrop']:
                     ArtworkEmby['Thumb'] = ArtworkEmby['Backdrop'][0]
