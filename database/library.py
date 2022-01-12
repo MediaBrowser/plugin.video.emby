@@ -411,7 +411,12 @@ class Library:
                 for Item, _, ContentType in Items:
                     index += 1
                     embydb.delete_RemoveItem(Item['Id'])
-                    Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], QueryUpdateItems[Item['Id']]["ForceRemoval"], embydb, kodidb, ContentType, "video", "remove")
+
+                    if Item['Id'] in QueryUpdateItems:
+                        Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], QueryUpdateItems[Item['Id']]["ForceRemoval"], embydb, kodidb, ContentType, "video", "remove")
+                    else:
+                        LOG.error("Removed item inconsitency (video): %s" % Item['Id'])
+                        continue
 
                     if not Continue:
                         return False
@@ -427,7 +432,12 @@ class Library:
 
             for Item, _, ContentType in ItemsAudio:
                 index += 1
-                LibraryIds = QueryUpdateItems[Item['Id']]["Id"].split(";")
+
+                if Item['Id'] in QueryUpdateItems:
+                    LibraryIds = QueryUpdateItems[Item['Id']]["Id"].split(";")
+                else:
+                    LOG.error("Removed item inconsitency (audio): %s" % Item['Id'])
+                    continue
 
                 for LibraryId in LibraryIds:
                     Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], LibraryId, embydb, kodidb, ContentType, "music", "remove")
