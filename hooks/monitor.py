@@ -197,12 +197,8 @@ class Monitor(xbmc.Monitor):
                     LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
             else:
                 LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-
-                if 'ItemId' in self.player.PlayingItem:  # Skip removal for currently playing item
-                    if self.player.PlayingItem['ItemId'] != str(ItemData['ItemId']):
-                        self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
-                else:
-                    self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
         dbio.DBClose(server_id, False)
 
@@ -415,26 +411,25 @@ class Monitor(xbmc.Monitor):
                 if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
                     if media in ("tvshow", "season"):
                         LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
-                    else:
-                        if str(item[0]) not in self.player.ItemSkipUpdate:
-                            self.player.ItemSkipUpdate.append(str(item[0]))
+                        continue
 
-                        LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
-                        self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
+                    LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
+                    self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
                 else:
                     LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
             else:
-                if str(item[0]) not in self.player.ItemSkipUpdate:
-                    self.player.ItemSkipUpdate.append(str(item[0]))
-
                 videodb = dbio.DBOpen("video")
                 BookmarkItem = videodb.get_bookmark(kodi_fileId)
                 FileItem = videodb.get_files(kodi_fileId)
                 dbio.DBClose("video", False)
 
-                if not BookmarkItem:
-                    LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
-                    self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                    if not BookmarkItem:
+                        LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
+                        self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                else:
+                    self.player.ItemSkipUpdate.remove(str(item[0]))
+                    LOG.debug("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
 def BackupRestore():
     RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)

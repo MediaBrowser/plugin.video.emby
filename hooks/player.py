@@ -221,7 +221,8 @@ class PlayerEvents(xbmc.Player):
                         break
 
                 if EmbyId:
-                    self.ItemSkipUpdate.append(str(EmbyId))
+                    self.ItemSkipUpdate += [str(EmbyId), str(EmbyId), str(EmbyId)]  # add 3 times due to staggered removal on events -> 2x monitor.py/UserDataChanged (Emby update), 1x monitor.py/VideoLibrary_OnUpdate (Kodi update)
+                    LOG.debug("ItemSkipUpdate: %s" % str(self.ItemSkipUpdate))
                     self.queuePlayingItem(EmbyId, media_type, MediasourceID, PlaySessionId)
 
             self.PlayingItem = self.QueuedPlayingItem
@@ -233,7 +234,7 @@ class PlayerEvents(xbmc.Player):
             self.PlayingItem['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
 
             if self.EmbyServer and 'ItemId' in self.PlayingItem:
-                #xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+#                xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
