@@ -260,31 +260,37 @@ class Views:
 
     # Remove playlist based based on LibraryId
     def delete_playlist_by_id(self, LibraryId):
-        if self.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
-            path = 'special://profile/playlists/music/'
-        else:
-            path = 'special://profile/playlists/video/'
+        if LibraryId in self.ViewItems:
+            if self.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
+                path = 'special://profile/playlists/music/'
+            else:
+                path = 'special://profile/playlists/video/'
 
-        PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
-        utils.delFolder(PlaylistPath)
+            PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
+            utils.delFolder(PlaylistPath)
+        else:
+            LOG.info("Delete playlist: library not found: %s" % LibraryId)
 
     def delete_node_by_id(self, LibraryId):
-        mediatypes = []
+        if LibraryId in self.ViewItems:
+            mediatypes = []
 
-        if self.ViewItems[LibraryId][1].find('Mixed:') != -1:
-            mediatypes.append('movies')
-            mediatypes.append('tvshows')
-        else:
-            mediatypes.append(self.ViewItems[LibraryId][1])
-
-        for mediatype in mediatypes:
-            if mediatype in ('music', 'audiobooks', 'podcasts'):
-                path = "special://profile/library/music/"
+            if self.ViewItems[LibraryId][1].find('Mixed:') != -1:
+                mediatypes.append('movies')
+                mediatypes.append('tvshows')
             else:
-                path = "special://profile/library/video/"
+                mediatypes.append(self.ViewItems[LibraryId][1])
 
-            NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
-            utils.delFolder(NodePath)
+            for mediatype in mediatypes:
+                if mediatype in ('music', 'audiobooks', 'podcasts'):
+                    path = "special://profile/library/music/"
+                else:
+                    path = "special://profile/library/video/"
+
+                NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
+                utils.delFolder(NodePath)
+        else:
+            LOG.info("Delete node: library not found: %s" % LibraryId)
 
 def get_node_playlist_path(MediaType):
     if MediaType in ('music', 'audiobooks', 'podcasts'):

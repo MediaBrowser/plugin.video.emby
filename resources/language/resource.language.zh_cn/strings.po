@@ -1242,3 +1242,11 @@ msgstr "启用影院模式 (tv shows)"
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
 msgstr ""
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr ""
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr ""

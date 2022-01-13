@@ -59,6 +59,7 @@ menuOptions = False
 newContent = False
 restartMsg = False
 connectMsg = False
+enableDeleteByKodiEvent = False
 addUsersHidden = False
 enableContextDelete = False
 enableContext = False
@@ -366,21 +367,6 @@ def PathToFilenameReplaceSpecialCharecters(Path):
 
     return Filename
 
-def ReplaceSpecialCharecters(Data):
-    if not Python3:
-        try:
-            Data = unicode(Data, 'utf-8')
-        except:
-            pass
-
-        Data = Data.encode('utf-8')
-        Data = quote(Data, safe=u':/'.encode('utf-8'))
-    else:
-        Data = quote(Data)
-
-    Data = Data.replace("%", "")
-    return Data
-
 def StringEncode(Data):
     if Python3:
         return Data
@@ -573,6 +559,13 @@ def get_device_id(reset):
         globals()["device_id"] = str(uuid.uuid4())
         writeFileString(emby_guid, globals()["device_id"])
 
+    if reset:  # delete login data -> force new login
+        _, files = listDir(FolderAddonUserdata)
+
+        for Filename in files:
+            if Filename.startswith('servers_'):
+                delFile("%s%s" % (FolderAddonUserdata, Filename))
+
     LOG.info("device_id loaded: %s" % globals()["device_id"])
 
 # Kodi Settings
@@ -630,9 +623,11 @@ def InitSettings():
     load_settings_bool('deviceNameOpt')
     load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
+    load_settings_bool('enableDeleteByKodiEvent')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
     globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
 
+    # Set devicename
     if not globals()["deviceNameOpt"]:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
     else:
@@ -641,6 +636,8 @@ def InitSettings():
 
     if not globals()["device_name"]:
         globals()["device_name"] = "Kodi"
+
+    globals()["device_name"] = quote(globals()["device_name"].encode('utf-8'))  # encode special charecters
 
 def set_syncdate(timestamp):
     TimeStamp = parser.parse(timestamp.encode('utf-8'))
@@ -722,10 +719,10 @@ def get_path_type_from_item(server_id, item):
         return None, None
 
     if not path:
-        if len(item['MediaSources'][0]['MediaStreams']) >= 1:
+        try:
             path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
-        else:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], "0", "", PathToFilenameReplaceSpecialCharecters(item['Path']))
+        except:
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
 
     return path, Type
 

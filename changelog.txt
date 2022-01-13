@@ -1,4 +1,4 @@
-6.2.5 (beta)
+6.2.6 (beta)
 =============
 Improvements:
 -------------
@@ -301,6 +301,20 @@ fix dbio issue
 add cinema mode option for movies and episodes
 add support for Kodi delete function
 fix artwork issue (landscape)
+fix get_next_episodes
+fix playlist issue
+fix missing bitrates
+fix special charecters issue in device name
+fix database reset when login was denied
+force login after device id reset
+fix multiple Emby server instances on reconnection to same server
+fix artist sync issue
+add additional safty for delete files on Kodi events
+fix remove library on Emby server
+fix remove item issue
+fix audioplayer focus
+fix trakt issue/progress updates
+change season artwork fallback
 
 
 6.0.13 (beta)

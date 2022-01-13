@@ -126,7 +126,13 @@ class Music:
             if Data:
                 ArtistId = Data[0]
             else:
-                self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
+                ArtistItem = self.EmbyServer.API.get_item(artist['Id'])
+
+                if not ArtistItem:
+                    LOG.info("No ArtistItem: %s" % artist['Id'])
+                    continue
+
+                self.artist(ArtistItem, self.library)
                 ArtistId = self.ArtistID
 
             self.music_db.update_artist_name(artist['Name'], ArtistId, obj['LibraryId_Name'])
@@ -288,7 +294,7 @@ class Music:
                 if Data:
                     ArtistId = Data[0]
                 else:
-                    LOG.warning("Possible Artist/Albumartist inconsistency (Update the artist's discography): %s %s %s" % (obj['Artist'], obj['AlbumArtist'], obj['Title']))
+                    LOG.warning("ArtistId not found (Update the artist's discography): %s" % artist['Id'])
                     self.artist(self.EmbyServer.API.get_item(artist['Id']), self.library)
                     ArtistId = self.ArtistID
 

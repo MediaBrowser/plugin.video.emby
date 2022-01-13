@@ -94,11 +94,12 @@ class Monitor(xbmc.Monitor):
                 self.QueryItemStatusThread = threading.Thread(target=self.VideoLibrary_OnUpdate)
                 self.QueryItemStatusThread.start()
         elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
-            self.QueueItemsRemove += (data,)
+            if utils.enableDeleteByKodiEvent:
+                self.QueueItemsRemove += (data,)
 
-            if not self.QueryItemRemoveThread:
-                self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
-                self.QueryItemRemoveThread.start()
+                if not self.QueryItemRemoveThread:
+                    self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
+                    self.QueryItemRemoveThread.start()
         elif method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
             threading.Thread(target=self.Notification, args=(method, data,)).start()
 
@@ -120,7 +121,7 @@ class Monitor(xbmc.Monitor):
         elif method == 'Other.adduserselection':
             self.Menu.select_adduser()
         elif method == 'Other.databasereset':
-            databasereset(self.EmbyServers)
+            databasereset()
         elif method == 'Other.texturecache':
             if not utils.artworkcacheenable:
                 utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33226), sound=False)
@@ -164,6 +165,11 @@ class Monitor(xbmc.Monitor):
             LOG.error("EmbyServer Connect error")
             return
 
+        # disconnect previous Emby server instance on manual reconnect to the same Emby server
+        if server_id in self.EmbyServers:
+            LOG.info("Close previous instance after reconnection to same Emby server")
+            self.EmbyServers[server_id].stop()
+
         self.EmbyServers[server_id] = EmbyServer
 
         if self.WebServiceThread:
@@ -191,12 +197,8 @@ class Monitor(xbmc.Monitor):
                     LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
             else:
                 LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-
-                if 'ItemId' in self.player.PlayingItem:  # Skip removal for currently playing item
-                    if self.player.PlayingItem['ItemId'] != str(ItemData['ItemId']):
-                        self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
-                else:
-                    self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
         dbio.DBClose(server_id, False)
 
@@ -409,26 +411,25 @@ class Monitor(xbmc.Monitor):
                 if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
                     if media in ("tvshow", "season"):
                         LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
-                    else:
-                        if str(item[0]) not in self.player.ItemSkipUpdate:
-                            self.player.ItemSkipUpdate.append(str(item[0]))
+                        continue
 
-                        LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
-                        self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
+                    LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
+                    self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
                 else:
                     LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
             else:
-                if str(item[0]) not in self.player.ItemSkipUpdate:
-                    self.player.ItemSkipUpdate.append(str(item[0]))
-
                 videodb = dbio.DBOpen("video")
                 BookmarkItem = videodb.get_bookmark(kodi_fileId)
                 FileItem = videodb.get_files(kodi_fileId)
                 dbio.DBClose("video", False)
 
-                if not BookmarkItem:
-                    LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
-                    self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                    if not BookmarkItem:
+                        LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
+                        self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                else:
+                    self.player.ItemSkipUpdate.remove(str(item[0]))
+                    LOG.debug("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
 def BackupRestore():
     RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
@@ -589,7 +590,7 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
     progress_updates.close()
 
 # Reset both the emby database and the kodi database.
-def databasereset(EmbyServers):
+def databasereset():
     if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
         return
 
@@ -608,28 +609,30 @@ def databasereset(EmbyServers):
     musicdb = dbio.DBOpen("music")
     musicdb.common_db.delete_tables("Music")
     dbio.DBClose("music", True)
-    ServerIds = list(EmbyServers)
 
-    for ServerId in ServerIds:
-        DBPath = "special://profile/Database/emby_%s.db" % ServerId
-        utils.delFile(DBPath)
+    if DeleteTextureCache:
+        utils.DeleteThumbnails()
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
 
-        if DeleteTextureCache:
-            utils.DeleteThumbnails()
-            texturedb = dbio.DBOpen("texture")
-            texturedb.delete_tables("Texture")
-            dbio.DBClose("texture", True)
+    if DeleteSettings:
+        LOG.info("[ reset settings ]")
+        utils.set_settings("MinimumSetup", "")
+        utils.delFolder(utils.FolderAddonUserdata)
+    else:
+        _, files = utils.listDir(utils.FolderAddonUserdata)
 
-        if DeleteSettings:
-            utils.set_settings("MinimumSetup", "")
-            SettingsPath = "%s%s" % (utils.FolderAddonUserdata, "settings.xml")
-            utils.delFile(SettingsPath)
-            ServerFile = "%s%s" % (utils.FolderAddonUserdata, 'servers_%s.json' % ServerId)
-            utils.delFile(ServerFile)
-            LOG.info("[ reset settings ]")
+        for Filename in files:
+            if Filename.startswith('sync_'):
+                utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-        SyncFile = "%s%s" % (utils.FolderAddonUserdata, 'sync_%s.json' % ServerId)
-        utils.delFile(SyncFile)
+    # Delete Kodi's emby database(s)
+    _, files = utils.listDir("special://profile/Database/")
+
+    for Filename in files:
+        if Filename.startswith('emby'):
+            utils.delFile("%s%s" % ("special://profile/Database/", Filename))
 
     utils.delete_playlists()
     utils.delete_nodes()
@@ -667,12 +670,15 @@ def get_next_episodes(Handle, libraryname):
             'limits': {"end": 1}
         }
         result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetEpisodes', 'params': params})))
-        episodes = result['result']['episodes']
 
-        for episode in episodes:
-            FilePath = episode["file"]
-            li = utils.CreateListitem("episode", episode)
-            list_li.append((FilePath, li, False))
+        if 'result' in result:
+            if 'episodes' in result['result']:
+                episodes = result['result']['episodes']
+
+                for episode in episodes:
+                    FilePath = episode["file"]
+                    li = utils.CreateListitem("episode", episode)
+                    list_li.append((FilePath, li, False))
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)

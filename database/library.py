@@ -411,7 +411,12 @@ class Library:
                 for Item, _, ContentType in Items:
                     index += 1
                     embydb.delete_RemoveItem(Item['Id'])
-                    Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], QueryUpdateItems[Item['Id']]["ForceRemoval"], embydb, kodidb, ContentType, "video", "remove")
+
+                    if Item['Id'] in QueryUpdateItems:
+                        Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], QueryUpdateItems[Item['Id']]["ForceRemoval"], embydb, kodidb, ContentType, "video", "remove")
+                    else:
+                        LOG.error("Removed item inconsitency (video): %s" % Item['Id'])
+                        continue
 
                     if not Continue:
                         return False
@@ -427,7 +432,12 @@ class Library:
 
             for Item, _, ContentType in ItemsAudio:
                 index += 1
-                LibraryIds = QueryUpdateItems[Item['Id']]["Id"].split(";")
+
+                if Item['Id'] in QueryUpdateItems:
+                    LibraryIds = QueryUpdateItems[Item['Id']]["Id"].split(";")
+                else:
+                    LOG.error("Removed item inconsitency (audio): %s" % Item['Id'])
+                    continue
 
                 for LibraryId in LibraryIds:
                     Continue, embydb, kodidb = self.ItemOps(progress_updates, index, TotalRecords, Item['Id'], LibraryId, embydb, kodidb, ContentType, "music", "remove")
@@ -735,7 +745,8 @@ class Library:
             AvailableLibs = self.EmbyServer.Views.ViewItems.copy()
 
             for LibraryId in self.Whitelist:
-                del AvailableLibs[LibraryId]
+                if LibraryId in AvailableLibs:
+                    del AvailableLibs[LibraryId]
 
             for AvailableLibId, AvailableLib in list(AvailableLibs.items()):
                 if AvailableLib[1] in ["movies", "musicvideos", "tvshows", "music", "audiobooks", "podcasts", "mixed", "homevideos"]:
@@ -788,22 +799,25 @@ class Library:
 
             if add_librarys:
                 for library_id in add_librarys:
-                    ViewData = self.EmbyServer.Views.ViewItems[library_id]
-                    library_type = ViewData[1]
-                    library_name = ViewData[0]
+                    if library_id in self.EmbyServer.Views.ViewItems:
+                        ViewData = self.EmbyServer.Views.ViewItems[library_id]
+                        library_type = ViewData[1]
+                        library_name = ViewData[0]
 
-                    if library_type == 'mixed':
-                        embydb.add_PendingSync(library_id, "movies", library_name, None)
-                        embydb.add_PendingSync(library_id, "boxsets", library_name, None)
-                        embydb.add_PendingSync(library_id, "tvshows", library_name, None)
-                        embydb.add_PendingSync(library_id, "music", library_name, None)
-                    elif library_type == 'movies':
-                        embydb.add_PendingSync(library_id, "movies", library_name, None)
-                        embydb.add_PendingSync(library_id, "boxsets", library_name, None)
+                        if library_type == 'mixed':
+                            embydb.add_PendingSync(library_id, "movies", library_name, None)
+                            embydb.add_PendingSync(library_id, "boxsets", library_name, None)
+                            embydb.add_PendingSync(library_id, "tvshows", library_name, None)
+                            embydb.add_PendingSync(library_id, "music", library_name, None)
+                        elif library_type == 'movies':
+                            embydb.add_PendingSync(library_id, "movies", library_name, None)
+                            embydb.add_PendingSync(library_id, "boxsets", library_name, None)
+                        else:
+                            embydb.add_PendingSync(library_id, library_type, library_name, None)
+
+                        LOG.info("---[ added library: %s ]" % library_id)
                     else:
-                        embydb.add_PendingSync(library_id, library_type, library_name, None)
-
-                    LOG.info("---[ added library: %s ]" % library_id)
+                        LOG.info("---[ added library not found: %s ]" % library_id)
 
             self.close_EmbyDBPriority()
 

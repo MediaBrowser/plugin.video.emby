@@ -53,6 +53,8 @@
         <setting label="33116" id="compressArt" type="bool" default="false" />
         <setting label="33105" id="enableContext" type="bool" default="true" />
         <setting label="33143" id="enableContextDelete" type="bool" visible="eq(-1,true)" default="true" subsetting="true" />
+        <setting label="33265" type="lsep" /> 
+        <setting label="33266" id="enableDeleteByKodiEvent" type="bool" default="false" />
         <setting label="33107" type="lsep" />
         <setting label="33210" id="addUsersHidden" type="bool" default="false" />
         <setting type="sep"/>

@@ -183,7 +183,7 @@ def get_filename(obj, MediaID, API):
                     try:
                         StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], MediaID, AdditionalItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], obj['CodecVideo'], AdditionalFilename)
                     except:
-                        StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], MediaID, "", obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
+                        StackedFilename = "%s , %sembyvideo-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, obj['Path'], obj['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], PresentationKey, obj['EmbyParentId'], obj['KodiPathId'], obj['KodiFileId'], MediaID, 0, obj['ExternalSubtitle'], obj['MediasourcesCount'], obj['VideostreamCount'], obj['AudiostreamCount'], "", AdditionalFilename)
 
                     if 'RunTimeTicks' in AdditionalItem:
                         RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
