@@ -255,7 +255,7 @@ msgid "Enable artwork caching"
 msgstr ""
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
+msgid "Paging - max items requested (default: 50)"
 msgstr ""
 
 msgctxt "#30516"
@@ -447,9 +447,7 @@ msgid "Gathering:"
 msgstr ""
 
 msgctxt "#33022"
-msgid ""
-"Detected the database needs to be recreated for this version of Emby for "
-"Kodi. Proceed?"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
 msgstr ""
 
 msgctxt "#33023"
@@ -465,10 +463,7 @@ msgid "A new device Id has been generated. Kodi will now restart."
 msgstr ""
 
 msgctxt "#33035"
-msgid ""
-"Caution! If you choose Native mode, certain Emby features will be missing, "
-"such as: Emby cinema mode, direct stream/transcode options and parental "
-"access schedule."
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
 msgstr ""
 
 msgctxt "#33036"
@@ -504,10 +499,7 @@ msgid "Kodi can't locate file:"
 msgstr ""
 
 msgctxt "#33048"
-msgid ""
-"Use the Emby path substitution to format your path correctly or ensure your "
-"path is added to Kodi's file manager. For more information, check the FAQ in"
-" Emby for Kodi's github wiki. Stop syncing?"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
 msgstr ""
 
 msgctxt "#33049"
@@ -567,8 +559,7 @@ msgid "Reset all Emby add-on settings?"
 msgstr ""
 
 msgctxt "#33088"
-msgid ""
-"Database reset has completed, Kodi will now restart to apply the changes."
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
 msgstr ""
 
 msgctxt "#33089"
@@ -592,9 +583,7 @@ msgid "Backup folder"
 msgstr ""
 
 msgctxt "#33097"
-msgid ""
-"Important, cleanonupdate was removed in your advanced settings to prevent "
-"conflict with Emby for Kodi. Kodi will restart now."
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
 msgstr ""
 
 msgctxt "#33098"
@@ -602,10 +591,7 @@ msgid "Refresh boxsets"
 msgstr ""
 
 msgctxt "#33099"
-msgid ""
-"Install the server plugin Kodi Companion to automatically apply emby library"
-" updates at startup. This setting can be found in the add-on settings > sync"
-" options > Enable Kodi Companion."
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
 msgstr ""
 
 msgctxt "#33100"
@@ -613,9 +599,7 @@ msgid "Would you like to sync empty shows?"
 msgstr ""
 
 msgctxt "#33101"
-msgid ""
-"Since you are using native playback mode with music enabled, do you want to "
-"import music rating from files?"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
 msgstr ""
 
 msgctxt "#33102"
@@ -623,8 +607,7 @@ msgid "Resume the previous sync?"
 msgstr ""
 
 msgctxt "#33103"
-msgid ""
-"Enable the webserver service in the Kodi settings to allow artwork caching."
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
 msgstr ""
 
 msgctxt "#33104"
@@ -680,22 +663,15 @@ msgid "Compress artwork (reduces quality)"
 msgstr ""
 
 msgctxt "#33117"
-msgid ""
-"Enable artwork caching? If not, Kodi will still cache your artwork at a "
-"slower pace."
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
 msgstr ""
 
 msgctxt "#33118"
-msgid ""
-"You've change the playback mode. Kodi needs to be reset to apply the change,"
-" would you like to do this now?"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
 msgstr ""
 
 msgctxt "#33119"
-msgid ""
-"Something went wrong during the sync. You'll be able to restore progress "
-"when restarting Kodi. If the problem persists, please report on the Emby for"
-" Kodi forums, with your Kodi log."
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
 msgstr ""
 
 msgctxt "#33120"
@@ -719,9 +695,7 @@ msgid "Include people (slow)"
 msgstr ""
 
 msgctxt "#33125"
-msgid ""
-"Choose the Emby views to sync to Kodi. You can optionally sync libraries at "
-"a later time."
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
 msgstr ""
 
 msgctxt "#33126"
@@ -733,10 +707,7 @@ msgid "Proceed"
 msgstr ""
 
 msgctxt "#33128"
-msgid ""
-"Failed to retrieve latest content updates. No content updates will be "
-"applied until Kodi is restarted. If this issue persists, please report on "
-"the Emby for Kodi forums, with your Kodi log."
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
 msgstr ""
 
 msgctxt "#33129"
@@ -776,10 +747,7 @@ msgid "Enable Kodi Companion (server plugin)"
 msgstr ""
 
 msgctxt "#33138"
-msgid ""
-"You can update your library manually rather than rely on the server plugin "
-"Kodi companion. Launch the add-on and update libraries (or per library). To "
-"remove content, you'll need to repair the library."
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
 msgstr ""
 
 msgctxt "#33139"
@@ -807,10 +775,7 @@ msgid "Removing library"
 msgstr ""
 
 msgctxt "#33145"
-msgid ""
-"Please make sure your Emby server libraries are accessible to your Kodi "
-"installation and that you have path substitution configured on your server. "
-"For more information, check the FAQ in Emby for Kodi's github wiki."
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
 msgstr ""
 
 msgctxt "#33146"
@@ -834,10 +799,7 @@ msgid "Update server information"
 msgstr ""
 
 msgctxt "#33151"
-msgid ""
-"Reconnect to the same server that was previously loaded. If you want to use "
-"a different server, reset your local database, including your user "
-"information."
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
 msgstr ""
 
 msgctxt "#33152"
@@ -853,10 +815,7 @@ msgid "Add libraries"
 msgstr ""
 
 msgctxt "#33155"
-msgid ""
-"The currently applied patch for Emby for Kodi is corrupted! Please post to "
-"the Emby for Kodi forums if this issue persists. This will need to be fixed "
-"as soon as possible."
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
 msgstr ""
 
 msgctxt "#33156"
@@ -924,10 +883,7 @@ msgid "By first letter"
 msgstr ""
 
 msgctxt "#33172"
-msgid ""
-"You have {number} updates pending. This may take a little while before "
-"seeing new content. It might be faster to update your libraries via "
-"launching the Emby add-on > update libraries. Proceed anyway?"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
 msgstr ""
 
 msgctxt "#33173"
@@ -939,9 +895,7 @@ msgid "Paging - download threads (default: 3)"
 msgstr ""
 
 msgctxt "#33175"
-msgid ""
-"Paging tip: Each download thread requests your max items value from Emby at "
-"the same time."
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
 msgstr ""
 
 msgctxt "#33176"
@@ -985,9 +939,7 @@ msgid "Enable sync during playback (may cause some lag)"
 msgstr ""
 
 msgctxt "#33186"
-msgid ""
-"The Kodi companion speeds up the start up sync. Other syncs are triggered by"
-" server events."
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
 msgstr ""
 
 msgctxt "#33187"
@@ -1023,8 +975,7 @@ msgid "Advanced options"
 msgstr ""
 
 msgctxt "#33197"
-msgid ""
-"A sync is already running, please wait until it completes and try again."
+msgid "A sync is already running, please wait until it completes and try again."
 msgstr ""
 
 msgctxt "#33199"
@@ -1096,9 +1047,7 @@ msgid "Transcode Dvd (MPEG2)"
 msgstr ""
 
 msgctxt "#33217"
-msgid ""
-"Verify the connection? Recommended: Disable for self-signed certificate "
-"only."
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
 msgstr ""
 
 msgctxt "#33218"
@@ -1111,4 +1060,188 @@ msgstr ""
 
 msgctxt "#33220"
 msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr ""
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr ""
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr ""
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr ""
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr ""
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr ""
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr ""
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr ""
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr ""
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr ""
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr ""
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr ""
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr ""
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr ""
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr ""
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr ""
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr ""
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr ""
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr ""
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr ""
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr ""
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
 msgstr ""

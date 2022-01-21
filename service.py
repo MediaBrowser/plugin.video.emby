@@ -1,186 +1,129 @@
 # -*- coding: utf-8 -*-
-import shutil
-import os
-import xml.etree.ElementTree
-
 import xbmc
-import xbmcvfs
-
 import hooks.monitor
-import database.database
-import helper.setup
-import helper.utils
-import helper.xmls
-import helper.loghandler
+from database import dbio
+from helper import utils
+from helper import xmls
+from helper import loghandler
 
-class Service():
-    def __init__(self):
-        self.LOG = helper.loghandler.LOG('EMBY.entrypoint.Service')
-        self.ShouldStop = False
-        self.Startup()
+Monitor = hooks.monitor.Monitor()
+LOG = loghandler.LOG('EMBY.service')
 
-    def Startup(self):
-        self.ShouldStop = False
-        self.Utils = helper.utils.Utils()
-        self.LOG.warning("--->>>[ %s ]" % self.Utils.addon_name)
-        self.KodiDefaultNodes()
-        self.Setup = helper.setup.Setup(self.Utils)
-        self.Delay = int(self.Utils.Settings.startupDelay)
-        self.Monitor = hooks.monitor.Monitor(self)
-        database.database.EmbyDatabaseBuild(self.Utils)
-        Xmls = helper.xmls.Xmls(self.Utils)
-        Xmls.advanced_settings()
-        Xmls.advanced_settings_add_timeouts()
-        self.ServerReconnecting = {}
 
-        if not self.Setup.Migrate(): #Check Migrate
-            xbmc.executebuiltin('RestartApp')
+def ServersConnect():
+    if utils.startupDelay:
+        if Monitor.waitForAbort(utils.startupDelay):
             return
 
-    def KodiDefaultNodes(self):
-        node_path = self.Utils.translatePath("special://profile/library/video")
+        if utils.SystemShutdown:
+            return
 
-        if not xbmcvfs.exists(node_path):
-            try:
-                shutil.copytree(src=self.Utils.translatePath("special://xbmc/system/library/video"), dst=self.Utils.translatePath("special://profile/library/video"))
-            except Exception as error:
-                xbmcvfs.mkdir(node_path)
+    _, files = utils.listDir(utils.FolderAddonUserdata)
+    ServersSettings = []
 
-        for index, node in enumerate(['movies', 'tvshows', 'musicvideos']):
-            filename = os.path.join(node_path, node, "index.xml")
+    for Filename in files:
+        if Filename.startswith('server'):
+            ServersSettings.append("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-            if xbmcvfs.exists(filename):
-                try:
-                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
-                except Exception as error:
-                    self.LOG.error(error)
-                    continue
+    if not ServersSettings:  # First run
+        Monitor.ServerConnect(None)
+    else:
+        for ServerSettings in ServersSettings:
+            Monitor.ServerConnect(ServerSettings)
 
-                xmlData.set('order', str(17 + index))
-                self.Utils.indent(xmlData, 0)
-                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
+    # Shutdown
+    Monitor.waitForAbort()
 
-        playlist_path = self.Utils.translatePath("special://profile/playlists/video")
+    if not utils.SystemShutdown:
+        utils.SyncPause = True
+        Monitor.QuitThreads()
+        Monitor.EmbyServer_DisconnectAll()
 
-        if not xbmcvfs.exists(playlist_path):
-            xbmcvfs.mkdirs(playlist_path)
+def setup():
+    xmls.KodiDefaultNodes()
+    xmls.sources()
+    xmls.advanced_settings()
+    xmls.add_favorites()
 
-        node_path = self.Utils.translatePath("special://profile/library/music")
-
-        if not xbmcvfs.exists(node_path):
-            try:
-                shutil.copytree(src=self.Utils.translatePath("special://xbmc/system/library/music"), dst=self.Utils.translatePath("special://profile/library/music"))
-            except Exception as error:
-                xbmcvfs.mkdir(node_path)
-
-        for index, node in enumerate(['music']):
-            filename = os.path.join(node_path, node, "index.xml")
-
-            if xbmcvfs.exists(filename):
-                try:
-                    xmlData = xml.etree.ElementTree.parse(filename).getroot()
-                except Exception as error:
-                    self.LOG.error(error)
-                    continue
-
-                xmlData.set('order', str(17 + index))
-                self.Utils.indent(xmlData, 0)
-                self.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filename)
-
-        playlist_path = self.Utils.translatePath("special://profile/playlists/music")
-
-        if not xbmcvfs.exists(playlist_path):
-            xbmcvfs.mkdirs(playlist_path)
-
-    def ServerConnect(self):
-        if self.Delay:
-            if self.Monitor.waitForAbort(self.Delay):
-                self.shutdown()
-                return False
-
-        while True:
-            server_id = self.Monitor.EmbyServer_Connect()
-
-            if server_id:
-                break
-
-            if self.Monitor.waitForAbort(10):
-                return False
-
-        self.Setup.setup()
-        self.Monitor.LibraryLoad(server_id)
+    if utils.MinimumSetup == utils.MinimumVersion:
         return True
 
-    def ServerReconnectingInProgress(self, server_id):
-        if server_id in self.ServerReconnecting:
-            return self.ServerReconnecting[server_id]
+    # Clean installation
+    if not utils.MinimumSetup:
+        value = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33221))
 
+        if value:
+            utils.set_settings_bool('userRating', True)
+        else:
+            utils.set_settings_bool('userRating', False)
+
+        LOG.info("Userrating: %s" % utils.userRating)
+        value = utils.dialog("yesno", heading=utils.Translate(30511), line1=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
+
+        if value:
+            utils.set_settings_bool('useDirectPaths', True)
+            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33145))
+        else:
+            utils.set_settings_bool('useDirectPaths', False)
+
+        LOG.info("Add-on playback: %s" % utils.useDirectPaths == "0")
+        utils.set_settings('MinimumSetup', utils.MinimumVersion)
+        return True
+
+    value = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33222))
+
+    if not value:
+        return "stop"
+
+    utils.set_settings('MinimumSetup', utils.MinimumVersion)
+    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33223), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=960000, sound=True)
+    DeleteArtwork = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
+
+    if Monitor.waitForAbort(5):  # Give Kodi time to complete startup before reset
         return False
 
-    def ServerReconnect(self, server_id, Terminate=True):
-        self.ServerReconnecting[server_id] = True
-        self.Monitor.player.SyncPause = False
+    # delete settings
+    _, files = utils.listDir(utils.FolderAddonUserdata)
 
-        if Terminate:
-            if server_id in self.Monitor.EmbyServers:
-                self.Monitor.EmbyServers[server_id].stop()
-                self.Monitor.LibraryStop(server_id)
+    for Filename in files:
+        utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-        while True:
-            if self.Monitor.waitForAbort(10):
-                return
+    # delete database
+    _, files = utils.listDir("special://profile/Database/")
 
-            server_id = self.Monitor.EmbyServer_Connect()
+    for Filename in files:
+        if Filename.startswith('emby'):
+            utils.delFile("special://profile/Database/%s" % Filename)
 
-            if server_id:
-                self.ServerReconnecting[server_id] = False
-                break
+    videodb = dbio.DBOpen("video")
+    videodb.common_db.delete_tables("Video")
+    dbio.DBClose("video", True)
+    musicdb = dbio.DBOpen("music")
+    musicdb.common_db.delete_tables("Music")
+    dbio.DBClose("music", True)
 
-        self.Monitor.LibraryLoad(server_id)
-        self.ServerReconnecting[server_id] = False
+    if DeleteArtwork:
+        utils.DeleteThumbnails()
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
 
-    def WatchDog(self):
-        while True:
-            if self.Monitor.waitForAbort(1):
-                self.shutdown()
-                return False
-
-            if self.Utils.Settings.emby_shouldstop:
-                self.ShouldStop = True
-
-            if self.Utils.Settings.emby_restart:
-                self.Utils.Settings.emby_restart = False
-                self.Utils.dialog("notification", heading="{emby}", message=self.Utils.Translate(33193), icon="{emby}", time=1000, sound=False)
-                self.shutdown()
-                self.LOG.warning("[ RESTART ]")
-                return True
-
-            if self.Monitor.sleep:
-                xbmc.sleep(5000)
-                self.Monitor.System_OnWake()
-
-            if self.ShouldStop:
-                self.shutdown()
-                return False
-
-    def shutdown(self):
-        self.LOG.warning("---<[ EXITING ]")
-        self.Monitor.player.SyncPause = True
-        self.ShouldStop = True
-        self.Monitor.QuitThreads()
-        self.Monitor.EmbyServer_DisconnectAll()
-        self.Monitor.LibraryStopAll()
+    utils.delete_playlists()
+    utils.delete_nodes()
+    LOG.info("[ complete reset ]")
+    return False
 
 if __name__ == "__main__":
-    serviceOBJ = Service()
+    LOG.warning("[ Start Emby-next-gen ]")
+    Ret = setup()
 
-    while True:
-        serviceOBJ.ServerConnect()
-
-        if serviceOBJ.WatchDog():
-            serviceOBJ.Startup()
-            continue #Restart
-
-        break
-
-    serviceOBJ = None
+    if Ret == "stop":  # db upgrade declined
+        Monitor.QuitThreads()
+        LOG.error("[ DB upgrade declined, Shutdown Emby-next-gen ]")
+    elif not Ret:  # db reset required
+        LOG.warning("[ DB reset required, Kodi restart ]")
+        Monitor.QuitThreads()
+        xbmc.executebuiltin('RestartApp')
+    else:  # Regular start
+        ServersConnect()  # Waiting/blocking function till Kodi stops
+        LOG.warning("[ Shutdown Emby-next-gen ]")

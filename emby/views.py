@@ -1,239 +1,200 @@
 # -*- coding: utf-8 -*-
-import os
-
-try:
-    from urllib import urlencode
-except:
-    from urllib.parse import urlencode
-
 import xml.etree.ElementTree
-import xbmcvfs
 import xbmcgui
-import database.database
-import database.emby_db
-import helper.api
-import helper.loghandler
+from helper import loghandler
+from helper import utils
+from helper import xmls
 
-class Views():
+if utils.Python3:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
+
+limit = 25
+SyncNodes = {
+    'tvshows': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultTVShows.png'),
+        ('recentlyadded', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
+        ('recentlyaddedepisodes', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
+        ('inprogress', utils.Translate(30171), 'DefaultInProgressShows.png'),
+        ('inprogressepisodes', utils.Translate(30178), 'DefaultInProgressShows.png'),
+        ('genres', "Genres", 'DefaultGenre.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('recommended', utils.Translate(30230), 'DefaultFavourites.png'),
+        ('years', utils.Translate(33218), 'DefaultYear.png'),
+        ('actors', utils.Translate(33219), 'DefaultActor.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('unwatched', "Unwatched TV Shows", 'OverlayUnwatched.png'),
+        ('unwatchedepisodes', "Unwatched Episodes", 'OverlayUnwatched.png'),
+        ('studios', "Studios", 'DefaultStudios.png'),
+        ('recentlyplayed', 'Recently played TV Show', 'DefaultMusicRecentlyPlayed.png'),
+        ('recentlyplayedepisode', 'Recently played Episode', 'DefaultMusicRecentlyPlayed.png'),
+        ('nextepisodes', utils.Translate(30179), 'DefaultInProgressShows.png')
+    ],
+    'movies': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultMovies.png'),
+        ('recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
+        ('inprogress', utils.Translate(30177), 'DefaultInProgressShows.png'),
+        ('unwatched', utils.Translate(30189), 'OverlayUnwatched.png'),
+        ('sets', "Sets", 'DefaultSets.png'),
+        ('genres', "Genres", 'DefaultGenre.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('recommended', utils.Translate(30230), 'DefaultFavourites.png'),
+        ('years', utils.Translate(33218), 'DefaultYear.png'),
+        ('actors', utils.Translate(33219), 'DefaultActor.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('studios', "Studios", 'DefaultStudios.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('directors', 'Directors', 'DefaultDirector.png'),
+        ('countries', 'Countries', 'DefaultCountry.png'),
+        ('resolutionhd', "HD", 'DefaultIconInfo.png'),
+        ('resolutionsd', "SD", 'DefaultIconInfo.png'),
+        ('resolution4k', "4K", 'DefaultIconInfo.png')
+    ],
+    'musicvideos': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultMusicVideos.png'),
+        ('recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('genres', "Genres", 'DefaultGenre.png'),
+        ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
+        ('artists', "Artists", 'DefaultMusicArtists.png'),
+        ('albums', "Albums", 'DefaultMusicAlbums.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('resolutionhd', "HD", 'DefaultIconInfo.png'),
+        ('resolutionsd', "SD", 'DefaultIconInfo.png'),
+        ('resolution4k', "4K", 'DefaultIconInfo.png')
+    ],
+    'homevideos': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultMusicVideos.png'),
+        ('recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('genres', "Genres", 'DefaultGenre.png'),
+        ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
+        ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('resolutionhd', "HD", 'DefaultIconInfo.png'),
+        ('resolutionsd', "SD", 'DefaultIconInfo.png'),
+        ('resolution4k', "4K", 'DefaultIconInfo.png')
+    ],
+    'music': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultAddonMusic.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('genres', "Genres", 'DefaultMusicGenres.png'),
+        ('artists', "Artists", 'DefaultMusicArtists.png'),
+        ('albums', "Albums", 'DefaultMusicAlbums.png'),
+        ('recentlyaddedalbums', 'Recently added albums', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyaddedsongs', 'Recently added songs', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('randomalbums', 'Random albums', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('randomsongs', 'Random songs', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+    ],
+    'audiobooks': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultAddonMusic.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('genres', "Genres", 'DefaultMusicGenres.png'),
+        ('artists', "Artists", 'DefaultMusicArtists.png'),
+        ('albums', "Albums", 'DefaultMusicAlbums.png'),
+        ('recentlyaddedalbums', 'Recently added albums', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyaddedsongs', 'Recently added songs', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('randomalbums', 'Random albums', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('randomsongs', 'Random songs', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+    ],
+    'podcasts': [
+        ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
+        ('all', None, 'DefaultAddonMusic.png'),
+        ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
+        ('genres', "Genres", 'DefaultMusicGenres.png'),
+        ('artists', "Artists", 'DefaultMusicArtists.png'),
+        ('albums', "Albums", 'DefaultMusicAlbums.png'),
+        ('recentlyaddedalbums', 'Recently added albums', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyaddedsongs', 'Recently added songs', 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
+        ('randomalbums', 'Random albums', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('randomsongs', 'Random songs', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+    ]
+}
+LOG = loghandler.LOG('EMBY.emby.views')
+
+
+class Views:
     def __init__(self, Embyserver):
         self.EmbyServer = Embyserver
-        self.limit = 25
-        self.media_folders = None
-        self.LOG = helper.loghandler.LOG('EMBY.emby.views.Views')
-        self.APIHelper = helper.api.API(self.EmbyServer.Utils)
-        self.LibraryIcons = {}
-        self.NODES = {
-            'tvshows': [
-                ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
-                ('all', None, 'DefaultTVShows.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png'),
-                ('recentlyaddedepisodes', self.EmbyServer.Utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png'),
-                ('inprogress', self.EmbyServer.Utils.Translate(30171), 'DefaultInProgressShows.png'),
-                ('inprogressepisodes', self.EmbyServer.Utils.Translate(30178), 'DefaultInProgressShows.png'),
-                ('genres', "Genres", 'DefaultGenre.png'),
-                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('recommended', self.EmbyServer.Utils.Translate(30230), 'DefaultFavourites.png'),
-                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultYear.png'),
-                ('actors', self.EmbyServer.Utils.Translate(33219), 'DefaultActor.png'),
-                ('tags', self.EmbyServer.Utils.Translate(33220), 'DefaultTags.png'),
-                ('unwatched', "Unwatched TV Shows", 'OverlayUnwatched.png'),
-                ('unwatchedepisodes', "Unwatched Episodes", 'OverlayUnwatched.png'),
-                ('studios', "Studios", 'DefaultStudios.png'),
-                ('recentlyplayed', 'Recently played TV Show', 'DefaultMusicRecentlyPlayed.png'),
-                ('recentlyplayedepisode', 'Recently played Episode', 'DefaultMusicRecentlyPlayed.png'),
-                ('nextepisodes', self.EmbyServer.Utils.Translate(30179), 'DefaultInProgressShows.png')
-            ],
-            'movies': [
-                ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
-                ('all', None, 'DefaultMovies.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Translate(30174), 'DefaultRecentlyAddedMovies.png'),
-                ('inprogress', self.EmbyServer.Utils.Translate(30177), 'DefaultInProgressShows.png'),
-                ('unwatched', self.EmbyServer.Utils.Translate(30189), 'OverlayUnwatched.png'),
-                ('sets', "Sets", 'DefaultSets.png'),
-                ('genres', "Genres", 'DefaultGenre.png'),
-                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('recommended', self.EmbyServer.Utils.Translate(30230), 'DefaultFavourites.png'),
-                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultYear.png'),
-                ('actors', self.EmbyServer.Utils.Translate(33219), 'DefaultActor.png'),
-                ('tags', self.EmbyServer.Utils.Translate(33220), 'DefaultTags.png'),
-                ('studios', "Studios", 'DefaultStudios.png'),
-                ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
-                ('directors', 'Directors', 'DefaultDirector.png'),
-                ('countries', 'Countries', 'DefaultCountry.png')
-            ],
-            'musicvideos': [
-                ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
-                ('all', None, 'DefaultMusicVideos.png'),
-                ('recentlyadded', self.EmbyServer.Utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png'),
-                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultMusicYears.png'),
-                ('genres', "Genres", 'DefaultGenre.png'),
-                ('inprogress', self.EmbyServer.Utils.Translate(30257), 'DefaultInProgressShows.png'),
-                ('random', self.EmbyServer.Utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('unwatched', self.EmbyServer.Utils.Translate(30258), 'OverlayUnwatched.png'),
-                ('artists', "Artists", 'DefaultMusicArtists.png'),
-                ('albums', "Albums", 'DefaultMusicAlbums.png'),
-                ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png')
-            ],
-            'music': [
-                ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
-                ('all', None, 'DefaultAddonMusic.png'),
-                ('years', self.EmbyServer.Utils.Translate(33218), 'DefaultMusicYears.png'),
-                ('genres', "Genres", 'DefaultMusicGenres.png'),
-                ('artists', "Artists", 'DefaultMusicArtists.png'),
-                ('albums', "Albums", 'DefaultMusicAlbums.png'),
-                ('recentlyaddedalbums', 'Recently added albums', 'DefaultMusicRecentlyAdded.png'),
-                ('recentlyaddedsongs', 'Recently added songs', 'DefaultMusicRecentlyAdded.png'),
-                ('recentlyplayed', 'Recently played', 'DefaultMusicRecentlyPlayed.png'),
-                ('randomalbums', 'Random albums', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-                ('randomsongs', 'Random songs', 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
-            ]
-        }
-
-    def IconDownload(self, URL, FileID):
-        request = {'type': "GET", 'url': URL, 'params': {}}
-        Filename = self.EmbyServer.Utils.PathToFilenameReplaceSpecialCharecters(FileID)# + ".jpg")
-        FilePath = self.EmbyServer.Utils.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/") + Filename
-
-        if not xbmcvfs.exists(FilePath):
-            return self.EmbyServer.Utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
-
-        return FilePath
-
-    def add_favorites(self, index, view):
-        path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
-        filepath = os.path.join(path, "emby_%s.xml" % view['Tag'].replace(" ", ""))
-
-        try:
-            xmlData = xml.etree.ElementTree.parse(filepath).getroot()
-        except Exception:
-            if view['Media'] == 'episodes':
-                xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "folder"})
-            else:
-                xmlData = xml.etree.ElementTree.Element('node', {'order': str(index), 'type': "filter"})
-
-            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/DefaultFavourites.png")
-            xml.etree.ElementTree.SubElement(xmlData, 'label')
-            xml.etree.ElementTree.SubElement(xmlData, 'match')
-            xml.etree.ElementTree.SubElement(xmlData, 'content')
-
-        label = xmlData.find('label')
-        label.text = view['Name']
-        content = xmlData.find('content')
-        content.text = view['Media']
-        match = xmlData.find('match')
-        match.text = "all"
-
-        if view['Media'] != 'episodes':
-            for rule in xmlData.findall('.//value'):
-                if rule.text == view['Tag']:
-                    break
-            else:
-                rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
-                xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
-
-            self.node_all(xmlData)
-        else:
-            params = {
-                'mode': "browse",
-                'type': "Episode",
-                'folder': 'FavEpisodes'
-            }
-            path = "%s?%s" % ("plugin://plugin.video.emby-next-gen/", urlencode(params))
-            self.node_favepisodes(xmlData, path)
-
-        self.EmbyServer.Utils.indent(xmlData, 0)
-        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        self.ViewItems = {}
+        self.ViewsData = {}
+        self.Nodes = []
 
     def update_nodes(self):
-        index = 0
+        self.Nodes = []
 
-        #Favorites
-        for single in [{'Name': self.EmbyServer.Utils.Translate('fav_movies'), 'Tag': "Favorite movies", 'Media': "movies"}, {'Name': self.EmbyServer.Utils.Translate('fav_tvshows'), 'Tag': "Favorite tvshows", 'Media': "tvshows"}, {'Name': self.EmbyServer.Utils.Translate('fav_episodes'), 'Tag': "Favorite episodes", 'Media': "episodes"}]:
-            self.add_favorites(index, single)
-            index += 1
+        for library_id, Data in list(self.ViewItems.items()):
+            view = {'LibraryId': library_id, 'Name': utils.StringDecode(Data[0]), 'Tag': utils.StringDecode(Data[0]), 'MediaType': Data[1], "Icon": Data[2], 'NameClean': utils.StringDecode(Data[0]).replace(" ", "_")}
 
-        #Specific nodes
-        with database.database.Database(self.EmbyServer.Utils, 'emby', False) as embydb:
-            db = database.emby_db.EmbyDatabase(embydb.cursor)
+            if library_id in list(self.EmbyServer.library.Whitelist.keys()):
+                if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                    view['Tag'] = "-%s;" % view['Tag']
 
-            #update nodes and playlist
-            for library in self.EmbyServer.Utils.SyncData['Whitelist']:
-                library = library.replace('Mixed:', "")
-                view = db.get_view(library)
+                if view['MediaType'] == 'mixed':
+                    ViewName = view['Name']
 
-                if view:
-                    view = {'LibraryId': library, 'Name': view[1], 'Tag': view[1], 'Media': view[2], "Icon": self.LibraryIcons[library], 'NameClean': self.EmbyServer.Utils.StringDecode(view[1]).replace(" ", ""), 'MediaClean': view[2].replace(" ", "")}
+                    for media in ('movies', 'tvshows', 'music'):
+                        view['MediaType'] = media
 
-                    if view['Media'] == 'music':
-                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/music")
-                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/music")
-                    else:
-                        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
-                        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
+                        if media == 'music':
+                            view['Tag'] = "-%s;" % view['Tag']
 
-                    if view['Media'] == 'mixed':
-                        for media in ('movies', 'tvshows'):
-                            view['Media'] = media
-                            view['MediaClean'] = media.replace(" ", "")
-                            self.add_playlist(playlist_path, view, True)
-                            self.add_nodes(node_path, view)
-
-                        index += 1 # Compensate for the duplicate.
-                    else:
-                        self.add_playlist(playlist_path, view, False)
-                        self.add_nodes(node_path, view)
-
-                    index += 1
-
-        node_path = self.EmbyServer.Utils.translatePath("special://profile/library/video")
-        playlist_path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video")
-        self.window_nodes()
-
-    def window_nodes(self):
-        with database.database.Database(self.EmbyServer.Utils, 'emby', False) as embydb:
-            libraries = database.emby_db.EmbyDatabase(embydb.cursor).get_views()
-
-        for library in libraries:
-            if library[0] in self.LibraryIcons:
-                icon = self.LibraryIcons[library[0]]
-            else:
-                icon = None
-
-            if not icon:
-                if library[2] == 'tvshows':
-                    icon = 'DefaultTVShows.png'
-                elif library[2] == 'movies':
-                    icon = 'DefaultMovies.png'
-                elif library[2] == 'musicvideos':
-                    icon = 'DefaultMusicVideos.png'
-                elif library[2] == 'music':
-                    icon = 'DefaultMusicVideos.png'
+                        node_path, playlist_path = get_node_playlist_path(view['MediaType'])
+                        view['Name'] = "%s / %s" % (ViewName, view['MediaType'])
+                        add_playlist(playlist_path, view)
+                        add_nodes(node_path, view)
+                        self.window_nodes(view, False)
+                elif view['MediaType'] == 'homevideos':
+                    self.window_nodes(view, True)  # Add dynamic node supporting photos
+                    view['MediaType'] = "movies"
+                    node_path, playlist_path = get_node_playlist_path(view['MediaType'])
+                    add_playlist(playlist_path, view)
+                    add_nodes(node_path, view)
+                    self.window_nodes(view, False)
                 else:
-                    icon = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
+                    node_path, playlist_path = get_node_playlist_path(view['MediaType'])
+                    add_playlist(playlist_path, view)
+                    add_nodes(node_path, view)
+                    self.window_nodes(view, False)
+            else:
+                self.window_nodes(view, True)
 
-            view = {'LibraryId': library[0], 'Name': library[1], 'Tag': library[1], 'Media': library[2], 'Icon': icon, 'NameClean': self.EmbyServer.Utils.StringDecode(library[1]).replace(" ", ""), 'MediaClean': library[2].replace(" ", "")}
+    def window_nodes(self, view, Dynamic):
+        if not view['Icon']:
+            if view['MediaType'] == 'tvshows':
+                view['Icon'] = 'DefaultTVShows.png'
+            elif view['MediaType'] in ('movies', 'homevideos'):
+                view['Icon'] = 'DefaultMovies.png'
+            elif view['MediaType'] == 'musicvideos':
+                view['Icon'] = 'DefaultMusicVideos.png'
+            elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                view['Icon'] = 'DefaultMusicVideos.png'
+            else:
+                view['Icon'] = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
 
-            if library[0] in [x.replace('Mixed:', "") for x in self.EmbyServer.Utils.SyncData['Whitelist']]: # Synced libraries
-                if view['Media'] in ('movies', 'tvshows', 'musicvideos', 'mixed', 'music'):
-                    if view['Media'] == 'mixed':
-                        for media in ('movies', 'tvshows'):
-                            temp_view = view
-                            temp_view['Media'] = media
-                            temp_view['MediaClean'] = media.replace(" ", "")
-                            self.window_node(temp_view, False, True)
-                    else:
-                        self.window_node(view, False, False)
-            else: #Dynamic entry
-                self.window_node(view, True, False)
+        self.window_node(view, Dynamic)
 
-    #Leads to another listing of nodes
-    def window_node(self, view, dynamic, mixed):
+    # Points to another listing of nodes
+    def window_node(self, view, dynamic):
         NodeData = {}
 
         if dynamic:
             params = {
                 'mode': "browse",
-                'type': view['Media'],
+                'type': view['MediaType'],
                 'name': view['Name'].encode('utf-8'),
                 'server': self.EmbyServer.server_id
             }
@@ -241,779 +202,781 @@ class Views():
             if view.get('LibraryId'):
                 params['id'] = view['LibraryId']
 
-            path = "%s?%s" % ("plugin://plugin.video.emby-next-gen/", urlencode(params))
-            NodeData['title'] = "%s (%s)" % (view['Name'], self.EmbyServer.Data['auth.server-name'])
+            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
+            NodeData['title'] = "%s (%s)" % (view['Name'], self.EmbyServer.Name)
         else:
-            if view['Media'] == 'music':
-                path = "library://music/emby_%s_%s" % (view['MediaClean'], view['NameClean'])
+            if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                path = "library://music/emby_%s_%s/" % (view['MediaType'], view['NameClean'])
             else:
-                path = "library://video/emby_%s_%s" % (view['MediaClean'], view['NameClean'])
+                path = "library://video/emby_%s_%s/" % (view['MediaType'], view['NameClean'])
 
-            if mixed:
-                NodeData['title'] = "%s (%s)" % (view['Name'], view['Media'])
-            else:
-                NodeData['title'] = view['Name']
+            NodeData['title'] = view['Name']
 
         NodeData['path'] = path
         NodeData['id'] = view['LibraryId']
-        NodeData['type'] = view['Media']
+        NodeData['type'] = view['MediaType']
         NodeData['icon'] = view['Icon']
-        self.EmbyServer.Nodes.append(NodeData)
+        self.Nodes.append(NodeData)
 
     def update_views(self):
-        ViewsData = self.EmbyServer.API.get_views()['Items']
-        Total = len(ViewsData)
+        Data = self.EmbyServer.API.get_views()
+
+        if 'Items' in Data:
+            self.ViewsData = Data['Items']
+        else:
+            return
+
+        Total = len(self.ViewsData)
         Counter = 1
         Progress = xbmcgui.DialogProgressBG()
-        Progress.create(self.EmbyServer.Utils.Translate('addon_name'), "Update views")
-        self.EmbyServer.Utils.SyncData['SortedViews'] = [x['Id'] for x in ViewsData]
+        Progress.create("Emby", "Update views")
 
-        with database.database.Database(self.EmbyServer.Utils, 'emby', True) as embydb:
-            for library in ViewsData:
-                Percent = int(Counter / Total * 100)
-                Counter += 1
-                Progress.update(Percent, message="Update views")
+        for library in self.ViewsData:
+            Percent = int(float(Counter) / float(Total) * 100)
+            Counter += 1
+            Progress.update(Percent, message="Update views")
 
-                if library['Type'] == 'Channel':
-                    library['Media'] = "channels"
-                else:
-                    library['Media'] = library.get('CollectionType', "mixed")
+            if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
+                library['MediaType'] = "podcasts"
+            elif library['Type'] == 'Channel' or library['Name'].lower() == "local trailers" or library['Name'].lower() == "trailers":
+                library['MediaType'] = "channels"
+            else:
+                library['MediaType'] = library.get('CollectionType', "mixed")
 
-                database.emby_db.EmbyDatabase(embydb.cursor).add_view(library['Id'], library['Name'], library['Media'], self.EmbyServer.server_id)
+            if "Primary" in library["ImageTags"]:
+                # Cache artwork
+                request = {'type': "GET", 'url': "%s/emby/Items/%s/Images/Primary" % (self.EmbyServer.server, library['Id']), 'params': {}}
+                Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
+                iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
 
-                #Cache artwork
-                icon = self.APIHelper.get_artwork(library['Id'], 'Primary', None, [('Index', 0), ('api_key', self.EmbyServer.Data['auth.token'])], self.EmbyServer.Data['auth.server'])
-                iconpath = self.IconDownload(icon, "%s_%s" % (self.EmbyServer.Data['auth.server-name'], library['Id']))
-                self.LibraryIcons[library['Id']] = iconpath
+                if not utils.checkFileExists(iconpath):
+                    iconpath = utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
+            else:
+                iconpath = ""
+
+            self.ViewItems[library['Id']] = [library['Name'], library['MediaType'], iconpath]
 
         Progress.close()
 
-    def remove_library(self, view_id):
-        self.delete_playlist_by_id(view_id)
-        self.delete_node_by_id(view_id)
-        whitelist = self.EmbyServer.Utils.SyncData['Whitelist']
-
-        if view_id in whitelist:
-            whitelist.remove(view_id)
-
-        self.EmbyServer.Utils.save_sync(self.EmbyServer.Utils.SyncData)
-        self.update_nodes()
-
-    #Create or update the xps file
-    def add_playlist(self, path, view, mixed):
-        filepath = os.path.join(path, "emby_%s.xsp" % (view['Name'].replace(" ", "_")))
-
-        try:
-            xmlData = xml.etree.ElementTree.parse(filepath).getroot()
-        except Exception:
-            xmlData = xml.etree.ElementTree.Element('smartplaylist', {'type': view['Media']})
-            xml.etree.ElementTree.SubElement(xmlData, 'name')
-            xml.etree.ElementTree.SubElement(xmlData, 'match')
-
-        name = xmlData.find('name')
-        name.text = view['Name'] if not mixed else "%s (%s)" % (view['Name'], view['Media'])
-        match = xmlData.find('match')
-        match.text = "all"
-
-        for rule in xmlData.findall('.//value'):
-            if rule.text == view['Tag']:
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
-
-        self.EmbyServer.Utils.indent(xmlData, 0)
-        self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
-
-    #Create or update the video node file
-    def add_nodes(self, path, view):
-        folder = os.path.join(path, "emby_%s_%s" % (view['MediaClean'], view['NameClean']))
-
-        if not xbmcvfs.exists(folder):
-            xbmcvfs.mkdir(folder)
-
-        #index.xml (root)
-        filepath = os.path.join(folder, "index.xml")
-
-        if not xbmcvfs.exists(filepath):
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0"})
-            xml.etree.ElementTree.SubElement(xmlData, 'label').text = "EMBY: %s (%s)" % (view['Name'], view['Media'])
-
-            if view['Icon']:
-                Icon = view['Icon']
+    # Remove playlist based based on LibraryId
+    def delete_playlist_by_id(self, LibraryId):
+        if LibraryId in self.ViewItems:
+            if self.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
+                path = 'special://profile/playlists/music/'
             else:
-                if view['Media'] == 'tvshows':
-                    Icon = 'DefaultTVShows.png'
-                elif view['Media'] == 'movies':
-                    Icon = 'DefaultMovies.png'
-                elif view['Media'] == 'musicvideos':
-                    Icon = 'DefaultMusicVideos.png'
-                elif view['Media'] == 'music':
-                    Icon = 'DefaultMusicVideos.png'
+                path = 'special://profile/playlists/video/'
+
+            PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
+            utils.delFolder(PlaylistPath)
+        else:
+            LOG.info("Delete playlist: library not found: %s" % LibraryId)
+
+    def delete_node_by_id(self, LibraryId):
+        if LibraryId in self.ViewItems:
+            mediatypes = []
+
+            if self.ViewItems[LibraryId][1].find('Mixed:') != -1:
+                mediatypes.append('movies')
+                mediatypes.append('tvshows')
+            else:
+                mediatypes.append(self.ViewItems[LibraryId][1])
+
+            for mediatype in mediatypes:
+                if mediatype in ('music', 'audiobooks', 'podcasts'):
+                    path = "special://profile/library/music/"
                 else:
-                    Icon = self.EmbyServer.Utils.translatePath("special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
+                    path = "special://profile/library/video/"
 
-            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Icon
-            self.EmbyServer.Utils.indent(xmlData, 0)
-            self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+                NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
+                utils.delFolder(NodePath)
+        else:
+            LOG.info("Delete node: library not found: %s" % LibraryId)
 
-        #specific nodes
-        for node in self.NODES[view['Media']]:
-            if node[1]:
-                xml_label = node[1] #Specific
+def get_node_playlist_path(MediaType):
+    if MediaType in ('music', 'audiobooks', 'podcasts'):
+        node_path = "special://profile/library/music/"
+        playlist_path = 'special://profile/playlists/music/'
+    else:
+        node_path = "special://profile/library/video/"
+        playlist_path = 'special://profile/playlists/video/'
+
+    return node_path, playlist_path
+
+# Create or update the xsp file
+def add_playlist(path, view):
+    if not utils.xspplaylists:
+        return
+
+    filepath = "%s%s" % (path, "emby_%s_%s.xsp" % (view['MediaType'], view['NameClean']))
+    xmlData = utils.readFileString(filepath)
+
+    if xmlData:
+        xmlData = xml.etree.ElementTree.fromstring(xmlData)
+    else:
+        xmlData = xml.etree.ElementTree.Element('smartplaylist', {'type': view['MediaType']})
+        xml.etree.ElementTree.SubElement(xmlData, 'name')
+        xml.etree.ElementTree.SubElement(xmlData, 'match')
+
+    name = xmlData.find('name')
+    name.text = view['Name']
+    match = xmlData.find('match')
+    match.text = "all"
+
+    for rule in xmlData.findall('.//value'):
+        if rule.text == view['Tag']:
+            break
+    else:
+        rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
+
+    xmls.WriteXmlFile(filepath, xmlData)
+
+# Create or update the video node file
+def add_nodes(path, view):
+    folder = "%semby_%s_%s/" % (path, view['MediaType'], view['NameClean'])
+    utils.mkDir(folder)
+    filepath = "%s%s" % (folder, "index.xml")
+
+    if not utils.checkFileExists(filepath):
+        if view['MediaType'] == 'movies':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
+        elif view['MediaType'] == 'tvshows':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
+        elif view['MediaType'] == 'musicvideos':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
+        else:
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
+
+        xml.etree.ElementTree.SubElement(xmlData, 'label').text = "EMBY: %s (%s)" % (view['Name'], view['MediaType'])
+
+        if view['Icon']:
+            Icon = view['Icon']
+        else:
+            if view['MediaType'] == 'tvshows':
+                Icon = 'DefaultTVShows.png'
+            elif view['MediaType'] == 'movies':
+                Icon = 'DefaultMovies.png'
+            elif view['MediaType'] == 'musicvideos':
+                Icon = 'DefaultMusicVideos.png'
+            elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                Icon = 'DefaultMusicVideos.png'
             else:
-                xml_label = view['Name'] #All
+                Icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
 
-            if node[0] == "letter":
-                self.node_letter(view, folder, node)
-            else:
-                filepath = os.path.join(folder, "%s.xml" % node[0])
+        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Icon
+        xmls.WriteXmlFile(filepath, xmlData)
 
-                if not xbmcvfs.exists(filepath):
-                    if node[0] == 'nextepisodes':
-                        NodeType = 'folder'
+    # specific nodes
+    for node in SyncNodes[view['MediaType']]:
+        if node[1]:
+            xml_label = node[1]  # Specific
+        else:
+            xml_label = view['Name']  # All
+
+        if node[0] == "letter":
+            node_letter(view, folder, node)
+        else:
+            filepath = "%s%s.xml" % (folder, node[0])
+
+            if not utils.checkFileExists(filepath):
+                if node[0] == 'nextepisodes':
+                    NodeType = 'folder'
+                else:
+                    NodeType = 'filter'
+
+                xmlData = xml.etree.ElementTree.Element('node', {'order': str(SyncNodes[view['MediaType']].index(node)), 'type': NodeType})
+                xml.etree.ElementTree.SubElement(xmlData, 'label').text = xml_label
+                xml.etree.ElementTree.SubElement(xmlData, 'match').text = "all"
+                xml.etree.ElementTree.SubElement(xmlData, 'content')
+                xml.etree.ElementTree.SubElement(xmlData, 'icon').text = node[2]
+                operator = "is"
+                field = "tag"
+                content = xmlData.find('content')
+
+                if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                    if node[0] in ("genres", "artists"):
+                        content.text = "artists"
+                        operator = "contains"
+                        field = "disambiguation"
+
+                    elif node[0] in ("years", "recentlyaddedalbums", "randomalbums", "albums"):
+                        content.text = "albums"
+                        operator = "contains"
+                        field = "type"
+
+                    elif node[0] in ("recentlyaddedsongs", "randomsongs", "all", "recentlyplayed"):
+                        content.text = "songs"
+                        operator = "contains"
+                        field = "comment"
+                else:
+                    if node[0] in ("recentlyaddedepisodes", "inprogressepisodes", "recentlyplayedepisode"):
+                        content.text = "episodes"
                     else:
-                        NodeType = 'filter'
+                        content.text = view['MediaType']
 
-                    xmlData = xml.etree.ElementTree.Element('node', {'order': str(self.NODES[view['Media']].index(node)), 'type': NodeType})
-                    xml.etree.ElementTree.SubElement(xmlData, 'label').text = xml_label
-                    xml.etree.ElementTree.SubElement(xmlData, 'match').text = "all"
-                    xml.etree.ElementTree.SubElement(xmlData, 'content')
-                    xml.etree.ElementTree.SubElement(xmlData, 'icon').text = node[2]
-                    operator = "is"
-                    field = "tag"
-                    content = xmlData.find('content')
+                for rule in xmlData.findall('.//value'):
+                    if rule.text == view['Tag']:
+                        break
+                else:
+                    rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': field, 'operator': operator})
+                    xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
 
-                    if view['Media'] == "music":
-                        if node[0] in ("genres", "artists"):
-                            content.text = "artists"
-                            field = "disambiguation"
+                if node[0] == 'nextepisodes':
+                    node_nextepisodes(xmlData, view['Name'])
+                else:
+                    globals()['node_' + node[0]](xmlData)  # get node function based on node type
 
-                        elif node[0] in ("years", "recentlyaddedalbums", "randomalbums", "albums"):
-                            content.text = "albums"
-                            field = "type"
+                xmls.WriteXmlFile(filepath, xmlData)
 
-                        elif node[0] in ("recentlyaddedsongs", "randomsongs", "all", "recentlyplayed"):
-                            content.text = "songs"
-                            operator = "contains"
-                            field = "comment"
-                    else:
-                        if node[0] in ("recentlyaddedepisodes", "inprogressepisodes", "recentlyplayedepisode"):
-                            content.text = "episodes"
-                        else:
-                            content.text = view['Media']
+# Nodes
+def node_letter(View, folder, node):
+    Index = 1
+    FolderPath = "%sletter/" % folder
+    utils.mkDir(FolderPath)
 
-                    for rule in xmlData.findall('.//value'):
-                        if rule.text == view['Tag']:
-                            break
-                    else:
-                        rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': field, 'operator': operator})
-                        xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
+    # index.xml
+    FileName = "%s%s" % (FolderPath, "index.xml")
 
-                    if node[0] == 'nextepisodes':
-                        self.node_nextepisodes(xmlData, view['Name'])
-                    else:
-                        getattr(self, 'node_' + node[0])(xmlData) # get node function based on node type
+    if not utils.checkFileExists(FileName):
+        if View['MediaType'] == 'movies':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
+        elif View['MediaType'] == 'tvshows':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
+        elif View['MediaType'] == 'musicvideos':
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
+        else:
+            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
 
-                    self.EmbyServer.Utils.indent(xmlData, 0)
-                    self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), filepath)
+        xmlData.set('type', "folder")
+        xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
+        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2])
+        xmls.WriteXmlFile(FileName, xmlData)
 
-    def node_letter(self, View, folder, node):
-        Index = 1
-        FolderPath = os.path.join(folder, "letter/")
+    # 0-9.xml
+    FileName = "%s%s" % (FolderPath, "0-9.xml")
 
-        if not xbmcvfs.exists(FolderPath):
-            xbmcvfs.mkdir(FolderPath)
+    if not utils.checkFileExists(FileName):
+        xmlData = xml.etree.ElementTree.Element('node')
+        xmlData.set('order', str(Index))
+        xmlData.set('type', "filter")
+        xml.etree.ElementTree.SubElement(xmlData, "label").text = "0-9"
+        xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
 
-        #index.xml
-        FileName = os.path.join(FolderPath, "index.xml")
+        if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
+            xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
+        else:
+            xml.etree.ElementTree.SubElement(xmlData, "content").text = View['MediaType']
 
-        if not xbmcvfs.exists(FileName):
-            xmlData = xml.etree.ElementTree.Element('node')
-            xmlData.set('order', '0')
-            xmlData.set('type', "folder")
-            xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-            xml.etree.ElementTree.SubElement(xmlData, 'icon').text = self.EmbyServer.Utils.translatePath(node[2])
-            self.EmbyServer.Utils.indent(xmlData, 0)
-            self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
+        xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
+        xmlRule.text = View['Tag']
 
-        #0-9.xml
-        FileName = os.path.join(FolderPath, "0-9.xml")
-
-        if not xbmcvfs.exists(FileName):
-            xmlData = xml.etree.ElementTree.Element('node')
-            xmlData.set('order', str(Index))
-            xmlData.set('type', "filter")
-            xml.etree.ElementTree.SubElement(xmlData, "label").text = "0-9"
-            xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
-
-            if View['Media'] == "music":
-                xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
-            else:
-                xml.etree.ElementTree.SubElement(xmlData, "content").text = View['Media']
-
-            xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
-            xmlRule.text = View['Tag']
-
-            if View['Media'] == "music":
-                xmlRule.set('field', "disambiguation")
-            else:
-                xmlRule.set('field', "tag")
-
+        if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+            xmlRule.set('field', "disambiguation")
+            xmlRule.set('operator', "contains")
+        else:
+            xmlRule.set('field', "tag")
             xmlRule.set('operator', "is")
-            xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
 
-            if View['Media'] == "music":
-                xmlRule.set('field', "artist")
-            else:
-                xmlRule.set('field', "sorttitle")
+        xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
 
-            xmlRule.set('operator', "startswith")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "0"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "1"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "2"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "3"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "4"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "5"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "6"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("&")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ä")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ö")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("Ü")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("!")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("(")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(")")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("@")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("#")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("$")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("^")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("*")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("-")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("=")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("+")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("{")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("}")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("[")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("]")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("?")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(":")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(";")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("'")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(",")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(".")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("<")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode(">")
-            xml.etree.ElementTree.SubElement(xmlRule, "value").text = self.EmbyServer.Utils.StringDecode("~")
-            xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
-            self.EmbyServer.Utils.indent(xmlData, 0)
-            self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FileName)
+        if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
+            xmlRule.set('field', "artist")
+        else:
+            xmlRule.set('field', "sorttitle")
 
-            #Alphabetically
-            FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+        xmlRule.set('operator', "startswith")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "0"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "1"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "2"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "3"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "4"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "5"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "6"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("&")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ä")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ö")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("Ü")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("!")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("(")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(")")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("@")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("#")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("$")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("^")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("*")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("-")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("=")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("+")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("{")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("}")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("[")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("]")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("?")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(":")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(";")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("'")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(",")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(".")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("<")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode(">")
+        xml.etree.ElementTree.SubElement(xmlRule, "value").text = utils.StringDecode("~")
+        xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
+        xmls.WriteXmlFile(FileName, xmlData)
 
-            for FileName in FileNames:
-                Index += 1
-                FilePath = os.path.join(FolderPath, "%s.xml" % FileName)
+        # Alphabetically
+        FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-                if not xbmcvfs.exists(FilePath):
-                    xmlData = xml.etree.ElementTree.Element('node')
-                    xmlData.set('order', str(Index))
-                    xmlData.set('type', "filter")
-                    xml.etree.ElementTree.SubElement(xmlData, "label").text = FileName
-                    xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
+        for FileName in FileNames:
+            Index += 1
+            FilePath = "%s%s" % (FolderPath, "%s.xml" % FileName)
 
-                    if View['Media'] == "music":
-                        xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
-                    else:
-                        xml.etree.ElementTree.SubElement(xmlData, "content").text = View['Media']
+            if not utils.checkFileExists(FilePath):
+                xmlData = xml.etree.ElementTree.Element('node')
+                xmlData.set('order', str(Index))
+                xmlData.set('type', "filter")
+                xml.etree.ElementTree.SubElement(xmlData, "label").text = FileName
+                xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
 
-                    xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
-                    xmlRule.text = View['Tag']
+                if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
+                    xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
+                else:
+                    xml.etree.ElementTree.SubElement(xmlData, "content").text = View['MediaType']
 
-                    if View['Media'] == "music":
-                        xmlRule.set('field', "disambiguation")
-                    else:
-                        xmlRule.set('field', "tag")
+                xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
+                xmlRule.text = View['Tag']
 
+                if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+                    xmlRule.set('field', "disambiguation")
+                    xmlRule.set('operator', "contains")
+                else:
+                    xmlRule.set('field', "tag")
                     xmlRule.set('operator', "is")
-                    xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
-                    xmlRule.text = FileName
 
-                    if View['Media'] == "music":
-                        xmlRule.set('field', "artist")
-                    else:
-                        xmlRule.set('field', "sorttitle")
+                xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
+                xmlRule.text = FileName
 
-                    xmlRule.set('operator', "startswith")
-                    xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
-                    self.EmbyServer.Utils.indent(xmlData, 0)
-                    self.EmbyServer.Utils.write_xml(xml.etree.ElementTree.tostring(xmlData, 'UTF-8'), FilePath)
+                if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
+                    xmlRule.set('field', "artist")
+                else:
+                    xmlRule.set('field', "sorttitle")
 
-    def delete_playlist(self, path):
-        xbmcvfs.delete(path)
-        self.LOG.info("DELETE playlist %s" % path)
+                xmlRule.set('operator', "startswith")
+                xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
+                xmls.WriteXmlFile(FilePath, xmlData)
 
-    #Remove all emby playlists
-    def delete_playlists(self):
-        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
-        _, files = xbmcvfs.listdir(path)
-
-        for filename in files:
-            if filename.startswith('emby'):
-                self.delete_playlist(os.path.join(path, filename))
-
-    #Remove playlist based based on view_id
-    def delete_playlist_by_id(self, view_id):
-        path = self.EmbyServer.Utils.translatePath("special://profile/playlists/video/")
-        _, files = xbmcvfs.listdir(path)
-
-        for filename in files:
-            if filename.startswith('emby') and filename.endswith('%s.xsp' % view_id):
-                self.delete_playlist(os.path.join(path, filename))
-
-    def delete_node(self, path):
-        xbmcvfs.delete(path)
-        self.LOG.info("DELETE node %s" % path)
-
-    #Remove node and children files
-    def delete_nodes(self):
-        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
-        dirs, files = xbmcvfs.listdir(path)
-
-        for filename in files:
-            if filename.startswith('emby'):
-                self.delete_node(os.path.join(path, filename))
-
-        for directory in dirs:
-            if directory.startswith('emby'):
-                _, files = xbmcvfs.listdir(os.path.join(path, directory))
-
-                for filename in files:
-                    self.delete_node(os.path.join(path, directory, filename))
-
-                xbmcvfs.rmdir(os.path.join(path, directory))
-
-    def delete_node_by_id(self, view_id):
-        path = self.EmbyServer.Utils.translatePath("special://profile/library/video/")
-        dirs, files = xbmcvfs.listdir(path)
-
-        for directory in dirs:
-            if directory.startswith('emby') and directory.endswith(view_id):
-                _, files = xbmcvfs.listdir(os.path.join(path, directory))
-
-                for filename in files:
-                    self.delete_node(os.path.join(path, directory, filename))
-
-                xbmcvfs.rmdir(os.path.join(path, directory))
-
-    #Nodes
-    def node_all(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "sorttitle":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
-
-    def node_recentlyplayed(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "lastplayed":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
-
-    def node_directors(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "directors":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "directors"
-
-        for rule in root.findall('.//group'):
-            rule.text = "directors"
+def node_all(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "sorttitle":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "directors"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
 
-    def node_countries(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "countries":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "countries"
-
-        for rule in root.findall('.//group'):
-            rule.text = "countries"
+def node_recentlyplayed(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "lastplayed":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
 
-    def node_nextepisodes(self, root, LibraryName):
-        params = {
-            'libraryname': LibraryName,
-            'mode': "nextepisodes",
-            'limit': 25
-        }
-        path = "%s?%s" % ("plugin://plugin.video.emby-next-gen/", urlencode(params))
-
-        for rule in root.findall('.//path'):
-            rule.text = path
+def node_directors(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "directors":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'path').text = path
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "directors"
 
-        for rule in root.findall('.//content'):
-            rule.text = "episodes"
+    for rule in root.findall('.//group'):
+        rule.text = "directors"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "directors"
+
+def node_countries(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "countries":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'content').text = "episodes"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "countries"
 
-    def node_years(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "title":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+    for rule in root.findall('.//group'):
+        rule.text = "countries"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
 
-        for rule in root.findall('.//group'):
-            rule.text = "years"
+def node_nextepisodes(root, LibraryName):
+    path = "plugin://%s/?%s" % (utils.PluginId, urlencode({'libraryname': LibraryName, 'mode': "nextepisodes", 'limit': 25}))
+
+    for rule in root.findall('.//path'):
+        rule.text = path
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'path').text = path
+
+    for rule in root.findall('.//content'):
+        rule.text = "episodes"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'content').text = "episodes"
+
+def node_years(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "title":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "years"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
 
-    def node_actors(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "title":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+    for rule in root.findall('.//group'):
+        rule.text = "years"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "years"
 
-        for rule in root.findall('.//group'):
-            rule.text = "actors"
+def node_actors(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "title":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "actors"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
 
-    def node_artists(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "artists":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "artists"
+    for rule in root.findall('.//group'):
+        rule.text = "actors"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "actors"
 
-        for rule in root.findall('.//group'):
-            rule.text = "artists"
+def node_artists(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "artists":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "artists"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "artists"
 
-    def node_albums(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "albums":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "albums"
+    for rule in root.findall('.//group'):
+        rule.text = "artists"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "artists"
 
-        for rule in root.findall('.//group'):
-            rule.text = "albums"
+def node_albums(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "albums":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "albums"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "albums"
 
-    def node_studios(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "title":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+    for rule in root.findall('.//group'):
+        rule.text = "albums"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "albums"
 
-        for rule in root.findall('.//group'):
-            rule.text = "studios"
+def node_studios(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "title":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "studios"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
 
-    def node_tags(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "title":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
+    for rule in root.findall('.//group'):
+        rule.text = "studios"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "studios"
 
-        for rule in root.findall('.//group'):
-            rule.text = "tags"
+def node_resolutionsd(root):
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'videoresolution':
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "tags"
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "lessthan"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "1080"
 
-    def node_recentlyadded(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "dateadded":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
-
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_resolutionhd(root):
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'videoresolution':
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "1080"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
-
-    def node_inprogress(self, root):
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'inprogress':
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
-
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_resolution4k(root):
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'videoresolution':
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "greaterthan"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "1080"
 
-    def node_genres(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "sorttitle":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
-
-        for rule in root.findall('.//group'):
-            rule.text = "genres"
+def node_tags(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "title":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "genres"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "title"
 
-    def node_unwatched(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "sorttitle":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
+    for rule in root.findall('.//group'):
+        rule.text = "tags"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "tags"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
-
-    def node_unwatchedepisodes(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "sorttitle":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
-
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
-
-        content = root.find('content')
-        content.text = "episodes"
-
-    def node_sets(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "sorttitle":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
-
-        for rule in root.findall('.//group'):
-            rule.text = "sets"
+def node_recentlyadded(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "dateadded":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'group').text = "sets"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
 
-    def node_random(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "random":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
 
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
 
-    def node_recommended(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "rating":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "rating"
-
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_inprogress(root):
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'inprogress':
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'rating':
-                rule.find('value').text = "7"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "rating", 'operator': "greaterthan"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "7"
-
-    def node_recentlyepisodes(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "dateadded":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
-
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_genres(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "sorttitle":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
+    for rule in root.findall('.//group'):
+        rule.text = "genres"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "genres"
 
-        content = root.find('content')
-        content.text = "episodes"
-
-    def node_inprogressepisodes(self, root):
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_unwatched(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "sorttitle":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'inprogress':
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator':"true"})
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
-
-        content = root.find('content')
-        content.text = "episodes"
-
-    def node_favepisodes(self, root, path):
-        for rule in root.findall('.//path'):
-            rule.text = path
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'path').text = path
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
 
-        for rule in root.findall('.//content'):
-            rule.text = "episodes"
+def node_unwatchedepisodes(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "sorttitle":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'content').text = "episodes"
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
 
-    def node_randomalbums(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "random":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
-
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
 
-    def node_randomsongs(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "random":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
+    content = root.find('content')
+    content.text = "episodes"
 
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_sets(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "sorttitle":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "sorttitle"
 
-    def node_recentlyaddedsongs(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "dateadded":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+    for rule in root.findall('.//group'):
+        rule.text = "sets"
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'group').text = "sets"
 
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_random(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "random":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
 
-    def node_recentlyaddedalbums(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "dateadded":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
 
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+def node_recommended(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "rating":
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "rating"
 
-    def node_recentlyaddedepisodes(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "dateadded":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
 
-        for rule in root.findall('.//limit'):
-            rule.text = str(self.limit)
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
             break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'limit').text = str(self.limit)
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
 
-        for rule in root.findall('.//rule'):
-            if rule.attrib['field'] == 'playcount':
-                rule.find('value').text = "0"
-                break
-        else:
-            rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
-            xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'rating':
+            rule.find('value').text = "7"
+            break
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "rating", 'operator': "greaterthan"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "7"
 
-    def node_recentlyplayedepisode(self, root):
-        for rule in root.findall('.//order'):
-            if rule.text == "lastplayed":
-                break
-        else:
-            xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
+def node_recentlyepisodes(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "dateadded":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
+            break
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
+
+    content = root.find('content')
+    content.text = "episodes"
+
+def node_inprogressepisodes(root):
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'inprogress':
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"
+
+    content = root.find('content')
+    content.text = "episodes"
+
+def node_randomalbums(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "random":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+def node_randomsongs(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "random":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "ascending"}).text = "random"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+def node_recentlyaddedsongs(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "dateadded":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+def node_recentlyaddedalbums(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "dateadded":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+def node_recentlyaddedepisodes(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "dateadded":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "dateadded"
+
+    for rule in root.findall('.//limit'):
+        rule.text = str(limit)
+        break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'limit').text = str(limit)
+
+    for rule in root.findall('.//rule'):
+        if rule.attrib['field'] == 'playcount':
+            rule.find('value').text = "0"
+            break
+    else:
+        rule = xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"})
+        xml.etree.ElementTree.SubElement(rule, 'value').text = "0"
+
+def node_recentlyplayedepisode(root):
+    for rule in root.findall('.//order'):
+        if rule.text == "lastplayed":
+            break
+    else:
+        xml.etree.ElementTree.SubElement(root, 'order', {'direction': "descending"}).text = "lastplayed"

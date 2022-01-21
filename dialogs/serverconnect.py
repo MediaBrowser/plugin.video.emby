@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import xbmc
 import xbmcgui
-
-import helper.utils
-import helper.loghandler
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -18,12 +16,12 @@ MESSAGE = 203
 BUSY = 204
 EMBY_CONNECT = 205
 MANUAL_SERVER = 206
+LOG = loghandler.LOG('EMBY.dialogs.serverconnect')
+
 
 class ServerConnect(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self.user_image = None
-        self.servers = []
-        self.Utils = helper.utils.Utils()
         self._selected_server = None
         self._connect_login = False
         self._manual_server = False
@@ -31,19 +29,17 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         self.message_box = None
         self.busy = None
         self.list_ = None
-        self.LOG = helper.loghandler.LOG('EMBY.dialogs.serverconnect.ServerConnect')
+        self.connect_manager = None
+        self.emby_connect = None
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    #connect_manager, user_image, servers, emby_connect
-    def set_args(self, **kwargs):
-        for key, value in list(kwargs.items()):
-            setattr(self, key, value)
+    def PassVar(self, connect_manager, user_image, emby_connect):
+        self.connect_manager = connect_manager
+        self.user_image = user_image
+        self.emby_connect = emby_connect
 
     def is_server_selected(self):
         return bool(self._selected_server)
-
-    def get_server(self):
-        return self._selected_server
 
     def is_connect_login(self):
         return self._connect_login
@@ -57,35 +53,33 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         self.busy = self.getControl(BUSY)
         self.list_ = self.getControl(LIST)
 
-        for server in self.servers:
+        for server in self.connect_manager.Found_Servers:
+            if 'Name' not in server:
+                continue
+
             server_type = "wifi" if server.get('ExchangeToken') else "network"
-            self.list_.addItem(self._add_listitem(server['Name'], server['Id'], server_type))
+            self.list_.addItem(add_listitem(server['Name'], server['Id'], server_type))
 
         if self.user_image is not None:
             self.getControl(USER_IMAGE).setImage(self.user_image)
 
-        if not self.emby_connect: # Change connect user
-            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % self.Utils.Translate(30618))
+        if not self.emby_connect:  # Change connect user
+            self.getControl(EMBY_CONNECT).setLabel("[B]%s[/B]" % utils.Translate(30618))
 
-        if self.servers:
+        if self.connect_manager.Found_Servers:
             self.setFocus(self.list_)
 
-    def _add_listitem(self, label, server_id, server_type):
-        item = xbmcgui.ListItem(label)
-        item.setProperty('id', server_id)
-        item.setProperty('server_type', server_type)
-        return item
-
     def onAction(self, action):
-        if action in (ACTION_BACK, ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):
+        if action in (ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):
             self.close()
 
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
             if self.getFocusId() == LIST:
                 server = self.list_.getSelectedItem()
-                self.LOG.info('Server Id selected: %s' % server.getProperty('id'))
+                LOG.info('Server Id selected: %s' % server.getProperty('id'))
+                Server_Selected_Id = server.getProperty('id')
 
-                if self._connect_server():
+                if self._connect_server(Server_Selected_Id):
                     self.message_box.setVisibleCondition('false')
                     self.close()
 
@@ -100,18 +94,37 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
         elif control == CANCEL:
             self.close()
 
-    def _connect_server(self):
-        server = self.connect_manager.get_server_info()
-        self.message.setLabel("%s %s..." % (self.Utils.Translate(30610), server['Name']))
-        self.message_box.setVisibleCondition('true')
-        self.busy.setVisibleCondition('true')
-        result = self.connect_manager.connect_to_server(server, {})
+    def _connect_server(self, Server_Selected_Id):
+        for server in self.connect_manager.Found_Servers:
+            if server['Id'] == Server_Selected_Id:
+                if self.connect_manager.EmbyServer.ServerData:
+                    server['ConnectAccessToken'] = self.connect_manager.EmbyServer.ServerData['ConnectAccessToken']
+                    server['ConnectUserId'] = self.connect_manager.EmbyServer.ServerData['ConnectUserId']
+                    server['ConnectUser'] = self.connect_manager.EmbyServer.ServerData['ConnectUser']
 
-        if result['State'] == 0: #Unavailable
-            self.busy.setVisibleCondition('false')
-            self.message.setLabel(self.Utils.Translate(30609))
-            return False
+                self.connect_manager.EmbyServer.ServerData = server
+                self.message.setLabel("%s %s..." % (utils.Translate(30610), server['Name']))
+                self.message_box.setVisibleCondition('true')
+                self.busy.setVisibleCondition('true')
+                result = self.connect_manager.connect_to_server()
 
-        xbmc.sleep(1000)
-        self._selected_server = result['Servers'][0]
-        return True
+                if not result:  # Unavailable
+                    self.busy.setVisibleCondition('false')
+                    self.message.setLabel(utils.Translate(30609))
+                    return False
+
+                if result['State'] == 0:  # Unavailable
+                    self.busy.setVisibleCondition('false')
+                    self.message.setLabel(utils.Translate(30609))
+                    return False
+
+                self._selected_server = result['Servers'][0]
+                return True
+
+        return False
+
+def add_listitem(label, server_id, server_type):
+    item = xbmcgui.ListItem(label)
+    item.setProperty('id', server_id)
+    item.setProperty('server_type', server_type)
+    return item
