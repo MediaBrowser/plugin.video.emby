@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 import xbmcgui
-import emby.core.connection_manager
-import helper.utils
-import helper.translate
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -12,14 +10,14 @@ CONNECT = 200
 CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
-ERROR = {
-    'Invalid': 1,
-    'Empty': 2
-}
+ERROR = {'Invalid': 1, 'Empty': 2}
+LOG = loghandler.LOG('EMBY.dialogs.servermanual')
+
 
 class ServerManual(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self._server = None
+        self.connect_manager = None
         self.error = None
         self.connect_button = None
         self.cancel_button = None
@@ -27,14 +25,10 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self.error_msg = None
         self.host_field = None
         self.port_field = None
-        self.LOG = logging.getLogger("EMBY.dialogs.servermanual.ServerManual")
-        self.Utils = helper.utils.Utils()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    #connect_manager, user_image, servers, emby_connect
-    def set_args(self, **kwargs):
-        for key, value in list(kwargs.items()):
-            setattr(self, key, value)
+    def PassVar(self, connect_manager):
+        self.connect_manager = connect_manager
 
     def is_connected(self):
         return bool(self._server)
@@ -67,12 +61,12 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
             if not server:
                 # Display error
-                self._error(ERROR['Empty'], helper.translate._('empty_server'))
-                self.LOG.error("Server cannot be null")
+                self._error(ERROR['Empty'], utils.Translate(30617))
+                LOG.error("Server cannot be null")
 
             elif self._connect_to_server(server, port):
                 self.close()
-        #Remind me later
+        # Remind me later
         elif control == CANCEL:
             self.close()
 
@@ -84,7 +78,6 @@ class ServerManual(xbmcgui.WindowXMLDialog):
             self.close()
 
     def _add_editcontrol(self, x, y, height, width):
-#        media = os.path.join(xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
         control.setPosition(x, y)
         control.setHeight(height)
@@ -94,11 +87,14 @@ class ServerManual(xbmcgui.WindowXMLDialog):
 
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
-        self._message("%s %s..." % (helper.translate._(30610), server_address))
-        result = self.connect_manager['manual-server'](server_address)
+        self._message("%s %s..." % (utils.Translate(30610), server_address))
+        result = self.connect_manager.connect_to_address(server_address)
 
-        if result['State'] == emby.core.connection_manager.CONNECTION_STATE['Unavailable']:
-            self._message(helper.translate._(30609))
+        if not result:
+            return False
+
+        if result['State'] == 0:  # Unavailable
+            self._message(utils.Translate(30609))
             return False
 
         self._server = result['Servers'][0]

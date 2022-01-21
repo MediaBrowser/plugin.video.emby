@@ -1,850 +1,738 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
 import threading
-import uuid
-
-try: #python 2
-    import imp
-except: #python 3
-    import importlib as imp
-
+import socket
+import xml.etree.ElementTree
+import requests
 import xbmc
 import xbmcgui
-import helper.api
-import helper.utils
-import helper.translate
-import database.database
-import database.library
-import emby.main
-import emby.connect
-import emby.views
-import hooks.webservice
-import core.listitem
+import xbmcplugin
+from helper import loghandler
+from helper import context
+from helper import pluginmenu
+from helper import utils
+from helper import playerops
+from helper import xmls
+from database import dbio
+from emby import emby
+from . import webservice
 from . import player
 
-try:
-    import queue as Queue
-except ImportError:
-    import Queue
+if utils.Python3:
+    from urllib.parse import quote_plus
+else:
+    from urllib import quote_plus
+
+LOG = loghandler.LOG('EMBY.hooks.monitor')
+
 
 class Monitor(xbmc.Monitor):
     def __init__(self):
-        self.LOG = logging.getLogger("EMBY.hooks.monitor.Monitor")
-        self.sleep = False
-        self.library = None
-        self.servers = []
-        self.Utils = helper.utils.Utils()
-        self.device_id = self.Utils.get_device_id()
-        self.ServerIP = None
-        self.ServerToken = None
-        self.Server = None
-        self.DeviceID = None
-        self.connect = emby.connect.Connect(self.Utils)
-        self.auth_check = True
-        self.warn = False
-        self.ProgressThread = None
         self.WebServiceThread = None
-        self.log_level = self.Utils.settings('logLevel') or "1"
-        self.WebserviceOnPlayThread = None
-        self.WebserviceEventOut = Queue.Queue()
-        self.WebserviceEventIn = Queue.Queue()
-        self.player = player.PlayerEvents(monitor=self)
-        self.server = []
-        self.Service = None
-        self.ItemSkipUpdate = []
-        self.ItemSkipUpdateAfterStop = []
-        self.ItemSkipUpdateReset = False
-        self.PlaySessionIdLast = ""
-        self.PlaySessionId = ""
-        self.MediasourceID = ""
-        self.Trailer = False
-        self.PlayerReloadIndex = "-1"
-        self.PlayerLastItem = ""
-        self.PlayerLastItemID = "-1"
-
-        self.PlayWebsocketPreviousCommand = "" #Propably an issue from Emby Server -> Same command send twice
-        xbmc.Monitor.__init__(self)
-
-    def Monitor_waitForAbort(self, Data):
-        self.waitForAbort(Data)
-
-    def LibraryStop(self):
-        if self.library is not None:
-            self.library.stop_client()
-            self.library = None
-
-    def Register(self):
-        self.connect.register()
-
-    def LibraryLoad(self):
-        if self.library is None:
-            self.library = database.library.Library(self.Utils)
-
-    #Retrieve the Emby server.
-    def _get_server(self, method, data):
-        try:
-            if not data.get('ServerId'):
-                raise Exception("ServerId undefined.")
-
-            if method != 'LoadServer' and data['ServerId'] not in self.servers:
-                try:
-                    self.connect.register(data['ServerId'])
-                    self.server_instance(data['ServerId'])
-                except Exception as error:
-                    self.LOG.error(error)
-                    self.Utils.dialog("ok", heading="{emby}", line1=helper.translate._(33142))
-                    return
-
-            server = emby.main.Emby(data['ServerId']).get_client()
-        except Exception:
-            server = emby.main.Emby().get_client()
-
-        return server
-
-    def onScanStarted(self, library):
-        self.LOG.info("-->[ kodi scan/%s ]", library)
-
-    def onScanFinished(self, library):
-        self.LOG.info("--<[ kodi scan/%s ]", library)
-
-    def onSettingsChanged(self):
-        new_thread = MonitorWorker(self, None, "settingschanged", None, None, self.device_id)
-        new_thread.start()
-
-    def onNotification(self, sender, method, data):
-        if sender.lower() not in ('plugin.video.emby-next-gen', 'xbmc', 'upnextprovider.signal'):
-            return
-
-        if self.sleep:
-            self.LOG.info("System.OnSleep detected, ignore monitor request.")
-            return
-
-        server = self._get_server(method, data)
-        new_thread = MonitorWorker(self, sender, method, data, server)
-        new_thread.start()
-
-    def server_instance(self, server_id=None):
-        server = emby.main.Emby(server_id).get_client()
-        self.post_capabilities(server)
-
-        if server_id is not None:
-            self.servers.append(server_id)
-        elif self.Utils.settings('addUsers'):
-            users = self.Utils.settings('addUsers').split(',')
-            hidden = None if self.Utils.settings('addUsersHidden.bool') else False
-            all_users = server['api'].get_users(hidden=hidden)
-
-            for additional in users:
-                for user in all_users:
-                    if user['Id'] == additional:
-                        server['api'].session_add_user(server['config/app.session'], user['Id'])
-
-            self.additional_users(server)
-
-        self.Utils.event('ServerOnline', {'ServerId': server_id})
-
-    def post_capabilities(self, server):
-        self.LOG.info("--[ post capabilities/%s ]", server['auth/server-id'])
-        server['api'].post_capabilities({
-            'PlayableMediaTypes': "Audio,Video",
-            'SupportsMediaControl': True,
-            'SupportedCommands': (
-                "MoveUp,MoveDown,MoveLeft,MoveRight,Select,"
-                "Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,"
-                "GoHome,PageUp,NextLetter,GoToSearch,"
-                "GoToSettings,PageDown,PreviousLetter,TakeScreenshot,"
-                "VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,"
-                "SetAudioStreamIndex,SetSubtitleStreamIndex,"
-                "SetRepeatMode,"
-                "Mute,Unmute,SetVolume,"
-                "Play,Playstate,PlayNext,PlayMediaSource"
-            ),
-            'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
-        })
-
-        session = server['api'].get_device(self.device_id)
-        server['config']['app.session'] = session[0]['Id']
-
-    def additional_users(self, server):
-        for i in range(10):
-            self.Utils.window('EmbyAdditionalUserImage.%s' % i, clear=True)
-
-        try:
-            session = server['api'].get_device(self.device_id)
-        except Exception as error:
-            self.LOG.error(error)
-            return
-
-        for index, user in enumerate(session[0]['AdditionalUsers']):
-            info = server['api'].get_user(user['UserId'])
-            image = helper.api.API(info, self.Utils, server['config/auth.server']).get_user_artwork(user['UserId'])
-            self.Utils.window('EmbyAdditionalUserImage.%s' % index, image)
-            self.Utils.window('EmbyAdditionalUserPosition.%s' % user['UserId'], str(index))
-
-    #Emby playstate updates.
-    def Playstate(self, server, data):
-        command = data['Command']
-        actions = {
-            'Stop': self.player.stop,
-            'Unpause': self.player.pause,
-            'Pause': self.player.pause,
-            'PlayPause': self.player.pause,
-            'NextTrack': self.player.playnext,
-            'PreviousTrack': self.player.playprevious
-        }
-
-        if command == 'Seek':
-            if self.player.isPlaying():
-                seektime = data['SeekPositionTicks'] / 10000000.0
-                self.player.seekTime(seektime)
-                self.LOG.info("[ seek/%s ]", seektime)
-        elif command in actions:
-            actions[command]()
-            self.LOG.info("[ command/%s ]", command)
-
-    #General commands from Emby to control the Kodi interface.
-    def GeneralCommand(self, server, data):
-        command = data['Name']
-        args = data['Arguments']
-
-        if command in ('Mute', 'Unmute', 'SetVolume', 'SetSubtitleStreamIndex', 'SetAudioStreamIndex', 'SetRepeatMode'):
-            if command == 'Mute':
-                xbmc.executebuiltin('Mute')
-            elif command == 'Unmute':
-                xbmc.executebuiltin('Mute')
-            elif command == 'SetVolume':
-                xbmc.executebuiltin('SetVolume(%s[,showvolumebar])' % args['Volume'])
-            elif command == 'SetRepeatMode':
-                xbmc.executebuiltin('xbmc.PlayerControl(%s)' % args['RepeatMode'])
-#            elif command == 'SetAudioStreamIndex':
-#                self.player.set_audio_subs(args['Index'])
-#            elif command == 'SetSubtitleStreamIndex':
-#                self.player.set_audio_subs(None, args['Index'])
-
-            self.player.report_playback()
-        elif command == 'DisplayMessage':
-            self.Utils.dialog("notification", heading=args['Header'], message=args['Text'], icon="{emby}", time=int(self.Utils.settings('displayMessage')) * 1000)
-        elif command == 'SendString':
-            helper.utils.JSONRPC('Input.SendText').execute({'text': args['String'], 'done': False})
-        elif command == 'GoHome':
-            helper.utils.JSONRPC('GUI.ActivateWindow').execute({'window': "home"})
-        elif command == 'Guide':
-            helper.utils.JSONRPC('GUI.ActivateWindow').execute({'window': "tvguide"})
-        elif command in ('MoveUp', 'MoveDown', 'MoveRight', 'MoveLeft'):
-            actions = {
-                'MoveUp': "Input.Up",
-                'MoveDown': "Input.Down",
-                'MoveRight': "Input.Right",
-                'MoveLeft': "Input.Left"
-            }
-
-            helper.utils.JSONRPC(actions[command]).execute()
-        else:
-            builtin = {
-                'ToggleFullscreen': 'Action(FullScreen)',
-                'ToggleOsdMen': 'Action(OSD)',
-                'ToggleContextMen': 'Action(ContextMenu)',
-                'Select': 'Action(Select)',
-                'Back': 'Action(back)',
-                'PageUp': 'Action(PageUp)',
-                'NextLetter': 'Action(NextLetter)',
-                'GoToSearch': 'VideoLibrary.Search',
-                'GoToSettings': 'ActivateWindow(Settings)',
-                'PageDown': 'Action(PageDown)',
-                'PreviousLetter': 'Action(PrevLetter)',
-                'TakeScreenshot': 'TakeScreenshot',
-                'ToggleMute': 'Mute',
-                'VolumeUp': 'Action(VolumeUp)',
-                'VolumeDown': 'Action(VolumeDown)'
-            }
-
-            if command in builtin:
-                xbmc.executebuiltin(builtin[command])
-
-    def LoadServer(self, server, data):
-        self.server_instance(data['ServerId'])
-
-        if not data['ServerId']:
-            self.Utils.window('emby.server.state.json', server.get_state())
-        else:
-            self.Utils.window('emby.server.%s.state.json' % data['ServerId'], server.get_state())
-            current = self.Utils.window('emby.server.states.json') or []
-            current.append(data['ServerId'])
-            self.Utils.window('emby.server.states.json', current)
-
-    def StopServer(self, server, data):
-        if not data['ServerId']:
-            self.Utils.window('emby.server.state', clear=True)
-        else:
-            self.Utils.window('emby.server.%s.state' % data['ServerId'], clear=True)
-            current = self.Utils.window('emby.server.states.json')
-            current.pop(current.index(data['ServerId']))
-            self.Utils.window('emby.server.states.json', current)
-
-    def Player_OnAVChange(self, *args, **kwargs):
-        self.ReportProgressRequested(*args, **kwargs)
-
-    def ReportProgressRequested(self, server, data):
-        if not self.Trailer:
-            self.player.report_playback()
-
-    def Player_OnStop(self, server, data):
-        if self.ProgressThread:
-            self.ProgressThread.Stop()
-            self.ProgressThread = None
-
-        server['api'].close_transcode(self.device_id)
-        self.Utils.window('emby.sync.pause.bool', clear=True)
-
-    def Player_OnPlay(self, server, data):
-        self.Utils.window('emby.sync.pause.bool', True)
-        current_file = self.player.get_playing_file()
-
-        if not "id" in data['item']:
-            if 'title' in data['item']:
-                DynamicItemId = self.Utils.window('emby_DynamicItem_' + current_file)
-
-                if not DynamicItemId:
-                    return
-            else:
-                return
-
-        if self.ProgressThread:
-            self.ProgressThread.Stop()
-            self.ProgressThread = None
-
-        if not self.Trailer:
-            CurrentItem = None
-
-            if current_file:
-                if not "id" in data['item']:
-                    CurrentItem = dict([
-                        ('Type', data['item']['type']),
-                        ('Id', DynamicItemId),
-                        ('Path', current_file),
-                        ('MediaSourceId', self.MediasourceID),
-                        ('ServerId', None),
-                        ('Server', server),
-                        ('Paused', False),
-                        ('PlaySessionId', self.PlaySessionId),
-                        ('RunTime', -1),
-                        ('CurrentPosition', -1),
-                        ('DeviceId', self.Utils.window('emby_deviceId'))
-                    ])
-                else:
-                    kodi_id = data['item']['id']
-                    media_type = data['item']['type']
-                    item = database.database.get_item(kodi_id, media_type)
-
-                    if item:
-                        CurrentItem = dict([
-                            ('Type', media_type),
-                            ('Id', item[0]),
-                            ('Path', current_file),
-                            ('MediaSourceId', self.MediasourceID),
-                            ('ServerId', None),
-                            ('Server', server),
-                            ('Paused', False),
-                            ('PlaySessionId', self.PlaySessionId),
-                            ('RunTime', -1),
-                            ('CurrentPosition', -1),
-                            ('DeviceId', self.Utils.window('emby_deviceId'))
-                        ])
-
-                if CurrentItem: #else native Kodi
-                    #native mode
-                    if not "127.0.0.1" in current_file:
-                        CurrentItem['PlaySessionId'] = str(uuid.uuid4()).replace("-", "")
-                    else:
-                        if self.PlaySessionIdLast == CurrentItem['PlaySessionId']:
-                            for i in range(60):
-                                xbmc.sleep(500)
-
-                                if self.PlaySessionIdLast != self.PlaySessionId:
-                                    break
-
-                            CurrentItem['PlaySessionId'] = self.PlaySessionId
-                            CurrentItem['MediaSourceId'] = self.MediasourceID
-
-                    self.PlaySessionIdLast = CurrentItem['PlaySessionId']
-                    self.player.set_item(CurrentItem)
-
-                    if not self.ProgressThread:
-                        self.ProgressThread = player.ProgressUpdates(self.player)
-                        self.ProgressThread.start()
-
-    def AddPlaylistItem(self, Position, EmbyID, server, Offset=0):
-        Data = database.database.get_kodiID(str(EmbyID))
-
-        if Data: #Requested video is synced to KodiDB. No additional info required
-            if Data[0][1] == "audio":
-                playlistID = 0
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-            else:
-                playlistID = 1
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-
-            Pos = self.GetPlaylistPos(Position, playlist, Offset)
-            helper.utils.JSONRPC('Playlist.Insert').execute({'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}})
-        else:
-            listitems = core.listitem.ListItem(server['auth/server-address'], self.Utils)
-            item = server['api'].get_item(EmbyID)
-            li = xbmcgui.ListItem()
-            li = listitems.set(item, li, None, False, None)
-            path = ""
-
-            if item['Type'] == "MusicVideo":
-                Type = "musicvideo"
-            elif item['Type'] == "Movie":
-                Type = "movie"
-            elif item['Type'] == "Episode":
-                Type = "tvshow"
-            elif item['Type'] == "Audio":
-                Type = "audio"
-            elif item['Type'] == "Video":
-                Type = "video"
-            elif item['Type'] == "Trailer":
-                Type = "trailer"
-            elif item['Type'] == "TvChannel":
-                Type = "tvchannel"
-                path = "http://127.0.0.1:57578/livetv/%s-stream.ts" % item['Id']
-            else:
-                return
-
-            if not path:
-                if 'MediaSources' in item:
-                    FilenameURL = self.Utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
-
-                    if len(item['MediaSources'][0]['MediaStreams']) >= 1:
-                        path = "http://127.0.0.1:57578/%s/%s-%s-%s-stream-%s" % (Type, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], FilenameURL)
-                    else:
-                        path = "http://127.0.0.1:57578/%s/%s-%s-stream-%s" % (Type, item['Id'], item['MediaSources'][0]['Id'], FilenameURL)
-
-            li.setProperty('path', path)
-
-            if Type == "audio":
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-            else:
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-
-            Pos = self.GetPlaylistPos(Position, playlist, Offset)
-            self.Utils.window('emby_DynamicItem_' + path, item['Id'])
-            playlist.add(path, li, index=Pos)
-
-        return playlist
-
-    def GetPlaylistPos(self, Position, playlist, Offset):
-        if Position == "current":
-            Pos = playlist.getposition()
-
-            if Pos == -1:
-                Pos = 0
-
-            Pos = Pos + Offset
-        elif Position == "previous":
-            Pos = playlist.getposition()
-
-            if Pos == -1:
-                Pos = 0
-        elif Position == "last":
-            Pos = playlist.size()
-        else:
-            Pos = Position
-
-        return Pos
-
-    #Websocket command from Emby server
-    def Play(self, server, data):
-        if self.PlayWebsocketPreviousCommand == data:
-            return
-
-        self.PlayWebsocketPreviousCommand = data
-        FirstItem = True
-        Offset = 0
-
-        for ID in data['ItemIds']:
-            Offset += 1
-
-            if data["PlayCommand"] == "PlayNow":
-                playlist = self.AddPlaylistItem("current", ID, server, Offset)
-            elif data["PlayCommand"] == "PlayNext":
-                playlist = self.AddPlaylistItem("current", ID, server, Offset)
-
-            elif data["PlayCommand"] == "PlayLast":
-                playlist = self.AddPlaylistItem("last", ID, server)
-
-            #Play Item
-            if data["PlayCommand"] == "PlayNow":
-                if "StartIndex" in data:
-                    if Offset == int(data["StartIndex"] + 1):
-                        if FirstItem:
-                            Pos = playlist.getposition()
-
-                            if Pos == -1:
-                                Pos = 0
-
-                            xbmc.Player().play(item=playlist, startpos=Pos + Offset)
-
-                            if "StartPositionTicks" in data:
-                                xbmc.Player().seekTime(int(data["StartPositionTicks"]) / 100000)
-
-                            Offset = 0
-                            FirstItem = False
-                else:
-                    if FirstItem:
-                        Pos = playlist.getposition()
-
-                        if Pos == -1:
-                            Pos = 0
-
-                        xbmc.Player().play(item=playlist, startpos=Pos + Offset)
-
-                        if "StartPositionTicks" in data:
-                            xbmc.Player().seekTime(int(data["StartPositionTicks"]) / 100000)
-
-                        Offset = 0
-                        FirstItem = False
-
-    def Playlist_OnClear(self, server, data):
-        self.player.played = {}
-
-    def ServerConnect(self, server, data):
-        self.connect.register(data['Id'])
-        xbmc.executebuiltin("Container.Refresh")
-
-    def EmbyConnect(self, server, data):
-        self.connect.setup_login_connect()
-
-    def RemoveServer(self, server, data):
-        self.connect.remove_server(data['Id'])
-        xbmc.executebuiltin("Container.Refresh")
-
-    def UserDataChanged(self, server, data):
-        if not self.library and data.get('ServerId') or not self.library.started:
-            return
-
-        if data.get('UserId') != emby.main.Emby()['auth/user-id']:
-            return
-
-        self.LOG.info("[ UserDataChanged ] %s", data)
-        UpdateData = []
-
-        for ItemData in data['UserDataList']:
-            if not ItemData['ItemId'] in self.ItemSkipUpdate: #Check EmbyID
-                item = database.database.get_Presentationkey(ItemData['ItemId'])
-
-                if item:
-                    PresentationKey = item.split("-")
-
-                    if not PresentationKey[0] in self.ItemSkipUpdate: #Check PresentationKey
-                        UpdateData.append(ItemData)
-                    else:
-                        self.LOG.info("[ skip update/%s ]", ItemData['ItemId'])
-                else:
-                    UpdateData.append(ItemData)
-            else:
-                self.LOG.info("[ skip update/%s ]", ItemData['ItemId'])
-
-        if UpdateData:
-            self.library.userdata(UpdateData)
-
-        if self.ItemSkipUpdateReset:
-            self.ItemSkipUpdateReset = False
-            self.ItemSkipUpdate = []
-            self.LOG.info("[ skip reset ]")
-
-    def LibraryChanged(self, server, data):
-        if data.get('ServerId') or not self.library.started:
-            return
-
-        self.LOG.info("[ LibraryChanged ] %s", data)
-        self.library.updated(data['ItemsUpdated'] + data['ItemsAdded'])
-        self.library.removed(data['ItemsRemoved'])
-        self.library.delay_verify(data.get('ItemsVerify', []))
-
-    def WebSocketRestarting(self, server, data):
-        if self.library:
-            try:
-                self.library.get_fast_sync()
-            except Exception as error:
-                self.LOG.error(error)
-
-    def SyncLibrarySelection(self, server, data):
-        self.library.select_libraries("SyncLibrarySelection")
-
-    def RepairLibrarySelection(self, server, data):
-        self.library.select_libraries("RepairLibrarySelection")
-
-    def AddLibrarySelection(self, server, data):
-        self.library.select_libraries("AddLibrarySelection")
-
-    def RemoveLibrarySelection(self, server, data):
-        self.library.select_libraries("RemoveLibrarySelection")
-
-    def ServerUnreachable(self, server, data):
-        if self.warn or data.get('ServerId'):
-            self.warn = data.get('ServerId') is not None
-            self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33146) if data.get('ServerId') is None else helper.translate._(33149), icon=xbmcgui.NOTIFICATION_ERROR)
-
-        if data.get('ServerId') is None:
-            self.Service.Server(20)
-
-    def ServerShuttingDown(self, server, data):
-        if self.warn or data.get('ServerId'):
-            self.warn = data.get('ServerId') is not None
-            self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33146) if data.get('ServerId') is None else helper.translate._(33149), icon=xbmcgui.NOTIFICATION_ERROR)
-
-        if data.get('ServerId') is None:
-            self.Service.Server(20)
-
-    def ServiceHandle(self, Handle):
-        self.Service = Handle
-
-    def UserConfigurationUpdated(self, server, data):
-        if data.get('ServerId') is None:
-            emby.views.Views(self.Utils).get_views()
-
-    def UserPolicyUpdated(self, server, data):
-        if data.get('ServerId') is None:
-            emby.views.Views(self.Utils).get_views()
-
-    def SyncLibrary(self, server, data):
-        if not data.get('Id'):
-            return
-
-        self.library.add_library(data['Id'], data.get('Update', False))
-
-    def RepairLibrary(self, server, data):
-        if not data.get('Id'):
-            return
-
-        libraries = data['Id'].split(',')
-
-        for lib in libraries:
-            self.library.remove_library(lib)
-
-        self.library.add_library(data['Id'])
-
-    def RemoveLibrary(self, server, data):
-        libraries = data['Id'].split(',')
-
-        for lib in libraries:
-            self.library.remove_library(lib)
-
-    def GUI_OnScreensaverDeactivated(self, server, data):
-        self.LOG.info("--<[ screensaver ]")
-        xbmc.sleep(5000)
-
-        if self.library is not None:
-            self.library.get_fast_sync()
-
-    def PatchMusic(self, server, data):
-        self.library.patch_music(data.get('Notification', True))
-
-    def Unauthorized(self, server, data):
-        self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33147) if data['ServerId'] is None else helper.translate._(33148), icon=xbmcgui.NOTIFICATION_ERROR)
-
-        if data.get('ServerId') is None and self.auth_check:
-            self.auth_check = False
-            self.Service.Server(120)
-
-    def System_OnQuit(self, server, data):
-        self.Server = None
-        server['api'].close_transcode(self.device_id)
-        self.Utils.window('emby_should_stop.bool', True)
-        self.Service.running = False
-
-    def Other_ServerRestarting(self, server, data):
-        self.Server = None
-
-        if data.get('ServerId'):
-            return
-
-        if self.Utils.settings('restartMsg.bool'):
-            self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33006), icon="{emby}")
-
-        self.Service.Server(20)
-
-    def WebserviceUpdateInfo(self, server):
-        if self.ServerIP:
-            try:
-                if server: #Restart Webservice
-                    self.Server = server
-
-                    if self.WebserviceOnPlayThread:
-                        self.WebserviceOnPlayThread.Stop()
-                        self.WebserviceOnPlayThread.join()
-                        self.WebserviceOnPlayThread = None
-
-                    self.WebserviceOnPlayThread = player.WebserviceOnPlay(self, server)
-                    self.WebserviceOnPlayThread.start()
-
-                    if self.WebServiceThread:
-                        self.WebServiceThread.stop()
-                        self.WebServiceThread.join()
-                        self.WebServiceThread = None
-
-                    self.WebServiceThread = hooks.webservice.WebService(self.WebserviceEventOut, self.WebserviceEventIn, self.ServerIP, self.ServerToken)
-                    self.WebServiceThread.start()
-            except:
-                self.LOG.info("[ WebserviceUpdateInfo -> No Connection ]")
-        else:
-            self.LOG.info("[ WebserviceUpdateInfo -> No Info ]")
-
-    def QuitThreads(self):
-        if self.WebserviceOnPlayThread:
-            self.WebserviceOnPlayThread.Stop()
-            self.WebserviceOnPlayThread.join()
-            self.WebserviceOnPlayThread = None
-
-        if self.ProgressThread:
-            self.ProgressThread.Stop()
-            self.ProgressThread.join()
-            self.ProgressThread = None
-
+        self.sleep = False
+        self.EmbyServers = {}
+        self.player = player.PlayerEvents()
+        self.player.StartUp(self.EmbyServers)
+        self.WebserviceStart()
+        self.Context = context.Context(self.EmbyServers)
+        self.Menu = pluginmenu.Menu(self.EmbyServers, self.player)
+        self.QueryDataThread = threading.Thread(target=self.QueryData)
+        self.QueryDataThread.start()
+        self.QueueItemsStatusupdate = ()
+        self.QueryItemStatusThread = None
+        self.QueueItemsRemove = ()
+        self.QueryItemRemoveThread = None
+
+    def WebserviceStart(self):
         if self.WebServiceThread:
-            self.WebServiceThread.stop()
+            self.WebServiceThread.close()
             self.WebServiceThread.join()
             self.WebServiceThread = None
 
-    def AddServer(self, server, data):
-        self.connect.setup_manual_server()
-        xbmc.executebuiltin("Container.Refresh")
+        self.WebServiceThread = webservice.WebService(self.player)
+        self.WebServiceThread.start()
 
-    def UpdateServer(self, server, data):
-        self.Utils.dialog("ok", heading="{emby}", line1=helper.translate._(33151))
-        self.connect.setup_manual_server()
+    # List loading from events.py
+    def QueryData(self):
+        QuerySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        QuerySocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        QuerySocket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        QuerySocket.settimeout(None)
+        QuerySocket.bind(('127.0.0.1', 60001))
+        QuerySocket.listen(50)
 
-    def SetServerSSL(self, server, data):
-        self.connect.set_ssl(data['Id'])
+        while True:
+            client, _ = QuerySocket.accept()
+            Incomming = client.recv(1024).decode('utf-8')
 
-    def settingschanged(self, server, data):
-        imp.reload(helper.utils)
-        self.Utils = helper.utils.Utils()
+            if Incomming == "QUIT":
+                QuerySocket.close()
+                return
 
-        if self.Utils.window('emby_should_stop.bool'):
+            threading.Thread(target=self.QueryDataExcecute, args=(Incomming, client,)).start()
+
+    def QueryDataExcecute(self, Incomming, client):  # threaded by caller
+        Data = Incomming.split(";")
+
+        if Data[0] == 'browse':
+            self.Menu.browse(Data[7], Data[1], Data[2], Data[3], Data[4], Data[5], Data[6])
+        elif Data[0] == 'nextepisodes':
+            get_next_episodes(Data[3], Data[1])
+        elif Data[0] == 'favepisodes':
+            self.Menu.favepisodes(Data[3])
+        elif Data[0] == 'listing':
+            self.Menu.listing(Data[3])
+
+        client.send(b"1")
+
+    def onNotification(self, sender, method, data):
+         # Skip unsupported notifications -> e.g. "Playlist.OnAdd" floats threading! -> Never let that happen
+        if method == 'VideoLibrary.OnUpdate':  # Buffer updated items -> not overloading threads
+            self.QueueItemsStatusupdate += (data,)
+
+            if not self.QueryItemStatusThread:
+                self.QueryItemStatusThread = threading.Thread(target=self.VideoLibrary_OnUpdate)
+                self.QueryItemStatusThread.start()
+        elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
+            if utils.enableDeleteByKodiEvent:
+                self.QueueItemsRemove += (data,)
+
+                if not self.QueryItemRemoveThread:
+                    self.QueryItemRemoveThread = threading.Thread(target=self.VideoLibrary_OnRemove)
+                    self.QueryItemRemoveThread.start()
+        elif method in ('Other.managelibsselection', 'Other.delete', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.databasereset', 'Other.texturecache', 'Other.context', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
+            threading.Thread(target=self.Notification, args=(method, data,)).start()
+
+    def Notification(self, method, data):  # threaded by caller
+        if method == 'Other.managelibsselection':
+            self.Menu.select_managelibs()
+        elif method == 'Other.delete':
+            self.Context.delete_item(True)
+        elif method == 'Other.settings':
+            xbmc.executebuiltin('Addon.OpenSettings(%s)' % utils.PluginId)
+        elif method == 'Other.backup':
+            Backup()
+        elif method == 'Other.restore':
+            BackupRestore()
+        elif method == 'Other.reset_device_id':
+            reset_device_id()
+        elif method == 'Other.addserver':
+            self.ServerConnect(None)
+        elif method == 'Other.adduserselection':
+            self.Menu.select_adduser()
+        elif method == 'Other.databasereset':
+            databasereset()
+        elif method == 'Other.texturecache':
+            if not utils.artworkcacheenable:
+                utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33226), sound=False)
+            else:
+                cache_textures()
+        elif method == 'Other.context':
+            self.Context.select_menu()
+        elif method == 'System.OnWake':
+            self.System_OnWake()
+        elif method == 'System.OnSleep':
+            self.System_OnSleep()
+        elif method == 'System.OnQuit':
+            self.System_OnQuit()
+        elif method == 'Application.OnVolumeChanged':
+            self.player.SETVolume(data)
+        elif method == 'Other.play':
+            data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
+            playerops.Play((data[1],), "PlayNow", -1, -1, self.EmbyServers[data[0]])
+
+    def EmbyServer_ReconnectAll(self):
+        for EmbyServer in list(self.EmbyServers.values()):
+            EmbyServer.ServerReconnect()
+
+    def EmbyServer_DisconnectAll(self):
+        for EmbyServer in list(self.EmbyServers.values()):
+            EmbyServer.stop()
+
+    def onScanStarted(self, library):
+        utils.KodiDBLock[library] = True
+        LOG.info("-->[ kodi scan/%s ]" % library)
+
+    def onScanFinished(self, library):
+        utils.KodiDBLock[library] = False
+        LOG.info("--<[ kodi scan/%s ]" % library)
+
+    def ServerConnect(self, ServerSettings):
+        EmbyServerObj = emby.EmbyServer(self.UserDataChanged, ServerSettings)
+        server_id, EmbyServer = EmbyServerObj.register()
+
+        if not server_id or server_id == 'cancel' or utils.SystemShutdown:
+            LOG.error("EmbyServer Connect error")
             return
 
-        self.DeviceID = self.Utils.get_device_id()
-        self.WebserviceUpdateInfo(self.Server)
+        # disconnect previous Emby server instance on manual reconnect to the same Emby server
+        if server_id in self.EmbyServers:
+            LOG.info("Close previous instance after reconnection to same Emby server")
+            self.EmbyServers[server_id].stop()
 
-    def Application_OnVolumeChanged(self, server, data):
-        self.player.SETVolume(data['volume'], data['muted'])
+        self.EmbyServers[server_id] = EmbyServer
 
-    def System_OnWake(self, server=None, data=None):
+        if self.WebServiceThread:
+            self.WebServiceThread.Update_EmbyServers(self.EmbyServers)
+
+    # Update progress, skip for seasons and series. Just update episodes
+    def UserDataChanged(self, server_id, UserDataList, UserId):
+        if UserId != self.EmbyServers[server_id].user_id:
+            return
+
+        LOG.info("[ UserDataChanged ] %s" % UserDataList)
+        UpdateData = []
+        embydb = dbio.DBOpen(server_id)
+
+        for ItemData in UserDataList:
+            if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
+                e_item = embydb.get_item_by_id(ItemData['ItemId'])
+
+                if e_item:
+                    if e_item[5] in ("Season", "Series"):
+                        LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
+                    else:
+                        UpdateData.append(ItemData)
+                else:
+                    LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
+            else:
+                LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
+                self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
+
+        dbio.DBClose(server_id, False)
+
+        if UpdateData:
+            self.EmbyServers[server_id].library.userdata(UpdateData)
+
+    def System_OnQuit(self):
+        LOG.warning("---<[ EXITING ]")
+        utils.SyncPause = True
+        utils.SystemShutdown = True
+        self.QuitThreads()
+
+        for EmbyServer in list(self.EmbyServers.values()):
+            if self.player.Transcoding:
+                EmbyServer.API.close_transcode()
+
+        self.EmbyServer_DisconnectAll()
+
+    def QuitThreads(self):
+        if self.WebServiceThread:
+            self.WebServiceThread.close()
+            self.WebServiceThread.join()
+            self.WebServiceThread = None
+
+        if self.QueryDataThread:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            try:
+                sock.connect(('127.0.0.1', 60001))
+                sock.settimeout(1)
+                request = "QUIT"
+                sock.send(request.encode())
+            except:
+                pass
+
+            self.QueryDataThread.join()
+            self.QueryDataThread = None
+
+    def onSettingsChanged(self):
+        threading.Thread(target=self.settingschanged).start()
+
+    def settingschanged(self):  # threaded by caller
+        if utils.SkipUpdateSettings:
+            utils.SkipUpdateSettings -= 1
+            utils.SkipUpdateSettings = max(utils.SkipUpdateSettings, 0)
+
+        if utils.SkipUpdateSettings:
+            return
+
+        LOG.info("[ Reload settings ]")
+        syncdatePrevious = utils.syncdate
+        synctimePrevious = utils.synctime
+        xspplaylistsPreviousValue = utils.xspplaylists
+        compatibilitymodePreviousValue = utils.compatibilitymode
+        utils.InitSettings()
+
+        if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
+            LOG.info("[ Trigger initsync due to setting changed ]")
+            SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)
+            SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
+
+            for EmbyServer in list(self.EmbyServers.values()):
+                EmbyServer.library.set_syncdate(SyncTimestamp)
+                threading.Thread(target=EmbyServer.library.InitSync, args=(False,)).start()  # start initial sync
+
+        for EmbyServer in list(self.EmbyServers.values()):
+            EmbyServer.API.update_settings()
+
+        # Toggle xsp playlists
+        if xspplaylistsPreviousValue != utils.xspplaylists:
+            if utils.xspplaylists:
+                for EmbyServer in list(self.EmbyServers.values()):
+                    EmbyServer.Views.update_nodes()
+            else:
+                # delete playlists
+                for playlistfolder in ['special://profile/playlists/video/', 'special://profile/playlists/music/']:
+                    if utils.checkFolderExists(playlistfolder):
+                        _, files = utils.listDir(playlistfolder)
+
+                        for Filename in files:
+                            utils.delFile("%s%s" % (playlistfolder, Filename))
+
+        # Toggle compatibility mode
+        if compatibilitymodePreviousValue != utils.compatibilitymode:
+            if utils.compatibilitymode:
+                PluginID = "plugin.video.emby"
+                PluginIDPrevious = "plugin.video.emby-next-gen"
+            else:
+                PluginID = "plugin.video.emby-next-gen"
+                PluginIDPrevious = "plugin.video.emby"
+
+            PatchFiles = {"script-emby-connect-login-manual.xml", "script-emby-connect-login.xml", "script-emby-connect-server.xml", "script-emby-connect-server-manual.xml", "script-emby-connect-users.xml"}
+
+            # update script files
+            for PatchFile in PatchFiles:
+                FileName = "special://home/addons/plugin.video.emby-next-gen/resources/skins/default/1080i/%s" % PatchFile
+                xmlData = utils.readFileString(FileName)
+                xmlData = xml.etree.ElementTree.fromstring(xmlData)
+
+                for elem in xmlData.iter():
+                    if elem.tag == 'label':
+                        if elem.text.find(PluginIDPrevious) != -1:
+                            elem.text = elem.text.replace(PluginIDPrevious, PluginID)
+
+                xmls.WriteXmlFile(FileName, xmlData)
+
+            # update addon.xml id
+            xmlData = utils.readFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml")
+            xmlData = xml.etree.ElementTree.fromstring(xmlData)
+            xmlData.attrib['id'] = PluginID
+            xmls.WriteXmlFile("special://home/addons/plugin.video.emby-next-gen/addon.xml", xmlData)
+
+            # rename settings folder
+            utils.delFolder("special://profile/addon_data/%s/" % PluginID)
+            utils.renameFolder("special://profile/addon_data/%s/" % PluginIDPrevious, "special://profile/addon_data/%s/" % PluginID)
+
+            # Restart App
+            xbmc.executebuiltin('RestartApp')
+
+    def System_OnWake(self):
         if not self.sleep:
-            self.LOG.warning("System.OnSleep was never called, skip System.OnWake")
+            LOG.warning("System.OnSleep was never called, skip System.OnWake")
             return
 
-        xbmc.sleep(5000)
-        self.LOG.info("--<[ sleep ]")
-        self.Utils.window('emby_sleep.bool', False)
+        LOG.info("--<[ sleep ]")
         self.sleep = False
-        self.Utils.window('emby_should_stop', clear=True)
-        self.Service.Server()
+        self.EmbyServer_ReconnectAll()
+        self.QueryDataThread = threading.Thread(target=self.QueryData)
+        self.QueryDataThread.start()
+        self.WebserviceStart()
+        self.WebServiceThread.Update_EmbyServers(self.EmbyServers)
+        utils.SyncPause = False
 
-    def System_OnSleep(self, server, data):
-        self.LOG.info("-->[ sleep ]")
-        self.Utils.window('emby_sleep.bool', True)
-        self.Utils.window('emby_should_stop.bool', True)
-        self.Service.Server(close=True)
-        emby.main.Emby().close_all()
-        self.server = []
+    def System_OnSleep(self):
+        LOG.info("-->[ sleep ]")
+        utils.SyncPause = True
+        self.QuitThreads()
         self.sleep = True
 
-    def ServerOnline(self, server, data):
-        self.LOG.info("[ Server Online ]")
+    # Remove Items
+    def VideoLibrary_OnRemove(self):
+        xbmc.sleep(1000)
+        RemoveItems = self.QueueItemsRemove
+        self.QueueItemsRemove = ()
+        self.QueryItemRemoveThread = None
 
-        if data.get('ServerId') is None:
-            self.Utils.window('emby_online.bool', True)
-            self.ServerIP = server['auth/server-address']
-            self.ServerToken = server['auth/token']
-            self.DeviceID = self.Utils.get_device_id()
-            self.WebserviceUpdateInfo(server)
+        if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33264)):
+            for RemoveItem in RemoveItems:
+                data = json.loads(RemoveItem)
+                item = None
+                kodi_fileId = None
+                server_id = None
 
-            if self.Utils.window('emby_reloadskin.bool'):
-                xbmc.executebuiltin('ReloadSkin()')
+                if 'item' in data:
+                    kodi_id = data['item']['id']
+                    media = data['item']['type']
+                else:
+                    kodi_id = data['id']
+                    media = data['type']
 
-            xbmc.sleep(1000) #Give Kodi a second for skin reload
-            self.auth_check = True
-            self.warn = True
+                if media in ("tvshow", "season"):
+                    continue
 
-            if self.Utils.settings('connectMsg.bool'):
-                users = emby.main.Emby()['api'].get_device(self.Utils.window('emby_deviceId'))[0]['AdditionalUsers']
-                users = [user['UserName'] for user in users]
-                users.insert(0, self.Utils.settings('username'))
-                self.Utils.dialog("notification", heading="{emby}", message="%s %s" % (helper.translate._(33000), ", ".join(users)), icon="{emby}", time=1500, sound=False)
+                for server_id in self.EmbyServers:
+                    embydb = dbio.DBOpen(server_id)
+                    item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                    dbio.DBClose(server_id, False)
 
-    def AddSkipItem(self, ID):
-        self.ItemSkipUpdate.append(ID)
-        self.ItemSkipUpdateAfterStop.append(ID)
+                    if item:
+                        break
 
-    def SetSkipItemAfterStop(self):
-        self.ItemSkipUpdate = self.ItemSkipUpdateAfterStop
-        self.ItemSkipUpdateReset = True
+                if not item:
+                    return
 
-    #Mark as watched/unwatched updates
-    def VideoLibrary_OnUpdate(self, server, data):
-        if 'item' in data:
-            if 'playcount' in data:
+                self.EmbyServers[server_id].API.delete_item(item[0])
+
+    # Mark as watched/unwatched updates
+    def VideoLibrary_OnUpdate(self):
+        xbmc.sleep(1000)
+        UpdateItems = self.QueueItemsStatusupdate
+        self.QueueItemsStatusupdate = ()
+        self.QueryItemStatusThread = None
+
+        for UpdateItem in UpdateItems:
+            data = json.loads(UpdateItem)
+            item = None
+            kodi_fileId = None
+            server_id = None
+
+            if 'item' in data:
                 kodi_id = data['item']['id']
                 media = data['item']['type']
-                item = database.database.get_item_complete(kodi_id, media)
+            else:
+                kodi_id = data['id']
+                media = data['type']
+
+            for server_id in self.EmbyServers:
+                embydb = dbio.DBOpen(server_id)
+                item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                dbio.DBClose(server_id, False)
 
                 if item:
-                    if media in ("tvshow"): #Search for all items in TVShow and update them
-                        PresentationKey = item[10].split("-")
-                        items = database.database.get_ItemsByPresentationkey(PresentationKey[0])
+                    kodi_fileId = item[5]
+                    break
 
-                        for item2 in items:
-                            self.ItemSkipUpdate.append(item2[0])
-                            server['api'].item_played(item2[0], bool(data['playcount']))
-
-                        return
-
-                    self.ItemSkipUpdate.append(item[0])
-                    server['api'].item_played(item[0], bool(data['playcount']))
-
-            self.ItemSkipUpdateReset = True
-
-#Thread the monitor so that we can do whatever we need without blocking onNotification.
-class MonitorWorker(threading.Thread):
-    def __init__(self, monitor=None, sender=None, method=None, data=None, server=None, device_id=None):
-        self.sender = sender
-        self.method = method
-        self.data = data
-        self.server = server
-        self.monitor = monitor
-        self.device_id = device_id
-        self.Utils = helper.utils.Utils()
-        self.LOG = logging.getLogger("EMBY.hooks.monitor.MonitorWorker")
-        threading.Thread.__init__(self)
-
-    def run(self):
-        if self.method in ('System.OnWake', 'System.OnSleep', 'Unauthorized', 'System.OnQuit', 'Other.ServerRestarting', 'settingschanged'):
-            self.data = {}
-        elif self.sender == 'plugin.video.emby-next-gen':
-            self.method = self.method.split('.')[1]
-
-            if self.method not in ('ReportProgressRequested', 'LoadServer', 'Play', 'Playstate', 'GeneralCommand', 'StopServer', 'RegisterServer', 'ServerOnline', 'ServerConnect', 'EmbyConnect', 'AddServer', 'RemoveServer', 'UpdateServer', 'SetServerSSL', 'UserDataChanged', 'LibraryChanged', 'WebSocketRestarting', 'SyncLibrarySelection', 'RepairLibrarySelection', 'AddLibrarySelection', 'RemoveLibrarySelection', 'SyncLibrary', 'RepairLibrary', 'RemoveLibrary', 'GUI.OnScreensaverDeactivated', 'PatchMusic', 'UserConfigurationUpdated', 'UserPolicyUpdated', 'ServerUnreachable', 'ServerShuttingDown'):
+            if not item:
                 return
 
-            self.data = json.loads(self.data)[0]
-        elif self.sender.startswith('upnextprovider'):
-            self.method = self.method.split('.')[1]
+            if 'item' in data and 'playcount' in data:
+                if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                    if media in ("tvshow", "season"):
+                        LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
+                        continue
 
-            if self.method != 'plugin.video.emby-next-gen_play_action':
-                return
+                    LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
+                    self.EmbyServers[server_id].API.item_played(item[0], bool(data['playcount']))
+                else:
+                    LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
+            else:
+                videodb = dbio.DBOpen("video")
+                BookmarkItem = videodb.get_bookmark(kodi_fileId)
+                FileItem = videodb.get_files(kodi_fileId)
+                dbio.DBClose("video", False)
 
-            self.method = "Play"
-            self.data = json.loads(self.data)
-        else:
-            if self.method not in ('Player.OnPlay', 'Player.OnStop', 'VideoLibrary.OnUpdate', 'Player.OnAVChange', 'Playlist.OnClear', 'Application.OnVolumeChanged'):
-                return
+                if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                    if not BookmarkItem:
+                        LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
+                        self.EmbyServers[server_id].API.set_progress(item[0], 0, FileItem[3], FileItem[4])
+                else:
+                    self.player.ItemSkipUpdate.remove(str(item[0]))
+                    LOG.debug("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
-            self.data = json.loads(self.data)
+def BackupRestore():
+    RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
+    MinVersionPath = "%s%s" % (RestoreFolder, 'minimumversion.txt')
 
-        self.data['MonitorMethod'] = self.method
-        func = getattr(self.monitor, self.method.replace('.', '_'))
-        func(self.server, self.data)
+    if not utils.checkFileExists(MinVersionPath):
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33224), sound=False)
+        return
+
+    BackupVersion = utils.readFileString(MinVersionPath)
+
+    if BackupVersion != utils.MinimumVersion:
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33225), sound=False)
+        return
+
+    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+    _, files = utils.listDir(utils.FolderAddonUserdata)
+
+    for Filename in files:
+        utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
+
+    # delete database
+    _, files = utils.listDir("special://profile/Database/")
+
+    for Filename in files:
+        if Filename.startswith('emby') or Filename.startswith('My') or Filename.startswith('Textures'):
+            utils.delFile("special://profile/Database/%s" % Filename)
+
+    utils.delete_playlists()
+    utils.delete_nodes()
+    RestoreFolderAddonData = "%s/addon_data/%s/" % (RestoreFolder, utils.PluginId)
+    utils.copytree(RestoreFolderAddonData, utils.FolderAddonUserdata)
+    RestoreFolderDatabase = "%s/Database/" % RestoreFolder
+    utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
+    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+    xbmc.executebuiltin('RestartApp')
+
+# This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
+def cache_textures():
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    xbmc.executebuiltin('activatewindow(home)')
+    LOG.info("<[ cache textures ]")
+    EnableWebserver = False
+    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
+    webServerEnabled = (result['result']['value'] or False)
+
+    if not webServerEnabled:
+        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33227)):
+            return
+
+        EnableWebserver = True
+
+    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverpassword"}}'))
+
+    if not result['result']['value']:  # set password, cause mandatory in Kodi 19
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserverpassword", "value": "kodi"}}')
+        webServerPass = 'kodi'
+        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33228))
+    else:
+        webServerPass = str(result['result']['value'])
+
+    if EnableWebserver:
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserver", "value": True}}')
+        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
+        webServerEnabled = (result['result']['value'] or False)
+
+    if not webServerEnabled:  # check if webserver is now enabled
+        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33103))
+        return
+
+    utils.set_settings_bool('artworkcacheenable', False)
+    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverport"}}'))
+    webServerPort = str(result['result']['value'] or "")
+    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverusername"}}'))
+    webServerUser = str(result['result']['value'] or "")
+    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverssl"}}'))
+    webServerSSL = (result['result']['value'] or False)
+
+    if webServerSSL:
+        webServerUrl = "https://127.0.0.1:%s" % webServerPort
+    else:
+        webServerUrl = "http://127.0.0.1:%s" % webServerPort
+
+    if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33044)):
+        LOG.info("[ delete all thumbnails ]")
+
+        if utils.checkFolderExists('special://thumbnails/'):
+            dirs, _ = utils.listDir('special://thumbnails/')
+
+            for directory in dirs:
+                _, files = utils.listDir('special://thumbnails/%s' % directory)
+
+                for Filename in files:
+                    cached = 'special://thumbnails/%s%s' % (directory, Filename)
+                    utils.delFile(cached)
+                    LOG.debug("DELETE cached %s" % cached)
+
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
+
+    # Select content to be cached
+    choices = [utils.Translate(33121), utils.Translate(33257), utils.Translate(33258)]
+    selection = utils.dialog("multi", utils.Translate(33256), choices)
+    CacheMusic = False
+    CacheVideo = False
+    selection = selection[0]
+
+    if selection == 0:
+        CacheMusic = True
+        CacheVideo = True
+    elif selection == 1:
+        CacheVideo = True
+    elif selection == 2:
+        CacheMusic = True
+
+    if CacheVideo:
+        videodb = dbio.DBOpen("video")
+        urls = videodb.common_db.get_urls()
+        dbio.DBClose("video", False)
+        CacheAllEntries(webServerUrl, urls, "video", webServerUser, webServerPass)
+
+    if CacheMusic:
+        musicdb = dbio.DBOpen("music")
+        urls = musicdb.common_db.get_urls()
+        dbio.DBClose("music", False)
+        CacheAllEntries(webServerUrl, urls, "music", webServerUser, webServerPass)
+
+    utils.set_settings_bool('artworkcacheenable', True)
+
+# Cache all entries
+def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
+    progress_updates = xbmcgui.DialogProgressBG()
+    progress_updates.create("Emby", utils.Translate(33045))
+    total = len(urls)
+
+    with requests.Session() as session:
+        session.verify = False
+
+        for index, url in enumerate(urls):
+            Value = int((float(float(index)) / float(total)) * 100)
+            progress_updates.update(Value, message="%s: %s / %s" % (utils.Translate(33045), Label, index))
+
+            if utils.SystemShutdown:
+                break
+
+            if url[0]:
+                url = quote_plus(url[0])
+                url = quote_plus(url)
+                UrlSend = "%s/image/image://%s" % (webServerUrl, url)
+
+                try:
+                    session.head(UrlSend, auth=(webServerUser, webServerPass))
+                except:
+                    LOG.warning("Artwork caching interrupted. %s / %s" % (Label, UrlSend))
+                    break
+
+    progress_updates.close()
+
+# Reset both the emby database and the kodi database.
+def databasereset():
+    if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
+        return
+
+    LOG.warning("[ reset kodi ]")
+    utils.SyncPause = True
+    DeleteTextureCache = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
+    DeleteSettings = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33087))
+    xbmc.executebuiltin('Dialog.Close(addonsettings)')
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    xbmc.executebuiltin('activatewindow(home)')
+    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+    videodb = dbio.DBOpen("video")
+    videodb.common_db.delete_tables("Video")
+    dbio.DBClose("video", True)
+    musicdb = dbio.DBOpen("music")
+    musicdb.common_db.delete_tables("Music")
+    dbio.DBClose("music", True)
+
+    if DeleteTextureCache:
+        utils.DeleteThumbnails()
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
+
+    if DeleteSettings:
+        LOG.info("[ reset settings ]")
+        utils.set_settings("MinimumSetup", "")
+        utils.delFolder(utils.FolderAddonUserdata)
+    else:
+        _, files = utils.listDir(utils.FolderAddonUserdata)
+
+        for Filename in files:
+            if Filename.startswith('sync_'):
+                utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
+
+    # Delete Kodi's emby database(s)
+    _, files = utils.listDir("special://profile/Database/")
+
+    for Filename in files:
+        if Filename.startswith('emby'):
+            utils.delFile("%s%s" % ("special://profile/Database/", Filename))
+
+    utils.delete_playlists()
+    utils.delete_nodes()
+    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33088))
+    xbmc.executebuiltin('RestartApp')
+
+def get_next_episodes(Handle, libraryname):
+    Handle = int(Handle)
+    params = {
+        'sort': {'order': 'descending', 'method': 'lastplayed'},
+        'filter': {
+            'and': [
+                {'operator': 'true', 'field': 'inprogress', 'value': ''},
+                {'operator': 'is', 'field': 'tag', 'value': '%s' % libraryname}
+            ]},
+        'properties': ['title', 'studio', 'mpaa', 'file', 'art']
+    }
+
+    result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetTVShows', 'params': params})))
+    items = result['result']['tvshows']
+    list_li = []
+
+    for item in items:
+        params = {
+            'tvshowid': item['tvshowid'],
+            'sort': {'method': "episode"},
+            'filter': {
+                'and': [
+                    {'operator': "lessthan", 'field': "playcount", 'value': "1"},
+                    {'operator': "greaterthan", 'field': "season", 'value': "0"}]
+            },
+            'properties': [
+                "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "streamdetails", "firstaired", "writer", "dateadded", "lastplayed", "originaltitle", "seasonid", "specialsortepisode", "specialsortseason", "userrating", "votes", "cast", "art", "uniqueid"
+            ],
+            'limits': {"end": 1}
+        }
+        result = json.loads(xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'VideoLibrary.GetEpisodes', 'params': params})))
+
+        if 'result' in result:
+            if 'episodes' in result['result']:
+                episodes = result['result']['episodes']
+
+                for episode in episodes:
+                    FilePath = episode["file"]
+                    li = utils.CreateListitem("episode", episode)
+                    list_li.append((FilePath, li, False))
+
+    xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
+    xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.setContent(Handle, 'episodes')
+    xbmcplugin.endOfDirectory(Handle)
+
+def reset_device_id():
+    utils.device_id = ""
+    utils.get_device_id(True)
+    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33033))
+    xbmc.executebuiltin('RestartApp')
+
+# Emby backup
+def Backup():
+    if not utils.backupPath:
+        utils.dialog("notification", heading=utils.addon_name, icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", message=utils.Translate(33229), sound=False)
+        return None
+
+    path = utils.backupPath
+    folder_name = "Kodi%s - %s-%s" % (xbmc.getInfoLabel('System.BuildVersion')[:2], xbmc.getInfoLabel('System.Date(yyyy-mm-dd)'), xbmc.getInfoLabel('System.Time(hh:mm:ss xx)'))
+    folder_name = utils.dialog("input", heading=utils.Translate(33089), defaultt=folder_name)
+
+    if not folder_name:
+        return None
+
+    backup = "%s%s/" % (path, folder_name)
+
+    if utils.checkFolderExists(backup):
+        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33090)):
+            return Backup()
+
+        utils.delFolder(backup)
+
+    destination_data = "%saddon_data/%s/" % (backup, utils.PluginId)
+    destination_databases = "%sDatabase/" % backup
+    utils.mkDir(backup)
+    utils.mkDir("%saddon_data/" % backup)
+    utils.mkDir(destination_data)
+    utils.mkDir(destination_databases)
+    utils.copytree(utils.FolderAddonUserdata, destination_data)
+    _, files = utils.listDir("special://profile/Database/")
+
+    for Temp in files:
+        if 'MyVideos' in Temp:
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            LOG.info("copied %s" % Temp)
+        elif 'emby' in Temp:
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            LOG.info("copied %s" % Temp)
+        elif 'MyMusic' in Temp:
+            utils.copyFile("special://profile/Database/%s" % Temp, "%s/%s" % (destination_databases, Temp))
+            LOG.info("copied %s" % Temp)
+
+    utils.writeFileString("%s%s" % (backup, 'minimumversion.txt'), utils.MinimumVersion)
+    LOG.info("backup completed")
+    utils.dialog("ok", heading=utils.addon_name, line1="%s %s" % (utils.Translate(33091), backup))
+    return None

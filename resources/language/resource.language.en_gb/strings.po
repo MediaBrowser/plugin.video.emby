@@ -251,7 +251,7 @@ msgid "Enable artwork caching"
 msgstr ""
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
+msgid "Paging - max items requested (default: 50)"
 msgstr ""
 
 msgctxt "#30516"
@@ -1056,4 +1056,188 @@ msgstr ""
 
 msgctxt "#33220"
 msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr ""
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr ""
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr ""
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr ""
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr ""
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr ""
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr ""
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr ""
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr ""
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr ""
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr ""
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr ""
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr ""
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr ""
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr ""
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr ""
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr ""
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr ""
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr ""
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr ""
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr ""
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
 msgstr ""

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 import xbmcgui
-import helper.utils
-import helper.translate
+from helper import loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -11,29 +10,25 @@ SIGN_IN = 200
 CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
-ERROR = {
-    'Invalid': 1,
-    'Empty': 2
-}
+ERROR = {'Invalid': 1, 'Empty': 2}
+LOG = loghandler.LOG('EMBY.dialogs.loginconnect')
+
 
 class LoginConnect(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self._user = None
         self.error = None
-        self.LOG = logging.getLogger("EMBY.dialogs.loginconnect.LoginConnect")
-        self.Utils = helper.utils.Utils()
         self.user_field = None
         self.password_field = None
         self.signin_button = None
         self.remind_button = None
         self.error_toggle = None
         self.error_msg = None
+        self.connect_manager = None
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
-    def set_args(self, **kwargs):
-        # connect_manager, user_image, servers, emby_connect
-        for key, value in list(kwargs.items()):
-            setattr(self, key, value)
+    def PassVar(self, connect_manager):
+        self.connect_manager = connect_manager
 
     def is_logged_in(self):
         return bool(self._user)
@@ -42,9 +37,9 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         return self._user
 
     def onInit(self):
-        self.user_field = self._add_editcontrol(755, 338, 40, 415)
+        self.user_field = self._add_editcontrol(755, 338, 40, 415, False)
         self.setFocus(self.user_field)
-        self.password_field = self._add_editcontrol(755, 448, 40, 415, password=1)
+        self.password_field = self._add_editcontrol(755, 448, 40, 415, True)
         self.signin_button = self.getControl(SIGN_IN)
         self.remind_button = self.getControl(CANCEL)
         self.error_toggle = self.getControl(ERROR_TOGGLE)
@@ -65,8 +60,8 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
             if not user or not password:
                 # Display error
-                self._error(ERROR['Empty'], helper.translate._('empty_user_pass'))
-                self.LOG.error("Username or password cannot be null")
+                self._error(ERROR['Empty'], utils.Translate(30608))
+                LOG.error("Username or password cannot be null")
             elif self._login(user, password):
                 self.close()
         elif control == CANCEL:
@@ -74,35 +69,34 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
             self.close()
 
     def onAction(self, action):
-        if (self.error == ERROR['Empty']
-                and self.user_field.getText() and self.password_field.getText()):
+        if self.error == ERROR['Empty'] and self.user_field.getText() and self.password_field.getText():
             self._disable_error()
 
         if action in (ACTION_BACK, ACTION_PARENT_DIR, ACTION_PREVIOUS_MENU):
             self.close()
 
-    def _add_editcontrol(self, x, y, height, width, password=0):
-#        media = os.path.join(xbmcaddon.Addon(self.Utils.addon_id()).getAddonInfo('path'), 'resources', 'skins', 'default', 'media')
-        #####control = xbmcgui.ControlEdit(0, 0, 0, 0, label="User", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-", isPassword=password)
+    def _add_editcontrol(self, x, y, height, width, password):
         control = xbmcgui.ControlEdit(0, 0, 0, 0, label="", font="font13", textColor="FF52b54b", disabledColor="FF888888", focusTexture="-", noFocusTexture="-")
         control.setPosition(x, y)
         control.setHeight(height)
         control.setWidth(width)
         self.addControl(control)
+
+        if password:
+            control.setType(xbmcgui.INPUT_TYPE_PASSWORD, "Please enter password")
+
         return control
 
     def _login(self, username, password):
-        result = self.connect_manager['login-connect'](username, password)
+        result = self.connect_manager.login_to_connect(username, password)
 
-        if result is False:
-            self._error(ERROR['Invalid'], helper.translate._('invalid_auth'))
+        if not result:
+            self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
         self._user = result
         username = result['User']['Name']
-        self.Utils.settings('connectUsername', value=username)
-        self.Utils.settings('idMethod', value="1")
-        self.Utils.dialog("notification", heading="{emby}", message="%s %s" % (helper.translate._(33000), self.Utils.StringMod(username)), icon=result['User'].get('ImageUrl') or "{emby}", time=2000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), utils.StringDecode(username)), icon=result['User'].get('ImageUrl') or "special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=2000, sound=False)
         return True
 
     def _error(self, state, message):

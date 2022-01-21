@@ -1,703 +1,761 @@
 # -*- coding: utf-8 -*-
-import binascii
-import json
-import logging
 import os
-import re
-import unicodedata
-
-try:
-    from urllib import quote, quote_plus
-except:
-    from urllib.parse import quote, quote_plus
-    unicode = str
-
+import shutil
 import uuid
-import xml.etree.ElementTree
+import json
+from datetime import datetime, timedelta
 import requests
 from dateutil import tz, parser
-
+import xbmcvfs
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcvfs
+from . import loghandler
 
-from . import translate
+if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
+    unicode = str
+    from urllib.parse import quote
+    Python3 = True
+else:
+    from urllib import quote
+    Python3 = False
 
-class Utils():
-    def __init__(self):
-        self.LOG = logging.getLogger("EMBY.helper.utils.Utils")
-        self.KodiVersion = int(xbmc.getInfoLabel('System.BuildVersion')[:2])
-        self.Dialog = xbmcgui.Dialog()
-        self.Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
-        self.WindowID = xbmcgui.Window(10000)
+if xbmc.getCondVisibility('System.HasAddon(plugin.video.emby-next-gen)'):
+    Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
+    PluginId = "plugin.video.emby-next-gen"
+else:
+    Addon = xbmcaddon.Addon("plugin.video.emby")
+    PluginId = "plugin.video.emby"
 
-    #Enable the webserver if not enabled. This is used to cache artwork.
-    #Will only test once, if it fails, user will be notified only once
-    def set_web_server(self):
-        get_setting = JSONRPC('Settings.GetSettingValue')
+LOG = loghandler.LOG('EMBY.helper.utils')
+KodiDBLock = {"music": False, "video": False}
+Dialog = xbmcgui.Dialog()
+VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
+AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
+MinimumVersion = "6.0.10"
+device_name = "Kodi"
+xspplaylists = False
+TranscodeFormatVideo = ""
+TranscodeFormatAudio = ""
+videoBitrate = 0
+audioBitrate = 0
+VideoBitrate = 0
+AudioBitrate = 0
+resumeJumpBack = 0
+displayMessage = 0
+newvideotime = 1
+newmusictime = 1
+startupDelay = 0
+backupPath = ""
+MinimumSetup = ""
+limitIndex = 50
+username = ""
+serverName = ""
+server = ""
+deviceName = ""
+compatibilitymode = False
+useDirectPaths = False
+menuOptions = False
+newContent = False
+restartMsg = False
+connectMsg = False
+enableDeleteByKodiEvent = False
+addUsersHidden = False
+enableContextDelete = False
+enableContext = False
+transcodeH265 = False
+transcodeDivx = False
+transcodeXvid = False
+transcodeMpeg2 = False
+enableCinemaMovies = False
+enableCinemaEpisodes = False
+askCinema = False
+localTrailers = False
+Trailers = False
+offerDelete = False
+deleteTV = False
+deleteMovies = False
+userRating = False
+enableCoverArt = False
+compressArt = False
+getDateCreated = False
+getGenres = False
+getStudios = False
+getTaglines = False
+getOverview = False
+getProductionLocations = False
+getCast = False
+deviceNameOpt = False
+syncDuringPlay = False
+artworkcacheenable = True
+WebserverData = {}
+SkipUpdateSettings = 0
+device_id = ""
+SyncPause = False
+syncdate = ""
+synctime = ""
+addon_version = Addon.getAddonInfo('version')
+addon_name = Addon.getAddonInfo('name')
+FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
+FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
+FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
+SystemShutdown = False
+WorkerInProgress = False
+WorkerPaused = False
 
-        if not self.get_web_server():
-            set_setting = JSONRPC('Settings.SetSetingValue')
-            set_setting.execute({'setting': "services.webserver", 'value': True})
+# Delete objects from kodi cache
+def delFolder(path):
+    LOG.debug("--[ delete folder ]")
+    delete_path = path is not None
+    path = path or FolderEmbyTemp
+    dirs, files = listDir(path)
+    delete_recursive(path, dirs)
 
-            if not self.get_web_server():
-                self.dialog("ok", heading="{emby}", line1=translate._(33103))
-                return False
+    for Filename in files:
+        delFile("%s%s" % (path, Filename))
 
-        result = get_setting.execute({'setting': "services.webserverport"})
-        self.window('webServerPort', str(result['result']['value'] or ""))
-        result = get_setting.execute({'setting': "services.webserverusername"})
-        self.window('webServerUser', str(result['result']['value'] or ""))
-        result = get_setting.execute({'setting': "services.webserverpassword"})
-        self.window('webServerPass', str(result['result']['value'] or ""))
-        result = get_setting.execute({'setting': "services.webserverssl"})
-        self.window('webServerSSL.bool', (result['result']['value'] or False))
+    if delete_path:
+        rmFolder(path)
+
+    LOG.warning("DELETE %s" % path)
+
+# Delete files and dirs recursively
+def delete_recursive(path, dirs):
+    for directory in dirs:
+        dirs2, files = listDir("%s%s" % (path, directory))
+
+        for Filename in files:
+            delFile("%s%s/%s" % (path, directory, Filename))
+
+        delete_recursive("%s%s" % (path, directory), dirs2)
+        rmFolder("%s%s" % (path, directory))
+
+def rmFolder(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if os.path.isdir(Path):
+        os.rmdir(Path)
+
+def mkDir(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if not os.path.isdir(Path):
+        os.mkdir(Path)
+
+def delFile(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if os.path.isfile(Path):
+        os.remove(Path)
+
+def copyFile(SourcePath, DestinationPath):
+    SourcePath = translatePath(SourcePath)
+    DestinationPath = translatePath(DestinationPath)
+    shutil.copy(SourcePath, DestinationPath)
+    LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
+
+def renameFolder(SourcePath, DestinationPath):
+    SourcePath = translatePath(SourcePath)
+    DestinationPath = translatePath(DestinationPath)
+    SourcePath = SourcePath.encode('utf-8')
+    DestinationPath = DestinationPath.encode('utf-8')
+    os.rename(SourcePath, DestinationPath)
+
+def readFileBinary(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if os.path.isfile(Path):
+        with open(Path, "rb") as infile:
+            data = infile.read()
+
+        return data
+
+    return b""
+
+def readFileString(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if os.path.isfile(Path):
+        with open(Path, "rb") as infile:
+            data = infile.read()
+
+        return data.decode('utf-8')
+
+    return ""
+
+def writeFileString(Path, Data):
+    Data = Data.encode('utf-8')
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    with open(Path, "wb") as outfile:
+        outfile.write(Data)
+
+def writeFileBinary(Path, Data):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    with open(Path, "wb") as outfile:
+        outfile.write(Data)
+
+def checkFileExists(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
+
+    if os.path.isfile(Path):
         return True
 
-    def get_addon_name(self):
-        return xbmcaddon.Addon(self.addon_id()).getAddonInfo('name').upper()
+    return False
 
-    def get_version(self):
-        return xbmcaddon.Addon(self.addon_id()).getAddonInfo('version')
+def checkFolderExists(Path):
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
 
-    def get_platform(self):
-        if xbmc.getCondVisibility('system.platform.osx'):
-            return "OSX"
-        elif xbmc.getCondVisibility('system.platform.atv2'):
-            return "ATV2"
-        elif xbmc.getCondVisibility('system.platform.ios'):
-            return "iOS"
-        elif xbmc.getCondVisibility('system.platform.windows'):
-            return "Windows"
-        elif xbmc.getCondVisibility('system.platform.android'):
-            return "Linux/Android"
-        elif xbmc.getCondVisibility('system.platform.linux.raspberrypi'):
-            return "Linux/RPi"
-        elif xbmc.getCondVisibility('system.platform.linux'):
-            return "Linux"
-        else:
-            return "Unknown"
-
-    def get_distro(self):
-        if xbmc.getCondVisibility('System.HasAddon(service.coreelec.settings)'):
-            return "CoreElec"
-        elif xbmc.getCondVisibility('System.HasAddon(service.libreelec.settings)'):
-            return "LibreElec"
-        elif xbmc.getCondVisibility('System.HasAddon(service.osmc.settings)'):
-            return "OSMC"
-        else:
-            return "Kodi"
-
-    def get_device_name(self):
-        ''' Detect the device name. If deviceNameOpt, then
-            use the device name in the add-on settings.
-            Otherwise fallback to the Kodi device name.
-        '''
-        if not self.settings('deviceNameOpt.bool'):
-            device_name = xbmc.getInfoLabel('System.FriendlyName')
-        else:
-            device_name = self.settings('deviceName')
-            device_name = device_name.replace("\"", "_")
-            device_name = device_name.replace("/", "_")
-
-        if not device_name:
-            device_name = "Kodi"
-
-        return device_name
-
-    def get_device_id(self, reset=False):
-        ''' Return the device_id if already loaded.
-            It will load from emby_guid file. If it's a fresh
-            setup, it will generate a new GUID to uniquely
-            identify the setup for all users.
-            window prop: emby_deviceId
-        '''
-        client_id = self.window('emby_deviceId')
-
-        if client_id:
-            return client_id
-
-        directory = self.translatePath('special://profile/addon_data/plugin.video.emby-next-gen/')
-
-        if not xbmcvfs.exists(directory):
-            xbmcvfs.mkdir(directory)
-
-        emby_guid = os.path.join(directory, "emby_guid")
-        file_guid = xbmcvfs.File(emby_guid)
-        client_id = file_guid.read()
-
-        if not client_id or reset:
-            self.LOG.info("Generating a new GUID.")
-            client_id = str(self.create_id())
-            file_guid = xbmcvfs.File(emby_guid, 'w')
-            file_guid.write(client_id)
-
-        file_guid.close()
-        self.LOG.info("DeviceId loaded: %s", client_id)
-        self.window('emby_deviceId', value=client_id)
-        return client_id
-
-    def reset_device_id(self):
-        self.window('emby_deviceId', clear=True)
-        self.get_device_id(True)
-        self.dialog("ok", heading="{emby}", line1=translate._(33033))
-        xbmc.executebuiltin('RestartApp')
-
-    def get_info(self):
-        return {
-            'DeviceName': self.get_device_name(),
-            'Version': self.get_version(),
-            'DeviceId': self.get_device_id()
-        }
-
-    #Download external subtitles to temp folder
-    def download_external_subs(self, src, filename):
-        temp = self.translatePath("special://profile/addon_data/plugin.video.emby-next-gen/temp/")
-
-        if not xbmcvfs.exists(temp):
-            xbmcvfs.mkdir(temp)
-
-        path = os.path.join(temp, filename)
-
-        try:
-#            response = requests.get(src, stream=True, verify=False)
-            response = requests.get(src, stream=True)
-            response.raise_for_status()
-            response.encoding = 'utf-8'
-
-            with open(path, 'wb') as f:
-                f.write(response.content)
-
-            del response
-        except:
-            path = None
-
-        return path
-
-    def StringMod(self, Data):
-        if self.KodiVersion >= 19:
-            return Data
-
-        return Data.encode('utf-8')
-
-    def StringDecode(self, Data):
-        if self.KodiVersion <= 18:
-            try:
-                Data = Data.decode('utf-8')
-            except:
-                Data = Data.encode('utf8').decode('utf-8')
-
-        return Data
-
-    def translatePath(self, Data):
-        if self.KodiVersion >= 19:
-            return xbmcvfs.translatePath(Data)
-
-        return xbmc.translatePath(Data)
-
-    def addon_id(self):
-        return "plugin.video.emby-next-gen"
-
-    def kodi_version(self):
-        return self.KodiVersion
-
-    def PathToFilenameReplaceSpecialCharecters(self, Path):
-        Temp = Path
-        Pos = Temp.rfind("/")
-
-        if Pos == -1: #Windows
-            Pos = Temp.rfind("\\")
-
-        Temp = Temp[Pos + 1:]
-
-        if self.KodiVersion <= 18:
-            if isinstance(Temp, str):
-                Temp = unicode(Temp, 'utf-8')
-                Temp = Temp.encode('utf-8')
-                Filename = quote(Temp, safe=u':/'.encode('utf-8'))
-            else:
-                Filename = quote(Temp.encode('utf-8'), safe=u':/'.encode('utf-8'))
-        else:
-            Filename = quote(Temp)
-
-        while Filename.find("%") != -1:
-            Pos = Filename.find("%")
-            Filename = Filename.replace(Filename[Pos:Pos + 3], "_")
-
-        return Filename
-
-    #Get or set window properties
-    def window(self, key, value=None, clear=False, WindowIDLocal=10000):
-        if WindowIDLocal == 10000:
-            WindowIDLocal = self.WindowID
-        else:
-            WindowIDLocal = xbmcgui.Window(WindowIDLocal)
-
-        if clear:
-            self.LOG.debug("--[ window clear: %s ]", key)
-            WindowIDLocal.clearProperty(key.replace('.json', "").replace('.bool', ""))
-        elif value is not None:
-            if key.endswith('.json'):
-                key = key.replace('.json', "")
-                value = json.dumps(value)
-            elif key.endswith('.bool'):
-                key = key.replace('.bool', "")
-                value = "true" if value else "false"
-
-            WindowIDLocal.setProperty(key, value)
-        else:
-            result = WindowIDLocal.getProperty(key.replace('.json', "").replace('.bool', ""))
-
-            if result:
-                if key.endswith('.json'):
-                    result = json.loads(result)
-                elif key.endswith('.bool'):
-                    result = result in ("true", "1")
-
-            return result
-
-    #Get or add add-on settings.
-    #getSetting returns unicode object
-    def settings(self, setting, value=None):
-        self.Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
-
-        if value is not None:
-            if setting.endswith('.bool'):
-                setting = setting.replace('.bool', "")
-                value = "true" if value else "false"
-
-            self.Addon.setSetting(setting, value)
-        else:
-            result = self.Addon.getSetting(setting.replace('.bool', ""))
-
-            if result and setting.endswith('.bool'):
-                result = result in ("true", "1")
-
-            return result
-
-    def create_id(self):
-        return uuid.uuid4()
-
-    #Find value in dictionary
-    def find(self, dictData, item, beta=True):
-        if item in dictData:
-            return dictData[item], item
-
-        for key, value in sorted(iter(list(dictData.items())), key=lambda k_v: (k_v[1], k_v[0])):
-            if re.match(key, item, re.I):
-                return dictData[key], key
-
-        if beta:
-            return self.find(dictData, item.replace('beta-', ""), False)
-
-    #Data is a dictionary
-    def event(self, method, data=None, sender=None, hexlify=False):
-        data = data or {"ServerId" : None}
-        sender = sender or "plugin.video.emby-next-gen"
-
-        if hexlify:
-            data = '\\"[\\"{0}\\"]\\"'.format(binascii.hexlify(json.dumps(data)))
-        else:
-            data = '"[%s]"' % json.dumps(data).replace('"', '\\"')
-
-        xbmc.executebuiltin('NotifyAll(%s, %s, %s)' % (sender, method, data))
-        self.LOG.debug("---[ event: %s/%s ] %s", sender, method, data)
-
-    def dialog(self, dialog_type, *args, **kwargs):
-        if "icon" in kwargs:
-            kwargs['icon'] = kwargs['icon'].replace("{emby}", "special://home/addons/plugin.video.emby-next-gen/resources/icon.png")
-
-        if "heading" in kwargs:
-            kwargs['heading'] = kwargs['heading'].replace("{emby}", translate._('addon_name'))
-
-        if self.KodiVersion >= 19:
-            if "line1" in kwargs:
-                kwargs['message'] = kwargs['line1']
-                del kwargs['line1']
-
-        types = {
-            'yesno': self.Dialog.yesno,
-            'ok': self.Dialog.ok,
-            'notification': self.Dialog.notification,
-            'input': self.Dialog.input,
-            'select': self.Dialog.select,
-            'numeric': self.Dialog.numeric,
-            'multi': self.Dialog.multiselect,
-            'textviewer': self.Dialog.textviewer
-        }
-
-        return types[dialog_type](*args, **kwargs)
-
-    #Get webinterface settings
-    def get_webinterface(self):
-        Data = {
-            'username': "kodi",
-            'password': "",
-            'port': "8080",
-            'ssl': False,
-            'enabled': False
-        }
-
-        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettings", "params": {"filter": {"category": "control", "section": "services"}}}'))
-
-        for ControlItem in result['result']['settings']:
-            if ControlItem['id'] == 'services.webserver':
-                Data['enabled'] = ControlItem['value']
-            elif ControlItem['id'] == 'services.webserverusername':
-                Data['username'] = ControlItem['value']
-            elif ControlItem['id'] == 'services.webserverport':
-                Data['port'] = ControlItem['value']
-            elif ControlItem['id'] == 'services.webserverpassword':
-                Data['password'] = ControlItem['value']
-            elif ControlItem['id'] == 'services.webserverssl':
-                Data['ssl'] = ControlItem['value']
-
-        return Data
-
-    #Get the current screensaver value
-    def get_screensaver(self):
-        result = JSONRPC('Settings.getSettingValue').execute({'setting': "screensaver.mode"})
-
-        try:
-            return result['result']['value']
-        except KeyError:
-            return ""
-
-    #Toggle the screensaver
-    def set_screensaver(self, value):
-        params = {
-            'setting': "screensaver.mode",
-            'value': value
-        }
-        result = JSONRPC('Settings.setSettingValue').execute(params)
-        self.LOG.info("---[ screensaver/%s ] %s", value, result)
-
-    #Verify if path is accessible
-    def validate(self, path):
-        if self.window('emby_pathverified.bool'):
-            return True
-
-        path = self.StringDecode(path)
-        string = "%s %s. %s" % (translate._(33047), path, translate._(33048))
-
-        if not os.path.supports_unicode_filenames:
-            path = path.encode('utf-8')
-
-        if not xbmcvfs.exists(path):
-            self.LOG.info("Could not find %s", path)
-
-            if self.dialog("yesno", heading="{emby}", line1=string):
-                return False
-
-        self.window('emby_pathverified.bool', True)
+    if os.path.isdir(Path):
         return True
 
-    #Grab the values in the item for a list of keys {key},{key1}....
-    #If the key has no brackets, the key will be passed as is
-    def values(self, item, keys):
-        return (item[key.replace('{', "").replace('}', "")] if type(key) == str and key.startswith('{') else key for key in keys)
+    return False
 
-    #Prettify xml docs
-    def indent(self, elem, level=0):
-        try:
-            i = "\n" + level * "  "
+def listDir(Path):
+    Files = ()
+    Folders = ()
+    Path = translatePath(Path)
+    Path = Path.encode('utf-8')
 
-            if len(elem):
-                if not elem.text or not elem.text.strip():
-                    elem.text = i + "  "
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = i
-                for elem in elem:
-                    self.indent(elem, level + 1)
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = i
+    if os.path.isdir(Path):
+        for FilesFolders in os.listdir(Path):
+            FilesFoldersPath = os.path.join(Path, FilesFolders)
+
+            if os.path.isdir(FilesFoldersPath):
+                FilesFolders = os.path.join(FilesFolders, b"")  # add trailing / or \
+                Folders += (FilesFolders.decode('utf-8'),)
             else:
-                if level and (not elem.tail or not elem.tail.strip()):
-                    elem.tail = i
-        except Exception:
-            return
+                Files += (FilesFolders.decode('utf-8'),)
 
-    def write_xml(self, content, Filepath):
-        try:
-            with open(Filepath, 'wb') as infile:
-                content = content.replace(b"'", b'"')
-                content = content.replace(b'?>', b' standalone="yes" ?>', 1)
-                infile.write(content)
-        except Exception as error:
-            self.LOG.error(error)
+    return Folders, Files
 
-    #Delete objects from kodi cache
-    def delete_folder(self, path=None):
-        self.LOG.debug("--[ delete folder ]")
-        delete_path = path is not None
-        path = path or self.translatePath('special://temp/emby')
-        dirs, files = xbmcvfs.listdir(path)
-        self.delete_recursive(path, dirs)
+def translatePath(Data):
+    if Python3:
+        return xbmcvfs.translatePath(Data)
 
-        for Filename in files:
-            xbmcvfs.delete(os.path.join(path, Filename))
+    return StringDecode(xbmc.translatePath(Data))
 
-        if delete_path:
-            xbmcvfs.delete(path)
+def currenttime():
+    return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        self.LOG.warning("DELETE %s", path)
+def currenttime_kodi_format():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    #Delete files and dirs recursively
-    def delete_recursive(self, path, dirs):
-        for directory in dirs:
-            dirs2, files = xbmcvfs.listdir(os.path.join(path, directory))
+def StringDecode(Data):
+    if Python3:
+        return Data
 
-            for Filename in files:
-                xbmcvfs.delete(os.path.join(path, directory, Filename))
+    try:
+        Data = Data.decode('utf-8')
+    except:
+        Data = Data.encode('utf8').decode('utf-8')
 
-            self.delete_recursive(os.path.join(path, directory), dirs2)
-            xbmcvfs.rmdir(os.path.join(path, directory))
+    return Data
 
-    #Unzip file. zipfile module seems to fail on android with badziperror
-    def unzip(self, path, dest, folder=None):
-        path = quote_plus(path)
-        root = "zip://" + path + '/'
+# Remove all emby playlists
+def delete_playlists():
+    SearchFolders = ['special://profile/playlists/video/', 'special://profile/playlists/music/']
 
-        if folder:
-            xbmcvfs.mkdir(os.path.join(dest, folder))
-            dest = os.path.join(dest, folder)
-            root = self.get_zip_directory(root, folder)
-
-        dirs, files = xbmcvfs.listdir(root)
-
-        if dirs:
-            self.unzip_recursive(root, dirs, dest)
+    for SearchFolder in SearchFolders:
+        _, files = listDir(SearchFolder)
 
         for Filename in files:
-            self.unzip_file(os.path.join(root, Filename), os.path.join(dest, Filename))
+            if Filename.startswith('emby'):
+                delFile("%s%s" % (SearchFolder, Filename))
 
-        self.LOG.warning("Unzipped %s", path)
+# Remove all nodes
+def delete_nodes():
+    delFolder("special://profile/library/video/")
+    delFolder("special://profile/library/music/")
 
-    def unzip_recursive(self, path, dirs, dest):
-        for directory in dirs:
-            dirs_dir = os.path.join(path, directory)
-            dest_dir = os.path.join(dest, directory)
-            xbmcvfs.mkdir(dest_dir)
-            dirs2, files = xbmcvfs.listdir(dirs_dir)
+# Convert the gmt datetime to local
+def convert_to_gmt(local_time):
+    if not local_time:
+        return ""
 
-            if dirs2:
-                self.unzip_recursive(dirs_dir, dirs2, dest_dir)
+    if isinstance(local_time, (str, unicode)):
+        local_time = parser.parse(local_time.encode('utf-8'))
+        utc_zone = tz.tzutc()
+        local_zone = tz.tzlocal()
+        local_time = local_time.replace(tzinfo=local_zone)
+        utc_time = local_time.astimezone(utc_zone)
+        return utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-            for Filename in files:
-                self.unzip_file(os.path.join(dirs_dir, Filename), os.path.join(dest_dir, Filename))
+    return ""
 
-    #Unzip specific file. Path should start with zip://
-    def unzip_file(self, path, dest):
-        xbmcvfs.copy(path, dest)
-        self.LOG.debug("unzip: %s to %s", path, dest)
+# Convert the gmt datetime to local
+def convert_to_local(date):
+    if not date:
+        return ""
 
-    def get_zip_directory(self, path, folder):
-        dirs, files = xbmcvfs.listdir(path)
+    if isinstance(date, int):
+        date = str(date)
 
-        if folder in dirs:
-            return os.path.join(path, folder)
+    if isinstance(date, (str, unicode)):
+        date = parser.parse(date.encode('utf-8'))
 
-        for directory in dirs:
-            result = self.get_zip_directory(os.path.join(path, directory), folder)
-            if result:
-                return result
-
-    #Copy folder content from one to another
-    def copytree(self, path, dest):
-        dirs, files = xbmcvfs.listdir(path)
-
-        if not xbmcvfs.exists(dest):
-            xbmcvfs.mkdirs(dest)
-
-        if dirs:
-            self.copy_recursive(path, dirs, dest)
-
-        for Filename in files:
-            self.copy_file(os.path.join(path, Filename), os.path.join(dest, Filename))
-
-        self.LOG.info("Copied %s", path)
-
-    def copy_recursive(self, path, dirs, dest):
-        for directory in dirs:
-            dirs_dir = os.path.join(path, directory)
-            dest_dir = os.path.join(dest, directory)
-            xbmcvfs.mkdir(dest_dir)
-            dirs2, files = xbmcvfs.listdir(dirs_dir)
-
-            if dirs2:
-                self.copy_recursive(dirs_dir, dirs2, dest_dir)
-
-            for Filename in files:
-                self.copy_file(os.path.join(dirs_dir, Filename), os.path.join(dest_dir, Filename))
-
-    #Copy specific file
-    def copy_file(self, path, dest):
-        if path.endswith('.pyo'):
-            return
-
-        xbmcvfs.copy(path, dest)
-        self.LOG.debug("copy: %s to %s", path, dest)
-
-    #Delete pyo files to force Kodi to recreate them
-    def delete_pyo(self, path):
-        dirs, files = xbmcvfs.listdir(path)
-
-        if dirs:
-            for directory in dirs:
-                self.delete_pyo(os.path.join(path, directory))
-
-        for Filename in files:
-            if Filename.endswith('.pyo'):
-                xbmcvfs.delete(os.path.join(path, Filename))
-
-    #For theme media, do not modify unless modified in TV Tunes.
-    #Remove dots from the last character as windows can not have directories with dots at the end
-    def normalize_string(self, text):
-        text = text.replace(":", "")
-        text = text.replace("/", "-")
-        text = text.replace("\\", "-")
-        text = text.replace("<", "")
-        text = text.replace(">", "")
-        text = text.replace("*", "")
-        text = text.replace("?", "")
-        text = text.replace('|', "")
-        text = text.strip()
-        text = text.rstrip('.')
-
-        if self.KodiVersion >= 19:
-            text = unicodedata.normalize('NFKD', text)
-        else:
-            text = unicodedata.normalize('NFKD', text).encode('utf-8')
-
-        return text
-
-    def direct_url(self, item):
-        FilenameURL = self.PathToFilenameReplaceSpecialCharecters(item['Path'])
-
-        if item['Type'] == 'Audio':
-            Type = 'audio'
-        else:
-            Type = 'video'
-
-        path = "http://127.0.0.1:57578/%s/%s-%s-stream-%s" % (Type, item['Id'], item['MediaSources'][0]['Id'], FilenameURL)
-        return path
-
-    #Split up list in pieces of size. Will generate a list of lists
-    def split_list(self, itemlist, size):
-        return [itemlist[i:i+size] for i in range(0, len(itemlist), size)]
-
-    def get_resolution(self):
-        return int(xbmc.getInfoLabel('System.ScreenWidth')), int(xbmc.getInfoLabel('System.ScreenHeight'))
-
-    def get_VideoBitrate(self):
-        VideoBitrate = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
-        return VideoBitrate[int(self.settings('videoBitrate'))]
-
-    def get_AudioBitrate(self):
-        AudioBitrate = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
-        return AudioBitrate[int(self.settings('audioBitrate'))]
-
-    #Convert the local datetime to local
-    def convert_to_local(self, date):
-        try:
-            if not date:
-                return ""
-
-            if type(date) is int:
-                date = str(date)
-
-            if type(date) in (unicode, str):
-                date = parser.parse(date.encode('utf-8'))
-
+        if not date.tzname():
             date = date.replace(tzinfo=tz.tzutc())
-            date = date.astimezone(tz.tzlocal())
-            return date.strftime('%Y-%m-%dT%H:%M:%S')
-        except Exception as error:
-            self.LOG.error(error)
-            self.LOG.info("date: %s", str(date))
-            return str(date)
 
-    #Get if boxsets should be grouped
-    def get_grouped_set(self):
-        result = JSONRPC('Settings.GetSettingValue').execute({'setting': "videolibrary.groupmoviesets"})
+    timestamp = (date - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
 
+    try:
+        if timestamp >= 0:
+            timestamp = datetime.fromtimestamp(timestamp)
+        else:
+            timestamp = datetime(1970, 1, 1) + timedelta(seconds=int(timestamp))
+    except:
+        LOG.warning("invalid timestamp")
+        return ""
+
+    if timestamp.year < 1900:
+        LOG.warning("invalid timestamp < 1900")
+        return ""
+
+    return timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+
+# Download external subtitles to temp folder
+def download_file_from_Embyserver(request, filename, EmbyServer):
+    path = "%s%s" % (FolderEmbyTemp, filename)
+    response = EmbyServer.http.request(request, True, True)
+
+    if response:
+        writeFileBinary(path, response)
+        return path
+
+    return None
+
+def Translate(String):
+    result = Addon.getLocalizedString(String)
+
+    if not result:
+        result = xbmc.getLocalizedString(String)
+
+    return result
+
+def PathToFilenameReplaceSpecialCharecters(Path):
+    Pos = Path.rfind("/")
+
+    if Pos == -1:  # Windows
+        Pos = Path.rfind("\\")
+
+    Path = Path[Pos + 1:]
+
+    if not Python3:
+        if isinstance(Path, str):
+            Path = unicode(Path, 'utf-8')
+            Path = Path.encode('utf-8')
+            Filename = quote(Path, safe=u':/'.encode('utf-8'))
+        else:
+            Filename = quote(Path.encode('utf-8'), safe=u':/'.encode('utf-8'))
+    else:
+        Filename = quote(Path)
+
+    while Filename.find("%") != -1:
+        Pos = Filename.find("%")
+        Filename = Filename.replace(Filename[Pos:Pos + 3], "_")
+
+    return Filename
+
+def StringEncode(Data):
+    if Python3:
+        return Data
+
+    return Data.encode('utf-8')
+
+def CreateListitem(MediaType, Data):
+    li = xbmcgui.ListItem(Data['title'])
+    Data['mediatype'] = MediaType
+    Properties = {'IsPlayable': "true"}
+
+    if "resume" in Data:
+        Properties['resumetime'] = str(Data['resume']['position'])
+        Properties['totaltime'] = str(Data['resume']['total'])
+        del Data['resume']
+
+    if "art" in Data:
+        li.setArt(Data['art'])
+        del Data['art']
+
+    if 'cast' in Data:
+        li.setCast(Data['cast'])
+        del Data['cast']
+
+    if 'uniqueid' in Data:
+        li.setUniqueIDs(Data['uniqueid'])
+        del Data['uniqueid']
+
+    if "streamdetails" in Data:
+        for key, value in list(Data['streamdetails'].items()):
+            for stream in value:
+                li.addStreamInfo(key, stream)
+
+        del Data['streamdetails']
+
+    if "showtitle" in Data:
+        Data['TVshowTitle'] = Data['showtitle']
+        del Data["showtitle"]
+
+    if "firstaired" in Data:
+        Data['premiered'] = Data['firstaired']
+        del Data["firstaired"]
+
+    if "specialsortepisode" in Data:
+        Data['sortseason'] = Data['specialsortepisode']
+        del Data["specialsortepisode"]
+
+    if "specialsortseason" in Data:
+        Data['sortepisode'] = Data['specialsortseason']
+        del Data["specialsortseason"]
+
+    if "file" in Data:
+        del Data["file"]
+
+    if "label" in Data:
+        li.setLabel(Data['label'])
+        del Data["label"]
+
+    if "seasonid" in Data:
+        del Data["seasonid"]
+
+    if "episodeid" in Data:
+        del Data["episodeid"]
+
+    if "movieid" in Data:
+        del Data["movieid"]
+
+    if "musicvideoid" in Data:
+        del Data["musicvideoid"]
+
+    li.setInfo('video', Data)
+    return li
+
+def load_VideoitemFromKodiDB(MediaType, KodiId):
+    Details = {}
+
+    if MediaType == "movie":
+        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMovieDetails", "params":{"movieid":%s, "properties":["title", "playcount", "plot", "genre", "year", "rating", "resume", "streamdetails", "director", "trailer", "tagline", "plotoutline", "originaltitle",  "writer", "studio", "mpaa", "country", "imdbnumber", "set", "showlink", "top250", "votes", "sorttitle",  "dateadded", "tag", "userrating", "cast", "premiered", "setid", "art", "lastplayed", "uniqueid"]}}' % KodiId)
+        Data = json.loads(result)
+        Details = Data['result']['moviedetails']
+    elif MediaType == "episode":
+        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetEpisodeDetails", "params":{"episodeid":%s, "properties":["title", "playcount", "season", "episode", "showtitle", "plot", "rating", "resume", "streamdetails", "firstaired", "writer", "dateadded", "lastplayed",  "originaltitle", "seasonid", "specialsortepisode", "specialsortseason", "userrating", "votes", "cast", "art", "uniqueid", "file"]}}' % KodiId)
+        Data = json.loads(result)
+        Details = Data['result']['episodedetails']
+    elif MediaType == "musicvideo":
+        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMusicVideoDetails", "params":{"musicvideoid":%s, "properties":["title", "playcount", "plot", "genre", "year", "rating", "resume", "streamdetails", "director", "studio", "dateadded", "tag", "userrating", "premiered", "album", "artist", "track", "art", "lastplayed"]}}' % KodiId)
+        Data = json.loads(result)
+        Details = Data['result']['musicvideodetails']
+
+    return Details
+
+def SizeToText(size):
+    suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+    suffixIndex = 0
+
+    while size > 1024 and suffixIndex < 4:
+        suffixIndex += 1
+        size /= 1024.0
+
+    return "%.*f%s" % (2, size, suffixes[suffixIndex])
+
+def dialog(dialog_type, *args, **kwargs):
+    if Python3:
+        if "line1" in kwargs:
+            kwargs['message'] = kwargs['line1']
+            del kwargs['line1']
+
+    types = {
+        'yesno': Dialog.yesno,
+        'ok': Dialog.ok,
+        'notification': Dialog.notification,
+        'input': Dialog.input,
+        'select': Dialog.select,
+        'numeric': Dialog.numeric,
+        'multi': Dialog.multiselect,
+        'textviewer': Dialog.textviewer
+    }
+    return types[dialog_type](*args, **kwargs)
+
+def DeleteThumbnails():
+    dirs, _ = listDir('special://thumbnails/')
+
+    for directory in dirs:
+        _, thumbs = listDir('special://thumbnails/%s' % directory)
+        Progress = xbmcgui.DialogProgressBG()
+        Progress.create("Emby", "Delete Artwork Files: %s" % directory)
+        Counter = 0
+        ThumbsLen = len(thumbs)
+        Increment = 0.0
+
+        if ThumbsLen > 0:
+            Increment = 100.0 / ThumbsLen
+
+        for thumb in thumbs:
+            Counter += 1
+            Progress.update(int(Counter * Increment), message="Delete Artwork Files: %s%s" % (directory, thumb))
+            LOG.debug("DELETE thumbnail %s" % thumb)
+            delFile('special://thumbnails/%s%s' % (directory, thumb))
+
+        Progress.close()
+
+    LOG.warning("[ reset artwork ]")
+
+# Copy folder content from one to another
+def copytree(path, dest):
+    dirs, files = listDir(path)
+    mkDir(dest)
+
+    if dirs:
+        copy_recursive(path, dirs, dest)
+
+    for Filename in files:
+        CopyFile = "%s%s" % (path, Filename)
+
+        if CopyFile.endswith('.pyo'):
+            continue
+
+        copyFile(CopyFile, "%s%s" % (dest, Filename))
+
+    LOG.info("Copied %s" % path)
+
+def copy_recursive(path, dirs, dest):
+    for directory in dirs:
+        dirs_dir = "%s%s" % (path, directory)
+        dest_dir = "%s%s" % (dest, directory)
+        mkDir(dest_dir)
+        dirs2, files = listDir(dirs_dir)
+
+        if dirs2:
+            copy_recursive(dirs_dir, dirs2, dest_dir)
+
+        for Filename in files:
+            CopyFile = "%s%s" % (dirs_dir, Filename)
+
+            if CopyFile.endswith('.pyo'):
+                continue
+
+            copyFile(CopyFile, "%s%s" % (dest_dir, Filename))
+
+def get_device_id(reset):
+    if globals()["device_id"]:
+        return
+
+    mkDir(globals()["FolderAddonUserdata"])
+    emby_guid = "%s%s" % (globals()["FolderAddonUserdata"], "emby_guid")
+    globals()["device_id"] = readFileString(emby_guid)
+
+    if not globals()["device_id"] or reset:
+        LOG.info("Generating a new GUID.")
+        globals()["device_id"] = str(uuid.uuid4())
+        writeFileString(emby_guid, globals()["device_id"])
+
+    if reset:  # delete login data -> force new login
+        _, files = listDir(FolderAddonUserdata)
+
+        for Filename in files:
+            if Filename.startswith('servers_'):
+                delFile("%s%s" % (FolderAddonUserdata, Filename))
+
+    LOG.info("device_id loaded: %s" % globals()["device_id"])
+
+# Kodi Settings
+def InitSettings():
+    load_settings('TranscodeFormatVideo')
+    load_settings('TranscodeFormatAudio')
+    load_settings('videoBitrate')
+    load_settings('audioBitrate')
+    load_settings('resumeJumpBack')
+    load_settings('displayMessage')
+    load_settings('newvideotime')
+    load_settings('newmusictime')
+    load_settings('startupDelay')
+    load_settings('backupPath')
+    load_settings('MinimumSetup')
+    load_settings('limitIndex')
+    load_settings('username')
+    load_settings('serverName')
+    load_settings('server')
+    load_settings('deviceName')
+    load_settings('useDirectPaths')
+    load_settings('syncdate')
+    load_settings('synctime')
+    load_settings_bool('menuOptions')
+    load_settings_bool('compatibilitymode')
+    load_settings_bool('xspplaylists')
+    load_settings_bool('newContent')
+    load_settings_bool('restartMsg')
+    load_settings_bool('connectMsg')
+    load_settings_bool('addUsersHidden')
+    load_settings_bool('enableContextDelete')
+    load_settings_bool('enableContext')
+    load_settings_bool('transcodeH265')
+    load_settings_bool('transcodeDivx')
+    load_settings_bool('transcodeXvid')
+    load_settings_bool('transcodeMpeg2')
+    load_settings_bool('enableCinemaMovies')
+    load_settings_bool('enableCinemaEpisodes')
+    load_settings_bool('askCinema')
+    load_settings_bool('localTrailers')
+    load_settings_bool('Trailers')
+    load_settings_bool('offerDelete')
+    load_settings_bool('deleteTV')
+    load_settings_bool('deleteMovies')
+    load_settings_bool('userRating')
+    load_settings_bool('enableCoverArt')
+    load_settings_bool('compressArt')
+    load_settings_bool('getDateCreated')
+    load_settings_bool('getGenres')
+    load_settings_bool('getStudios')
+    load_settings_bool('getTaglines')
+    load_settings_bool('getOverview')
+    load_settings_bool('getProductionLocations')
+    load_settings_bool('getCast')
+    load_settings_bool('deviceNameOpt')
+    load_settings_bool('syncDuringPlay')
+    load_settings_bool('useDirectPaths')
+    load_settings_bool('enableDeleteByKodiEvent')
+    globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
+    globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
+
+    # Set devicename
+    if not globals()["deviceNameOpt"]:
+        globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
+    else:
+        globals()["device_name"] = globals()["deviceName"].replace("\"", "_")
+        globals()["device_name"] = device_name.replace("/", "_")
+
+    if not globals()["device_name"]:
+        globals()["device_name"] = "Kodi"
+
+    globals()["device_name"] = quote(globals()["device_name"].encode('utf-8'))  # encode special charecters
+
+def set_syncdate(timestamp):
+    TimeStamp = parser.parse(timestamp.encode('utf-8'))
+    set_settings("syncdate", TimeStamp.strftime('%Y-%m-%d'))
+    set_settings("synctime", TimeStamp.strftime('%H:%M'))
+
+def load_settings_bool(setting):
+    value = Addon.getSetting(setting)
+
+    if value == "true":
+        globals()[setting] = True
+    else:
+        globals()[setting] = False
+
+def load_settings(setting):
+    value = Addon.getSetting(setting)
+    globals()[setting] = value
+
+def set_settings(setting, value):
+    globals()["SkipUpdateSettings"] += 1
+    globals()[setting] = value
+    Addon.setSetting(setting, value)
+
+def set_settings_bool(setting, value):
+    globals()["SkipUpdateSettings"] += 1
+    globals()[setting] = value
+
+    if value:
+        Addon.setSetting(setting, "true")
+    else:
+        Addon.setSetting(setting, "false")
+
+def load_Trailers(EmbyServer, EmbyId): # for native content
+    Intros = []
+
+    if localTrailers:
+        IntrosLocal = EmbyServer.API.get_local_trailers(EmbyId)
+
+        for IntroLocal in IntrosLocal:
+            Intros.append(IntroLocal)
+
+    if Trailers:
+        IntrosExternal = EmbyServer.API.get_intros(EmbyId)
+
+        if 'Items' in IntrosExternal:
+            for IntroExternal in IntrosExternal['Items']:
+                r = requests.head(IntroExternal['Path'], allow_redirects=True)
+
+                if IntroExternal['Path'] == r.url:
+                    Intros.append(IntroExternal)
+                else:  # filter URL redirections, mostly invalid links
+                    LOG.error("Invalid Trailer Path: %s" % IntroExternal['Path'])
+
+    return Intros
+
+def get_path_type_from_item(server_id, item):
+    path = ""
+
+    if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
+        path = "http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+        Type = "picture"
+    elif item['Type'] == "MusicVideo":
+        Type = "musicvideo"
+    elif item['Type'] == "Movie":
+        Type = "movie"
+    elif item['Type'] == "Episode":
+        Type = "episode"
+    elif item['Type'] == "Audio":
+        path = "http://127.0.0.1:57578/embyaudiodynamic-%s-%s-%s-%s" % (server_id, item['Id'], "audio", PathToFilenameReplaceSpecialCharecters(item['Path']))
+        Type = "audio"
+    elif item['Type'] == "Video":
+        Type = "video"
+    elif item['Type'] == "Trailer":
+        Type = "trailer"
+    elif item['Type'] == "TvChannel":
+        Type = "tvchannel"
+        path = "http://127.0.0.1:57578/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
+    else:
+        return None, None
+
+    if not path:
         try:
-            return result['result']['value']
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
         except:
-            return False
+            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
 
-    def get_web_server(self):
-        result = JSONRPC('Settings.GetSettingValue').execute({'setting': "services.webserver"})
+    return path, Type
 
-        try:
-            return result['result']['value']
-        except (KeyError, TypeError):
-            return False
+mkDir(FolderAddonUserdata)
+mkDir(FolderEmbyTemp)
+mkDir('special://profile/playlists/video/')
+mkDir('special://profile/playlists/music/')
+mkDir(FolderAddonUserdataLibrary)
+InitSettings()
+limitIndex = int(limitIndex)
+startupDelay = int(startupDelay)
+set_settings_bool('artworkcacheenable', True)
+get_device_id(False)
+DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
+_, FolderDatabasefiles = listDir("special://profile/Database/")
 
-    def enable_busy_dialog(self):
-        xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+for FolderDatabaseFilename in FolderDatabasefiles:
+    if not FolderDatabaseFilename.endswith('-wal') and not FolderDatabaseFilename.endswith('-shm') and not FolderDatabaseFilename.endswith('db-journal'):
+        if FolderDatabaseFilename.startswith('Textures'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
 
-    def disable_busy_dialog(self):
-        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+            if Version > DatabaseFiles['texture-version']:
+                DatabaseFiles['texture'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['texture-version'] = Version
+        elif FolderDatabaseFilename.startswith('MyMusic'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
 
-    # Settings table for audio and subtitle tracks
-    def default_settings_default(self):
-        path = self.translatePath('special://profile/')
-        Filepath = os.path.join(path, 'guisettings.xml')
+            if Version > DatabaseFiles['music-version']:
+                DatabaseFiles['music'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['music-version'] = Version
+        elif FolderDatabaseFilename.startswith('MyVideos'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
 
-        try:
-            xmlData = xml.etree.ElementTree.parse(Filepath).getroot()
-        except Exception:
-            return
-
-        default = xmlData.find('defaultvideosettings')
-
-        return {
-            'Deinterlace': default.find('interlacemethod').text,
-            'ViewMode': default.find('viewmode').text,
-            'ZoomAmount': default.find('zoomamount').text,
-            'PixelRatio': default.find('pixelratio').text,
-            'VerticalShift': default.find('verticalshift').text,
-            'SubtitleDelay': default.find('subtitledelay').text,
-            'ShowSubtitles': default.find('showsubtitles').text == 'true',
-            'Brightness': default.find('brightness').text,
-            'Contrast': default.find('contrast').text,
-            'Gamma': default.find('gamma').text,
-            'VolumeAmplification': default.find('volumeamplification').text,
-            'AudioDelay': default.find('audiodelay').text,
-            'Sharpness': default.find('sharpness').text,
-            'NoiseReduction': default.find('noisereduction').text,
-            'NonLinStretch': int(default.find('nonlinstretch').text == 'true'),
-            'PostProcess': int(default.find('postprocess').text == 'true'),
-            'ScalingMethod': default.find('scalingmethod').text,
-            'StereoMode': default.find('stereomode').text,
-            'CenterMixLevel': default.find('centermixlevel').text
-        }
-
-class JSONRPC():
-    version = 1
-    jsonrpc = "2.0"
-
-    def __init__(self, method, **kwargs):
-        self.method = method
-        self.params = None
-
-        for arg in kwargs:
-            self.arg = kwargs[arg]
-
-    def _query(self):
-        query = {
-            'jsonrpc': self.jsonrpc,
-            'id': self.version,
-            'method': self.method,
-        }
-
-        if self.params is not None:
-            query['params'] = self.params
-
-        return json.dumps(query)
-
-    def execute(self, params=None):
-        self.params = params
-        return json.loads(xbmc.executeJSONRPC(self._query()))
+            if Version > DatabaseFiles['video-version']:
+                DatabaseFiles['video'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['video-version'] = Version

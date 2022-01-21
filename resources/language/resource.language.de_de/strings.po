@@ -262,8 +262,8 @@ msgid "Enable artwork caching"
 msgstr "Artwork Cache aktivieren"
 
 msgctxt "#30515"
-msgid "Paging - max items requested (default: 15)"
-msgstr "Maximal parallel abgefragte Serverelemente (Standard: 15)"
+msgid "Paging - max items requested (default: 50)"
+msgstr "Maximal parallel abgefragte Serverelemente (Standard: 50)"
 
 msgctxt "#30516"
 msgid "Playback"
@@ -291,7 +291,7 @@ msgstr "Beim Fortsetzen zurückspringen (in Sekunden)"
 
 msgctxt "#30522"
 msgid "Transcode H265/HEVC"
-msgstr "H265/HEVC transkodieren"
+msgstr "Transkodiere (H265/HEVC)"
 
 msgctxt "#30527"
 msgid "Ignore specials in next episodes"
@@ -399,7 +399,7 @@ msgstr "Emby Connect Benutzer wechseln"
 
 msgctxt "#30614"
 msgid "Connect to server"
-msgstr "mit Server verbinden"
+msgstr "Server verbinden"
 
 msgctxt "#30615"
 msgid "Host"
@@ -519,7 +519,7 @@ msgstr "Lokale Datenbank zurücksetzen"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr "Cache alle Artworks"
+msgstr "Bilder zwischenspeichern"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -1039,15 +1039,15 @@ msgstr "Aktiviere Markierung für Multi Episoden zB. | # | Titel"
 
 msgctxt "#33214"
 msgid "Transcode Divx (MSMPEG4V3)"
-msgstr "Transkodier Divx (MSMPEG4V3)"
+msgstr "Transkodiere Divx (MSMPEG4V3)"
 
 msgctxt "#33215"
 msgid "Transcode Xvid (MPEG4)"
-msgstr "Transkodier Xvid (MPEG4)"
+msgstr "Transkodiere Xvid (MPEG4)"
 
 msgctxt "#33216"
 msgid "Transcode Dvd (MPEG2)"
-msgstr "Transkodier Dvd (MPEG2)"
+msgstr "Transkodiere Dvd (MPEG2)"
 
 msgctxt "#33217"
 msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
@@ -1064,3 +1064,187 @@ msgstr "Nach Schauspieler"
 msgctxt "#33220"
 msgid "By Tag"
 msgstr "Nach Kennzeichen"
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr "Userrating Synchronisation aktivieren"
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr "LETZTE WARNING: Kompletter Datenbank Neuaufbau ist notwendig! Wenn nicht gewünscht, bitte hier abbrechen und MANUELL die vorherige Version installieren."
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr "Kompletter Datenbank Neuaufbau ist notwendig, bitte auf Kodi Neustart warten."
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr "Ungültiger Backup Pfad"
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr "Ungültiges Backup"
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr "Bild Zwischenspeicherung ist am Laufen"
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr "Webserver muss eingeschaltet werden für Bild Zwischenspeicherung"
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr "Kein Passwort gefunden, es wird das Passwort auf 'kodi' gesetzt."
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr "Kein Backup Pfad gesetzt"
+
+msgctxt "#33230"
+msgid "select"
+msgstr "Auswahl"
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr "Spezial Features"
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr "Live TV Syncronisation beendet"
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr "Bitte iptv iptvsimple einschalten"
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr "Syncronisation Live TV"
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr "Websocket ist offline"
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr "Emby Server wird heruntergefahren"
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr "Emby Server Neustart notwendig"
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr "Bibliotheken hinzufügen"
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr "Smart Playlisten einschalten (kann Kodi zum Absturz bringen)"
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr "Bewertung einschalten"
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Lokale Trailers einschalten"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Trailers einschalten"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkodierung"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Ausgabe Format Video"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Ausgabe Format Audio"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Zeige Optionen im Plugin Menü"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Datum Info"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Genres"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studios"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Beschriftungen"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Übersicht"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Produktions Standorte"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dynamische Bibliotheken"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Kompatibilitäts Modus"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Backup einspielen"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Welche Bilder sollen zwischengespeichert werden?"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Video"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Musik"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Inkrementelles synchronisations Datum"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Inkrementelle synchronisations Zeit"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Sammle entfernte Objekte"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Kinomodus aktivieren (Filme)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Kinomodus aktivieren (Serien)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr ""
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr ""
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr ""

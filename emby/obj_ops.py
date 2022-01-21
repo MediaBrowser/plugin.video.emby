@@ -1,8 +1,5 @@
-{
-    "video": "special://database/MyVideos119.db",
-    "music": "special://database/MyMusic82.db",
-    "texture": "special://database/Textures13.db",
-    "emby": "special://database/emby.db",
+# -*- coding: utf-8 -*-
+objects = {
     "MovieProviderName": "imdb",
     "Movie": {
         "Id": "Id",
@@ -14,7 +11,6 @@
         "UniqueIds": "ProviderIds",
         "Rating": "CommunityRating",
         "Year": "ProductionYear",
-        "Votes": "VoteCount",
         "Plot": "Overview",
         "ShortPlot": "ShortOverview",
         "People": "People",
@@ -26,12 +22,11 @@
         "Country": "ProductionLocations/0",
         "Countries": "ProductionLocations",
         "Studios": "Studios:?$Name",
-        "Studio": "Studios/0/Name",
         "Runtime": "RunTimeTicks,CumulativeRunTimeTicks",
         "LocalTrailer": "LocalTrailerCount",
         "Trailer": "RemoteTrailers/0/Url",
         "DateAdded": "DateCreated",
-        "Premiered": "PremiereDate",
+        "Premiere": "PremiereDate",
         "Played": "UserData/Played",
         "PlayCount": "UserData/PlayCount",
         "DatePlayed": "UserData/LastPlayedDate",
@@ -48,23 +43,13 @@
         "PresentationKey": "PresentationUniqueKey",
         "OriginalTitle": "OriginalTitle"
     },
-    "MovieUserData": {
-        "Id": "Id",
-        "Title": "Name",
-        "Runtime": "RunTimeTicks,CumulativeRunTimeTicks",
-        "Resume": "UserData/PlaybackPositionTicks",
-        "Favorite": "UserData/IsFavorite",
-        "PlayCount": "UserData/PlayCount",
-        "DatePlayed": "UserData/LastPlayedDate",
-        "Played": "UserData/Played",
-        "PresentationKey": "PresentationUniqueKey"
-    },
     "Boxset": {
         "Id": "Id",
         "Title": "Name",
         "Overview": "Overview",
         "PresentationKey": "PresentationUniqueKey",
-        "Etag": "Etag"
+        "Etag": "Etag",
+        "Favorite": "UserData/IsFavorite"
     },
     "SeriesProviderName": "tvdb",
     "Series": {
@@ -77,7 +62,6 @@
         "Plot": "Overview",
         "Rating": "CommunityRating",
         "Year": "ProductionYear",
-        "Votes": "VoteCount",
         "Premiere": "PremiereDate",
         "UniqueId": "ProviderIds/Tvdb",
         "UniqueIds": "ProviderIds",
@@ -98,12 +82,16 @@
         "SeriesId": "SeriesId",
         "Location": "LocationType",
         "Title": "Name",
-        "PresentationKey": "PresentationUniqueKey"
+        "EmbyParentId": "ParentId",
+        "PresentationKey": "PresentationUniqueKey",
+        "Favorite": "UserData/IsFavorite"
     },
     "EpisodeProviderName": "tvdb",
     "Episode": {
         "Id": "Id",
         "Title": "Name",
+        "SeasonName": "SeasonName",
+        "SeriesName": "SeriesName",
         "Path": "Path",
         "Plot": "Overview",
         "People": "People",
@@ -112,7 +100,6 @@
         "Directors": "People:?Type=Director$Name",
         "Runtime": "RunTimeTicks,CumulativeRunTimeTicks",
         "Premiere": "PremiereDate",
-        "Votes": "VoteCount",
         "UniqueId": "ProviderIds/Tvdb",
         "UniqueIds": "ProviderIds",
         "SeriesId": "SeriesId",
@@ -122,7 +109,6 @@
         "AirsAfterSeason": "AirsAfterSeasonNumber",
         "AirsBeforeSeason": "AirsBeforeSeasonNumber,SortParentIndexNumber",
         "AirsBeforeEpisode": "AirsBeforeEpisodeNumber,SortIndexNumber",
-        "MultiEpisode": "IndexNumberEnd",
         "Played": "UserData/Played",
         "PlayCount": "UserData/PlayCount",
         "DateAdded": "DateCreated",
@@ -133,21 +119,10 @@
         "Video": "MediaSources/0/MediaStreams:?Type=Video",
         "Container": "MediaSources/0/Container",
         "Location": "LocationType",
-        "EmbyParentId": "SeriesId,ParentId",
+        "EmbyParentId": "SeasonId,ParentId",
         "PresentationKey": "PresentationUniqueKey",
-        "OriginalTitle": "OriginalTitle"
-    },
-    "EpisodeUserData": {
-        "Id": "Id",
-        "Title": "Name",
-        "Runtime": "RunTimeTicks,CumulativeRunTimeTicks",
-        "Resume": "UserData/PlaybackPositionTicks",
-        "Favorite": "UserData/IsFavorite",
-        "PlayCount": "UserData/PlayCount",
-        "DatePlayed": "UserData/LastPlayedDate",
-        "DateAdded": "DateCreated",
-        "Played": "UserData/Played",
-        "PresentationKey": "PresentationUniqueKey"
+        "OriginalTitle": "OriginalTitle",
+        "Favorite": "UserData/IsFavorite"
     },
     "MusicVideo": {
         "Id": "Id",
@@ -173,6 +148,7 @@
         "Audio": "MediaSources/0/MediaStreams:?Type=Audio",
         "Video": "MediaSources/0/MediaStreams:?Type=Video",
         "Container": "MediaSources/0/Container",
+        "MediaSourcesName": "MediaSources/0/Name",
         "Tags": "Tags",
         "TagItems": "TagItems:?$Name",
         "Played": "UserData/Played",
@@ -180,16 +156,6 @@
         "Directors": "People:?Type=Director$Name",
         "EmbyParentId": "ParentId",
         "PresentationKey": "PresentationUniqueKey"
-    },
-    "MusicVideoUserData": {
-        "Id": "Id",
-        "Title": "Name",
-        "Runtime": "RunTimeTicks,CumulativeRunTimeTicks",
-        "Resume": "UserData/PlaybackPositionTicks",
-        "Favorite": "UserData/IsFavorite",
-        "PlayCount": "UserData/PlayCount",
-        "DatePlayed": "UserData/LastPlayedDate",
-        "Played": "UserData/Played"
     },
     "Artist": {
         "Id": "Id",
@@ -200,7 +166,8 @@
         "EmbyParentId": "ParentId",
         "DateAdded": "DateCreated",
         "SortName": "SortName",
-        "PresentationKey": "PresentationUniqueKey"
+        "PresentationKey": "PresentationUniqueKey",
+        "Favorite": "UserData/IsFavorite"
     },
     "Album": {
         "Id": "Id",
@@ -214,7 +181,8 @@
         "ArtistItems": "ArtistItems",
         "EmbyParentId": "ParentId",
         "DateAdded": "DateCreated",
-        "PresentationKey": "PresentationUniqueKey"
+        "PresentationKey": "PresentationUniqueKey",
+        "Favorite": "UserData/IsFavorite"
     },
     "Song": {
         "Id": "Id",
@@ -238,16 +206,8 @@
         "SongAlbumId": "AlbumId",
         "Container": "MediaSources/0/Container",
         "EmbyParentId": "ParentId",
-        "PresentationKey": "PresentationUniqueKey"
-    },
-    "SongUserData": {
-        "Id": "Id",
-        "Title": "Name",
-        "PlayCount": "UserData/PlayCount",
-        "DatePlayed": "UserData/LastPlayedDate",
-        "DateAdded": "DateCreated",
-        "Played": "UserData/Played",
-        "PresentationKey": "PresentationUniqueKey"
+        "PresentationKey": "PresentationUniqueKey",
+        "Favorite": "UserData/IsFavorite"
     },
     "Artwork": {
         "Id": "Id",
@@ -281,8 +241,8 @@
         "ParentArtTag": "ParentArtImageTag",
         "ParentThumbId": "ParentThumbItemId",
         "ParentThumbTag": "ParentThumbTag",
-        "AlbumId": "AlbumId",
-        "AlbumTag": "AlbumPrimaryImageTag"
+        "AlbumTag": "AlbumPrimaryImageTag",
+        "AlbumId": "AlbumId"
     },
     "BrowseVideo": {
         "Id": "Id",
@@ -298,7 +258,6 @@
         "Studios": "Studios:?$Name,SeriesStudio",
         "Premiere": "PremiereDate,DateCreated",
         "Rating": "CommunityRating",
-        "Votes": "VoteCount",
         "Season": "ParentIndexNumber",
         "Index": "IndexNumber,AbsoluteEpisodeNumber",
         "SeriesName": "SeriesName",
@@ -312,7 +271,6 @@
         "DatePlayed": "UserData/LastPlayedDate",
         "Artists": "ArtistItems:?$Name",
         "Album": "Album",
-        "Votes": "VoteCount",
         "Path": "Path",
         "LocalTrailer": "LocalTrailerCount",
         "Trailer": "RemoteTrailers/0/Url",
@@ -348,14 +306,13 @@
         "DatePlayed": "UserData/LastPlayedDate",
         "UniqueId": "ProviderIds/MusicBrainzTrackId,ProviderIds/MusicBrainzAlbum,ProviderIds/MusicBrainzArtist",
         "Comment": "Overview",
-        "FileDate": "DateCreated",
+        "DateAdded": "DateCreated",
         "Played": "UserData/Played"
     },
     "BrowsePhoto": {
         "Id": "Id",
         "Title": "Name",
         "Type": "Type",
-        "FileDate": "DateCreated",
         "Width": "Width",
         "Height": "Height",
         "Size": "Size",
@@ -363,13 +320,21 @@
         "CameraMake": "CameraMake",
         "CameraModel": "CameraModel",
         "ExposureTime": "ExposureTime",
-        "FocalLength": "FocalLength"
+        "FocalLength": "FocalLength",
+        "DateAdded": "DateCreated"
     },
     "BrowseFolder": {
         "Id": "Id",
         "Title": "Name",
         "Type": "Type",
         "Overview": "Overview"
+    },
+    "BrowseGenre": {
+        "Id": "Id",
+        "Title": "Name",
+        "Type": "Type",
+        "Tags": "ImageTags",
+        "BackdropTags": "BackdropImageTags"
     },
     "BrowseChannel": {
         "Id": "Id",
@@ -406,82 +371,119 @@
         "RequiredHttpHeaders": "RequiredHttpHeaders",
         "ReadAtNativeFramerate": "ReadAtNativeFramerate",
         "DefaultAudioStreamIndex": "DefaultAudioStreamIndex"
-    },
-    "AudioStreams": {
-        "emby_id": "emby_id",
-        "MediaIndex": "MediaIndex",
-        "AudioIndex": "AudioIndex",
-        "StreamIndex": "StreamIndex",
-        "Codec": "Codec",
-        "Language": "Language",
-        "TimeBase": "TimeBase",
-        "CodecTimeBase": "CodecTimeBase",
-        "DisplayTitle": "DisplayTitle",
-        "DisplayLanguage": "DisplayLanguage",
-        "IsInterlaced": "IsInterlaced",
-        "ChannelLayout": "ChannelLayout",
-        "BitRate": "BitRate",
-        "Channels": "Channels",
-        "SampleRate": "SampleRate",
-        "IsDefault": "IsDefault",
-        "IsForced": "IsForced",
-        "Profile": "Profile",
-        "Type": "Type",
-        "IsExternal": "IsExternal",
-        "IsTextSubtitleStream": "IsTextSubtitleStream",
-        "SupportsExternalStream": "SupportsExternalStream",
-        "Protocol": "Protocol"
-    },
-    "VideoStreams": {
-        "emby_id": "emby_id",
-        "MediaIndex": "MediaIndex",
-        "VideoIndex": "VideoIndex",
-        "StreamIndex": "StreamIndex",
-        "Codec": "Codec",
-        "TimeBase": "TimeBase",
-        "CodecTimeBase": "CodecTimeBase",
-        "VideoRange": "VideoRange",
-        "DisplayTitle": "DisplayTitle",
-        "IsInterlaced": "IsInterlaced",
-        "BitRate": "BitRate",
-        "BitDepth": "BitDepth",
-        "RefFrames": "RefFrames",
-        "IsDefault": "IsDefault",
-        "IsForced": "IsForced",
-        "Height": "Height",
-        "Width": "Width",
-        "AverageFrameRate": "AverageFrameRate",
-        "RealFrameRate": "RealFrameRate",
-        "Profile": "Profile",
-        "Type": "Type",
-        "AspectRatio": "AspectRatio",
-        "IsExternal": "IsExternal",
-        "IsTextSubtitleStream": "IsTextSubtitleStream",
-        "SupportsExternalStream": "SupportsExternalStream",
-        "Protocol": "Protocol",
-        "PixelFormat": "PixelFormat",
-        "Level": "Level",
-        "IsAnamorphic": "IsAnamorphic"
-    },
-    "Subtitles": {
-    	"emby_id": "emby_id",
-    	"MediaIndex": "MediaIndex",
-    	"SubtitleIndex": "SubtitleIndex",
-        "StreamIndex": "StreamIndex",
-    	"IsForced": "IsForced",
-    	"IsInterlaced": "IsInterlaced",
-    	"DisplayTitle": "DisplayTitle",
-    	"SupportsExternalStream": "SupportsExternalStream",
-    	"Language": "Language",
-    	"DisplayLanguage": "DisplayLanguage",
-    	"Codec": "Codec",
-    	"CodecTimeBase": "CodecTimeBase",
-    	"Protocol": "Protocol",
-        "Type": "Type",
-    	"Path": "Path",
-    	"TimeBase": "TimeBase",
-    	"IsTextSubtitleStream": "IsTextSubtitleStream",
-    	"IsDefault": "IsDefault",
-    	"IsExternal": "IsExternal"
     }
 }
+
+def mapitem(item, mapping_name):
+    """ Syntax to traverse the item dictionary.
+        This of the query almost as a url.
+
+        Item is the Emby item json object structure
+
+        ",": each element will be used as a fallback until a value is found.
+        "?": split filters and key name from the query part, i.e. MediaSources/0?$Name
+        "$": lead the key name with $. Only one key value can be requested per element.
+        ":": indicates it's a list of elements [], i.e. MediaSources/0/MediaStreams:?$Name
+             MediaStreams is a list.
+        "/": indicates where to go directly
+    """
+    mapped_item = {}
+    mapping = objects[mapping_name]
+
+    for key, value in list(mapping.items()):
+        mapped_item[key] = None
+        params = value.split(',')
+
+        for param in params:
+            obj = item
+            obj_param = param
+            obj_key = ""
+            obj_filters = {}
+
+            if '?' in obj_param:
+
+                if '$' in obj_param:
+                    obj_param, obj_key = obj_param.rsplit('$', 1)
+
+                obj_param, filters = obj_param.rsplit('?', 1)
+
+                if filters:
+                    for filterData in filters.split('&'):
+                        filter_key, filter_value = filterData.split('=')
+                        obj_filters[filter_key] = filter_value
+
+            if ':' in obj_param:
+                result = []
+
+                for d in recursiveloop(obj, obj_param):
+
+                    if obj_filters and filtersops(d, obj_filters):
+                        result.append(d)
+                    elif not obj_filters:
+                        result.append(d)
+
+                obj = result
+                obj_filters = {}
+            elif '/' in obj_param:
+                obj = recursive(obj, obj_param)
+            elif obj is item and obj is not None:
+                obj = item.get(obj_param)
+
+            if obj_filters and obj:
+                if not filtersops(obj, obj_filters):
+                    obj = None
+
+            if obj is None and len(params) != params.index(param):
+                continue
+
+            if obj_key:
+                if isinstance(obj, list):
+                    obj = [d[obj_key] for d in obj if d.get(obj_key)]
+                else:
+                    obj = obj.get(obj_key)
+
+            mapped_item[key] = obj
+            break
+
+    if not mapping_name.startswith('Browse') and not mapping_name.startswith('Artwork') and not mapping_name.startswith('MediaSources') and not mapping_name.startswith('AudioStreams') and not mapping_name.startswith('VideoStreams'):
+        mapped_item['ProviderName'] = objects.get('%sProviderName' % mapping_name)
+        mapped_item.setdefault('PresentationKey', None)
+
+    return mapped_item
+
+def recursiveloop(obj, keys):
+    first, rest = keys.split(':', 1)
+    obj = recursive(obj, first)
+
+    if obj:
+        if rest:
+            for item in obj:
+                recursiveloop(item, rest)
+        else:
+            for item in obj:
+                yield item
+
+def recursive(obj, keys):
+    for string in keys.split('/'):
+        if not obj:
+            return None
+
+        obj = obj[int(string)] if string.isdigit() else obj.get(string)
+
+    return obj
+
+def filtersops(obj, filterdata):
+    result = False
+
+    for key, value in iter(list(filterdata.items())):
+        inverse = False
+
+        if value.startswith('!'):
+            inverse = True
+            value = value.split('!', 1)[1]
+        elif value.lower() == "null":
+            value = None
+
+        result = obj.get(key) != value if inverse else obj.get(key) == value
+
+    return result

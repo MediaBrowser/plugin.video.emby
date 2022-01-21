@@ -1,176 +1,129 @@
 # -*- coding: utf-8 -*-
-import logging
-import _strptime # Workaround for threads using datetime: _striptime is locked
-import sys
-import threading
-import datetime
 import xbmc
-
 import hooks.monitor
-import database.database
-import emby.main
-import emby.views
-import helper.loghandler
-import helper.setup
-import helper.translate
-import helper.utils
+from database import dbio
+from helper import utils
+from helper import xmls
+from helper import loghandler
 
-class Service():
-    def __init__(self):
-        helper.loghandler.reset()
-        helper.loghandler.config()
-        self.server_thread = []
-        self.last_progress = datetime.datetime.today()
-        self.last_progress_report = datetime.datetime.today()
-        self.running = True
-        self.LOG = logging.getLogger("EMBY.entrypoint.Service")
-        self.Utils = helper.utils.Utils()
-        self.Utils.window('emby_should_stop', clear=True)
-        self.Utils.window('emby_sleep.bool', False)
-        self.Utils.window('emby_sync_skip_resume.bool', False)
-        self.profile = self.Utils.translatePath('special://profile/')
-        self.Utils.window('emby_kodiProfile', value=self.profile)
-        self.Utils.settings('platformDetected', self.Utils.get_platform())
-        self.Utils.settings('distroDetected', self.Utils.get_distro())
-        self.Utils.window('emby_reloadskin.bool', True)
-        self.Setup = helper.setup.Setup(self.Utils)
-        memory = xbmc.getInfoLabel('System.Memory(total)').replace('MB', "")
-        self.Delay = int(self.Utils.settings('startupDelay'))
-        self.LOG.warning("--->>>[ %s ]", self.Utils.get_addon_name())
-        self.LOG.warning("Version: %s", self.Utils.get_version())
-        self.LOG.warning("KODI Version: %s", xbmc.getInfoLabel('System.BuildVersion'))
-        self.LOG.warning("Platform: %s", self.Utils.settings('platformDetected'))
-        self.LOG.warning("OS: %s/%sMB", self.Utils.settings('distroDetected'), memory)
-        self.LOG.warning("Python Version: %s", sys.version)
-        self.Monitor = None
-        Views = emby.views.Views(self.Utils)
-        Views.verify_kodi_defaults()
-        database.database.test_databases()
+Monitor = hooks.monitor.Monitor()
+LOG = loghandler.LOG('EMBY.service')
 
-        try:
-            Views.get_nodes()
-        except Exception as error:
-            self.LOG.error(error)
 
-        self.Utils.window('emby.connected.bool', True)
-        self.Utils.settings('groupedSets.bool', self.Utils.get_grouped_set())
-        self.Utils.window('emby_playerreloadindex', '-1')
+def ServersConnect():
+    if utils.startupDelay:
+        if Monitor.waitForAbort(utils.startupDelay):
+            return
 
-    def Start(self):
-        if not self.Setup.Migrate(): #Check Migrate
-            xbmc.executebuiltin('RestartApp')
-            return False
+        if utils.SystemShutdown:
+            return
 
-        self.Monitor = hooks.monitor.Monitor()
-        self.Monitor.ServiceHandle(self)
-        self.Server(self.Delay)
+    _, files = utils.listDir(utils.FolderAddonUserdata)
+    ServersSettings = []
+
+    for Filename in files:
+        if Filename.startswith('server'):
+            ServersSettings.append("%s%s" % (utils.FolderAddonUserdata, Filename))
+
+    if not ServersSettings:  # First run
+        Monitor.ServerConnect(None)
+    else:
+        for ServerSettings in ServersSettings:
+            Monitor.ServerConnect(ServerSettings)
+
+    # Shutdown
+    Monitor.waitForAbort()
+
+    if not utils.SystemShutdown:
+        utils.SyncPause = True
+        Monitor.QuitThreads()
+        Monitor.EmbyServer_DisconnectAll()
+
+def setup():
+    xmls.KodiDefaultNodes()
+    xmls.sources()
+    xmls.advanced_settings()
+    xmls.add_favorites()
+
+    if utils.MinimumSetup == utils.MinimumVersion:
         return True
 
-    def WatchDog(self):
-        while self.running:
-            if self.Utils.window('emby_online.bool'):
-                if self.profile != self.Utils.window('emby_kodiProfile'):
-                    self.LOG.info("[ profile switch ] %s", self.profile)
-                    break
+    # Clean installation
+    if not utils.MinimumSetup:
+        value = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33221))
 
-            if self.Utils.window('emby.restart.bool'):
-                self.Utils.window('emby.restart.bool', False)
-                self.Utils.dialog("notification", heading="{emby}", message=helper.translate._(33193), icon="{emby}", time=1000, sound=False)
-                raise Exception('RestartService')
+        if value:
+            utils.set_settings_bool('userRating', True)
+        else:
+            utils.set_settings_bool('userRating', False)
 
-            try:
-                if xbmc.Monitor().waitForAbort(1):
-                    break
+        LOG.info("Userrating: %s" % utils.userRating)
+        value = utils.dialog("yesno", heading=utils.Translate(30511), line1=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
 
-                if self.Utils.window('emby_sleep.bool'):
-                    self.Monitor.System_OnWake()
-                    continue
+        if value:
+            utils.set_settings_bool('useDirectPaths', True)
+            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33145))
+        else:
+            utils.set_settings_bool('useDirectPaths', False)
 
-                if self.Utils.window('emby_should_stop.bool'):
-                    break
-            except:
-                break
+        LOG.info("Add-on playback: %s" % utils.useDirectPaths == "0")
+        utils.set_settings('MinimumSetup', utils.MinimumVersion)
+        return True
 
-        try:
-            self.shutdown()
-        except:
-            raise Exception("ExitService")
+    value = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33222))
 
-    def Server(self, delay=None, close=False):
-        if not self.server_thread:
-            thread = StartDefaultServer(self, delay, close)
-            self.server_thread.append(thread)
+    if not value:
+        return "stop"
 
-    def shutdown(self):
-        self.LOG.warning("---<[ EXITING ]")
-        self.Utils.window('emby_should_stop.bool', True)
-        properties = [
-            "emby_online", "emby.connected", "emby_deviceId",
-            "emby_pathverified", "emby_sync", "emby.restart", "emby.sync.pause",
-            "emby.server.state", "emby.server.states"
-        ]
+    utils.set_settings('MinimumSetup', utils.MinimumVersion)
+    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33223), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=960000, sound=True)
+    DeleteArtwork = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
 
-        for server in self.Utils.window('emby.server.states.json') or []:
-            properties.append("emby.server.%s.state" % server)
+    if Monitor.waitForAbort(5):  # Give Kodi time to complete startup before reset
+        return False
 
-        for prop in properties:
-            self.Utils.window(prop, clear=True)
+    # delete settings
+    _, files = utils.listDir(utils.FolderAddonUserdata)
 
-        self.Monitor.QuitThreads()
-        emby.main.Emby.close_all()
-        self.Monitor.LibraryStop()
-        self.LOG.warning("---<<<[ %s ]", self.Utils.get_addon_name())
-        helper.loghandler.reset()
-        raise Exception("ExitService")
+    for Filename in files:
+        utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-class StartDefaultServer(threading.Thread):
-    def __init__(self, service, retry=None, close=False):
-        self.service = service
-        self.retry = retry
-        self.close = close
-        threading.Thread.__init__(self)
-        self.start()
+    # delete database
+    _, files = utils.listDir("special://profile/Database/")
 
-    #This is a thread to not block the main service thread
-    def run(self):
-        try:
-            if 'default' in emby.main.Emby.client:
-                self.service.Utils.window('emby_online', clear=True)
-                emby.main.Emby().close()
-                self.service.Monitor.LibraryStop()
+    for Filename in files:
+        if Filename.startswith('emby'):
+            utils.delFile("special://profile/Database/%s" % Filename)
 
-                if self.close:
-                    raise Exception("terminate default server thread")
+    videodb = dbio.DBOpen("video")
+    videodb.common_db.delete_tables("Video")
+    dbio.DBClose("video", True)
+    musicdb = dbio.DBOpen("music")
+    musicdb.common_db.delete_tables("Music")
+    dbio.DBClose("music", True)
 
-            if self.retry and xbmc.Monitor().waitForAbort(self.retry) or not self.service.running:
-                raise Exception("abort default server thread")
+    if DeleteArtwork:
+        utils.DeleteThumbnails()
+        texturedb = dbio.DBOpen("texture")
+        texturedb.delete_tables("Texture")
+        dbio.DBClose("texture", True)
 
-            self.service.Monitor.Register()
-            self.service.Setup.setup()
-            self.service.Monitor.LibraryLoad()
-            self.service.Monitor.PlayMode = self.service.Utils.settings('useDirectPaths')
-        except Exception as error:
-            #LOG.error(error) # we don't really case, self.Utils.event will retrigger if need be.
-            pass
-
-        self.service.server_thread.remove(self)
+    utils.delete_playlists()
+    utils.delete_nodes()
+    LOG.info("[ complete reset ]")
+    return False
 
 if __name__ == "__main__":
-    while True:
-        serviceOBJ = None
+    LOG.warning("[ Start Emby-next-gen ]")
+    Ret = setup()
 
-        try:
-            serviceOBJ = Service()
-
-            if not serviceOBJ.Start():
-                break
-
-            serviceOBJ.WatchDog()
-        except Exception as error:
-            if serviceOBJ is not None:
-                if 'ExitService' in error.args:
-                    break
-                elif 'RestartService' in error.args:
-                    continue
-                elif 'Unknown addon id' in error.args[0]:
-                    break
+    if Ret == "stop":  # db upgrade declined
+        Monitor.QuitThreads()
+        LOG.error("[ DB upgrade declined, Shutdown Emby-next-gen ]")
+    elif not Ret:  # db reset required
+        LOG.warning("[ DB reset required, Kodi restart ]")
+        Monitor.QuitThreads()
+        xbmc.executebuiltin('RestartApp')
+    else:  # Regular start
+        ServersConnect()  # Waiting/blocking function till Kodi stops
+        LOG.warning("[ Shutdown Emby-next-gen ]")
