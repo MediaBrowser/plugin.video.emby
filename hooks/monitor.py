@@ -265,7 +265,7 @@ class Monitor(xbmc.Monitor):
                 self.EmbyServer_DisconnectAll()
 
                 if self.waitForAbort(5):  # Give Kodi time to complete startup before reset
-                    return False 
+                    return False
 
                 xbmc.executebuiltin('RestartApp')
                 return

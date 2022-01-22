@@ -157,7 +157,7 @@ def advanced_settings():
                     WriteData = True
             else:
                 xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
-                WriteData = True    
+                WriteData = True
         else:
             LOG.warning("advancedsettings.xml set network")
             Network = xml.etree.ElementTree.SubElement(xmlData, 'network')

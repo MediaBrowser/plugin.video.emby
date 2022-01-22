@@ -514,11 +514,11 @@ class Menu:
                     folder = normalize_string(item['Name'])
                     items[item['Id']] = folder
 
-        for item in items:
-            nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, item)
+        for ItemId, name in list(items.items()):
+            nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, name)
             nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
             utils.mkDir(nfo_path)
-            themes = self.EmbyServers[server_id].API.get_themes(item)
+            themes = self.EmbyServers[server_id].API.get_themes(ItemId)
             paths = []
 
             for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:
