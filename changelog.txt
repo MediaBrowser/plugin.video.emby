@@ -316,6 +316,7 @@ fix audioplayer focus
 fix trakt issue/progress updates
 change season artwork fallback
 disable http2 by default and add config menu option
+fix videoplayer focus
 
 
 6.0.13 (beta)

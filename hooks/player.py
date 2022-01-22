@@ -25,7 +25,7 @@ class PlayerEvents(xbmc.Player):
         self.QueuedPlayingItem = {}
         self.EmbyServer = None
         self.EmbyServers = None
-        self.PlayingVideo = True
+        self.PlayingVideoAudio = True
         self.MultiselectionDone = False
         self.PlayerSkipItem = "-1"
         self.PositionTrackerThread = None
@@ -93,20 +93,22 @@ class PlayerEvents(xbmc.Player):
             kodi_id = None
             media_type = None
             EmbyId = None
+            VideoPlayback = False
 
             try:
-                try:  # self.isPlayingVideo()
+                try:
                     PlayerItem = self.getVideoInfoTag()
                     Path = PlayerItem.getPath()
-                except:  # self.isPlayingAudio()
+                    VideoPlayback = True
+                except:
                     PlayerItem = self.getMusicInfoTag()
                     Path = PlayerItem.getURL()
 
-                self.PlayingVideo = True
+                self.PlayingVideoAudio = True
             except:
                 Path = ""
                 PlayerItem = None
-                self.PlayingVideo = False
+                self.PlayingVideoAudio = False
 
             if utils.useDirectPaths and not Path:
                 PlayingFile = self.getPlayingFile()
@@ -234,7 +236,9 @@ class PlayerEvents(xbmc.Player):
             self.PlayingItem['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
 
             if self.EmbyServer and 'ItemId' in self.PlayingItem:
-#                xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+                if VideoPlayback:
+                    xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
@@ -254,7 +258,7 @@ class PlayerEvents(xbmc.Player):
     def onPlayBackSeek(self, time, seekOffset):
         LOG.info("[ onPlayBackSeek ]")
 
-        if not self.EmbyServer or self.PlayerSkipItem != "-1" or 'ItemId' not in self.PlayingItem and not self.PlayingVideo:
+        if not self.EmbyServer or self.PlayerSkipItem != "-1" or 'ItemId' not in self.PlayingItem and not self.PlayingVideoAudio:
             return
 
         SeekPosition = int(time * 10000)
