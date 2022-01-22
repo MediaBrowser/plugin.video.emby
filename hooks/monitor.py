@@ -251,10 +251,26 @@ class Monitor(xbmc.Monitor):
         LOG.info("[ Reload settings ]")
         syncdatePrevious = utils.syncdate
         synctimePrevious = utils.synctime
+        disablehttp2Previous = utils.disablehttp2
         xspplaylistsPreviousValue = utils.xspplaylists
         compatibilitymodePreviousValue = utils.compatibilitymode
         utils.InitSettings()
 
+        # Http2 mode changed, rebuild advanced settings -> restart Kodi
+        if disablehttp2Previous != utils.disablehttp2:
+            if xmls.advanced_settings():
+                utils.SystemShutdown = True
+                utils.SyncPause = True
+                self.QuitThreads()
+                self.EmbyServer_DisconnectAll()
+
+                if self.waitForAbort(5):  # Give Kodi time to complete startup before reset
+                    return False 
+
+                xbmc.executebuiltin('RestartApp')
+                return
+
+        # Manual adjusted sync time/date
         if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
             LOG.info("[ Trigger initsync due to setting changed ]")
             SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)

@@ -42,8 +42,13 @@ def ServersConnect():
 def setup():
     xmls.KodiDefaultNodes()
     xmls.sources()
-    xmls.advanced_settings()
     xmls.add_favorites()
+
+    if xmls.advanced_settings():
+        if Monitor.waitForAbort(5):  # Give Kodi time to complete startup before reset
+            return False        
+        
+        return False
 
     if utils.MinimumSetup == utils.MinimumVersion:
         return True
