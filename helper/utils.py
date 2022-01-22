@@ -47,6 +47,7 @@ newvideotime = 1
 newmusictime = 1
 startupDelay = 0
 backupPath = ""
+disablehttp2 = "true"
 MinimumSetup = ""
 limitIndex = 50
 username = ""
@@ -589,6 +590,7 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')
     load_settings_bool('compatibilitymode')
     load_settings_bool('xspplaylists')
@@ -626,6 +628,11 @@ def InitSettings():
     load_settings_bool('enableDeleteByKodiEvent')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
     globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
+
+    if globals()["disablehttp2"]:
+        globals()["disablehttp2"] = "true"
+    else:
+        globals()["disablehttp2"] = "false"
 
     # Set devicename
     if not globals()["deviceNameOpt"]:

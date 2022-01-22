@@ -145,11 +145,25 @@ def advanced_settings():
             else:
                 xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
                 WriteData = True
+
+            # set HTTP2 support
+            curldisablehttp2 = Network.find('disablehttp2')
+
+            if curldisablehttp2 is not None:
+                if curldisablehttp2.text != utils.disablehttp2:
+                    LOG.warning("advancedsettings.xml set disablehttp2")
+                    Network.remove(curldisablehttp2)
+                    xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+                    WriteData = True
+            else:
+                xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+                WriteData = True
         else:
             LOG.warning("advancedsettings.xml set network")
             Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
             xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
             xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+            xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
             WriteData = True
     else:
         LOG.warning("advancedsettings.xml set data")
@@ -157,10 +171,14 @@ def advanced_settings():
         Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
         xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+        xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
         WriteData = True
 
     if WriteData:
         WriteXmlFile(Filepath, xmlData)
+        utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=5000, sound=True)
+
+    return WriteData
 
 def WriteXmlFile(FilePath, Data):
     DataQueue = [(0, Data)]
