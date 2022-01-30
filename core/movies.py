@@ -70,7 +70,7 @@ class Movies:
         if obj['LocalTrailer']:
             for IntroLocal in self.EmbyServer.API.get_local_trailers(obj['Id']):
                 IntroLocalFilename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-                obj['Trailer'] = "http://127.0.0.1:57578/embytrailerlocal-%s-%s-%s-%s-%s" % (self.EmbyServer.server_id, IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], "video", IntroLocalFilename)
+                obj['Trailer'] = "http://127.0.0.1:57342/embytrailerlocal-%s-%s-%s-%s-%s" % (self.EmbyServer.server_id, IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], "video", IntroLocalFilename)
                 break
         elif obj['Trailer']:
             try:

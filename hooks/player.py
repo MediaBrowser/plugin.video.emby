@@ -136,7 +136,7 @@ class PlayerEvents(xbmc.Player):
             self.MultiselectionDone = False
 
             # native content
-            if Path and not Path.startswith("http://127.0.0.1:57578"):  # native mode
+            if Path and not Path.startswith("http://127.0.0.1:57342"):  # native mode
                 PlaySessionId = str(uuid.uuid4()).replace("-", "")
                 MediasourceID = ""
 

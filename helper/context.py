@@ -65,9 +65,9 @@ class Context:
         li = listitem.set_ListItem(item, self.server_id)
 
         if len(item['MediaSources'][0]['MediaStreams']) >= 1:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
         else:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], "0", "", utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (self.server_id, item['Id'], "movie", item['MediaSources'][0]['Id'], "0", "", utils.PathToFilenameReplaceSpecialCharecters(item['Path']))
 
         li.setProperty('path', path)
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
