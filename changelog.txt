@@ -1,4 +1,4 @@
-6.2.7
+6.2.8
 =============
 Improvements:
 -------------
@@ -318,6 +318,7 @@ change season artwork fallback
 disable http2 by default and add config menu option
 fix videoplayer focus
 fix tvtunes
+fix music update sync
 
 
 6.0.13 (beta)
