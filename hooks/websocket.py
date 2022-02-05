@@ -394,7 +394,7 @@ class WSClient(threading.Thread):
             self.EmbyServer.UserDataChanged(self.EmbyServer.server_id, IncommingData['Data']['UserDataList'], IncommingData['Data']['UserId'])
         elif IncommingData['MessageType'] == 'LibraryChanged':
             LOG.info("[ LibraryChanged ] %s" % IncommingData['Data'])
-            self.EmbyServer.library.removed(IncommingData['Data']['ItemsRemoved'])
+            self.EmbyServer.library.removed(IncommingData['Data']['FoldersRemovedFrom'] + IncommingData['Data']['ItemsRemoved'])
             UpdateItems = IncommingData['Data']['ItemsUpdated']
 
             for ItemAdded in IncommingData['Data']['ItemsAdded']:

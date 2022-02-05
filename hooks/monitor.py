@@ -58,7 +58,7 @@ class Monitor(xbmc.Monitor):
         QuerySocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         QuerySocket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         QuerySocket.settimeout(None)
-        QuerySocket.bind(('127.0.0.1', 60001))
+        QuerySocket.bind(('127.0.0.1', 57341))
         QuerySocket.listen(50)
 
         while True:
@@ -227,7 +227,7 @@ class Monitor(xbmc.Monitor):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                sock.connect(('127.0.0.1', 60001))
+                sock.connect(('127.0.0.1', 57341))
                 sock.settimeout(1)
                 request = "QUIT"
                 sock.send(request.encode())

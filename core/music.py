@@ -56,7 +56,7 @@ class Music:
             obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if update:
-            self.emby_db.update_reference(obj['PresentationKey'], obj['Id'], obj['Favorite'])
+            self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
             self.music_db.update_artist(obj['Genre'], obj['Bio'], obj['Artwork']['Thumb'], obj['Artwork']['Backdrop'], obj['LastScraped'], obj['SortName'], obj['DateAdded'], obj['ArtistId'], obj['LibraryId_Name'])
             LOG.info("UPDATE artist [%s] %s: %s" % (obj['ArtistId'], obj['Name'], obj['Id']))
         else:
@@ -109,7 +109,7 @@ class Music:
             obj['DateAdded'] = utils.convert_to_local(obj['DateAdded']).split('.')[0].replace('T', " ")
 
         if update:
-            self.emby_db.update_reference(obj['PresentationKey'], obj['Id'], obj['Favorite'])
+            self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
             self.music_db.update_album(obj['Artist'], obj['Year'], obj['Genre'], obj['Bio'], obj['Artwork']['Thumb'], obj['Rating'], obj['LastScraped'], obj['DateAdded'], obj['AlbumId'], obj['LibraryId_Name'])
             LOG.info("UPDATE album [%s] %s: %s" % (obj['AlbumId'], obj['Title'], obj['Id']))
         else:
@@ -239,7 +239,7 @@ class Music:
         if update:
             self.music_db.delete_link_song_artist(obj['SongId'])
             self.music_db.update_song(obj['AlbumId'], obj['Artist'], obj['Genre'], obj['Title'], obj['Index'], obj['Runtime'], obj['Year'], obj['Filename'], obj['PlayCount'], obj['DatePlayed'], obj['Rating'], obj['Comment'], obj['DateAdded'], obj['SongId'], obj['LibraryId_Name'])
-            self.emby_db.update_reference(obj['PresentationKey'], obj['Id'], obj['Favorite'])
+            self.emby_db.update_reference(obj['PresentationKey'], obj['Favorite'], obj['Id'])
             LOG.info("UPDATE song [%s/%s/%s] %s: %s" % (obj['KodiPathId'], obj['AlbumId'], obj['SongId'], obj['Id'], obj['Title']))
         else:
             obj['SongId'], obj['KodiPathId'] = self.music_db.add_song(obj['AlbumId'], obj['Artist'], obj['Genre'], obj['Title'], obj['Index'], obj['Runtime'], obj['Year'], obj['Filename'], obj['PlayCount'], obj['DatePlayed'], obj['Rating'], obj['Comment'], obj['DateAdded'], obj['LibraryId_Name'], obj['Path'])

@@ -113,14 +113,22 @@ class CommonDatabase:
                         num_backdrops = len(ArtworkEmby['Backdrop'])
 
                         if num_backdrops:
+                            SQLDelete = "DELETE FROM art WHERE media_id = ? AND media_type = ? AND type LIKE ?"
+                            SQLSkipDelete = ()
                             self.update_artwork(ArtworkEmby['Backdrop'][0], KodiId, KodiMediaType, "fanart")
 
                             for index, backdrop in enumerate(ArtworkEmby['Backdrop'][1:]):
-                                self.update_artwork(backdrop, KodiId, KodiMediaType, "%s%s" % ("fanart", index + 1))
+                                Param = "%s%s" % ("fanart", index + 1)
+                                self.update_artwork(backdrop, KodiId, KodiMediaType, Param)
+                                SQLDelete += " AND type != ?"
+                                SQLSkipDelete += (Param,)
+
+                            if SQLSkipDelete:
+                                self.cursor.execute(SQLDelete, (KodiId, KodiMediaType, "fanart%") + SQLSkipDelete)
 
                             continue
 
-                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiId, KodiMediaType, "fanart"))
+                self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ? AND type LIKE ?", (KodiId, KodiMediaType, "fanart*"))
             else:
                 if ArtKey in ArtworkEmby:
                     if ArtworkEmby[ArtKey]:
