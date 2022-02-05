@@ -181,16 +181,20 @@ class Library:
 
             if KodiCompanion:
                 result = self.EmbyServer.API.get_sync_queue(self.LastRealtimeSync, None)  # Kodi companion
+                RemovedItems = []
 
                 if 'ItemsRemoved' in result:
-                    RemovedItems = result['ItemsRemoved']
+                    RemovedItems += result['ItemsRemoved']
+
+                if 'FoldersRemovedFrom' in result:
+                    RemovedItems += result['FoldersRemovedFrom']
 
         # Update sync update timestamp
         self.set_syncdate(utils.currenttime())
 
         # Run jobs
-        self.removed(RemovedItems)
         self.updated(UpdateData)
+        self.removed(RemovedItems)
         LOG.info("--<[ retrieve changes ]")
 
     # Get items from emby and place them in the appropriate queues
