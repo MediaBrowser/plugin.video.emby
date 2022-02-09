@@ -1,4 +1,4 @@
-6.2.8
+6.2.9
 =============
 Improvements:
 -------------
@@ -43,6 +43,7 @@ Known issues:
 -------------
 probably sync issue on active recordings
 some translations pending
+music sync issues
 
 Feature requests:
 -----------------
@@ -322,6 +323,7 @@ fix music update sync
 fix fanart artwork
 Change internal ports to 57341 and 57342 due to xbox limitations
 fix item removal issue
+artwork backdrop fixes
 
 
 6.0.13 (beta)
