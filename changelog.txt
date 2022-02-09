@@ -324,6 +324,7 @@ fix fanart artwork
 Change internal ports to 57341 and 57342 due to xbox limitations
 fix item removal issue
 artwork backdrop fixes
+fix item removal
 
 
 6.0.13 (beta)

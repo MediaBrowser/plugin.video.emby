@@ -186,8 +186,8 @@ class Library:
                 if 'ItemsRemoved' in result:
                     RemovedItems += result['ItemsRemoved']
 
-                if 'FoldersRemovedFrom' in result:
-                    RemovedItems += result['FoldersRemovedFrom']
+#                if 'FoldersRemovedFrom' in result:
+#                    RemovedItems += result['FoldersRemovedFrom']
 
         # Update sync update timestamp
         self.set_syncdate(utils.currenttime())
