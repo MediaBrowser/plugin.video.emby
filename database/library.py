@@ -193,8 +193,8 @@ class Library:
         self.set_syncdate(utils.currenttime())
 
         # Run jobs
-        self.updated(UpdateData)
         self.removed(RemovedItems)
+        self.updated(UpdateData)
         LOG.info("--<[ retrieve changes ]")
 
     # Get items from emby and place them in the appropriate queues
