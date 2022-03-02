@@ -1,4 +1,4 @@
-6.2.10
+6.2.11
 =============
 Improvements:
 -------------
@@ -325,6 +325,7 @@ Change internal ports to 57341 and 57342 due to xbox limitations
 fix item removal issue
 artwork backdrop fixes
 fix item removal
+fix mixed lib init sync
 
 
 6.0.13 (beta)

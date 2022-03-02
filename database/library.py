@@ -20,6 +20,7 @@ class Library:
         LOG.info("--->[ library ]")
         self.EmbyServer = EmbyServer
         self.Whitelist = {}
+        self.WhitelistArray = []
         self.LastStartSync = ""
         self.LastRealtimeSync = ""
         self.EmbyDBWritePriority = False
@@ -114,7 +115,7 @@ class Library:
         # Load previous sync information
         embydb = self.open_EmbyDBPriority()
         embydb.init_EmbyDB()
-        self.Whitelist = embydb.get_Whitelist()
+        self.Whitelist, self.WhitelistArray = embydb.get_Whitelist()
         self.LastRealtimeSync = embydb.get_LastIncrementalSync("realtime")
         self.LastStartSync = embydb.get_LastIncrementalSync("start")
         self.close_EmbyDBPriority()
@@ -144,32 +145,32 @@ class Library:
             LOG.info("-->[ retrieve changes ] %s / %s" % (self.LastRealtimeSync, self.LastStartSync))
 
             for UserSync in (False, True):
-                for LibraryId, Value in list(self.Whitelist.items()):
-                    LOG.info("[ retrieve changes ] %s / %s / %s" % (LibraryId, Value[0], UserSync))
+                for Whitelist in self.WhitelistArray:
+                    LOG.info("[ retrieve changes ] %s / %s / %s" % (Whitelist[0], Whitelist[1], UserSync))
 
-                    if LibraryId not in self.EmbyServer.Views.ViewItems:
-                        LOG.info("[ InitSync remove library %s ]" % LibraryId)
+                    if Whitelist[0] not in self.EmbyServer.Views.ViewItems:
+                        LOG.info("[ InitSync remove library %s ]" % Whitelist[0])
                         continue
 
-                    if Value[0] == "musicvideos":
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicVideo", self.LastRealtimeSync, UserSync)
-                    elif Value[0] == "movies":
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Movie,BoxSet", self.LastRealtimeSync, UserSync)
-                    elif Value[0] == "homevideos":
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Video", self.LastRealtimeSync, UserSync)
-                    elif Value[0] == "tvshows":
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "Series,Season,Episode", self.LastRealtimeSync, UserSync)
-                    elif Value[0] in ("music", "audiobooks"):
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, UserSync)
-                    elif Value[0] == "podcasts":
-                        Items = self.EmbyServer.API.get_itemsFastSync(LibraryId, "MusicArtist,MusicAlbum,Audio", self.LastStartSync, UserSync)
+                    if Whitelist[1] == "musicvideos":
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "MusicVideo", self.LastRealtimeSync, UserSync)
+                    elif Whitelist[1] == "movies":
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "Movie,BoxSet", self.LastRealtimeSync, UserSync)
+                    elif Whitelist[1] == "homevideos":
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "Video", self.LastRealtimeSync, UserSync)
+                    elif Whitelist[1] == "tvshows":
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "Series,Season,Episode", self.LastRealtimeSync, UserSync)
+                    elif Whitelist[1] in ("music", "audiobooks"):
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "MusicArtist,MusicAlbum,Audio", self.LastRealtimeSync, UserSync)
+                    elif Whitelist[1] == "podcasts":
+                        Items = self.EmbyServer.API.get_itemsFastSync(Whitelist[0], "MusicArtist,MusicAlbum,Audio", self.LastStartSync, UserSync)
 
                     if 'Items' in Items:
                         ItemCounter = 0
                         ItemTemp = len(Items['Items']) * [(None, None, None, None)]  # allocate memory for array (much faster than append each item)
 
                         for item in Items['Items']:
-                            ItemData = (item['Id'], LibraryId, Value[1], item['Type'])
+                            ItemData = (item['Id'], Whitelist[0], Whitelist[2], item['Type'])
 
                             if ItemData not in UpdateData:
                                 ItemTemp[ItemCounter] = ItemData
