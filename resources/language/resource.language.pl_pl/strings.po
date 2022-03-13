@@ -1245,3 +1245,11 @@ msgstr ""
 msgctxt "#33266"
 msgid "Enable FILE delete on Kodi events"
 msgstr ""
+
+msgctxt "#33267"
+msgid "Disable HTTP2 suppport"
+msgstr ""
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr ""

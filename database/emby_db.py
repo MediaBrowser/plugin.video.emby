@@ -72,9 +72,9 @@ class EmbyDatabase:
             for Lib in Libs:
                 SyncedLibs[Lib[0]] = (Lib[1], Lib[2])
 
-            return SyncedLibs
+            return SyncedLibs, Libs
 
-        return {}
+        return {}, []
 
     def add_Whitelist(self, emby_folder, library_type, library_name):
         self.cursor.execute("SELECT * FROM Whitelist WHERE emby_folder = ? AND library_type = ? AND library_name = ?", (emby_folder, library_type, library_name))

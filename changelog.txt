@@ -1,4 +1,4 @@
-6.2.6 (beta)
+6.2.11
 =============
 Improvements:
 -------------
@@ -43,6 +43,7 @@ Known issues:
 -------------
 probably sync issue on active recordings
 some translations pending
+music sync issues
 
 Feature requests:
 -----------------
@@ -315,6 +316,16 @@ fix remove item issue
 fix audioplayer focus
 fix trakt issue/progress updates
 change season artwork fallback
+disable http2 by default and add config menu option
+fix videoplayer focus
+fix tvtunes
+fix music update sync
+fix fanart artwork
+Change internal ports to 57341 and 57342 due to xbox limitations
+fix item removal issue
+artwork backdrop fixes
+fix item removal
+fix mixed lib init sync
 
 
 6.0.13 (beta)

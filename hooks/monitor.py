@@ -58,7 +58,7 @@ class Monitor(xbmc.Monitor):
         QuerySocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         QuerySocket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         QuerySocket.settimeout(None)
-        QuerySocket.bind(('127.0.0.1', 60001))
+        QuerySocket.bind(('127.0.0.1', 57341))
         QuerySocket.listen(50)
 
         while True:
@@ -227,7 +227,7 @@ class Monitor(xbmc.Monitor):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                sock.connect(('127.0.0.1', 60001))
+                sock.connect(('127.0.0.1', 57341))
                 sock.settimeout(1)
                 request = "QUIT"
                 sock.send(request.encode())
@@ -251,10 +251,26 @@ class Monitor(xbmc.Monitor):
         LOG.info("[ Reload settings ]")
         syncdatePrevious = utils.syncdate
         synctimePrevious = utils.synctime
+        disablehttp2Previous = utils.disablehttp2
         xspplaylistsPreviousValue = utils.xspplaylists
         compatibilitymodePreviousValue = utils.compatibilitymode
         utils.InitSettings()
 
+        # Http2 mode changed, rebuild advanced settings -> restart Kodi
+        if disablehttp2Previous != utils.disablehttp2:
+            if xmls.advanced_settings():
+                utils.SystemShutdown = True
+                utils.SyncPause = True
+                self.QuitThreads()
+                self.EmbyServer_DisconnectAll()
+
+                if self.waitForAbort(5):  # Give Kodi time to complete startup before reset
+                    return
+
+                xbmc.executebuiltin('RestartApp')
+                return
+
+        # Manual adjusted sync time/date
         if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
             LOG.info("[ Trigger initsync due to setting changed ]")
             SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)

@@ -32,7 +32,7 @@ KodiDBLock = {"music": False, "video": False}
 Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
-MinimumVersion = "6.0.10"
+MinimumVersion = "6.2.8"
 device_name = "Kodi"
 xspplaylists = False
 TranscodeFormatVideo = ""
@@ -47,6 +47,7 @@ newvideotime = 1
 newmusictime = 1
 startupDelay = 0
 backupPath = ""
+disablehttp2 = "true"
 MinimumSetup = ""
 limitIndex = 50
 username = ""
@@ -589,6 +590,7 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')
     load_settings_bool('compatibilitymode')
     load_settings_bool('xspplaylists')
@@ -626,6 +628,11 @@ def InitSettings():
     load_settings_bool('enableDeleteByKodiEvent')
     globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
     globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
+
+    if globals()["disablehttp2"]:
+        globals()["disablehttp2"] = "true"
+    else:
+        globals()["disablehttp2"] = "false"
 
     # Set devicename
     if not globals()["deviceNameOpt"]:
@@ -697,7 +704,7 @@ def get_path_type_from_item(server_id, item):
     path = ""
 
     if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
-        path = "http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+        path = "http://127.0.0.1:57342/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
         Type = "picture"
     elif item['Type'] == "MusicVideo":
         Type = "musicvideo"
@@ -706,7 +713,7 @@ def get_path_type_from_item(server_id, item):
     elif item['Type'] == "Episode":
         Type = "episode"
     elif item['Type'] == "Audio":
-        path = "http://127.0.0.1:57578/embyaudiodynamic-%s-%s-%s-%s" % (server_id, item['Id'], "audio", PathToFilenameReplaceSpecialCharecters(item['Path']))
+        path = "http://127.0.0.1:57342/embyaudiodynamic-%s-%s-%s-%s" % (server_id, item['Id'], "audio", PathToFilenameReplaceSpecialCharecters(item['Path']))
         Type = "audio"
     elif item['Type'] == "Video":
         Type = "video"
@@ -714,15 +721,15 @@ def get_path_type_from_item(server_id, item):
         Type = "trailer"
     elif item['Type'] == "TvChannel":
         Type = "tvchannel"
-        path = "http://127.0.0.1:57578/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
+        path = "http://127.0.0.1:57342/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
     else:
         return None, None
 
     if not path:
         try:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
         except:
-            path = "http://127.0.0.1:57578/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
+            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
 
     return path, Type
 

@@ -80,7 +80,8 @@
     <category label="30022"><!-- Advanced -->
         <setting label="30535" type="action" action="NotifyAll(plugin.video.emby-next-gen,reset_device_id)" visible="true" option="close" />
         <setting label="33196" type="lsep" />
-        <setting label="30529" id="startupDelay" type="number" default="0" option="int" />
+        <setting label="30529" id="startupDelay" type="number" default="0" option="int" />        
+        <setting label="33267" id="disablehttp2" type="bool" default="false" />
         <setting label="33254" id="compatibilitymode" type="bool" default="false" />
         <setting type="sep" />
         <setting label="33104" type="lsep"/>

@@ -15,7 +15,7 @@ def EmbyQueryData(Method, Data, server_id, handle):
 
     for _ in range(60):  # 60 seconds timeout
         try:
-            sock.connect(('127.0.0.1', 60001))
+            sock.connect(('127.0.0.1', 57341))
             sock.send(request.encode('utf-8'))
             sock.recv(1)
             break
