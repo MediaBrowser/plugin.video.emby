@@ -36,21 +36,21 @@ class WebService(threading.Thread):
         self.DefaultVideoSettings = xmls.load_defaultvideosettings()
 
     def run(self):
-        LOG.info("--->[ webservice/57578 ]")
+        LOG.info("--->[ webservice/57342 ]")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.socket.bind(('127.0.0.1', 57578))
+        self.socket.bind(('127.0.0.1', 57342))
         self.socket.settimeout(None)
         self.Listen()
-        LOG.info("---<[ webservice/57578 ]")
+        LOG.info("---<[ webservice/57342 ]")
 
     def close(self):
         self.Stop = True
 
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect(("127.0.0.1", 57578))
+            s.connect(("127.0.0.1", 57342))
             s.send('QUIT QUIT'.encode())
             s.shutdown(socket.SHUT_RDWR)
         except:
@@ -407,7 +407,7 @@ class WebService(threading.Thread):
             URL = "RELOAD"
             self.QueryDataPrevious = QueryData.copy()
         else:
-            li.setPath("http://127.0.0.1:57578" + QueryData['Payload'])
+            li.setPath("http://127.0.0.1:57342" + QueryData['Payload'])
             self.Player.updateInfoTag(li)
             self.SubTitlesAdd(0, QueryData)
 
@@ -445,7 +445,7 @@ class WebService(threading.Thread):
             URL = self.Intros[0]['Path']
             LOG.debug("Trailer URL: %s" % URL)
             li = listitem.set_ListItem(self.Intros[0], self.EmbyServers[QueryData['ServerId']].server_id)
-            li.setPath("http://127.0.0.1:57578" + QueryData['Payload'])
+            li.setPath("http://127.0.0.1:57342" + QueryData['Payload'])
             self.Player.AddonModeTrailerItem = li
             del self.Intros[0]
             self.TrailerInitPayload = QueryData['Payload']

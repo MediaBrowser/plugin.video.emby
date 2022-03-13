@@ -514,11 +514,11 @@ class Menu:
                     folder = normalize_string(item['Name'])
                     items[item['Id']] = folder
 
-        for item in items:
-            nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, item)
+        for ItemId, name in list(items.items()):
+            nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, name)
             nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
             utils.mkDir(nfo_path)
-            themes = self.EmbyServers[server_id].API.get_themes(item)
+            themes = self.EmbyServers[server_id].API.get_themes(ItemId)
             paths = []
 
             for theme in themes['ThemeVideosResult']['Items'] + themes['ThemeSongsResult']['Items']:
@@ -555,9 +555,9 @@ class Menu:
 
                     if item['ImageTags']:
                         if 'Primary' in item['ImageTags']:
-                            ImageUrl = "http://127.0.0.1:57578/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+                            ImageUrl = "http://127.0.0.1:57342/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
 
-                    StreamUrl = "http://127.0.0.1:57578/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
+                    StreamUrl = "http://127.0.0.1:57342/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
                     playlist += '#KODIPROP:mimetype=video/mp2t\n'
 
                     if item['Name'].find("(radio)") != -1 or item['MediaType'] != "Video":
@@ -619,9 +619,9 @@ def direct_url(server_id, item):
     FilenameURL = utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
 
     if item['Type'] == 'Audio':
-        return "http://127.0.0.1:57578/embythemeaudio-%s-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], "audio", FilenameURL)
+        return "http://127.0.0.1:57342/embythemeaudio-%s-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], "audio", FilenameURL)
 
-    return "http://127.0.0.1:57578/embythemevideo-%s-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], "video", FilenameURL)
+    return "http://127.0.0.1:57342/embythemevideo-%s-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], "video", FilenameURL)
 
 # Add or remove users from the default server session
 def AddUser(EmbyServer):
