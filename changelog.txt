@@ -1,4 +1,4 @@
-6.2.11
+6.2.12
 =============
 Improvements:
 -------------
@@ -326,6 +326,7 @@ fix item removal issue
 artwork backdrop fixes
 fix item removal
 fix mixed lib init sync
+add skin reload option
 
 
 6.0.13 (beta)

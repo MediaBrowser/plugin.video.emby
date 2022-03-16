@@ -31,6 +31,9 @@ def ServersConnect():
         for ServerSettings in ServersSettings:
             Monitor.ServerConnect(ServerSettings)
 
+    if utils.refreshskin:
+        xbmc.executebuiltin('ReloadSkin()')
+
     # Shutdown
     Monitor.waitForAbort()
 
