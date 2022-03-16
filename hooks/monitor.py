@@ -365,7 +365,6 @@ class Monitor(xbmc.Monitor):
             for RemoveItem in RemoveItems:
                 data = json.loads(RemoveItem)
                 item = None
-                kodi_fileId = None
                 server_id = None
 
                 if 'item' in data:

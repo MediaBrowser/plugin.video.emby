@@ -33,6 +33,7 @@ Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
 MinimumVersion = "6.2.8"
+refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
 TranscodeFormatVideo = ""
@@ -590,6 +591,7 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings_bool('refreshskin')
     load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')
     load_settings_bool('compatibilitymode')
