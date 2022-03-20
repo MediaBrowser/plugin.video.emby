@@ -156,8 +156,12 @@ def delFile(Path):
 def copyFile(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
     DestinationPath = translatePath(DestinationPath)
-    shutil.copy(SourcePath, DestinationPath)
-    LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
+
+    try:
+        shutil.copy(SourcePath, DestinationPath)
+        LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
+    except:
+        LOG.error("copy issue: %s to %s" % (SourcePath, DestinationPath))
 
 def renameFolder(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
@@ -679,8 +683,9 @@ def set_settings_bool(setting, value):
     else:
         Addon.setSetting(setting, "false")
 
-def load_Trailers(EmbyServer, EmbyId): # for native content
+def load_Trailers(EmbyServer, EmbyId):
     Intros = []
+    ValidIntros = []
 
     if localTrailers:
         IntrosLocal = EmbyServer.API.get_local_trailers(EmbyId)
@@ -693,14 +698,21 @@ def load_Trailers(EmbyServer, EmbyId): # for native content
 
         if 'Items' in IntrosExternal:
             for IntroExternal in IntrosExternal['Items']:
-                r = requests.head(IntroExternal['Path'], allow_redirects=True)
+                Intros.append(IntroExternal)
 
-                if IntroExternal['Path'] == r.url:
-                    Intros.append(IntroExternal)
+        for Intro in Intros:
+            if Intro['Path'].find("http") == -1:
+                Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (EmbyServer.server, Intro['Id'], EmbyServer.Token, device_id)
+                ValidIntros.append(Intro)
+            else:
+                r = requests.head(Intro['Path'], allow_redirects=True)
+
+                if Intro['Path'] == r.url:
+                    ValidIntros.append(Intro)
                 else:  # filter URL redirections, mostly invalid links
-                    LOG.error("Invalid Trailer Path: %s" % IntroExternal['Path'])
+                    LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
 
-    return Intros
+    return ValidIntros
 
 def get_path_type_from_item(server_id, item):
     path = ""

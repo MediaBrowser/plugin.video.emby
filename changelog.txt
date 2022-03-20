@@ -1,3 +1,12 @@
+6.2.13
+=============
+Fixes:
+------
+fix local trailers
+fix FireTV permission issue
+
+
+
 6.2.12
 =============
 Improvements:
