@@ -1,3 +1,11 @@
+6.2.14
+=============
+Fixes:
+------
+fix forbidden charecters for file folder names
+
+
+
 6.2.13
 =============
 Fixes:
