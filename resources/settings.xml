@@ -16,6 +16,7 @@
         <setting id="artworkcacheenable" type="text" default="true" visible="false" />
         <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" enable="eq(-1,true)" option="close" />
         <setting label="33239" id="xspplaylists" type="bool" default="false" />
+        <setting label="33185" id="syncduringplayback" type="bool" default="false" />
         <setting label="33240" id="userRating" type="bool" default="true" />
         <setting label="33058" type="action" action="NotifyAll(plugin.video.emby-next-gen,databasereset)" visible="true" />
         <setting label="33111" type="lsep" />
