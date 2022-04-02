@@ -3,6 +3,7 @@
 Fixes:
 ------
 modify reconnect on Kodi start
+fix subtitle issue for dynamic content
 
 
 6.2.14
