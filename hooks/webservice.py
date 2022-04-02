@@ -173,7 +173,9 @@ class WebService(threading.Thread):
             self.SendResponse(client, Query, True, QueryData)
             return
 
-        utils.SyncPause = True
+        if not utils.syncduringplayback:
+            utils.SyncPause = True
+
         self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
 
         if self.Player.Transcoding:

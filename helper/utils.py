@@ -96,6 +96,7 @@ device_id = ""
 SyncPause = False
 syncdate = ""
 synctime = ""
+syncduringplayback = False
 addon_version = Addon.getAddonInfo('version')
 addon_name = Addon.getAddonInfo('name')
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
@@ -595,6 +596,7 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings_bool('syncduringplayback')
     load_settings_bool('refreshskin')
     load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')

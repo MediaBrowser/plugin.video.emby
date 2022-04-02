@@ -4,6 +4,7 @@ Fixes:
 ------
 modify reconnect on Kodi start
 fix subtitle issue for dynamic content
+add option to sync during playback
 
 
 6.2.14
