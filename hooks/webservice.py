@@ -173,7 +173,9 @@ class WebService(threading.Thread):
             self.SendResponse(client, Query, True, QueryData)
             return
 
-        utils.SyncPause = True
+        if not utils.syncduringplayback:
+            utils.SyncPause = True
+
         self.PlaySessionId = str(uuid.uuid4()).replace("-", "")
 
         if self.Player.Transcoding:
@@ -287,12 +289,14 @@ class WebService(threading.Thread):
                 SRTFound = True
                 SubTitleURL = "%s/emby/videos/%s/%s/Subtitles/%s/stream.srt" % (self.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], Data[2])
                 request = {'type': "GET", 'url': SubTitleURL, 'params': {}}
+                FileSettings = None
 
                 # Get Subtitle Settings
-                videodb = dbio.DBOpen("video")
-                videodb.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (QueryData['KodiFileId'],))
-                FileSettings = videodb.cursor.fetchone()
-                dbio.DBClose("video", False)
+                if 'KodiFileId' in QueryData:
+                    videodb = dbio.DBOpen("video")
+                    videodb.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (QueryData['KodiFileId'],))
+                    FileSettings = videodb.cursor.fetchone()
+                    dbio.DBClose("video", False)
 
                 if FileSettings:
                     EnableSubtitle = bool(FileSettings[9])

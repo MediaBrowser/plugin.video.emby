@@ -137,7 +137,18 @@ class Views:
         self.Nodes = []
 
         for library_id, Data in list(self.ViewItems.items()):
-            view = {'LibraryId': library_id, 'Name': utils.StringDecode(Data[0]), 'Tag': utils.StringDecode(Data[0]), 'MediaType': Data[1], "Icon": Data[2], 'NameClean': utils.StringDecode(Data[0]).replace(" ", "_")}
+            # remove forbidden charecter for file/folder names
+            CleanName = utils.StringDecode(Data[0]).replace(" ", "_")
+            CleanName = CleanName.replace("/", "_")
+            CleanName = CleanName.replace("\\", "_")
+            CleanName = CleanName.replace("<", "_")
+            CleanName = CleanName.replace(">", "_")
+            CleanName = CleanName.replace(":", "_")
+            CleanName = CleanName.replace('"', "_")
+            CleanName = CleanName.replace("|", "_")
+            CleanName = CleanName.replace("?", "_")
+            CleanName = CleanName.replace("*", "_")
+            view = {'LibraryId': library_id, 'Name': utils.StringDecode(Data[0]), 'Tag': utils.StringDecode(Data[0]), 'MediaType': Data[1], "Icon": Data[2], 'NameClean': CleanName}
 
             if library_id in list(self.EmbyServer.library.Whitelist.keys()):
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):

@@ -43,7 +43,9 @@ class PlayerEvents(xbmc.Player):
 
     def onPlayBackStarted(self):
         LOG.info("[ onPlayBackStarted ]")
-        utils.SyncPause = True
+
+        if not utils.syncduringplayback:
+            utils.SyncPause = True
 
     def onAVChange(self):
         LOG.info("[ onAVChange ]")
@@ -62,7 +64,10 @@ class PlayerEvents(xbmc.Player):
     def queuePlayingItem(self, EmbyID, MediaType, MediasourceID, PlaySessionId):  # loaded directly from webservice.py for addon content, or via "onAVStarted" for native content
         LOG.info("[ Queue playing item ]")
         self.QueuedPlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
-        utils.SyncPause = True
+
+        if not utils.syncduringplayback:
+            utils.SyncPause = True
+
         self.QueuedPlayingItem['ItemId'] = EmbyID
         self.QueuedPlayingItem['Type'] = MediaType
         self.QueuedPlayingItem['MediaSourceId'] = MediasourceID
@@ -74,7 +79,9 @@ class PlayerEvents(xbmc.Player):
 
     def onAVStarted(self):
         LOG.info("[ onAVStarted ]")
-        utils.SyncPause = True
+
+        if not utils.syncduringplayback:
+            utils.SyncPause = True
 
         # Trailer from webserverice (addon mode)
         if self.AddonModeTrailerItem:

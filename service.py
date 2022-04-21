@@ -29,7 +29,14 @@ def ServersConnect():
         Monitor.ServerConnect(None)
     else:
         for ServerSettings in ServersSettings:
-            Monitor.ServerConnect(ServerSettings)
+            while not Monitor.ServerConnect(ServerSettings):
+                if Monitor.waitForAbort(2):
+                    return False
+
+        if not Monitor.waitForAbort(5):
+            if utils.refreshskin:
+                LOG.info("Reload skin")
+                xbmc.executebuiltin('ReloadSkin()')
 
     # Shutdown
     Monitor.waitForAbort()

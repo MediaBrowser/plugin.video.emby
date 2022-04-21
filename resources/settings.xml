@@ -16,6 +16,7 @@
         <setting id="artworkcacheenable" type="text" default="true" visible="false" />
         <setting label="33059" type="action" action="NotifyAll(plugin.video.emby-next-gen,texturecache)" visible="true" enable="eq(-1,true)" option="close" />
         <setting label="33239" id="xspplaylists" type="bool" default="false" />
+        <setting label="33185" id="syncduringplayback" type="bool" default="false" />
         <setting label="33240" id="userRating" type="bool" default="true" />
         <setting label="33058" type="action" action="NotifyAll(plugin.video.emby-next-gen,databasereset)" visible="true" />
         <setting label="33111" type="lsep" />
@@ -49,6 +50,7 @@
         <setting label="30116" id="deleteMovies" type="bool" visible="eq(-2,true)" default="false" subsetting="true" />
     </category>	
     <category label="30235"><!-- Interface -->
+        <setting label="33269" id="refreshskin" type="bool" default="true" />
         <setting label="30157" id="enableCoverArt" type="bool" default="false" />
         <setting label="33116" id="compressArt" type="bool" default="false" />
         <setting label="33105" id="enableContext" type="bool" default="true" />

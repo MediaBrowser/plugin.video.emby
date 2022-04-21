@@ -1,4 +1,30 @@
-6.2.11
+6.2.15
+=============
+Fixes:
+------
+modify reconnect on Kodi start
+fix subtitle issue for dynamic content
+add option to sync during playback
+
+
+6.2.14
+=============
+Fixes:
+------
+fix forbidden charecters for file folder names
+
+
+
+6.2.13
+=============
+Fixes:
+------
+fix local trailers
+fix FireTV permission issue
+
+
+
+6.2.12
 =============
 Improvements:
 -------------
@@ -326,6 +352,7 @@ fix item removal issue
 artwork backdrop fixes
 fix item removal
 fix mixed lib init sync
+add skin reload option
 
 
 6.0.13 (beta)

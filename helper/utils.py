@@ -33,6 +33,7 @@ Dialog = xbmcgui.Dialog()
 VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
 AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
 MinimumVersion = "6.2.8"
+refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
 TranscodeFormatVideo = ""
@@ -95,6 +96,7 @@ device_id = ""
 SyncPause = False
 syncdate = ""
 synctime = ""
+syncduringplayback = False
 addon_version = Addon.getAddonInfo('version')
 addon_name = Addon.getAddonInfo('name')
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
@@ -155,8 +157,12 @@ def delFile(Path):
 def copyFile(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
     DestinationPath = translatePath(DestinationPath)
-    shutil.copy(SourcePath, DestinationPath)
-    LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
+
+    try:
+        shutil.copy(SourcePath, DestinationPath)
+        LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
+    except:
+        LOG.error("copy issue: %s to %s" % (SourcePath, DestinationPath))
 
 def renameFolder(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
@@ -590,6 +596,8 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings_bool('syncduringplayback')
+    load_settings_bool('refreshskin')
     load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')
     load_settings_bool('compatibilitymode')
@@ -677,8 +685,9 @@ def set_settings_bool(setting, value):
     else:
         Addon.setSetting(setting, "false")
 
-def load_Trailers(EmbyServer, EmbyId): # for native content
+def load_Trailers(EmbyServer, EmbyId):
     Intros = []
+    ValidIntros = []
 
     if localTrailers:
         IntrosLocal = EmbyServer.API.get_local_trailers(EmbyId)
@@ -691,14 +700,21 @@ def load_Trailers(EmbyServer, EmbyId): # for native content
 
         if 'Items' in IntrosExternal:
             for IntroExternal in IntrosExternal['Items']:
-                r = requests.head(IntroExternal['Path'], allow_redirects=True)
+                Intros.append(IntroExternal)
 
-                if IntroExternal['Path'] == r.url:
-                    Intros.append(IntroExternal)
+        for Intro in Intros:
+            if Intro['Path'].find("http") == -1:
+                Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (EmbyServer.server, Intro['Id'], EmbyServer.Token, device_id)
+                ValidIntros.append(Intro)
+            else:
+                r = requests.head(Intro['Path'], allow_redirects=True)
+
+                if Intro['Path'] == r.url:
+                    ValidIntros.append(Intro)
                 else:  # filter URL redirections, mostly invalid links
-                    LOG.error("Invalid Trailer Path: %s" % IntroExternal['Path'])
+                    LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
 
-    return Intros
+    return ValidIntros
 
 def get_path_type_from_item(server_id, item):
     path = ""

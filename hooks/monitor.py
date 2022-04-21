@@ -163,7 +163,7 @@ class Monitor(xbmc.Monitor):
 
         if not server_id or server_id == 'cancel' or utils.SystemShutdown:
             LOG.error("EmbyServer Connect error")
-            return
+            return False
 
         # disconnect previous Emby server instance on manual reconnect to the same Emby server
         if server_id in self.EmbyServers:
@@ -174,6 +174,8 @@ class Monitor(xbmc.Monitor):
 
         if self.WebServiceThread:
             self.WebServiceThread.Update_EmbyServers(self.EmbyServers)
+
+        return True
 
     # Update progress, skip for seasons and series. Just update episodes
     def UserDataChanged(self, server_id, UserDataList, UserId):
@@ -365,7 +367,6 @@ class Monitor(xbmc.Monitor):
             for RemoveItem in RemoveItems:
                 data = json.loads(RemoveItem)
                 item = None
-                kodi_fileId = None
                 server_id = None
 
                 if 'item' in data:
