@@ -343,6 +343,7 @@ class PlayerEvents(xbmc.Player):
         PlayingItemLocal = self.PlayingItem.copy()
         LOG.debug("[ played info ] %s" % PlayingItemLocal)
         self.PlayBackEnded = True
+        self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
 
         # Trailer is playing, skip
         if self.AddonModeTrailerItem:
@@ -399,7 +400,6 @@ class PlayerEvents(xbmc.Player):
         if self.isPlaying():
             return
 
-        PlayingItemLocal = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
         threading.Thread(target=self.start_workers).start()
 
     def Cancel(self):
