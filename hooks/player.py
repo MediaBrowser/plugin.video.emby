@@ -72,7 +72,7 @@ class PlayerEvents(xbmc.Player):
         if not utils.syncduringplayback:
             utils.SyncPause = True
 
-        self.QueuedPlayingItem['ItemId'] = EmbyID
+        self.QueuedPlayingItem['ItemId'] = int(EmbyID)
         self.QueuedPlayingItem['Type'] = MediaType
         self.QueuedPlayingItem['MediaSourceId'] = MediasourceID
         self.QueuedPlayingItem['PlaySessionId'] = PlaySessionId
@@ -234,7 +234,6 @@ class PlayerEvents(xbmc.Player):
                         break
 
                 if EmbyId:
-                    self.ItemSkipUpdate.append(EmbyId)
                     LOG.debug("ItemSkipUpdate: %s" % str(self.ItemSkipUpdate))
                     self.queuePlayingItem(EmbyId, media_type, MediasourceID, PlaySessionId)
 
@@ -251,6 +250,7 @@ class PlayerEvents(xbmc.Player):
                 if VideoPlayback:
                     xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
 
+                self.ItemSkipUpdate.append(self.PlayingItem['ItemId'])
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
