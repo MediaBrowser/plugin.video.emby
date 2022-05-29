@@ -50,8 +50,13 @@ class API:
     def get_user_artwork(self, user_id):
         return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.EmbyServer.server, user_id)
 
-    def set_progress(self, item_id, Progress, PlayCount, LastPlayedDate):
-        self._http("POST", "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id), {'params': {"PlaybackPositionTicks": Progress, "PlayCount": PlayCount, "Played": bool(PlayCount), "LastPlayedDate": LastPlayedDate}})
+    def reset_progress(self, item_id):
+        params = {
+            "PlaybackPositionTicks": 0,
+            "PlayCount": 0,
+            "Played": False
+        }
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
 
     def browse_MusicByArtistId(self, Artist_id, Parent_id, Media, Extra):
         params = {
