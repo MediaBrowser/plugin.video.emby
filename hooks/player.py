@@ -37,11 +37,15 @@ class PlayerEvents(xbmc.Player):
         self.Intros = []
         self.playlistIndex = -1
         self.AddonModeTrailerItem = None
+        self.PlayBackEnded = True
 
     def StartUp(self, EmbyServers):
         self.EmbyServers = EmbyServers
 
     def onPlayBackStarted(self):
+        if not self.PlayBackEnded:
+            self.stop_playback(True, False)
+
         LOG.info("[ onPlayBackStarted ]")
 
         if not utils.syncduringplayback:
@@ -230,10 +234,11 @@ class PlayerEvents(xbmc.Player):
                         break
 
                 if EmbyId:
-                    self.ItemSkipUpdate += [str(EmbyId), str(EmbyId), str(EmbyId)]  # add 3 times due to staggered removal on events -> 2x monitor.py/UserDataChanged (Emby update), 1x monitor.py/VideoLibrary_OnUpdate (Kodi update)
+                    self.ItemSkipUpdate.append(EmbyId)
                     LOG.debug("ItemSkipUpdate: %s" % str(self.ItemSkipUpdate))
                     self.queuePlayingItem(EmbyId, media_type, MediasourceID, PlaySessionId)
 
+            self.PlayBackEnded = False
             self.PlayingItem = self.QueuedPlayingItem
             self.QueuedPlayingItem = {}
 
@@ -335,7 +340,9 @@ class PlayerEvents(xbmc.Player):
         self.stop_playback(False, False)
 
     def stop_playback(self, delete, Stopped):
-        LOG.debug("[ played info ] %s" % self.PlayingItem)
+        PlayingItemLocal = self.PlayingItem.copy()
+        LOG.debug("[ played info ] %s" % PlayingItemLocal)
+        self.PlayBackEnded = True
 
         # Trailer is playing, skip
         if self.AddonModeTrailerItem:
@@ -360,38 +367,39 @@ class PlayerEvents(xbmc.Player):
         self.Intros = []
         self.TrailerPath = ""
 
-        if not self.EmbyServer or 'ItemId' not in self.PlayingItem:
+        if not self.EmbyServer or 'ItemId' not in PlayingItemLocal:
             return
 
-        self.EmbyServer.API.session_stop(self.PlayingItem)
+        self.ItemSkipUpdate.append(PlayingItemLocal['ItemId'])
+        self.EmbyServer.API.session_stop(PlayingItemLocal)
 
         if self.Transcoding:
             self.EmbyServer.API.close_transcode()
 
         if delete:
             if utils.offerDelete:
-                Runtime = int(self.PlayingItem['RunTimeTicks'])
+                Runtime = int(PlayingItemLocal['RunTimeTicks'])
 
                 if Runtime > 10:
-                    if int(self.PlayingItem['PositionTicks']) > Runtime * 0.90:  # 90% Progress
+                    if int(PlayingItemLocal['PositionTicks']) > Runtime * 0.90:  # 90% Progress
                         DeleteMsg = False
 
-                        if self.PlayingItem['Type'] == 'episode' and utils.deleteTV:
+                        if PlayingItemLocal['Type'] == 'episode' and utils.deleteTV:
                             DeleteMsg = True
-                        elif self.PlayingItem['Type'] == 'movie' and utils.deleteMovies:
+                        elif PlayingItemLocal['Type'] == 'movie' and utils.deleteMovies:
                             DeleteMsg = True
 
                         if DeleteMsg:
                             LOG.info("Offer delete option")
 
                             if utils.dialog("yesno", heading=utils.Translate(30091), line1=utils.Translate(33015)):
-                                self.EmbyServer.API.delete_item(self.PlayingItem['ItemId'])
-                                threading.Thread(target=self.EmbyServer.library.removed, args=([self.PlayingItem['ItemId']],)).start()
+                                self.EmbyServer.API.delete_item(PlayingItemLocal['ItemId'])
+                                threading.Thread(target=self.EmbyServer.library.removed, args=([PlayingItemLocal['ItemId']],)).start()
 
         if self.isPlaying():
             return
 
-        self.PlayingItem = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
+        PlayingItemLocal = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
         threading.Thread(target=self.start_workers).start()
 
     def Cancel(self):
