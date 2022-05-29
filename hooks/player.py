@@ -384,9 +384,9 @@ class PlayerEvents(xbmc.Player):
                         if DeleteMsg:
                             LOG.info("Offer delete option")
 
-                        if utils.dialog("yesno", heading=utils.Translate(30091), line1=utils.Translate(33015)):
-                            self.EmbyServer.API.delete_item(self.PlayingItem['ItemId'])
-                            threading.Thread(target=self.EmbyServer.library.removed, args=([self.PlayingItem['ItemId']],)).start()
+                            if utils.dialog("yesno", heading=utils.Translate(30091), line1=utils.Translate(33015)):
+                                self.EmbyServer.API.delete_item(self.PlayingItem['ItemId'])
+                                threading.Thread(target=self.EmbyServer.library.removed, args=([self.PlayingItem['ItemId']],)).start()
 
         if self.isPlaying():
             return
