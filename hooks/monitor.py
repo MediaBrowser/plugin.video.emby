@@ -187,6 +187,8 @@ class Monitor(xbmc.Monitor):
         embydb = dbio.DBOpen(server_id)
 
         for ItemData in UserDataList:
+            ItemData['ItemId'] = int(ItemData['ItemId'])
+
             if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
                 e_item = embydb.get_item_by_id(ItemData['ItemId'])
 
@@ -199,7 +201,7 @@ class Monitor(xbmc.Monitor):
                     LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
             else:
                 LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-                self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+                self.player.ItemSkipUpdate.remove(ItemData['ItemId'])
                 LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
         dbio.DBClose(server_id, False)
