@@ -177,35 +177,35 @@ class Monitor(xbmc.Monitor):
 
         return True
 
-    # Update progress, skip for seasons and series. Just update episodes
-    def UserDataChanged(self, server_id, UserDataList, UserId):
-        if UserId != self.EmbyServers[server_id].user_id:
-            return
+# Update progress, skip for seasons and series. Just update episodes
+def UserDataChanged(server_id, UserDataList, UserId):
+    if UserId != utils.EmbyServers[server_id].user_id:
+        return
 
-        LOG.info("[ UserDataChanged ] %s" % UserDataList)
-        UpdateData = []
-        embydb = dbio.DBOpen(server_id)
+    LOG.info("[ UserDataChanged ] %s" % UserDataList)
+    UpdateData = []
+    embydb = dbio.DBOpen(server_id)
 
-        for ItemData in UserDataList:
-            if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
-                e_item = embydb.get_item_by_id(ItemData['ItemId'])
+    for ItemData in UserDataList:
+        if ItemData['ItemId'] not in self.player.ItemSkipUpdate:  # Check EmbyID
+            e_item = embydb.get_item_by_id(ItemData['ItemId'])
 
-                if e_item:
-                    if e_item[5] in ("Season", "Series"):
-                        LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
-                    else:
-                        UpdateData.append(ItemData)
+            if e_item:
+                if e_item[5] in ("Season", "Series"):
+                    LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
                 else:
-                    LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
+                    UpdateData.append(ItemData)
             else:
-                LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-                self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
-                LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
+                LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
+        else:
+            LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
+            self.player.ItemSkipUpdate.remove(str(ItemData['ItemId']))
+            LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
-        dbio.DBClose(server_id, False)
+    dbio.DBClose(server_id, False)
 
-        if UpdateData:
-            self.EmbyServers[server_id].library.userdata(UpdateData)
+    if UpdateData:
+        utils.EmbyServers[server_id].library.userdata(UpdateData)
 
     def System_OnQuit(self):
         LOG.warning("---<[ EXITING ]")
