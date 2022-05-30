@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 import json
 import socket
-from helper import utils
-from helper import loghandler
+from helper import utils, loghandler
 
 LOG = loghandler.LOG('EMBY.core.connection_manager')
 
@@ -296,7 +294,7 @@ class ConnectionManager:
         return self._update_server_info(system_info)
 
     def _update_server_info(self, system_info):
-        if self.EmbyServer.ServerData is None or not system_info:
+        if not self.EmbyServer.ServerData or not system_info:
             return False
 
         self.EmbyServer.ServerData['Name'] = system_info['ServerName']

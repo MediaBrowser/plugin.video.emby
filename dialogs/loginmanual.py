@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 import xbmcgui
-from helper import loghandler
-from helper import utils
+from helper import utils, loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10

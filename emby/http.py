@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-import json
 import requests
-from helper import utils
-from helper import loghandler
+from helper import utils, loghandler
 
 LOG = loghandler.LOG('EMBY.emby.http')
 
@@ -12,11 +9,8 @@ class HTTP:
         self.session = None
         self.EmbyServer = EmbyServer
 
-    def start_session(self):
-        self.session = requests.Session()
-
     def stop_session(self):
-        if self.session is None:
+        if not self.session:
             return
 
         LOG.warning("--<[ session/%s ]" % id(self.session))
@@ -33,17 +27,26 @@ class HTTP:
             return {}
 
         if ServerConnecting:  # Server connect
-            data['timeout'] = 5
+            data['timeout'] = 15
         else:
-            data['timeout'] = 120
+            data['timeout'] = 300
 
-        LOG.debug("--->[ http ] %s" % json.dumps(data, indent=4))
+        LOG.debug("--->[ http ] %s" % data)
         Retries = 0
 
         while True:
+            if utils.SystemShutdown:
+                self.stop_session()
+                return noData(Binary)
+
+            # start session
+            if not self.session:
+                self.session = requests.Session()
+
             try:
-                r = _requests(self.session or requests, data.pop('type', "GET"), **data)
+                r = _requests(self.session, data.pop('type', "GET"), **data)
                 LOG.debug("---<[ http ][%s ms]" % int(r.elapsed.total_seconds() * 1000))
+                LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
 
                 if r.status_code == 200:
                     if Binary:
@@ -54,22 +57,15 @@ class HTTP:
                 if r.status_code == 401:
                     utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33147))
 
-                LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
-
-                if Binary:
-                    return b""
-
-                return {}
+                return noData(Binary)
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
                 utils.dialog("notification", heading=utils.addon_name, message="SSL Error")
-
-                if Binary:
-                    return b""
-
-                return {}
+                self.stop_session()
+                return noData(Binary)
             except requests.exceptions.ConnectionError:
                 LOG.error("[ ServerUnreachable ]")
+                self.stop_session()
 
                 if not ServerConnecting:
                     if Retries < 3:
@@ -79,24 +75,16 @@ class HTTP:
 
                     self.EmbyServer.ServerUnreachable()
 
-                if Binary:
-                    return b""
-
-                return {}
+                self.stop_session()
+                return noData(Binary)
             except requests.exceptions.ReadTimeout:
                 LOG.error("[ ServerTimeout ] %s" % data)
-
-                if Binary:
-                    return b""
-
-                return {}
+                self.stop_session()
+                return noData(Binary)
             except Exception as error:
                 LOG.error(error)
-
-                if Binary:
-                    return b""
-
-                return {}
+                self.stop_session()
+                return noData(Binary)
 
     def get_header(self, data):
         data['headers'] = data.setdefault('headers', {})
@@ -115,8 +103,7 @@ class HTTP:
         return data
 
     def _authorization(self, data):
-        auth = "Emby "
-        auth += "Client=%s, " % utils.addon_name
+        auth = "Emby Client=%s, " % utils.addon_name
         auth += "Device=%s, " % utils.device_name
         auth += "DeviceId=%s, " % utils.device_id
         auth += "Version=%s" % utils.addon_version
@@ -127,6 +114,40 @@ class HTTP:
             data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.Token})
 
         return data
+
+    def load_Trailers(self, EmbyId):
+        Intros = []
+        ValidIntros = []
+
+        if utils.localTrailers:
+            IntrosLocal = self.EmbyServer.API.get_local_trailers(EmbyId)
+
+            for IntroLocal in IntrosLocal:
+                Intros.append(IntroLocal)
+
+        if utils.Trailers:
+            IntrosExternal = self.EmbyServer.API.get_intros(EmbyId)
+
+            if 'Items' in IntrosExternal:
+                for IntroExternal in IntrosExternal['Items']:
+                    Intros.append(IntroExternal)
+
+            for Intro in Intros:
+                if Intro['Path'].find("http") == -1:
+                    Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.server, Intro['Id'], self.EmbyServer.Token, utils.device_id)
+                    ValidIntros.append(Intro)
+                else:
+                    try:
+                        r = requests.head(Intro['Path'], allow_redirects=True)
+
+                        if Intro['Path'] == r.url:
+                            ValidIntros.append(Intro)
+                        else:  # filter URL redirections, mostly invalid links
+                            LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
+                    except:
+                        LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
+
+        return ValidIntros
 
 def _requests(session, action, **kwargs):
     if action == "GET":
@@ -142,3 +163,9 @@ def _requests(session, action, **kwargs):
         return session.delete(**kwargs)
 
     return None
+
+def noData(Binary):
+    if Binary:
+        return b""
+
+    return {}

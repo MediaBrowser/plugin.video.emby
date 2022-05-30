@@ -1,68 +1,107 @@
-# -*- coding: utf-8 -*-
 import sqlite3
-import threading
-import xbmc
-from helper import loghandler
-from helper import utils
-from . import emby_db
-from . import video_db
-from . import music_db
-from . import common_db
+from _thread import get_ident
+from helper import utils, loghandler
+from . import emby_db, video_db, music_db, texture_db
 
-DBConnections = {}  # content: list [dbconn, dbopencounter, locked]
+DBConnectionsRW = {}
+DBConnectionsRO = {}
 LOG = loghandler.LOG('EMBY.database.dbio')
 
 
-def DBOpen(DBID):
-    DBIDThreadID = "%s%s" % (DBID, threading.current_thread().ident)
+def DBVacuum():
+    for DBID, DBFile in utils.DatabaseFiles.items():
+        if 'version' in DBID:
+            continue
 
-    if DBIDThreadID in globals()["DBConnections"]:
-        while globals()["DBConnections"][DBIDThreadID][2]:  #Wait for db unlock
-            xbmc.sleep(500)
+        LOG.info("---> DBVacuum: %s" % DBID)
 
-    if DBIDThreadID not in globals()["DBConnections"] or globals()["DBConnections"][DBIDThreadID][1] == 0:  # create curser
-        globals()["DBConnections"][DBIDThreadID] = [None, 1, True]
-        globals()["DBConnections"][DBIDThreadID][0] = sqlite3.connect(utils.DatabaseFiles[DBID], timeout=999999)
-        globals()["DBConnections"][DBIDThreadID][0].execute("PRAGMA journal_mode=WAL")
-        globals()["DBConnections"][DBIDThreadID][2] = False
-    else:  # re-use curser
-        globals()["DBConnections"][DBIDThreadID][1] += 1
+        if DBID in DBConnectionsRW:
+            while DBConnectionsRW[DBID][1]:  #Wait for db unlock
+                LOG.info("DBOpenRW: Waiting %s" % DBID)
+                utils.waitForAbort(1)
+        else:
+            globals()["DBConnectionsRW"][DBID] = [None, False]
 
-    LOG.info("--->[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
+        globals()["DBConnectionsRW"][DBID][1] = True
+        globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(DBFile, timeout=999999)
+
+        if DBID == "music":
+            DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
+            curser = DBConnectionsRW[DBID][0].cursor()
+            curser.execute("DELETE FROM removed_link")
+            curser.close()
+            DBConnectionsRW[DBID][0].commit()
+            DBConnectionsRW[DBID][0].close()
+            globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(DBFile, timeout=999999)
+
+        DBConnectionsRW[DBID][0].execute("VACUUM")
+        DBConnectionsRW[DBID][0].cursor().close()
+        DBConnectionsRW[DBID][0].close()
+        globals()["DBConnectionsRW"][DBID][1] = False
+        LOG.info("---< DBVacuum: %s" % DBID)
+
+def DBOpenRO(DBID, TaskId):
+    DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
+    globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:" + utils.DatabaseFiles[DBID] + "?immutable=1&mode=ro", uri=True, timeout=999999) #, check_same_thread=False
+    DBConnectionsRO[DBIDThreadID].execute("PRAGMA journal_mode=WAL")
+    LOG.info("---> DBOpenRO: %s" % DBIDThreadID)
 
     if DBID == 'video':
-        return video_db.VideoDatabase(globals()["DBConnections"][DBIDThreadID][0].cursor())
+        return video_db.VideoDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
     if DBID == 'music':
-        return music_db.MusicDatabase(globals()["DBConnections"][DBIDThreadID][0].cursor())
+        return music_db.MusicDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
     if DBID == 'texture':
-        return common_db.CommonDatabase(globals()["DBConnections"][DBIDThreadID][0].cursor())
+        return texture_db.TextureDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
-    return emby_db.EmbyDatabase(globals()["DBConnections"][DBIDThreadID][0].cursor())
+    return emby_db.EmbyDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
-def DBClose(DBID, commit_close):
-    DBIDThreadID = "%s%s" % (DBID, threading.current_thread().ident)
+def DBCloseRO(DBID, TaskId):
+    DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
+    DBConnectionsRO[DBIDThreadID].cursor().close()
+    DBConnectionsRO[DBIDThreadID].close()
+    LOG.info("---< DBCloseRO: %s" % DBIDThreadID)
 
-    while globals()["DBConnections"][DBIDThreadID][2]:
-        xbmc.sleep(500)
+def DBOpenRW(DBID, TaskId):
+    if DBID in DBConnectionsRW:
+        while DBConnectionsRW[DBID][1]:  #Wait for db unlock
+            LOG.info("DBOpenRW: Waiting %s" % DBID)
+            utils.waitForAbort(1)
+    else:
+        globals()["DBConnectionsRW"][DBID] = [None, False]
 
-    globals()["DBConnections"][DBIDThreadID][2] = True
+    globals()["DBConnectionsRW"][DBID][1] = True
+    globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID], timeout=999999)
+    DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
+    LOG.info("---> DBOpenRW: %s/%s" % (DBID, TaskId))
 
-    if commit_close:
-        changes = globals()["DBConnections"][DBIDThreadID][0].total_changes
-        LOG.info("--->[%s] %s rows updated on db close" % (DBIDThreadID, changes))
+    if DBID == 'video':
+        return video_db.VideoDatabase(DBConnectionsRW[DBID][0].cursor())
 
-        if changes:
-            globals()["DBConnections"][DBIDThreadID][0].commit()
+    if DBID == 'music':
+        return music_db.MusicDatabase(DBConnectionsRW[DBID][0].cursor())
 
-        LOG.info("---<[%s] %s rows updated on db close" % (DBIDThreadID, changes))
+    if DBID == 'texture':
+        return texture_db.TextureDatabase(DBConnectionsRW[DBID][0].cursor())
 
-    globals()["DBConnections"][DBIDThreadID][1] += -1
-    LOG.info("---<[ database: %s/%s ]" % (DBIDThreadID, globals()["DBConnections"][DBIDThreadID][1]))
+    return emby_db.EmbyDatabase(DBConnectionsRW[DBID][0].cursor())
 
-    if globals()["DBConnections"][DBIDThreadID][1] == 0:  # last db access closed -> close db
-        globals()["DBConnections"][DBIDThreadID][0].cursor().close()
-        globals()["DBConnections"][DBIDThreadID][0].close()
+def DBCloseRW(DBID, TaskId):
+    changes = DBConnectionsRW[DBID][0].total_changes
 
-    globals()["DBConnections"][DBIDThreadID][2] = False
+    if changes:
+        DBConnectionsRW[DBID][0].commit()
+
+    DBConnectionsRW[DBID][0].cursor().close()
+    DBConnectionsRW[DBID][0].close()
+    globals()["DBConnectionsRW"][DBID][1] = False
+    LOG.info("---< DBCloseRW: %s/%s/%s rows updated on db close" % (DBID, changes, TaskId))
+
+def DBCommitRW(DBID):
+    changes = DBConnectionsRW[DBID][0].total_changes
+
+    if changes:
+        DBConnectionsRW[DBID][0].commit()
+
+    LOG.info("---> DBCommitRW: %s/%s rows updated" % (DBID, changes))

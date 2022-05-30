@@ -1,17 +1,17 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<addon id="plugin.video.emby-next-gen" name="Emby-next-gen" version="6.2.17" provider-name="quickmic, angelblue05, sualfred">
+<?xml version='1.0' encoding='UTF-8' standalone="yes"?>
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.0.2" provider-name="quickmic, angelblue05, sualfred">
     <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0" />
         <import addon="script.module.dateutil" version="2.8.1" />
     </requires>
     <extension point="xbmc.python.pluginsource" library="events.py">
         <provides>audio video image</provides>
     </extension>
-
     <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
-            <item library="context.py">
+            <item library="events.py" args="contextmenu">
                 <label>30401</label>
                 <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))]</visible>
             </item>
@@ -21,7 +21,7 @@
         <platform>all</platform>
         <language>en</language>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
-        <forum>http://emby.media/community/index.php?/forum/99-kodi/</forum>
+        <forum>https://emby.media/community/index.php?/forum/99-kodi/</forum>
         <website>https://emby.media/</website>
         <source>https://github.com/MediaBrowser/plugin.video.emby</source>
         <description lang="en">Welcome to Emby for Kodi A whole new way to manage and view your media library. The Emby addon for Kodi combines the best of Kodi - ultra smooth navigation, beautiful UIs and playback of any file under the sun, and Emby - the most powerful fully open source multi-client media metadata indexer and server.
@@ -31,7 +31,7 @@ Emby for Kodi is the absolute best way to enjoy the incredible Kodi playback eng
 
 Emby para Kodi es la mejor manera de disfrutar del increíble motor de reproducción de Kodi combinado con el poder de la base de datos centralizada de Emby. Características: Integración directa con la biblioteca de Kodi para una velocidad nativa de sincronización instantánea con el soporte completo del Servidor Emby para colecciones de películas, programas de TV y música. Emby Server soporta transcodificación y transmisión en directo - ¡Usa Kodi cuando estés fuera de casa!</description>
         <assets>
-            <icon>resources/icon.png</icon>
+            <icon>resources/icon-animated.gif</icon>
             <fanart>resources/fanart.jpg</fanart>
             <screenshot>resources/screenshot1.jpg</screenshot>
             <screenshot>resources/screenshot2.jpg</screenshot>

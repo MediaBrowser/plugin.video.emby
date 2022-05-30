@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-import json
 import xbmc
 from helper import utils
 from database import dbio
 from emby import listitem
 
-XbmcMonitor = xbmc.Monitor()
+Pictures = []
+XbmcPlayer = xbmc.Player()
 
-
-def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
-    embydb = dbio.DBOpen(EmbyServer.server_id)
-    Data = embydb.get_item_by_wild_id(str(EmbyID))
-    dbio.DBClose(EmbyServer.server_id, False)
+def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
+    Data = embydb.get_KodiId_KodiType_by_EmbyId(EmbyID)
 
     if Data:  # Requested video is synced to KodiDB. No additional info required
         if Data[0][1] in ("song", "album", "artist"):
@@ -21,29 +17,27 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
             playlistID = 1
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-        Pos = GetPlaylistPos(Position, playlist, Offset)
-        params = {'playlistid': playlistID, 'position': Pos, 'item': {'%sid' % Data[0][1]: int(Data[0][0])}}
-        xbmc.executeJSONRPC(json.dumps({'jsonrpc': "2.0", 'id': 1, 'method': 'Playlist.Insert', 'params': params}))
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), Data[0][1], Data[0][0]))
     else:
-        item = EmbyServer.API.get_item(EmbyID)
+        item = EmbyServer.API.get_Item(EmbyID, ['Everything'], True, False)
         li = listitem.set_ListItem(item, EmbyServer.server_id)
         path, Type = utils.get_path_type_from_item(EmbyServer.server_id, item)
 
         if not path:
             return False, False, None
 
-        if Type == "picture":
-            return True, False, path
+        if Type == "p":
+            Pictures.append((path, li))
+            return True, False, None
 
         li.setProperty('path', path)
 
-        if Type == "audio":
+        if Type == "a":
             playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         else:
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-        Pos = GetPlaylistPos(Position, playlist, Offset)
-        playlist.add(path, li, index=Pos)
+        playlist.add(path, li, index=GetPlaylistPos(Position, playlist, Offset))
 
     return True, True, playlist
 
@@ -51,6 +45,8 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer):
 def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
     FirstItem = True
     Offset = 0
+    embydb = dbio.DBOpenRO(EmbyServer.server_id, "AddPlaylistItem")
+    globals()["Pictures"] = []
 
     for ID in ItemIds:
         playlist = None
@@ -59,63 +55,74 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
         isPlaylist = False
 
         if PlayCommand == "PlayNow":
-            Found, isPlaylist, playlist = AddPlaylistItem("current", ID, Offset, EmbyServer)
+            Found, isPlaylist, playlist = AddPlaylistItem("current", ID, Offset, EmbyServer, embydb)
         elif PlayCommand == "PlayNext":
-            Found, isPlaylist, playlist = AddPlaylistItem("current", ID, Offset, EmbyServer)
+            Found, isPlaylist, playlist = AddPlaylistItem("current", ID, Offset, EmbyServer, embydb)
         elif PlayCommand == "PlayLast":
-            Found, isPlaylist, playlist = AddPlaylistItem("last", ID, 0, EmbyServer)
+            Found, isPlaylist, playlist = AddPlaylistItem("last", ID, 0, EmbyServer, embydb)
 
         if not Found:
             continue
 
-        if not isPlaylist:  # picture
-            xbmc.executebuiltin(playlist)
-            return
+        if isPlaylist:  # picture
+            # Play Item
+            if PlayCommand == "PlayNow":
+                if StartIndex != -1:
+                    if Offset == int(StartIndex + 1):
+                        if FirstItem:
+                            Pos = playlist.getposition()
 
-        # Play Item
-        if PlayCommand == "PlayNow":
-            if StartIndex != -1:
-                if Offset == int(StartIndex + 1):
+                            if Pos == -1:
+                                Pos = 0
+
+                            PlaylistStartIndex = Pos + Offset
+                            XbmcPlayer.play(item=playlist, startpos=PlaylistStartIndex)
+                            setPlayerPosition(StartPositionTicks)
+                            Offset = 0
+                            FirstItem = False
+                else:
                     if FirstItem:
                         Pos = playlist.getposition()
 
                         if Pos == -1:
                             Pos = 0
 
-                        PlaylistStartIndex = Pos + Offset
-                        xbmc.Player().play(item=playlist, startpos=PlaylistStartIndex)
+                        XbmcPlayer.play(item=playlist, startpos=Pos + Offset)
                         setPlayerPosition(StartPositionTicks)
                         Offset = 0
                         FirstItem = False
-            else:
-                if FirstItem:
-                    Pos = playlist.getposition()
 
-                    if Pos == -1:
-                        Pos = 0
+    dbio.DBCloseRO(EmbyServer.server_id, "AddPlaylistItem")
 
-                    xbmc.Player().play(item=playlist, startpos=Pos + Offset)
-                    setPlayerPosition(StartPositionTicks)
-                    Offset = 0
-                    FirstItem = False
+    # picture
+    if not isPlaylist:
+        if StartIndex != -1:
+            globals()["Pictures"][StartIndex][1].select(True)
+
+        xbmc.executebuiltin('Action(Stop)')
+        xbmc.executebuiltin('Action(Back)')
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {"playlistid": 2}}')
+#        xbmc.executebuiltin('ReplaceWindow(10000)')
+#        xbmc.executebuiltin('ActivateWindow(10002,"plugin://%s/?mode=remotepictures&position=%s",return)' % (utils.PluginId, StartIndex))
+        xbmc.executebuiltin('ReplaceWindow(10002,"plugin://%s/?mode=remotepictures&position=%s")' % (utils.PluginId, StartIndex))
 
 def setPlayerPosition(StartPositionTicks):
     if StartPositionTicks != -1:
         Position = StartPositionTicks / 10000000
 
         for _ in range(10):
-            if xbmc.Player().isPlaying():
+            if XbmcPlayer.isPlaying():
                 for _ in range(10):
-                    xbmc.Player().seekTime(Position)
-                    CurrentTime = xbmc.Player().getTime()
+                    XbmcPlayer.seekTime(Position)
+                    CurrentTime = XbmcPlayer.getTime()
 
                     if CurrentTime >= Position - 10:
                         return
 
-                    if XbmcMonitor.waitForAbort(0.5):
+                    if utils.waitForAbort(0.5):
                         return
             else:
-                if XbmcMonitor.waitForAbort(0.5):
+                if utils.waitForAbort(0.5):
                     return
 
 def GetPlaylistPos(Position, playlist, Offset):

@@ -1,23 +1,12 @@
-# -*- coding: utf-8 -*-
 import json
-import threading
+from _thread import start_new_thread
 import xbmcaddon
-import xbmc
-from dialogs import serverconnect
-from dialogs import usersconnect
-from dialogs import loginconnect
-from dialogs import loginmanual
-from dialogs import servermanual
-from helper import loghandler
-from helper import utils
+from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, servermanual
+from helper import utils, loghandler
 from database import library
 from hooks import websocket
-from . import views
-from . import api
-from . import http
-from . import connection_manager
+from . import views, api, http, connection_manager
 
-XbmcMonitor = xbmc.Monitor()
 XmlPath = (xbmcaddon.Addon(utils.PluginId).getAddonInfo('path'), "default", "1080i")
 LOG = loghandler.LOG('EMBY.emby.emby')
 
@@ -49,7 +38,7 @@ class EmbyServer:
     def ServerUnreachable(self):
         if not self.ServerReconnecting:
             utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33146))
-            threading.Thread(target=self.ServerReconnect).start()
+            start_new_thread(self.ServerReconnect, ())
 
     def ServerReconnect(self, Terminate=True):
         if not self.ServerReconnecting:
@@ -70,12 +59,12 @@ class EmbyServer:
 
                 # Delay reconnect: Fast 40 re-tries (first 10 seconds), after delay by 5 seconds
                 if Tries > 40:
-                    if XbmcMonitor.waitForAbort(5):
+                    if utils.waitForAbort(5):
                         break
                 else:
                     Tries += 1
 
-                    if XbmcMonitor.waitForAbort(0.25):
+                    if utils.waitForAbort(0.25):
                         break
 
             self.ServerReconnecting = False
@@ -99,7 +88,6 @@ class EmbyServer:
             return False
 
         LOG.info("---[ START EMBYCLIENT: %s ]---" % self.server_id)
-        self.http.start_session()
         session = self.API.get_device()
 
         if not session:
@@ -108,8 +96,9 @@ class EmbyServer:
 
         self.API.post_capabilities({
             'Id': session[0]['Id'],
-            'PlayableMediaTypes': "Audio,Video",
+            'PlayableMediaTypes': "Audio,Video,Photo",
             'SupportsMediaControl': True,
+            'SupportsSync': True,
             'SupportedCommands': (
                 "MoveUp,MoveDown,MoveLeft,MoveRight,Select,"
                 "Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,"
@@ -122,8 +111,6 @@ class EmbyServer:
             ),
             'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
         })
-
-        self.library.load_settings()
         self.load_credentials()
 
         if 'Users' in self.ServerData:
@@ -131,26 +118,26 @@ class EmbyServer:
                 self.API.session_add_user(session[0]['Id'], UserId, True)
 
         if utils.connectMsg:
-            utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), utils.StringDecode(session[0]['UserName'])), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=1500, sound=False)
+            utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), session[0]['UserName']), icon=utils.icon, time=1500, sound=False)
 
         self.Views.update_views()
+        self.library.load_settings()
         self.Views.update_nodes()
-        threading.Thread(target=self.library.InitSync, args=(self.Firstrun,)).start()  # start initial sync
+        start_new_thread(self.library.InitSync, (self.Firstrun,))  # start initial sync
         self.Websocket = websocket.WSClient(self)
         self.Websocket.start()
         self.Online = True
-        utils.SyncPause = False
+        utils.SyncPause[self.server_id] = False
         LOG.info("[ Server Online ]")
         return True
 
     def stop(self):
         LOG.info("---[ STOP EMBYCLIENT: %s ]---" % self.server_id)
-        utils.SyncPause = True
+        utils.SyncPause[self.server_id] = True
         self.Online = False
 
         if self.Websocket:
             self.Websocket.close()
-            self.Websocket.join()
             self.Websocket = None
 
         self.http.stop_session()
@@ -190,12 +177,10 @@ class EmbyServer:
         return SignedIn, None
 
     def save_credentials(self):
-        credentials = json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False)
-
         if not self.ServerSettings:
             self.ServerSettings = "%s%s" % (utils.FolderAddonUserdata, 'servers_%s.json' % self.server_id)
 
-        utils.writeFileString(self.ServerSettings, credentials)
+        utils.writeFileString(self.ServerSettings, json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False))
 
     def load_credentials(self):
         if self.ServerSettings:
@@ -245,9 +230,6 @@ class EmbyServer:
         user = self.API.get_user(None)
         self.config = self.API.get_system_info()
         utils.set_settings('username', user['Name'])
-
-        if 'PrimaryImageTag' in user:
-            utils.emby_UserImage = self.API.get_user_artwork(user['Id'])
 
     def select_servers(self, state):
         if not state:

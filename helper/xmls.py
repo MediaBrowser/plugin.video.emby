@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
 import xml.etree.ElementTree
-from . import loghandler
-from . import utils
-
-if utils.Python3:
-    from urllib.parse import urlencode
-else:
-    from urllib import urlencode
+from urllib.parse import urlencode
+from . import utils, loghandler
 
 LOG = loghandler.LOG('EMBY.helper.xmls')
 
@@ -24,7 +18,7 @@ def sources():
 
     files = xmlData.find('files')
 
-    if files is None:
+    if not files:
         files = xml.etree.ElementTree.SubElement(xmlData, 'files')
 
     for source in xmlData.findall('.//path'):
@@ -101,21 +95,86 @@ def load_defaultvideosettings():
 
     return {}
 
+def advanced_settings_runtimelimits(xmlData):
+    TriggeredByPluginMenu = True
+    WriteData = False
+
+    if xmlData:
+        TriggeredByPluginMenu = False
+
+    if TriggeredByPluginMenu: # Toggle via settings menu, otherwise it's triggered by Kodi start
+        Filepath = 'special://profile/advancedsettings.xml'
+        FileData = utils.readFileString(Filepath)
+        xmlData = xml.etree.ElementTree.fromstring(FileData)
+
+    if utils.syncruntimelimits:
+        video = xmlData.find('video')
+
+        if video is not None:
+            playcountminimumpercent = video.find('playcountminimumpercent')
+
+            if playcountminimumpercent is not None:
+                if playcountminimumpercent.text != "101":
+                    video.remove(playcountminimumpercent)
+                    xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
+                    WriteData = True
+            else:
+                xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
+                WriteData = True
+
+            ignorepercentatend = video.find('ignorepercentatend')
+
+            if ignorepercentatend is not None:
+                if ignorepercentatend.text != "101":
+                    video.remove(ignorepercentatend)
+                    xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
+                    WriteData = True
+            else:
+                xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
+                WriteData = True
+        else:
+            video = xml.etree.ElementTree.SubElement(xmlData, 'video')
+            xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
+            xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
+            WriteData = True
+    else:
+        video = xmlData.find('video')
+
+        if video is not None:
+            playcountminimumpercent = video.find('playcountminimumpercent')
+
+            if playcountminimumpercent is not None:
+                video.remove(playcountminimumpercent)
+                WriteData = True
+
+            ignorepercentatend = video.find('ignorepercentatend')
+
+            if ignorepercentatend is not None:
+                video.remove(ignorepercentatend)
+                WriteData = True
+
+    if TriggeredByPluginMenu:
+        if WriteData:
+            WriteXmlFile(Filepath, xmlData)
+            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
+
+    return WriteData
+
 def advanced_settings():
     WriteData = False
     Filepath = 'special://profile/advancedsettings.xml'
-    xmlData = utils.readFileString(Filepath)
+    FileData = utils.readFileString(Filepath)
 
-    if xmlData:
-        xmlData = xml.etree.ElementTree.fromstring(xmlData)
-        video = xmlData.find('videolibrary')
+    if FileData:
+        xmlData = xml.etree.ElementTree.fromstring(FileData)
+        videolibrary = xmlData.find('videolibrary')
 
-        if video is not None:
-            cleanonupdate = video.find('cleanonupdate')
+        if videolibrary is not None:
+            cleanonupdate = videolibrary.find('cleanonupdate')
 
             if cleanonupdate is not None and cleanonupdate.text == "true":
                 LOG.warning("cleanonupdate disabled")
-                video.remove(cleanonupdate)
+                videolibrary.remove(cleanonupdate)
                 WriteData = True
                 utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33097))
 
@@ -174,9 +233,12 @@ def advanced_settings():
         xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
         WriteData = True
 
+    if advanced_settings_runtimelimits(xmlData):
+        WriteData = True
+
     if WriteData:
         WriteXmlFile(Filepath, xmlData)
-        utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon="special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=5000, sound=True)
+        utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
 
     return WriteData
 
@@ -202,7 +264,7 @@ def WriteXmlFile(FilePath, Data):
 
     # write xml
     Data = xml.etree.ElementTree.tostring(Data)
-    Data = b"<?xml version='1.0' encoding='UTF-8'?>\n" + Data
+    Data = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n' + Data
     utils.writeFileBinary(FilePath, Data)
 
 def KodiDefaultNodes():
@@ -233,7 +295,7 @@ def add_favorites():
     utils.mkDir("special://profile/library/video/")
     index = 0
 
-    for single in [{'Name': utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}]:
+    for single in [{'Name': utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}, {'Name': "Favorite musicvideos", 'Tag': "Favorite musicvideos", 'MediaType': "musicvideos"}]:
         index += 1
         filepath = "special://profile/library/video/emby_%s.xml" % single['Tag'].replace(" ", "_")
         xmlData = utils.readFileString(filepath)

@@ -1260,5 +1260,549 @@ msgid "Kodi restart initiated due to advancedsettings.xml changes"
 msgstr ""
 
 msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr ""
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr ""
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr ""
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr ""
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr ""
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity"
+msgstr ""
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr ""
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
+msgstr ""
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr ""
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr ""
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr ""
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr ""
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr ""
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr ""
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr ""
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
+msgstr ""
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally resetted."
+msgstr ""
+
+msgctxt "#33314"
+msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr ""
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr ""
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
+msgstr ""
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr ""
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr ""
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr ""
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr ""
+
+msgctxt "#33322"
+msgid "Can save bandwith"
+msgstr ""
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr ""
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr ""
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr ""
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr ""
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr ""
+
+msgctxt "#33334"
 msgid "Refresh skin on Emby server connection"
+msgstr ""
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr ""
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr ""
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr ""
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr ""
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr ""
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr ""
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr ""
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr ""
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr ""
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr ""
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr ""
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr ""
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr ""
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr ""
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr ""
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr ""
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr ""
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr ""
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr ""
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr ""
+
+msgctxt "#33355"
+msgid "Resume episodes"
+msgstr ""
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr ""
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr ""
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr ""
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr ""
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr ""
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr ""
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr ""
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr ""
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr ""
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr ""
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr ""
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr ""
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr ""
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr ""
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr ""
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr ""
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr ""
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr ""
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr ""
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr ""
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr ""
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr ""
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr ""
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr ""
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever posssible"
+msgstr ""
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performace. Try to avoid where ever possible"
+msgstr ""
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr ""
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr ""
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr ""
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr ""
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr ""
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr ""
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr ""
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr ""
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr ""
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr ""
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr ""
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr ""
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr ""
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
+msgstr ""
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr ""
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr ""
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr ""
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr ""
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr ""
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr ""
+
+msgctxt "#33407"
+msgid "Vacuum datbases on Kodi shutdown"
+msgstr ""
+
+msgctxt "#33408"
+msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
 msgstr ""
