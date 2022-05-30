@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 import uuid
 import json
+from urllib.parse import quote
 from datetime import datetime, timedelta
-import requests
 from dateutil import tz, parser
 import xbmcvfs
 import xbmc
@@ -12,36 +11,23 @@ import xbmcaddon
 import xbmcgui
 from . import loghandler
 
-if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) >= 19:
-    unicode = str
-    from urllib.parse import quote
-    Python3 = True
-else:
-    from urllib import quote
-    Python3 = False
-
-if xbmc.getCondVisibility('System.HasAddon(plugin.video.emby-next-gen)'):
-    Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
-    PluginId = "plugin.video.emby-next-gen"
-else:
-    Addon = xbmcaddon.Addon("plugin.video.emby")
-    PluginId = "plugin.video.emby"
-
 LOG = loghandler.LOG('EMBY.helper.utils')
-KodiDBLock = {"music": False, "video": False}
-Dialog = xbmcgui.Dialog()
-VideoBitrateOptions = [664000, 996000, 1320000, 2000000, 3200000, 4700000, 6200000, 7700000, 9200000, 10700000, 12200000, 13700000, 15200000, 16700000, 18200000, 20000000, 25000000, 30000000, 35000000, 40000000, 100000000, 1000000000]
-AudioBitrateOptions = [64000, 96000, 128000, 192000, 256000, 320000, 384000, 448000, 512000]
-MinimumVersion = "6.2.8"
+Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
+PluginId = "plugin.video.emby-next-gen"
+addon_version = Addon.getAddonInfo('version')
+addon_name = Addon.getAddonInfo('name')
+icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif"
+EmbyServers = {}
+MinimumVersion = "7.0.2"
+StartupComplete = False
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
+animateicon = True
 TranscodeFormatVideo = ""
 TranscodeFormatAudio = ""
 videoBitrate = 0
 audioBitrate = 0
-VideoBitrate = 0
-AudioBitrate = 0
 resumeJumpBack = 0
 displayMessage = 0
 newvideotime = 1
@@ -50,12 +36,12 @@ startupDelay = 0
 backupPath = ""
 disablehttp2 = "true"
 MinimumSetup = ""
-limitIndex = 50
+limitIndex = 5
+artworkcachethreads = 5
+maxnodeitems = "25"
 username = ""
-serverName = ""
 server = ""
 deviceName = ""
-compatibilitymode = False
 useDirectPaths = False
 menuOptions = False
 newContent = False
@@ -77,7 +63,6 @@ Trailers = False
 offerDelete = False
 deleteTV = False
 deleteMovies = False
-userRating = False
 enableCoverArt = False
 compressArt = False
 getDateCreated = False
@@ -88,23 +73,75 @@ getOverview = False
 getProductionLocations = False
 getCast = False
 deviceNameOpt = False
-syncDuringPlay = False
 artworkcacheenable = True
-WebserverData = {}
+syncruntimelimits = False
 SkipUpdateSettings = 0
 device_id = ""
-SyncPause = False
 syncdate = ""
 synctime = ""
 syncduringplayback = False
-addon_version = Addon.getAddonInfo('version')
-addon_name = Addon.getAddonInfo('name')
+databasevacuum = False
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
 SystemShutdown = False
-WorkerInProgress = False
-WorkerPaused = False
+SyncPause = {}  # keys: playing, kodi_busy, embyserverID
+DBBusy = False
+Dialog = xbmcgui.Dialog()
+waitForAbort = xbmc.Monitor().waitForAbort
+ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
+
+DialogTypes = {
+    'yesno': Dialog.yesno,
+    'ok': Dialog.ok,
+    'notification': Dialog.notification,
+    'input': Dialog.input,
+    'select': Dialog.select,
+    'numeric': Dialog.numeric,
+    'multi': Dialog.multiselect,
+    'textviewer': Dialog.textviewer
+}
+
+def progress_open(Header):
+    while ProgressBar[3]:
+        waitForAbort(1)
+
+    globals()["ProgressBar"][1] += 1
+
+    if ProgressBar[1] == 1:
+        globals()["ProgressBar"][3] = True
+        globals()["ProgressBar"][0].create("Emby", Header)
+        globals()["ProgressBar"][3] = False
+        globals()["ProgressBar"][2] = True
+
+    LOG.info("Progress Bar open: %s" % ProgressBar[1])
+
+def progress_close():
+    while ProgressBar[3]:
+        waitForAbort(1)
+
+    globals()["ProgressBar"][1] -= 1
+
+    if ProgressBar[1] == 0:
+        globals()["ProgressBar"][3] = True
+        globals()["ProgressBar"][0].close()
+        globals()["ProgressBar"][2] = False
+        globals()["ProgressBar"][3] = False
+
+    LOG.info("Progress Bar close: %s" % ProgressBar[1])
+
+def progress_update(Progress, Heading, Message):
+    if ProgressBar[2]:
+        ProgressBar[0].update(Progress, heading=Heading, message=Message)
+
+def sync_is_paused():
+    LOG.debug("SyncPause state: %s" % str(SyncPause))
+
+    for Busy in list(SyncPause.values()):
+        if Busy:
+            return True
+
+    return False
 
 # Delete objects from kodi cache
 def delFolder(path):
@@ -247,27 +284,13 @@ def listDir(Path):
     return Folders, Files
 
 def translatePath(Data):
-    if Python3:
-        return xbmcvfs.translatePath(Data)
-
-    return StringDecode(xbmc.translatePath(Data))
+    return xbmcvfs.translatePath(Data)
 
 def currenttime():
     return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def currenttime_kodi_format():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-def StringDecode(Data):
-    if Python3:
-        return Data
-
-    try:
-        Data = Data.decode('utf-8')
-    except:
-        Data = Data.encode('utf8').decode('utf-8')
-
-    return Data
 
 # Remove all emby playlists
 def delete_playlists():
@@ -284,13 +307,15 @@ def delete_playlists():
 def delete_nodes():
     delFolder("special://profile/library/video/")
     delFolder("special://profile/library/music/")
+    mkDir("special://profile/library/video/")
+    mkDir("special://profile/library/music/")
 
 # Convert the gmt datetime to local
 def convert_to_gmt(local_time):
     if not local_time:
         return ""
 
-    if isinstance(local_time, (str, unicode)):
+    if isinstance(local_time, str):
         local_time = parser.parse(local_time.encode('utf-8'))
         utc_zone = tz.tzutc()
         local_zone = tz.tzlocal()
@@ -301,14 +326,14 @@ def convert_to_gmt(local_time):
     return ""
 
 # Convert the gmt datetime to local
-def convert_to_local(date):
+def convert_to_local(date, DateOnly=False):
     if not date:
         return ""
 
     if isinstance(date, int):
         date = str(date)
 
-    if isinstance(date, (str, unicode)):
+    if isinstance(date, str):
         date = parser.parse(date.encode('utf-8'))
 
         if not date.tzname():
@@ -329,7 +354,10 @@ def convert_to_local(date):
         LOG.warning("invalid timestamp < 1900")
         return ""
 
-    return timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+    if DateOnly:
+        return timestamp.strftime('%Y-%m-%d')
+
+    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
 # Download external subtitles to temp folder
 def download_file_from_Embyserver(request, filename, EmbyServer):
@@ -357,16 +385,7 @@ def PathToFilenameReplaceSpecialCharecters(Path):
         Pos = Path.rfind("\\")
 
     Path = Path[Pos + 1:]
-
-    if not Python3:
-        if isinstance(Path, str):
-            Path = unicode(Path, 'utf-8')
-            Path = Path.encode('utf-8')
-            Filename = quote(Path, safe=u':/'.encode('utf-8'))
-        else:
-            Filename = quote(Path.encode('utf-8'), safe=u':/'.encode('utf-8'))
-    else:
-        Filename = quote(Path)
+    Filename = quote(Path)
 
     while Filename.find("%") != -1:
         Pos = Filename.find("%")
@@ -374,14 +393,8 @@ def PathToFilenameReplaceSpecialCharecters(Path):
 
     return Filename
 
-def StringEncode(Data):
-    if Python3:
-        return Data
-
-    return Data.encode('utf-8')
-
-def CreateListitem(MediaType, Data):
-    li = xbmcgui.ListItem(Data['title'])
+def CreateListitem(MediaType, Data): # create listitem from Kodi data
+    li = xbmcgui.ListItem(label=Data['title'], offscreen=True)
     Data['mediatype'] = MediaType
     Properties = {'IsPlayable': "true"}
 
@@ -476,22 +489,11 @@ def SizeToText(size):
     return "%.*f%s" % (2, size, suffixes[suffixIndex])
 
 def dialog(dialog_type, *args, **kwargs):
-    if Python3:
-        if "line1" in kwargs:
-            kwargs['message'] = kwargs['line1']
-            del kwargs['line1']
+    if "line1" in kwargs:
+        kwargs['message'] = kwargs['line1']
+        del kwargs['line1']
 
-    types = {
-        'yesno': Dialog.yesno,
-        'ok': Dialog.ok,
-        'notification': Dialog.notification,
-        'input': Dialog.input,
-        'select': Dialog.select,
-        'numeric': Dialog.numeric,
-        'multi': Dialog.multiselect,
-        'textviewer': Dialog.textviewer
-    }
-    return types[dialog_type](*args, **kwargs)
+    return DialogTypes[dialog_type](*args, **kwargs)
 
 def DeleteThumbnails():
     dirs, _ = listDir('special://thumbnails/')
@@ -554,17 +556,17 @@ def copy_recursive(path, dirs, dest):
             copyFile(CopyFile, "%s%s" % (dest_dir, Filename))
 
 def get_device_id(reset):
-    if globals()["device_id"]:
+    if device_id:
         return
 
-    mkDir(globals()["FolderAddonUserdata"])
-    emby_guid = "%s%s" % (globals()["FolderAddonUserdata"], "emby_guid")
+    mkDir(FolderAddonUserdata)
+    emby_guid = "%s%s" % (FolderAddonUserdata, "emby_guid")
     globals()["device_id"] = readFileString(emby_guid)
 
-    if not globals()["device_id"] or reset:
+    if not device_id or reset:
         LOG.info("Generating a new GUID.")
         globals()["device_id"] = str(uuid.uuid4())
-        writeFileString(emby_guid, globals()["device_id"])
+        writeFileString(emby_guid, device_id)
 
     if reset:  # delete login data -> force new login
         _, files = listDir(FolderAddonUserdata)
@@ -573,7 +575,7 @@ def get_device_id(reset):
             if Filename.startswith('servers_'):
                 delFile("%s%s" % (FolderAddonUserdata, Filename))
 
-    LOG.info("device_id loaded: %s" % globals()["device_id"])
+    LOG.info("device_id loaded: %s" % device_id)
 
 # Kodi Settings
 def InitSettings():
@@ -590,17 +592,18 @@ def InitSettings():
     load_settings('MinimumSetup')
     load_settings('limitIndex')
     load_settings('username')
-    load_settings('serverName')
     load_settings('server')
     load_settings('deviceName')
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
+    load_settings('artworkcachethreads')
+    load_settings('maxnodeitems')
     load_settings_bool('syncduringplayback')
     load_settings_bool('refreshskin')
+    load_settings_bool('animateicon')
     load_settings_bool('disablehttp2')
     load_settings_bool('menuOptions')
-    load_settings_bool('compatibilitymode')
     load_settings_bool('xspplaylists')
     load_settings_bool('newContent')
     load_settings_bool('restartMsg')
@@ -620,7 +623,6 @@ def InitSettings():
     load_settings_bool('offerDelete')
     load_settings_bool('deleteTV')
     load_settings_bool('deleteMovies')
-    load_settings_bool('userRating')
     load_settings_bool('enableCoverArt')
     load_settings_bool('compressArt')
     load_settings_bool('getDateCreated')
@@ -631,28 +633,35 @@ def InitSettings():
     load_settings_bool('getProductionLocations')
     load_settings_bool('getCast')
     load_settings_bool('deviceNameOpt')
-    load_settings_bool('syncDuringPlay')
     load_settings_bool('useDirectPaths')
     load_settings_bool('enableDeleteByKodiEvent')
-    globals()["VideoBitrate"] = int(VideoBitrateOptions[int(videoBitrate)])
-    globals()["AudioBitrate"] = int(AudioBitrateOptions[int(audioBitrate)])
+    load_settings_bool('syncruntimelimits')
+    load_settings_bool('databasevacuum')
 
-    if globals()["disablehttp2"]:
+    if not deviceNameOpt:
+        globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
+    else:
+        globals()["device_name"] = device_name.encode('utf-8')  # encode special charecters
+        globals()["device_name"] = device_name.replace("/", "_")
+
+    if not device_name:
+        globals()["device_name"] = "Kodi"
+
+    if disablehttp2:
         globals()["disablehttp2"] = "true"
     else:
         globals()["disablehttp2"] = "false"
 
-    # Set devicename
-    if not globals()["deviceNameOpt"]:
-        globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
+    if animateicon:
+        globals()["icon"] = "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif"
     else:
-        globals()["device_name"] = globals()["deviceName"].replace("\"", "_")
-        globals()["device_name"] = device_name.replace("/", "_")
+        globals()["icon"] = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
 
-    if not globals()["device_name"]:
-        globals()["device_name"] = "Kodi"
-
-    globals()["device_name"] = quote(globals()["device_name"].encode('utf-8'))  # encode special charecters
+    globals()["limitIndex"] = int(limitIndex)
+    globals()["startupDelay"] = int(startupDelay)
+    globals()["videoBitrate"] = int(videoBitrate)
+    globals()["audioBitrate"] = int(audioBitrate)
+    globals()["artworkcachethreads"] = int(artworkcachethreads)
 
 def set_syncdate(timestamp):
     TimeStamp = parser.parse(timestamp.encode('utf-8'))
@@ -685,67 +694,44 @@ def set_settings_bool(setting, value):
     else:
         Addon.setSetting(setting, "false")
 
-def load_Trailers(EmbyServer, EmbyId):
-    Intros = []
-    ValidIntros = []
-
-    if localTrailers:
-        IntrosLocal = EmbyServer.API.get_local_trailers(EmbyId)
-
-        for IntroLocal in IntrosLocal:
-            Intros.append(IntroLocal)
-
-    if Trailers:
-        IntrosExternal = EmbyServer.API.get_intros(EmbyId)
-
-        if 'Items' in IntrosExternal:
-            for IntroExternal in IntrosExternal['Items']:
-                Intros.append(IntroExternal)
-
-        for Intro in Intros:
-            if Intro['Path'].find("http") == -1:
-                Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (EmbyServer.server, Intro['Id'], EmbyServer.Token, device_id)
-                ValidIntros.append(Intro)
-            else:
-                r = requests.head(Intro['Path'], allow_redirects=True)
-
-                if Intro['Path'] == r.url:
-                    ValidIntros.append(Intro)
-                else:  # filter URL redirections, mostly invalid links
-                    LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
-
-    return ValidIntros
-
 def get_path_type_from_item(server_id, item):
-    path = ""
+    path = None
 
     if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
-        path = "http://127.0.0.1:57342/embyimage-%s-%s-0-Primary-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
-        Type = "picture"
+        path = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+        Type = "p"
     elif item['Type'] == "MusicVideo":
-        Type = "musicvideo"
+        Type = "M"
     elif item['Type'] == "Movie":
-        Type = "movie"
+        Type = "m"
     elif item['Type'] == "Episode":
-        Type = "episode"
+        Type = "e"
     elif item['Type'] == "Audio":
-        path = "http://127.0.0.1:57342/embyaudiodynamic-%s-%s-%s-%s" % (server_id, item['Id'], "audio", PathToFilenameReplaceSpecialCharecters(item['Path']))
-        Type = "audio"
+        path = "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+        Type = "a"
     elif item['Type'] == "Video":
-        Type = "video"
+        Type = "v"
     elif item['Type'] == "Trailer":
-        Type = "trailer"
+        Type = "T"
     elif item['Type'] == "TvChannel":
-        Type = "tvchannel"
-        path = "http://127.0.0.1:57342/embylivetv-%s-%s-stream.ts" % (server_id, item['Id'])
+        path = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
+        Type = "t"
     else:
         return None, None
 
-    if not path:
-        try:
-            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
-        except:
-            path = "http://127.0.0.1:57342/embyvideodynamic-%s-%s-%s-%s-%s-%s-%s" % (server_id, item['Id'], Type, item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
+    if 'Path' in item:
+        if item['Path'].lower().endswith(".iso"):
+            Type = "i"
+            path = item['Path']
+
+            if path.startswith('\\\\'):
+                path = path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+        else:
+            if not path:
+                try:
+                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-None-None-%s-0-1-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+                except:
+                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-None-None-%s-0-1-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
 
     return path, Type
 
@@ -755,11 +741,9 @@ mkDir('special://profile/playlists/video/')
 mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
-limitIndex = int(limitIndex)
-startupDelay = int(startupDelay)
 set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
-DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
+DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0, 'epg': "", 'epg-version': 0, 'addons': "", 'addons-version': 0, 'viewmodes': "", 'viewmodes-version': 0, 'tv': "", 'tv-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")
 
 for FolderDatabaseFilename in FolderDatabasefiles:
@@ -782,3 +766,27 @@ for FolderDatabaseFilename in FolderDatabasefiles:
             if Version > DatabaseFiles['video-version']:
                 DatabaseFiles['video'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
                 DatabaseFiles['video-version'] = Version
+        elif FolderDatabaseFilename.startswith('EPG'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['epg-version']:
+                DatabaseFiles['epg'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['epg-version'] = Version
+        elif FolderDatabaseFilename.startswith('TV'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['tv-version']:
+                DatabaseFiles['tv'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['tv-version'] = Version
+        elif FolderDatabaseFilename.startswith('Addons'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['addons-version']:
+                DatabaseFiles['addons'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['addons-version'] = Version
+        elif FolderDatabaseFilename.startswith('ViewModes'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['viewmodes-version']:
+                DatabaseFiles['viewmodes'] = translatePath("special://profile/Database/%s" % FolderDatabaseFilename)
+                DatabaseFiles['viewmodes-version'] = Version

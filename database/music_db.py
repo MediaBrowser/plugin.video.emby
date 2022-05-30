@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
-from helper import utils
+from helper import utils, loghandler
 from . import common_db
+
+LOG = loghandler.LOG('EMBY.database.music_db')
+
 
 class MusicDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
-        self.common_db = common_db.CommonDatabase(self.cursor)
+        self.common = common_db.CommonDatabase(cursor)
 
     def clean_music(self):
         self.cursor.execute("SELECT idAlbum FROM album")
@@ -29,320 +31,165 @@ class MusicDatabase:
                 self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", artistid)
 
     # Make sure rescan and kodi db set
-    def disable_rescan(self):
+    def disable_rescan(self, Timestamp):
         self.cursor.execute("DELETE FROM versiontagscan")
-        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan) VALUES (?, ?)", (str(utils.DatabaseFiles['music-version']), "0"))
+        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan, lastscanned, genresupdated) VALUES (?, ?, ?, ?)", (str(utils.DatabaseFiles['music-version']), "0", Timestamp, Timestamp))
 
-    def create_entry_artist(self):
+    def add_role(self):
+        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
+
+    def link_album_artist(self, KodiId, KodiAlbumId, ArtistName, Index):
+        self.cursor.execute("INSERT INTO album_artist(idArtist, idAlbum, strArtist, iOrder) VALUES (?, ?, ?, ?)", (KodiId, KodiAlbumId, ArtistName, Index))
+
+    def add_discography(self, ArtistId, AlbumTitle, Year, MusicBrainzReleaseGroup):
+        self.cursor.execute("INSERT INTO discography(idArtist, strAlbum, strYear, strReleaseGroupMBID) VALUES (?, ?, ?, ?)", (ArtistId, AlbumTitle, Year, MusicBrainzReleaseGroup))
+
+    def get_ArtistSortname(self, KodiArtistId):
+        self.cursor.execute("SELECT strSortName FROM artist WHERE idArtist = ? ", (KodiArtistId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return False
+
+    def add_artist(self, name, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name):
         self.cursor.execute("SELECT coalesce(max(idArtist), 1) FROM artist")
-        return self.cursor.fetchone()[0] + 1
+        artist_id = self.cursor.fetchone()[0] + 1
 
-    def create_entry_album(self):
+        while True:
+            try:
+                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
+                break
+            except:  # Duplicate musicbrainz
+                LOG.warning("Duplicate artist detected: %s/%s" % (name, MusicbrainzId))
+                MusicbrainzId += " "
+
+        return artist_id
+
+    def update_artist(self, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, ArtistId):
+        self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ? WHERE idArtist = ?", (Genre, Bio, Thumb, LastScraped, SortName, DateAdded, ArtistId))
+
+    def add_album(self, Title, Type, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, UniqueId, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name):
         self.cursor.execute("SELECT coalesce(max(idAlbum), 0) FROM album")
-        return self.cursor.fetchone()[0] + 1
+        album_id = self.cursor.fetchone()[0] + 1
 
-    def create_entry_song(self):
-        self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
-        return self.cursor.fetchone()[0] + 1
-
-    def create_entry_genre(self):
-        self.cursor.execute("SELECT coalesce(max(idGenre), 0) FROM genre")
-        return self.cursor.fetchone()[0] + 1
-
-    def update_path(self, *args):
-        self.cursor.execute("UPDATE path SET strPath = ? WHERE idPath = ?", args)
-
-    def add_role(self, *args):
-        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", args)
-
-    def update_artist_name(self, ArtistName, ArtistId, LibraryId_Name):
-        self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ?", (ArtistId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            LibraryInfo = Data[0]
-            LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
-            LibraryInfo += "%s;" % LibraryId_Name
-            self.cursor.execute("UPDATE artist SET strArtist = ?, strDisambiguation = ? WHERE idArtist = ?", (ArtistName, LibraryInfo, ArtistId))
-
-    def update_artist(self, Genre, Bio, Thumb, Backdrops, LastScraped, SortName, DateAdded, ArtistId, LibraryId_Name):
-        self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ?", (ArtistId,))
-        LibraryInfo = self.cursor.fetchone()[0]
-        LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
-        LibraryInfo += "%s;" % LibraryId_Name
-
-        if utils.DatabaseFiles['music-version'] >= 82:
-            self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ?, strDisambiguation = ? WHERE idArtist = ?", (Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryInfo, ArtistId))
-        else:
-            if Backdrops:
-                Backdrop = Backdrops[0]
-            else:
-                Backdrop = ""
-
-            self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, strFanart = ?, lastScraped = ?, strSortName = ?, strDisambiguation = ? WHERE idArtist = ?", (Genre, Bio, Thumb, Backdrop, LastScraped, SortName, LibraryInfo, ArtistId))
-
-    def link(self, *args):
-        self.cursor.execute("INSERT OR REPLACE INTO album_artist(idArtist, idAlbum, strArtist) VALUES (?, ?, ?)", args)
-
-    def get_discography(self, ArtistId, AlbumTitle):
-        self.cursor.execute("SELECT * FROM discography WHERE idArtist = ? AND strAlbum = ?", (ArtistId, AlbumTitle))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data
-
-        return False
-
-    def add_discography(self, *args):
-        self.cursor.execute("INSERT INTO discography(idArtist, strAlbum, strYear) VALUES (?, ?, ?)", args)
-
-    def validate_artist(self, ArtistId, LibraryId_Name):
-        LibraryId_Name = "%%%s%%" % LibraryId_Name
-        self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ? AND strDisambiguation LIKE ?", (ArtistId, LibraryId_Name))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def artist_exists(self, ArtistId):
-        self.cursor.execute("SELECT strDisambiguation FROM artist WHERE idArtist = ?", (ArtistId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def validate_album(self, AlbumId, LibraryId_Name):
-        LibraryId_Name = "%%%s%%" % LibraryId_Name
-        self.cursor.execute("SELECT strType FROM album WHERE idAlbum = ? AND strType LIKE ?", (AlbumId, LibraryId_Name))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def album_exists(self, AlbumId):
-        self.cursor.execute("SELECT strType FROM album WHERE idAlbum = ?", (AlbumId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def validate_song(self, SongId, LibraryId_Name):
-        LibraryId_Name = "%%%s%%" % LibraryId_Name
-        self.cursor.execute("SELECT comment FROM song WHERE idSong = ? AND comment LIKE ?", (SongId, LibraryId_Name))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def song_exists(self, SongId):
-        self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (SongId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    # Get artist or create the entry
-    def get_add_artist(self, name, musicbrainz, LibraryId_Name):
-        self.cursor.execute("SELECT idArtist, strDisambiguation FROM artist WHERE strArtist = ? ", (name,))
-        result = self.cursor.fetchone()
-
-        if result:
-            artist_id = result[0]
-            LibraryInfo = result[1]
-
-            if LibraryInfo.find(LibraryId_Name) == -1:
-                LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
-                LibraryInfo += "%s;" % LibraryId_Name
-                self.cursor.execute("UPDATE artist SET strDisambiguation = ? WHERE idArtist = ?", (LibraryInfo, artist_id))
-        else:
-            artist_id = self.create_entry_artist()
-            LibraryId_Name += ";"
-
+        while True:
             try:
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strDisambiguation) VALUES (?, ?, ?, ?)", (artist_id, name, musicbrainz, LibraryId_Name))
+                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseGroupMBID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strReview, strImage, iUserrating, lastScraped, dateAdded, bCompilation, strLabel, iAlbumDuration, strArtistSort, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (album_id, Title, UniqueId, UniqueIdReleaseGroup, Type, Artist, Year, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name))
+                break
+
             except:  # Duplicate musicbrainz
-                musicbrainz = None
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strDisambiguation) VALUES (?, ?, ?, ?)", (artist_id, name, musicbrainz, LibraryId_Name))
-
-        return artist_id
-
-    # Add artist
-    def add_artist(self, name, musicbrainz, Genre, Bio, Thumb, Backdrops, LastScraped, SortName, DateAdded, LibraryId_Name):
-        artist_id = self.create_entry_artist()
-        LibraryId_Name += ";"
-
-        if utils.DatabaseFiles['music-version'] >= 82:
-            try:
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, musicbrainz, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
-            except:  # Duplicate musicbrainz
-                musicbrainz = None
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, musicbrainz, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
-        else:
-            if Backdrops:
-                Backdrop = Backdrops[0]
-            else:
-                Backdrop = ""
-
-            try:
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, strFanart, lastScraped, strSortName, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, musicbrainz, Genre, Bio, Thumb, Backdrop, LastScraped, SortName, LibraryId_Name))
-            except:  # Duplicate musicbrainz
-                musicbrainz = None
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, strFanart, lastScraped, strSortName, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (artist_id, name, musicbrainz, Genre, Bio, Thumb, Backdrop, LastScraped, SortName, LibraryId_Name))
-
-        return artist_id
-
-    def get_artistID(self, name, LibraryId_Name):
-        LibraryId_Name = "%%%s%%" % LibraryId_Name
-        self.cursor.execute("SELECT idArtist FROM artist WHERE strArtist = ? and strDisambiguation LIKE ?", (name, LibraryId_Name))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            return Data[0]
-
-        return False
-
-    def get_add_album(self, Title, Type, Artists, Year, Genre, Thumb, Rating, LastScraped, DateAdded, LibraryId_Name):
-        self.cursor.execute("SELECT idAlbum, strType FROM album WHERE strAlbum = ?  AND strArtistDisp = ? ", (Title, Artists))
-        result = self.cursor.fetchone()
-
-        if result:
-            album_id = result[0]
-            LibraryInfo = result[1]
-
-            if LibraryInfo.find(LibraryId_Name) == -1:
-                LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
-                LibraryInfo += "%s;" % LibraryId_Name
-                self.cursor.execute("UPDATE album SET strType = ? WHERE idAlbum = ?", (LibraryInfo, album_id))
-        else:
-            album_id = self.create_entry_album()
-            LibraryId_Name += ";"
-
-            if utils.DatabaseFiles['music-version'] >= 82:
-                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strImage, iUserrating, lastScraped, dateAdded, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (album_id, Title, Type, Artists, Year, Year, Genre, Thumb, Rating, LastScraped, DateAdded, LibraryId_Name))
-            else:
-                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strReleaseType, strArtistDisp, iYear, strGenres, strImage, iUserrating, lastScraped, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (album_id, Title, Type, Artists, Year, Genre, Thumb, LastScraped, DateAdded, LibraryId_Name))
+                LOG.warning("Duplicate album detected: %s/%s/%s" % (Title, UniqueId, UniqueIdReleaseGroup))
+                UniqueId += " "
+                UniqueIdReleaseGroup += " "
 
         return album_id
 
-    def update_album(self, Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, AlbumId, LibraryId_Name):
-        self.cursor.execute("SELECT strType FROM album WHERE idAlbum = ?", (AlbumId,))
-        LibraryInfo = self.cursor.fetchone()[0]
-        LibraryInfo = LibraryInfo.replace("%s;" % LibraryId_Name, "")
-        LibraryInfo += "%s;" % LibraryId_Name
+    def update_album(self, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, AlbumId, Compilation, Studios, RunTime, ArtistSort):
+        self.cursor.execute("UPDATE album SET strArtistDisp = ?, strReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, bScrapedMBID = 1, dateAdded = ?, bCompilation = ?, strLabel = ?, iAlbumDuration = ?, strArtistSort = ? WHERE idAlbum = ?", (Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, AlbumId))
 
-        if utils.DatabaseFiles['music-version'] >= 82:
-            self.cursor.execute("UPDATE album SET strArtistDisp = ?, strReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, bScrapedMBID = 1, dateAdded = ?, strType = ? WHERE idAlbum = ?", (Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, LibraryInfo, AlbumId))
-        else:
-            self.cursor.execute("UPDATE album SET strArtistDisp = ?, iYear = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, strType = ? WHERE idAlbum = ?", (Artists, Year, Genre, Bio, Thumb, Rating, LastScraped, LibraryInfo, AlbumId))
-
-    def get_album_artist(self, album_id, artists):
-        self.cursor.execute("SELECT strArtistDisp FROM album WHERE idAlbum = ?", (album_id,))
-        curr_artists = self.cursor.fetchone()
-
-        if curr_artists:
-            curr_artists = curr_artists[0]
-        else:
-            return
-
-        if curr_artists != artists:
-            self.cursor.execute("UPDATE album SET strArtistDisp = ? WHERE idAlbum = ?", (artists, album_id))
-
-    def add_song(self, AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, LibraryId_Name, Path):
-        Comment = "%s;%s;" % (Comment, LibraryId_Name)
-        SongId = self.create_entry_song()
+    def add_song(self, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, LibraryId_Name, Path):
+        Comment = "%s\n%s" % (Comment, LibraryId_Name)
+        self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
+        SongId = self.cursor.fetchone()[0] + 1
         KodiPathId = self.get_add_path(Path)
 
-        if utils.DatabaseFiles['music-version'] >= 82:
-            try:
-                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded))
-            except:  # Duplicate track number for same album
-                Index = None
-                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded))
-        else:
-            try:
-                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, iYear, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded))
-            except:  # Duplicate track number for same album
-                Index = None
-                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, iYear, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded))
+        if not BitRate:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            BitRate = 0
 
-        return SongId, KodiPathId
+        if not SampleRate:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            SampleRate = 0
 
-    def update_song(self, AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId, LibraryId_Name):
-        Comment = "%s;%s" % (Comment, LibraryId_Name)
+        if not Channels:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            Channels = 0
 
-        if utils.DatabaseFiles['music-version'] >= 82:
-            try:
-                self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strReleaseDate = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ? WHERE idSong = ?", (AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId))
-            except:  # Duplicate track number for same album
-                Index = None
-                self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strReleaseDate = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ? WHERE idSong = ?", (AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId))
-        else:
-            try:
-                self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, iYear = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ? WHERE idSong = ?", (AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId))
-            except:  # Duplicate track number for same album
-                Index = None
-                self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, iYear = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ? WHERE idSong = ?", (AlbumId, Artists, Genre, Title, Index, Runtime, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId))
+        while True:
+            IndexFix = 10000
 
-    def link_song_artist(self, *args):
-        self.cursor.execute("INSERT OR REPLACE INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", args)
+            for _ in range(10): # try fix track# (max 10 duplicate songs)
+                try:
+                    self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strOrigReleaseDate, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded, iBitRate, iSampleRate, iChannels, strMusicBrainzTrackID, strArtistSort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (SongId, AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort))
+                    return SongId, KodiPathId
+                except Exception as error:  # Duplicate track number for same album
+                    LOG.warning("Duplicate song detected (add_song), try fix trackNo: %s/%s" % (Artist, Title))
+                    LOG.error(error)
+                    IndexFix += 1
+                    Index = IndexFix
+
+            # track# not the issue, try fix strMusicBrainzTrackID
+            LOG.warning("Duplicate song detected (add_song), fix MusicBrainzTrackID: %s/%s" % (Artist, Title))
+            MusicBrainzTrack += " "
+
+    def update_song(self, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, LibraryId_Name):
+        Comment = "%s\n%s" % (Comment, LibraryId_Name)
+
+        if not BitRate:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            BitRate = 0
+
+        if not SampleRate:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            SampleRate = 0
+
+        if not Channels:
+            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+            Channels = 0
+
+        while True:
+            IndexFix = 10000
+
+            for _ in range(10): # try fix track# (max 10 duplicate songs)
+                try:
+                    self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ? WHERE idSong = ?", (AlbumId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, SongId))
+                    return
+                except Exception as error:  # Duplicate track number for same album
+                    LOG.warning("Duplicate song detected (update_song), try fix trackNo: %s/%s" % (Artist, Title))
+                    LOG.error(error)
+                    IndexFix += 1
+                    Index = IndexFix
+
+            # track# not the issue, try fix strMusicBrainzTrackID
+            LOG.warning("Duplicate song detected (update_song), fix MusicBrainzTrackID: %s/%s" % (Artist, Title))
+            MusicBrainzTrack += " "
+
+    def link_song_artist(self, idArtist, idSong, idRole, iOrder, strArtist):
+        self.cursor.execute("INSERT INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (idArtist, idSong, idRole, iOrder, strArtist))
 
     def delete_link_song_artist(self, SongId):
-        self.cursor.execute("SELECT idArtist FROM song_artist WHERE idSong = ?", (SongId,))
-        Data = self.cursor.fetchone()
+        self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (SongId,))
 
-        if Data:
-            self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (SongId,))
-            self.cursor.execute("SELECT idArtist FROM song_artist WHERE idArtist = ?", Data)
-            DataArtist = self.cursor.fetchone()
-
-            if not DataArtist:
-                self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", Data)
-
-    def link_song_album(self, *args):
-        self.cursor.execute("INSERT OR REPLACE INTO albuminfosong(idAlbumInfoSong, idAlbumInfo, iTrack, strTitle, iDuration) VALUES (?, ?, ?, ?, ?)", args)
-
-    def rate_song(self, *args):
-        self.cursor.execute("UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?", args)
+    def rate_song(self, iTimesPlayed, lastplayed, rating, idSong):
+        self.cursor.execute("UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?", (iTimesPlayed, lastplayed, rating, idSong))
 
     # Add genres, but delete current genres first
-    def add_genres(self, kodi_id, genres, media):
+    def update_genres(self, kodi_id, genres, media):
         if media == 'album':
             self.cursor.execute("DELETE FROM album_genre WHERE idAlbum = ?", (kodi_id,))
 
             for genre in genres:
-                genre_id = self.get_genre(genre)
+                genre_id = self.get_add_genre(genre)
                 self.cursor.execute("INSERT OR REPLACE INTO album_genre(idGenre, idAlbum) VALUES (?, ?)", (genre_id, kodi_id))
         elif media == 'song':
             self.cursor.execute("DELETE FROM song_genre WHERE idSong = ?", (kodi_id,))
 
-            for genre in genres:
-                genre_id = self.get_genre(genre)
-                self.cursor.execute("INSERT OR REPLACE INTO song_genre(idGenre, idSong) VALUES (?, ?)", (genre_id, kodi_id))
+            for index, genre in enumerate(genres):
+                genre_id = self.get_add_genre(genre)
+                self.cursor.execute("INSERT OR REPLACE INTO song_genre(idGenre, idSong, iOrder) VALUES (?, ?, ?)", (genre_id, kodi_id, index))
 
-    def get_genre(self, *args):
-        self.cursor.execute("SELECT idGenre FROM genre WHERE strGenre = ? ", args)
+    def get_add_genre(self, strGenre):
+        self.cursor.execute("SELECT idGenre FROM genre WHERE strGenre = ? ", (strGenre,))
         Data = self.cursor.fetchone()
 
         if Data:
             return Data[0]
 
-        return self.add_genre(*args)
-
-    def add_genre(self, *args):
-        genre_id = self.create_entry_genre()
-        self.cursor.execute("INSERT INTO genre(idGenre, strGenre) VALUES (?, ?)", (genre_id,) + args)
+        self.cursor.execute("SELECT coalesce(max(idGenre), 0) FROM genre")
+        genre_id = self.cursor.fetchone()[0] + 1
+        self.cursor.execute("INSERT INTO genre(idGenre, strGenre) VALUES (?, ?)", (genre_id, strGenre))
         return genre_id
 
     def delete_artist(self, kodi_id, LibraryId):
@@ -386,13 +233,14 @@ class MusicDatabase:
     def delete_song(self, kodi_id):
         self.cursor.execute("DELETE FROM song WHERE idSong = ?", (kodi_id,))
 
-    def get_add_path(self, *args):
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", args)
+    def get_add_path(self, strPath):
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (strPath,))
         Data = self.cursor.fetchone()
 
         if Data:
             return Data[0]
 
-        path_id = self.common_db.create_entry_path()
-        self.cursor.execute("INSERT OR REPLACE INTO path(idPath, strPath) VALUES (?, ?)", (path_id,) + args)
+        self.cursor.execute("SELECT coalesce(max(idPath), 0) FROM path")
+        path_id = self.cursor.fetchone()[0] + 1
+        self.cursor.execute("INSERT INTO path(idPath, strPath) VALUES (?, ?)", (path_id, strPath))
         return path_id

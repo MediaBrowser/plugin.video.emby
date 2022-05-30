@@ -1,275 +1,107 @@
-# -*- coding: utf-8 -*-
-from helper import utils
-from helper import loghandler
+from helper import utils, loghandler
 
-info = "Path,Genres,SortName,Studios,Writer,Taglines,LocalTrailerCount,Video3DFormat,OfficialRating,CumulativeRunTimeTicks,PremiereDate,ProductionYear,Metascore,AirTime,DateCreated,People,Overview,CommunityRating,StartDate,CriticRating,Etag,ShortOverview,ProductionLocations,Tags,ProviderIds,ParentId,RemoteTrailers,Status,EndDate,MediaSources,RecursiveItemCount,PresentationUniqueKey,OriginalTitle,AlternateMediaSources,PartCount,SpecialFeatureCount,Chapters"
-music_info = "Etag,Genres,SortName,Studios,Writer,PremiereDate,ProductionYear,OfficialRating,CumulativeRunTimeTicks,CommunityRating,DateCreated,MediaStreams,People,ProviderIds,Overview,PresentationUniqueKey,Path,ParentId"
+EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Folder": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50}
+EmbyFields = {
+    "MusicArtist": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey"),
+    "MusicAlbum": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "Studios", "PremiereDate"),
+    "Audio": ("Genres", "SortName", "ProductionYear", "DateCreated", "MediaStreams", "ProviderIds", "Overview", "Path", "ParentId", "PresentationUniqueKey", "PremiereDate"),
+    "Movie": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "Tags"),
+    "BoxSet": ("Overview", "PresentationUniqueKey", "DateCreated"),
+    "Series": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProviderIds", "ParentId", "Status", "PresentationUniqueKey", "OriginalTitle", "Tags"),
+    "Season": ("PresentationUniqueKey", "Tags", "DateCreated"),
+    "Episode": ("SpecialEpisodeNumbers", "Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "Tags", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters"),
+    "MusicVideo": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "Tags", "ProviderIds", "ParentId", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "Chapters"),
+    "Video": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "Tags"),
+    "Everything": ("SpecialEpisodeNumbers", "Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "Tags", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "MediaStreams"),
+    "Photo": ("Path", "SortName", "ProductionYear", "ParentId", "PremiereDate", "Width", "Height", "Tags", "DateCreated"),
+    "PhotoAlbum": ("Path", "SortName", "Taglines", "DateCreated", "ShortOverview", "ProductionLocations", "Tags", "ParentId", "OriginalTitle"),
+    "TvChannel": ("Genres", "SortName", "Taglines", "DateCreated", "Overview", "MediaSources", "Tags", "MediaStreams")
+}
 LOG = loghandler.LOG('EMBY.emby.api')
 
 
 class API:
     def __init__(self, EmbyServer):
-        self.browse_info = ""
+        self.DynamicListsRemoveFields = ()
         self.EmbyServer = EmbyServer
         self.update_settings()
 
     def update_settings(self):
-        self.browse_info = "Path,MediaStreams"
+        self.DynamicListsRemoveFields = ()
 
-        if utils.getDateCreated:
-            self.browse_info += ",DateCreated"
+        if not utils.getDateCreated:
+            self.DynamicListsRemoveFields += ("DateCreated",)
 
-        if utils.getGenres:
-            self.browse_info += ",Genres"
+        if not utils.getGenres:
+            self.DynamicListsRemoveFields += ("Genres",)
 
-        if utils.getStudios:
-            self.browse_info += ",Studios"
+        if not utils.getStudios:
+            self.DynamicListsRemoveFields += ("Studios",)
 
-        if utils.getTaglines:
-            self.browse_info += ",Taglines"
+        if not utils.getTaglines:
+            self.DynamicListsRemoveFields += ("Taglines",)
 
-        if utils.getOverview:
-            self.browse_info += ",Overview"
+        if not utils.getOverview:
+            self.DynamicListsRemoveFields += ("Overview",)
 
-        if utils.getProductionLocations:
-            self.browse_info += ",ProductionLocations"
+        if not utils.getProductionLocations:
+            self.DynamicListsRemoveFields += ("ProductionLocations",)
 
-        if utils.getCast:
-            self.browse_info += ",People"
+        if not utils.getCast:
+            self.DynamicListsRemoveFields += ("People",)
 
-    def _http(self, action, url, request):
-        request.update({'type': action, 'handler': url})
-
-        if action in ("POST", "DELETE"):
-            self.EmbyServer.http.request(request, False, False)
-            return None
-
-        return self.EmbyServer.http.request(request, False, False)
-
-    # Get emby user profile picture.
-    def get_user_artwork(self, user_id):
-        return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.EmbyServer.server, user_id)
-
-    def reset_progress(self, item_id):
+    def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra, Dynamic, Resume):
+        SingleRun = False
+        Limit = get_Limit(MediaTypes)
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
         params = {
-            "PlaybackPositionTicks": 0,
-            "PlayCount": 0,
-            "Played": False
-        }
-        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
-
-    def browse_MusicByArtistId(self, Artist_id, Parent_id, Media, Extra):
-        params = {
-            'ParentId': Parent_id,
-            'ArtistIds': Artist_id,
-            'IncludeItemTypes': Media,
-            'IsMissing': False,
-            'Recursive': True,
-            'Fields': self.browse_info
-        }
-
-        if Extra is not None:
-            params.update(Extra)
-
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    # Get dynamic listings
-    def get_filtered_section(self, data):
-        if 'ViewId' not in data:
-            data['ViewId'] = None
-
-        if 'media' not in data:
-            data['media'] = None
-
-        if 'limit' not in data:
-            data['limit'] = None
-
-        if 'recursive' not in data:
-            data['recursive'] = True
-
-        params = {
-            'ParentId': data['ViewId'],
-            'IncludeItemTypes': data['media'],
-            'Recursive': data['recursive'],
-            'Limit': data['limit'],
-            'Fields': self.browse_info
-        }
-
-        if 'random' in data:
-            if data['random']:
-                params['SortBy'] = "Random"
-
-        if 'filters' in data:
-            if 'boxsets' in data['filters']:
-                data['filters'].remove('boxsets')
-                params['CollapseBoxSetItems'] = True
-
-            params['Filters'] = ','.join(data['filters'])
-
-        if data['media'] and 'Photo' in data['media']:
-            params['Fields'] += ",Width,Height"
-
-        if 'extra' in data:
-            if data['extra'] is not None:
-                params.update(data['extra'])
-
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    def get_recently_added(self, media, parent_id, limit):
-        params = {
-            'Limit': limit,
-            'IncludeItemTypes': media,
             'ParentId': parent_id,
-            'LocationTypes': "FileSystem,Remote,Offline",
-            'Fields': self.browse_info
-        }
-
-        if media and 'Photo' in media:
-            params['Fields'] += ",Width,Height"
-
-        return self._http("GET", "Users/%s/Items/Latest" % self.EmbyServer.user_id, {'params': params})
-
-    def get_movies_by_boxset(self, boxset_id):
-        for items in self.get_itemsSync(boxset_id, "Movie", False, None):
-            yield items
-
-    def get_episode_by_show(self, show_id):
-        query = {
-            'url': "Shows/%s/Episodes" % show_id,
-            'params': {
-                'EnableUserData': True,
-                'EnableImages': True,
-                'UserId': self.EmbyServer.user_id,
-                'LocationTypes': "FileSystem,Remote,Offline",
-                'Fields': info
-            }
-        }
-
-        for items in self._get_items(query):
-            yield items
-
-    def get_episode_by_season(self, show_id, season_id):
-        query = {
-            'url': "Shows/%s/Episodes" % show_id,
-            'params': {
-                'SeasonId': season_id,
-                'EnableUserData': True,
-                'EnableImages': True,
-                'UserId': self.EmbyServer.user_id,
-                'Fields': info
-            }
-        }
-
-        for items in self._get_items(query):
-            yield items
-
-    def get_itemsFastSync(self, parent_id, item_type, TimeStamp, UserSync):
-        params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'Recursive': True, 'LocationTypes': "FileSystem,Remote,Offline"}
-
-        if UserSync:
-            params['MinDateLastSavedForUser'] = TimeStamp
-        else:
-            params['MinDateLastSaved'] = TimeStamp
-
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    def get_itemsSync(self, parent_id, item_type, basic, params):
-        query = {
-            'url': "Users/%s/Items" % self.EmbyServer.user_id,
-            'params': {
-                'ParentId': parent_id,
-                'IncludeItemTypes': item_type,
-                'Fields': "Etag,PresentationUniqueKey" if basic else info,
-                'CollapseBoxSetItems': False,
-                'IsVirtualUnaired': False,
-                'EnableTotalRecordCount': False,
-                'LocationTypes': "FileSystem,Remote,Offline",
-                'IsMissing': False,
-                'Recursive': True
-            }
-        }
-
-        if params:
-            query['params'].update(params)
-
-        for items in self._get_items(query):
-            yield items
-
-    def get_item_library(self, Id):
-        params = {'Ids': Id, 'Fields': info, 'LocationTypes': "FileSystem,Remote,Offline"}
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
-
-    def get_TotalRecordsArtists(self, parent_id):
-        params = {
-            'UserId': self.EmbyServer.user_id,
-            'ParentId': parent_id,
+            'IncludeItemTypes': IncludeItemTypes,
             'CollapseBoxSetItems': False,
             'IsVirtualUnaired': False,
-            'IsMissing': False,
-            'EnableTotalRecordCount': True,
+            'EnableTotalRecordCount': False,
             'LocationTypes': "FileSystem,Remote,Offline",
-            'Recursive': True,
-            'Limit': 1
-        }
-        return self._http("GET", "Artists", {'params': params})['TotalRecordCount']
-
-    def get_itemsSyncMusic(self, parent_id, item_type, params):
-        query = {
-            'url': "Users/%s/Items" % self.EmbyServer.user_id,
-            'params': {
-                'ParentId': parent_id,
-                'IncludeItemTypes': item_type,
-                'Fields': music_info,
-                'CollapseBoxSetItems': False,
-                'IsVirtualUnaired': False,
-                'EnableTotalRecordCount': False,
-                'LocationTypes': "FileSystem,Remote,Offline",
-                'IsMissing': False,
-                'Recursive': True
-            }
+            'IsMissing': False,
+            'Recursive': Recursive,
+            'Limit': Limit,
+            'Fields': Fields
         }
 
-        if params:
-            query['params'].update(params)
+        if Extra:
+            params.update(Extra)
 
-        for items in self._get_items(query):
-            yield items
+            if "Limit" in Extra:
+                Limit = Extra["Limit"]
+                SingleRun = True
 
-    def get_artists(self, parent_id, basic, params):
-        query = {
-            'url': "Artists",
-            'params': {
-                'UserId': self.EmbyServer.user_id,
-                'ParentId': parent_id,
-                'Fields': "Etag,PresentationUniqueKey" if basic else music_info,
-                'CollapseBoxSetItems': False,
-                'IsVirtualUnaired': False,
-                'EnableTotalRecordCount': False,
-                'LocationTypes': "FileSystem,Remote,Offline",
-                'IsMissing': False,
-                'Recursive': True
-            }
-        }
+        index = 0
 
-        if params:
-            query['params'].update(params)
+        if Resume:
+            url = "Users/%s/Items/Resume"
+        else:
+            url = "Users/%s/Items"
 
-        for items in self._get_items(query):
-            yield items
+        while True:
+            params['StartIndex'] = index
+            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.user_id}, False, False)
 
-    def get_albums_by_artist(self, parent_id, artist_id, basic):
-        params = {'ParentId': parent_id, 'ArtistIds': artist_id}
+            if 'Items' not in IncomingData:
+                break
 
-        for items in self.get_itemsSync(None, "MusicAlbum", basic, params):
-            yield items
+            if not IncomingData['Items']:
+                break
 
-    def get_songs_by_artist(self, parent_id, artist_id, basic):
-        params = {'ParentId': parent_id, 'ArtistIds': artist_id}
+            for Item in IncomingData['Items']:
+                yield Item
 
-        for items in self.get_itemsSync(None, "Audio", basic, params):
-            yield items
+            IncomingData['Items'].clear()  # free memory
 
-    def get_TotalRecordsRegular(self, parent_id, item_type):
+            if not Recursive or SingleRun: # Emby server bug workaround
+                break
+
+            index += Limit
+
+    def get_TotalRecordsRegular(self, parent_id, item_type, Extra=None):
         params = {
             'ParentId': parent_id,
             'IncludeItemTypes': item_type,
@@ -281,144 +113,294 @@ class API:
             'Recursive': True,
             'Limit': 1
         }
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})['TotalRecordCount']
 
-    def _get_items(self, query):
-        Limit = int(utils.limitIndex)
-        items = {'Items': [], 'RestorePoint': {}}
-        url = query['url']
-        params = query.get('params', {})
-        index = params.get('StartIndex', 0)
+        if Extra:
+            params.update(Extra)
 
-        while True:
-            params['StartIndex'] = index
-            params['Limit'] = Limit
-            result = self._http("GET", url, {'params': params}) or {'Items': []}
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
 
-            if 'Items' not in result:
-                items['TotalRecordCount'] = index
-                break
+        if 'TotalRecordCount' in Data:
+            return Data['TotalRecordCount']
 
-            if not result['Items']:
-                items['TotalRecordCount'] = index
-                break
+        return 0
 
-            items['Items'].extend(result['Items'])
-            items['RestorePoint'] = query
-            yield items
-            del items['Items'][:]
-            index += Limit
+    def browse_MusicByArtistId(self, Artist_id, Parent_id, MediaTypes, Dynamic):
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, Dynamic)
+        params = {
+            'ParentId': Parent_id,
+            'ArtistIds': Artist_id,
+            'IncludeItemTypes': IncludeItemTypes,
+            'IsMissing': False,
+            'Recursive': True,
+            'Fields': Fields
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
 
-    def artwork(self, item_id, art, max_width, ext, index):
-        if index is None:
-            return "%s/emby/Items/%s/Images/%s?MaxWidth=%s&format=%s" % (self.EmbyServer.server, item_id, art, max_width, ext)
+        if 'Items' in Data:
+            return Data['Items']
 
-        return "%s/emby/Items/%s/Images/%s/%s?MaxWidth=%s&format=%s" % (self.EmbyServer.server, item_id, art, index, max_width, ext)
+        return []
+
+    def get_genres(self, ParentId, MediaTypes):
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
+        params = {
+            'ParentId': ParentId,
+            'IncludeItemTypes': IncludeItemTypes,
+            'Recursive': True,
+            'Fields': Fields
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Genres"}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
+
+    def get_tags(self, ParentId, MediaTypes):
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
+        params = {
+            'ParentId': ParentId,
+            'IncludeItemTypes': IncludeItemTypes,
+            'Recursive': True,
+            'Fields': Fields
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Tags"}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
+
+    def get_recently_added(self, ParentId, MediaTypes):
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
+        params = {
+            'Limit': 100,
+            'IncludeItemTypes': IncludeItemTypes,
+            'ParentId': ParentId,
+            'Fields': Fields
+        }
+        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items/Latest" % self.EmbyServer.user_id}, False, False)
 
     def get_users(self, disabled, hidden):
-        return self._http("GET", "Users", {'params': {'IsDisabled': disabled, 'IsHidden': hidden}})
+        params = {
+            'IsDisabled': disabled,
+            'IsHidden': hidden
+        }
+        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users"}, False, False)
 
     def get_public_users(self):
-        return self._http("GET", "Users/Public", {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/Public"}, False, False)
 
     def get_user(self, user_id):
-        if user_id is None:
-            return self._http("GET", "Users/%s" % self.EmbyServer.user_id, {})
+        if not user_id:
+            return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s" % self.EmbyServer.user_id}, False, False)
 
-        return self._http("GET", "Users/%s" % user_id, {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s" % user_id}, False, False)
+
+    def get_libraries(self):
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Library/VirtualFolders/Query"}, False, False)
 
     def get_views(self):
-        return self._http("GET", "Users/%s/Views" % self.EmbyServer.user_id, {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Views" % self.EmbyServer.user_id}, False, False)
 
-    def get_item(self, item_id):
-        return self._http("GET", "Users/%s/Items/%s" % (self.EmbyServer.user_id, item_id), {})
+    def get_Item(self, Ids, MediaTypes, Dynamic, Basic, SingleItemQuery=True):
+        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
+        params = {
+            'Ids': Ids,
+            'Fields': Fields,
+            'LocationTypes': "FileSystem,Remote,Offline"
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
 
-    def get_item_multiversion(self, item_id):
-        return self._http("GET", "Users/%s/Items/%s" % (self.EmbyServer.user_id, item_id), {'params': {'Fields': info}})
+        if SingleItemQuery:
+            if 'Items' in Data:
+                if Data['Items']:
+                    return Data['Items'][0]
 
-    def get_items(self, item_ids):
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': {'Ids': ','.join(str(x) for x in item_ids), 'Fields': info}})
+            return {}
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
 
     def get_device(self):
-        return self._http("GET", "Sessions", {'params': {'DeviceId': utils.device_id}})
-
-    def get_genres(self, parent_id):
-        return self._http("GET", "Genres", {'params': {'ParentId': parent_id, 'UserId': self.EmbyServer.user_id, 'Fields': self.browse_info}})
+        return self.EmbyServer.http.request({'params': {'DeviceId': utils.device_id}, 'type': "GET", 'handler': "Sessions"}, False, False)
 
     def get_channels(self):
-        return self._http("GET", "LiveTv/Channels", {'params': {'UserId': self.EmbyServer.user_id, 'EnableImages': True, 'EnableUserData': True, 'Fields': info}})
+        params = {
+            'UserId': self.EmbyServer.user_id,
+            'EnableImages': True,
+            'EnableUserData': True,
+            'Fields': EmbyFields['TvChannel']
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "LiveTv/Channels"}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
 
     def get_channelprogram(self):
-        return self._http("GET", "LiveTv/Programs", {'params': {'UserId': self.EmbyServer.user_id, 'EnableImages': True, 'EnableUserData': True, 'Fields': "Overview"}})
+        params = {
+            'UserId': self.EmbyServer.user_id,
+            'EnableImages': True,
+            'EnableUserData': True,
+            'Fields': "Overview"
+        }
+        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "LiveTv/Programs"}, False, False)
 
     def get_specialfeatures(self, item_id):
-        return self._http("GET", "Users/%s/Items/%s/SpecialFeatures" % (self.EmbyServer.user_id, item_id), {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/SpecialFeatures" % (self.EmbyServer.user_id, item_id)}, False, False)
 
     def get_intros(self, item_id):
-        return self._http("GET", "Users/%s/Items/%s/Intros" % (self.EmbyServer.user_id, item_id), {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/Intros" % (self.EmbyServer.user_id, item_id)}, False, False)
 
     def get_additional_parts(self, item_id):
-        return self._http("GET", "Videos/%s/AdditionalParts" % item_id, {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Videos/%s/AdditionalParts" % item_id}, False, False)
 
     def get_local_trailers(self, item_id):
-        return self._http("GET", "Users/%s/Items/%s/LocalTrailers" % (self.EmbyServer.user_id, item_id), {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/LocalTrailers" % (self.EmbyServer.user_id, item_id)}, False, False)
 
     def get_ancestors(self, item_id):
-        return self._http("GET", "Items/%s/Ancestors" % item_id, {'params': {'UserId': self.EmbyServer.user_id}})
+        return self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.user_id}, 'type': "GET", 'handler': "Items/%s/Ancestors" % item_id}, False, False)
 
     def get_themes(self, item_id):
-        return self._http("GET", "Items/%s/ThemeMedia" % item_id, {'params': {'UserId': self.EmbyServer.user_id, 'InheritFromParent': True, 'EnableThemeSongs': True, 'EnableThemeVideos': True}})
+        params = {
+            'UserId': self.EmbyServer.user_id,
+            'InheritFromParent': True,
+            'EnableThemeSongs': True,
+            'EnableThemeVideos': True
+        }
+        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Items/%s/ThemeMedia" % item_id}, False, False)
 
     def get_plugins(self):
-        return self._http("GET", "Plugins", {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Plugins"}, False, False)
 
-    def get_seasons(self, show_id):
-        return self._http("GET", "Shows/%s/Seasons" % show_id, {'params': {'UserId': self.EmbyServer.user_id, 'EnableImages': True, 'Fields': info}})
-
-    def refresh_item(self, item_id):
-        self._http("POST", "Items/%s/Refresh" % item_id, {'params': {'Recursive': True, 'ImageRefreshMode': "FullRefresh", 'MetadataRefreshMode': "FullRefresh", 'ReplaceAllImages': False, 'ReplaceAllMetadata': True}})
-
-    def favorite(self, item_id, option):
-        if option:
-            self._http("POST", "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id), {})
-            return
-
-        self._http("DELETE", "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id), {})
+    def get_sync_queue(self, date):
+        return self.EmbyServer.http.request({'params': {'LastUpdateDT': date}, 'type': "GET", 'handler': "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.user_id}, False, False)
 
     def get_system_info(self):
-        return self._http("GET", "System/Configuration", {})
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "System/Configuration"}, False, False)
 
-    def post_capabilities(self, data):
-        self._http("POST", "Sessions/Capabilities/Full", {'params': data})
+    def reset_progress(self, item_id):
+        params = {
+            "PlaybackPositionTicks": 0,
+            "PlayCount": 0,
+            "Played": False
+        }
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
+
+    def set_played(self, item_id, watched):
+        if watched:
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+        else:
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+
+    def refresh_item(self, item_id):
+        params = {
+            'Recursive': True,
+            'ImageRefreshMode': "FullRefresh",
+            'MetadataRefreshMode': "FullRefresh",
+            'ReplaceAllImages': False,
+            'ReplaceAllMetadata': True
+        }
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Items/%s/Refresh" % item_id}, False, False)
+
+    def favorite(self, item_id, Add):
+        if Add:
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+        else:
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+
+    def post_capabilities(self, params):
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Capabilities/Full"}, False, False)
 
     def session_add_user(self, session_id, user_id, option):
         if option:
-            self._http("POST", "Sessions/%s/Users/%s" % (session_id, user_id), {})
-            return
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Sessions/%s/Users/%s" % (session_id, user_id)}, False, False)
+        else:
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Sessions/%s/Users/%s" % (session_id, user_id)}, False, False)
 
-        self._http("DELETE", "Sessions/%s/Users/%s" % (session_id, user_id), {})
+    def session_playing(self, params):
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Playing"}, False, False)
 
-    def session_playing(self, data):
-        self._http("POST", "Sessions/Playing", {'params': data})
+    def session_progress(self, params):
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Playing/Progress"}, False, False)
 
-    def session_progress(self, data):
-        self._http("POST", "Sessions/Playing/Progress", {'params': data})
-
-    def session_stop(self, data):
-        self._http("POST", "Sessions/Playing/Stopped", {'params': data})
-
-    def item_played(self, item_id, watched):
-        if watched:
-            self._http("POST", "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id), {})
-            return
-
-        self._http("DELETE", "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id), {})
-
-    def get_sync_queue(self, date, filters):
-        return self._http("GET", "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.user_id, {'params': {'LastUpdateDT': date, 'filter': filters or None}})
+    def session_stop(self, params):
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Playing/Stopped"}, False, False)
 
     def close_transcode(self):
-        self._http("DELETE", "Videos/ActiveEncodings", {'params': {'DeviceId': utils.device_id}})
+        self.EmbyServer.http.request({'params': {'DeviceId': utils.device_id}, 'type': "DELETE", 'handler': "Videos/ActiveEncodings"}, False, False)
 
     def delete_item(self, item_id):
-        self._http("DELETE", "Items/%s" % item_id, {})
+        self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Items/%s" % item_id}, False, False)
+
+    def get_MediaData(self, MediaTypes, Basic, Dynamic):
+        IncludeItemTypes = ",".join(MediaTypes)
+        Fields = []
+
+        if not Basic:
+            if MediaTypes[0] == "Everything":
+                IncludeItemTypes = None
+
+            for MediaType in MediaTypes:
+                Fields += EmbyFields[MediaType]
+
+            #Dynamic list query, remove fields to improve performance
+            if Dynamic:
+                Fields += ("RecursiveItemCount", "ChildCount")
+
+                for DynamicListsRemoveField in self.DynamicListsRemoveFields:
+
+                    if DynamicListsRemoveField in Fields:
+                        Fields.remove(DynamicListsRemoveField)
+
+            Fields = ",".join(list(dict.fromkeys(Fields))) # remove duplicates and join into string
+        else:
+            Fields = None
+
+        return IncludeItemTypes, Fields
+
+    def get_upcoming(self, ParentId, MediaTypes):
+        _, Fields = self.get_MediaData(MediaTypes, False, False)
+        params = {
+            'UserId': self.EmbyServer.user_id,
+            'ParentId': ParentId,
+            'Fields': Fields,
+            'EnableImages': True,
+            'EnableUserData': True
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Shows/Upcoming"}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
+
+    def get_NextUp(self, ParentId, MediaTypes):
+        _, Fields = self.get_MediaData(MediaTypes, False, False)
+        params = {
+            'UserId': self.EmbyServer.user_id,
+            'ParentId': ParentId,
+            'Fields': Fields,
+            'EnableImages': True,
+            'EnableUserData': True,
+            'LegacyNextUp': True
+        }
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Shows/NextUp"}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
+
+def get_Limit(MediaTypes):
+    Factor = 1000000
+
+    for MediaType in MediaTypes:
+        if EmbyPagingFactors[MediaType] < Factor:
+            Factor = EmbyPagingFactors[MediaType]
+
+    return int(utils.limitIndex) * Factor

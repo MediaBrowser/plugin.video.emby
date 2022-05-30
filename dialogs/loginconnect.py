@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 import xbmcgui
-from helper import loghandler
-from helper import utils
+from helper import utils, loghandler
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -96,7 +94,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
         self._user = result
         username = result['User']['Name']
-        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), utils.StringDecode(username)), icon=result['User'].get('ImageUrl') or "special://home/addons/plugin.video.emby-next-gen/resources/icon.png", time=2000, sound=False)
+        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), username), icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
         return True
 
     def _error(self, state, message):
