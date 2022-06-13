@@ -619,7 +619,7 @@ def node_countries(root):
         xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
 
 def node_nextepisodes(root, LibraryName):
-    path = "plugin://%s/?%s" % (utils.PluginId, urlencode({'libraryname': LibraryName, 'mode': "nextepisodes", 'limit': 25}))
+    path = "plugin://%s/?%s" % (utils.PluginId, urlencode({'libraryname': LibraryName.encode('utf-8'), 'mode': "nextepisodes", 'limit': 25}))
 
     for rule in root.findall('.//path'):
         rule.text = path
