@@ -108,6 +108,12 @@ class VideoDatabase:
         self.cursor.execute("SELECT coalesce(max(idFile), 0) FROM files")
         return self.cursor.fetchone()[0] + 1
 
+    def add_link_tvshow(self, idShow, idPath):
+        self.cursor.execute("INSERT OR IGNORE INTO tvshowlinkpath(idShow, idPath) VALUES (?, ?)", (idShow, idPath))
+
+    def delete_link_tvshow(self, idShow):
+        self.cursor.execute("DELETE FROM tvshowlinkpath WHERE idShow = ?", (idShow,))
+
     def get_add_path(self, Path, MediaType, LinkId=None):
         self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()
@@ -129,7 +135,7 @@ class VideoDatabase:
         if not PlayCount:
             PlayCount = None
 
-        self.cursor.execute("INSERT INTO files(idPath, strFilename, dateAdded, idPath, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (path_id, filename, dateAdded, file_id, PlayCount, LastPlayedDate))
+        self.cursor.execute("INSERT INTO files(idPath, strFilename, dateAdded, idFile, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (path_id, filename, dateAdded, file_id, PlayCount, LastPlayedDate))
 
     def update_file(self, path_id, filename, dateAdded, PlayCount, LastPlayedDate, file_id):
         if not PlayCount:
@@ -162,12 +168,12 @@ class VideoDatabase:
                 person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], False)
 
             if person['Type'] == 'Actor':
-                self.cursor.execute("INSERT INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)", (person_id, KodiId, MediaType, role, cast_order))
+                self.cursor.execute("INSERT OR IGNORE INTO actor_link(actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)", (person_id, KodiId, MediaType, role, cast_order))
                 cast_order += 1
             elif person['Type'] == 'Director':
-                self.cursor.execute("INSERT INTO director_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
+                self.cursor.execute("INSERT OR IGNORE INTO director_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
             elif person['Type'] == 'Writer':
-                self.cursor.execute("INSERT INTO writer_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
+                self.cursor.execute("INSERT OR IGNORE INTO writer_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
 
             if NewPersion:
                 if person['imageurl']:
@@ -262,7 +268,7 @@ class VideoDatabase:
         return tag_id
 
     def add_link_tag(self, TagId, MediaId, MediaType):
-        self.cursor.execute("INSERT INTO tag_link(tag_id, media_id, media_type) VALUES (?, ?, ?)", (TagId, MediaId, MediaType)) # IGNORE required for stacked content
+        self.cursor.execute("INSERT OR IGNORE INTO tag_link(tag_id, media_id, media_type) VALUES (?, ?, ?)", (TagId, MediaId, MediaType)) # IGNORE required for stacked content
 
     def delete_links_tags(self, MediaId, MediaType):
         self.cursor.execute("DELETE FROM tag_link WHERE media_id = ? AND media_type = ?", (MediaId, MediaType))
@@ -310,7 +316,7 @@ class VideoDatabase:
                 genre_id = self.cursor.fetchone()[0] + 1
                 self.cursor.execute("INSERT INTO genre(genre_id, name) VALUES (?, ?)", (genre_id, Genre))
 
-            self.cursor.execute("INSERT INTO genre_link(genre_id, media_id, media_type) VALUES (?, ?, ?)", (genre_id, media_id, media_type))
+            self.cursor.execute("INSERT OR IGNORE INTO genre_link(genre_id, media_id, media_type) VALUES (?, ?, ?)", (genre_id, media_id, media_type))
 
     # studios
     def delete_links_studios(self, Media_id, media_type):
@@ -328,7 +334,7 @@ class VideoDatabase:
                 studio_id = self.cursor.fetchone()[0] + 1
                 self.cursor.execute("INSERT INTO studio(studio_id, name) VALUES (?, ?)", (studio_id, Studio))
 
-            self.cursor.execute("INSERT INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)", (studio_id, KodiId, MediaType))
+            self.cursor.execute("INSERT OR IGNORE INTO studio_link(studio_id, media_id, media_type) VALUES (?, ?, ?)", (studio_id, KodiId, MediaType))
 
     # ratings
     def delete_ratings(self, Media_id, media_type):
@@ -368,7 +374,98 @@ class VideoDatabase:
             bookmark_id = self.cursor.fetchone()[0] + 1
             self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, thumbNailImage, player, type) VALUES (?, ?, ?, ?, ?, ?, ?)", (bookmark_id, KodiFileId, Chapter['StartPositionTicks'], RunTimeTicks, Chapter['Image'], "VideoPlayer", 0))
 
-    #def add_playstate(self, file_id, playcount, date_played, resume, Runtime, UserdataUpdate):
+    def add_file_bookmark(self, KodiItemId, KodiSeasonId, KodiShowId, ChapterInfo): # workaround due to Kodi episode bookmark bug
+        self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ? ", (KodiSeasonId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            SeasonNumber = Data[0]
+            Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile) VALUES (?, ?, ?)", (idPath, KodiItemId, FileId))
+                self.add_bookmark_chapter(FileId, None, ChapterInfo)
+
+            Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile) VALUES (?, ?, ?)", (idPath, KodiItemId, FileId))
+                self.add_bookmark_chapter(FileId, None, ChapterInfo)
+
+            Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile) VALUES (?, ?, ?)", (idPath, KodiItemId, FileId))
+                self.add_bookmark_chapter(FileId, None, ChapterInfo)
+
+            Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile) VALUES (?, ?, ?)", (idPath, KodiItemId, FileId))
+                self.add_bookmark_chapter(FileId, None, ChapterInfo)
+
+    def add_path_bookmark(self, KodiShowId, SeasonNumber): # workaround due to Kodi episode bookmark bug
+        Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
+
+        Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
+
+        Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
+
+        Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
+
+    def delete_path_bookmark(self, KodiSeasonId): # workaround due to Kodi episode bookmark bug
+        self.cursor.execute("SELECT idShow, season FROM seasons WHERE idSeason = ? ", (KodiSeasonId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            Path = "videodb://tvshows/titles/%s/%s/" % (Data[0], Data[1])
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = "videodb://tvshows/titles/%s/-2/" % Data[0] # -2 if this is the only season for the TV Show
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = "videodb://inprogresstvshows/%s/%s/" % (Data[0], Data[1])
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = "videodb://inprogresstvshows/%s/-2/" % Data[0] # -2 if this is the only season for the TV Show
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+
+    def delete_file_bookmark(self, KodiItemId): # workaround due to Kodi episode bookmark bug
+        self.cursor.execute("DELETE FROM files WHERE strFilename = ?", (KodiItemId,))
+
     def add_bookmark_playstate(self, KodiFileId, PlaybackPositionTicks, RunTimeTicks):
         if PlaybackPositionTicks:
             self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
@@ -400,7 +497,7 @@ class VideoDatabase:
                 country_id = self.cursor.fetchone()[0] + 1
                 self.cursor.execute("INSERT INTO country(country_id, name) VALUES (?, ?)", (country_id, CountryName))
 
-            self.cursor.execute("INSERT INTO country_link(country_id, media_id, media_type) VALUES (?, ?, ?)", (country_id, media_id, media_type))
+            self.cursor.execute("INSERT OR IGNORE INTO country_link(country_id, media_id, media_type) VALUES (?, ?, ?)", (country_id, media_id, media_type))
 
     # settings
     def get_FileSettings(self, KodiFileId):

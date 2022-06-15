@@ -7,7 +7,6 @@ from . import utils, loghandler
 
 XmlPath = (xbmcaddon.Addon(utils.PluginId).getAddonInfo('path'), "default", "1080i")
 SelectOptions = {'Refresh': utils.Translate(30410), 'Delete': utils.Translate(30409), 'Addon': utils.Translate(30408), 'AddFav': utils.Translate(30405), 'RemoveFav': utils.Translate(30406), 'SpecialFeatures': "Special Features"}
-XbmcPlayer = xbmc.Player()
 LOG = loghandler.LOG('EMBY.helper.context')
 
 
@@ -28,7 +27,7 @@ def load_item():
     return item, server_id
 
 def delete_item(LoadItem, item=None, server_id=""):  # threaded by caller
-    if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33015)):
+    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33015)):
         if LoadItem:
             item, server_id = load_item()
 
@@ -109,4 +108,4 @@ def select_menu():
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             Pos = playlist.getposition() + 1
             playlist.add(path, li, index=Pos)
-            XbmcPlayer.play(playlist, li, False, Pos)
+            utils.XbmcPlayer.play(playlist, li, False, Pos)

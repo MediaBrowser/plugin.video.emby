@@ -96,13 +96,10 @@ def load_defaultvideosettings():
     return {}
 
 def advanced_settings_runtimelimits(xmlData):
-    TriggeredByPluginMenu = True
     WriteData = False
+    Filepath = ""
 
-    if xmlData:
-        TriggeredByPluginMenu = False
-
-    if TriggeredByPluginMenu: # Toggle via settings menu, otherwise it's triggered by Kodi start
+    if not xmlData: # Toggle via settings menu, otherwise it's triggered by Kodi start
         Filepath = 'special://profile/advancedsettings.xml'
         FileData = utils.readFileString(Filepath)
         xmlData = xml.etree.ElementTree.fromstring(FileData)
@@ -153,10 +150,9 @@ def advanced_settings_runtimelimits(xmlData):
                 video.remove(ignorepercentatend)
                 WriteData = True
 
-    if TriggeredByPluginMenu:
-        if WriteData:
-            WriteXmlFile(Filepath, xmlData)
-            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
+    if Filepath and WriteData:
+        WriteXmlFile(Filepath, xmlData)
+        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
 
     return WriteData
 
@@ -176,7 +172,7 @@ def advanced_settings():
                 LOG.warning("cleanonupdate disabled")
                 videolibrary.remove(cleanonupdate)
                 WriteData = True
-                utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33097))
+                utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33097))
 
         Network = xmlData.find('network')
 
@@ -238,7 +234,7 @@ def advanced_settings():
 
     if WriteData:
         WriteXmlFile(Filepath, xmlData)
-        utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
+        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
 
     return WriteData
 

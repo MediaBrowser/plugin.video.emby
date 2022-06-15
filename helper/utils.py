@@ -88,29 +88,27 @@ SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_busy, embyserverID
 DBBusy = False
 Dialog = xbmcgui.Dialog()
+XbmcPlayer = xbmc.Player()
 waitForAbort = xbmc.Monitor().waitForAbort
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
 
-DialogTypes = {
-    'yesno': Dialog.yesno,
-    'ok': Dialog.ok,
-    'notification': Dialog.notification,
-    'input': Dialog.input,
-    'select': Dialog.select,
-    'numeric': Dialog.numeric,
-    'multi': Dialog.multiselect,
-    'textviewer': Dialog.textviewer
-}
+def sleep(Seconds):
+    if waitForAbort(Seconds):
+        globals()["SystemShutdown"] = True
+        xbmc.sleep(100)
+        return True
+
+    return False
 
 def progress_open(Header):
     while ProgressBar[3]:
-        waitForAbort(1)
+        sleep(1)
 
     globals()["ProgressBar"][1] += 1
 
     if ProgressBar[1] == 1:
         globals()["ProgressBar"][3] = True
-        globals()["ProgressBar"][0].create("Emby", Header)
+        globals()["ProgressBar"][0].create(Translate(33199), Header)
         globals()["ProgressBar"][3] = False
         globals()["ProgressBar"][2] = True
 
@@ -118,7 +116,7 @@ def progress_open(Header):
 
 def progress_close():
     while ProgressBar[3]:
-        waitForAbort(1)
+        sleep(1)
 
     globals()["ProgressBar"][1] -= 1
 
@@ -172,21 +170,18 @@ def delete_recursive(path, dirs):
 
 def rmFolder(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isdir(Path):
         os.rmdir(Path)
 
 def mkDir(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if not os.path.isdir(Path):
         os.mkdir(Path)
 
 def delFile(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
         os.remove(Path)
@@ -210,7 +205,6 @@ def renameFolder(SourcePath, DestinationPath):
 
 def readFileBinary(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
         with open(Path, "rb") as infile:
@@ -222,7 +216,6 @@ def readFileBinary(Path):
 
 def readFileString(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
         with open(Path, "rb") as infile:
@@ -235,21 +228,18 @@ def readFileString(Path):
 def writeFileString(Path, Data):
     Data = Data.encode('utf-8')
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     with open(Path, "wb") as outfile:
         outfile.write(Data)
 
 def writeFileBinary(Path, Data):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     with open(Path, "wb") as outfile:
         outfile.write(Data)
 
 def checkFileExists(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isfile(Path):
         return True
@@ -258,7 +248,6 @@ def checkFileExists(Path):
 
 def checkFolderExists(Path):
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isdir(Path):
         return True
@@ -269,7 +258,6 @@ def listDir(Path):
     Files = ()
     Folders = ()
     Path = translatePath(Path)
-    Path = Path.encode('utf-8')
 
     if os.path.isdir(Path):
         for FilesFolders in os.listdir(Path):
@@ -284,7 +272,9 @@ def listDir(Path):
     return Folders, Files
 
 def translatePath(Data):
-    return xbmcvfs.translatePath(Data)
+    Path = xbmcvfs.translatePath(Data)
+    Path = Path.encode('utf-8')
+    return Path
 
 def currenttime():
     return datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -488,20 +478,12 @@ def SizeToText(size):
 
     return "%.*f%s" % (2, size, suffixes[suffixIndex])
 
-def dialog(dialog_type, *args, **kwargs):
-    if "line1" in kwargs:
-        kwargs['message'] = kwargs['line1']
-        del kwargs['line1']
-
-    return DialogTypes[dialog_type](*args, **kwargs)
-
 def DeleteThumbnails():
     dirs, _ = listDir('special://thumbnails/')
+    progress_open(Translate(33412))
 
     for directory in dirs:
         _, thumbs = listDir('special://thumbnails/%s' % directory)
-        Progress = xbmcgui.DialogProgressBG()
-        Progress.create("Emby", "Delete Artwork Files: %s" % directory)
         Counter = 0
         ThumbsLen = len(thumbs)
         Increment = 0.0
@@ -511,12 +493,11 @@ def DeleteThumbnails():
 
         for thumb in thumbs:
             Counter += 1
-            Progress.update(int(Counter * Increment), message="Delete Artwork Files: %s%s" % (directory, thumb))
+            progress_update(int(Counter * Increment), Translate(33199), "%s: %s%s" % (Translate(33412), directory, thumb))
             LOG.debug("DELETE thumbnail %s" % thumb)
             delFile('special://thumbnails/%s%s' % (directory, thumb))
 
-        Progress.close()
-
+    progress_close()
     LOG.warning("[ reset artwork ]")
 
 # Copy folder content from one to another

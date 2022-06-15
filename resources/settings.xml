@@ -429,16 +429,6 @@
                 </setting>
             </group>
             <group id="4" label="33108">
-                <setting label="33333" id="animateicon" type="boolean" help="">
-                    <level>0</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting label="33334" id="refreshskin" type="boolean" help="">
-                    <level>0</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                </setting>
                 <setting label="30249" id="connectMsg" type="boolean" help="">
                     <level>0</level>
                     <default>true</default>
@@ -507,6 +497,23 @@
                             <condition operator="is" setting="newContent">true</condition>
                         </dependency>
                     </dependencies>
+                </setting>
+            </group>
+            <group id="5" label="33410">
+                <setting label="33333" id="animateicon" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33334" id="refreshskin" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="skinreload" label="33409" type="action">
+                    <data>NotifyAll(plugin.video.emby-next-gen,skinreload)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
                 </setting>
             </group>
         </category>

@@ -1797,3 +1797,35 @@ msgstr ""
 msgctxt "#33408"
 msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
 msgstr ""
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr ""
+
+msgctxt "#33410"
+msgid "Other"
+msgstr ""
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr ""
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr ""
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr ""
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr ""
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr ""
+
+msgctxt "#33416"
+msgid "Database"
+msgstr ""

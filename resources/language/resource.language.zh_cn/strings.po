@@ -1069,167 +1069,167 @@ msgstr "按标签"
 
 msgctxt "#33221"
 msgid "Enable userrating sync"
-msgstr ""
+msgstr "启用用户评分同步"
 
 msgctxt "#33222"
 msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
-msgstr ""
+msgstr "最终警告：需要完成数据库重置！"
 
 msgctxt "#33223"
 msgid "Database reset required, wait for Kodi restart."
-msgstr ""
+msgstr "需要重置数据库，等待 Kodi 重启。"
 
 msgctxt "#33224"
 msgid "Invalid backup path"
-msgstr ""
+msgstr "无效的备份路径"
 
 msgctxt "#33225"
 msgid "Invalid backup"
-msgstr ""
+msgstr "无效备份"
 
 msgctxt "#33226"
 msgid "Artwork cache in progress"
-msgstr ""
+msgstr "正在缓存图稿"
 
 msgctxt "#33227"
 msgid "Webserver must be enabled for artwork cache. Enable now?"
-msgstr ""
+msgstr "必须为图稿缓存启用 Web 服务器。"
 
 msgctxt "#33228"
 msgid "No password found, set password to 'kodi'"
-msgstr ""
+msgstr "未找到密码，将密码设置为“kodi”"
 
 msgctxt "#33229"
 msgid "No backup path set"
-msgstr ""
+msgstr "未设置备份路径"
 
 msgctxt "#33230"
 msgid "select"
-msgstr ""
+msgstr "选择"
 
 msgctxt "#33231"
 msgid "Special Features"
-msgstr ""
+msgstr "特殊功能"
 
 msgctxt "#33232"
 msgid "Live TV sync finished"
-msgstr ""
+msgstr "直播电视同步完成"
 
 msgctxt "#33233"
 msgid "Please install and enable iptvsimple"
-msgstr ""
+msgstr "请安装并启用 iptvsimple"
 
 msgctxt "#33234"
 msgid "Sync LiveTV"
-msgstr ""
+msgstr "同步直播电视"
 
 msgctxt "#33235"
 msgid "Websocket is offline"
-msgstr ""
+msgstr "Websocket 离线"
 
 msgctxt "#33236"
 msgid "Emby server shutdown"
-msgstr ""
+msgstr "Emby 服务器关闭"
 
 msgctxt "#33237"
 msgid "Emby server restart required"
-msgstr ""
+msgstr "Emby 服务器需要重启"
 
 msgctxt "#33238"
 msgid "Add library"
-msgstr ""
+msgstr "添加库"
 
 msgctxt "#33239"
 msgid "Enable smart playlists (this could cause Kodi crashes)"
-msgstr ""
+msgstr "启用智能播放列表（这可能导致 Kodi 崩溃）"
 
 msgctxt "#33240"
 msgid "Enable userrating"
-msgstr ""
+msgstr "启用用户评级"
 
 msgctxt "#33241"
 msgid "Enable local trailers"
-msgstr ""
+msgstr "启用本地拖车"
 
 msgctxt "#33242"
 msgid "Enable trailers"
-msgstr ""
+msgstr "启用拖车"
 
 msgctxt "#33243"
 msgid "Transcode"
-msgstr ""
+msgstr "转码"
 
 msgctxt "#33244"
 msgid "Output format video"
-msgstr ""
+msgstr "输出格式视频"
 
 msgctxt "#33245"
 msgid "Output format audio"
-msgstr ""
+msgstr "输出格式音频"
 
 msgctxt "#33246"
 msgid "Show options in plugin menu"
-msgstr ""
+msgstr "在插件菜单中显示选项"
 
 msgctxt "#33247"
 msgid "Date info"
-msgstr ""
+msgstr "日期信息"
 
 msgctxt "#33248"
 msgid "Genres"
-msgstr ""
+msgstr "流派"
 
 msgctxt "#33249"
 msgid "Studios"
-msgstr ""
+msgstr "工作室"
 
 msgctxt "#33250"
 msgid "Taglines"
-msgstr ""
+msgstr "标语"
 
 msgctxt "#33251"
 msgid "Overview"
-msgstr ""
+msgstr "概述"
 
 msgctxt "#33252"
 msgid "Production locations"
-msgstr ""
+msgstr "生产地点"
 
 msgctxt "#33253"
 msgid "Dynamic libraries"
-msgstr ""
+msgstr "动态库"
 
 msgctxt "#33254"
 msgid "Compatibility mode"
-msgstr ""
+msgstr "兼容模式"
 
 msgctxt "#33255"
 msgid "Restore backup"
-msgstr ""
+msgstr "恢复备份"
 
 msgctxt "#33256"
 msgid "Which artwork should be cached"
-msgstr ""
+msgstr "应该缓存哪些图稿"
 
 msgctxt "#33257"
 msgid "Video"
-msgstr ""
+msgstr "视频"
 
 msgctxt "#33258"
 msgid "Music"
-msgstr ""
+msgstr "音乐"
 
 msgctxt "#33259"
 msgid "Incremental sync date"
-msgstr ""
+msgstr "增量同步日期"
 
 msgctxt "#33260"
 msgid "Incremental sync time"
-msgstr ""
+msgstr "增量同步时间"
 
 msgctxt "#33261"
 msgid "Collecting removed items"
-msgstr ""
+msgstr "收集已删除的项目"
 
 msgctxt "#33262"
 msgid "Enable cinema mode (movies)"
@@ -1241,568 +1241,601 @@ msgstr "启用影院模式 (tv shows)"
 
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
-msgstr ""
+msgstr "也从Emby服务器中删除项目？"
 
 msgctxt "#33265"
 msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
-msgstr ""
+msgstr "Kodi 事件也从 Emby 服务器中删除文件？ "
 
 msgctxt "#33266"
 msgid "Enable FILE delete on Kodi events"
-msgstr ""
+msgstr "启用对 Kodi 事件的文件删除"
 
 msgctxt "#33267"
 msgid "Disable HTTP2 suppport"
-msgstr ""
+msgstr "禁用 HTTP2 支持"
 
 msgctxt "#33268"
 msgid "Kodi restart initiated due to advancedsettings.xml changes"
-msgstr ""
+msgstr "由于 advancedsettings.xml 更改而启动 Kodi 重新启动"
 
 msgctxt "#33269"
 msgid "1.3 Mbps HD"
-msgstr ""
+msgstr "1.3 Mbps 高清"
 
 msgctxt "#33270"
 msgid "2.0 Mbps HD"
-msgstr ""
+msgstr "2.0 Mbps 高清"
 
 msgctxt "#33271"
 msgid "3.2 Mbps HD"
-msgstr ""
+msgstr "3.2 Mbps 高清"
 
 msgctxt "#33272"
 msgid "4.7 Mbps HD"
-msgstr ""
+msgstr "4.7 Mbps 高清"
 
 msgctxt "#33273"
 msgid "6.2 Mbps HD"
-msgstr ""
+msgstr "6.2 Mbps 高清"
 
 msgctxt "#33274"
 msgid "7.7 Mbps HD"
-msgstr ""
+msgstr "7.7 Mbps 高清"
 
 msgctxt "#33275"
 msgid "9.2 Mbps HD"
-msgstr ""
+msgstr "9.2 Mbps 高清"
 
 msgctxt "#33276"
 msgid "10.7 Mbps HD"
-msgstr ""
+msgstr "10.7 Mbps 高清"
 
 msgctxt "#33277"
 msgid "12.2 Mbps HD"
-msgstr ""
+msgstr "12.2 Mbps 高清"
 
 msgctxt "#33278"
 msgid "13.7 Mbps HD"
-msgstr ""
+msgstr "13.7 Mbps 高清"
 
 msgctxt "#33279"
 msgid "15.2 Mbps HD"
-msgstr ""
+msgstr "15.2 Mbps 高清"
 
 msgctxt "#33280"
 msgid "16.7 Mbps HD"
-msgstr ""
+msgstr "16.7 Mbps 高清"
 
 msgctxt "#33281"
 msgid "18.2 Mbps HD"
-msgstr ""
+msgstr "18.2 Mbps 高清"
 
 msgctxt "#33282"
 msgid "20.0 Mbps HD"
-msgstr ""
+msgstr "20.0 Mbps 高清"
 
 msgctxt "#33283"
 msgid "25.0 Mbps HD"
-msgstr ""
+msgstr "25.0 Mbps 高清"
 
 msgctxt "#33284"
 msgid "30.0 Mbps HD"
-msgstr ""
+msgstr "30.0 Mbps 高清"
 
 msgctxt "#33285"
 msgid "35.0 Mbps HD"
-msgstr ""
+msgstr "35.0 Mbps 高清"
 
 msgctxt "#33286"
 msgid "40.0 Mbps HD"
-msgstr ""
+msgstr "40.0 Mbps 高清"
 
 msgctxt "#33287"
 msgid "100.0 Mbps HD"
-msgstr ""
+msgstr "100.0 Mbps 高清"
 
 msgctxt "#33288"
 msgid "1000.0 Mbps HD"
-msgstr ""
+msgstr "1000.0 Mbps 高清"
 
 msgctxt "#33289"
 msgid "64 Kbps"
-msgstr ""
+msgstr "64 Kbps"
 
 msgctxt "#33290"
 msgid "96 Kbps"
-msgstr ""
+msgstr "96 Kbps"
 
 msgctxt "#33291"
 msgid "128 Kbps"
-msgstr ""
+msgstr "128 Kbps"
 
 msgctxt "#33292"
 msgid "192 Kbps"
-msgstr ""
+msgstr "192 Kbps"
 
 msgctxt "#33293"
 msgid "256 Kbps"
-msgstr ""
+msgstr "256 Kbps"
 
 msgctxt "#33294"
 msgid "320 Kbps"
-msgstr ""
+msgstr "320 Kbps"
 
 msgctxt "#33295"
 msgid "384 Kbps"
-msgstr ""
+msgstr "384 Kbps"
 
 msgctxt "#33296"
 msgid "448 Kbps"
-msgstr ""
+msgstr "448 Kbps"
 
 msgctxt "#33297"
 msgid "512 Kbps"
-msgstr ""
+msgstr "512 Kbps"
 
 msgctxt "#33298"
 msgid "Cinema mode"
-msgstr ""
+msgstr "电影模式"
 
 msgctxt "#33299"
 msgid "Artwork"
-msgstr ""
+msgstr "艺术品"
 
 msgctxt "#33300"
 msgid "Menu"
-msgstr ""
+msgstr "菜单"
 
 msgctxt "#33301"
 msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
-msgstr ""
+msgstr "兼容模式将插件 id 更改为 4.x (plugin.video.emby)。"
 
 msgctxt "#33302"
 msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity"
-msgstr ""
+msgstr "在某些情况下（WLAN、延迟网络启动等）延迟插件启动可能会改善连接性"
 
 msgctxt "#33303"
 msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
-msgstr ""
+msgstr "您可以调整为动态（未同步）内容加载的元信息。"
 
 msgctxt "#33304"
 msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
-msgstr ""
+msgstr "小心这个选项。"
 
 msgctxt "#33305"
 msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
-msgstr ""
+msgstr "这是一个调试选项。"
 
 msgctxt "#33306"
 msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
-msgstr ""
+msgstr "重置唯一设备ID。"
 
 msgctxt "#33307"
 msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
-msgstr ""
+msgstr "连接到新的Emby服务器（多服务器）或重新连接现有的Emby服务器（调试）"
 
 msgctxt "#33308"
 msgid "Show hidden users on Emby server for connections ops."
-msgstr ""
+msgstr "在 Emby 服务器上显示隐藏用户以进行连接操作。"
 
 msgctxt "#33309"
 msgid "Add/Remove/Repair libraries, live TV, themes."
-msgstr ""
+msgstr "添加/删除/修复库、直播电视、主题。"
 
 msgctxt "#33310"
 msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
-msgstr ""
+msgstr "将所有艺术品本地同步到 Kodi。"
 
 msgctxt "#33311"
 msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
-msgstr ""
+msgstr "某些皮肤使用 xps 播放列表。"
 
 msgctxt "#33312"
 msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
-msgstr ""
+msgstr "用户评分是要同步到 Kodi 的附加信息。"
 
 msgctxt "#33313"
 msgid "Performs a complete Kodi database resync. Settings and artwork are optionally resetted."
-msgstr ""
+msgstr "执行完整的 Kodi 数据库重新同步。"
 
 msgctxt "#33314"
 msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
-msgstr ""
+msgstr "电影模式是 Emby 的主要功能。 "
 
 msgctxt "#33315"
 msgid "Transcode audio bitrate"
-msgstr ""
+msgstr "转码音频比特率"
 
 msgctxt "#33316"
 msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
-msgstr ""
+msgstr "网络速度。"
 
 msgctxt "#33318"
 msgid "Devicename report to Emby server."
-msgstr ""
+msgstr "设备名称报告给 Emby 服务器。"
 
 msgctxt "#33319"
 msgid "Report playback progress to additional users."
-msgstr ""
+msgstr "向其他用户报告播放进度。"
 
 msgctxt "#33320"
 msgid "Gap between playback stopped and continuation start."
-msgstr ""
+msgstr "播放停止和继续开始之间的间隙。"
 
 msgctxt "#33321"
 msgid "This is a Emby server feature."
-msgstr ""
+msgstr "这是一个 Emby 服务器功能。"
 
 msgctxt "#33322"
 msgid "Can save bandwith"
-msgstr ""
+msgstr "可以节省带宽"
 
 msgctxt "#33323"
 msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
-msgstr ""
+msgstr "在某些情况下，将插件菜单中的菜单选项显示为快捷方式很有用。"
 
 msgctxt "#33324"
 msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
-msgstr ""
+msgstr "Contect菜单支持收藏夹管理、删除选项、（电影）特殊功能选择等。"
 
 msgctxt "#33325"
 msgid "Audio Bitrate"
-msgstr ""
+msgstr "音频比特率"
 
 msgctxt "#33326"
 msgid "h264"
-msgstr ""
+msgstr "h264"
 
 msgctxt "#33327"
 msgid "hevc"
-msgstr ""
+msgstr "hevc"
 
 msgctxt "#33328"
 msgid "aac"
-msgstr ""
+msgstr "aac"
 
 msgctxt "#33329"
 msgid "ac3"
-msgstr ""
+msgstr "ac3"
 
 msgctxt "#33330"
 msgid "664 Kbps SD"
-msgstr ""
+msgstr "664 Kbps 标清"
 
 msgctxt "#33331"
 msgid "996 Kbps HD"
-msgstr ""
+msgstr "996 Kbps 高清"
 
 msgctxt "#33332"
 msgid "Maximum artwork cache threads"
-msgstr ""
+msgstr "最大图稿缓存线程"
 
 msgctxt "#33333"
 msgid "Animated icon"
-msgstr ""
+msgstr "动画图标"
 
 msgctxt "#33334"
 msgid "Refresh skin on Emby server connection"
-msgstr ""
+msgstr "在 Emby 服务器连接上刷新皮肤"
 
 msgctxt "#33335"
 msgid "Folder"
-msgstr ""
+msgstr "文件夹"
 
 msgctxt "#33336"
 msgid "Mixed content"
-msgstr ""
+msgstr "混合内容"
 
 msgctxt "#33337"
 msgid "In progress"
-msgstr ""
+msgstr "进行中"
 
 msgctxt "#33338"
 msgid "Random episodes"
-msgstr ""
+msgstr "随机剧集"
 
 msgctxt "#33339"
 msgid "Random TVShows"
-msgstr ""
+msgstr "随机电视节目"
 
 msgctxt "#33340"
 msgid "Factory reset"
-msgstr ""
+msgstr "恢复出厂设置"
 
 msgctxt "#33341"
 msgid "Nodes reset"
-msgstr ""
+msgstr "节点重置"
 
 msgctxt "#33342"
 msgid "Are you sure you want to reset your nodes?"
-msgstr ""
+msgstr "您确定要重置您的节点吗？"
 
 msgctxt "#33343"
 msgid "Artists"
-msgstr ""
+msgstr "艺术家"
 
 msgctxt "#33344"
 msgid "Unwatched Episodes"
-msgstr ""
+msgstr "未观看的剧集"
 
 msgctxt "#33345"
 msgid "Unwatched TV Shows"
-msgstr ""
+msgstr "未观看的电视节目"
 
 msgctxt "#33346"
 msgid "Favorite TVShows"
-msgstr ""
+msgstr "最喜欢的电视节目"
 
 msgctxt "#33347"
 msgid "Recently played TV Show"
-msgstr ""
+msgstr "最近播放的电视剧"
 
 msgctxt "#33348"
 msgid "Upcoming episodes"
-msgstr ""
+msgstr "即将上映的剧集"
 
 msgctxt "#33349"
 msgid "TV Shows"
-msgstr ""
+msgstr "电视节目"
 
 msgctxt "#33350"
 msgid "Recently played"
-msgstr ""
+msgstr "最近玩过"
 
 msgctxt "#33351"
 msgid "Recently played Episode"
-msgstr ""
+msgstr "最近播放的情节"
 
 msgctxt "#33352"
 msgid "Directors"
-msgstr ""
+msgstr "董事"
 
 msgctxt "#33353"
 msgid "TV Show tags"
-msgstr ""
+msgstr "电视节目 的标签"
 
 msgctxt "#33354"
 msgid "Episode tags"
-msgstr ""
+msgstr "剧集标签"
 
 msgctxt "#33355"
 msgid "Resume episodes"
-msgstr ""
+msgstr "恢复剧集"
 
 msgctxt "#33356"
 msgid "Movie tags"
-msgstr ""
+msgstr "电影标签"
 
 msgctxt "#33357"
 msgid "Resume movie"
-msgstr ""
+msgstr "恢复电影"
 
 msgctxt "#33358"
 msgid "Countries"
-msgstr ""
+msgstr "国家"
 
 msgctxt "#33359"
 msgid "HD"
-msgstr ""
+msgstr "高清"
 
 msgctxt "#33360"
 msgid "SD"
-msgstr ""
+msgstr "标清"
 
 msgctxt "#33361"
 msgid "4K"
-msgstr ""
+msgstr "4K"
 
 msgctxt "#33362"
 msgid "Albums"
-msgstr ""
+msgstr "专辑"
 
 msgctxt "#33363"
 msgid "Musicvideos"
-msgstr ""
+msgstr "音乐视频"
 
 msgctxt "#33364"
 msgid "Musicvideo tags"
-msgstr ""
+msgstr "音乐视频的标签"
 
 msgctxt "#33365"
 msgid "Random musicvideos"
-msgstr ""
+msgstr "随机音乐视频"
 
 msgctxt "#33366"
 msgid "Resume musicvideos"
-msgstr ""
+msgstr "恢复音乐视频"
 
 msgctxt "#33367"
 msgid "Videos"
-msgstr ""
+msgstr "视频"
 
 msgctxt "#33368"
 msgid "Photos"
-msgstr ""
+msgstr "照片"
 
 msgctxt "#33369"
 msgid "Photoalbums"
-msgstr ""
+msgstr "相册"
 
 msgctxt "#33370"
 msgid "Photoalbum tags"
-msgstr ""
+msgstr "相册的标签"
 
 msgctxt "#33371"
 msgid "Photo tags"
-msgstr ""
+msgstr "照片的标签"
 
 msgctxt "#33372"
 msgid "Video tags"
-msgstr ""
+msgstr "视频标签"
 
 msgctxt "#33373"
 msgid "Recently added photos"
-msgstr ""
+msgstr "最近添加的照片"
 
 msgctxt "#33374"
 msgid "Recently added photoalbums"
-msgstr ""
+msgstr "最近添加的相册"
 
 msgctxt "#33375"
 msgid "Recently added videos"
-msgstr ""
+msgstr "最近添加的视频"
 
 msgctxt "#33376"
 msgid "Playlists"
-msgstr ""
+msgstr "播放列表"
 
 msgctxt "#33377"
 msgid "Audiobooks"
-msgstr ""
+msgstr "有声读物"
 
 msgctxt "#33378"
 msgid "Random audiobooks"
-msgstr ""
+msgstr "随机有声读物"
 
 msgctxt "#33379"
 msgid "Unlistened"
-msgstr ""
+msgstr "未听"
 
 msgctxt "#33380"
 msgid "Random songs"
-msgstr ""
+msgstr "随机歌曲"
 
 msgctxt "#33381"
 msgid "Random podcasts"
-msgstr ""
+msgstr "随机播客"
 
 msgctxt "#33382"
 msgid "Podcasts"
-msgstr ""
+msgstr "播客"
 
 msgctxt "#33383"
 msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever posssible"
-msgstr ""
+msgstr "同步节点比动态节点快得多。"
 
 msgctxt "#33384"
 msgid "Dynamic nodes are build on the fly. This has na impact to performace. Try to avoid where ever possible"
-msgstr ""
+msgstr "动态节点是动态构建的。"
 
 msgctxt "#33385"
 msgid "Favorite musicvideos"
-msgstr ""
+msgstr "最喜欢的音乐视频"
 
 msgctxt "#33386"
 msgid "Synced nodes"
-msgstr ""
+msgstr "同步节点"
 
 msgctxt "#33387"
 msgid "Dynamic nodes"
-msgstr ""
+msgstr "动态节点"
 
 msgctxt "#33388"
 msgid "Recently added albums"
-msgstr ""
+msgstr "最近添加的专辑"
 
 msgctxt "#33389"
 msgid "Recently added audiobooks"
-msgstr ""
+msgstr "最近添加了有声读物"
 
 msgctxt "#33390"
 msgid "Recently added songs"
-msgstr ""
+msgstr "最近添加的歌曲"
 
 msgctxt "#33391"
 msgid "Random albums"
-msgstr ""
+msgstr "随机专辑"
 
 msgctxt "#33392"
 msgid "Random songs"
-msgstr ""
+msgstr "随机歌曲"
 
 msgctxt "#33393"
 msgid "Random audiobooks"
-msgstr ""
+msgstr "随机有声读物"
 
 msgctxt "#33394"
 msgid "Random podcasts"
-msgstr ""
+msgstr "随机播客"
 
 msgctxt "#33395"
 msgid "Recently added podcasts"
-msgstr ""
+msgstr "最近添加的播客"
 
 msgctxt "#33396"
 msgid "Add/Remove/Repair libraries, live TV, themes"
-msgstr ""
+msgstr "添加/删除/修复库、直播电视、主题"
 
 msgctxt "#33398"
 msgid "Open plugin settings"
-msgstr ""
+msgstr "打开插件设置"
 
 msgctxt "#33400"
 msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
-msgstr ""
+msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 内容）。"
 
 msgctxt "#33401"
 msgid "Reset all custom nodes and rebuild them"
-msgstr ""
+msgstr "重置所有自定义节点并重建它们"
 
 msgctxt "#33402"
 msgid "Node query limit"
-msgstr ""
+msgstr "节点查询限制"
 
 msgctxt "#33403"
 msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
-msgstr ""
+msgstr "限制进度节点的查询。"
 
 msgctxt "#33404"
 msgid "Nodes"
-msgstr ""
+msgstr "节点"
 
 msgctxt "#33405"
 msgid "Use playback resume option from Emby server"
-msgstr ""
+msgstr "使用来自 Emby 服务器的播放恢复选项"
 
 msgctxt "#33406"
 msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
-msgstr ""
+msgstr "此功能禁用 Kodi 的内部进度更新。"
 
 msgctxt "#33407"
 msgid "Vacuum datbases on Kodi shutdown"
-msgstr ""
+msgstr "Kodi 关闭时的真空数据库"
 
 msgctxt "#33408"
 msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
-msgstr ""
+msgstr "数据库将被重建和优化，代价是关闭延迟"
+
+msgctxt "#33409"
+msgid "Reload skin"
+msgstr "重新加载皮肤"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "其他"
+
+msgctxt "#33411"
+msgid "Emby server busy"
+msgstr "Emby 服务器忙"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "删除图稿文件"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "更新视图"
+
+msgctxt "#33414"
+msgid "Emby server busy: Sync in progress"
+msgstr "Emby 服务器忙：正在同步"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "删除科迪"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "数据库"
+

@@ -235,12 +235,12 @@ class Views:
 
         Total = len(Libraries)
         Counter = 1
-        utils.progress_open("Update views")
+        utils.progress_open(utils.Translate(33413))
 
         for library in Libraries:
             Percent = int(float(Counter) / float(Total) * 100)
             Counter += 1
-            utils.progress_update(Percent, "Emby", "Update views")
+            utils.progress_update(Percent, utils.Translate(33199), utils.Translate(33413))
 
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
                 library['MediaType'] = "podcasts"
@@ -448,7 +448,7 @@ def node_letter(View, folder, node):
 
         xmlData.set('type', "folder")
         xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2])
+        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2]).decode('utf-8')
         xmls.WriteXmlFile(FileName, xmlData)
 
     # 0-9.xml

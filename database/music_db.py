@@ -10,6 +10,7 @@ class MusicDatabase:
         self.common = common_db.CommonDatabase(cursor)
 
     def clean_music(self):
+        KodiIdsDeleted = []
         self.cursor.execute("SELECT idAlbum FROM album")
         albumids = self.cursor.fetchall()
 
@@ -19,6 +20,7 @@ class MusicDatabase:
 
             if not songid:
                 self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", albumid)
+                KodiIdsDeleted.append((albumid[0], "album"))
 
         self.cursor.execute("SELECT idArtist FROM artist")
         artistids = self.cursor.fetchall()
@@ -29,6 +31,9 @@ class MusicDatabase:
 
             if not songid:
                 self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", artistid)
+                KodiIdsDeleted.append((artistid[0], "artist"))
+
+        return KodiIdsDeleted
 
     # Make sure rescan and kodi db set
     def disable_rescan(self, Timestamp):
@@ -157,7 +162,7 @@ class MusicDatabase:
             MusicBrainzTrack += " "
 
     def link_song_artist(self, idArtist, idSong, idRole, iOrder, strArtist):
-        self.cursor.execute("INSERT INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (idArtist, idSong, idRole, iOrder, strArtist))
+        self.cursor.execute("INSERT OR REPLACE INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (idArtist, idSong, idRole, iOrder, strArtist))
 
     def delete_link_song_artist(self, SongId):
         self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (SongId,))
@@ -231,6 +236,8 @@ class MusicDatabase:
             self.cursor.execute("UPDATE album SET strType = ? WHERE idAlbum = ?", (NewLibraryInfo, kodi_id))
 
     def delete_song(self, kodi_id):
+        self.common.delete_artwork(kodi_id, "song")
+        self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (kodi_id,))
         self.cursor.execute("DELETE FROM song WHERE idSong = ?", (kodi_id,))
 
     def get_add_path(self, strPath):

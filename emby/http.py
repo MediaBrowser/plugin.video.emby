@@ -55,12 +55,12 @@ class HTTP:
                     return r.json()
 
                 if r.status_code == 401:
-                    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33147))
+                    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
 
                 return noData(Binary)
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
-                utils.dialog("notification", heading=utils.addon_name, message="SSL Error")
+                utils.Dialog.notification(heading=utils.addon_name, message="SSL Error")
                 self.stop_session()
                 return noData(Binary)
             except requests.exceptions.ConnectionError:

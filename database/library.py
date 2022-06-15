@@ -65,7 +65,7 @@ class Library:
         # wait for DB close
         while self.EmbyDBOpen:
             LOG.info("open_EmbyDBRW waiting: %s" % TaskId)
-            utils.waitForAbort(1)
+            utils.sleep(1)
 
         self.EmbyDBOpen = True
         return dbio.DBOpenRW(self.EmbyServer.server_id, TaskId)
@@ -109,7 +109,7 @@ class Library:
 
     def InitSync(self, Firstrun):  # Threaded by caller -> emby.py
         while not utils.StartupComplete:
-            if utils.waitForAbort(5):
+            if utils.sleep(5):
                 return
 
         if Firstrun:
@@ -172,7 +172,10 @@ class Library:
                         UpdateDataTemp = TotalRecords * [(None, None, None, None)] # preallocate memory
 
                         for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra, False, False)):
-                            UpdateDataTemp[Index] = (Item['Id'], Whitelist[0], Whitelist[2], Item['Type'])
+                            if Index >= TotalRecords: # Emby server updates were in progress. New items were added after TotalRecords was calculated
+                                UpdateDataTemp.append((Item['Id'], Whitelist[0], Whitelist[2], Item['Type']))
+                            else:
+                                UpdateDataTemp[Index] = (Item['Id'], Whitelist[0], Whitelist[2], Item['Type'])
 
                         UpdateData += UpdateDataTemp
 
@@ -223,7 +226,7 @@ class Library:
             embydb.delete_Userdata(ItemNotSynced)
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
-            if refresh_check(ContentType, CategoryItems):
+            if content_available(ContentType, CategoryItems):
                 kodidb = dbio.DBOpenRW(ContentType, "worker_userdata")
                 TotalRecords = len(CategoryItems)
 
@@ -272,7 +275,7 @@ class Library:
             UpdateItems = ItemsSort(Items, False)
 
             for ContentType, CategoryItems in list(UpdateItems.items()):
-                if refresh_check(ContentType, CategoryItems):
+                if content_available(ContentType, CategoryItems):
                     kodidb = dbio.DBOpenRW(ContentType, "worker_update")
 
                     for Items in CategoryItems:
@@ -344,7 +347,7 @@ class Library:
         del AllRemoveItems[:] # relese memory
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
-            if refresh_check(ContentType, CategoryItems):
+            if content_available(ContentType, CategoryItems):
                 kodidb = dbio.DBOpenRW(ContentType, "worker_remove")
 
                 for Items in CategoryItems:
@@ -358,8 +361,14 @@ class Library:
                         if not Continue:
                             return False
 
+                # Clean empty Artists and Albums
                 if ContentType == "music":
-                    kodidb.clean_music()
+                    KodiIdsDeleted = kodidb.clean_music()
+                    DeleteTotalRecords = len(KodiIdsDeleted)
+
+                    for DeleteIndex, KodiIdDeleted in enumerate(KodiIdsDeleted):
+                        embydb.remove_item_music_by_kodiid(KodiIdDeleted[1], KodiIdDeleted[0])
+                        utils.progress_update(int(float(DeleteIndex) / float(DeleteTotalRecords) * 100), "Delete empty music records", str(KodiIdDeleted[0]))
 
                 close_KodiDatabase(ContentType, "remove")
 
@@ -375,6 +384,7 @@ class Library:
         if not SyncItems:
             return
 
+        MusicSynced = False
         utils.progress_open("%s %s" % (utils.Translate(33021), utils.Translate(33238)))
         newContent = utils.newContent
         utils.newContent = False  # Disable new content notification on init sync
@@ -396,12 +406,22 @@ class Library:
                 Continue, embydb, kodidb = self.ItemOps(index, TotalRecords, Item, embydb, kodidb, SyncItem[4], "add/update")
 
                 if not Continue:
-                    utils.newContent = newContent
                     return
 
             dbio.DBCommitRW(self.EmbyServer.server_id)
+            MusicSynced = bool(SyncItem[4] == "music")
             close_KodiDatabase(SyncItem[4], "library")
             embydb.remove_PendingSync(SyncItem[0], SyncItem[1], SyncItem[2], SyncItem[3], SyncItem[4])
+
+        # Clean empty Artists and Albums
+        if MusicSynced:
+            kodidb = dbio.DBOpenRW("music", "worker_library")
+            KodiIdsDeleted = kodidb.clean_music()
+            DeleteTotalRecords = len(KodiIdsDeleted)
+
+            for DeleteIndex, KodiIdDeleted in enumerate(KodiIdsDeleted):
+                embydb.remove_item_music_by_kodiid(KodiIdDeleted[1], KodiIdDeleted[0])
+                utils.progress_update(int(float(DeleteIndex) / float(DeleteTotalRecords) * 100), "Delete empty music records", str(KodiIdDeleted[0]))
 
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
@@ -409,8 +429,9 @@ class Library:
         self.close_Worker("worker_library")
         LOG.info("--<[ worker library completed ]")
         xbmc.executebuiltin('ReloadSkin()')
-        utils.waitForAbort(1)  # give Kodi time to catch up
-        self.RunJobs()
+
+        if not utils.sleep(1):  # give Kodi time to catch up
+            self.RunJobs()
 
     def ItemOps(self, index, TotalRecords, Item, embydb, kodidb, ContentCategory, Task):
         Ret = False
@@ -459,7 +480,7 @@ class Library:
                 else:
                     MsgTime = int(utils.newvideotime) * 1000
 
-                utils.dialog("notification", heading="%s %s" % (utils.Translate(33049), Item['Type']), message=Item['Name'], icon=utils.icon, time=MsgTime, sound=False)
+                utils.Dialog.notification(heading="%s %s" % (utils.Translate(33049), Item['Type']), message=Item['Name'], icon=utils.icon, time=MsgTime, sound=False)
         elif Task == "remove":
             utils.progress_update(ProgressValue, "Emby: %s" % Item['Type'], str(Item['Id']))
             self.ContentObject.remove(Item)
@@ -475,7 +496,10 @@ class Library:
             self.EmbyDBOpen = False
 
             while utils.DBBusy or utils.sync_is_paused():
-                utils.waitForAbort(1)
+                if utils.sleep(1):
+                    self.close_Worker("ItemOps")
+                    LOG.info("[ worker exit (shutdown) ]")
+                    return False, None, None
 
             self.EmbyDBOpen = True
             LOG.info("--<[ worker delay %s/%s]" % (utils.DBBusy, str(utils.SyncPause)))
@@ -534,7 +558,7 @@ class Library:
 
         choices = [x['Name'] for x in libraries]
         choices.insert(0, utils.Translate(33121))
-        selection = utils.dialog("multi", utils.Translate(33120), choices)
+        selection = utils.Dialog.multiselect(utils.Translate(33120), choices)
 
         if not selection:
             return
@@ -762,7 +786,7 @@ def ItemsSort(Items, Reverse):
     return {"music": [ItemsMusicArtist + ItemsAlbumArtist + ItemsMusicAlbum + ItemsAudio], "video": [ItemsMusicVideo, ItemsSeries + ItemsSeason + ItemsEpisode, ItemsMovie + ItemsBoxSet]}
 
 
-def refresh_check(ContentType, CategoryItems):
+def content_available(ContentType, CategoryItems):
     if ContentType == "video" and (CategoryItems[0] or CategoryItems[1] or CategoryItems[2]):
         return True
 

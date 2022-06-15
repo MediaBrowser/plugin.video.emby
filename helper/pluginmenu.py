@@ -12,7 +12,6 @@ from emby import listitem
 from . import xmls, utils, loghandler, playerops
 
 LOG = loghandler.LOG('EMBY.helper.pluginmenu')
-XbmcPlayer = xbmc.Player()
 QueryCache = {}
 ArtworkCacheIndex = 0
 ThreadCounter = 0
@@ -168,12 +167,13 @@ def listing(Handle):
     add_ListItem(ListItemData, utils.Translate(30182), "plugin://%s/?mode=favepisodes" % utils.PluginId, True, utils.icon, "")
 
     if utils.menuOptions:
-        add_ListItem(ListItemData, utils.Translate(33194), "plugin://%s/?mode=managelibsselection"  % utils.PluginId, False, utils.icon, utils.Translate(33309))
-        add_ListItem(ListItemData, utils.Translate(33059), "plugin://%s/?mode=texturecache"  % utils.PluginId, False, utils.icon, utils.Translate(33310))
-        add_ListItem(ListItemData, utils.Translate(5), "plugin://%s/?mode=settings"  % utils.PluginId, False, utils.icon, utils.Translate(33398))
-        add_ListItem(ListItemData, utils.Translate(33058), "plugin://%s/?mode=databasereset"  % utils.PluginId, False, utils.icon, utils.Translate(33313))
-        add_ListItem(ListItemData, utils.Translate(33340), "plugin://%s/?mode=factoryreset"  % utils.PluginId, False, utils.icon, utils.Translate(33400))
-        add_ListItem(ListItemData, utils.Translate(33341), "plugin://%s/?mode=nodesreset"  % utils.PluginId, False, utils.icon, utils.Translate(33401))
+        add_ListItem(ListItemData, utils.Translate(33194), "plugin://%s/?mode=managelibsselection" % utils.PluginId, False, utils.icon, utils.Translate(33309))
+        add_ListItem(ListItemData, utils.Translate(33059), "plugin://%s/?mode=texturecache" % utils.PluginId, False, utils.icon, utils.Translate(33310))
+        add_ListItem(ListItemData, utils.Translate(5), "plugin://%s/?mode=settings" % utils.PluginId, False, utils.icon, utils.Translate(33398))
+        add_ListItem(ListItemData, utils.Translate(33058), "plugin://%s/?mode=databasereset" % utils.PluginId, False, utils.icon, utils.Translate(33313))
+        add_ListItem(ListItemData, utils.Translate(33340), "plugin://%s/?mode=factoryreset" % utils.PluginId, False, utils.icon, utils.Translate(33400))
+        add_ListItem(ListItemData, utils.Translate(33341), "plugin://%s/?mode=nodesreset" % utils.PluginId, False, utils.icon, utils.Translate(33401))
+        add_ListItem(ListItemData, utils.Translate(33409), "plugin://%s/?mode=skinreload" % utils.PluginId, False, utils.icon, "")
 
     xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -474,10 +474,10 @@ def SyncThemes(server_id):
             tvtunes.setSetting('custom_path', utils.FolderAddonUserdataLibrary)
             LOG.info("TV Tunes custom path is enabled and set.")
         except:
-            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33152))
+            utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
             return
     else:
-        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33152))
+        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
         return
 
     for LibraryID, LibraryInfo in list(utils.EmbyServers[server_id].Views.ViewItems.items()):
@@ -511,7 +511,7 @@ def SyncThemes(server_id):
         xmls.tvtunes_nfo(nfo_file, paths)
 
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
+    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
 
 def SyncLiveTV(server_id):
     if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)') and xbmc.getCondVisibility('System.AddonIsEnabled(pvr.iptvsimple)'):
@@ -537,6 +537,12 @@ def SyncLiveTV(server_id):
                 if item['ImageTags']:
                     if 'Primary' in item['ImageTags']:
                         ImageUrl = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
+
+
+
+                LOG.info("tttttttttt 1 " + str(  item    ))
+
+
 
                 StreamUrl = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
                 playlist += '#KODIPROP:mimetype=video/mp2t\n'
@@ -598,9 +604,9 @@ def SyncLiveTV(server_id):
                 iptvsimple.setSetting('epgPath', EPGFile)
 
         xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33232))
+        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33232))
     else:
-        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33233))
+        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33233))
 
 def direct_url(server_id, item):
     Filename = utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
@@ -637,7 +643,7 @@ def AddUser(EmbyServer):
     for SessionAdditionalUser in session[0]['AdditionalUsers']:
         RemoveUserChoices.append({'UserName': SessionAdditionalUser['UserName'], 'UserId': SessionAdditionalUser['UserId']})
 
-    result = utils.dialog("select", utils.Translate(33061), [utils.Translate(33062), utils.Translate(33063)] if RemoveUserChoices else [utils.Translate(33062)])
+    result = utils.Dialog.select(utils.Translate(33061), [utils.Translate(33062), utils.Translate(33063)] if RemoveUserChoices else [utils.Translate(33062)])
 
     if result < 0:
         return
@@ -648,28 +654,28 @@ def AddUser(EmbyServer):
         for AddUserChoice in AddUserChoices:
             AddNameArray.append(AddUserChoice['UserName'])
 
-        resp = utils.dialog("select", utils.Translate(33064), AddNameArray)
+        resp = utils.Dialog.select(utils.Translate(33064), AddNameArray)
 
         if resp < 0:
             return
 
         UserData = AddUserChoices[resp]
         EmbyServer.add_AdditionalUser(UserData['UserId'])
-        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33067), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33067), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
     else:  # Remove user
         RemoveNameArray = []
 
         for RemoveUserChoice in RemoveUserChoices:
             RemoveNameArray.append(RemoveUserChoice['UserName'])
 
-        resp = utils.dialog("select", utils.Translate(33064), RemoveNameArray)
+        resp = utils.Dialog.select(utils.Translate(33064), RemoveNameArray)
 
         if resp < 0:
             return
 
         UserData = RemoveUserChoices[resp]
         EmbyServer.remove_AdditionalUser(UserData['UserId'])
-        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33066), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33066), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
 
 # For theme media, do not modify unless modified in TV Tunes.
 # Remove dots from the last character as windows can not have directories with dots at the end
@@ -688,12 +694,12 @@ def normalize_string(text):
     return text
 
 def ChangeContentWindow(Query, WindowId):  # threaded
-    utils.waitForAbort(1)
+    if not utils.sleep(1):
+        while xbmc.getCondVisibility("System.HasActiveModalDialog"):  # check if modal dialogs are closed
+            if utils.sleep(1):
+                return
 
-    while xbmc.getCondVisibility("System.HasActiveModalDialog"):  # check if modal dialogs are closed
-        utils.waitForAbort(1)
-
-    xbmc.executebuiltin('ActivateWindow(%s,"%s",return)' % (WindowId, Query))
+        xbmc.executebuiltin('ActivateWindow(%s,"%s",return)' % (WindowId, Query))
 
 def load_ListItem(Id, Item, server_id, list_li):
     li = listitem.set_ListItem(Item, server_id)
@@ -733,7 +739,7 @@ def select_managelibs():  # threaded by monitor.py
     EmbyServersCounter, _, ServerItems = get_EmbyServerList()
 
     if EmbyServersCounter > 1:
-        Selection = utils.dialog("select", utils.Translate(33064), ServerItems)
+        Selection = utils.Dialog.select(utils.Translate(33064), ServerItems)
 
         if Selection > -1:
             manage_libraries(Selection)
@@ -743,7 +749,7 @@ def select_managelibs():  # threaded by monitor.py
 
 def manage_libraries(ServerSelection):  # threaded by caller
     MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060), utils.Translate(33234)]
-    Selection = utils.dialog("select", utils.Translate(33194), MenuItems)
+    Selection = utils.Dialog.select(utils.Translate(33194), MenuItems)
     ServerIds = list(utils.EmbyServers)
     EmbyServerId = ServerIds[ServerSelection]
 
@@ -766,7 +772,7 @@ def select_adduser():
     EmbyServersCounter, ServerIds, ServerItems = get_EmbyServerList()
 
     if EmbyServersCounter > 1:
-        Selection = utils.dialog("select", utils.Translate(33054), ServerItems)
+        Selection = utils.Dialog.select(utils.Translate(33054), ServerItems)
 
         if Selection > -1:
             AddUser(utils.EmbyServers[ServerIds[Selection]])
@@ -805,7 +811,7 @@ def cache_textures():
     webServerEnabled = (result['result']['value'] or False)
 
     if not webServerEnabled:
-        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33227)):
+        if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33227)):
             return
 
         EnableWebserver = True
@@ -815,7 +821,7 @@ def cache_textures():
     if not result['result']['value']:  # set password, cause mandatory in Kodi 19
         xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserverpassword", "value": "kodi"}}')
         webServerPass = 'kodi'
-        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33228))
+        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33228))
     else:
         webServerPass = str(result['result']['value'])
 
@@ -825,7 +831,7 @@ def cache_textures():
         webServerEnabled = (result['result']['value'] or False)
 
     if not webServerEnabled:  # check if webserver is now enabled
-        utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33103))
+        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33103))
         return
 
     utils.set_settings_bool('artworkcacheenable', False)
@@ -841,7 +847,7 @@ def cache_textures():
     else:
         webServerUrl = "http://127.0.0.1:%s" % webServerPort
 
-    if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33044)):
+    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044)):
         LOG.info("[ delete all thumbnails ]")
 
         if utils.checkFolderExists('special://thumbnails/'):
@@ -861,7 +867,7 @@ def cache_textures():
 
     # Select content to be cached
     choices = [utils.Translate(33121), utils.Translate(33257), utils.Translate(33258)]
-    selection = utils.dialog("multi", utils.Translate(33256), choices)
+    selection = utils.Dialog.multiselect(utils.Translate(33256), choices)
     CacheMusic = False
     CacheVideo = False
     selection = selection[0]
@@ -902,10 +908,8 @@ def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
             globals()["ThreadCounter"] += 1
 
             while ThreadCounter >= utils.artworkcachethreads:
-                if utils.SystemShutdown:
+                if utils.SystemShutdown or utils.sleep(1):
                     return
-
-                utils.waitForAbort(1)
 
 def worker_CacheAllEntries(session, url, total, Label, webServerUrl, webServerUser, webServerPass):
     globals()["ArtworkCacheIndex"] += 1
@@ -973,15 +977,15 @@ def factoryreset():
     LOG.warning("[ factory reset ]")
     utils.SystemShutdown = True
     utils.SyncPause = {}
-    utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
-    DeleteArtwork = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
+    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
+    DeleteArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     xbmc.executebuiltin('Dialog.Close(addonsettings)')
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     xbmc.executebuiltin('activatewindow(home)')
     xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
-    if utils.waitForAbort(5):  # Give Kodi time to complete startup before reset
+    if utils.sleep(5):  # Give Kodi time to complete startup before reset
         return
 
     # delete settings
@@ -1013,7 +1017,7 @@ def factoryreset():
     xbmc.executebuiltin('RestartApp')
 
 def nodesreset():
-    if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33342)):
+    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33342)):
         return
 
     utils.delete_nodes()
@@ -1025,14 +1029,14 @@ def nodesreset():
 
 # Reset both the emby database and the kodi database.
 def databasereset():
-    if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
+    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
         return
 
     LOG.warning("[ database reset ]")
     utils.SystemShutdown = True
     utils.SyncPause = {}
-    DeleteTextureCache = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33086))
-    DeleteSettings = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33087))
+    DeleteTextureCache = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
+    DeleteSettings = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33087))
     xbmc.executebuiltin('Dialog.Close(addonsettings)')
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     xbmc.executebuiltin('activatewindow(home)')
@@ -1071,11 +1075,11 @@ def databasereset():
 
     utils.delete_playlists()
     utils.delete_nodes()
-    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33088))
+    utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33088))
     xbmc.executebuiltin('RestartApp')
 
 def reset_device_id():
     utils.device_id = ""
     utils.get_device_id(True)
-    utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33033))
+    utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33033))
     xbmc.executebuiltin('RestartApp')

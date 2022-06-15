@@ -1,3 +1,112 @@
+7.0.8
+=============
+Fixes and improvements:
+------
+fix tag_links
+remove some unnecessary progress updates
+restructure music db sync
+several minor fixes for updated content
+add database vacuum option
+fix sync multiversion (update) sync issue
+fix admin issue
+fix playback stop for some cases
+add option using playback resume options from Emby server
+fix 0-9 Letter node for Musicvideos
+fix subtitle issue
+add ass subtitle support
+fix several nodes
+add "--NO INFO--" when genre is missing
+add "--NO INFO--" when studio is missing
+add remote picture playback
+remove unneseccary database openings
+Clean code
+fix issue when trailer is not available
+fix iso playback for dynamic content
+additional progress/watched fixes
+prepare additional translation
+limit item in recently played node
+add same fixes for progress/watched fixes also on init db sync
+additional progress/watched fixes
+fix next episode node
+modify progress updates for paused content on emby server
+fix progress reset
+some progress update improvements 
+improve dynamic query cache
+minor fixes in custom node declaration
+add landscape artwork to boxsets
+fix sync pause infinite for edge cases
+fix wrong assinged song album and corresponting TVShow issues
+fix library repair sync
+fix progress bar issue
+fix threading issue
+fix threading issue
+fix MusicVideo updates
+fix missing Musicvideo artist
+fix tag links
+wal mode for emby db
+fix realtime sync issues
+song update fixes
+fix db reset
+change default sync settings to 70
+fix tvtunes
+fix add Artists for edge cases
+fix realtime sync issues
+fix livetv sync
+fix movie sync when AspectRation info is missing
+fix http session re-usage
+fix progress update for not synced items
+improve Emby server reconnection
+shorten filenames/URLS
+fix metadata codec issue
+fix artwork update issue
+add dynamic queries cache
+fix season sync for edge case
+add upcoming episode support
+fix musicvideos Artists
+additional emby server notifications
+threading improvements
+db access improvements
+remove 5 minute sync delay
+fix progrss updates
+fix Emby server hard resets
+add option to sync during playback
+fix next episode
+fix out of memory on large incremental syncs
+add progress info when Emby server is busy with syncing and delay realtime updates by 5 minutes
+fix whitelist for mixed content
+fix artwork updates for music content
+add album artist sync for songs
+Delay relatime library updates by 5 minutes due to delayed metadata sync on Emby server (fixes incomplete info)
+additional info for multiselection
+animated artwork disable option
+remove mappings obj_map
+remove Kodi 18 support
+migrate settings
+keepalive -> https://emby.media/community/index.php?/topic/90781-embyforkodi-next-gen-6xx-support/&do=findComment&comment=1109377
+support photoimage tags
+rewrite RestorePoints
+rewirte paging to a factor based selection
+rewrite dynamic content selection
+new content notification disable on init sync
+rewrite Music sync
+reload skin after Kodi start option 
+music node not including libraryid
+
+
+6.2.20
+=============
+Improvements:
+------
+backport progress updates from 7.X
+
+
+6.2.18
+=============
+Fixes:
+------
+Special charecter issue for Kodi 18
+
+
 6.2.17
 =============
 Fixes:

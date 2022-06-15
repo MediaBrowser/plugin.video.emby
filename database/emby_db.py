@@ -176,6 +176,15 @@ class EmbyDatabase:
         self.cursor.execute("SELECT * FROM Mapping WHERE KodiId = ? AND KodiType = ?", (KodiId, KodiType))
         return self.cursor.fetchone()
 
+
+    def get_full_item_by_kodi_id_complete_all(self, KodiId, KodiType):
+        self.cursor.execute("SELECT * FROM Mapping WHERE KodiId = ? AND KodiType = ?", (KodiId, KodiType))
+        return self.cursor.fetchall()
+
+
+
+
+
     def get_media_by_id(self, EmbyId):
         self.cursor.execute("SELECT * FROM Mapping WHERE EmbyId = ?", (EmbyId,))
         return self.cursor.fetchall()
@@ -190,6 +199,9 @@ class EmbyDatabase:
 
     def remove_item_music(self, EmbyId):
         self.cursor.execute("DELETE FROM Mapping WHERE EmbyId = ?", (EmbyId,))
+
+    def remove_item_music_by_kodiid(self, KodiType, KodiId):
+        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId = ?", (KodiType, KodiId))
 
     def remove_item_music_by_libraryId(self, EmbyId, EmbyLibraryId):
         self.cursor.execute("SELECT EmbyLibraryId, KodiId, EmbyPresentationKey, KodiParentId FROM Mapping WHERE EmbyId = ?", (EmbyId,))

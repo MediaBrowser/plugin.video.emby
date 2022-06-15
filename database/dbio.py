@@ -1,5 +1,6 @@
 import sqlite3
 from _thread import get_ident
+
 from helper import utils, loghandler
 from . import emby_db, video_db, music_db, texture_db
 
@@ -9,7 +10,7 @@ LOG = loghandler.LOG('EMBY.database.dbio')
 
 
 def DBVacuum():
-    for DBID, DBFile in utils.DatabaseFiles.items():
+    for DBID, DBFile in list(utils.DatabaseFiles.items()):
         if 'version' in DBID:
             continue
 
@@ -17,8 +18,8 @@ def DBVacuum():
 
         if DBID in DBConnectionsRW:
             while DBConnectionsRW[DBID][1]:  #Wait for db unlock
-                LOG.info("DBOpenRW: Waiting %s" % DBID)
-                utils.waitForAbort(1)
+                LOG.info("DBOpenRW: Waiting Vacuum %s" % DBID)
+                utils.sleep(1)
         else:
             globals()["DBConnectionsRW"][DBID] = [None, False]
 
@@ -42,7 +43,7 @@ def DBVacuum():
 
 def DBOpenRO(DBID, TaskId):
     DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
-    globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:" + utils.DatabaseFiles[DBID] + "?immutable=1&mode=ro", uri=True, timeout=999999) #, check_same_thread=False
+    globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:" + utils.DatabaseFiles[DBID].decode('utf-8') + "?immutable=1&mode=ro", uri=True, timeout=999999) #, check_same_thread=False
     DBConnectionsRO[DBIDThreadID].execute("PRAGMA journal_mode=WAL")
     LOG.info("---> DBOpenRO: %s" % DBIDThreadID)
 
@@ -66,13 +67,13 @@ def DBCloseRO(DBID, TaskId):
 def DBOpenRW(DBID, TaskId):
     if DBID in DBConnectionsRW:
         while DBConnectionsRW[DBID][1]:  #Wait for db unlock
-            LOG.info("DBOpenRW: Waiting %s" % DBID)
-            utils.waitForAbort(1)
+            LOG.info("DBOpenRW: Waiting %s / %s" % (DBID, TaskId))
+            utils.sleep(1)
     else:
         globals()["DBConnectionsRW"][DBID] = [None, False]
 
     globals()["DBConnectionsRW"][DBID][1] = True
-    globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID], timeout=999999)
+    globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID].decode('utf-8'), timeout=999999)
     DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
     LOG.info("---> DBOpenRW: %s/%s" % (DBID, TaskId))
 
