@@ -200,9 +200,10 @@ class Monitor(xbmc.Monitor):
                 else:
                     LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
             else:
+                LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
                 LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
                 self.player.ItemSkipUpdate.remove(ItemData['ItemId'])
-                LOG.debug("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
+                LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
         dbio.DBClose(server_id, False)
 
@@ -397,6 +398,8 @@ class Monitor(xbmc.Monitor):
         UpdateItems = self.QueueItemsStatusupdate
         self.QueueItemsStatusupdate = ()
         self.QueryItemStatusThread = False
+        EmbyUpdateItems = {}
+        ItemsSkipUpdateRemove = []
 
         for server_id, EmbyServer in list(self.EmbyServers.items()):
             embydb = dbio.DBOpen(server_id)
@@ -411,35 +414,73 @@ class Monitor(xbmc.Monitor):
                     kodi_id = data['id']
                     media = data['type']
 
-                item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                items = embydb.get_full_item_by_kodi_id_complete_all(kodi_id, media)
 
-                if not item:
+                if not items:
                     continue
 
-                if 'item' in data and 'playcount' in data:
-                    if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                # detect multiversion EmbyId
+                UpdateItemsFiltered = []
+
+                for item in items:
+                    if int(item[0]) in self.player.ItemSkipUpdate:
+                        UpdateItemsFiltered.append(item)
+                        break
+
+                if not UpdateItemsFiltered:
+                    UpdateItemsFiltered = items
+
+                for UpdateItemFiltered in UpdateItemsFiltered:
+                    if int(UpdateItemFiltered[0]) not in ItemsSkipUpdateRemove:
+                        ItemsSkipUpdateRemove.append(int(UpdateItemFiltered[0]))
+
+                    if 'item' in data and 'playcount' in data:
                         if media in ("tvshow", "season"):
-                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
+                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, UpdateItemFiltered[0]))
                             continue
 
-                        LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
-                        self.player.ItemSkipUpdate.append(item[0])
-                        EmbyServer.API.set_played(item[0], bool(data['playcount']))
-                    else:
-                        LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
-                else:
-                    if 'item' not in data:
-                        if str(item[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
-                            # Due to lag of a proper notifications implementaion for Kodi, some magic to detect item playposition/progress reset
-                            # Also Kodi leaves the databases open and uncommited, therefore queries are useless at this point
-                            if not '{"item":%s}' % UpdateItem in UpdateItems:
-                                LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
-                                self.player.ItemSkipUpdate.append(item[0])
-                                EmbyServer.API.reset_progress(item[0])
+                        if int(UpdateItemFiltered[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                            LOG.info("[ VideoLibrary_OnUpdate update playcount %s ]" % UpdateItemFiltered[0])
+
+                            if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])]['PlayCount'] = data['playcount']
                             else:
-                                LOG.debug("VideoLibrary_OnUpdate skip reset progress episode/%s" % item[0])
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'PlayCount': data['playcount']}
+                        else:
+                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s ]" % UpdateItemFiltered[0])
+                    else:
+                        if 'item' not in data:
+                            if int(UpdateItemFiltered[0]) not in self.player.ItemSkipUpdate:  # Check EmbyID
+                                if not '{"item":%s}' % UpdateItem in UpdateItems:
+                                    LOG.info("[ VideoLibrary_OnUpdate reset progress %s ]" % UpdateItemFiltered[0])
+
+                                    if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])]['Progress'] = 0
+                                    else:
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'Progress': 0}
+                                else:
+                                    LOG.info("VideoLibrary_OnUpdate skip reset progress (UpdateItems) %s" % UpdateItemFiltered[0])
+                            else:
+                                LOG.info("VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) %s" % UpdateItemFiltered[0])
+
+            for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
+                if ItemSkipUpdateRemove in self.player.ItemSkipUpdate:
+                    self.player.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
+
+            for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
+                self.player.ItemSkipUpdate.append(EmbyItemId)
+
+                if 'Progress' in EmbyUpdateItem:
+                    if 'PlayCount' in EmbyUpdateItem:
+                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], EmbyUpdateItem['PlayCount'])
+                    else:
+                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], -1)
+                else:
+                    EmbyServer.API.set_played(EmbyItemId, EmbyUpdateItem['PlayCount'])
 
             dbio.DBClose(server_id, False)
+
+        LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(self.player.ItemSkipUpdate))
 
 def BackupRestore():
     RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
