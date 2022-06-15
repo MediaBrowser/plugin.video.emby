@@ -174,7 +174,7 @@ class PlayerEvents(xbmc.Player):
                                 PlayTrailer = True
 
                                 if utils.askCinema:
-                                    PlayTrailer = utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33016))
+                                    PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016))
 
                                 if PlayTrailer:
                                     self.Intros = self.EmbyServer.http.load_Trailers(EmbyId)
@@ -201,7 +201,7 @@ class PlayerEvents(xbmc.Player):
                         for Data in MediaSources:
                             Selection.append("%s - %s - %s" % (Data[4], utils.SizeToText(float(Data[5])), Data[3]))
 
-                        MediaIndex = utils.dialog("select", heading="Select Media Source:", list=Selection)
+                        MediaIndex = utils.Dialog.select(heading="Select Media Source:", list=Selection)
 
                         if MediaIndex == -1:
                             self.Cancel()
@@ -244,7 +244,7 @@ class PlayerEvents(xbmc.Player):
                 if VideoPlayback:
                     xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
 
-                self.ItemSkipUpdate.append(self.PlayingItem['ItemId'])
+                self.ItemSkipUpdate += [self.PlayingItem['ItemId'], self.PlayingItem['ItemId'], self.PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg) and once for Kodi database incoming msg
                 self.EmbyServer.API.session_playing(self.PlayingItem)
                 LOG.debug("ItemSkipUpdate: %s" % str(self.ItemSkipUpdate))
 
@@ -254,7 +254,7 @@ class PlayerEvents(xbmc.Player):
 
     def PositionTracker(self):  # threaded
         while self.EmbyServer and "ItemId" in self.PlayingItem and not utils.SystemShutdown:
-            if not utils.waitForAbort(4):
+            if not utils.sleep(4):
                 if self.isPlaying():
                     PositionTicks = max(int(self.getTime() * 10000000), 0)
                     self.PlayingItem['PositionTicks'] = PositionTicks
@@ -377,6 +377,7 @@ class PlayerEvents(xbmc.Player):
             RuntimeSeconds = float(Runtime / 10000000)
             PlayPositionSeconds = float(PlayPosition / 10000000)
             PercentProgress = PlayPosition / Runtime
+            Playcount = 0
 
             if self.MediaType == "musicvideo":
                 Data = json.loads(xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMusicVideoDetails", "params":{"musicvideoid":%s, "properties":["playcount"]}}' % self.KodiId))
@@ -421,16 +422,6 @@ class PlayerEvents(xbmc.Player):
                 elif self.MediaType == "movie":
                     Playcount += 1
                     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (self.KodiId, Playcount, RuntimeSeconds))
-
-
-
-
-
-#music!!!!!!!!!
-
-
-
-
             else:
                 LOG.info("Watched status %s: Progress %s" % (PlayingItemLocal['ItemId'], PlayPositionSeconds))
 
@@ -441,7 +432,6 @@ class PlayerEvents(xbmc.Player):
                 elif self.MediaType == "movie":
                     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "resume": {"position": %s,"total":%s}}}' % (self.KodiId, PlayPositionSeconds, RuntimeSeconds))
 
-        self.ItemSkipUpdate.append(PlayingItemLocal['ItemId'])
         self.EmbyServer.API.session_stop(PlayingItemLocal)
 
         if Transcoding:
@@ -461,7 +451,7 @@ class PlayerEvents(xbmc.Player):
                         if DeleteMsg:
                             LOG.info("Offer delete option")
 
-                            if utils.dialog("yesno", heading=utils.Translate(30091), line1=utils.Translate(33015)):
+                            if utils.Dialog.yesno(heading=utils.Translate(30091), message=utils.Translate(33015)):
                                 self.EmbyServer.API.delete_item(PlayingItemLocal['ItemId'])
                                 start_new_thread(self.EmbyServer.library.removed, ([PlayingItemLocal['ItemId']],))
 
@@ -490,7 +480,7 @@ class PlayerEvents(xbmc.Player):
 
 # Continue sync jobs
 def start_workers():
-    if not utils.waitForAbort(2):
+    if not utils.sleep(2):
         for _, EmbyServer in list(utils.EmbyServers.items()):
             EmbyServer.library.RunJobs()
 

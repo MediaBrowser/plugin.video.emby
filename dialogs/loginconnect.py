@@ -94,7 +94,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
 
         self._user = result
         username = result['User']['Name']
-        utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), username), icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), username), icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
         return True
 
     def _error(self, state, message):

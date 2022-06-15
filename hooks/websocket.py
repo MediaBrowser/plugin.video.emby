@@ -12,15 +12,14 @@ from _thread import start_new_thread
 import xbmc
 from helper import utils, playerops, loghandler
 
-XbmcPlayer = xbmc.Player()
 LOG = loghandler.LOG('Emby.hooks.websocket')
 actions = {
-    'Stop': XbmcPlayer.stop,
-    'Unpause': XbmcPlayer.pause,
-    'Pause': XbmcPlayer.pause,
-    'PlayPause': XbmcPlayer.pause,
-    'NextTrack': XbmcPlayer.playnext,
-    'PreviousTrack': XbmcPlayer.playprevious
+    'Stop': utils.XbmcPlayer.stop,
+    'Unpause': utils.XbmcPlayer.pause,
+    'Pause': utils.XbmcPlayer.pause,
+    'PlayPause': utils.XbmcPlayer.pause,
+    'NextTrack': utils.XbmcPlayer.playnext,
+    'PreviousTrack': utils.XbmcPlayer.playprevious
 }
 
 def maskData(mask_key, data):
@@ -59,13 +58,15 @@ class WSClient:
             self.stop = True
 
         if self.sock:
+            sockLocal = self.sock
+            self.sock = None
+
             try:
-                self.sock.shutdown(socket.SHUT_RDWR)
+                sockLocal.shutdown(socket.SHUT_RDWR)
             except:
                 pass
 
-            self.sock.close()
-            self.sock = None
+            sockLocal.close()
 
     def Listen(self):
         LOG.info("--->[ websocket ]")
@@ -98,11 +99,11 @@ class WSClient:
             self.ReconnectingInProgress = True
 
             while not self.stop:
-                utils.dialog("notification", heading=utils.addon_name, icon="DefaultIconError.png", message="Websocket connection offline", time=1000, sound=False)
+                utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message="Websocket connection offline", time=1000, sound=False)
                 self.close(False)
                 LOG.info("--->[ websocket reconnecting ]")
 
-                if utils.waitForAbort(5):
+                if utils.sleep(5):
                     break
 
                 if self.connect():
@@ -212,7 +213,7 @@ class WSClient:
         result = headers.get("sec-websocket-accept", None)
 
         if not result:
-            utils.dialog("notification", heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33235), sound=True)
+            utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33235), sound=True)
             return False
 
         value = "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11" % EncodingKey
@@ -259,10 +260,7 @@ class WSClient:
     def ping(self):
         while True:
             # Check Kodi shutdown
-            if utils.waitForAbort(10):
-                return
-
-            if self.stop or utils.SystemShutdown:
+            if utils.sleep(10) or self.stop:
                 return
 
             if not self.sendCommands(b"", 0x9):
@@ -367,7 +365,7 @@ class WSClient:
 
         if IncomingData['MessageType'] == 'GeneralCommand':
             if IncomingData['Data']['Name'] == 'DisplayMessage':
-                utils.dialog("notification", heading=IncomingData['Data']['Arguments']['Header'], message=IncomingData['Data']['Arguments']['Text'], icon=utils.icon, time=int(utils.displayMessage) * 1000)
+                utils.Dialog.notification(heading=IncomingData['Data']['Arguments']['Header'], message=IncomingData['Data']['Arguments']['Text'], icon=utils.icon, time=int(utils.displayMessage) * 1000)
             elif IncomingData['Data']['Name'] in ('Mute', 'Unmute'):
                 xbmc.executebuiltin('Mute')
             elif IncomingData['Data']['Name'] == 'SetVolume':
@@ -433,7 +431,7 @@ class WSClient:
                     else:
                         Progress = 0
 
-                    utils.progress_update(Progress, "Emby", "Server is busy: %s" % Task["Name"])
+                    utils.progress_update(Progress, utils.Translate(33199), "%s: %s" % (utils.Translate(33411), Task["Name"]))
                 else:
                     if Task["Name"] in self.TasksRunning:
                         self.TasksRunning = ([s for s in self.TasksRunning if s != Task["Name"]])
@@ -444,7 +442,7 @@ class WSClient:
                 self.SyncInProgress = True
                 start_new_thread(self.EmbyServerSyncCheck, ())
 
-            utils.progress_update(int(float(IncomingData['Data']['Progress'])), "Emby", "Server is busy: Sync in progress")
+            utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
         elif IncomingData['MessageType'] == 'UserDataChanged':
             self.EmbyServer.UserDataChanged(self.EmbyServer.server_id, IncomingData['Data']['UserDataList'], IncomingData['Data']['UserId'])
         elif IncomingData['MessageType'] == 'LibraryChanged':
@@ -467,23 +465,23 @@ class WSClient:
             self.EmbyServer.Online = False
 
             if utils.restartMsg:
-                utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33006), icon=utils.icon)
+                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33006), icon=utils.icon)
 
-            if utils.waitForAbort(5):
+            if utils.sleep(5):
                 return
 
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncomingData['MessageType'] == 'ServerShuttingDown':
             LOG.info("[ ServerShuttingDown ]")
             self.EmbyServer.Online = False
-            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33236))
+            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33236))
 
-            if utils.waitForAbort(5):
+            if utils.sleep(5):
                 return
 
             self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
         elif IncomingData['MessageType'] == 'RestartRequired':
-            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33237))
+            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33237))
         elif IncomingData['MessageType'] == 'Play':
             playerops.Play(IncomingData['Data']['ItemIds'], IncomingData['Data']['PlayCommand'], int(IncomingData['Data'].get('StartIndex', -1)), int(IncomingData['Data'].get('StartPositionTicks', -1)), self.EmbyServer)
         elif IncomingData['MessageType'] == 'Playstate':
@@ -492,12 +490,12 @@ class WSClient:
     def EmbyServerSyncCheck(self):
         LOG.info("--> Emby server is busy, sync in progress")
         utils.SyncPause[self.EmbyServer.server_id] = True
-        utils.progress_open("Emby Server busy")
+        utils.progress_open(utils.Translate(33411))
 
         while self.SyncRefresh or self.TasksRunning:
             self.SyncRefresh = False
 
-            if utils.waitForAbort(1): # every second a progress update is expected. If not, sync was canceled
+            if utils.sleep(5): # every 5 seconds a progress update is expected. If not, sync was canceled
                 break
 
         utils.progress_close()
@@ -509,9 +507,9 @@ class WSClient:
 # Emby playstate updates (websocket Incoming)
 def Playstate(Command, SeekPositionTicks):
     if Command == 'Seek':
-        if XbmcPlayer.isPlaying():
+        if utils.XbmcPlayer.isPlaying():
             seektime = SeekPositionTicks / 10000000.0
-            XbmcPlayer.seekTime(seektime)
+            utils.XbmcPlayer.seekTime(seektime)
             LOG.info("[ seek/%s ]" % seektime)
     elif Command in actions:
         actions[Command]()

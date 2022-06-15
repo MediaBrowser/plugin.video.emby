@@ -37,7 +37,7 @@ class EmbyServer:
 
     def ServerUnreachable(self):
         if not self.ServerReconnecting:
-            utils.dialog("notification", heading=utils.addon_name, message=utils.Translate(33146))
+            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33146))
             start_new_thread(self.ServerReconnect, ())
 
     def ServerReconnect(self, Terminate=True):
@@ -59,12 +59,12 @@ class EmbyServer:
 
                 # Delay reconnect: Fast 40 re-tries (first 10 seconds), after delay by 5 seconds
                 if Tries > 40:
-                    if utils.waitForAbort(5):
+                    if utils.sleep(5):
                         break
                 else:
                     Tries += 1
 
-                    if utils.waitForAbort(0.25):
+                    if utils.sleep(0.25):
                         break
 
             self.ServerReconnecting = False
@@ -118,7 +118,7 @@ class EmbyServer:
                 self.API.session_add_user(session[0]['Id'], UserId, True)
 
         if utils.connectMsg:
-            utils.dialog("notification", heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), session[0]['UserName']), icon=utils.icon, time=1500, sound=False)
+            utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), session[0]['UserName']), icon=utils.icon, time=1500, sound=False)
 
         self.Views.update_views()
         self.library.load_settings()

@@ -283,16 +283,17 @@ class API:
     def get_system_info(self):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "System/Configuration"}, False, False)
 
-    def reset_progress(self, item_id):
-        params = {
-            "PlaybackPositionTicks": 0,
-            "PlayCount": 0,
-            "Played": False
-        }
+    def set_progress(self, item_id, Progress, PlayCount):
+        params = {"PlaybackPositionTicks": Progress}
+
+        if PlayCount != -1:
+            params["PlayCount"] = PlayCount
+            params["Played"] = bool(PlayCount)
+
         self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
 
-    def set_played(self, item_id, watched):
-        if watched:
+    def set_played(self, item_id, PlayCount):
+        if PlayCount:
             self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
         else:
             self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)

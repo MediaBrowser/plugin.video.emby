@@ -1,7 +1,6 @@
 import json
 from _thread import start_new_thread
 import xbmc
-import xbmcgui
 from helper import pluginmenu, utils, playerops, xmls, loghandler
 from database import dbio
 from emby import emby
@@ -35,7 +34,7 @@ class monitor(xbmc.Monitor):
                 if not self.QueryItemRemoveThread:
                     self.QueryItemRemoveThread = True
                     start_new_thread(self.VideoLibrary_OnRemove, ())
-        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play'):
+        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload'):
             start_new_thread(self.Notification, (method, data))
 
     def Notification(self, method, data):  # threaded by caller
@@ -47,6 +46,9 @@ class monitor(xbmc.Monitor):
             Backup()
         elif method == 'Other.restore':
             BackupRestore()
+        elif method == 'Other.skinreload':
+            xbmc.executebuiltin('ReloadSkin()')
+            LOG.info("Reload skin")
         elif method == 'Other.reset_device_id':
             pluginmenu.reset_device_id()
         elif method == 'Other.addserver':
@@ -58,11 +60,11 @@ class monitor(xbmc.Monitor):
         elif method == 'Other.nodesreset':
             pluginmenu.nodesreset()
         elif method == 'Other.factoryreset':
-            if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33074)):
+            if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
                 pluginmenu.factoryreset()
         elif method == 'Other.texturecache':
             if not utils.artworkcacheenable:
-                utils.dialog("notification", heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False)
+                utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False)
             else:
                 pluginmenu.cache_textures()
         elif method == 'System.OnWake':
@@ -70,7 +72,7 @@ class monitor(xbmc.Monitor):
         elif method == 'System.OnSleep':
             self.System_OnSleep()
         elif method == 'System.OnQuit':
-            self.System_OnQuit()
+            System_OnQuit()
         elif method == 'Application.OnVolumeChanged':
             player.Player.SETVolume(data)
         elif method == 'Other.play':
@@ -103,87 +105,8 @@ class monitor(xbmc.Monitor):
 
         LOG.info("--<[ kodi clean/%s ]" % library)
 
-    def System_OnQuit(self):
-        LOG.warning("---<[ EXITING ]")
-        utils.SyncPause['kodi_busy'] = False
-        utils.SystemShutdown = True
-        webservice.close()
-
-        for EmbyServer in list(utils.EmbyServers.values()):
-            if player.Transcoding:
-                EmbyServer.API.close_transcode()
-
-        EmbyServer_DisconnectAll()
-
     def onSettingsChanged(self):
-        start_new_thread(self.settingschanged, ())
-
-    def settingschanged(self):  # threaded by caller
-        if utils.SkipUpdateSettings:
-            utils.SkipUpdateSettings -= 1
-            utils.SkipUpdateSettings = max(utils.SkipUpdateSettings, 0)
-
-        if utils.SkipUpdateSettings:
-            return
-
-        LOG.info("[ Reload settings ]")
-        RestartKodi = False
-        syncdatePrevious = utils.syncdate
-        synctimePrevious = utils.synctime
-        disablehttp2Previous = utils.disablehttp2
-        xspplaylistsPreviousValue = utils.xspplaylists
-        syncruntimelimitsPreviousValue = utils.syncruntimelimits
-        utils.InitSettings()
-
-        # Http2 mode changed, rebuild advanced settings -> restart Kodi
-        if disablehttp2Previous != utils.disablehttp2:
-            if xmls.advanced_settings():
-                RestartKodi = True
-
-        # Toggle runtimelimits setting
-        if syncruntimelimitsPreviousValue != utils.syncruntimelimits:
-            if xmls.advanced_settings_runtimelimits(None):
-                RestartKodi = True
-
-        # Restart Kodi
-        if RestartKodi:
-            utils.SystemShutdown = True
-            utils.SyncPause['kodi_busy'] = False
-            webservice.close()
-            EmbyServer_DisconnectAll()
-
-            if self.waitForAbort(5):  # Give Kodi time to complete startup before reset
-                return
-
-            xbmc.executebuiltin('RestartApp')
-            return
-
-        # Manual adjusted sync time/date
-        if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
-            LOG.info("[ Trigger initsync due to setting changed ]")
-            SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)
-            SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
-
-            for EmbyServer in list(utils.EmbyServers.values()):
-                EmbyServer.library.set_syncdate(SyncTimestamp)
-                start_new_thread(EmbyServer.library.InitSync, (False,))
-
-        for EmbyServer in list(utils.EmbyServers.values()):
-            EmbyServer.API.update_settings()
-
-        # Toggle xsp playlists
-        if xspplaylistsPreviousValue != utils.xspplaylists:
-            if utils.xspplaylists:
-                for EmbyServer in list(utils.EmbyServers.values()):
-                    EmbyServer.Views.update_nodes()
-            else:
-                # delete playlists
-                for playlistfolder in ['special://profile/playlists/video/', 'special://profile/playlists/music/']:
-                    if utils.checkFolderExists(playlistfolder):
-                        _, files = utils.listDir(playlistfolder)
-
-                        for Filename in files:
-                            utils.delFile("%s%s" % (playlistfolder, Filename))
+        start_new_thread(settingschanged, ())
 
     def System_OnWake(self):
         if not self.sleep:
@@ -208,12 +131,14 @@ class monitor(xbmc.Monitor):
 
     # Remove Items
     def VideoLibrary_OnRemove(self):
-        self.waitForAbort(0.5)
+        if utils.sleep(0.5):
+            return
+
         RemoveItems = self.QueueItemsRemove
         self.QueueItemsRemove = ()
         self.QueryItemRemoveThread = False
 
-        if utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33264)):
+        if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33264)):
             for server_id, EmbyServer in list(utils.EmbyServers.items()):
                 embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnRemove")
 
@@ -230,21 +155,26 @@ class monitor(xbmc.Monitor):
                     if media in ("tvshow", "season"):
                         continue
 
-                    item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                    items = embydb.get_full_item_by_kodi_id_complete_all(kodi_id, media)
 
-                    if not item:
+                    if not items:
                         continue
 
-                    EmbyServer.API.delete_item(item[0])
+                    for item in items:
+                        EmbyServer.API.delete_item(item[0])
 
                 dbio.DBCloseRO(server_id, "VideoLibrary_OnRemove")
 
     # Mark as watched/unwatched updates
     def VideoLibrary_OnUpdate(self):
-        self.waitForAbort(0.5)
+        if utils.sleep(0.5):
+            return
+
         UpdateItems = self.QueueItemsStatusupdate
         self.QueueItemsStatusupdate = ()
         self.QueryItemStatusThread = False
+        EmbyUpdateItems = {}
+        ItemsSkipUpdateRemove = []
 
         for server_id, EmbyServer in list(utils.EmbyServers.items()):
             embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnUpdate")
@@ -259,50 +189,87 @@ class monitor(xbmc.Monitor):
                     kodi_id = data['id']
                     media = data['type']
 
-                item = embydb.get_full_item_by_kodi_id_complete(kodi_id, media)
+                items = embydb.get_full_item_by_kodi_id_complete_all(kodi_id, media)
 
-                if not item:
+                if not items:
                     continue
 
-                if 'item' in data and 'playcount' in data:
-                    if str(item[0]) not in player.Player.ItemSkipUpdate:  # Check EmbyID
+                # detect multiversion EmbyId
+                UpdateItemsFiltered = []
+
+                for item in items:
+                    if int(item[0]) in player.Player.ItemSkipUpdate:
+                        UpdateItemsFiltered.append(item)
+                        break
+
+                if not UpdateItemsFiltered:
+                    UpdateItemsFiltered = items
+
+                for UpdateItemFiltered in UpdateItemsFiltered:
+                    if int(UpdateItemFiltered[0]) not in ItemsSkipUpdateRemove:
+                        ItemsSkipUpdateRemove.append(int(UpdateItemFiltered[0]))
+
+                    if 'item' in data and 'playcount' in data:
                         if media in ("tvshow", "season"):
-                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, item[0]))
+                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, UpdateItemFiltered[0]))
                             continue
 
-                        LOG.info("[ VideoLibrary_OnUpdate update playcount episode/%s ]" % item[0])
-                        player.Player.ItemSkipUpdate.append(item[0])
-                        EmbyServer.API.set_played(item[0], bool(data['playcount']))
-                    else:
-                        LOG.info("[ VideoLibrary_OnUpdate skip playcount episode/%s ]" % item[0])
-                else:
-                    if 'item' not in data:
-                        if str(item[0]) not in player.Player.ItemSkipUpdate:  # Check EmbyID
-                            # Due to lag of a proper notifications implementaion for Kodi, some magic to detect item playposition/progress reset
-                            # Also Kodi leaves the databases open and uncommited, therefore queries are useless at this point
-                            if not '{"item":%s}' % UpdateItem in UpdateItems:
-                                LOG.info("[ VideoLibrary_OnUpdate reset progress episode/%s ]" % item[0])
-                                player.Player.ItemSkipUpdate.append(item[0])
-                                EmbyServer.API.reset_progress(item[0])
+                        if int(UpdateItemFiltered[0]) not in player.Player.ItemSkipUpdate:  # Check EmbyID
+                            LOG.info("[ VideoLibrary_OnUpdate update playcount %s ]" % UpdateItemFiltered[0])
+
+                            if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])]['PlayCount'] = data['playcount']
                             else:
-                                LOG.debug("VideoLibrary_OnUpdate skip reset progress episode/%s" % item[0])
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'PlayCount': data['playcount']}
+                        else:
+                            LOG.info("[ VideoLibrary_OnUpdate skip playcount %s ]" % UpdateItemFiltered[0])
+                    else:
+                        if 'item' not in data:
+                            if int(UpdateItemFiltered[0]) not in player.Player.ItemSkipUpdate:  # Check EmbyID
+                                if not '{"item":%s}' % UpdateItem in UpdateItems:
+                                    LOG.info("[ VideoLibrary_OnUpdate reset progress %s ]" % UpdateItemFiltered[0])
+
+                                    if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])]['Progress'] = 0
+                                    else:
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'Progress': 0}
+                                else:
+                                    LOG.info("VideoLibrary_OnUpdate skip reset progress (UpdateItems) %s" % UpdateItemFiltered[0])
+                            else:
+                                LOG.info("VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) %s" % UpdateItemFiltered[0])
+
+            for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
+                if ItemSkipUpdateRemove in player.Player.ItemSkipUpdate:
+                    player.Player.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
+
+            for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
+                player.Player.ItemSkipUpdate.append(EmbyItemId)
+
+                if 'Progress' in EmbyUpdateItem:
+                    if 'PlayCount' in EmbyUpdateItem:
+                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], EmbyUpdateItem['PlayCount'])
+                    else:
+                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], -1)
+                else:
+                    EmbyServer.API.set_played(EmbyItemId, EmbyUpdateItem['PlayCount'])
 
             dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
 
+        LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(player.Player.ItemSkipUpdate))
         pluginmenu.reset_episodes_cache()
 
 def BackupRestore():
-    RestoreFolder = xbmcgui.Dialog().browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
+    RestoreFolder = utils.Dialog.browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
     MinVersionPath = "%s%s" % (RestoreFolder, 'minimumversion.txt')
 
     if not utils.checkFileExists(MinVersionPath):
-        utils.dialog("notification", heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33224), sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33224), sound=False)
         return
 
     BackupVersion = utils.readFileString(MinVersionPath)
 
     if BackupVersion != utils.MinimumVersion:
-        utils.dialog("notification", heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33225), sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33225), sound=False)
         return
 
     xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
@@ -331,12 +298,12 @@ def BackupRestore():
 # Emby backup
 def Backup():
     if not utils.backupPath:
-        utils.dialog("notification", heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33229), sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33229), sound=False)
         return None
 
     path = utils.backupPath
     folder_name = "Kodi%s - %s-%s" % (xbmc.getInfoLabel('System.BuildVersion')[:2], xbmc.getInfoLabel('System.Date(yyyy-mm-dd)'), xbmc.getInfoLabel('System.Time(hh:mm:ss xx)'))
-    folder_name = utils.dialog("input", heading=utils.Translate(33089), defaultt=folder_name)
+    folder_name = utils.Dialog.input(heading=utils.Translate(33089), defaultt=folder_name)
 
     if not folder_name:
         return None
@@ -344,7 +311,7 @@ def Backup():
     backup = "%s%s/" % (path, folder_name)
 
     if utils.checkFolderExists(backup):
-        if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33090)):
+        if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33090)):
             return Backup()
 
         utils.delFolder(backup)
@@ -371,7 +338,7 @@ def Backup():
 
     utils.writeFileString("%s%s" % (backup, 'minimumversion.txt'), utils.MinimumVersion)
     LOG.info("backup completed")
-    utils.dialog("ok", heading=utils.addon_name, line1="%s %s" % (utils.Translate(33091), backup))
+    utils.Dialog.ok(heading=utils.addon_name, message="%s %s" % (utils.Translate(33091), backup))
     return None
 
 
@@ -406,6 +373,7 @@ def UserDataChanged(server_id, UserDataList, UserId):
             else:
                 LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
         else:
+            LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(player.Player.ItemSkipUpdate))
             LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
             player.Player.ItemSkipUpdate.remove(ItemData['ItemId'])
             LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(player.Player.ItemSkipUpdate))
@@ -430,3 +398,82 @@ def ServerConnect(ServerSettings):
 
     utils.EmbyServers[server_id] = EmbyServer
     return True
+
+def settingschanged():  # threaded by caller
+    if utils.SkipUpdateSettings:
+        utils.SkipUpdateSettings -= 1
+        utils.SkipUpdateSettings = max(utils.SkipUpdateSettings, 0)
+
+    if utils.SkipUpdateSettings:
+        return
+
+    LOG.info("[ Reload settings ]")
+    RestartKodi = False
+    syncdatePrevious = utils.syncdate
+    synctimePrevious = utils.synctime
+    disablehttp2Previous = utils.disablehttp2
+    xspplaylistsPreviousValue = utils.xspplaylists
+    syncruntimelimitsPreviousValue = utils.syncruntimelimits
+    utils.InitSettings()
+
+    # Http2 mode changed, rebuild advanced settings -> restart Kodi
+    if disablehttp2Previous != utils.disablehttp2:
+        if xmls.advanced_settings():
+            RestartKodi = True
+
+    # Toggle runtimelimits setting
+    if syncruntimelimitsPreviousValue != utils.syncruntimelimits:
+        if xmls.advanced_settings_runtimelimits(None):
+            RestartKodi = True
+
+    # Restart Kodi
+    if RestartKodi:
+        utils.SystemShutdown = True
+        utils.SyncPause = {}
+        webservice.close()
+        EmbyServer_DisconnectAll()
+
+        if utils.sleep(5):  # Give Kodi time to complete startup before reset
+            return
+
+        xbmc.executebuiltin('RestartApp')
+        return
+
+    # Manual adjusted sync time/date
+    if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
+        LOG.info("[ Trigger initsync due to setting changed ]")
+        SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)
+        SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
+
+        for EmbyServer in list(utils.EmbyServers.values()):
+            EmbyServer.library.set_syncdate(SyncTimestamp)
+            start_new_thread(EmbyServer.library.InitSync, (False,))
+
+    for EmbyServer in list(utils.EmbyServers.values()):
+        EmbyServer.API.update_settings()
+
+    # Toggle xsp playlists
+    if xspplaylistsPreviousValue != utils.xspplaylists:
+        if utils.xspplaylists:
+            for EmbyServer in list(utils.EmbyServers.values()):
+                EmbyServer.Views.update_nodes()
+        else:
+            # delete playlists
+            for playlistfolder in ['special://profile/playlists/video/', 'special://profile/playlists/music/']:
+                if utils.checkFolderExists(playlistfolder):
+                    _, files = utils.listDir(playlistfolder)
+
+                    for Filename in files:
+                        utils.delFile("%s%s" % (playlistfolder, Filename))
+
+def System_OnQuit():
+    LOG.warning("---<[ EXITING ]")
+    utils.SystemShutdown = True
+    utils.SyncPause = {}
+    webservice.close()
+
+    for EmbyServer in list(utils.EmbyServers.values()):
+        if player.Transcoding:
+            EmbyServer.API.close_transcode()
+
+    EmbyServer_DisconnectAll()

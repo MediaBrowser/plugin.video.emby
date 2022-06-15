@@ -1068,167 +1068,167 @@ msgstr "Por etiqueta"
 
 msgctxt "#33221"
 msgid "Enable userrating sync"
-msgstr ""
+msgstr "Habilitar sincronización de calificación de usuario"
 
 msgctxt "#33222"
 msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
-msgstr ""
+msgstr "ADVERTENCIA FINAL: ¡Se requiere un restablecimiento completo de la base de datos! "
 
 msgctxt "#33223"
 msgid "Database reset required, wait for Kodi restart."
-msgstr ""
+msgstr "Se requiere restablecer la base de datos, espere a que se reinicie Kodi."
 
 msgctxt "#33224"
 msgid "Invalid backup path"
-msgstr ""
+msgstr "Ruta de copia de seguridad no válida"
 
 msgctxt "#33225"
 msgid "Invalid backup"
-msgstr ""
+msgstr "Copia de seguridad inválida"
 
 msgctxt "#33226"
 msgid "Artwork cache in progress"
-msgstr ""
+msgstr "caché de ilustraciones en progreso"
 
 msgctxt "#33227"
 msgid "Webserver must be enabled for artwork cache. Enable now?"
-msgstr ""
+msgstr "El servidor web debe estar habilitado para la caché de ilustraciones. "
 
 msgctxt "#33228"
 msgid "No password found, set password to 'kodi'"
-msgstr ""
+msgstr "No se encontró la contraseña, establezca la contraseña en 'kodi'"
 
 msgctxt "#33229"
 msgid "No backup path set"
-msgstr ""
+msgstr "No se estableció una ruta de respaldo"
 
 msgctxt "#33230"
 msgid "select"
-msgstr ""
+msgstr "seleccionar"
 
 msgctxt "#33231"
 msgid "Special Features"
-msgstr ""
+msgstr "Características especiales"
 
 msgctxt "#33232"
 msgid "Live TV sync finished"
-msgstr ""
+msgstr "Sincronización de TV en vivo finalizada"
 
 msgctxt "#33233"
 msgid "Please install and enable iptvsimple"
-msgstr ""
+msgstr "Instale y habilite iptvsimple"
 
 msgctxt "#33234"
 msgid "Sync LiveTV"
-msgstr ""
+msgstr "sincronizar TV en vivo"
 
 msgctxt "#33235"
 msgid "Websocket is offline"
-msgstr ""
+msgstr "Websocket está fuera de línea"
 
 msgctxt "#33236"
 msgid "Emby server shutdown"
-msgstr ""
+msgstr "apagado del servidor Emby"
 
 msgctxt "#33237"
 msgid "Emby server restart required"
-msgstr ""
+msgstr "Se requiere reinicio del servidor Emby"
 
 msgctxt "#33238"
 msgid "Add library"
-msgstr ""
+msgstr "Agregar biblioteca"
 
 msgctxt "#33239"
 msgid "Enable smart playlists (this could cause Kodi crashes)"
-msgstr ""
+msgstr "habilite listas de reproducción inteligentes (esto podría causar bloqueos de Kodi)"
 
 msgctxt "#33240"
 msgid "Enable userrating"
-msgstr ""
+msgstr "Habilitar calificación de usuario"
 
 msgctxt "#33241"
 msgid "Enable local trailers"
-msgstr ""
+msgstr "Habilitar remolques locales"
 
 msgctxt "#33242"
 msgid "Enable trailers"
-msgstr ""
+msgstr "Habilitar remolques"
 
 msgctxt "#33243"
 msgid "Transcode"
-msgstr ""
+msgstr "Transcodificar"
 
 msgctxt "#33244"
 msgid "Output format video"
-msgstr ""
+msgstr "formato de salida de vídeo"
 
 msgctxt "#33245"
 msgid "Output format audio"
-msgstr ""
+msgstr "formato de salida de audio"
 
 msgctxt "#33246"
 msgid "Show options in plugin menu"
-msgstr ""
+msgstr "Mostrar opciones en el menú del complemento"
 
 msgctxt "#33247"
 msgid "Date info"
-msgstr ""
+msgstr "Información de fecha"
 
 msgctxt "#33248"
 msgid "Genres"
-msgstr ""
+msgstr "Géneros"
 
 msgctxt "#33249"
 msgid "Studios"
-msgstr ""
+msgstr "Estudios"
 
 msgctxt "#33250"
 msgid "Taglines"
-msgstr ""
+msgstr "Lemas"
 
 msgctxt "#33251"
 msgid "Overview"
-msgstr ""
+msgstr "Resumen"
 
 msgctxt "#33252"
 msgid "Production locations"
-msgstr ""
+msgstr "Lugares de producción"
 
 msgctxt "#33253"
 msgid "Dynamic libraries"
-msgstr ""
+msgstr "bibliotecas dinámicas"
 
 msgctxt "#33254"
 msgid "Compatibility mode"
-msgstr ""
+msgstr "Modo de compatibilidad"
 
 msgctxt "#33255"
 msgid "Restore backup"
-msgstr ""
+msgstr "Restaurar copia de seguridad"
 
 msgctxt "#33256"
 msgid "Which artwork should be cached"
-msgstr ""
+msgstr "Qué obra de arte debe almacenarse en caché"
 
 msgctxt "#33257"
 msgid "Video"
-msgstr ""
+msgstr "Vídeo"
 
 msgctxt "#33258"
 msgid "Music"
-msgstr ""
+msgstr "Música"
 
 msgctxt "#33259"
 msgid "Incremental sync date"
-msgstr ""
+msgstr "fecha de sincronización incremental"
 
 msgctxt "#33260"
 msgid "Incremental sync time"
-msgstr ""
+msgstr "Tiempo de sincronización incremental"
 
 msgctxt "#33261"
 msgid "Collecting removed items"
-msgstr ""
+msgstr "Recopilación de elementos eliminados"
 
 msgctxt "#33262"
 msgid "Enable cinema mode (movies)"
@@ -1240,568 +1240,601 @@ msgstr "Activar modo cine (tv shows)"
 
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
-msgstr ""
+msgstr "¿Eliminar elementos también del servidor Emby? "
 
 msgctxt "#33265"
 msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
-msgstr ""
+msgstr "¿Eliminar ARCHIVOS también del servidor Emby por eventos de Kodi? "
 
 msgctxt "#33266"
 msgid "Enable FILE delete on Kodi events"
-msgstr ""
+msgstr "Habilitar eliminación de ARCHIVO en eventos de Kodi"
 
 msgctxt "#33267"
 msgid "Disable HTTP2 suppport"
-msgstr ""
+msgstr "Desactivar soporte HTTP2"
 
 msgctxt "#33268"
 msgid "Kodi restart initiated due to advancedsettings.xml changes"
-msgstr ""
+msgstr "reinicio de Kodi iniciado debido a cambios en advancedsettings.xml"
 
 msgctxt "#33269"
 msgid "1.3 Mbps HD"
-msgstr ""
+msgstr "1,3 Mbps de alta definición"
 
 msgctxt "#33270"
 msgid "2.0 Mbps HD"
-msgstr ""
+msgstr "2,0 Mbps de alta definición"
 
 msgctxt "#33271"
 msgid "3.2 Mbps HD"
-msgstr ""
+msgstr "3,2 Mbps de alta definición"
 
 msgctxt "#33272"
 msgid "4.7 Mbps HD"
-msgstr ""
+msgstr "4,7 Mbps de alta definición"
 
 msgctxt "#33273"
 msgid "6.2 Mbps HD"
-msgstr ""
+msgstr "6,2 Mbps de alta definición"
 
 msgctxt "#33274"
 msgid "7.7 Mbps HD"
-msgstr ""
+msgstr "7,7 Mbps de alta definición"
 
 msgctxt "#33275"
 msgid "9.2 Mbps HD"
-msgstr ""
+msgstr "9,2 Mbps de alta definición"
 
 msgctxt "#33276"
 msgid "10.7 Mbps HD"
-msgstr ""
+msgstr "10,7 Mbps de alta definición"
 
 msgctxt "#33277"
 msgid "12.2 Mbps HD"
-msgstr ""
+msgstr "12,2 Mbps de alta definición"
 
 msgctxt "#33278"
 msgid "13.7 Mbps HD"
-msgstr ""
+msgstr "13,7 Mbps de alta definición"
 
 msgctxt "#33279"
 msgid "15.2 Mbps HD"
-msgstr ""
+msgstr "15,2 Mbps de alta definición"
 
 msgctxt "#33280"
 msgid "16.7 Mbps HD"
-msgstr ""
+msgstr "16,7 Mbps de alta definición"
 
 msgctxt "#33281"
 msgid "18.2 Mbps HD"
-msgstr ""
+msgstr "18,2 Mbps de alta definición"
 
 msgctxt "#33282"
 msgid "20.0 Mbps HD"
-msgstr ""
+msgstr "20,0 Mbps de alta definición"
 
 msgctxt "#33283"
 msgid "25.0 Mbps HD"
-msgstr ""
+msgstr "25,0 Mbps de alta definición"
 
 msgctxt "#33284"
 msgid "30.0 Mbps HD"
-msgstr ""
+msgstr "30,0 Mbps de alta definición"
 
 msgctxt "#33285"
 msgid "35.0 Mbps HD"
-msgstr ""
+msgstr "35,0 Mbps de alta definición"
 
 msgctxt "#33286"
 msgid "40.0 Mbps HD"
-msgstr ""
+msgstr "40,0 Mbps de alta definición"
 
 msgctxt "#33287"
 msgid "100.0 Mbps HD"
-msgstr ""
+msgstr "100,0 Mbps de alta definición"
 
 msgctxt "#33288"
 msgid "1000.0 Mbps HD"
-msgstr ""
+msgstr "1000,0 Mbps de alta definición"
 
 msgctxt "#33289"
 msgid "64 Kbps"
-msgstr ""
+msgstr "64 kbps"
 
 msgctxt "#33290"
 msgid "96 Kbps"
-msgstr ""
+msgstr "96 kbps"
 
 msgctxt "#33291"
 msgid "128 Kbps"
-msgstr ""
+msgstr "128 kbps"
 
 msgctxt "#33292"
 msgid "192 Kbps"
-msgstr ""
+msgstr "192 kbps"
 
 msgctxt "#33293"
 msgid "256 Kbps"
-msgstr ""
+msgstr "256 kbps"
 
 msgctxt "#33294"
 msgid "320 Kbps"
-msgstr ""
+msgstr "320 kbps"
 
 msgctxt "#33295"
 msgid "384 Kbps"
-msgstr ""
+msgstr "384Kbps"
 
 msgctxt "#33296"
 msgid "448 Kbps"
-msgstr ""
+msgstr "448 kbps"
 
 msgctxt "#33297"
 msgid "512 Kbps"
-msgstr ""
+msgstr "512 kbps"
 
 msgctxt "#33298"
 msgid "Cinema mode"
-msgstr ""
+msgstr "Modo cine"
 
 msgctxt "#33299"
 msgid "Artwork"
-msgstr ""
+msgstr "Ilustraciones"
 
 msgctxt "#33300"
 msgid "Menu"
-msgstr ""
+msgstr "Menú"
 
 msgctxt "#33301"
 msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
-msgstr ""
+msgstr "El modo de compatibilidad cambia la identificación del complemento a 4.x (plugin.video.emby). "
 
 msgctxt "#33302"
 msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity"
-msgstr ""
+msgstr "En algunas circunstancias (WLan, retraso en el inicio de la red, etc.), el retraso en el inicio del complemento puede mejorar la conectividad"
 
 msgctxt "#33303"
 msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
-msgstr ""
+msgstr "Puede ajustar qué metainformación se carga para el contenido dinámico (no sincronizado). "
 
 msgctxt "#33304"
 msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
-msgstr ""
+msgstr "Cuidado con esta opcion. "
 
 msgctxt "#33305"
 msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
-msgstr ""
+msgstr "Esta es una opción de depuración. "
 
 msgctxt "#33306"
 msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
-msgstr ""
+msgstr "Restablece la identificación única del dispositivo. "
 
 msgctxt "#33307"
 msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
-msgstr ""
+msgstr "Conéctese a un nuevo servidor Emby (multiservidor) o vuelva a conectar un servidor Emby existente (depuración)"
 
 msgctxt "#33308"
 msgid "Show hidden users on Emby server for connections ops."
-msgstr ""
+msgstr "Mostrar usuarios ocultos en el servidor Emby para operaciones de conexión."
 
 msgctxt "#33309"
 msgid "Add/Remove/Repair libraries, live TV, themes."
-msgstr ""
+msgstr "Agregar/Eliminar/Reparar bibliotecas, TV en vivo, temas."
 
 msgctxt "#33310"
 msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
-msgstr ""
+msgstr "sincroniza todas las ilustraciones localmente con Kodi. "
 
 msgctxt "#33311"
 msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
-msgstr ""
+msgstr "Algunas máscaras usan listas de reproducción xps. "
 
 msgctxt "#33312"
 msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
-msgstr ""
+msgstr "Las calificaciones de usuario son información adicional para sincronizar con Kodi. "
 
 msgctxt "#33313"
 msgid "Performs a complete Kodi database resync. Settings and artwork are optionally resetted."
-msgstr ""
+msgstr "Realiza una resincronización completa de la base de datos de Kodi. "
 
 msgctxt "#33314"
 msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
-msgstr ""
+msgstr "El modo cine es una característica principal de Emby. "
 
 msgctxt "#33315"
 msgid "Transcode audio bitrate"
-msgstr ""
+msgstr "Tasa de bits de audio de transcodificación"
 
 msgctxt "#33316"
 msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
-msgstr ""
+msgstr "Velocidad de red. "
 
 msgctxt "#33318"
 msgid "Devicename report to Emby server."
-msgstr ""
+msgstr "Informe de nombre de dispositivo al servidor Emby."
 
 msgctxt "#33319"
 msgid "Report playback progress to additional users."
-msgstr ""
+msgstr "Informar sobre el progreso de la reproducción a usuarios adicionales."
 
 msgctxt "#33320"
 msgid "Gap between playback stopped and continuation start."
-msgstr ""
+msgstr "Intervalo entre la reproducción detenida y el inicio de la continuación."
 
 msgctxt "#33321"
 msgid "This is a Emby server feature."
-msgstr ""
+msgstr "Esta es una característica del servidor Emby."
 
 msgctxt "#33322"
 msgid "Can save bandwith"
-msgstr ""
+msgstr "Puede ahorrar ancho de banda"
 
 msgctxt "#33323"
 msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
-msgstr ""
+msgstr "En algunos casos, es útil mostrar opciones de menú en el menú del complemento como accesos directos. "
 
 msgctxt "#33324"
 msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
-msgstr ""
+msgstr "El menú de contactos admite la gestión de favoritos, opciones de eliminación, selecciones de funciones especiales (películas), etc."
 
 msgctxt "#33325"
 msgid "Audio Bitrate"
-msgstr ""
+msgstr "Tasa de bits de audio"
 
 msgctxt "#33326"
 msgid "h264"
-msgstr ""
+msgstr "h264"
 
 msgctxt "#33327"
 msgid "hevc"
-msgstr ""
+msgstr "hevc"
 
 msgctxt "#33328"
 msgid "aac"
-msgstr ""
+msgstr "aac"
 
 msgctxt "#33329"
 msgid "ac3"
-msgstr ""
+msgstr "ac3"
 
 msgctxt "#33330"
 msgid "664 Kbps SD"
-msgstr ""
+msgstr "664 Kbps"
 
 msgctxt "#33331"
 msgid "996 Kbps HD"
-msgstr ""
+msgstr "996 Kbps HD"
 
 msgctxt "#33332"
 msgid "Maximum artwork cache threads"
-msgstr ""
+msgstr "subprocesos máximos de caché de ilustraciones"
 
 msgctxt "#33333"
 msgid "Animated icon"
-msgstr ""
+msgstr "Icono animado"
 
 msgctxt "#33334"
 msgid "Refresh skin on Emby server connection"
-msgstr ""
+msgstr "Actualizar máscara en la conexión del servidor Emby"
 
 msgctxt "#33335"
 msgid "Folder"
-msgstr ""
+msgstr "Carpeta"
 
 msgctxt "#33336"
 msgid "Mixed content"
-msgstr ""
+msgstr "Contenido mixto"
 
 msgctxt "#33337"
 msgid "In progress"
-msgstr ""
+msgstr "En curso"
 
 msgctxt "#33338"
 msgid "Random episodes"
-msgstr ""
+msgstr "Episodios aleatorios"
 
 msgctxt "#33339"
 msgid "Random TVShows"
-msgstr ""
+msgstr "Programas de TV aleatorios"
 
 msgctxt "#33340"
 msgid "Factory reset"
-msgstr ""
+msgstr "Restablecimiento de fábrica"
 
 msgctxt "#33341"
 msgid "Nodes reset"
-msgstr ""
+msgstr "Reinicio de nodos"
 
 msgctxt "#33342"
 msgid "Are you sure you want to reset your nodes?"
-msgstr ""
+msgstr "¿Está seguro de que desea restablecer sus nodos?"
 
 msgctxt "#33343"
 msgid "Artists"
-msgstr ""
+msgstr "Artistas"
 
 msgctxt "#33344"
 msgid "Unwatched Episodes"
-msgstr ""
+msgstr "Episodios no vistos"
 
 msgctxt "#33345"
 msgid "Unwatched TV Shows"
-msgstr ""
+msgstr "programas de televisión no vistos"
 
 msgctxt "#33346"
 msgid "Favorite TVShows"
-msgstr ""
+msgstr "programas de TV favoritos"
 
 msgctxt "#33347"
 msgid "Recently played TV Show"
-msgstr ""
+msgstr "Programa de TV reproducido recientemente"
 
 msgctxt "#33348"
 msgid "Upcoming episodes"
-msgstr ""
+msgstr "Próximos episodios"
 
 msgctxt "#33349"
 msgid "TV Shows"
-msgstr ""
+msgstr "programas de televisión"
 
 msgctxt "#33350"
 msgid "Recently played"
-msgstr ""
+msgstr "Reproducido recientemente"
 
 msgctxt "#33351"
 msgid "Recently played Episode"
-msgstr ""
+msgstr "Episodio reproducido recientemente"
 
 msgctxt "#33352"
 msgid "Directors"
-msgstr ""
+msgstr "Directores"
 
 msgctxt "#33353"
 msgid "TV Show tags"
-msgstr ""
+msgstr "etiquetas de programas de televisión"
 
 msgctxt "#33354"
 msgid "Episode tags"
-msgstr ""
+msgstr "Etiquetas de episodios"
 
 msgctxt "#33355"
 msgid "Resume episodes"
-msgstr ""
+msgstr "Reanudar episodios"
 
 msgctxt "#33356"
 msgid "Movie tags"
-msgstr ""
+msgstr "Etiquetas de películas"
 
 msgctxt "#33357"
 msgid "Resume movie"
-msgstr ""
+msgstr "Reanudar película"
 
 msgctxt "#33358"
 msgid "Countries"
-msgstr ""
+msgstr "Países"
 
 msgctxt "#33359"
 msgid "HD"
-msgstr ""
+msgstr "alta definición"
 
 msgctxt "#33360"
 msgid "SD"
-msgstr ""
+msgstr "SD"
 
 msgctxt "#33361"
 msgid "4K"
-msgstr ""
+msgstr "4K"
 
 msgctxt "#33362"
 msgid "Albums"
-msgstr ""
+msgstr "Álbumes"
 
 msgctxt "#33363"
 msgid "Musicvideos"
-msgstr ""
+msgstr "Videos musicales"
 
 msgctxt "#33364"
 msgid "Musicvideo tags"
-msgstr ""
+msgstr "Etiquetas de vídeos musicales"
 
 msgctxt "#33365"
 msgid "Random musicvideos"
-msgstr ""
+msgstr "Videos musicales aleatorios"
 
 msgctxt "#33366"
 msgid "Resume musicvideos"
-msgstr ""
+msgstr "Reanudar vídeos musicales"
 
 msgctxt "#33367"
 msgid "Videos"
-msgstr ""
+msgstr "Vídeos"
 
 msgctxt "#33368"
 msgid "Photos"
-msgstr ""
+msgstr "Fotos"
 
 msgctxt "#33369"
 msgid "Photoalbums"
-msgstr ""
+msgstr "Álbumes de fotos"
 
 msgctxt "#33370"
 msgid "Photoalbum tags"
-msgstr ""
+msgstr "etiquetas de álbum de fotos"
 
 msgctxt "#33371"
 msgid "Photo tags"
-msgstr ""
+msgstr "Etiquetas de fotos"
 
 msgctxt "#33372"
 msgid "Video tags"
-msgstr ""
+msgstr "Etiquetas de vídeo"
 
 msgctxt "#33373"
 msgid "Recently added photos"
-msgstr ""
+msgstr "Fotos añadidas recientemente"
 
 msgctxt "#33374"
 msgid "Recently added photoalbums"
-msgstr ""
+msgstr "Álbumes de fotos agregados recientemente"
 
 msgctxt "#33375"
 msgid "Recently added videos"
-msgstr ""
+msgstr "Vídeos añadidos recientemente"
 
 msgctxt "#33376"
 msgid "Playlists"
-msgstr ""
+msgstr "Listas de reproducción"
 
 msgctxt "#33377"
 msgid "Audiobooks"
-msgstr ""
+msgstr "Audiolibros"
 
 msgctxt "#33378"
 msgid "Random audiobooks"
-msgstr ""
+msgstr "Audiolibros aleatorios"
 
 msgctxt "#33379"
 msgid "Unlistened"
-msgstr ""
+msgstr "no escuchado"
 
 msgctxt "#33380"
 msgid "Random songs"
-msgstr ""
+msgstr "Canciones aleatorias"
 
 msgctxt "#33381"
 msgid "Random podcasts"
-msgstr ""
+msgstr "podcasts aleatorios"
 
 msgctxt "#33382"
 msgid "Podcasts"
-msgstr ""
+msgstr "podcasts"
 
 msgctxt "#33383"
 msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever posssible"
-msgstr ""
+msgstr "Los nodos sincronizados son mucho más rápidos que los nodos dinámicos. "
 
 msgctxt "#33384"
 msgid "Dynamic nodes are build on the fly. This has na impact to performace. Try to avoid where ever possible"
-msgstr ""
+msgstr "Los nodos dinámicos se construyen sobre la marcha. "
 
 msgctxt "#33385"
 msgid "Favorite musicvideos"
-msgstr ""
+msgstr "Vídeos musicales favoritos"
 
 msgctxt "#33386"
 msgid "Synced nodes"
-msgstr ""
+msgstr "Nodos sincronizados"
 
 msgctxt "#33387"
 msgid "Dynamic nodes"
-msgstr ""
+msgstr "Nodos dinámicos"
 
 msgctxt "#33388"
 msgid "Recently added albums"
-msgstr ""
+msgstr "Álbumes agregados recientemente"
 
 msgctxt "#33389"
 msgid "Recently added audiobooks"
-msgstr ""
+msgstr "audiolibros agregados recientemente"
 
 msgctxt "#33390"
 msgid "Recently added songs"
-msgstr ""
+msgstr "Canciones agregadas recientemente"
 
 msgctxt "#33391"
 msgid "Random albums"
-msgstr ""
+msgstr "Álbumes aleatorios"
 
 msgctxt "#33392"
 msgid "Random songs"
-msgstr ""
+msgstr "Canciones aleatorias"
 
 msgctxt "#33393"
 msgid "Random audiobooks"
-msgstr ""
+msgstr "Audiolibros aleatorios"
 
 msgctxt "#33394"
 msgid "Random podcasts"
-msgstr ""
+msgstr "podcasts aleatorios"
 
 msgctxt "#33395"
 msgid "Recently added podcasts"
-msgstr ""
+msgstr "Podcasts agregados recientemente"
 
 msgctxt "#33396"
 msgid "Add/Remove/Repair libraries, live TV, themes"
-msgstr ""
+msgstr "Agregar/Eliminar/Reparar bibliotecas, TV en vivo, temas"
 
 msgctxt "#33398"
 msgid "Open plugin settings"
-msgstr ""
+msgstr "Abrir la configuración del complemento"
 
 msgctxt "#33400"
 msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
-msgstr ""
+msgstr "Realiza una resincronización completa de la base de datos de Kodi (incluido el contenido que no es de Emby). "
 
 msgctxt "#33401"
 msgid "Reset all custom nodes and rebuild them"
-msgstr ""
+msgstr "Restablecer todos los nodos personalizados y reconstruirlos"
 
 msgctxt "#33402"
 msgid "Node query limit"
-msgstr ""
+msgstr "Límite de consulta de nodo"
 
 msgctxt "#33403"
 msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
-msgstr ""
+msgstr "Limitar consultas para nodos de progreso. "
 
 msgctxt "#33404"
 msgid "Nodes"
-msgstr ""
+msgstr "Nodos"
 
 msgctxt "#33405"
 msgid "Use playback resume option from Emby server"
-msgstr ""
+msgstr "Usar la opción de reanudar la reproducción desde el servidor Emby"
 
 msgctxt "#33406"
 msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
-msgstr ""
+msgstr "esta función desactiva las actualizaciones de progreso internas de Kodi. "
 
 msgctxt "#33407"
 msgid "Vacuum datbases on Kodi shutdown"
-msgstr ""
+msgstr "bases de datos de vacío en el apagado de Kodi"
 
 msgctxt "#33408"
 msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
-msgstr ""
+msgstr "La base de datos será reconstruida y optimizada, por el costo de un retraso en el cierre"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Recargar piel"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Otro"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Servidor Emby ocupado"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Eliminar archivos de ilustraciones"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Actualizar vistas"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Server ocupado: Sincronización en curso"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Eliminar Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "base de datos"
+

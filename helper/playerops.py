@@ -4,7 +4,6 @@ from database import dbio
 from emby import listitem
 
 Pictures = []
-XbmcPlayer = xbmc.Player()
 
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
     Data = embydb.get_KodiId_KodiType_by_EmbyId(EmbyID)
@@ -45,6 +44,7 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
 def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
     FirstItem = True
     Offset = 0
+    isPlaylist = False
     embydb = dbio.DBOpenRO(EmbyServer.server_id, "AddPlaylistItem")
     globals()["Pictures"] = []
 
@@ -76,7 +76,7 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
                                 Pos = 0
 
                             PlaylistStartIndex = Pos + Offset
-                            XbmcPlayer.play(item=playlist, startpos=PlaylistStartIndex)
+                            utils.XbmcPlayer.play(item=playlist, startpos=PlaylistStartIndex)
                             setPlayerPosition(StartPositionTicks)
                             Offset = 0
                             FirstItem = False
@@ -87,7 +87,7 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
                         if Pos == -1:
                             Pos = 0
 
-                        XbmcPlayer.play(item=playlist, startpos=Pos + Offset)
+                        utils.XbmcPlayer.play(item=playlist, startpos=Pos + Offset)
                         setPlayerPosition(StartPositionTicks)
                         Offset = 0
                         FirstItem = False
@@ -102,8 +102,6 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
         xbmc.executebuiltin('Action(Stop)')
         xbmc.executebuiltin('Action(Back)')
         xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {"playlistid": 2}}')
-#        xbmc.executebuiltin('ReplaceWindow(10000)')
-#        xbmc.executebuiltin('ActivateWindow(10002,"plugin://%s/?mode=remotepictures&position=%s",return)' % (utils.PluginId, StartIndex))
         xbmc.executebuiltin('ReplaceWindow(10002,"plugin://%s/?mode=remotepictures&position=%s")' % (utils.PluginId, StartIndex))
 
 def setPlayerPosition(StartPositionTicks):
@@ -111,18 +109,18 @@ def setPlayerPosition(StartPositionTicks):
         Position = StartPositionTicks / 10000000
 
         for _ in range(10):
-            if XbmcPlayer.isPlaying():
+            if utils.XbmcPlayer.isPlaying():
                 for _ in range(10):
-                    XbmcPlayer.seekTime(Position)
-                    CurrentTime = XbmcPlayer.getTime()
+                    utils.XbmcPlayer.seekTime(Position)
+                    CurrentTime = utils.XbmcPlayer.getTime()
 
                     if CurrentTime >= Position - 10:
                         return
 
-                    if utils.waitForAbort(0.5):
+                    if utils.sleep(0.5):
                         return
             else:
-                if utils.waitForAbort(0.5):
+                if utils.sleep(0.5):
                     return
 
 def GetPlaylistPos(Position, playlist, Offset):

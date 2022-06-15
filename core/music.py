@@ -313,7 +313,6 @@ class Music:
 
     def remove(self, Item):
         if Item['Type'] == 'Audio':
-            self.music_db.common.delete_artwork(Item['KodiItemId'], "song")
             self.music_db.delete_song(Item['KodiItemId'])
             self.emby_db.remove_item_music(Item['Id'])
             LOG.info("DELETE song [%s] %s" % (Item['KodiItemId'], Item['Id']))
@@ -326,19 +325,19 @@ class Music:
             LibraryIds = [Item['Library']['Id']]
             KodiItemIds = [Item['KodiItemId']]
 
-        for MultiItemIndex in range(len(LibraryIds)):
-            if not Item['DeleteByLibraryId'] or LibraryIds[MultiItemIndex] in Item['DeleteByLibraryId']:
+        for Index, LibraryId in enumerate(LibraryIds):
+            if not Item['DeleteByLibraryId'] or LibraryId in Item['DeleteByLibraryId']:
                 if Item['Type'] == 'MusicAlbum':
-                    self.music_db.common.delete_artwork(KodiItemIds[MultiItemIndex], "album")
-                    self.music_db.common.delete_artwork(KodiItemIds[MultiItemIndex], "single")
-                    self.music_db.delete_album(KodiItemIds[MultiItemIndex], LibraryIds[MultiItemIndex])
-                    LOG.info("DELETE album [%s] %s" % (KodiItemIds[MultiItemIndex], Item['Id']))
+                    self.music_db.common.delete_artwork(KodiItemIds[Index], "album")
+                    self.music_db.common.delete_artwork(KodiItemIds[Index], "single")
+                    self.music_db.delete_album(KodiItemIds[Index], LibraryId)
+                    LOG.info("DELETE album [%s] %s" % (KodiItemIds[Index], Item['Id']))
                 elif Item['Type'] == 'MusicArtist':
-                    self.music_db.common.delete_artwork(KodiItemIds[MultiItemIndex], "artist")
-                    self.music_db.delete_artist(KodiItemIds[MultiItemIndex], LibraryIds[MultiItemIndex])
-                    LOG.info("DELETE artist [%s] %s" % (KodiItemIds[MultiItemIndex], Item['Id']))
+                    self.music_db.common.delete_artwork(KodiItemIds[Index], "artist")
+                    self.music_db.delete_artist(KodiItemIds[Index], LibraryId)
+                    LOG.info("DELETE artist [%s] %s" % (KodiItemIds[Index], Item['Id']))
 
-                self.emby_db.remove_item_music_by_libraryId(Item['Id'], LibraryIds[MultiItemIndex])
+                self.emby_db.remove_item_music_by_libraryId(Item['Id'], LibraryId)
 
     def get_ArtistInfos(self, item, Id):
         Artists = []
@@ -378,7 +377,7 @@ class Music:
                     ArtistItem['KodiId'] = self.NEWKodiArtistId
 
                 KodiIdList = str(ArtistItem['KodiId']).split(",")
-                ArtistItem['SortName'] = self.music_db.get_ArtistSortname(int(KodiIdList[0]))
+                ArtistItem['SortName'] = self.music_db.get_ArtistSortname(KodiIdList[0])
                 KodiIds.append(str(ArtistItem['KodiId']))
                 Sortname = ArtistItem['SortName'].replace("The ", "")
                 Sortname = Sortname.replace("Der ", "")

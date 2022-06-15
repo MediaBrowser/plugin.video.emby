@@ -6,7 +6,7 @@ class CommonDatabase:
 
     # reset
     def delete_tables(self, DatabaseName):
-        utils.progress_open("Delete %s Database" % DatabaseName)
+        utils.progress_open("%s-%s %s" % (utils.Translate(33415), DatabaseName, utils.Translate(33416)))
         self.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
         tables = self.cursor.fetchall()
         Counter = 0
@@ -17,7 +17,7 @@ class CommonDatabase:
 
             if name not in ('version', 'versiontagscan'):
                 Counter += 1
-                utils.progress_update(int(Counter * Increment), "Emby", "Delete Kodi-%s Database: %s" % (DatabaseName, name))
+                utils.progress_update(int(Counter * Increment), utils.Translate(33199), "%s-%s %s: %s" % (utils.Translate(33415), DatabaseName, utils.Translate(33416), name))
                 self.cursor.execute("DELETE FROM " + name)
 
         utils.progress_close()

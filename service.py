@@ -1,3 +1,4 @@
+from _thread import start_new_thread
 import xbmc
 import hooks.monitor
 from helper import utils, xmls, loghandler, pluginmenu
@@ -8,7 +9,7 @@ LOG = loghandler.LOG('EMBY.service')
 
 def ServersConnect():
     if utils.startupDelay:
-        if utils.waitForAbort(utils.startupDelay):
+        if utils.sleep(utils.startupDelay):
             return
 
         if utils.SystemShutdown:
@@ -27,23 +28,19 @@ def ServersConnect():
     else:
         for ServerSettings in ServersSettings:
             while not hooks.monitor.ServerConnect(ServerSettings):
-                if utils.waitForAbort(2):
+                if utils.sleep(2):
                     return
 
     # Shutdown
     utils.StartupComplete = True
-    utils.waitForAbort()
+    utils.sleep(0)
     utils.SyncPause = {}
     utils.DBBusy = False
-
-    if not utils.SystemShutdown:
-        hooks.monitor.webservice.close()
-        hooks.monitor.EmbyServer_DisconnectAll()
-
-    utils.SystemShutdown = True
+    hooks.monitor.webservice.close()
+    hooks.monitor.EmbyServer_DisconnectAll()
 
     if utils.databasevacuum:
-        dbio.DBVacuum()
+        start_new_thread(dbio.DBVacuum, ()) # thread vaccuum to prevent Kodi killing this task
 
 def setup():
     xmls.KodiDefaultNodes()
@@ -51,7 +48,7 @@ def setup():
     xmls.add_favorites()
 
     if xmls.advanced_settings():
-        if utils.waitForAbort(5):  # Give Kodi time to complete startup before reset
+        if utils.sleep(5):  # Give Kodi time to complete startup before reset
             return False
 
         return False
@@ -61,11 +58,11 @@ def setup():
 
     # Clean installation
     if not utils.MinimumSetup:
-        value = utils.dialog("yesno", heading=utils.Translate(30511), line1=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
+        value = utils.Dialog.yesno(heading=utils.Translate(30511), message=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
 
         if value:
             utils.set_settings_bool('useDirectPaths', True)
-            utils.dialog("ok", heading=utils.addon_name, line1=utils.Translate(33145))
+            utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33145))
         else:
             utils.set_settings_bool('useDirectPaths', False)
 
@@ -73,7 +70,7 @@ def setup():
         utils.set_settings('MinimumSetup', utils.MinimumVersion)
         return True
 
-    if not utils.dialog("yesno", heading=utils.addon_name, line1=utils.Translate(33222)):
+    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)):
         return "stop"
 
     utils.set_settings('MinimumSetup', utils.MinimumVersion)
