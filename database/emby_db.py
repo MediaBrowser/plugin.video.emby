@@ -188,6 +188,10 @@ class EmbyDatabase:
         self.cursor.execute("SELECT * FROM mapping WHERE kodi_id = ? AND kodi_type = ?", args)
         return self.cursor.fetchone()
 
+    def get_full_item_by_kodi_id_complete_all(self, KodiId, KodiType):
+        self.cursor.execute("SELECT * FROM Mapping WHERE kodi_id = ? AND kodi_type = ?", (KodiId, KodiType))
+        return self.cursor.fetchall()
+
     def get_media_by_parent_id(self, *args):
         self.cursor.execute("SELECT emby_id, emby_type, kodi_id, kodi_fileid, emby_folder FROM mapping WHERE emby_parent_id = ?", args)
         return self.cursor.fetchall()

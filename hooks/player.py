@@ -250,7 +250,7 @@ class PlayerEvents(xbmc.Player):
                 if VideoPlayback:
                     xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
 
-                self.ItemSkipUpdate.append(self.PlayingItem['ItemId'])
+                self.ItemSkipUpdate += [self.PlayingItem['ItemId'], self.PlayingItem['ItemId'], self.PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg) and once for Kodi database incoming msg
                 self.EmbyServer.API.session_playing(self.PlayingItem)
 
                 if not self.PositionTrackerThread:
@@ -371,7 +371,6 @@ class PlayerEvents(xbmc.Player):
         if not self.EmbyServer or 'ItemId' not in PlayingItemLocal:
             return
 
-        self.ItemSkipUpdate.append(PlayingItemLocal['ItemId'])
         self.EmbyServer.API.session_stop(PlayingItemLocal)
 
         if self.Transcoding:
