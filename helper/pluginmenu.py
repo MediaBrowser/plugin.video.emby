@@ -426,17 +426,18 @@ class Menu:
         self.ListItemData = []
         xbmcplugin.setPluginCategory(Handle, name)
 
-        for node in DYNNODES[media]:
-            params = {
-                'id': view_id,
-                'mode': "browse",
-                'type': media,
-                'folder': view_id if node[0] == 'all' else node[0],
-                'name': name,
-                'server': server_id
-            }
-            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
-            self.add_ListItem(node[1] or name, path, True, node[2], None)
+        if media:
+            for node in DYNNODES[media]:
+                params = {
+                    'id': view_id,
+                    'mode': "browse",
+                    'type': media,
+                    'folder': view_id if node[0] == 'all' else node[0],
+                    'name': name,
+                    'server': server_id
+                }
+                path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
+                self.add_ListItem(node[1] or name, path, True, node[2], None)
 
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
         xbmcplugin.setContent(Handle, 'files')

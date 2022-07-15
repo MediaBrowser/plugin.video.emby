@@ -50,8 +50,20 @@ class API:
     def get_user_artwork(self, user_id):
         return "%s/emby/Users/%s/Images/Primary?Format=original" % (self.EmbyServer.server, user_id)
 
-    def set_progress(self, item_id, Progress, PlayCount, LastPlayedDate):
-        self._http("POST", "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id), {'params': {"PlaybackPositionTicks": Progress, "PlayCount": PlayCount, "Played": bool(PlayCount), "LastPlayedDate": LastPlayedDate}})
+    def set_progress(self, item_id, Progress, PlayCount):
+        params = {"PlaybackPositionTicks": Progress}
+
+        if PlayCount != -1:
+            params["PlayCount"] = PlayCount
+            params["Played"] = bool(PlayCount)
+
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
+
+    def set_played(self, item_id, PlayCount):
+        if PlayCount:
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+        else:
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
 
     def browse_MusicByArtistId(self, Artist_id, Parent_id, Media, Extra):
         params = {
@@ -401,13 +413,6 @@ class API:
 
     def session_stop(self, data):
         self._http("POST", "Sessions/Playing/Stopped", {'params': data})
-
-    def item_played(self, item_id, watched):
-        if watched:
-            self._http("POST", "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id), {})
-            return
-
-        self._http("DELETE", "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id), {})
 
     def get_sync_queue(self, date, filters):
         return self._http("GET", "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.user_id, {'params': {'LastUpdateDT': date, 'filter': filters or None}})

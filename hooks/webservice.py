@@ -220,9 +220,6 @@ class WebService(threading.Thread):
         self.embydb = dbio.DBOpen(QueryData['ServerId'])
 
         if QueryData['KodiId']:  # Item synced to Kodi DB
-            self.Player.ItemSkipUpdate += [QueryData['EmbyID'], QueryData['EmbyID'], QueryData['EmbyID']]  # add 3 times due to staggered removal on events -> 2x monitor.py/UserDataChanged (Emby update), 1x monitor.py/VideoLibrary_OnUpdate (Kodi update)
-            LOG.debug("ItemSkipUpdate: %s" % str(self.Player.ItemSkipUpdate))
-
             if QueryData['MediasourcesCount'] == 1:
                 if QueryData['Type'] == 'embyiso':
                     self.LoadISO(QueryData, 0)
