@@ -1,11 +1,9 @@
 import xbmc
-import xbmcaddon
 from database import dbio
 from dialogs import context
 from emby import listitem
 from . import utils, loghandler
 
-XmlPath = (xbmcaddon.Addon(utils.PluginId).getAddonInfo('path'), "default", "1080i")
 SelectOptions = {'Refresh': utils.Translate(30410), 'Delete': utils.Translate(30409), 'Addon': utils.Translate(30408), 'AddFav': utils.Translate(30405), 'RemoveFav': utils.Translate(30406), 'SpecialFeatures': "Special Features"}
 LOG = loghandler.LOG('EMBY.helper.context')
 
@@ -18,10 +16,11 @@ def load_item():
         kodi_id = xbmc.getInfoLabel('ListItem.DBID')
         media = xbmc.getInfoLabel('ListItem.DBTYPE')
         embydb = dbio.DBOpenRO(server_id, "load_item")
-        item = embydb.get_full_item_by_kodi_id(kodi_id, media)
+        item = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
         dbio.DBCloseRO(server_id, "load_item")
 
         if item:
+            item = item[0]
             break
 
     return item, server_id
@@ -53,7 +52,7 @@ def select_menu():
 
     dbio.DBCloseRO(server_id, "select_menu")
 
-    if item[4]:
+    if item[10]:
         options.append(SelectOptions['RemoveFav'])
     else:
         options.append(SelectOptions['AddFav'])
@@ -67,7 +66,7 @@ def select_menu():
         options.append(SelectOptions['Delete'])
 
     options.append(SelectOptions['Addon'])
-    context_menu = context.ContextMenu("script-emby-context.xml", *XmlPath)
+    context_menu = context.ContextMenu("script-emby-context.xml", *utils.CustomDialogParameters)
     context_menu.PassVar(options)
     context_menu.doModal()
 
@@ -90,7 +89,7 @@ def select_menu():
             for SpecialFeaturesSelection in SpecialFeaturesSelections:
                 MenuData.append(SpecialFeaturesSelection['Name'])
 
-            resp = utils.dialog(utils.Translate(33230), utils.Translate(33231), MenuData)
+            resp = utils.Dialog.select(utils.Translate(33231), MenuData)
 
             if resp < 0:
                 return
@@ -100,9 +99,9 @@ def select_menu():
             li = listitem.set_ListItem(SpecialFeatureItem, server_id)
 
             if len(SpecialFeatureItem['MediaSources'][0]['MediaStreams']) >= 1:
-                path = "http://127.0.0.1:57342/m-%s-%s-%s-None-None-%s-0-1-%s-%s" % (server_id, SpecialFeatureItem['Id'], SpecialFeatureItem['MediaSources'][0]['Id'], SpecialFeatureItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], SpecialFeatureItem['MediaSources'][0]['MediaStreams'][0]['Codec'], utils.PathToFilenameReplaceSpecialCharecters(SpecialFeatureItem['Path']))
+                path = "http://127.0.0.1:57342/m-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-0-%s" % (server_id, SpecialFeatureItem['Id'], SpecialFeatureItem['MediaSources'][0]['Id'], SpecialFeatureItem['MediaSources'][0]['MediaStreams'][0]['BitRate'], SpecialFeatureItem['MediaSources'][0]['MediaStreams'][0]['Codec'], utils.PathToFilenameReplaceSpecialCharecters(SpecialFeatureItem['Path']))
             else:
-                path = "http://127.0.0.1:57342/m-%s-%s-%s-None-None-%s-0-1-%s-%s" % (server_id, SpecialFeatureItem['Id'], SpecialFeatureItem['MediaSources'][0]['Id'], 0, "", utils.PathToFilenameReplaceSpecialCharecters(SpecialFeatureItem['Path']))
+                path = "http://127.0.0.1:57342/m-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (server_id, SpecialFeatureItem['Id'], SpecialFeatureItem['MediaSources'][0]['Id'], utils.PathToFilenameReplaceSpecialCharecters(SpecialFeatureItem['Path']))
 
             li.setProperty('path', path)
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)

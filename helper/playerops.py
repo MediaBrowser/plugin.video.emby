@@ -5,6 +5,7 @@ from emby import listitem
 
 Pictures = []
 
+
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
     Data = embydb.get_KodiId_KodiType_by_EmbyId(EmbyID)
 
@@ -16,7 +17,7 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
             playlistID = 1
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), Data[0][1], Data[0][0]))
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), Data[0][1], int(Data[0][0])))
     else:
         item = EmbyServer.API.get_Item(EmbyID, ['Everything'], True, False)
         li = listitem.set_ListItem(item, EmbyServer.server_id)

@@ -80,6 +80,7 @@ SyncNodes = {
         ('years', utils.Translate(33218), 'DefaultMusicYears.png'),
         ('genres', utils.Translate(33248), 'DefaultMusicGenres.png'),
         ('artists', utils.Translate(33343), 'DefaultMusicArtists.png'),
+        ('composers', utils.Translate(33426), 'DefaultMusicArtists.png'),
         ('albums', utils.Translate(33362), 'DefaultMusicAlbums.png'),
         ('recentlyaddedalbums', utils.Translate(33388), 'DefaultMusicRecentlyAdded.png'),
         ('recentlyaddedsongs', utils.Translate(33390), 'DefaultMusicRecentlyAdded.png'),
@@ -233,15 +234,7 @@ class Views:
         else:
             return
 
-        Total = len(Libraries)
-        Counter = 1
-        utils.progress_open(utils.Translate(33413))
-
         for library in Libraries:
-            Percent = int(float(Counter) / float(Total) * 100)
-            Counter += 1
-            utils.progress_update(Percent, utils.Translate(33199), utils.Translate(33413))
-
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
                 library['MediaType'] = "podcasts"
             elif library['Type'] == 'Channel' or library['Name'].lower() == "local trailers" or library['Name'].lower() == "trailers":
@@ -261,8 +254,6 @@ class Views:
                 iconpath = ""
 
             self.ViewItems[library['Id']] = [library['Name'], library['MediaType'], iconpath]
-
-        utils.progress_close()
 
     # Remove playlist based on LibraryId
     def delete_playlist_by_id(self, LibraryId):
@@ -397,7 +388,7 @@ def add_nodes(path, view):
                 content = xml.etree.ElementTree.SubElement(xmlData, 'content')
 
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                    if node[0] in ("genres", "artists"):
+                    if node[0] in ("genres", "artists", "composers"):
                         content.text = "artists"
                         operator = "is"
                         field = "disambiguation"
@@ -571,6 +562,11 @@ def node_actors(root):
     xml.etree.ElementTree.SubElement(root, 'group').text = "actors"
 
 def node_artists(root):
+    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "artists"
+    xml.etree.ElementTree.SubElement(root, 'group').text = "artists"
+
+def node_composers(root):
+    xml.etree.ElementTree.SubElement(root, "rule", {'field': "role", 'operator': "is"}).text = "composer"
     xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "artists"
     xml.etree.ElementTree.SubElement(root, 'group').text = "artists"
 

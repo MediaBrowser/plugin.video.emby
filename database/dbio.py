@@ -65,6 +65,9 @@ def DBCloseRO(DBID, TaskId):
     LOG.info("---< DBCloseRO: %s" % DBIDThreadID)
 
 def DBOpenRW(DBID, TaskId):
+    if DBID == "folder":
+        return None
+
     if DBID in DBConnectionsRW:
         while DBConnectionsRW[DBID][1]:  #Wait for db unlock
             LOG.info("DBOpenRW: Waiting %s / %s" % (DBID, TaskId))
@@ -89,6 +92,9 @@ def DBOpenRW(DBID, TaskId):
     return emby_db.EmbyDatabase(DBConnectionsRW[DBID][0].cursor())
 
 def DBCloseRW(DBID, TaskId):
+    if DBID == "folder":
+        return
+
     changes = DBConnectionsRW[DBID][0].total_changes
 
     if changes:
@@ -98,11 +104,3 @@ def DBCloseRW(DBID, TaskId):
     DBConnectionsRW[DBID][0].close()
     globals()["DBConnectionsRW"][DBID][1] = False
     LOG.info("---< DBCloseRW: %s/%s/%s rows updated on db close" % (DBID, changes, TaskId))
-
-def DBCommitRW(DBID):
-    changes = DBConnectionsRW[DBID][0].total_changes
-
-    if changes:
-        DBConnectionsRW[DBID][0].commit()
-
-    LOG.info("---> DBCommitRW: %s/%s rows updated" % (DBID, changes))

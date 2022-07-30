@@ -1834,3 +1834,42 @@ msgctxt "#33416"
 msgid "Database"
 msgstr "Databas"
 
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Hoppa över introt"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "En meddelanderuta kommer att fråga efter hopp till introduktionens slutposition"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr ""
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr ""
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr ""
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr ""
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr ""
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr ""
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr ""
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr ""

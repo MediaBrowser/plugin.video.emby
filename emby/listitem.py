@@ -8,6 +8,7 @@ def set_ListItem(item, server_id):
     listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True)
     Properties = {}
     common.set_KodiArtwork(item, server_id)
+    item['LibraryIds'] = [item['Library']['Id']]
 
     if item['Type'] == 'Folder' or item.get('NodesMenu', False):
         common.set_overview(item)
@@ -44,7 +45,7 @@ def set_ListItem(item, server_id):
 
         common.get_streams(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -73,7 +74,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -109,7 +110,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "Series":
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'tvshowtitle': item['Name'],
@@ -147,7 +148,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "Season":
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'tvshowtitle': item['SeriesName'],
@@ -188,7 +189,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'tvshowtitle': item['SeriesName'],
@@ -243,7 +244,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_overview(item)
         common.set_MusicVideoTracks(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -279,7 +280,7 @@ def set_ListItem(item, server_id):
         common.set_RunTimeTicks(item)
         common.get_streams(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -396,7 +397,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "BoxSet":
         common.set_RunTimeTicks(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id)
+        common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
             'sorttitle': item.get('SortName', None),

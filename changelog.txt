@@ -1,3 +1,115 @@
+7.7.0
+=============
+Fixes and improvements:
+------
+add additional database index for music (faster music database queries)
+add artwork cache disc space verification
+add support for chapter images with text overlay for artwork cache
+fix (regular) boxset refresh option
+add support for realtime boxset updates
+catch invalid databases issue -> trigger database master reset -> this should never appear -> edge case
+add detection for corrupted setting file
+fix next up episodes (now exactly identical view like on Emby server's "next up") and improve node performance
+
+
+7.6.1
+=============
+Fixes and improvements:
+------
+add additional logs
+fix invalid people (cast) issue
+fix invalid aspect ratio issue
+fix alternative device name
+add custom composer node
+improve artwork cache, currently supported format are jpg, png
+fix videoplayer window focus on multiselection
+
+
+7.6.0
+=============
+Fixes and improvements:
+------
+Fix special feature selection
+Add another index in database (improves delete content by parent Id queries)
+Fix multiversion item removal
+Fix Emby server >= 4.8.0.4 Library ID issue
+
+
+7.5.2
+=============
+Fixes and improvements:
+------
+Fix musicvideos update issue
+Fix root folder sync issue
+Fix minor music artist (realtime) sync issue (in very special cases) and only when new content was added.
+Add autoclose option to yes/no messageboxes for: cinnemamode, skip into, skip credits, delete option. Default 5 Seconds, timing adjustable in interface option.
+
+
+7.5.1
+=============
+Fixes and improvements:
+------
+Add landscape image to episodes
+Fix root folder sync issue
+Fix artwork loading issue
+
+
+7.4.0
+=============
+Fixes and improvements:
+------
+Change skip intro implementation (if enabled, no more msg box by default) -> addon mode
+Add skip credits support -> addon mode
+Add skip intro and credits support -> native mode
+Fix cinnemamode -> native mode
+
+
+7.3.1
+=============
+Fixes and improvements:
+------
+Fix realtime content added issue
+
+
+7.3.0
+=============
+Fixes and improvements:
+------
+fix item remove issue (when moving content from one folder to another) -> major improvement (db went out of sync in previous version)
+database performance improvements (adding indexs and reviewed all sql queries)
+add support for same content (same folder) assigned to multiple libraries (major code update, even if this is just for an edge case)
+fix Musicvideo Artist picture issue
+fix Music "single" (album) delete issue
+fix multicontent selection in native mode for edge cases (Item path != Mediasource[0]["Path"]
+fix audio progress in native mode
+add composer support for music
+fix progress update issue when multiple Emby servers are synced to Kodi
+fix content watched state when Kodi resets play position and content is makred as watched (playcount)
+fix special features selection
+fix progress report to Emby server for native mode when multi content is playing
+
+
+7.2.0
+=============
+Fixes and improvements:
+------
+fix Artist Album assignment
+fix Album update -> year not updated
+remove discography in kodi db (not a Kodi stock function, and has no benefit)
+some minor music database fixes
+fix remote playback strm files
+add playable verification for remote content -> if not directplay possible, fallback to transcoding
+remove header queries from picture files
+
+
+7.1.0
+=============
+Fixes and improvements:
+------
+fix End Intro
+add jump to intro end support
+
+
 7.0.8
 =============
 Fixes and improvements:

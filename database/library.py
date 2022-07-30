@@ -1,6 +1,6 @@
 import json
 import xbmc
-from core import movies, musicvideos, tvshows, music, common
+from core import movies, musicvideos, tvshows, music, folder, common
 from helper import utils, loghandler, pluginmenu
 from . import dbio
 
@@ -10,12 +10,11 @@ LOG = loghandler.LOG('EMBY.database.library')
 
 class Library:
     def __init__(self, EmbyServer):
-        LOG.info("--->[ library ]")
+        LOG.info("-->[ library ]")
         self.EmbyServer = EmbyServer
         self.WhitelistArray = []
         self.Whitelist = {}
-        self.LastStartSync = ""
-        self.LastRealtimeSync = ""
+        self.LastSyncTime = ""
         self.ContentObject = None
         self.EmbyDBOpen = False
 
@@ -51,9 +50,10 @@ class Library:
         LOG.info("-->[ worker %s started ] queue size: %d" % (Worker, len(Items)))
         return True, Items
 
-    def close_Worker(self, TaskId):
+    def close_Worker(self, TaskId, MusicSynced, VideoSynced):
         utils.progress_close()
         self.close_EmbyDBRW(TaskId)
+        close_KodiDatabase(MusicSynced, VideoSynced)
         globals()["WorkerInProgress"] = False
 
     def open_EmbyDBRW(self, TaskId):
@@ -78,36 +78,41 @@ class Library:
     def set_syncdate(self, TimestampUTC):
         # Update sync update timestamp
         embydb = self.open_EmbyDBRW("set_syncdate")
-        embydb.update_LastIncrementalSync(TimestampUTC, "realtime")
-        embydb.update_LastIncrementalSync(TimestampUTC, "start")
-        self.LastRealtimeSync = TimestampUTC
-        self.LastStartSync = TimestampUTC
-        LastRealtimeSyncLocalTime = utils.convert_to_local(self.LastRealtimeSync)
-        utils.set_syncdate(LastRealtimeSyncLocalTime)
+        embydb.update_LastIncrementalSync(TimestampUTC)
         self.close_EmbyDBRW("set_syncdate")
+        self.LastSyncTime = TimestampUTC
+        LastSyncTimeLocalTime = utils.convert_to_local(self.LastSyncTime)
+        utils.set_syncdate(LastSyncTimeLocalTime)
 
     def load_settings(self):
         # Load essential data and prefetching Media tags
         embydb = self.open_EmbyDBRW("load_settings")
-        embydb.init_EmbyDB()
-        self.Whitelist, self.WhitelistArray = embydb.get_Whitelist()
-        kodidb = dbio.DBOpenRO("video", "load_settings")
+
+        if embydb.init_EmbyDB():
+            self.Whitelist, self.WhitelistArray = embydb.get_Whitelist()
+        else:
+            videodb = dbio.DBOpenRW("video", "load_settings")
+            return
+
+        videodb = dbio.DBOpenRW("video", "load_settings")
 
         for ViewItem in list(self.EmbyServer.Views.ViewItems.values()):
-            common.MediaTags[ViewItem[0]] = kodidb.get_tag(ViewItem[0])
+            common.MediaTags[ViewItem[0]] = videodb.get_tag(ViewItem[0])
 
-        dbio.DBCloseRO("video", "load_settings")
-        videodb = dbio.DBOpenRW("video", "setup")
         videodb.init_favorite_tags()
-        dbio.DBCloseRW("video", "setup")
-        kodidb = dbio.DBOpenRW("music", "load_settings")
-        kodidb.disable_rescan(utils.currenttime_kodi_format())
+        videodb.add_Index()
+        dbio.DBCloseRW("video", "load_settings")
+        musicdb = dbio.DBOpenRW("music", "load_settings")
+        musicdb.add_Index()
+        musicdb.disable_rescan(utils.currenttime_kodi_format())
         dbio.DBCloseRW("music", "load_settings")
-        self.LastRealtimeSync = embydb.get_LastIncrementalSync("realtime")
-        self.LastStartSync = embydb.get_LastIncrementalSync("start")
+        texturedb = dbio.DBOpenRW("texture", "load_settings")
+        texturedb.add_Index()
+        dbio.DBCloseRW("texture", "load_settings")
+        self.LastSyncTime = embydb.get_LastIncrementalSync()
         self.close_EmbyDBRW("load_settings")
 
-    def InitSync(self, Firstrun):  # Threaded by caller -> emby.py
+    def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
         while not utils.StartupComplete:
             if utils.sleep(5):
                 return
@@ -121,13 +126,13 @@ class Library:
         self.RunJobs()
         UpdateData = []
 
-        if self.LastRealtimeSync:
-            LOG.info("-->[ retrieve changes ] %s / %s" % (self.LastRealtimeSync, self.LastStartSync))
+        if self.LastSyncTime:
+            LOG.info("-->[ retrieve changes ] %s" % self.LastSyncTime)
 
             for plugin in self.EmbyServer.API.get_plugins():
                 if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
                     LOG.info("-->[ Kodi companion ]")
-                    result = self.EmbyServer.API.get_sync_queue(self.LastRealtimeSync)  # Kodi companion
+                    result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
 
                     if 'ItemsRemoved' in result:
                         self.removed(result['ItemsRemoved'])
@@ -137,45 +142,46 @@ class Library:
 
             for UserSync in (False, True):
                 if UserSync:
-                    extra = {'MinDateLastSavedForUser': self.LastRealtimeSync}
+                    extra = {'MinDateLastSavedForUser': self.LastSyncTime}
                 else:
-                    extra = {'MinDateLastSaved': self.LastRealtimeSync}
-
-                Content = ""
+                    extra = {'MinDateLastSaved': self.LastSyncTime}
 
                 for Whitelist in self.WhitelistArray:
                     LOG.info("[ retrieve changes ] %s / %s / %s" % (Whitelist[0], Whitelist[1], UserSync))
 
                     if Whitelist[0] not in self.EmbyServer.Views.ViewItems:
-                        LOG.info("[ InitSync remove library %s ]" % Whitelist[0])
+                        LOG.info("[ KodiStartSync remove library %s ]" % Whitelist[0])
                         continue
 
                     if Whitelist[1] == "musicvideos":
-                        Content = "MusicVideo"
+                        Content = "MusicVideo,Folder"
                     elif Whitelist[1] == "movies":
-                        Content = "Movie,BoxSet"
+                        Content = "Movie,Folder"
                     elif Whitelist[1] == "homevideos":
-                        Content = "Video"
+                        Content = "Video,Folder"
                     elif Whitelist[1] == "tvshows":
-                        Content = "Series,Season,Episode"
+                        Content = "Series,Season,Episode,Folder"
                     elif Whitelist[1] in ("music", "audiobooks"):
-                        Content = "MusicArtist,MusicAlbum,Audio"
+                        Content = "MusicArtist,MusicAlbum,Audio,Folder"
                     elif Whitelist[1] == "podcasts":
-                        Content = "MusicArtist,MusicAlbum,Audio"
+                        Content = "MusicArtist,MusicAlbum,Audio,Folder"
+                    else:
+                        LOG.info("Skip library type startup sync: %s" % Whitelist[1])
+                        continue
 
                     if utils.SystemShutdown:
                         return
 
-                    TotalRecords = int(self.EmbyServer.API.get_TotalRecordsRegular(Whitelist[0], Content, extra))
+                    TotalRecords = self.EmbyServer.API.get_TotalRecordsRegular(Whitelist[0], Content, extra)
 
                     if TotalRecords:
-                        UpdateDataTemp = TotalRecords * [(None, None, None, None)] # preallocate memory
+                        UpdateDataTemp = TotalRecords * [None] # preallocate memory
 
                         for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra, False, False)):
                             if Index >= TotalRecords: # Emby server updates were in progress. New items were added after TotalRecords was calculated
-                                UpdateDataTemp.append((Item['Id'], Whitelist[0], Whitelist[2], Item['Type']))
+                                UpdateDataTemp.append(Item['Id'])
                             else:
-                                UpdateDataTemp[Index] = (Item['Id'], Whitelist[0], Whitelist[2], Item['Type'])
+                                UpdateDataTemp[Index] = Item['Id']
 
                         UpdateData += UpdateDataTemp
 
@@ -188,8 +194,6 @@ class Library:
         pluginmenu.reset_episodes_cache()
         self.updated(UpdateData)
 
-    # Get items from emby and place them in the appropriate queues
-    # No progress bar needed, it's all internal and damn fast
     def worker_userdata(self):
         ContinueJobs, UserDataItems = self.open_Worker("userdata")
 
@@ -221,29 +225,36 @@ class Library:
         dbio.DBCloseRO(self.EmbyServer.server_id, "userdata")
         UpdateItems = ItemsSort(Items, False)
         embydb = self.open_EmbyDBRW("userdata")
+        MusicSynced = False
+        VideoSynced = False
 
         for ItemNotSynced in ItemsNotSynced:
             embydb.delete_Userdata(ItemNotSynced)
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
+                RecordsPercent = len(CategoryItems) / 100
                 kodidb = dbio.DBOpenRW(ContentType, "worker_userdata")
-                TotalRecords = len(CategoryItems)
 
                 for Items in CategoryItems:
                     self.ContentObject = None
 
                     for index, Item in enumerate(Items, 1):
                         embydb.delete_Userdata(Item["UpdateItem"])
-                        Continue, embydb, kodidb = self.ItemOps(index, TotalRecords, Item, embydb, kodidb, ContentType, "userdata")
+                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "userdata")
 
                         if not Continue:
                             return False
 
-                close_KodiDatabase(ContentType, "userdata")
+                dbio.DBCloseRW(ContentType, "worker_userdata")
 
-        embydb.update_LastIncrementalSync(utils.currenttime(), "realtime")
-        self.close_Worker("worker_userdata")
+                if ContentType == "music":
+                    MusicSynced = True
+                else:
+                    VideoSynced = True
+
+        embydb.update_LastIncrementalSync(utils.currenttime())
+        self.close_Worker("worker_userdata", MusicSynced, VideoSynced)
         LOG.info("--<[ worker userdata completed ]")
         self.RunJobs()
         return True
@@ -255,26 +266,18 @@ class Library:
             return ContinueJobs
 
         utils.progress_open(utils.Translate(33178))
-        LibraryInfos = {}
-
-        for UpdateItem in UpdateItems:
-            Id = UpdateItem[0]
-
-            if UpdateItem[1]:  # Fastsync update
-                LibraryInfos[str(Id)] = {"Id": UpdateItem[1], "Name": UpdateItem[2]}
-            else:  # Realtime update
-                LibraryInfos[str(Id)] = {}
-
-        TotalRecords = len(LibraryInfos)
+        RecordsPercent = len(UpdateItems) / 100
         index = 0
         embydb = self.open_EmbyDBRW("worker_update")
+        MusicSynced = False
+        VideoSynced = False
 
-        while LibraryInfos:
-            TempLibraryInfos = list(LibraryInfos.keys())[:100]  # Chunks of 100
+        while UpdateItems:
+            TempLibraryInfos = UpdateItems[:100]  # Chunks of 100
             Items = self.EmbyServer.API.get_Item(",".join(TempLibraryInfos), ["Everything"], False, False, False)
-            UpdateItems = ItemsSort(Items, False)
+            SortedItems = ItemsSort(Items, False)
 
-            for ContentType, CategoryItems in list(UpdateItems.items()):
+            for ContentType, CategoryItems in list(SortedItems.items()):
                 if content_available(ContentType, CategoryItems):
                     kodidb = dbio.DBOpenRW(ContentType, "worker_update")
 
@@ -282,25 +285,30 @@ class Library:
                         self.ContentObject = None
 
                         for Item in Items:
-                            Item['Library'] = LibraryInfos[Item['Id']]
+                            Item['Library'] = {}   #LibraryInfos[Item['Id']]
                             embydb.delete_UpdateItem(Item['Id'])
-                            del LibraryInfos[Item['Id']]
-                            Continue, embydb, kodidb = self.ItemOps(index, TotalRecords, Item, embydb, kodidb, ContentType, "add/update")
+                            UpdateItems.remove(Item['Id'])
+                            Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "add/update")
                             index += 1
 
                             if not Continue:
                                 return False
 
-                    close_KodiDatabase(ContentType, "worker_update")
+                    dbio.DBCloseRW(ContentType, "worker_update")
+
+                    if ContentType == "music":
+                        MusicSynced = True
+                    else:
+                        VideoSynced = True
 
             # Remove not detected Items
             for TempLibraryInfo in TempLibraryInfos:
-                if TempLibraryInfo in LibraryInfos:
-                    del LibraryInfos[TempLibraryInfo]
+                if TempLibraryInfo in UpdateItems:
+                    UpdateItems.remove(TempLibraryInfo)
                     embydb.delete_UpdateItem(TempLibraryInfo)
 
-        embydb.update_LastIncrementalSync(utils.currenttime(), "realtime")
-        self.close_Worker("worker_update")
+        embydb.update_LastIncrementalSync(utils.currenttime())
+        self.close_Worker("worker_update", MusicSynced, VideoSynced)
         LOG.info("--<[ worker update completed ]")
         self.RunJobs()
         return True
@@ -312,14 +320,18 @@ class Library:
             return ContinueJobs
 
         utils.progress_open(utils.Translate(33261))
-        TotalRecords = len(RemoveItems)
+        RecordsPercent = len(RemoveItems) / 100
         AllRemoveItems = []
         embydb = self.open_EmbyDBRW("remove")
 
         for index, RemoveItem in enumerate(RemoveItems, 1):
-            ProgressValue = int(float(index) / float(TotalRecords) * 100)
-            utils.progress_update(ProgressValue, utils.Translate(33261), str(RemoveItem[0]))
+            utils.progress_update(int(index / RecordsPercent), utils.Translate(33261), str(RemoveItem[0]))
             FoundRemoveItems = embydb.get_media_by_id(RemoveItem[0])
+
+            if FoundRemoveItems:
+                if FoundRemoveItems[0][2] == "Folder":
+                    LOG.info("Detect media by folder id %s / % s" % (RemoveItem[0], FoundRemoveItems[0][11]))
+                    FoundRemoveItems = embydb.get_media_by_folder(FoundRemoveItems[0][11])
 
             if not FoundRemoveItems:
                 LOG.info("Detect media by parent id %s" % RemoveItem[0])
@@ -330,21 +342,42 @@ class Library:
 
                 for FoundRemoveItem in FoundRemoveItems:
                     LibraryIds = FoundRemoveItem[1].split(";")
+                    KodiItemIds = FoundRemoveItem[4]
 
-                    if len(LibraryIds) > 1: # music content
-                        TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {'Multi': FoundRemoveItem[1]}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': FoundRemoveItem[4], 'KodiFileId': FoundRemoveItem[5], 'KodiParentId': FoundRemoveItem[7], 'PresentationUniqueKey': FoundRemoveItem[9]})
+                    if KodiItemIds:
+                        KodiItemIds = str(KodiItemIds).split(";")
                     else:
-                        TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {"Id": FoundRemoveItem[1], "Name": self.EmbyServer.Views.ViewItems[FoundRemoveItem[1]][0]}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': FoundRemoveItem[4], 'KodiFileId': FoundRemoveItem[5], 'KodiParentId': FoundRemoveItem[7], 'PresentationUniqueKey': FoundRemoveItem[9]})
+                        KodiItemIds = len(LibraryIds) * [None]
+
+                    KodiFileIds = FoundRemoveItem[5]
+
+                    if KodiFileIds:
+                        KodiFileIds = str(KodiFileIds).split(";")
+                    else:
+                        KodiFileIds = len(LibraryIds) * [None]
+
+                    KodiParentIds = FoundRemoveItem[7]
+
+                    if KodiParentIds:
+                        KodiParentIds = str(KodiParentIds).split(";")
+                    else:
+                        KodiParentIds = len(LibraryIds) * [None]
+
+                    for ItemIndex, LibraryId in enumerate(LibraryIds):
+                        if not RemoveItem[1] or LibraryId == RemoveItem[1]:
+                            TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {"Id": LibraryId, "Name": self.EmbyServer.Views.ViewItems[LibraryId][0]}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': KodiItemIds[ItemIndex], 'KodiFileId': KodiFileIds[ItemIndex], 'KodiParentId': KodiParentIds[ItemIndex], 'PresentationUniqueKey': FoundRemoveItem[9]})
 
                 AllRemoveItems += TempRemoveItems
                 del TempRemoveItems[:] # relese memory
             else:
-                embydb.delete_RemoveItem(RemoveItem[0])
+                embydb.delete_RemoveItem_EmbyId(RemoveItem[0])
                 LOG.info("worker remove, item not found in local database %s" % RemoveItem[0])
                 continue
 
         UpdateItems = ItemsSort(AllRemoveItems, True)
         del AllRemoveItems[:] # relese memory
+        MusicSynced = False
+        VideoSynced = False
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
@@ -352,28 +385,24 @@ class Library:
 
                 for Items in CategoryItems:
                     self.ContentObject = None
-                    TotalRecords = len(Items)
+                    RecordsPercent = len(Items) / 100
 
                     for index, Item in enumerate(Items, 1):
-                        embydb.delete_RemoveItem(Item['Id'])
-                        Continue, embydb, kodidb = self.ItemOps(index, TotalRecords, Item, embydb, kodidb, ContentType, "remove")
+                        embydb.delete_RemoveItem(Item['Id'], Item['Library']["Id"])
+                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "remove")
 
                         if not Continue:
                             return False
 
-                # Clean empty Artists and Albums
+                dbio.DBCloseRW(ContentType, "worker_remove")
+
                 if ContentType == "music":
-                    KodiIdsDeleted = kodidb.clean_music()
-                    DeleteTotalRecords = len(KodiIdsDeleted)
+                    MusicSynced = True
+                else:
+                    VideoSynced = True
 
-                    for DeleteIndex, KodiIdDeleted in enumerate(KodiIdsDeleted):
-                        embydb.remove_item_music_by_kodiid(KodiIdDeleted[1], KodiIdDeleted[0])
-                        utils.progress_update(int(float(DeleteIndex) / float(DeleteTotalRecords) * 100), "Delete empty music records", str(KodiIdDeleted[0]))
-
-                close_KodiDatabase(ContentType, "remove")
-
-        embydb.update_LastIncrementalSync(utils.currenttime(), "realtime")
-        self.close_Worker("worker_remove")
+        embydb.update_LastIncrementalSync(utils.currenttime())
+        self.close_Worker("worker_remove", MusicSynced, VideoSynced)
         LOG.info("--<[ worker remove completed ]")
         self.RunJobs()
         return True
@@ -385,6 +414,7 @@ class Library:
             return
 
         MusicSynced = False
+        VideoSynced = False
         utils.progress_open("%s %s" % (utils.Translate(33021), utils.Translate(33238)))
         newContent = utils.newContent
         utils.newContent = False  # Disable new content notification on init sync
@@ -399,47 +429,39 @@ class Library:
                 common.MediaTags[SyncItem[1]] = kodidb.get_add_tag(SyncItem[1])
 
             self.ContentObject = None
-            TotalRecords = int(self.EmbyServer.API.get_TotalRecordsRegular(SyncItem[0], SyncItem[3]))
+            RecordsPercent = self.EmbyServer.API.get_TotalRecordsRegular(SyncItem[0], SyncItem[3]) / 100
 
+            # Sync Content
             for index, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}, False, False), 1):
                 Item["Library"] = {"Id": SyncItem[0], "Name": SyncItem[1]}
-                Continue, embydb, kodidb = self.ItemOps(index, TotalRecords, Item, embydb, kodidb, SyncItem[4], "add/update")
+                Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, SyncItem[4], "add/update")
 
                 if not Continue:
                     return
 
-            dbio.DBCommitRW(self.EmbyServer.server_id)
-            MusicSynced = bool(SyncItem[4] == "music")
-            close_KodiDatabase(SyncItem[4], "library")
+            if SyncItem[4] == "music":
+                MusicSynced = True
+            else:
+                VideoSynced = True
+
+            dbio.DBCloseRW(SyncItem[4], "worker_library")
             embydb.remove_PendingSync(SyncItem[0], SyncItem[1], SyncItem[2], SyncItem[3], SyncItem[4])
-
-        # Clean empty Artists and Albums
-        if MusicSynced:
-            kodidb = dbio.DBOpenRW("music", "worker_library")
-            KodiIdsDeleted = kodidb.clean_music()
-            DeleteTotalRecords = len(KodiIdsDeleted)
-
-            for DeleteIndex, KodiIdDeleted in enumerate(KodiIdsDeleted):
-                embydb.remove_item_music_by_kodiid(KodiIdDeleted[1], KodiIdDeleted[0])
-                utils.progress_update(int(float(DeleteIndex) / float(DeleteTotalRecords) * 100), "Delete empty music records", str(KodiIdDeleted[0]))
 
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
         pluginmenu.reset_episodes_cache()
-        self.close_Worker("worker_library")
+        self.close_Worker("worker_library", MusicSynced, VideoSynced)
         LOG.info("--<[ worker library completed ]")
         xbmc.executebuiltin('ReloadSkin()')
 
         if not utils.sleep(1):  # give Kodi time to catch up
             self.RunJobs()
 
-    def ItemOps(self, index, TotalRecords, Item, embydb, kodidb, ContentCategory, Task):
+    def ItemOps(self, ProgressValue, Item, embydb, kodidb, ContentCategory, Task):
         Ret = False
 
         if not self.ContentObject:
             self.load_libraryObject(Item['Type'], embydb, kodidb)
-
-        ProgressValue = int(float(index) / float(TotalRecords) * 100)
 
         if Task == "add/update":
             if Item['Type'] == "Audio":
@@ -469,8 +491,17 @@ class Library:
             elif Item['Type'] == "Series":
                 Ret = self.ContentObject.tvshow(Item)
                 ProgressMsg = Item['Name']
+            elif Item['Type'] == "Folder":
+                self.ContentObject.folder(Item)
+
+                if "Path" in Item:
+                    ProgressMsg = Item['Path']
+                elif "Name" in Item:
+                    ProgressMsg = Item['Name']
+                else:
+                    ProgressMsg = "unknown"
             else:
-                ProgressMsg = "unkown"
+                ProgressMsg = "unknown"
 
             utils.progress_update(ProgressValue, "Emby: %s" % Item['Type'], ProgressMsg)
 
@@ -497,7 +528,7 @@ class Library:
 
             while utils.DBBusy or utils.sync_is_paused():
                 if utils.sleep(1):
-                    self.close_Worker("ItemOps")
+                    utils.progress_close()
                     LOG.info("[ worker exit (shutdown) ]")
                     return False, None, None
 
@@ -511,7 +542,7 @@ class Library:
 
         if utils.SystemShutdown:
             dbio.DBCloseRW(ContentCategory, "ItemOps")
-            self.close_Worker("ItemOps")
+            self.close_Worker("ItemOps", False, False)
             LOG.info("[ worker exit ]")
             Continue = False
 
@@ -526,6 +557,8 @@ class Library:
             self.ContentObject = music.Music(self.EmbyServer, embydb, kodidb)
         elif MediaType in ("Episode", "Season", 'Series'):
             self.ContentObject = tvshows.TVShows(self.EmbyServer, embydb, kodidb)
+        elif MediaType == "Folder":
+            self.ContentObject = folder.Folder(self.EmbyServer, embydb)
 
     # Run workers in specific order
     def RunJobs(self):
@@ -567,9 +600,7 @@ class Library:
         if 0 in selection:
             selection = list(range(1, len(libraries) + 1))
 
-        xbmc.executebuiltin('Dialog.Close(addonsettings)')
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
-        xbmc.executebuiltin('activatewindow(home)')
         remove_librarys = ()
         add_librarys = ()
 
@@ -596,7 +627,7 @@ class Library:
                     items = embydb.get_item_by_emby_folder_wild(LibraryId)
 
                     for item in items:
-                        embydb.add_RemoveItem(item[0], ";".join(remove_librarys))
+                        embydb.add_RemoveItem(item[0], LibraryId)
 
                     embydb.remove_Whitelist(LibraryId)
                     del self.Whitelist[LibraryId]
@@ -640,6 +671,8 @@ class Library:
                             embydb.add_PendingSync(LibraryId, library_name, library_type, "Audio", "music")
                             musicdb.add_role()
 
+                        embydb.add_PendingSync(LibraryId, library_name, library_type, "Folder", "folder")
+
                         LOG.info("---[ added library: %s ]" % LibraryId)
                     else:
                         LOG.info("---[ added library not found: %s ]" % LibraryId)
@@ -656,38 +689,39 @@ class Library:
 
     def refresh_boxsets(self):  # threaded by caller
         embydb = self.open_EmbyDBRW("refresh_boxsets")
-        xbmc.executebuiltin('Dialog.Close(addonsettings)')
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
-        xbmc.executebuiltin('activatewindow(home)')
 
         for EmbyLibraryId, Value in list(self.Whitelist.items()):
             if Value[0] == "movies":
+                items = embydb.get_item_by_emby_folder_wild_and_EmbyType(EmbyLibraryId, "BoxSet")
+
+                for item in items:
+                    embydb.add_RemoveItem(item[0], EmbyLibraryId)
+
                 embydb.add_PendingSync(EmbyLibraryId, Value[1], Value[0], "BoxSet", "video")
 
         self.close_EmbyDBRW("refresh_boxsets")
+        self.worker_remove()
         self.worker_library()
 
     # Add item_id to userdata queue
-    def userdata(self, Data):  # threaded by caller -> websocket via monitor
-        if Data:
+    def userdata(self, ItemIds):  # threaded by caller -> websocket via monitor
+        if ItemIds:
             embydb = self.open_EmbyDBRW("userdata")
 
-            for item in Data:
-                embydb.add_Userdata(str(item))
+            for ItemId in ItemIds:
+                embydb.add_Userdata(str(ItemId))
 
             self.close_EmbyDBRW("userdata")
             self.worker_userdata()
 
     # Add item_id to updated queue
-    def updated(self, Data):  # threaded by caller
-        if Data:
+    def updated(self, ItemIds):  # threaded by caller
+        if ItemIds:
             embydb = self.open_EmbyDBRW("updated")
 
-            for item in Data:
-                if item[0] and item[0].isnumeric():
-                    embydb.add_UpdateItem(item[0], item[1], item[2], item[3])
-                else:
-                    LOG.info("Skip invalid update item: %s" % item[0])
+            for ItemId in ItemIds:
+                embydb.add_UpdateItem(ItemId)
 
             self.close_EmbyDBRW("updated")
             self.worker_update()
@@ -725,6 +759,8 @@ def ItemsSort(Items, Reverse):
     ItemsAlbumArtistCounter = 0
     ItemsSeason = len(Items) * [None]
     ItemsSeasonCounter = 0
+    ItemsFolder = len(Items) * [None]
+    ItemsFolderCounter = 0
 
     for Item in Items:
         if Item['Type'] == "Recording":
@@ -764,6 +800,9 @@ def ItemsSort(Items, Reverse):
         elif Item['Type'] == 'Season':
             ItemsSeason[ItemsSeasonCounter] = Item
             ItemsSeasonCounter += 1
+        elif Item['Type'] == 'Folder':
+            ItemsFolder[ItemsFolderCounter] = Item
+            ItemsFolderCounter += 1
         else:
             LOG.info("Type unknown: %s %s" % (Item['Type'], Item['Id']))
             continue
@@ -779,12 +818,12 @@ def ItemsSort(Items, Reverse):
     ItemsSeries = ItemsSeries[:ItemsSeriesCounter]
     ItemsBoxSet = ItemsBoxSet[:ItemsBoxSetCounter]
     ItemsMovie = ItemsMovie[:ItemsMovieCounter]
+    ItemsFolder = ItemsFolder[:ItemsFolderCounter]
 
     if Reverse:
-        return {"music": [ItemsAudio + ItemsMusicAlbum + ItemsAlbumArtist + ItemsMusicArtist], "video": [ItemsMusicVideo, ItemsEpisode + ItemsSeason + ItemsSeries, ItemsBoxSet + ItemsMovie]}
+        return {"music": [ItemsAudio + ItemsMusicAlbum + ItemsAlbumArtist + ItemsMusicArtist], "video": [ItemsMusicVideo, ItemsEpisode + ItemsSeason + ItemsSeries, ItemsBoxSet + ItemsMovie], "folder": [ItemsFolder]}
 
-    return {"music": [ItemsMusicArtist + ItemsAlbumArtist + ItemsMusicAlbum + ItemsAudio], "video": [ItemsMusicVideo, ItemsSeries + ItemsSeason + ItemsEpisode, ItemsMovie + ItemsBoxSet]}
-
+    return {"music": [ItemsMusicArtist + ItemsAlbumArtist + ItemsMusicAlbum + ItemsAudio], "video": [ItemsMusicVideo, ItemsSeries + ItemsSeason + ItemsEpisode, ItemsMovie + ItemsBoxSet], "folder": [ItemsFolder]}
 
 def content_available(ContentType, CategoryItems):
     if ContentType == "video" and (CategoryItems[0] or CategoryItems[1] or CategoryItems[2]):
@@ -801,15 +840,9 @@ def StringToDict(Data):
     Data = Data.replace("True", "true")
     return json.loads(Data)
 
-def close_KodiDatabase(ContentType, WorkerId):
-    dbio.DBCloseRW(ContentType, WorkerId)
-
-#    if ContentType == "video":
-#        xbmc.executebuiltin('UpdateLibrary(video)')
-#    elif ContentType == "music" and not utils.useDirectPaths:
-#        xbmc.executebuiltin('UpdateLibrary(music)')
-
-    if ContentType == "video":
+def close_KodiDatabase(MusicSynced, VideoSynced):
+    if VideoSynced:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-    elif ContentType == "music" and not utils.useDirectPaths:
+
+    if MusicSynced and not utils.useDirectPaths:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')

@@ -31,8 +31,9 @@ def ServersConnect():
                 if utils.sleep(2):
                     return
 
-    # Shutdown
     utils.StartupComplete = True
+
+    # Shutdown
     utils.sleep(0)
     utils.SyncPause = {}
     utils.DBBusy = False
@@ -43,14 +44,24 @@ def ServersConnect():
         start_new_thread(dbio.DBVacuum, ()) # thread vaccuum to prevent Kodi killing this task
 
 def setup():
+    # Detect corupted setting file
+    if not xmls.verify_settings_file():
+        if utils.sleep(10):  # Give Kodi time to load skin
+            return False
+
+        utils.Dialog.notification(heading=utils.addon_name, message="Corupted setting file detected, restore default. Restart in 5 seconds.")
+        utils.delFile("%ssettings.xml" % utils.FolderAddonUserdata)
+
+        if utils.sleep(5):
+            return False
+
+        return False
+
     xmls.KodiDefaultNodes()
     xmls.sources()
     xmls.add_favorites()
 
     if xmls.advanced_settings():
-        if utils.sleep(5):  # Give Kodi time to complete startup before reset
-            return False
-
         return False
 
     if utils.MinimumSetup == utils.MinimumVersion:
@@ -58,6 +69,9 @@ def setup():
 
     # Clean installation
     if not utils.MinimumSetup:
+        if utils.sleep(10):  # Give Kodi time to load skin
+            return False
+
         value = utils.Dialog.yesno(heading=utils.Translate(30511), message=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
 
         if value:
@@ -70,7 +84,7 @@ def setup():
         utils.set_settings('MinimumSetup', utils.MinimumVersion)
         return True
 
-    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)):
+    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)): # final warning
         return "stop"
 
     utils.set_settings('MinimumSetup', utils.MinimumVersion)
