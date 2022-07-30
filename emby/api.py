@@ -1,6 +1,6 @@
 from helper import utils, loghandler
 
-EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Folder": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50}
+EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50, "Folder": 1000}
 EmbyFields = {
     "MusicArtist": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey"),
     "MusicAlbum": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "Studios", "PremiereDate"),
@@ -15,7 +15,8 @@ EmbyFields = {
     "Everything": ("SpecialEpisodeNumbers", "Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "Tags", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "MediaStreams"),
     "Photo": ("Path", "SortName", "ProductionYear", "ParentId", "PremiereDate", "Width", "Height", "Tags", "DateCreated"),
     "PhotoAlbum": ("Path", "SortName", "Taglines", "DateCreated", "ShortOverview", "ProductionLocations", "Tags", "ParentId", "OriginalTitle"),
-    "TvChannel": ("Genres", "SortName", "Taglines", "DateCreated", "Overview", "MediaSources", "Tags", "MediaStreams")
+    "TvChannel": ("Genres", "SortName", "Taglines", "DateCreated", "Overview", "MediaSources", "Tags", "MediaStreams"),
+    "Folder": ("Path", )
 }
 LOG = loghandler.LOG('EMBY.emby.api')
 
@@ -120,7 +121,7 @@ class API:
         Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
 
         if 'TotalRecordCount' in Data:
-            return Data['TotalRecordCount']
+            return int(Data['TotalRecordCount'])
 
         return 0
 
@@ -172,9 +173,9 @@ class API:
         return []
 
     def get_recently_added(self, ParentId, MediaTypes):
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, True)
         params = {
-            'Limit': 100,
+            'Limit': utils.maxnodeitems,
             'IncludeItemTypes': IncludeItemTypes,
             'ParentId': ParentId,
             'Fields': Fields
@@ -202,6 +203,18 @@ class API:
 
     def get_views(self):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Views" % self.EmbyServer.user_id}, False, False)
+
+    def get_Item_Basic(self, Id, ParentId, Type):
+        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1}, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+
+        if 'Items' in Data:
+            return Data['Items']
+
+        return []
+
+    def get_Image_Binary(self, Id, ImageType, ImageIndex):
+        Data = self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Items/%s/Images/%s/%s" % (Id, ImageType, ImageIndex)}, False, True)
+        return Data
 
     def get_Item(self, Ids, MediaTypes, Dynamic, Basic, SingleItemQuery=True):
         _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
@@ -261,9 +274,6 @@ class API:
 
     def get_local_trailers(self, item_id):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/LocalTrailers" % (self.EmbyServer.user_id, item_id)}, False, False)
-
-    def get_ancestors(self, item_id):
-        return self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.user_id}, 'type': "GET", 'handler': "Items/%s/Ancestors" % item_id}, False, False)
 
     def get_themes(self, item_id):
         params = {
@@ -346,15 +356,16 @@ class API:
             if MediaTypes[0] == "Everything":
                 IncludeItemTypes = None
 
+
             for MediaType in MediaTypes:
                 Fields += EmbyFields[MediaType]
 
             #Dynamic list query, remove fields to improve performance
             if Dynamic:
-                Fields += ("RecursiveItemCount", "ChildCount")
+                if "Series" in MediaTypes or "Season" in MediaTypes:
+                    Fields += ("RecursiveItemCount", "ChildCount")
 
                 for DynamicListsRemoveField in self.DynamicListsRemoveFields:
-
                     if DynamicListsRemoveField in Fields:
                         Fields.remove(DynamicListsRemoveField)
 

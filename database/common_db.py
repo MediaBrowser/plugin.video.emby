@@ -29,7 +29,11 @@ class CommonDatabase:
     def delete_artwork_force(self, KodiId):
         self.cursor.execute("DELETE FROM art WHERE media_id = ?", (KodiId,))
 
-    def get_artwork_urls(self):
+    def get_artwork_urls(self, media_type):
+        self.cursor.execute("SELECT url FROM art WHERE media_type = ?", (media_type,))
+        return self.cursor.fetchall()
+
+    def get_artwork_urls_all(self):
         self.cursor.execute("SELECT url FROM art")
         return self.cursor.fetchall()
 

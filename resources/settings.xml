@@ -27,7 +27,7 @@
                 </setting>
                 <setting label="30016" id="deviceName" type="string" help="33318">
                     <level>0</level>
-                    <default>"Kodi"</default>
+                    <default>Kodi</default>
                     <constraints>
                         <allowempty>false</allowempty>
                     </constraints>
@@ -197,7 +197,39 @@
                     </dependencies>
                 </setting>
             </group>
-            <group id="2" label="30409">
+            <group id="2" label="33419">
+                <setting label="33417" id="enableSkipIntro" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33422" id="askSkipIntro" type="boolean" help="33418">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableSkipIntro">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33420" id="enableSkipCredits" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33423" id="askSkipCredits" type="boolean" help="33421">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="enableSkipCredits">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="3" label="30409">
                 <setting label="30114" id="offerDelete" type="boolean" help="33304">
                     <level>0</level>
                     <default>false</default>
@@ -224,7 +256,7 @@
                     </dependencies>
                 </setting>
             </group>
-            <group id="3" label="30516">
+            <group id="4" label="30516">
                 <setting id="resumeJumpBack" type="integer" label="30521" help="33320">
                     <level>0</level>
                     <default>10</default>
@@ -237,8 +269,20 @@
                         <popup>false</popup>
                     </control>
                 </setting>
+                <setting id="autocloseyesno" type="integer" label="33424" help="33425">
+                    <level>0</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>15</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
             </group>
-            <group id="4" label="33243">
+            <group id="5" label="33243">
                 <setting label="30522" id="transcodeH265" type="boolean" help="">
                     <level>0</level>
                     <default>false</default>
@@ -579,18 +623,6 @@
                     <level>3</level>
                     <default>false</default>
                     <control type="toggle"/>
-                </setting>
-                <setting id="artworkcachethreads" type="integer" label="33332" help="">
-                    <level>3</level>
-                    <default>5</default>
-                    <constraints>
-                        <minimum>1</minimum>
-                        <step>1</step>
-                        <maximum>25</maximum>
-                    </constraints>
-                    <control type="slider" format="integer">
-                        <popup>false</popup>
-                    </control>
                 </setting>
             </group>
             <group id="2" label="33104">

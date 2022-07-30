@@ -88,10 +88,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self._message("%s %s..." % (utils.Translate(30610), server_address))
         result = self.connect_manager.connect_to_address(server_address)
 
-        if not result:
-            return False
-
-        if result['State'] == 0:  # Unavailable
+        if not result or result['State'] == 0:  # Unavailable
             self._message(utils.Translate(30609))
             return False
 

@@ -1,23 +1,22 @@
-from urllib.parse import quote_plus, urlencode
-import json
+import struct
+from urllib.parse import urlencode, unquote
 import unicodedata
 from _thread import start_new_thread
-import requests
 import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
 from database import dbio
 from emby import listitem
+from core import common
 from . import xmls, utils, loghandler, playerops
 
 LOG = loghandler.LOG('EMBY.helper.pluginmenu')
 QueryCache = {}
-ArtworkCacheIndex = 0
-ThreadCounter = 0
 MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "Everything", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
 letters = ["0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 MappingContentKodi = {"Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "Everything": "", "TvChannel": "videos", "Folder": "videos"}
+EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 PluginMenuActive = False
 DYNNODES = {
     'tvshows': [
@@ -184,6 +183,10 @@ def listing(Handle):
 def browse(Handle, Id, query, args, server_id):
     LOG.info("Pluginmenu query: %s/%s/%s" % (Id, query, args))
     Handle = int(Handle)
+
+    if server_id not in utils.EmbyServers:
+        LOG.error("Pluginmenu invalid server id: %s" % server_id)
+        return
 
     if query in ('NodesDynamic', 'NodesSynced'):
         ListItemData = []
@@ -510,12 +513,10 @@ def SyncThemes(server_id):
 
         xmls.tvtunes_nfo(nfo_file, paths)
 
-    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
 
 def SyncLiveTV(server_id):
     if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)') and xbmc.getCondVisibility('System.AddonIsEnabled(pvr.iptvsimple)'):
-        xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
         ChannelNames = {}
 
         # build m3u playlist
@@ -537,12 +538,6 @@ def SyncLiveTV(server_id):
                 if item['ImageTags']:
                     if 'Primary' in item['ImageTags']:
                         ImageUrl = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
-
-
-
-                LOG.info("tttttttttt 1 " + str(  item    ))
-
-
 
                 StreamUrl = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
                 playlist += '#KODIPROP:mimetype=video/mp2t\n'
@@ -603,7 +598,6 @@ def SyncLiveTV(server_id):
                 iptvsimple.setSetting('epgPathType', "0")
                 iptvsimple.setSetting('epgPath', EPGFile)
 
-        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
         utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33232))
     else:
         utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33233))
@@ -803,134 +797,241 @@ def favepisodes(Handle):
 
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
-    xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    xbmc.executebuiltin('activatewindow(home)')
     LOG.info("<[ cache textures ]")
-    EnableWebserver = False
-    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
-    webServerEnabled = (result['result']['value'] or False)
 
-    if not webServerEnabled:
-        if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33227)):
-            return
+    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044)):
+        DeleteThumbnails()
 
-        EnableWebserver = True
+    # Select content to be cached
+    choices = [utils.Translate(33121), "Movies", "TVShows", "Season", "Episode", "Musicvideos", "Album", "Single", "Song", "Boxsets", "Actor", "Artist", "Writer", "Director", "Gueststar", "Producer", "Bookmarks", "Photoalbum", "Photos"]
+    selection = utils.Dialog.multiselect(utils.Translate(33256), choices)
 
-    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverpassword"}}'))
-
-    if not result['result']['value']:  # set password, cause mandatory in Kodi 19
-        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserverpassword", "value": "kodi"}}')
-        webServerPass = 'kodi'
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33228))
-    else:
-        webServerPass = str(result['result']['value'])
-
-    if EnableWebserver:
-        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.SetSettingValue", "params": {"setting": "services.webserver", "value": True}}')
-        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserver"}}'))
-        webServerEnabled = (result['result']['value'] or False)
-
-    if not webServerEnabled:  # check if webserver is now enabled
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33103))
+    if not selection:
         return
 
     utils.set_settings_bool('artworkcacheenable', False)
-    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverport"}}'))
-    webServerPort = str(result['result']['value'] or "")
-    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverusername"}}'))
-    webServerUser = str(result['result']['value'] or "")
-    result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Settings.GetSettingValue", "params": {"setting": "services.webserverssl"}}'))
-    webServerSSL = (result['result']['value'] or False)
+    Urls = []
 
-    if webServerSSL:
-        webServerUrl = "https://127.0.0.1:%s" % webServerPort
-    else:
-        webServerUrl = "http://127.0.0.1:%s" % webServerPort
+    if 0 in selection or 17 in selection or 18 in selection:
+        for server_id, EmbyServer in list(utils.EmbyServers.items()):
+            if 0 in selection or 17 in selection: # PhotoAlbum
+                TotalRecords = EmbyServer.API.get_TotalRecordsRegular(None, "PhotoAlbum", {})
+                TempUrls = TotalRecords * [()]
+                ItemCounter = 0
 
-    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044)):
-        LOG.info("[ delete all thumbnails ]")
+                for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}, False, False):
+                    path, _ = utils.get_path_type_from_item(server_id, Item)
+                    TempUrls[ItemCounter] = (path,)
+                    ItemCounter += 1
 
-        if utils.checkFolderExists('special://thumbnails/'):
-            dirs, _ = utils.listDir('special://thumbnails/')
+                Urls += TempUrls
 
-            for directory in dirs:
-                _, files = utils.listDir('special://thumbnails/%s' % directory)
+            if 0 in selection or 18 in selection: # Photo
+                TotalRecords = EmbyServer.API.get_TotalRecordsRegular(None, "Photo", {})
+                TempUrls = TotalRecords * [()]
+                ItemCounter = 0
 
-                for Filename in files:
-                    cached = 'special://thumbnails/%s%s' % (directory, Filename)
-                    utils.delFile(cached)
-                    LOG.debug("DELETE cached %s" % cached)
+                for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}, False, False):
+                    path, _ = utils.get_path_type_from_item(server_id, Item)
+                    TempUrls[ItemCounter] = (path,)
+                    ItemCounter += 1
 
-        texturedb = dbio.DBOpenRW("texture", "cache_textures")
-        texturedb.common.delete_tables("Texture")
-        dbio.DBCloseRW("texture", "cache_textures")
+                Urls += TempUrls
 
-    # Select content to be cached
-    choices = [utils.Translate(33121), utils.Translate(33257), utils.Translate(33258)]
-    selection = utils.Dialog.multiselect(utils.Translate(33256), choices)
-    CacheMusic = False
-    CacheVideo = False
-    selection = selection[0]
+            TempUrls = []
 
-    if selection == 0:
-        CacheMusic = True
-        CacheVideo = True
-    elif selection == 1:
-        CacheVideo = True
-    elif selection == 2:
-        CacheMusic = True
-
-    if CacheVideo:
+    if 0 in selection or 1 in selection or 2 in selection or 3 in selection or 4 in selection or 5 in selection or 9 in selection or 10 in selection or 12 in selection or 13 in selection or 14 in selection or 15 in selection or 16 in selection:
         videodb = dbio.DBOpenRO("video", "cache_textures")
-        urls = videodb.common.get_artwork_urls()
+
+        if 0 in selection:
+            Urls += videodb.get_bookmark_urls_all()
+            Urls += videodb.common.get_artwork_urls_all()
+        else:
+            if 1 in selection:
+                Urls += videodb.common.get_artwork_urls("movie")
+
+            if 2 in selection:
+                Urls += videodb.common.get_artwork_urls("tvshow")
+
+            if 3 in selection:
+                Urls += videodb.common.get_artwork_urls("season")
+
+            if 4 in selection:
+                Urls += videodb.common.get_artwork_urls("episode")
+
+            if 5 in selection:
+                Urls += videodb.common.get_artwork_urls("musicvideo")
+
+            if 9 in selection:
+                Urls += videodb.common.get_artwork_urls("set")
+
+            if 10 in selection:
+                Urls += videodb.common.get_artwork_urls("actor")
+
+            if 12 in selection:
+                Urls += videodb.common.get_artwork_urls("writer")
+
+            if 13 in selection:
+                Urls += videodb.common.get_artwork_urls("director")
+
+            if 14 in selection:
+                Urls += videodb.common.get_artwork_urls("gueststar")
+
+            if 15 in selection:
+                Urls += videodb.common.get_artwork_urls("producer")
+
+            if 16 in selection:
+                Urls += videodb.get_bookmark_urls_all()
+
         dbio.DBCloseRO("video", "cache_textures")
-        CacheAllEntries(webServerUrl, urls, "video", webServerUser, webServerPass)
 
-    if CacheMusic:
+    if 0 in selection or 6 in selection or 7 in selection or 8 in selection or 11 in selection:
         musicdb = dbio.DBOpenRO("music", "cache_textures")
-        urls = musicdb.common.get_artwork_urls()
-        dbio.DBCloseRO("music", "cache_textures")
-        CacheAllEntries(webServerUrl, urls, "music", webServerUser, webServerPass)
 
+        if 0 in selection:
+            Urls += musicdb.common.get_artwork_urls_all()
+        else:
+            if 6 in selection:
+                Urls += musicdb.common.get_artwork_urls("album")
+
+            if 7 in selection:
+                Urls += musicdb.common.get_artwork_urls("single")
+
+            if 8 in selection:
+                Urls += musicdb.common.get_artwork_urls("song")
+
+            if 11 in selection:
+                Urls += musicdb.common.get_artwork_urls("artist")
+
+        dbio.DBCloseRO("music", "cache_textures")
+
+    Urls = list(dict.fromkeys(Urls)) # remove duplicates
+    CacheAllEntries(Urls)
     utils.set_settings_bool('artworkcacheenable', True)
 
+def get_image_metadata(ImageBinaryData, Hash):
+    height = 0
+    width = 0
+    imageformat = ""
+    ImageBinaryDataSize = len(ImageBinaryData)
+
+    if ImageBinaryDataSize < 10:
+        LOG.warning("Artwork cache: invalid image size: %s / %s" % (Hash, ImageBinaryDataSize))
+        return width, height, imageformat
+
+    # JPG
+    if ImageBinaryData[0] == 0xFF and ImageBinaryData[1] == 0xD8 and ImageBinaryData[2] == 0xFF:
+        imageformat = "jpg"
+        i = 4
+        BlockLength = ImageBinaryData[i] * 256 + ImageBinaryData[i + 1]
+
+        while i < ImageBinaryDataSize:
+            i += BlockLength
+
+            if i >= ImageBinaryDataSize or ImageBinaryData[i] != 0xFF:
+                LOG.warning("Artwork cache: invalid jpg: %s" % Hash)
+                break
+
+            if ImageBinaryData[i + 1] >> 4 == 12: # 0xCX
+                height = ImageBinaryData[i + 5] * 256 + ImageBinaryData[i + 6]
+                width = ImageBinaryData[i + 7] * 256 + ImageBinaryData[i + 8]
+                break
+
+            i += 2
+            BlockLength = ImageBinaryData[i] * 256 + ImageBinaryData[i + 1]
+    elif ImageBinaryData[0] == 0x89 and ImageBinaryData[1] == 0x50 and ImageBinaryData[2] == 0x4E and ImageBinaryData[3] == 0x47: # PNG
+        imageformat = "png"
+        width, height = struct.unpack('>ii', ImageBinaryData[16:24])
+    else: # Not supported format
+        LOG.warning("Artwork cache: invalid image format: %s" % Hash)
+
+    LOG.debug("Artwork cache image data: %s / %s / %s" % (width, height, Hash))
+    return width, height, imageformat
+
 # Cache all entries
-def CacheAllEntries(webServerUrl, urls, Label, webServerUser, webServerPass):
+def CacheAllEntries(urls):
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
     utils.progress_open(utils.Translate(33045))
     total = len(urls)
-    globals()["ThreadCounter"] = 0
+    KodiTime, UnixTime = utils.currenttime_kodi_format_and_unixtime()
+    ArtworkCacheItems = 1000 * [{}]
+    ArtworkCacheIndex = 0
 
-    with requests.Session() as session:
-        session.verify = False
+    for IndexUrl, url in enumerate(urls):
+        if IndexUrl % 1000 == 0:
+            add_textures(ArtworkCacheItems, KodiTime)
+            ArtworkCacheItems = 1000 * [{}]
+            ArtworkCacheIndex = 0
 
-        for url in urls:
-            start_new_thread(worker_CacheAllEntries, (session, url, total, Label, webServerUrl, webServerUser, webServerPass))
-            globals()["ThreadCounter"] += 1
+            if utils.getFreeSpace(utils.FolderUserdataThumbnails) < 2097152: # check if free space below 2GB
+                utils.Dialog.notification(heading=utils.addon_name, message="Artwork cacheing stopped: running out of space", icon=utils.icon, time=5000, sound=True)
+                LOG.warning("Artwork cache: running out of space")
+                break
+        else:
+            ArtworkCacheIndex += 1
 
-            while ThreadCounter >= utils.artworkcachethreads:
-                if utils.SystemShutdown or utils.sleep(1):
-                    return
+        if not url[0]:
+            continue
 
-def worker_CacheAllEntries(session, url, total, Label, webServerUrl, webServerUser, webServerPass):
-    globals()["ArtworkCacheIndex"] += 1
-    CloseProgressBar = bool(ArtworkCacheIndex == total)
-    Value = int((float(float(ArtworkCacheIndex)) / float(total)) * 100)
-    utils.progress_update(Value, "Emby", "%s: %s / %s" % (utils.Translate(33045), Label, ArtworkCacheIndex))
+        Temp = url[0][url[0].rfind("/") + 1:]
+        Data = Temp.split("-")
+        ServerId = Data[1]
+        EmbyID = Data[2]
+        ImageIndex = Data[3]
+        ImageType = EmbyArtworkIDs[Data[4]]
 
-    if utils.SystemShutdown:
-        utils.progress_close()
-        return
+        # Calculate hash -> crc32mpeg2
+        crc = 0xffffffff
 
-    if url[0]:
-        url = quote_plus(url[0])
-        url = quote_plus(url)
-        UrlSend = "%s/image/image://%s" % (webServerUrl, url)
-        session.head(UrlSend, auth=(webServerUser, webServerPass))
+        for val in url[0].encode("utf-8"):
+            crc ^= val << 24
 
-    if CloseProgressBar:
-        utils.progress_close()
+            for _ in range(8):
+                crc = crc << 1 if (crc & 0x80000000) == 0 else (crc << 1) ^ 0x104c11db7
 
-    globals()["ThreadCounter"] -= 1
+        Hash = hex(crc).replace("0x", "")
+
+        if utils.SystemShutdown:
+            utils.progress_close()
+            return
+
+        TempPath = "%s%s/%s" % (utils.FolderUserdataThumbnails, Hash[0], Hash)
+
+        if not utils.checkFileExists("%s.jpg" % TempPath) and not utils.checkFileExists("%s.png" % TempPath):
+            if len(Data) > 6 and ImageType == "Chapter":
+                OverlayText = unquote("-".join(Data[6:]))
+                ImageTag = Data[5]
+                ImageBinary = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText)
+            else:
+                ImageBinary = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex)
+
+            Width, Height, ImageFormat = get_image_metadata(ImageBinary, Hash)
+            cachedUrl = "%s/%s.%s" % (Hash[0], Hash, ImageFormat)
+            utils.mkDir("%s%s" % (utils.FolderUserdataThumbnails, Hash[0]))
+            Path = "%s%s" % (utils.FolderUserdataThumbnails, cachedUrl)
+
+            if Width == 0:
+                LOG.warning("Artwork cache: image not detected: %s" % url[0])
+            else:
+                utils.writeFileBinary(Path, ImageBinary)
+                Size = len(ImageBinary)
+                ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': "d%ss%s" % (UnixTime, Size), 'Path': Path, 'cachedUrl': cachedUrl}
+
+        Value = int((IndexUrl + 1) / total * 100)
+        utils.progress_update(Value, "Emby", "%s: %s / %s" % (utils.Translate(33045), EmbyID, IndexUrl))
+
+    add_textures(ArtworkCacheItems, KodiTime)
+    ArtworkCacheItems = []
+    utils.progress_close()
+
+def add_textures(ArtworkCacheItems, KodiTime):
+    texturedb = dbio.DBOpenRW("texture", "artwork_cache")
+
+    for ArtworkCacheItem in ArtworkCacheItems:
+        if ArtworkCacheItem:
+            texturedb.add_texture(ArtworkCacheItem["Url"], ArtworkCacheItem["cachedUrl"], ArtworkCacheItem["ImageHash"], "1", ArtworkCacheItem["Width"], ArtworkCacheItem["Height"], KodiTime, )
+
+    dbio.DBCloseRW("texture", "artwork_cache")
 
 def reset_episodes_cache():
     UpdateCache = QueryCache.copy()
@@ -949,21 +1050,17 @@ def get_next_episodes(Handle, libraryname):
         LOG.info("Using QueryCache: %s" % CacheId)
         list_li = QueryCache[CacheId]
     else:
-        result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetTVShows", "params": {"sort": {"order": "descending", "method": "lastplayed"}, "filter": {"and": [{"operator": "true", "field": "inprogress", "value": ""}, {"operator": "is", "field": "tag", "value": "%s"}]}, "properties": ["title", "studio", "mpaa", "file", "art"]}}' % libraryname))
-        items = result['result']['tvshows']
+        videodb = dbio.DBOpenRO("video", "get_next_episodes")
+        NextEpisodeInfos = videodb.get_next_episodesIds(common.MediaTags[libraryname])
+        dbio.DBCloseRO("video", "get_next_episodes")
         list_li = []
 
-        for item in items:
-            result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetEpisodes", "params": {"tvshowid": %s, "sort": {"method": "episode"}, "filter": {"and": [{"operator": "lessthan", "field": "playcount", "value": "1"}, {"operator": "greaterthan", "field": "season", "value": "0"}]}, "properties": ["title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "streamdetails", "firstaired", "writer", "dateadded", "lastplayed", "originaltitle", "seasonid", "specialsortepisode", "specialsortseason", "userrating", "votes", "cast", "art", "uniqueid"], "limits": {"end": 1}}}' % item['tvshowid']))
-
-            if 'result' in result:
-                if 'episodes' in result['result']:
-                    episodes = result['result']['episodes']
-
-                    for episode in episodes:
-                        FilePath = episode["file"]
-                        li = utils.CreateListitem("episode", episode)
-                        list_li.append((FilePath, li, False))
+        for NextEpisodeInfo in NextEpisodeInfos:
+            EpisodeId = NextEpisodeInfo.split(";")
+            episode = utils.load_VideoitemFromKodiDB("episode", EpisodeId[1])
+            FilePath = episode["file"]
+            li = utils.CreateListitem("episode", episode)
+            list_li.append((FilePath, li, False))
 
         globals()["QueryCache"][CacheId] = list_li
 
@@ -979,11 +1076,7 @@ def factoryreset():
     utils.SyncPause = {}
     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
     DeleteArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
-    xbmc.executebuiltin('Dialog.Close(addonsettings)')
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    xbmc.executebuiltin('activatewindow(home)')
-    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
     if utils.sleep(5):  # Give Kodi time to complete startup before reset
         return
@@ -1006,10 +1099,7 @@ def factoryreset():
     dbio.DBCloseRW("music", "setup")
 
     if DeleteArtwork:
-        utils.DeleteThumbnails()
-        texturedb = dbio.DBOpenRW("texture", "setup")
-        texturedb.common.delete_tables("Texture")
-        dbio.DBCloseRW("texture", "setup")
+        DeleteThumbnails()
 
     utils.delete_playlists()
     utils.delete_nodes()
@@ -1032,16 +1122,12 @@ def databasereset():
     if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
         return
 
-    LOG.warning("[ database reset ]")
+    LOG.info("[ database reset ]")
     utils.SystemShutdown = True
     utils.SyncPause = {}
     DeleteTextureCache = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     DeleteSettings = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33087))
-    xbmc.executebuiltin('Dialog.Close(addonsettings)')
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    xbmc.executebuiltin('activatewindow(home)')
-    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
     videodb = dbio.DBOpenRW("video", "databasereset")
     videodb.common.delete_tables("Video")
     dbio.DBCloseRW("video", "databasereset")
@@ -1050,10 +1136,7 @@ def databasereset():
     dbio.DBCloseRW("music", "databasereset")
 
     if DeleteTextureCache:
-        utils.DeleteThumbnails()
-        texturedb = dbio.DBOpenRW("texture", "databasereset")
-        texturedb.common.delete_tables("Texture")
-        dbio.DBCloseRW("texture", "databasereset")
+        DeleteThumbnails()
 
     if DeleteSettings:
         LOG.info("[ reset settings ]")
@@ -1083,3 +1166,27 @@ def reset_device_id():
     utils.get_device_id(True)
     utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33033))
     xbmc.executebuiltin('RestartApp')
+
+def DeleteThumbnails():
+    LOG.info("-->[ reset artwork ]")
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    Folders, _ = utils.listDir('special://thumbnails/')
+    utils.progress_open(utils.Translate(33412))
+    TotalFolders = len(Folders)
+
+    for CounterFolder, Folder in enumerate(Folders, 1):
+        _, Files = utils.listDir('special://thumbnails/%s' % Folder)
+        TotalFiles = len(Files)
+
+        for CounterFile, File in enumerate(Files, 1):
+            utils.progress_update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), "%s: %s%s" % (utils.Translate(33412), Folder, File))
+            LOG.debug("DELETE thumbnail %s" % File)
+            utils.delFile('special://thumbnails/%s%s' % (Folder, File))
+
+        utils.progress_update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), "%s: %s" % (utils.Translate(33412), Folder))
+
+    texturedb = dbio.DBOpenRW("texture", "cache_textures")
+    texturedb.common.delete_tables("Texture")
+    dbio.DBCloseRW("texture", "cache_textures")
+    utils.progress_close()
+    LOG.info("--<[ reset artwork ]")

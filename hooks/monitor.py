@@ -155,7 +155,7 @@ class monitor(xbmc.Monitor):
                     if media in ("tvshow", "season"):
                         continue
 
-                    items = embydb.get_full_item_by_kodi_id_complete_all(kodi_id, media)
+                    items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
 
                     if not items:
                         continue
@@ -173,10 +173,10 @@ class monitor(xbmc.Monitor):
         UpdateItems = self.QueueItemsStatusupdate
         self.QueueItemsStatusupdate = ()
         self.QueryItemStatusThread = False
-        EmbyUpdateItems = {}
         ItemsSkipUpdateRemove = []
 
         for server_id, EmbyServer in list(utils.EmbyServers.items()):
+            EmbyUpdateItems = {}
             embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnUpdate")
 
             for UpdateItem in UpdateItems:
@@ -189,7 +189,7 @@ class monitor(xbmc.Monitor):
                     kodi_id = data['id']
                     media = data['type']
 
-                items = embydb.get_full_item_by_kodi_id_complete_all(kodi_id, media)
+                items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
 
                 if not items:
                     continue
@@ -219,8 +219,9 @@ class monitor(xbmc.Monitor):
 
                             if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
                                 EmbyUpdateItems[int(UpdateItemFiltered[0])]['PlayCount'] = data['playcount']
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])]['EmbyItem'] = UpdateItemFiltered
                             else:
-                                EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'PlayCount': data['playcount']}
+                                EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'PlayCount': data['playcount'], 'EmbyItem': UpdateItemFiltered}
                         else:
                             LOG.info("[ VideoLibrary_OnUpdate skip playcount %s ]" % UpdateItemFiltered[0])
                     else:
@@ -231,29 +232,33 @@ class monitor(xbmc.Monitor):
 
                                     if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
                                         EmbyUpdateItems[int(UpdateItemFiltered[0])]['Progress'] = 0
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])]['EmbyItem'] = UpdateItemFiltered
                                     else:
-                                        EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'Progress': 0}
+                                        EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'Progress': 0, 'EmbyItem': UpdateItemFiltered}
                                 else:
                                     LOG.info("VideoLibrary_OnUpdate skip reset progress (UpdateItems) %s" % UpdateItemFiltered[0])
                             else:
                                 LOG.info("VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) %s" % UpdateItemFiltered[0])
 
-            for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
-                if ItemSkipUpdateRemove in player.Player.ItemSkipUpdate:
-                    player.Player.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
-
             for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
-                player.Player.ItemSkipUpdate.append(EmbyItemId)
+                player.Player.ItemSkipUpdate.append(int(EmbyItemId))
 
                 if 'Progress' in EmbyUpdateItem:
                     if 'PlayCount' in EmbyUpdateItem:
                         EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], EmbyUpdateItem['PlayCount'])
                     else:
-                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], -1)
+                        kodidb = dbio.DBOpenRO("video", "VideoLibrary_OnUpdate")
+                        PlayCount = kodidb.get_playcount(EmbyUpdateItem['EmbyItem'][5]) # EmbyUpdateItem['EmbyItem'][5] = KodiFileId
+                        dbio.DBCloseRO("video", "VideoLibrary_OnUpdate")
+                        EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], PlayCount)
                 else:
                     EmbyServer.API.set_played(EmbyItemId, EmbyUpdateItem['PlayCount'])
 
             dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
+
+        for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
+            if ItemSkipUpdateRemove in player.Player.ItemSkipUpdate:
+                player.Player.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
 
         LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(player.Player.ItemSkipUpdate))
         pluginmenu.reset_episodes_cache()
@@ -272,7 +277,6 @@ def BackupRestore():
         utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33225), sound=False)
         return
 
-    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     _, files = utils.listDir(utils.FolderAddonUserdata)
 
     for Filename in files:
@@ -282,7 +286,7 @@ def BackupRestore():
     _, files = utils.listDir("special://profile/Database/")
 
     for Filename in files:
-        if Filename.startswith('emby') or Filename.startswith('My') or Filename.startswith('Textures'):
+        if Filename.startswith('emby') or Filename.startswith('My'):
             utils.delFile("special://profile/Database/%s" % Filename)
 
     utils.delete_playlists()
@@ -291,9 +295,7 @@ def BackupRestore():
     utils.copytree(RestoreFolderAddonData, utils.FolderAddonUserdata)
     RestoreFolderDatabase = "%s/Database/" % RestoreFolder
     utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
-    xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
     xbmc.executebuiltin('RestartApp')
-
 
 # Emby backup
 def Backup():
@@ -441,13 +443,13 @@ def settingschanged():  # threaded by caller
 
     # Manual adjusted sync time/date
     if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
-        LOG.info("[ Trigger initsync due to setting changed ]")
+        LOG.info("[ Trigger KodiStartSync due to setting changed ]")
         SyncTimestamp = '%s %s:00' % (utils.syncdate, utils.synctime)
         SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
 
         for EmbyServer in list(utils.EmbyServers.values()):
             EmbyServer.library.set_syncdate(SyncTimestamp)
-            start_new_thread(EmbyServer.library.InitSync, (False,))
+            start_new_thread(EmbyServer.library.KodiStartSync, (False,))
 
     for EmbyServer in list(utils.EmbyServers.values()):
         EmbyServer.API.update_settings()

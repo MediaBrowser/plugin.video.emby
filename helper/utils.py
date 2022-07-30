@@ -5,6 +5,16 @@ import json
 from urllib.parse import quote
 from datetime import datetime, timedelta
 from dateutil import tz, parser
+
+try:
+    from PIL import Image
+    from PIL import ImageFont
+    from PIL import ImageDraw
+    import io
+    ImageOverlay = True
+except:
+    ImageOverlay = False
+
 import xbmcvfs
 import xbmc
 import xbmcaddon
@@ -17,8 +27,9 @@ PluginId = "plugin.video.emby-next-gen"
 addon_version = Addon.getAddonInfo('version')
 addon_name = Addon.getAddonInfo('name')
 icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif"
+CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
-MinimumVersion = "7.0.2"
+MinimumVersion = "7.7.0"
 StartupComplete = False
 refreshskin = True
 device_name = "Kodi"
@@ -37,11 +48,11 @@ backupPath = ""
 disablehttp2 = "true"
 MinimumSetup = ""
 limitIndex = 5
-artworkcachethreads = 5
+autocloseyesno = 5
 maxnodeitems = "25"
 username = ""
 server = ""
-deviceName = ""
+deviceName = "Kodi"
 useDirectPaths = False
 menuOptions = False
 newContent = False
@@ -57,6 +68,10 @@ transcodeXvid = False
 transcodeMpeg2 = False
 enableCinemaMovies = False
 enableCinemaEpisodes = False
+enableSkipIntro = False
+enableSkipCredits = False
+askSkipIntro = False
+askSkipCredits = False
 askCinema = False
 localTrailers = False
 Trailers = False
@@ -84,6 +99,7 @@ databasevacuum = False
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
+FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_busy, embyserverID
 DBBusy = False
@@ -91,6 +107,42 @@ Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()
 waitForAbort = xbmc.Monitor().waitForAbort
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
+
+def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText):
+    LOG.info("Add image text overlay: %s" % EmbyID)
+
+    if ImageTag == "noimage":
+        ImageBytes = noimagejpg
+    else:
+        ImageBytes = EmbyServers[ServerId].http.request({'params': {}, 'type': "GET", 'handler': "Items/%s/Images/%s/%s?%s" % (EmbyID, ImageType, ImageIndex, ImageTag)}, False, True)
+
+        if not ImageBytes:
+            ImageBytes = noimagejpg
+
+    if not ImageOverlay:
+        return ImageBytes
+
+    img = Image.open(io.BytesIO(ImageBytes))
+    ImageWidth, ImageHeight = img.size
+    draw = ImageDraw.Draw(img, "RGBA")
+    BoxY = int(ImageHeight * 0.9)
+    BorderSize = int(ImageHeight * 0.01)
+    fontsize = 1
+    font = ImageFont.truetype(FontPath, 1)
+
+    #Use longest possible text to determine font width
+    ImageWidthMod = ImageHeight / 3 * 4
+
+    while font.getsize("Title Sequence")[0] < 0.80 * ImageWidthMod and font.getsize("Title Sequence")[1] < 0.80 * BoxY:
+        fontsize += 1
+        font = ImageFont.truetype(FontPath, fontsize)
+
+    FontSizeY = font.getsize(OverlayText)[1]
+    draw.rectangle((-BorderSize, BoxY - FontSizeY, ImageWidth + BorderSize, BoxY), fill=(0, 0, 0, 127), outline="white",  width=BorderSize)
+    draw.text(xy=(ImageWidth / 2, BoxY - FontSizeY / 2), text=OverlayText, fill="#FFFFFF", font=font, anchor="mm", align="center")
+    imgByteArr = io.BytesIO()
+    img.save(imgByteArr, format=img.format)
+    return imgByteArr.getvalue()
 
 def sleep(Seconds):
     if waitForAbort(Seconds):
@@ -232,6 +284,13 @@ def writeFileString(Path, Data):
     with open(Path, "wb") as outfile:
         outfile.write(Data)
 
+def getFreeSpace(Path):
+    Path = translatePath(Path)
+    space = os.statvfs(Path)
+    free = space.f_bavail * space.f_frsize / 1024
+#    total = space.f_blocks * space.f_frsize / 1024
+    return free
+
 def writeFileBinary(Path, Data):
     Path = translatePath(Path)
 
@@ -281,6 +340,12 @@ def currenttime():
 
 def currenttime_kodi_format():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+def currenttime_kodi_format_and_unixtime():
+    Current = datetime.now()
+    KodiFormat = Current.strftime('%Y-%m-%d %H:%M:%S')
+    UnixTime = int(datetime.timestamp(Current))
+    return KodiFormat, UnixTime
 
 # Remove all emby playlists
 def delete_playlists():
@@ -478,28 +543,6 @@ def SizeToText(size):
 
     return "%.*f%s" % (2, size, suffixes[suffixIndex])
 
-def DeleteThumbnails():
-    dirs, _ = listDir('special://thumbnails/')
-    progress_open(Translate(33412))
-
-    for directory in dirs:
-        _, thumbs = listDir('special://thumbnails/%s' % directory)
-        Counter = 0
-        ThumbsLen = len(thumbs)
-        Increment = 0.0
-
-        if ThumbsLen > 0:
-            Increment = 100.0 / ThumbsLen
-
-        for thumb in thumbs:
-            Counter += 1
-            progress_update(int(Counter * Increment), Translate(33199), "%s: %s%s" % (Translate(33412), directory, thumb))
-            LOG.debug("DELETE thumbnail %s" % thumb)
-            delFile('special://thumbnails/%s%s' % (directory, thumb))
-
-    progress_close()
-    LOG.warning("[ reset artwork ]")
-
 # Copy folder content from one to another
 def copytree(path, dest):
     dirs, files = listDir(path)
@@ -565,6 +608,7 @@ def InitSettings():
     load_settings('videoBitrate')
     load_settings('audioBitrate')
     load_settings('resumeJumpBack')
+    load_settings('autocloseyesno')
     load_settings('displayMessage')
     load_settings('newvideotime')
     load_settings('newmusictime')
@@ -578,7 +622,6 @@ def InitSettings():
     load_settings('useDirectPaths')
     load_settings('syncdate')
     load_settings('synctime')
-    load_settings('artworkcachethreads')
     load_settings('maxnodeitems')
     load_settings_bool('syncduringplayback')
     load_settings_bool('refreshskin')
@@ -618,15 +661,20 @@ def InitSettings():
     load_settings_bool('enableDeleteByKodiEvent')
     load_settings_bool('syncruntimelimits')
     load_settings_bool('databasevacuum')
+    load_settings_bool('enableSkipIntro')
+    load_settings_bool('enableSkipCredits')
+    load_settings_bool('askSkipIntro')
+    load_settings_bool('askSkipCredits')
 
     if not deviceNameOpt:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
     else:
-        globals()["device_name"] = device_name.encode('utf-8')  # encode special charecters
-        globals()["device_name"] = device_name.replace("/", "_")
+        globals()["device_name"] = deviceName.replace("/", "_")
 
     if not device_name:
         globals()["device_name"] = "Kodi"
+    else:
+        globals()["device_name"] = quote(device_name) # url encode
 
     if disablehttp2:
         globals()["disablehttp2"] = "true"
@@ -642,7 +690,6 @@ def InitSettings():
     globals()["startupDelay"] = int(startupDelay)
     globals()["videoBitrate"] = int(videoBitrate)
     globals()["audioBitrate"] = int(audioBitrate)
-    globals()["artworkcachethreads"] = int(artworkcachethreads)
 
 def set_syncdate(timestamp):
     TimeStamp = parser.parse(timestamp.encode('utf-8'))
@@ -678,7 +725,7 @@ def set_settings_bool(setting, value):
 def get_path_type_from_item(server_id, item):
     path = None
 
-    if item['Type'] == 'Photo' and 'Primary' in item['ImageTags']:
+    if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
         path = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
         Type = "p"
     elif item['Type'] == "MusicVideo":
@@ -710,14 +757,29 @@ def get_path_type_from_item(server_id, item):
         else:
             if not path:
                 try:
-                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-None-None-%s-0-1-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+                    IsRemote = item['MediaSources'][0].get('IsRemote', False)
+
+                    if IsRemote:
+                        IsRemote = "1"
+                    else:
+                        IsRemote = "0"
+
+                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(item['Path']))
                 except:
-                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-None-None-%s-0-1-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], 0, "", PathToFilenameReplaceSpecialCharecters(item['Path']))
+                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+
+                if path.endswith('.strm'):
+                    path = path.replace('.strm', "")
+
+                    if 'Container' in item:
+                        if not path.endswith(item['Container']):
+                            path = "%s.%s" % (path, item['Container'])
 
     return path, Type
 
 mkDir(FolderAddonUserdata)
 mkDir(FolderEmbyTemp)
+mkDir(FolderUserdataThumbnails)
 mkDir('special://profile/playlists/video/')
 mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
@@ -726,6 +788,8 @@ set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0, 'epg': "", 'epg-version': 0, 'addons': "", 'addons-version': 0, 'viewmodes': "", 'viewmodes-version': 0, 'tv': "", 'tv-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")
+FontPath = translatePath("special://home/addons/plugin.video.emby-next-gen/resources/font/LiberationSans-Bold.ttf")
+noimagejpg = readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/noimage.jpg")
 
 for FolderDatabaseFilename in FolderDatabasefiles:
     if not FolderDatabaseFilename.endswith('-wal') and not FolderDatabaseFilename.endswith('-shm') and not FolderDatabaseFilename.endswith('db-journal'):

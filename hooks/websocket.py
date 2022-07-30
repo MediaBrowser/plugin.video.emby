@@ -448,13 +448,13 @@ class WSClient:
         elif IncomingData['MessageType'] == 'LibraryChanged':
             LOG.info("[ LibraryChanged ] %s" % IncomingData['Data'])
             self.EmbyServer.library.removed(IncomingData['Data']['ItemsRemoved'])
-            UpdateItems = (len(IncomingData['Data']['ItemsUpdated']) + len(IncomingData['Data']['ItemsAdded'])) * [(None, None, None, None)] # preallocate memory
+            UpdateItemIds = (len(IncomingData['Data']['ItemsUpdated']) + len(IncomingData['Data']['ItemsAdded'])) * [None] # preallocate memory
 
             for Index, ItemMod in enumerate(IncomingData['Data']['ItemsUpdated'] + IncomingData['Data']['ItemsAdded']):
-                UpdateItems[Index] = (ItemMod, None, None, None)
+                UpdateItemIds[Index] = ItemMod
 
-            UpdateItems = list(dict.fromkeys(UpdateItems)) # filter doplicates
-            self.EmbyServer.library.updated(UpdateItems)
+            UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter doplicates
+            self.EmbyServer.library.updated(UpdateItemIds)
 
             if self.SyncInProgress:
                 LOG.info("Emby server sync in progress, delay updates")

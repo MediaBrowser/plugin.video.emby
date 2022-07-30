@@ -3,10 +3,11 @@ from helper import utils, loghandler
 
 EmbyArtworkKeys = ["Primary", "Art", "Banner", "Disc", "Logo", "Thumb"]
 EmbyArtworkIDs = {"Primary": "p", "Art": "a", "Banner": "b", "Disc": "d", "Logo": "l", "Thumb": "t", "Backdrop": "B", "Chapter": "c"}
+MarkerTypeMapping = {"IntroStart": "Intro Start", "IntroEnd": "Intro End", "CreditsStart": "Credits"}
 ImageTagsMapping = {
     "Series": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
     "Season": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Episode": {'Primary': ('thumb', 'poster'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
+    "Episode": {'Primary': ('thumb', 'poster', 'landscape'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
     "Movie": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
     "BoxSet": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
     "Video": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
@@ -27,43 +28,78 @@ def library_check(item, EmbyServer, emby_db):
     if not item:
         return False
 
+    item['KodiItemIds'] = []
+    item['KodiParentIds'] = []
+    item['KodiFileIds'] = []
+    item['UpdateItems'] = []
+    item['Librarys'] = []
     item['ServerId'] = EmbyServer.server_id
-    item['ExistingItem'] = emby_db.get_item_by_id(item['Id'])
+    ExistingItem = emby_db.get_item_by_id(item['Id'])
 
-    if not item['Library']:
-        if item['ExistingItem']:
-            library_id = item['ExistingItem'][6]
-            library_name = Check_LibraryIsSynced(library_id, EmbyServer.library.Whitelist)
+    if ExistingItem:
+        LibraryIds = ExistingItem[6].split(";")
 
-            if not library_name:
-                return False
-        else:  # Realtime Updates
-            library_id = ""
-            library_name = ""
-            ancestors = EmbyServer.API.get_ancestors(item['Id'])
-
-            if not ancestors:
+        # Update existing items
+        for LibraryId in LibraryIds:
+            if LibraryId not in EmbyServer.Views.ViewItems:
+                LOG.info("[ library_check remove library %s ]" % LibraryId)
                 return False
 
-            for ancestor in ancestors:
-                if ancestor['Type'] == 'CollectionFolder':
-                    library_name = Check_LibraryIsSynced(ancestor['Id'], EmbyServer.library.Whitelist)
+            LibraryName = EmbyServer.Views.ViewItems[LibraryId][0]
+            item['UpdateItems'].append(True)
+            item['Librarys'].append({'Id': LibraryId, 'Name': LibraryName, 'LibraryId_Name': "%s-%s" % (LibraryId, LibraryName)})
 
-                    if not library_name:
-                        return False
+        if ExistingItem[0]:
+            item['KodiItemIds'] = str(ExistingItem[0]).split(";")
+        else:
+            item['KodiItemIds'] = len(LibraryIds) * [None]
 
-                    library_id = ancestor['Id']
-                    break
+        if ExistingItem[3]:
+            item['KodiParentIds'] = str(ExistingItem[3]).split(";")
+        else:
+            item['KodiParentIds'] = len(LibraryIds) * [None]
 
-        if library_id:
-            item['Library']['Id'] = library_id
-            item['Library']['Name'] = library_name
-            item['Library']['LibraryId_Name'] = "%s-%s" % (library_id, library_name)
-            return True
+        if ExistingItem[1]:
+            item['KodiFileIds'] = str(ExistingItem[1]).split(";")
+        else:
+            item['KodiFileIds'] = len(LibraryIds) * [None]
 
+        item['KodiPathId'] = ExistingItem[2]
+
+        # New item (by different library id)
+        if item['Library']: # Init sync
+            if not item['Library']['Id'] in LibraryIds:
+                item['KodiItemIds'].append(None)
+                item['KodiParentIds'].append(None)
+                item['KodiFileIds'].append(None)
+                item['UpdateItems'].append(False)
+                item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': "%s-%s" % (item['Library']['Id'], item['Library']['Name'])})
+    else:
+        # New item
+        if item['Library']: # Init sync
+            item['KodiItemIds'].append(None)
+            item['KodiParentIds'].append(None)
+            item['KodiFileIds'].append(None)
+            item['UpdateItems'].append(False)
+            item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': "%s-%s" % (item['Library']['Id'], item['Library']['Name'])})
+        else: # realtime or startup sync
+            for LibraryIdWhitelist, _ in list(EmbyServer.library.Whitelist.items()):
+                if EmbyServer.API.get_Item_Basic(item['Id'], LibraryIdWhitelist, item['Type']):
+                    LibraryName = Check_LibraryIsSynced(LibraryIdWhitelist, EmbyServer.library.Whitelist)
+                    item['KodiItemIds'].append(None)
+                    item['KodiParentIds'].append(None)
+                    item['KodiFileIds'].append(None)
+                    item['UpdateItems'].append(False)
+                    item['Librarys'].append({'Id': LibraryIdWhitelist, 'Name': LibraryName, 'LibraryId_Name': "%s-%s" % (LibraryIdWhitelist, LibraryName)})
+
+    if not item['Librarys']:
         return False
 
-    item['Library']['LibraryId_Name'] = "%s-%s" % (item['Library']['Id'], item['Library']['Name'])
+    item['LibraryIds'] = []
+
+    for Library in item['Librarys']:
+        item['LibraryIds'].append(Library['Id'])
+
     return True
 
 def Check_LibraryIsSynced(library_id, Whitelist):
@@ -99,7 +135,7 @@ def get_Bitrate_Codec(item):
 
     return Bitrate, Codec
 
-def get_filename(item, MediaID, API):
+def get_filename(item, MediaID, API, ItemIndex):
     # Native Kodi plugins starts with plugin:// -> If native Kodi plugin, drop the link directly in Kodi DB. Emby server cannot play Kodi-Plugins
     ForceNativeMode = False
     Temp = item['FullPath'].lower()
@@ -148,11 +184,17 @@ def get_filename(item, MediaID, API):
         return
 
     Bitrate, Codec = get_Bitrate_Codec(item)
+    IsRemote = item['MediaSources'][0].get('IsRemote', False)
+
+    if IsRemote:
+        IsRemote = "1"
+    else:
+        IsRemote = "0"
 
     if Temp.endswith(".iso"):
-        item['Filename'] = "i-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemId'], item['KodiFileId'], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, "iso-container.mp4")
+        item['Filename'] = "i-%s-%s-%s-%s-%s-%s-%s-%s-%s-0-0-0-0-%s" % (item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, "iso-container.mp4")
     else:
-        item['Filename'] = "%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (MediaID, item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemId'], item['KodiFileId'], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, item['Filename'])
+        item['Filename'] = "%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (MediaID, item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'], IsRemote, item['Filename'])
 
         # Detect Multipart videos
         if 'PartCount' in item:
@@ -166,7 +208,7 @@ def get_filename(item, MediaID, API):
                     AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
                     get_streams(AdditionalItem)
                     Bitrate, Codec = get_Bitrate_Codec(item)
-                    StackedFilename = "%s , %s%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (StackedFilename, item['Path'], MediaID, item['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], item['KodiPathId'], item['KodiFileId'], Bitrate, AdditionalItem['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, AdditionalFilename)
+                    StackedFilename = "%s , %s%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-0-0-0-0-%s" % (StackedFilename, item['Path'], MediaID, item['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], item['KodiPathId'], item['KodiFileIds'][ItemIndex], Bitrate, AdditionalItem['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, AdditionalFilename)
 
                     if 'RunTimeTicks' in AdditionalItem:
                         RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
@@ -191,10 +233,14 @@ def adjust_resume(resume_seconds):
 
     return resume
 
-def get_file_path(item, MediaID):
+def get_file_path(item, MediaID, ItemIndex):
     if not 'Path' in item:
         return False
 
+    if 'MediaSources' in item:
+        item['Path'] = item['MediaSources'][0]['Path']
+
+    item['EmbyPath'] = item['Path']
     item['FullPath'] = ""
     path = item['Path']
 
@@ -258,16 +304,16 @@ def get_file_path(item, MediaID):
             item['Path'] = "%s%s" % (item['FullPath'], PathChar)
     else:
         if MediaID == "tvshows":
-            item['PathParent'] = "http://127.0.0.1:57342/tvshows/%s/" % item['Library']['Id']
-            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['Library']['Id'], item['Id'])
+            item['PathParent'] = "http://127.0.0.1:57342/tvshows/%s/" % item['LibraryIds'][ItemIndex]
+            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['LibraryIds'][ItemIndex], item['Id'])
         elif MediaID == "episodes":
-            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['Library']['Id'], item['SeriesId'])
+            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['LibraryIds'][ItemIndex], item['SeriesId'])
         elif MediaID == "movies":
-            item['Path'] = "http://127.0.0.1:57342/movies/%s/" % item['Library']['Id']
+            item['Path'] = "http://127.0.0.1:57342/movies/%s/" % item['LibraryIds'][ItemIndex]
         elif MediaID == "musicvideos":
-            item['Path'] = "http://127.0.0.1:57342/musicvideos/%s/" % item['Library']['Id']
+            item['Path'] = "http://127.0.0.1:57342/musicvideos/%s/" % item['LibraryIds'][ItemIndex]
         elif MediaID == "audio":
-            item['Path'] = "http://127.0.0.1:57342/audio/%s/" % item['Library']['Id']
+            item['Path'] = "http://127.0.0.1:57342/audio/%s/" % item['LibraryIds'][ItemIndex]
 
     if not item['FullPath']:  # Invalid Path
         LOG.error("Invalid path: %s" % item['Id'])
@@ -277,30 +323,38 @@ def get_file_path(item, MediaID):
     return True
 
 # Get people (actor, director, etc) artwork.
-def set_people(item, ServerId):
+def set_people(item, ServerId, ItemIndex):
     item['Writers'] = []
     item['Directors'] = []
     item['Cast'] = []
+    PeopleInvalidRecords = []
 
     if "People" in item:
-        for People in item['People']:
-            if People['Type'] == "Writer":
-                item['Writers'].append(People['Name'])
-            elif People['Type'] == "Director":
-                item['Directors'].append(People['Name'])
-            elif People['Type'] == "Actor":
-                item['Cast'].append(People['Name'])
+        for Index, People in enumerate(item['People']):
+            if 'Name' in People:
+                if People['Type'] == "Writer":
+                    item['Writers'].append(People['Name'])
+                elif People['Type'] == "Director":
+                    item['Directors'].append(People['Name'])
+                elif People['Type'] == "Actor":
+                    item['Cast'].append(People['Name'])
 
-            if item['Type'] == "MusicVideo":
-                if 'PrimaryImageTag' in People:
-                    People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s-%s" % (ServerId, People['Id'], People['PrimaryImageTag'], item['Library']['Id'])
+                if item['Type'] == "MusicVideo":
+                    if 'PrimaryImageTag' in People:
+                        People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s-%s" % (ServerId, People['Id'], People['PrimaryImageTag'], item['LibraryIds'][ItemIndex])
+                    else:
+                        People['imageurl'] = item['LibraryIds'][ItemIndex]
                 else:
-                    People['imageurl'] = item['Library']['Id']
+                    if 'PrimaryImageTag' in People:
+                        People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (ServerId, People['Id'], People['PrimaryImageTag'])
+                    else:
+                        People['imageurl'] = None
             else:
-                if 'PrimaryImageTag' in People:
-                    People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (ServerId, People['Id'], People['PrimaryImageTag'])
-                else:
-                    People['imageurl'] = None
+                PeopleInvalidRecords.append(Index)
+
+        for PeopleInvalidRecord in PeopleInvalidRecords:
+            del item['People'][PeopleInvalidRecord]
+            LOG.warning("Invalid people detected: %s / %s" % (item['Id'], item['Name']))
     else:
         item['People'] = []
 
@@ -343,8 +397,16 @@ def get_streams(item):
                 StreamData = {'codec': Codec, 'height': Stream.get('Height'), 'width': Stream.get('Width'), '3d': Stream.get('Video3DFormat'), 'BitRate': Stream.get('BitRate'), 'Index': Index, 'aspect': None}
 
                 if "AspectRatio" in Stream:
-                    width, height = Stream['AspectRatio'].split(':')
-                    StreamData['aspect'] = round(float(width) / float(height), 6)
+                    AspectRatio = Stream['AspectRatio'].split(':')
+
+                    if len(AspectRatio) != 2:
+                        LOG.warning("AspectRatio detected by alternative method: %s / %s" % (item['Id'], item['Name']))
+                        AspectRatio = Stream['AspectRatio'].split('/')
+
+                    if len(AspectRatio) == 2 and AspectRatio[0].isnumeric() and AspectRatio[1].isnumeric() and float(AspectRatio[1]) > 0:
+                        StreamData['aspect'] = round(float(AspectRatio[0]) / float(AspectRatio[1]), 6)
+                    else:
+                        LOG.warning("AspectRatio not detected: %s / %s" % (item['Id'], item['Name']))
 
                 item['Streams'][IndexMediaSources]['Video'].append(StreamData)
             elif Stream['Type'] == "Subtitle":
@@ -437,7 +499,7 @@ def set_genres(item):
 
     item['Genre'] = " / ".join(item['Genres'])
 
-def set_videocommon(item, server_id):
+def set_videocommon(item, server_id, ItemIndex):
     item['ProductionLocations'] = item.get('ProductionLocations', None)
     item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', None)
     item['UserData']['PlaybackPositionTicks'] = adjust_resume((item['UserData']['PlaybackPositionTicks'] or 0) / 10000000.0)
@@ -455,7 +517,7 @@ def set_videocommon(item, server_id):
 
     set_genres(item)
     set_playstate(item)
-    set_people(item, server_id)
+    set_people(item, server_id, ItemIndex)
     set_studios(item)
     set_overview(item)
     set_PremiereDate(item)
@@ -491,38 +553,50 @@ def set_studios(item):
 
 def set_chapters(item, server_id):
     item['ChapterInfo'] = []
+    item['IntroStartPositionTicks'] = 0
+    item['IntroEndPositionTicks'] = 0
+    item['CreditsPositionTicks'] = 0
     ChapterDuplicateCheck = []
 
     if 'Chapters' in item:
         for index, Chapter in enumerate(item['Chapters']):
-            NativeStreamChapter = True
+            ChapterImage = None
 
-            if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "CreditsStart"):
-                NativeStreamChapter = False
+            if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "IntroEnd" or Chapter['MarkerType'] == "CreditsStart"):
+                if Chapter['MarkerType'] == "IntroStart":
+                    item['IntroStartPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                elif Chapter['MarkerType'] == "IntroEnd":
+                    item['IntroEndPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                elif Chapter['MarkerType'] == "CreditsStart":
+                    item['CreditsPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+
+                if "ImageTag" in Chapter:
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(MarkerTypeMapping[Chapter['MarkerType']]))
+                else: # inject blank image, otherwise not possible to use text overlay (webservice.py)
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", quote(MarkerTypeMapping[Chapter['MarkerType']]))
             else:
-                if "Name" in Chapter and (Chapter['Name'] == "Title Sequence" or Chapter['Name'] == "End Credits" or Chapter['Name'] == "IntroStart"):
-                    NativeStreamChapter = False
-
-                if "Name" in Chapter and " 0" not in Chapter['Name'] and int(Chapter["StartPositionTicks"]) % 3000000000 == 0:
-                    if Chapter["StartPositionTicks"] in ChapterDuplicateCheck:
+                if "Name" in Chapter:
+                    if Chapter['Name'] == "Title Sequence" or Chapter['Name'] == "End Credits" or Chapter['Name'] == "Intro Start" or Chapter['Name'] == "Intro End":
+                        if Chapter['Name'] == "Intro Start" and not item['IntroStartPositionTicks']:
+                            item['IntroStartPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                        elif Chapter['Name'] == "Intro End" and not item['IntroEndPositionTicks']:
+                            item['IntroEndPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                        elif Chapter['Name'] == "End Credits" and not item['CreditsPositionTicks']:
+                            item['CreditsPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                    elif " 0" in Chapter['Name'] or int(Chapter["StartPositionTicks"]) % 3000000000 != 0: # embedded chapter
                         continue
 
-                    NativeStreamChapter = False
-
-            if not NativeStreamChapter:
-                if "ImageTag" in Chapter:
-                    if "Name" in Chapter:
-                        if "Chapter " not in Chapter['Name']:
+                    if "ImageTag" in Chapter:
+                        if "Name" in Chapter and "Chapter " not in Chapter['Name']:
                             ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(Chapter['Name']))
                         else:
                             ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s" % (server_id, item['Id'], index, Chapter['ImageTag'])
-                    else:
-                        ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(Chapter['MarkerType']))
-                else:
-                    ChapterImage = None
 
-                item['ChapterInfo'].append({"StartPositionTicks": round(float((Chapter["StartPositionTicks"] or 0) / 10000000.0), 6), "Image": ChapterImage})
-                ChapterDuplicateCheck.append(Chapter["StartPositionTicks"])
+            if Chapter["StartPositionTicks"] in ChapterDuplicateCheck:
+                continue
+
+            item['ChapterInfo'].append({"StartPositionTicks": round(float((Chapter["StartPositionTicks"] or 0) / 10000000.0), 6), "Image": ChapterImage})
+            ChapterDuplicateCheck.append(Chapter["StartPositionTicks"])
 
 # Set Kodi artwork
 def set_KodiArtwork(item, server_id):
@@ -621,25 +695,25 @@ def delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, e
     if EmbyItemId:
         emby_db.remove_item_streaminfos(EmbyItemId)
 
-def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId):
+def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, ItemIndex):
     item['ProductionLocations'] = item.get('ProductionLocations', [])
     set_RunTimeTicks(item)
     get_streams(item)
-    get_filename(item, FileId, EmbyServer.API)
     set_chapters(item, EmbyServer.server_id)
-    set_videocommon(item, EmbyServer.server_id)
+    get_filename(item, FileId, EmbyServer.API, ItemIndex)
+    set_videocommon(item, EmbyServer.server_id, ItemIndex)
     emby_db.add_streamdata(item['Id'], item['Streams'])
-    video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemId'], MediaType)
-    video_db.add_bookmark_chapter(item['KodiFileId'], item['RunTimeTicks'], item['ChapterInfo'])
-    video_db.add_bookmark_playstate(item['KodiFileId'], item['UserData']['PlaybackPositionTicks'], item['RunTimeTicks'])
-    video_db.add_studios_and_links(item['Studios'], item['KodiItemId'], MediaType)
-    video_db.add_people_and_links(item['People'], item['KodiItemId'], MediaType)
-    video_db.add_countries_and_links(item['ProductionLocations'], item['KodiItemId'], MediaType)
-    video_db.add_streams(item['KodiFileId'], item['Streams'][0]['Video'], item['Streams'][0]['Audio'], item['Streams'][0]['SubtitleLanguage'], item['RunTimeTicks'])
+    video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], MediaType)
+    video_db.add_bookmark_chapter(item['KodiFileIds'][ItemIndex], item['RunTimeTicks'], item['ChapterInfo'])
+    video_db.add_bookmark_playstate(item['KodiFileIds'][ItemIndex], item['UserData']['PlaybackPositionTicks'], item['RunTimeTicks'])
+    video_db.add_studios_and_links(item['Studios'], item['KodiItemIds'][ItemIndex], MediaType)
+    video_db.add_people_and_links(item['People'], item['KodiItemIds'][ItemIndex], MediaType)
+    video_db.add_countries_and_links(item['ProductionLocations'], item['KodiItemIds'][ItemIndex], MediaType)
+    video_db.add_streams(item['KodiFileIds'][ItemIndex], item['Streams'][0]['Video'], item['Streams'][0]['Audio'], item['Streams'][0]['SubtitleLanguage'], item['RunTimeTicks'])
 
     if "StackTimes" in item:
-        video_db.add_stacktimes(item['KodiFileId'], item['StackTimes'])
+        video_db.add_stacktimes(item['KodiFileIds'][ItemIndex], item['StackTimes'])
 
-def delete_ContentItem(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType):
+def delete_ContentItem(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType, EmbyLibraryId):
     delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType)
-    emby_db.remove_item(EmbyItemId)
+    emby_db.remove_item(EmbyItemId, EmbyLibraryId)

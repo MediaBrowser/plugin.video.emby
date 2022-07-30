@@ -33,6 +33,7 @@ class HTTP:
 
         LOG.debug("--->[ http ] %s" % data)
         Retries = 0
+        RequestType = data.pop('type', "GET")
 
         while True:
             if utils.SystemShutdown:
@@ -44,9 +45,12 @@ class HTTP:
                 self.session = requests.Session()
 
             try:
-                r = _requests(self.session, data.pop('type', "GET"), **data)
+                r = _requests(self.session, RequestType, **data)
                 LOG.debug("---<[ http ][%s ms]" % int(r.elapsed.total_seconds() * 1000))
                 LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
+
+                if RequestType == "HEAD":
+                    return r.status_code
 
                 if r.status_code == 200:
                     if Binary:

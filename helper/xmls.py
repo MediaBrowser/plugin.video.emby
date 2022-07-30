@@ -95,6 +95,14 @@ def load_defaultvideosettings():
 
     return {}
 
+def restart_required(Filepath, xmlData):
+    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=10000, sound=True)
+
+    if utils.sleep(10):  # Give Kodi time to complete startup before reset
+        return
+
+    WriteXmlFile(Filepath, xmlData)
+
 def advanced_settings_runtimelimits(xmlData):
     WriteData = False
     Filepath = ""
@@ -151,8 +159,7 @@ def advanced_settings_runtimelimits(xmlData):
                 WriteData = True
 
     if Filepath and WriteData:
-        WriteXmlFile(Filepath, xmlData)
-        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
+        restart_required(Filepath, xmlData)
 
     return WriteData
 
@@ -233,8 +240,7 @@ def advanced_settings():
         WriteData = True
 
     if WriteData:
-        WriteXmlFile(Filepath, xmlData)
-        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=5000, sound=True)
+        restart_required(Filepath, xmlData)
 
     return WriteData
 
@@ -346,3 +352,15 @@ def add_favorites():
                 xml.etree.ElementTree.SubElement(xmlData, 'content').text = "episodes"
 
         WriteXmlFile(filepath, xmlData)
+
+def verify_settings_file():
+    xmlData = utils.readFileString("%ssettings.xml" % utils.FolderAddonUserdata)
+
+    if xmlData:
+        try:
+            xml.etree.ElementTree.fromstring(xmlData)
+        except Exception as Error:
+            LOG.error("Setting file corupted, restore: %s" % Error)
+            return False
+
+    return True

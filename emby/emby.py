@@ -1,13 +1,10 @@
 import json
 from _thread import start_new_thread
-import xbmcaddon
 from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, servermanual
 from helper import utils, loghandler
 from database import library
 from hooks import websocket
 from . import views, api, http, connection_manager
-
-XmlPath = (xbmcaddon.Addon(utils.PluginId).getAddonInfo('path'), "default", "1080i")
 LOG = loghandler.LOG('EMBY.emby.emby')
 
 
@@ -123,7 +120,7 @@ class EmbyServer:
         self.Views.update_views()
         self.library.load_settings()
         self.Views.update_nodes()
-        start_new_thread(self.library.InitSync, (self.Firstrun,))  # start initial sync
+        start_new_thread(self.library.KodiStartSync, (self.Firstrun,))  # start initial sync
         self.Websocket = websocket.WSClient(self)
         self.Websocket.start()
         self.Online = True
@@ -210,14 +207,12 @@ class EmbyServer:
 
                 if not result:  # Cancel
                     return False
-
             elif state['State'] == 2:  # ServerSignIn
                 if 'ExchangeToken' not in state['Servers'][0]:
                     result = self.login()
 
-                    if not result:
+                    if not result:  # Cancel
                         return False
-
             elif state['State'] == 0:  # Unavailable
                 return False
 
@@ -239,7 +234,7 @@ class EmbyServer:
                 return False
 
         user = state.get('ConnectUser') or {}
-        Dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", *XmlPath)
+        Dialog = serverconnect.ServerConnect("script-emby-connect-server.xml", *utils.CustomDialogParameters)
         Dialog.PassVar(self.connect_manager, user.get('ImageUrl'), not user)
         Dialog.doModal()
 
@@ -249,10 +244,14 @@ class EmbyServer:
 
         if Dialog.is_connect_login():
             LOG.debug("Login with emby connect")
-            self.login_connect()
+
+            if self.login_connect():
+                return True
         elif Dialog.is_manual_server():
             LOG.debug("Adding manual server")
-            return self.manual_server()
+
+            if self.manual_server():
+                return True
         else:
             return False  # No server selected
 
@@ -260,7 +259,7 @@ class EmbyServer:
 
     # Return server or raise error
     def manual_server(self):
-        Dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", *XmlPath)
+        Dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", *utils.CustomDialogParameters)
         Dialog.PassVar(self.connect_manager)
         Dialog.doModal()
 
@@ -276,7 +275,7 @@ class EmbyServer:
         if not users:
             return self.login_manual(None)
 
-        Dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", *XmlPath)
+        Dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", *utils.CustomDialogParameters)
         Dialog.PassVar(self.server, users)
         Dialog.doModal()
 
@@ -304,7 +303,7 @@ class EmbyServer:
 
     # Return manual login user authenticated
     def login_manual(self, user):
-        Dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", *XmlPath)
+        Dialog = loginmanual.LoginManual("script-emby-connect-login-manual.xml", *utils.CustomDialogParameters)
         Dialog.PassVar(self.connect_manager, user)
         Dialog.doModal()
 
@@ -315,7 +314,7 @@ class EmbyServer:
 
     # Return connect user
     def login_connect(self):
-        Dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", *XmlPath)
+        Dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", *utils.CustomDialogParameters)
         Dialog.PassVar(self.connect_manager)
         Dialog.doModal()
 

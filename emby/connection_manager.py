@@ -93,7 +93,7 @@ class ConnectionManager:
             return False
 
         address = normalize_address(address)
-        public_info = self._try_connect(address, False)
+        public_info = self._try_connect(address, True)
 
         if not public_info:
             return False
@@ -199,7 +199,6 @@ class ConnectionManager:
             'dataType': "json",
             'headers': {'X-Connect-UserToken': self.EmbyServer.ServerData['ConnectAccessToken']}
         }
-
         result = self.request_url(request, True, False)
 
         if not result:
