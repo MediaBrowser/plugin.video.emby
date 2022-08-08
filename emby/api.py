@@ -218,7 +218,12 @@ class API:
             'Recursive': True,
             'Limit': 1
         }
-        return self._http("GET", "Artists", {'params': params})['TotalRecordCount']
+        Data = self._http("GET", "Artists", {'params': params})
+
+        if 'TotalRecordCount' in Data:
+            return int(Data['TotalRecordCount'])
+
+        return 0
 
     def get_itemsSyncMusic(self, parent_id, item_type, params):
         query = {
@@ -288,7 +293,12 @@ class API:
             'Recursive': True,
             'Limit': 1
         }
-        return self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})['TotalRecordCount']
+        Data = self._http("GET", "Users/%s/Items" % self.EmbyServer.user_id, {'params': params})
+
+        if 'TotalRecordCount' in Data:
+            return int(Data['TotalRecordCount'])
+
+        return 0
 
     def _get_items(self, query):
         Limit = int(utils.limitIndex)
