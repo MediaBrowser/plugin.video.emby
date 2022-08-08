@@ -9,6 +9,7 @@ class MusicVideos:
         self.EmbyServer = EmbyServer
         self.emby_db = embydb
         self.video_db = videodb
+        self.video_db.init_favorite_tags()
 
     def musicvideo(self, item):
         if not common.library_check(item, self.EmbyServer, self.emby_db):
@@ -57,11 +58,11 @@ class MusicVideos:
             common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "musicvideo", "M", ItemIndex)
 
             if item['UpdateItems'][ItemIndex]:
-                self.video_db.update_musicvideos(item['Name'], item['KodiArtwork']['poster'], item['RunTimeTicks'], item['Directors'], item['Studio'], item['ProductionYear'], item['Overview'], item['Album'], item['Artist'], item['Genre'], item['IndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['PremiereDate'], item['KodiItemIds'][ItemIndex], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiFileIds'][ItemIndex], item['Filename'])
+                self.video_db.update_musicvideos(item['Name'], item['KodiArtwork']['poster'], item['RunTimeTicks'], item['Directors'], item['Studio'], item['Overview'], item['Album'], item['Artist'], item['Genre'], item['IndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['PremiereDate'], item['KodiItemIds'][ItemIndex], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiFileIds'][ItemIndex], item['Filename'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                 LOG.info("UPDATE musicvideo [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
             else:
-                self.video_db.add_musicvideos(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['KodiArtwork']['poster'], item['RunTimeTicks'], item['Directors'], item['Studio'], item['ProductionYear'], item['Overview'], item['Album'], item['Artist'], item['Genre'], item['IndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['PremiereDate'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['Filename'])
+                self.video_db.add_musicvideos(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['KodiArtwork']['poster'], item['RunTimeTicks'], item['Directors'], item['Studio'], item['Overview'], item['Album'], item['Artist'], item['Genre'], item['IndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['PremiereDate'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['Filename'])
                 item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                 item['KodiFileIds'][ItemIndex] = item['KodiFileIds'][ItemIndex]
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "MusicVideo", "musicvideo", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
@@ -82,7 +83,7 @@ class MusicVideos:
         if not common.library_check(Item, self.EmbyServer, self.emby_db):
             return
 
-        if Item['PlaybackPositionTicks']:
+        if Item['PlaybackPositionTicks'] and Item['PlayedPercentage']:
             RuntimeSeconds = int(Item['PlaybackPositionTicks'] / Item['PlayedPercentage'] / 100000)
         else:
             RuntimeSeconds = 0

@@ -31,6 +31,11 @@ class Library:
         Items = []
         embydb = dbio.DBOpenRO(self.EmbyServer.server_id, Worker)
 
+        if not embydb:
+            globals()["WorkerInProgress"] = False
+            LOG.info("[ worker %s exit ] database io error")
+            return False, []
+
         if Worker == "userdata":
             Items = embydb.get_Userdata()
         elif Worker == "update":
@@ -51,9 +56,19 @@ class Library:
         return True, Items
 
     def close_Worker(self, TaskId, MusicSynced, VideoSynced):
-        utils.progress_close()
         self.close_EmbyDBRW(TaskId)
-        close_KodiDatabase(MusicSynced, VideoSynced)
+        utils.progress_close()
+
+        if VideoSynced and MusicSynced and not utils.useDirectPaths:
+            utils.ScanStaggered = True
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+        else:
+            if VideoSynced:
+                xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+
+            if MusicSynced and not utils.useDirectPaths:
+                xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+
         globals()["WorkerInProgress"] = False
 
     def open_EmbyDBRW(self, TaskId):
@@ -91,7 +106,7 @@ class Library:
         if embydb.init_EmbyDB():
             self.Whitelist, self.WhitelistArray = embydb.get_Whitelist()
         else:
-            videodb = dbio.DBOpenRW("video", "load_settings")
+            self.close_EmbyDBRW("load_settings")
             return
 
         videodb = dbio.DBOpenRW("video", "load_settings")
@@ -452,7 +467,7 @@ class Library:
         pluginmenu.reset_episodes_cache()
         self.close_Worker("worker_library", MusicSynced, VideoSynced)
         LOG.info("--<[ worker library completed ]")
-        xbmc.executebuiltin('ReloadSkin()')
+        utils.ScanReloadSkin = True
 
         if not utils.sleep(1):  # give Kodi time to catch up
             self.RunJobs()
@@ -839,10 +854,3 @@ def StringToDict(Data):
     Data = Data.replace("False", "false")
     Data = Data.replace("True", "true")
     return json.loads(Data)
-
-def close_KodiDatabase(MusicSynced, VideoSynced):
-    if VideoSynced:
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-
-    if MusicSynced and not utils.useDirectPaths:
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')

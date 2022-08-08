@@ -1845,32 +1845,48 @@ msgstr "Una finestra di messaggio chiederà di saltare alla posizione finale del
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "Segnalini"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Salta i crediti"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Una finestra di messaggio chiederà di saltare i crediti"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Chiedi salta introduzione"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Chiedi crediti di salto"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "La finestra dei messaggi si chiude automaticamente dopo X secondi"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Le finestre di messaggio Salta introduzione, salta riconoscimenti, modalità cinema ed elimina le opzioni si chiuderanno automaticamente dopo X secondi. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Compositori"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Rilevato file di impostazione danneggiato, ripristinare il valore predefinito. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Errore SSL"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "Cache della grafica interrotta: spazio insufficiente"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Connessione Websocket offline"

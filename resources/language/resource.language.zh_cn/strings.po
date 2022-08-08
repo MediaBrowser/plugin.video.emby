@@ -1849,32 +1849,48 @@ msgstr "消息框会要求跳转到介绍结束位置"
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "标记"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "跳过学分"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "一个消息框会要求跳过学分"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "询问跳过介绍"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "询问跳过学分"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "消息框在X秒后自动关闭"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "跳过介绍、跳过演职员表、电影模式和删除选项消息框将在 X 秒后自动关闭。 "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "作曲家"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "检测到损坏的设置文件，恢复默认值。 "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL 错误"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "艺术品缓存停止：空间不足"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket连接离线"

@@ -417,11 +417,14 @@ def browse(Handle, Id, query, args, server_id):
 
             load_ListItem(Id, Item, server_id, ItemsListings)
 
+    LOG.info("Dynamic nodes: addDirectoryItems")
     xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
 
     # Set Sorting
     if Unsorted:
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
+
+    LOG.info("Dynamic nodes: addSortMethod")
 
     if query in ('Photo', 'PhotoAlbum'):
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
@@ -450,6 +453,7 @@ def browse(Handle, Id, query, args, server_id):
     if Content:
         xbmcplugin.setContent(Handle, MappingContentKodi[Content])
 
+    LOG.info("Dynamic nodes: endOfDirectory")
     xbmcplugin.endOfDirectory(Handle)
 
 def remotepictures(Handle, playposition):
@@ -798,9 +802,7 @@ def favepisodes(Handle):
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
     LOG.info("<[ cache textures ]")
-
-    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044)):
-        DeleteThumbnails()
+    DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044))
 
     # Select content to be cached
     choices = [utils.Translate(33121), "Movies", "TVShows", "Season", "Episode", "Musicvideos", "Album", "Single", "Song", "Boxsets", "Actor", "Artist", "Writer", "Director", "Gueststar", "Producer", "Bookmarks", "Photoalbum", "Photos"]
@@ -809,6 +811,10 @@ def cache_textures():
     if not selection:
         return
 
+    if DelArtwork:
+        DeleteThumbnails()
+
+    utils.progress_open(utils.Translate(33045))
     utils.set_settings_bool('artworkcacheenable', False)
     Urls = []
 
@@ -837,8 +843,6 @@ def cache_textures():
                     ItemCounter += 1
 
                 Urls += TempUrls
-
-            TempUrls = []
 
     if 0 in selection or 1 in selection or 2 in selection or 3 in selection or 4 in selection or 5 in selection or 9 in selection or 10 in selection or 12 in selection or 13 in selection or 14 in selection or 15 in selection or 16 in selection:
         videodb = dbio.DBOpenRO("video", "cache_textures")
@@ -908,6 +912,7 @@ def cache_textures():
     Urls = list(dict.fromkeys(Urls)) # remove duplicates
     CacheAllEntries(Urls)
     utils.set_settings_bool('artworkcacheenable', True)
+    utils.progress_close()
 
 def get_image_metadata(ImageBinaryData, Hash):
     height = 0
@@ -951,7 +956,6 @@ def get_image_metadata(ImageBinaryData, Hash):
 # Cache all entries
 def CacheAllEntries(urls):
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    utils.progress_open(utils.Translate(33045))
     total = len(urls)
     KodiTime, UnixTime = utils.currenttime_kodi_format_and_unixtime()
     ArtworkCacheItems = 1000 * [{}]
@@ -964,7 +968,7 @@ def CacheAllEntries(urls):
             ArtworkCacheIndex = 0
 
             if utils.getFreeSpace(utils.FolderUserdataThumbnails) < 2097152: # check if free space below 2GB
-                utils.Dialog.notification(heading=utils.addon_name, message="Artwork cacheing stopped: running out of space", icon=utils.icon, time=5000, sound=True)
+                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
                 LOG.warning("Artwork cache: running out of space")
                 break
         else:
@@ -973,8 +977,12 @@ def CacheAllEntries(urls):
         if not url[0]:
             continue
 
-        Temp = url[0][url[0].rfind("/") + 1:]
-        Data = Temp.split("-")
+        Data = url[0].replace("http://127.0.0.1:57342/", "").split("-")
+
+        if len(Data) < 5:
+            LOG.warning("Artwork cache: Invalid item found %s" % url)
+            continue
+
         ServerId = Data[1]
         EmbyID = Data[2]
         ImageIndex = Data[3]
@@ -1021,8 +1029,6 @@ def CacheAllEntries(urls):
         utils.progress_update(Value, "Emby", "%s: %s / %s" % (utils.Translate(33045), EmbyID, IndexUrl))
 
     add_textures(ArtworkCacheItems, KodiTime)
-    ArtworkCacheItems = []
-    utils.progress_close()
 
 def add_textures(ArtworkCacheItems, KodiTime):
     texturedb = dbio.DBOpenRW("texture", "artwork_cache")
@@ -1075,7 +1081,7 @@ def factoryreset():
     utils.SystemShutdown = True
     utils.SyncPause = {}
     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
-    DeleteArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
+    DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
 
     if utils.sleep(5):  # Give Kodi time to complete startup before reset
@@ -1098,7 +1104,7 @@ def factoryreset():
     musicdb.common.delete_tables("Music")
     dbio.DBCloseRW("music", "setup")
 
-    if DeleteArtwork:
+    if DelArtwork:
         DeleteThumbnails()
 
     utils.delete_playlists()
@@ -1125,7 +1131,7 @@ def databasereset():
     LOG.info("[ database reset ]")
     utils.SystemShutdown = True
     utils.SyncPause = {}
-    DeleteTextureCache = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
+    DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     DeleteSettings = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33087))
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     videodb = dbio.DBOpenRW("video", "databasereset")
@@ -1135,7 +1141,7 @@ def databasereset():
     musicdb.common.delete_tables("Music")
     dbio.DBCloseRW("music", "databasereset")
 
-    if DeleteTextureCache:
+    if DelArtwork:
         DeleteThumbnails()
 
     if DeleteSettings:
@@ -1170,11 +1176,12 @@ def reset_device_id():
 def DeleteThumbnails():
     LOG.info("-->[ reset artwork ]")
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    Folders, _ = utils.listDir('special://thumbnails/')
     utils.progress_open(utils.Translate(33412))
+    Folders, _ = utils.listDir('special://thumbnails/')
     TotalFolders = len(Folders)
 
     for CounterFolder, Folder in enumerate(Folders, 1):
+        utils.progress_update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), "%s: %s" % (utils.Translate(33412), Folder))
         _, Files = utils.listDir('special://thumbnails/%s' % Folder)
         TotalFiles = len(Files)
 
@@ -1182,8 +1189,6 @@ def DeleteThumbnails():
             utils.progress_update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), "%s: %s%s" % (utils.Translate(33412), Folder, File))
             LOG.debug("DELETE thumbnail %s" % File)
             utils.delFile('special://thumbnails/%s%s' % (Folder, File))
-
-        utils.progress_update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), "%s: %s" % (utils.Translate(33412), Folder))
 
     texturedb = dbio.DBOpenRW("texture", "cache_textures")
     texturedb.common.delete_tables("Texture")

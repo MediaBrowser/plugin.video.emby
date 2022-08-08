@@ -99,7 +99,7 @@ class WSClient:
             self.ReconnectingInProgress = True
 
             while not self.stop:
-                utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message="Websocket connection offline", time=1000, sound=False)
+                utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33430), time=1000, sound=False)
                 self.close(False)
                 LOG.info("--->[ websocket reconnecting ]")
 
@@ -310,6 +310,9 @@ class WSClient:
                 payload = maskData(self._frame_mask, payload)
 
             # Reset for next frame
+            Debug_frame_header = self._frame_header
+            Debug_frame_length = self._frame_length
+            Debug_frame_mask = self._frame_mask
             self._frame_header = None
             self._frame_length = None
             self._frame_mask = None
@@ -333,7 +336,7 @@ class WSClient:
             elif opcode == 0xa:
                 return False
             else:
-                LOG.error("Uncovered opcode: %s" % opcode)
+                LOG.error("Uncovered opcode: %s / %s / %s / %s / %s" % (opcode, payload, Debug_frame_header, Debug_frame_length, Debug_frame_mask))
                 return False
 
     def _recv_strict(self, bufsize):

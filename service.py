@@ -49,7 +49,7 @@ def setup():
         if utils.sleep(10):  # Give Kodi time to load skin
             return False
 
-        utils.Dialog.notification(heading=utils.addon_name, message="Corupted setting file detected, restore default. Restart in 5 seconds.")
+        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33427))
         utils.delFile("%ssettings.xml" % utils.FolderAddonUserdata)
 
         if utils.sleep(5):

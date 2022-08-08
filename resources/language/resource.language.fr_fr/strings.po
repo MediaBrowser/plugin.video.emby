@@ -1848,32 +1848,48 @@ msgstr "Une boîte de message vous demandera de passer à la position finale de 
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "Marqueurs"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Sauter les crédits"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Une boîte de message vous demandera des crédits de saut"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Demandez à sauter l'intro"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Demandez des crédits de saut"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "Fermeture automatique de la boîte de message après X secondes"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Ignorer l'intro, ignorer les crédits, le mode cinéma et les boîtes de message d'option de suppression se fermeront automatiquement après X secondes. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Compositeurs"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Fichier de paramètres corrompu détecté, restauration par défaut. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Erreur SSL"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "Mise en cache de l'illustration arrêtée : manque d'espace"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Connexion Websocket hors ligne"

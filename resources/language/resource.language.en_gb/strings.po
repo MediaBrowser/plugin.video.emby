@@ -1869,3 +1869,19 @@ msgstr ""
 msgctxt "#33426"
 msgid "Composers"
 msgstr ""
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr ""
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr ""
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr ""
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr ""

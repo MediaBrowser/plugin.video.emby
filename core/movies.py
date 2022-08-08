@@ -1,4 +1,4 @@
-from helper import utils, loghandler
+from helper import loghandler
 from . import common
 
 LOG = loghandler.LOG('EMBY.core.movies')
@@ -9,6 +9,7 @@ class Movies:
         self.EmbyServer = EmbyServer
         self.emby_db = embydb
         self.video_db = videodb
+        self.video_db.init_favorite_tags()
 
     def movie(self, item):
         if not common.library_check(item, self.EmbyServer, self.emby_db):
@@ -17,27 +18,12 @@ class Movies:
         LOG.info("Process item: %s" % item['Name'])
         ItemIndex = 0
         common.SwopMediaSources(item)  # 3D
-        item['OriginalTitle'] = item.get('OriginalTitle', None)
+        item['OriginalTitle'] = item.get('OriginalTitle', "")
         item['CommunityRating'] = item.get('CommunityRating', None)
         item['CriticRating'] = item.get('CriticRating', None)
-        item['ShortOverview'] = item.get('ShortOverview', None)
+        item['ShortOverview'] = item.get('ShortOverview', "")
         common.set_mpaa(item)
-
-        # Trailer
-        item['Trailer'] = ""
-
-        if item['LocalTrailerCount']:
-            for IntroLocal in self.EmbyServer.API.get_local_trailers(item['Id']):
-                Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-                item['Trailer'] = "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (self.EmbyServer.server_id, IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], Filename)
-                break
-
-        if 'RemoteTrailers' in item:
-            if item['RemoteTrailers']:
-                try:
-                    item['Trailer'] = "plugin://plugin.video.youtube/play/?video_id=%s" % item['RemoteTrailers'][0]['Url'].rsplit('=', 1)[1]
-                except:
-                    LOG.error("Trailer not valid: %s" % item['Name'])
+        common.set_trailer(item, self.EmbyServer)
 
         for ItemIndex in range(len(item['Librarys'])):
             if not common.get_file_path(item, "movies", ItemIndex):
@@ -58,14 +44,14 @@ class Movies:
             item['RatingId'] = self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "movie", "default", item['CommunityRating'])
 
             if not item['ProductionLocations']:
-                item['ProductionLocations'].append(None)
+                item['ProductionLocations'].append("")
 
             if item['UpdateItems'][ItemIndex]:
-                self.video_db.update_movie(item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart'), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['KodiItemIds'][ItemIndex], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiFileIds'][ItemIndex])
+                self.video_db.update_movie(item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['KodiItemIds'][ItemIndex], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiFileIds'][ItemIndex])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                 LOG.info("UPDATE movie [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
             else:
-                self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart'), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
+                self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
                 item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                 item['KodiFileIds'][ItemIndex] = item['KodiFileIds'][ItemIndex]
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Movie", "movie", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
@@ -192,7 +178,7 @@ class Movies:
         if not common.library_check(Item, self.EmbyServer, self.emby_db):
             return
 
-        if Item['PlayedPercentage']:
+        if Item['PlayedPercentage'] and Item['PlayedPercentage']:
             RuntimeSeconds = int(Item['PlaybackPositionTicks'] / Item['PlayedPercentage'] / 100000)
         else:
             RuntimeSeconds = 0

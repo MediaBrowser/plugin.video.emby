@@ -26,7 +26,7 @@ Addon = xbmcaddon.Addon("plugin.video.emby-next-gen")
 PluginId = "plugin.video.emby-next-gen"
 addon_version = Addon.getAddonInfo('version')
 addon_name = Addon.getAddonInfo('name')
-icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif"
+icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
 MinimumVersion = "7.7.0"
@@ -103,6 +103,8 @@ FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_busy, embyserverID
 DBBusy = False
+ScanStaggered = True
+ScanReloadSkin = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()
 waitForAbort = xbmc.Monitor().waitForAbort
@@ -285,11 +287,14 @@ def writeFileString(Path, Data):
         outfile.write(Data)
 
 def getFreeSpace(Path):
-    Path = translatePath(Path)
-    space = os.statvfs(Path)
-    free = space.f_bavail * space.f_frsize / 1024
-#    total = space.f_blocks * space.f_frsize / 1024
-    return free
+    try:
+        Path = translatePath(Path)
+        space = os.statvfs(Path)
+        free = space.f_bavail * space.f_frsize / 1024
+    #    total = space.f_blocks * space.f_frsize / 1024
+        return free
+    except: # not suported by Windows
+        return 9999999
 
 def writeFileBinary(Path, Data):
     Path = translatePath(Path)
@@ -382,8 +387,8 @@ def convert_to_gmt(local_time):
 
 # Convert the gmt datetime to local
 def convert_to_local(date, DateOnly=False):
-    if not date:
-        return ""
+    if not date or str(date) == "0":
+        return "0"
 
     if isinstance(date, int):
         date = str(date)
@@ -403,11 +408,11 @@ def convert_to_local(date, DateOnly=False):
             timestamp = datetime(1970, 1, 1) + timedelta(seconds=int(timestamp))
     except:
         LOG.warning("invalid timestamp")
-        return ""
+        return "0"
 
     if timestamp.year < 1900:
         LOG.warning("invalid timestamp < 1900")
-        return ""
+        return "0"
 
     if DateOnly:
         return timestamp.strftime('%Y-%m-%d')
@@ -681,10 +686,24 @@ def InitSettings():
     else:
         globals()["disablehttp2"] = "false"
 
+    ToggleIcon = []
+
     if animateicon:
+        if icon and icon != "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif":
+            ToggleIcon = ["resources/icon.png", "resources/icon-animated.gif"]
+
         globals()["icon"] = "special://home/addons/plugin.video.emby-next-gen/resources/icon-animated.gif"
     else:
+        if icon and icon != "special://home/addons/plugin.video.emby-next-gen/resources/icon.png":
+            ToggleIcon = ["resources/icon-animated.gif", "resources/icon.png"]
+
         globals()["icon"] = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
+
+    if ToggleIcon:
+        LOG.info("Toggle icon")
+        AddonXml = readFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml")
+        AddonXml = AddonXml.replace(ToggleIcon[0], ToggleIcon[1])
+        writeFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml", AddonXml)
 
     globals()["limitIndex"] = int(limitIndex)
     globals()["startupDelay"] = int(startupDelay)
@@ -728,22 +747,28 @@ def get_path_type_from_item(server_id, item):
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
         path = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
         Type = "p"
-    elif item['Type'] == "MusicVideo":
+        return path, Type
+
+    if item['Type'] == "TvChannel":
+        path = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
+        Type = "t"
+        return path, Type
+
+    if item['Type'] == "Audio":
+        path = "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+        Type = "a"
+        return path, Type
+
+    if item['Type'] == "MusicVideo":
         Type = "M"
     elif item['Type'] == "Movie":
         Type = "m"
     elif item['Type'] == "Episode":
         Type = "e"
-    elif item['Type'] == "Audio":
-        path = "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
-        Type = "a"
     elif item['Type'] == "Video":
         Type = "v"
     elif item['Type'] == "Trailer":
         Type = "T"
-    elif item['Type'] == "TvChannel":
-        path = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
-        Type = "t"
     else:
         return None, None
 
@@ -774,6 +799,9 @@ def get_path_type_from_item(server_id, item):
                     if 'Container' in item:
                         if not path.endswith(item['Container']):
                             path = "%s.%s" % (path, item['Container'])
+    else: # Channel
+        path = "http://127.0.0.1:57342/c-%s-%s-stream.ts" % (server_id, item['Id'])
+        Type = "c"
 
     return path, Type
 

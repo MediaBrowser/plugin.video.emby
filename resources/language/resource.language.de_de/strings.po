@@ -1847,32 +1847,48 @@ msgstr "Ein Meldungsfeld fordert den Sprung zur Intro-Endposition auf"
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "Markierungen"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Abspann überspringen"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Ein Meldungsfeld fragt nach Skip-Credits"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Frage, Intro überspringen"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Skip-Credits fragen"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "Automatisches Schließen der Meldungsbox nach X Sekunden"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Meldungsfelder Intro überspringen, Abspann überspringen, Kinomodus und Option löschen werden nach X Sekunden automatisch geschlossen. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Komponisten"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Beschädigte Einstellungsdatei erkannt, Standard wiederherstellen. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL-Fehler"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "Zwischenspeichern von Grafiken gestoppt: Platzmangel"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket-Verbindung offline"
