@@ -1,3 +1,9 @@
+6.2.21
+=============
+Fixes:
+------
+fix total records counter issue
+
 6.2.20
 =============
 Improvements:
