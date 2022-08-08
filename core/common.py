@@ -348,7 +348,7 @@ def set_people(item, ServerId, ItemIndex):
                     if 'PrimaryImageTag' in People:
                         People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (ServerId, People['Id'], People['PrimaryImageTag'])
                     else:
-                        People['imageurl'] = None
+                        People['imageurl'] = ""
             else:
                 PeopleInvalidRecords.append(Index)
 
@@ -464,7 +464,23 @@ def set_mpaa(item):
             if "GB-" in item['OfficialRating']:
                 item['OfficialRating'] = item['OfficialRating'].replace("GB-", "UK:")
     else:
-        item['OfficialRating'] = None
+        item['OfficialRating'] = ""
+
+def set_trailer(item, EmbyServer):
+    item['Trailer'] = ""
+
+    if item['LocalTrailerCount']:
+        for IntroLocal in EmbyServer.API.get_local_trailers(item['Id']):
+            Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
+            item['Trailer'] = "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (EmbyServer.server_id, IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], Filename)
+            break
+
+    if 'RemoteTrailers' in item:
+        if item['RemoteTrailers']:
+            try:
+                item['Trailer'] = "plugin://plugin.video.youtube/play/?video_id=%s" % item['RemoteTrailers'][0]['Url'].rsplit('=', 1)[1]
+            except:
+                LOG.error("Trailer not valid: %s" % item['Name'])
 
 def set_userdata_update_data(item):
     if item['PlayCount'] == 0 or not item['Played']:
@@ -500,8 +516,9 @@ def set_genres(item):
     item['Genre'] = " / ".join(item['Genres'])
 
 def set_videocommon(item, server_id, ItemIndex):
-    item['ProductionLocations'] = item.get('ProductionLocations', None)
+    item['ProductionLocations'] = item.get('ProductionLocations', [])
     item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', None)
+    item['ProductionYear'] = item.get('ProductionYear', 0)
     item['UserData']['PlaybackPositionTicks'] = adjust_resume((item['UserData']['PlaybackPositionTicks'] or 0) / 10000000.0)
 
     if 'DateCreated' in item:
@@ -510,10 +527,10 @@ def set_videocommon(item, server_id, ItemIndex):
         item['DateCreated'] = None
 
     if not 'Taglines' in item:
-        item['Taglines'] = [None]
+        item['Taglines'] = [""]
     else:
         if not item['Taglines']:
-            item['Taglines'] = [None]
+            item['Taglines'] = [""]
 
     set_genres(item)
     set_playstate(item)
@@ -530,8 +547,8 @@ def set_PremiereDate(item):
         if 'ProductionYear' in item:
             item['PremiereDate'] = item['ProductionYear']
         else:
-            item['PremiereDate'] = None
-            item['ProductionYear'] = None
+            item['PremiereDate'] = "0"
+            item['ProductionYear'] = "0"
 
 def set_studios(item):
     StudioNames = []
@@ -610,7 +627,7 @@ def set_KodiArtwork(item, server_id):
     item['BackdropImageTags'] = item.get('BackdropImageTags', [])
     item['AlbumPrimaryImageTag'] = item.get('AlbumPrimaryImageTag', None)
     item['SeriesPrimaryImageTag'] = item.get('SeriesPrimaryImageTag', None)
-    item['KodiArtwork'] = {'clearart': None, 'clearlogo': None, 'discart': None, 'landscape': None, 'thumb': None, 'banner': None, 'poster': None, 'fanart': {}}
+    item['KodiArtwork'] = {'clearart': "", 'clearlogo': "", 'discart': "", 'landscape': "", 'thumb': "", 'banner': "", 'poster': "", 'fanart': {}}
 
     if 'Library' not in item:
         item['Library'] = {'Id': 0}
@@ -669,7 +686,7 @@ def set_KodiArtwork(item, server_id):
 
 def set_MusicVideoTracks(item):
     # Try to detect track number
-    item['IndexNumber'] = None
+    item['IndexNumber'] = -1
     Temp = item['MediaSources'][0]['Name'][:4]  # e.g. 01 - Artist - Title
     Temp = Temp.split("-")
 
@@ -696,7 +713,6 @@ def delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, e
         emby_db.remove_item_streaminfos(EmbyItemId)
 
 def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, ItemIndex):
-    item['ProductionLocations'] = item.get('ProductionLocations', [])
     set_RunTimeTicks(item)
     get_streams(item)
     set_chapters(item, EmbyServer.server_id)

@@ -9,6 +9,7 @@ class TVShows:
         self.EmbyServer = EmbyServer
         self.emby_db = embydb
         self.video_db = videodb
+        self.video_db.init_favorite_tags()
 
     def tvshow(self, item):
         if not common.library_check(item, self.EmbyServer, self.emby_db):
@@ -17,13 +18,13 @@ class TVShows:
         LOG.info("Process item: %s" % item['Name'])
         ItemIndex = 0
         get_PresentationUniqueKey(item)
-        item['Status'] = item.get('Status', None)
+        item['Status'] = item.get('Status', "")
         item['CommunityRating'] = item.get('CommunityRating', None)
         item['CriticRating'] = item.get('CriticRating', None)
-        item['OriginalTitle'] = item.get('OriginalTitle', None)
-        item['ProductionLocations'] = item.get('ProductionLocations', [])
+        item['OriginalTitle'] = item.get('OriginalTitle', "")
         common.set_RunTimeTicks(item)
         common.set_mpaa(item)
+        common.set_trailer(item, self.EmbyServer)
 
         for ItemIndex in range(len(item['Librarys'])):
             common.set_videocommon(item, self.EmbyServer.server_id, ItemIndex)
@@ -72,11 +73,11 @@ class TVShows:
                 item['RatingId'] = self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "tvshow", "default", item['CommunityRating'])
 
                 if item['UpdateItems'][ItemIndex]:
-                    self.video_db.update_tvshow(item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart'), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['KodiItemIds'][ItemIndex])
+                    self.video_db.update_tvshow(item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['KodiItemIds'][ItemIndex], item['Trailer'])
                     self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                     LOG.info("UPDATE tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
                 else:
-                    self.video_db.add_tvshow(item['KodiItemIds'][ItemIndex], item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart'), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'])
+                    self.video_db.add_tvshow(item['KodiItemIds'][ItemIndex], item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['Trailer'])
                     item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                     self.video_db.add_link_tvshow(item['KodiItemIds'][ItemIndex], item['KodiPathParentId'])
@@ -161,17 +162,17 @@ class TVShows:
         get_PresentationUniqueKey(item)
         common.set_mpaa(item)
         common.SwopMediaSources(item)  # 3D
-        item['OriginalTitle'] = item.get('OriginalTitle', None)
-        item['SortIndexNumber'] = item.get('SortIndexNumber', None)
-        item['SortParentIndexNumber'] = item.get('SortParentIndexNumber', None)
+        item['OriginalTitle'] = item.get('OriginalTitle', "")
+        item['SortIndexNumber'] = item.get('SortIndexNumber', -1)
+        item['SortParentIndexNumber'] = item.get('SortParentIndexNumber', -1)
         item['IndexNumber'] = item.get('IndexNumber', 0)
         item['CommunityRating'] = item.get('CommunityRating', None)
         item['ParentIndexNumber'] = item.get('ParentIndexNumber', 0)
 
         # Remove special episode numbers when Season != 0
         if item['ParentIndexNumber']:
-            item['SortIndexNumber'] = None
-            item['SortParentIndexNumber'] = None
+            item['SortIndexNumber'] = -1
+            item['SortParentIndexNumber'] = -1
 
         for ItemIndex in range(len(item['Librarys'])):
             if not common.get_file_path(item, "episodes", ItemIndex):
@@ -209,8 +210,7 @@ class TVShows:
             else:
                 self.video_db.add_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['RatingId'], item['Writers'], item['PremiereDate'], item['KodiArtwork']['thumb'], item['RunTimeTicks'], item['Directors'], item['ParentIndexNumber'], item['IndexNumber'], item['OriginalTitle'], item['SortParentIndexNumber'], item['SortIndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['Unique'], item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['SeasonId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'])
-                self.video_db.add_file_bookmark(item['KodiItemIds'][ItemIndex], item['KodiSeasonId'], item['KodiParentIds'][ItemIndex], item['ChapterInfo']) # workaround due to Kodi episode bookmark bug
-                LOG.info("ADD episode [%s/%s/%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['Name']))
+                self.video_db.add_file_bookmark(item['KodiItemIds'][ItemIndex], item['KodiSeasonId'], item['KodiParentIds'][ItemIndex], item['ChapterInfo'], item['RunTimeTicks'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate']) # workaround due to Kodi episode bookmark bug
 
             self.emby_db.add_multiversion(item, "Episode", self.EmbyServer.API, self.video_db, item['UpdateItems'][ItemIndex])
 
@@ -238,16 +238,16 @@ class TVShows:
             self.video_db.set_Favorite(Item['IsFavorite'], Item['KodiItemIds'][ItemIndex], Item['KodiType'])
 
             if Item['KodiType'] == "episode":
-                if Item['PlaybackPositionTicks']:
+                if Item['PlaybackPositionTicks'] and Item['PlayedPercentage']:
                     RuntimeSeconds = int(Item['PlaybackPositionTicks'] / Item['PlayedPercentage'] / 100000)
                 else:
                     RuntimeSeconds = 0
 
                 common.set_userdata_update_data(Item)
                 self.video_db.update_bookmark_playstate(Item['KodiFileIds'][ItemIndex], Item['PlayCount'], Item['LastPlayedDate'], Item['PlaybackPositionTicks'], RuntimeSeconds)
+                pluginmenu.reset_episodes_cache()
 
             self.emby_db.update_favourite(Item['IsFavorite'], Item['Id'])
-            pluginmenu.reset_episodes_cache()
             LOG.info("USERDATA [%s/%s/%s] %s" % (Item['KodiType'], Item['KodiFileIds'][ItemIndex], Item['KodiItemIds'][ItemIndex], Item['Id']))
 
     # Remove showid, fileid, pathid, emby reference.

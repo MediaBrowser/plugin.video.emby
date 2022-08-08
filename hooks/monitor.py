@@ -92,6 +92,16 @@ class monitor(xbmc.Monitor):
 
         LOG.info("--<[ kodi scan/%s ]" % library)
 
+        if utils.ScanStaggered:
+            utils.ScanStaggered = False
+            LOG.info("[ kodi scan/%s ] Trigger music scan" % library)
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+        else:
+            if utils.ScanReloadSkin:
+                utils.ScanReloadSkin = False
+                LOG.info("[ kodi scan/%s ] Reload skin" % library)
+                xbmc.executebuiltin('ReloadSkin()')
+
     def onCleanStarted(self, library):
         utils.DBBusy = True
         self.KodiScanCount += 1
@@ -368,7 +378,7 @@ def UserDataChanged(server_id, UserDataList, UserId):
             e_item = embydb.get_item_by_id(ItemData['ItemId'])
 
             if e_item:
-                if e_item[5] in ("Season", "Series"):
+                if e_item[5] == "Season":
                     LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
                 else:
                     UpdateData.append(ItemData)

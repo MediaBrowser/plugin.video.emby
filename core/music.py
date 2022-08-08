@@ -49,7 +49,7 @@ class Music:
         ItemIndex = 0
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
-        item['ProductionYear'] = item.get('ProductionYear')
+        item['ProductionYear'] = item.get('ProductionYear', "")
         common.set_studios(item)
         common.set_genres(item)
         common.set_overview(item)
@@ -58,6 +58,10 @@ class Music:
         item['ProviderIds']['MusicBrainzReleaseGroup'] = item['ProviderIds'].get('MusicBrainzReleaseGroup', None)
         common.set_KodiArtwork(item, self.EmbyServer.server_id)
         common.set_RunTimeTicks(item)
+
+        if not item['ProductionYear']:
+            if 'PremiereDate' in  item:
+                item['ProductionYear'] = utils.convert_to_local(item['PremiereDate'])[:10]
 
         if str(item['Id']).startswith("999999999"):
             AlbumType = "single"
@@ -109,7 +113,7 @@ class Music:
         item['AlbumId'] = item.get('AlbumId', None)
         common.set_RunTimeTicks(item)
         item['LastScraped'] = utils.currenttime_kodi_format()
-        item['ProductionYear'] = item.get('ProductionYear', None)
+        item['ProductionYear'] = item.get('ProductionYear', "")
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
         item['ProviderIds'] = item.get('ProviderIds', [])
         item['ProviderIds']['MusicBrainzTrack'] = item['ProviderIds'].get('MusicBrainzTrack', None)
@@ -128,6 +132,9 @@ class Music:
 
         if 'PremiereDate' in  item:
             item['PremiereDate'] = utils.convert_to_local(item['PremiereDate'])[:10]
+
+            if not item['ProductionYear']:
+                item['ProductionYear'] = item['PremiereDate']
         else:
             item['PremiereDate'] = item['ProductionYear']
 

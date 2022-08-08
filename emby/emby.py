@@ -112,7 +112,15 @@ class EmbyServer:
 
         if 'Users' in self.ServerData:
             for UserId in self.ServerData['Users']:
-                self.API.session_add_user(session[0]['Id'], UserId, True)
+                AddUser = True
+
+                for AdditionalUser in session[0]['AdditionalUsers']:
+                    if AdditionalUser['UserId'] == UserId:
+                        AddUser = False
+                        break
+
+                if AddUser:
+                    self.API.session_add_user(session[0]['Id'], UserId, True)
 
         if utils.connectMsg:
             utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), session[0]['UserName']), icon=utils.icon, time=1500, sound=False)
@@ -149,10 +157,12 @@ class EmbyServer:
         self.API.session_add_user(session[0]['Id'], UserId, True)
 
     def remove_AdditionalUser(self, UserId):
-        self.ServerData['Users'].remove(UserId)
+        if 'Users' in self.ServerData:
+            if UserId in self.ServerData['Users']:
+                self.ServerData['Users'].remove(UserId)
 
-        if not self.ServerData['Users']:
-            del self.ServerData['Users']
+            if not self.ServerData['Users']:
+                del self.ServerData['Users']
 
         self.save_credentials()
         session = self.API.get_device()

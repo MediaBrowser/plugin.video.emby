@@ -1848,32 +1848,48 @@ msgstr "un cuadro de mensaje solicitará el salto a la posición final de la int
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "marcadores"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Omitir créditos"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Un cuadro de mensaje le pedirá saltar créditos"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Preguntar Saltar introducción"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Preguntar saltar créditos"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "Cierre automático del cuadro de mensaje después de X segundos"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Los cuadros de mensaje Saltar introducción, Saltar créditos, Modo cine y Borrar opción se cerrarán automáticamente después de X segundos. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Compositores"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Archivo de configuración corrupto detectado, restaurar predeterminado. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Error SSL"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "El almacenamiento en caché de las ilustraciones se detuvo: se está quedando sin espacio"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "conexión Websocket fuera de línea"

@@ -237,7 +237,7 @@ class Views:
         for library in Libraries:
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
                 library['MediaType'] = "podcasts"
-            elif library['Type'] == 'Channel' or library['Name'].lower() == "local trailers" or library['Name'].lower() == "trailers":
+            elif library['Type'] == 'Channel':
                 library['MediaType'] = "channels"
             else:
                 library['MediaType'] = library.get('CollectionType', "mixed")

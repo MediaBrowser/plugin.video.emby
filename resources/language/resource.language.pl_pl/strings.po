@@ -1844,32 +1844,48 @@ msgstr "okno komunikatu poprosi o przejście do pozycji końcowej intro"
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "Markery"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Pomiń kredyty"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Okno komunikatu poprosi o pominięcie kredytów"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Zapytaj pomiń intro"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Zapytaj pomiń kredyty"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "automatyczne zamknięcie skrzynki wiadomości po X sekundach"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Pomiń intro, pomiń napisy końcowe, tryb kinowy i opcje kasowania okien wiadomości zostaną automatycznie zamknięte po X sekundach. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Kompozytorzy"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Wykryto uszkodzony plik ustawień, przywróć domyślne. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Błąd SSL"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "Zatrzymano buforowanie grafiki: zaczyna brakować miejsca"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "połączenie z gniazdem internetowym w trybie offline"

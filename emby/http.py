@@ -64,7 +64,7 @@ class HTTP:
                 return noData(Binary)
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
-                utils.Dialog.notification(heading=utils.addon_name, message="SSL Error")
+                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
                 self.stop_session()
                 return noData(Binary)
             except requests.exceptions.ConnectionError:

@@ -1,3 +1,46 @@
+7.7.4
+=============
+Fixes and improvements:
+------
+improve plugin icon toogle 
+
+
+7.7.3
+=============
+Fixes and improvements:
+------
+fix date conversion issue for pictures
+change artwork cache messages order
+remove some unnecessary database records
+use stagger Kodi scan (more reliable due to lower load)
+
+
+7.7.2
+=============
+Fixes and improvements:
+------
+fix artwork cache (special charecter issue)
+fix progress update issue for edge cases
+fix gueststar cast issue
+much faster database reset
+fix add users to session
+fix artwork cache for photos and photoalbum
+fix minor bookmark issue for episodes
+add trailer support for tvshows
+lot of changes in Kodi database (using exactly same pattern as stock Kodi)
+
+
+7.7.1
+=============
+Fixes and improvements:
+------
+Add Channels support for dynamic nodes (Mediathek etc.)
+disable hdd space verification for Windows
+fix Favorites
+some minor fixes
+additional translations
+
+
 7.7.0
 =============
 Fixes and improvements:

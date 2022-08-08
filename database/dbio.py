@@ -43,7 +43,13 @@ def DBVacuum():
 
 def DBOpenRO(DBID, TaskId):
     DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
-    globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:" + utils.DatabaseFiles[DBID].decode('utf-8') + "?immutable=1&mode=ro", uri=True, timeout=999999) #, check_same_thread=False
+
+    try:
+        globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:%s?immutable=1&mode=ro" % utils.DatabaseFiles[DBID].decode('utf-8'), uri=True, timeout=999999) #, check_same_thread=False
+    except Exception as Error:
+        LOG.error("Database IO: %s / %s" % (utils.DatabaseFiles[DBID], Error))
+        return None
+
     DBConnectionsRO[DBIDThreadID].execute("PRAGMA journal_mode=WAL")
     LOG.info("---> DBOpenRO: %s" % DBIDThreadID)
 
@@ -103,4 +109,4 @@ def DBCloseRW(DBID, TaskId):
     DBConnectionsRW[DBID][0].cursor().close()
     DBConnectionsRW[DBID][0].close()
     globals()["DBConnectionsRW"][DBID][1] = False
-    LOG.info("---< DBCloseRW: %s/%s/%s rows updated on db close" % (DBID, changes, TaskId))
+    LOG.info("---< DBCloseRW: %s / %s / %s rows updated on db close" % (DBID, changes, TaskId))

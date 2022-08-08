@@ -1847,32 +1847,48 @@ msgstr "Okno se zprávou požádá o skok na úvodní koncovou pozici"
 
 msgctxt "#33419"
 msgid "Markers"
-msgstr ""
+msgstr "Značky"
 
 msgctxt "#33420"
 msgid "Skip credits"
-msgstr ""
+msgstr "Přeskočte kredity"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr ""
+msgstr "Schránka se zprávou požádá o přeskočení kreditů"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
-msgstr ""
+msgstr "Zeptejte se přeskočte úvod"
 
 msgctxt "#33423"
 msgid "Ask skip credits"
-msgstr ""
+msgstr "Zeptejte se přeskočení kreditů"
 
 msgctxt "#33424"
 msgid "Message box automatic close after X seconds"
-msgstr ""
+msgstr "Schránka zpráv se automaticky zavírá po X sekundách"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr ""
+msgstr "Přeskočení úvodu, přeskočení titulků, režimu kina a možností odstranění se automaticky zavřou po X sekundách. "
 
 msgctxt "#33426"
 msgid "Composers"
-msgstr ""
+msgstr "Skladatelé"
+
+msgctxt "#33427"
+msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Byl zjištěn poškozený soubor nastavení, obnovte výchozí nastavení. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Chyba SSL"
+
+msgctxt "#33429"
+msgid "Artwork cacheing stopped: running low on space"
+msgstr "Ukládání uměleckých děl do mezipaměti zastaveno: dochází místo"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket připojení offline"
