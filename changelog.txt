@@ -1,8 +1,16 @@
+6.2.22
+=============
+Fixes:
+------
+Backport live tv fixes from 7.x
+
+
 6.2.21
 =============
 Fixes:
 ------
 fix total records counter issue
+
 
 6.2.20
 =============
