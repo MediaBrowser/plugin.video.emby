@@ -13,7 +13,10 @@ class MusicDatabase:
         # Index
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_art_mediatype on art (media_type)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strType on album (strType)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment on song (comment)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_dateadded on album (dateAdded)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_dateadded on song (dateAdded)")
+        self.cursor.execute("DROP INDEX IF EXISTS idx_song_comment")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment_strGenres on song (comment, strGenres)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
 
     # Make sure rescan and kodi db set
@@ -170,6 +173,21 @@ class MusicDatabase:
         genre_id = self.cursor.fetchone()[0] + 1
         self.cursor.execute("INSERT INTO genre(idGenre, strGenre) VALUES (?, ?)", (genre_id, strGenre))
         return genre_id
+
+    def get_genre(self, LibraryId):
+        Genres = []
+        self.cursor.execute("SELECT strGenres FROM song WHERE comment LIKE ? COLLATE NOCASE GROUP BY strGenres COLLATE NOCASE", ("%%%s" % LibraryId,))
+        strGenres = self.cursor.fetchall()
+
+        for strGenre in strGenres:
+            SongGenres = strGenre[0].split("/")
+
+            for SongGenre in SongGenres:
+                Genres.append(SongGenre.strip())
+
+        Genres = list(dict.fromkeys(Genres)) # filter doubles
+        Temp = sorted(Genres, reverse=False, key=str.lower)
+        return Temp
 
     def delete_artist(self, ArtistId):
         self.common.delete_artwork(ArtistId, "artist")

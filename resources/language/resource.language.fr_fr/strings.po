@@ -1799,7 +1799,7 @@ msgid "This function disables Kodi's internal progress updates. Non Emby server 
 msgstr "Cette fonction désactive les mises à jour de progression internes de Kodi. "
 
 msgctxt "#33407"
-msgid "Vacuum datbases on Kodi shutdown"
+msgid "Vacuum databases on Kodi shutdown"
 msgstr "Vider les bases de données lors de l'arrêt de Kodi"
 
 msgctxt "#33408"
@@ -1893,3 +1893,27 @@ msgstr "Mise en cache de l'illustration arrêtée : manque d'espace"
 msgctxt "#33430"
 msgid "Websocket connection offline"
 msgstr "Connexion Websocket hors ligne"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr ""
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr ""
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr ""
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr ""
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr ""
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr ""

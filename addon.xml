@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.7.4" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.7.7" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0" />
@@ -31,7 +31,7 @@ Emby for Kodi is the absolute best way to enjoy the incredible Kodi playback eng
 
 Emby para Kodi es la mejor manera de disfrutar del increíble motor de reproducción de Kodi combinado con el poder de la base de datos centralizada de Emby. Características: Integración directa con la biblioteca de Kodi para una velocidad nativa de sincronización instantánea con el soporte completo del Servidor Emby para colecciones de películas, programas de TV y música. Emby Server soporta transcodificación y transmisión en directo - ¡Usa Kodi cuando estés fuera de casa!</description>
         <assets>
-            <icon>resources/icon-animated.gif</icon>
+            <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
             <screenshot>resources/screenshot1.jpg</screenshot>
             <screenshot>resources/screenshot2.jpg</screenshot>

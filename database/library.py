@@ -19,7 +19,7 @@ class Library:
         self.EmbyDBOpen = False
 
     def open_Worker(self, Worker):
-        if utils.sync_is_paused():
+        if Worker_is_paused():
             LOG.info("[ worker %s sync paused ]" % Worker)
             return False, []
 
@@ -57,25 +57,36 @@ class Library:
 
     def close_Worker(self, TaskId, MusicSynced, VideoSynced):
         self.close_EmbyDBRW(TaskId)
-        utils.progress_close()
+        utils.SyncPause['kodi_rw'] = False
 
         if VideoSynced and MusicSynced and not utils.useDirectPaths:
             utils.ScanStaggered = True
+
+        if VideoSynced:
+            LOG.info("close_Worker: VideoLibrary.Scan initiated. Staggerd: %s" % utils.ScanStaggered)
+            utils.SyncPause['kodi_rw'] = True
             xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-        else:
-            if VideoSynced:
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
 
-            if MusicSynced and not utils.useDirectPaths:
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+        if MusicSynced and not utils.useDirectPaths and not utils.ScanStaggered:
+            LOG.info("close_Worker: AudioLibrary.Scan initiated")
+            utils.SyncPause['kodi_rw'] = True
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
 
+        if 'kodi_rw' in utils.SyncPause:
+            while utils.SyncPause['kodi_rw']:
+                LOG.info("Wait_for_kodi_rw_release")
+
+                if utils.sleep(0.25):
+                    break
+
+        utils.progress_close()
         globals()["WorkerInProgress"] = False
 
     def open_EmbyDBRW(self, TaskId):
-        # pause if worker (lower priority) is in progress
+        # if worker in progress, interrupt workers database ops (worker has lower priority) compared to all other Emby database (rw) ops
         if self.EmbyDBOpen:
             if WorkerInProgress:
-                utils.DBBusy = True
+                utils.SyncPause['priority'] = True
 
         # wait for DB close
         while self.EmbyDBOpen:
@@ -88,7 +99,7 @@ class Library:
     def close_EmbyDBRW(self, TaskId):
         dbio.DBCloseRW(self.EmbyServer.server_id, TaskId)
         self.EmbyDBOpen = False
-        utils.DBBusy = False
+        utils.SyncPause['priority'] = False
 
     def set_syncdate(self, TimestampUTC):
         # Update sync update timestamp
@@ -204,7 +215,7 @@ class Library:
         self.set_syncdate(utils.currenttime())
 
         # Run jobs
-        UpdateData = list(dict.fromkeys(UpdateData)) # filter doplicates
+        UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
         LOG.info("--<[ retrieve changes ]")
         pluginmenu.reset_episodes_cache()
         self.updated(UpdateData)
@@ -535,20 +546,20 @@ class Library:
             self.ContentObject.userdata(Item)
 
         # Check if Kodi db or emby is about to open -> close db, wait, reopen db
-        if utils.DBBusy or utils.sync_is_paused():
-            LOG.info("-->[ worker delay %s/%s]" % (utils.DBBusy, str(utils.SyncPause)))
+        if Worker_is_paused():
+            LOG.info("-->[ worker delay %s]" % str(utils.SyncPause))
             dbio.DBCloseRW(ContentCategory, "ItemOps")
             dbio.DBCloseRW(self.EmbyServer.server_id, "ItemOps")
             self.EmbyDBOpen = False
 
-            while utils.DBBusy or utils.sync_is_paused():
+            while Worker_is_paused():
                 if utils.sleep(1):
                     utils.progress_close()
                     LOG.info("[ worker exit (shutdown) ]")
                     return False, None, None
 
             self.EmbyDBOpen = True
-            LOG.info("--<[ worker delay %s/%s]" % (utils.DBBusy, str(utils.SyncPause)))
+            LOG.info("--<[ worker delay %s]" % str(utils.SyncPause))
             embydb = dbio.DBOpenRW(self.EmbyServer.server_id, "ItemOps")
             kodidb = dbio.DBOpenRW(ContentCategory, "ItemOps")
             self.load_libraryObject(Item['Type'], embydb, kodidb)
@@ -587,7 +598,7 @@ class Library:
     def select_libraries(self, mode):  # threaded by caller
         libraries = ()
 
-        if mode in ('SyncLibrarySelection', 'RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
+        if mode in ('RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
             for LibraryId, Value in list(self.Whitelist.items()):
                 AddData = {'Id': LibraryId, 'Name': Value[1]}
 
@@ -606,7 +617,17 @@ class Library:
 
         choices = [x['Name'] for x in libraries]
         choices.insert(0, utils.Translate(33121))
-        selection = utils.Dialog.multiselect(utils.Translate(33120), choices)
+
+        if mode == 'RepairLibrarySelection':
+            Text = utils.Translate(33432)
+        elif mode == 'RemoveLibrarySelection':
+            Text = utils.Translate(33434)
+        elif mode == 'UpdateLibrarySelection':
+            Text = utils.Translate(33433)
+        elif mode == 'AddLibrarySelection':
+            Text = utils.Translate(33120)
+
+        selection = utils.Dialog.multiselect(Text, choices)
 
         if not selection:
             return
@@ -854,3 +875,11 @@ def StringToDict(Data):
     Data = Data.replace("False", "false")
     Data = Data.replace("True", "true")
     return json.loads(Data)
+
+def Worker_is_paused():
+    for Busy in list(utils.SyncPause.values()):
+        if Busy:
+            LOG.info("Worker_is_paused: %s" % str(utils.SyncPause))
+            return True
+
+    return False

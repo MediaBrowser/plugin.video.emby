@@ -9,7 +9,7 @@ from helper import utils, xmls, loghandler, context, playerops, pluginmenu
 from . import player
 
 blankfileData = utils.readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/blank.wav")
-MediaTypeMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "c": "channel"} # T=trailer, i=iso
+MediaTypeMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 sendblankfile = ('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: %s\r\nContent-type: audio/wav\r\n\r\n' % len(blankfileData)).encode() + blankfileData
@@ -320,7 +320,8 @@ def http_Query(client, Payload):
         player.Transcoding = True
         player.PlayerSkipItem = "-1"
         player.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token)).encode())
+        globals()["QueryDataPrevious"] = QueryData.copy()
+        client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/master.m3u8?MediaSourceId=%s&PlaySessionId=%s&VideoCodec=%s&AudioCodec=%s&TranscodeReasons=ContainerNotSupported&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.TranscodeFormatVideo, utils.TranscodeFormatAudio, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, "stream.ts")).encode())
         return
 
     # Cinnemamode
@@ -516,7 +517,7 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
         SubtitleIndex = -1
         AudioIndex = -1
 
-        if len(AudioStreams) >= 2:
+        if len(AudioStreams) > 1:
             Selection = []
 
             for Data in AudioStreams:
@@ -552,6 +553,7 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
             Subtitle = Subtitles[SubtitleIndex]
 
         UpdateItem(QueryData['MediaSources'][MediaIndex], AudioStreams[AudioIndex], Subtitle, QueryData, MediaIndex, client, ThreadId)
+        return
 
     AudioStreams = open_embydb(QueryData['ServerId'], ThreadId).get_AudioStreams(QueryData['EmbyID'], MediaIndex)
     UpdateItem(QueryData['MediaSources'][MediaIndex], AudioStreams[0], False, QueryData, MediaIndex, client, ThreadId)
@@ -580,7 +582,6 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
         player.PlayerSkipItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
         globals()["QueryDataPrevious"] = QueryData.copy()
-        player.PlayerSkipItem = "-1"
         player.Player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
         client.send(sendblankfile)
         close_embydb(QueryData['ServerId'], ThreadId)
@@ -667,7 +668,7 @@ def GetParametersFromURLQuery(Payload):
             QueryData['Overlay'] = unquote("-".join(Data[6:]))
         else:
             QueryData['Overlay'] = ""
-    elif Data[0] in ("e", "m", "M", "i", "T"):  # Video or iso
+    elif Data[0] in ("e", "m", "M", "i", "T", "v"):  # Video or iso
         QueryData['MediasourceID'] = Data[3]
         QueryData['KodiId'] = Data[4]
         QueryData['KodiFileId'] = Data[5]
@@ -687,9 +688,12 @@ def GetParametersFromURLQuery(Payload):
     elif Data[0] == "a":  # Audio
         QueryData['MediasourceID'] = None
         QueryData['Filename'] = Data[3]
-    elif Data[0] in ("t", "c"):  # tv channel, channel
+    elif Data[0] == "t":  # tv channel
         QueryData['MediasourceID'] = None
         QueryData['Filename'] = Data[3]
+    elif Data[0] == "c":  # channel
+        QueryData['MediasourceID'] = Data[3]
+        QueryData['Filename'] = Data[4]
     else:
         QueryData['MediasourceID'] = Data[3]
         QueryData['Filename'] = Data[4]

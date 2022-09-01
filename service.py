@@ -36,7 +36,6 @@ def ServersConnect():
     # Shutdown
     utils.sleep(0)
     utils.SyncPause = {}
-    utils.DBBusy = False
     hooks.monitor.webservice.close()
     hooks.monitor.EmbyServer_DisconnectAll()
 

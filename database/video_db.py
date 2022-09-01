@@ -9,7 +9,8 @@ class VideoDatabase:
 
     def add_Index(self):
         # Index
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_actor_name_art_urls on actor (name, art_urls)")
+        self.cursor.execute("DROP INDEX IF EXISTS idx_actor_name_art_urls")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_actor_name_art_urls_NOCASE on actor (name COLLATE NOCASE, art_urls COLLATE NOCASE)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_strFilename on files (strFilename)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_dateAdded on files (dateAdded)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_lastPlayed on files (lastPlayed)")
@@ -235,7 +236,7 @@ class VideoDatabase:
 
     def add_get_person(self, PersonName, imageurl, LibraryId):
         if LibraryId: # Unify Artist by LibraryId (Allow duplicates for multi Musicvideo Libraries)
-            self.cursor.execute("SELECT actor_id, name FROM actor WHERE name LIKE ? AND art_urls LIKE ?", ("%s%%" % PersonName, "%%%s%%" % LibraryId))
+            self.cursor.execute("SELECT actor_id, name FROM actor WHERE name LIKE ? COLLATE NOCASE AND art_urls LIKE ? COLLATE NOCASE", ("%s%%" % PersonName, "%%%s%%" % LibraryId))
             Data = self.cursor.fetchall()
 
             for Info in Data:
@@ -244,7 +245,7 @@ class VideoDatabase:
                 if CompareName == PersonName:
                     return Info[0], False
         else:
-            self.cursor.execute("SELECT actor_id FROM actor WHERE name = ? ", (PersonName,))
+            self.cursor.execute("SELECT actor_id FROM actor WHERE name = ?", (PersonName,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -308,10 +309,10 @@ class VideoDatabase:
         return TagId
 
     def delete_tag(self, Name):
-        self.cursor.execute("DELETE FROM tag WHERE name = ? ", (Name,))
+        self.cursor.execute("DELETE FROM tag WHERE name = ?", (Name,))
 
     def get_tag(self, Name):
-        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? ", (Name,))
+        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ?", (Name,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -336,7 +337,7 @@ class VideoDatabase:
     # favorites
     def init_favorite_tags(self):
         for FavoriteTag in FavoriteTags:
-            self.cursor.execute("SELECT tag_id FROM tag WHERE name = ? ", (FavoriteTag,))
+            self.cursor.execute("SELECT tag_id FROM tag WHERE name = ?", (FavoriteTag,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -360,7 +361,7 @@ class VideoDatabase:
 
     def add_genres_and_links(self, Genres, media_id, media_type):
         for Genre in Genres:
-            self.cursor.execute("SELECT genre_id FROM genre WHERE name = ? ", (Genre,))
+            self.cursor.execute("SELECT genre_id FROM genre WHERE name = ?", (Genre,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -378,7 +379,7 @@ class VideoDatabase:
 
     def add_studios_and_links(self, Studios, KodiId, MediaType):
         for Studio in Studios:
-            self.cursor.execute("SELECT studio_id FROM studio WHERE name = ? ", (Studio,))
+            self.cursor.execute("SELECT studio_id FROM studio WHERE name = ?", (Studio,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -451,13 +452,13 @@ class VideoDatabase:
             self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume, Runtime, "VideoPlayer", 1, "", ""))
 
     def add_file_bookmark(self, KodiItemId, KodiSeasonId, KodiShowId, ChapterInfo, RunTimeTicks, DateCreated, PlayCount, LastPlayedDate): # workaround due to Kodi episode bookmark bug
-        self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ? ", (KodiSeasonId,))
+        self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
         Data = self.cursor.fetchone()
 
         if Data:
             SeasonNumber = Data[0]
             Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -467,7 +468,7 @@ class VideoDatabase:
                 self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
 
             Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -477,7 +478,7 @@ class VideoDatabase:
                 self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
 
             Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -487,7 +488,7 @@ class VideoDatabase:
                 self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
 
             Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
             Data = self.cursor.fetchone()
 
             if Data:
@@ -498,35 +499,35 @@ class VideoDatabase:
 
     def add_path_bookmark(self, KodiShowId, SeasonNumber): # workaround due to Kodi episode bookmark bug
         Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()
 
         if not Data:
             self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
 
         Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()
 
         if not Data:
             self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
 
         Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()
 
         if not Data:
             self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
 
         Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ? ", (Path,))
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()
 
         if not Data:
             self.cursor.execute("INSERT INTO path(strPath) VALUES (?)", (Path,))
 
     def delete_path_bookmark(self, KodiSeasonId): # workaround due to Kodi episode bookmark bug
-        self.cursor.execute("SELECT idShow, season FROM seasons WHERE idSeason = ? ", (KodiSeasonId,))
+        self.cursor.execute("SELECT idShow, season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -548,7 +549,7 @@ class VideoDatabase:
 
     def add_countries_and_links(self, ProductionLocations, media_id, media_type):
         for CountryName in ProductionLocations:
-            self.cursor.execute("SELECT country_id FROM country WHERE name = ? ", (CountryName,))
+            self.cursor.execute("SELECT country_id FROM country WHERE name = ?", (CountryName,))
             Data = self.cursor.fetchone()
 
             if Data:

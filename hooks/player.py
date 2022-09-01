@@ -103,6 +103,7 @@ class PlayerEvents(xbmc.Player):
         self.SkipIntroJumpDone = False
         self.SkipCreditsJumpDone = False
 
+
         if not utils.syncduringplayback:
             utils.SyncPause['playing'] = True
 
@@ -153,7 +154,9 @@ class PlayerEvents(xbmc.Player):
             # Extract LibraryId from Path
             if Path and Path.startswith("http://127.0.0.1:57342"):
                 Temp = Path.split("/")
-                self.LibraryId = Temp[4]
+
+                if len(Temp) > 5:
+                    self.LibraryId = Temp[4]
 
             self.MediaType = PlayerItem.getMediaType()
 

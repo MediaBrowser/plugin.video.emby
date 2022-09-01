@@ -27,3 +27,8 @@ class Folder:
     def remove(self, Item):
         self.emby_db.remove_item(Item['Id'], Item['Library']['Id'])
         LOG.info("DELETE Folder %s" % Item['Id'])
+
+    def userdata(self, Item):
+        LOG.info("USERDATA FOLDER %s" % Item)
+        Item['Library'] = {}
+        self.folder(Item)
