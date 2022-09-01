@@ -186,6 +186,7 @@ class Music:
                 else:
                     SingleAlbumItem['Id'] = "999999999%s" % item["ArtistItems"][0]['Id']
                     SingleAlbumItem['AlbumArtist'] = item["ArtistItems"][0]['Name']
+                    SingleAlbumItem['AlbumArtists'] = [{'Name': item["ArtistItems"][0]['Name'], 'Id': item["ArtistItems"][0]['Id']}]
 
                 SingleAlbumItem['Name'] = "--NO INFO--"
                 SingleAlbumItem['SortName'] = "--NO INFO--"

@@ -1,3 +1,32 @@
+7.7.7
+=============
+fix music composer node
+change episode poster from episode (Emby) primary image to series (Emby) primary
+fix "NO INFO" albumartist injection when actually no albumartist info is available
+
+
+7.7.6
+=============
+fix artwork cache (edge case)
+fix video playback (e.g. IPTV)
+fix translations
+fix Boxsets in dynamic nodes
+fix minor transcoding issue
+fix folder userdata update issue
+performance improvemnt for musicvideos sync
+add manual trigger for db vaccuum
+change music nodes (faster "regular" genres music node)
+
+
+7.7.5
+=============
+animated icon default off
+fix minor music scan issue
+add additional database locks, giving Kodi database ops priority
+fix some database paused flags
+remove realtime boxset updates (too slow -> current approach delays "regular" updates too much)
+
+
 7.7.4
 =============
 Fixes and improvements:

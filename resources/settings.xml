@@ -546,7 +546,7 @@
             <group id="5" label="33410">
                 <setting label="33333" id="animateicon" type="boolean" help="">
                     <level>0</level>
-                    <default>true</default>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting label="33334" id="refreshskin" type="boolean" help="">
@@ -623,6 +623,11 @@
                     <level>3</level>
                     <default>false</default>
                     <control type="toggle"/>
+                </setting>
+                <setting id="databasevacuummanual" label="33436" type="action" help="334078">
+                    <data>NotifyAll(plugin.video.emby-next-gen,databasevacuummanual)</data>
+                    <level>3</level>
+                    <control type="button" format="action"/>
                 </setting>
             </group>
             <group id="2" label="33104">

@@ -68,16 +68,6 @@ class Movies:
             self.video_db.add_tags_and_links(item['KodiItemIds'][ItemIndex], "movie", item['TagItems'])
             self.emby_db.add_multiversion(item, "Movie", self.EmbyServer.API, self.video_db, item['UpdateItems'][ItemIndex])
 
-        # Update collection assignments
-        if not item['Library']: # realtime or startup sync (skip for init sync)
-            Boxsets = self.EmbyServer.API.get_Items(item['ParentId'], ["Movie"], False, False, {"GroupItemsIntoCollections": True}, False, False)
-
-            for Boxset in Boxsets:
-                if Boxset['Type'] == "BoxSet":
-                    Boxset['Library'] = item['Library']
-                    self.boxset(Boxset)
-                    break # skip multicollection assignment (not supported by Kodi)
-
         # Add Special features
         if 'SpecialFeatureCount' in item:
             if int(item['SpecialFeatureCount']):

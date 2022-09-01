@@ -101,9 +101,8 @@ FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
 FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
-SyncPause = {}  # keys: playing, kodi_busy, embyserverID
-DBBusy = False
-ScanStaggered = True
+SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
+ScanStaggered = False
 ScanReloadSkin = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()
@@ -185,15 +184,6 @@ def progress_close():
 def progress_update(Progress, Heading, Message):
     if ProgressBar[2]:
         ProgressBar[0].update(Progress, heading=Heading, message=Message)
-
-def sync_is_paused():
-    LOG.debug("SyncPause state: %s" % str(SyncPause))
-
-    for Busy in list(SyncPause.values()):
-        if Busy:
-            return True
-
-    return False
 
 # Delete objects from kodi cache
 def delFolder(path):
@@ -800,7 +790,7 @@ def get_path_type_from_item(server_id, item):
                         if not path.endswith(item['Container']):
                             path = "%s.%s" % (path, item['Container'])
     else: # Channel
-        path = "http://127.0.0.1:57342/c-%s-%s-stream.ts" % (server_id, item['Id'])
+        path = "http://127.0.0.1:57342/c-%s-%s-%s-stream.ts" % (server_id, item['Id'], item['MediaSources'][0]['Id'])
         Type = "c"
 
     return path, Type

@@ -34,7 +34,7 @@ class monitor(xbmc.Monitor):
                 if not self.QueryItemRemoveThread:
                     self.QueryItemRemoveThread = True
                     start_new_thread(self.VideoLibrary_OnRemove, ())
-        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload'):
+        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual'):
             start_new_thread(self.Notification, (method, data))
 
     def Notification(self, method, data):  # threaded by caller
@@ -78,32 +78,36 @@ class monitor(xbmc.Monitor):
         elif method == 'Other.play':
             data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
             playerops.Play((data[1],), "PlayNow", -1, -1, utils.EmbyServers[data[0]])
+        elif method == 'Other.databasevacuummanual':
+            dbio.DBVacuum()
 
     def onScanStarted(self, library):
-        utils.DBBusy = True
+        utils.SyncPause['kodi_rw'] = True
         self.KodiScanCount += 1
         LOG.info("-->[ kodi scan/%s ]" % library)
 
     def onScanFinished(self, library):
+        LOG.info("--<[ kodi scan/%s ]" % library)
         self.KodiScanCount -= 1
 
-        if not self.KodiScanCount:
-            utils.DBBusy = False
-
-        LOG.info("--<[ kodi scan/%s ]" % library)
+        if self.KodiScanCount:
+            return
 
         if utils.ScanStaggered:
             utils.ScanStaggered = False
             LOG.info("[ kodi scan/%s ] Trigger music scan" % library)
             xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-        else:
-            if utils.ScanReloadSkin:
-                utils.ScanReloadSkin = False
-                LOG.info("[ kodi scan/%s ] Reload skin" % library)
-                xbmc.executebuiltin('ReloadSkin()')
+            return
+
+        if utils.ScanReloadSkin:
+            utils.ScanReloadSkin = False
+            LOG.info("[ kodi scan/%s ] Reload skin" % library)
+            xbmc.executebuiltin('ReloadSkin()')
+
+        utils.SyncPause['kodi_rw'] = False
 
     def onCleanStarted(self, library):
-        utils.DBBusy = True
+        utils.SyncPause['kodi_rw'] = True
         self.KodiScanCount += 1
         LOG.info("-->[ kodi clean/%s ]" % library)
 
@@ -111,7 +115,7 @@ class monitor(xbmc.Monitor):
         self.KodiScanCount -= 1
 
         if not self.KodiScanCount:
-            utils.DBBusy = False
+            utils.SyncPause['kodi_rw'] = False
 
         LOG.info("--<[ kodi clean/%s ]" % library)
 
@@ -127,7 +131,7 @@ class monitor(xbmc.Monitor):
         self.sleep = False
         EmbyServer_ReconnectAll()
         webservice.start()
-        utils.SyncPause['kodi_busy'] = False
+        utils.SyncPause['kodi_sleep'] = False
 
     def System_OnSleep(self):
         if self.sleep:
@@ -135,7 +139,7 @@ class monitor(xbmc.Monitor):
             return
 
         LOG.info("-->[ sleep ]")
-        utils.SyncPause['kodi_busy'] = True
+        utils.SyncPause['kodi_sleep'] = True
         webservice.close()
         self.sleep = True
 

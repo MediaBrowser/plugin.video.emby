@@ -15,7 +15,7 @@ LOG = loghandler.LOG('EMBY.helper.pluginmenu')
 QueryCache = {}
 MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "Everything", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
 letters = ["0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-MappingContentKodi = {"Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "Everything": "", "TvChannel": "videos", "Folder": "videos"}
+MappingContentKodi = {"Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "Everything": "", "TvChannel": "videos", "Folder": "videos", "BoxSet": "movies"}
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 PluginMenuActive = False
 DYNNODES = {
@@ -63,7 +63,7 @@ DYNNODES = {
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
         ('Recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png', "Movie"),
         ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
-        ('Unwatched', utils.Translate(30258), 'OverlayUnwatched.png', "Movie"),
+        ('Unwatched', utils.Translate(30189), 'OverlayUnwatched.png', "Movie"),
         ('BoxSet', utils.Translate(20434), 'DefaultSets.png', "BoxSet"),
         ('Tags', utils.Translate(33356), 'DefaultTags.png', "Movie"),
         ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "Movie"),
@@ -195,7 +195,7 @@ def browse(Handle, Id, query, args, server_id):
             label = Node['title']
             node = Node['type']
             LOG.debug("--[ Nodes/%s/%s ] %s" % (node, label, Node['path']))
-            add_ListItem(ListItemData, label, Node['path'], True, Node['icon'], "No helptext yet")
+            add_ListItem(ListItemData, label, Node['path'], True, Node['icon'], utils.Translate(33387))
 
         globals()["PluginMenuActive"] = True
         xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
@@ -235,12 +235,12 @@ def browse(Handle, Id, query, args, server_id):
         globals()["PluginMenuActive"] = True
 
         for node in DYNNODES[args[0]]:
-            ItemsListing.append({'Id': Id, 'Type': node[0], 'Overview': "No helptext yet2DYNANODE", 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]})
+            ItemsListing.append({'Id': Id, 'Type': node[0], 'Overview': utils.Translate(33387), 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]})
 
         Content = node[3]
     elif query == 'Letter':
         for node in letters:
-            ItemsListing.append({'Id': Id, 'Type': "Letter", 'Overview': "No helptext yet2LETTERSUB", 'IsFolder': True, 'Name': node, 'artwork': "", 'args': "%s_%s" % (args[0], node)})
+            ItemsListing.append({'Id': Id, 'Type': "Letter", 'Overview': utils.Translate(33387), 'IsFolder': True, 'Name': node, 'artwork': "", 'args': "%s_%s" % (args[0], node)})
 
         Content = args[0]
     elif query == 'LetterSub':
@@ -646,13 +646,17 @@ def AddUser(EmbyServer):
     if result < 0:
         return
 
+
+
+#utils.Translate(33431)
+
     if not result:  # Add user
         AddNameArray = []
 
         for AddUserChoice in AddUserChoices:
             AddNameArray.append(AddUserChoice['UserName'])
 
-        resp = utils.Dialog.select(utils.Translate(33064), AddNameArray)
+        resp = utils.Dialog.select(utils.Translate(33054), AddNameArray)
 
         if resp < 0:
             return
@@ -737,7 +741,7 @@ def select_managelibs():  # threaded by monitor.py
     EmbyServersCounter, _, ServerItems = get_EmbyServerList()
 
     if EmbyServersCounter > 1:
-        Selection = utils.Dialog.select(utils.Translate(33064), ServerItems)
+        Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
 
         if Selection > -1:
             manage_libraries(Selection)
@@ -747,7 +751,7 @@ def select_managelibs():  # threaded by monitor.py
 
 def manage_libraries(ServerSelection):  # threaded by caller
     MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060), utils.Translate(33234)]
-    Selection = utils.Dialog.select(utils.Translate(33194), MenuItems)
+    Selection = utils.Dialog.select(utils.Translate(33194), MenuItems) # Manage libraries
     ServerIds = list(utils.EmbyServers)
     EmbyServerId = ServerIds[ServerSelection]
 
@@ -770,7 +774,7 @@ def select_adduser():
     EmbyServersCounter, ServerIds, ServerItems = get_EmbyServerList()
 
     if EmbyServersCounter > 1:
-        Selection = utils.Dialog.select(utils.Translate(33054), ServerItems)
+        Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
 
         if Selection > -1:
             AddUser(utils.EmbyServers[ServerIds[Selection]])
@@ -986,6 +990,11 @@ def CacheAllEntries(urls):
         ServerId = Data[1]
         EmbyID = Data[2]
         ImageIndex = Data[3]
+
+        if Data[4] not in EmbyArtworkIDs:
+            LOG.warning("Artwork cache: Invalid (EmbyArtworkIDs) item found %s" % url)
+            continue
+
         ImageType = EmbyArtworkIDs[Data[4]]
 
         # Calculate hash -> crc32mpeg2
