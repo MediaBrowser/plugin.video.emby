@@ -97,7 +97,7 @@ class MusicDatabase:
             Channels = 0
 
         while True:
-            IndexFix = 10000
+            IndexFix = Index
 
             for _ in range(10): # try fix track# (max 10 duplicate songs)
                 try:
@@ -106,7 +106,7 @@ class MusicDatabase:
                 except Exception as error:  # Duplicate track number for same album
                     LOG.warning("Duplicate song detected (add_song), try fix trackNo: %s/%s" % (Artist, Title))
                     LOG.error(error)
-                    IndexFix += 1
+                    IndexFix += 1000
                     Index = IndexFix
 
             # track# not the issue, try fix strMusicBrainzTrackID
@@ -203,7 +203,7 @@ class MusicDatabase:
         DeleteEmbyItems = []
         self.cursor.execute("SELECT idArtist FROM album_artist WHERE idAlbum = ?", (idAlbum,))
         ArtistIds = self.cursor.fetchall()
-        self.delete_album_stacked(idAlbum)
+        self.delete_album(idAlbum)
 
         # Remove empty albumartists
         for ArtistId in ArtistIds:

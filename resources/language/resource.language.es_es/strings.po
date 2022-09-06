@@ -1893,27 +1893,35 @@ msgstr "El almacenamiento en caché de las ilustraciones se detuvo: se está que
 msgctxt "#33430"
 msgid "Websocket connection offline"
 msgstr "conexión Websocket fuera de línea"
-
 msgctxt "#33431"
 msgid "Select Emby server"
-msgstr ""
+msgstr "Seleccione el servidor Emby"
 
 msgctxt "#33432"
 msgid "Select the libraries to repair"
-msgstr ""
+msgstr "Seleccione las bibliotecas para reparar"
 
 msgctxt "#33433"
 msgid "Select the libraries to update"
-msgstr ""
+msgstr "Seleccione las bibliotecas para actualizar"
 
 msgctxt "#33434"
 msgid "Select the libraries to remove"
-msgstr ""
+msgstr "Seleccione las bibliotecas para eliminar"
 
 msgctxt "#33435"
 msgid "Songs by genre"
-msgstr ""
+msgstr "Canciones por género"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr ""
+msgstr "bases de datos de vacío"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Asigna carteles de TVShow a los episodios"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "Los pósteres de Kodi de TVShow (imagen principal de Emby TVShow) se utilizarán como pósteres de Kodi de episodios.\nAlternar esta opción requiere una resincronización completa que incluya todas las ilustraciones almacenadas en caché.\nPrecaución: no utilice el asistente de sincronización de inicio (omítalo) "
+

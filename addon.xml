@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.7.7" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.7.8" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0" />
@@ -19,6 +19,7 @@
     </extension>
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
         <language>en</language>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
         <forum>https://emby.media/community/index.php?/forum/99-kodi/</forum>

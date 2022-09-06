@@ -684,8 +684,9 @@ def set_KodiArtwork(item, server_id):
             if 'fanart' in item['KodiArtwork']["fanart"]:
                 item['KodiArtwork']['thumb'] = item['KodiArtwork']["fanart"]["fanart"]
 
-    if item['Type'] == "Episode" and item['SeriesPrimaryImageTag']:      
-        item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['SeriesId'], item['SeriesPrimaryImageTag'])
+    if utils.useseriesposters:
+        if item['Type'] == "Episode" and item['SeriesPrimaryImageTag']:
+            item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['SeriesId'], item['SeriesPrimaryImageTag'])
 
 def set_MusicVideoTracks(item):
     # Try to detect track number

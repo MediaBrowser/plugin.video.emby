@@ -1897,24 +1897,34 @@ msgstr "Websocket连接离线"
 
 msgctxt "#33431"
 msgid "Select Emby server"
-msgstr ""
+msgstr "选择Emby服务器"
 
 msgctxt "#33432"
 msgid "Select the libraries to repair"
-msgstr ""
+msgstr "选择要修复的库"
 
 msgctxt "#33433"
 msgid "Select the libraries to update"
-msgstr ""
+msgstr "选择要更新的库"
 
 msgctxt "#33434"
 msgid "Select the libraries to remove"
-msgstr ""
+msgstr "选择要删除的库"
 
 msgctxt "#33435"
 msgid "Songs by genre"
-msgstr ""
+msgstr "按流派分类的歌曲"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr ""
+msgstr "真空数据库"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "将电视节目海报分配给剧集"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi 海报（Emby TVShow 主图像）将用作剧集 Kodi 海报。\n切换此选项需要完全重新同步，包括所有缓存的艺术品。\n注意：不要使用初始化同步向导（跳过它）"
+
+

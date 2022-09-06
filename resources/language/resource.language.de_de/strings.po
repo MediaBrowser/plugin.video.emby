@@ -1895,24 +1895,33 @@ msgstr "Websocket-Verbindung offline"
 
 msgctxt "#33431"
 msgid "Select Emby server"
-msgstr ""
+msgstr "Wählen Sie den Emby-Server aus"
 
 msgctxt "#33432"
 msgid "Select the libraries to repair"
-msgstr ""
+msgstr "Wählen Sie die zu reparierenden Bibliotheken aus"
 
 msgctxt "#33433"
 msgid "Select the libraries to update"
-msgstr ""
+msgstr "Wählen Sie die zu aktualisierenden Bibliotheken aus"
 
 msgctxt "#33434"
 msgid "Select the libraries to remove"
-msgstr ""
+msgstr "Wählen Sie die zu entfernenden Bibliotheken aus"
 
 msgctxt "#33435"
 msgid "Songs by genre"
-msgstr ""
+msgstr "Songs nach Genre"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr ""
+msgstr "Vakuum Datenbanken"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "TVShow-Poster den Folgen zuweisen"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-Poster (Primärbild von Emby TVShow) werden als Episoden-Kodi-Poster verwendet.\nWenn Sie diese Option umschalten, ist eine vollständige Neusynchronisierung einschließlich aller zwischengespeicherten Grafiken erforderlich.\nAchtung: Verwenden Sie nicht den Init-Sync-Assistenten (überspringen) "
+

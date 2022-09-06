@@ -7,9 +7,7 @@ from datetime import datetime, timedelta
 from dateutil import tz, parser
 
 try:
-    from PIL import Image
-    from PIL import ImageFont
-    from PIL import ImageDraw
+    from PIL import Image, ImageFont, ImageDraw
     import io
     ImageOverlay = True
 except:
@@ -34,6 +32,7 @@ StartupComplete = False
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
+useseriesposters = False
 animateicon = True
 TranscodeFormatVideo = ""
 TranscodeFormatAudio = ""
@@ -660,6 +659,7 @@ def InitSettings():
     load_settings_bool('enableSkipCredits')
     load_settings_bool('askSkipIntro')
     load_settings_bool('askSkipCredits')
+    load_settings_bool('useseriesposters')
 
     if not deviceNameOpt:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')

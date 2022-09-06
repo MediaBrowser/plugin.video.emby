@@ -177,7 +177,7 @@ def listing(Handle):
     xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'files')
-    xbmcplugin.endOfDirectory(Handle)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 # Browse dynamically content
 def browse(Handle, Id, query, args, server_id):
@@ -201,7 +201,7 @@ def browse(Handle, Id, query, args, server_id):
         xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
         xbmcplugin.setContent(Handle, 'files')
-        xbmcplugin.endOfDirectory(Handle)
+        xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
         return
 
     # Workaround for wrong window query
@@ -454,7 +454,7 @@ def browse(Handle, Id, query, args, server_id):
         xbmcplugin.setContent(Handle, MappingContentKodi[Content])
 
     LOG.info("Dynamic nodes: endOfDirectory")
-    xbmcplugin.endOfDirectory(Handle)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 def remotepictures(Handle, playposition):
     Handle = int(Handle)
@@ -466,7 +466,7 @@ def remotepictures(Handle, playposition):
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.setContent(Handle, "images")
-    xbmcplugin.endOfDirectory(Handle)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
     if playposition != "-1":
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Player.Open","params":{"item":{"playlistid":2,"position":%s}}}' % playposition)
@@ -801,7 +801,7 @@ def favepisodes(Handle):
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
-    xbmcplugin.endOfDirectory(Handle)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
@@ -1082,7 +1082,7 @@ def get_next_episodes(Handle, libraryname):
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
-    xbmcplugin.endOfDirectory(Handle)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 # Factory reset. wipes all db records etc.
 def factoryreset():

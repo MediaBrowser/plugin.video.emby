@@ -443,7 +443,7 @@ def node_songsbygenres(View, folder, node):
     dbio.DBCloseRO("music", "node_songsbygenres")
 
     for Index, Genre in enumerate(Genres, 1):
-        FileName = "%s%s.xml" % (FolderPath, utils.PathToFilenameReplaceSpecialCharecters(Genre))
+        FileName = "%s%s.xml" % (FolderPath, Index)
         xmlData = xml.etree.ElementTree.Element('node')
         xmlData.set('order', str(Index))
         xmlData.set('type', "filter")

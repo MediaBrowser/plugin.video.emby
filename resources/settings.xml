@@ -100,6 +100,11 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="33437" id="useseriesposters" type="boolean" help="33438">
+                    <level>1</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting id="nodesreset" label="33341" type="action" help="33401">
                     <data>NotifyAll(plugin.video.emby-next-gen,nodesreset)</data>
                     <level>0</level>
