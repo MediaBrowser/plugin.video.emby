@@ -1892,24 +1892,34 @@ msgstr "połączenie z gniazdem internetowym w trybie offline"
 
 msgctxt "#33431"
 msgid "Select Emby server"
-msgstr ""
+msgstr "Välj Emby-server"
 
 msgctxt "#33432"
 msgid "Select the libraries to repair"
-msgstr ""
+msgstr "Välj de bibliotek som ska repareras"
 
 msgctxt "#33433"
 msgid "Select the libraries to update"
-msgstr ""
+msgstr "Välj de bibliotek som ska uppdateras"
 
 msgctxt "#33434"
 msgid "Select the libraries to remove"
-msgstr ""
+msgstr "Välj de bibliotek som ska tas bort"
 
 msgctxt "#33435"
 msgid "Songs by genre"
-msgstr ""
+msgstr "Sånger efter genre"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr ""
+msgstr "Vakuumdatabaser"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Tilldela TVShow-affischer till avsnitt"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-posters (Emby TVShow primära bild) kommer att användas som avsnitt Kodi-posters.\nVäxla det här alternativet kräver en fullständig omsynkronisering inklusive alla cachade konstverk.\nVarning: Använd inte init sync wizard (hoppa över det) "
+
+

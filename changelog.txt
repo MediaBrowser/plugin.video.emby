@@ -1,3 +1,13 @@
+7.7.8
+=============
+fix duplicate track# for songs in database
+fix music album remove issue
+fix genre node charecter limit
+fix skin reload on init sync (and library added)
+add selection for episode poster assignment
+add translations
+add "reuselanguageinvoker" parameter to addon.xml
+
 7.7.7
 =============
 fix music composer node

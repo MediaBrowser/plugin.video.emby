@@ -476,9 +476,9 @@ class Library:
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
         pluginmenu.reset_episodes_cache()
+        utils.ScanReloadSkin = True
         self.close_Worker("worker_library", MusicSynced, VideoSynced)
         LOG.info("--<[ worker library completed ]")
-        utils.ScanReloadSkin = True
 
         if not utils.sleep(1):  # give Kodi time to catch up
             self.RunJobs()
