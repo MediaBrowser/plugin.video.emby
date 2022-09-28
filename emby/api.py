@@ -1,4 +1,5 @@
 from helper import utils, loghandler
+from database import dbio
 
 EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50, "Folder": 1000}
 EmbyFields = {
@@ -51,10 +52,98 @@ class API:
         if not utils.getCast:
             self.DynamicListsRemoveFields += ("People",)
 
-    def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra, Dynamic, Resume):
+    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, MusicVideo=False):
         SingleRun = False
         Limit = get_Limit(MediaTypes)
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
+        IncludeItemTypes, _ = self.get_MediaData(MediaTypes, Basic, True)
+        params = {
+            'ParentId': parent_id,
+            'IncludeItemTypes': IncludeItemTypes,
+            'CollapseBoxSetItems': False,
+            'IsVirtualUnaired': False,
+            'EnableTotalRecordCount': False,
+            'LocationTypes': "FileSystem,Remote,Offline",
+            'IsMissing': False,
+            'Recursive': Recursive,
+            'Limit': Limit
+        }
+
+        if Extra:
+            params.update(Extra)
+
+            if "Limit" in Extra:
+                Limit = Extra["Limit"]
+                SingleRun = True
+
+        index = 0
+
+        if Resume:
+            url = "Users/%s/Items/Resume"
+        elif Latest:
+            url = "Users/%s/Items/Latest"
+        else:
+            url = "Users/%s/Items"
+
+        embydb = dbio.DBOpenRO(self.EmbyServer.server_id, "get_Items_dynamic")
+        videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
+        musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
+
+        while True:
+            params['StartIndex'] = index
+            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.user_id}, False, False)
+
+            if Latest:
+                if not IncomingData:
+                    break
+
+                IncomingData = {'Items': IncomingData}
+            else:
+                if 'Items' not in IncomingData:
+                    break
+
+                if not IncomingData['Items']:
+                    break
+
+            ItemsReturn = []
+            ItemsFullQuery = []
+
+            for Item in IncomingData['Items']:
+                Data = embydb.get_KodiId_KodiType_by_EmbyId(Item['Id'])
+
+                if Data and Data[0][0] and not MusicVideo:  # Requested video is synced to KodiDB.
+                    LOG.info("Fetching data from internal database: %s / %s" % (Data[0][1], Data[0][0]))
+                    listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(Data[0][0], Data[0][1], videodb, musicdb)
+                    ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder})
+                else:
+                    ItemsFullQuery.append(Item['Id'])
+
+            IncomingData['Items'].clear()  # free memory
+
+            # Load All Data
+            while ItemsFullQuery:
+                TempItemsFullQuery = ItemsFullQuery[:100]  # Chunks of 100
+                ItemsFullQuery = ItemsFullQuery[100:]
+                ItemsFull = self.get_Item(",".join(TempItemsFullQuery), ["Everything"], True, Basic, False)
+                ItemsReturn += ItemsFull
+
+            for ItemReturn in ItemsReturn:
+                yield ItemReturn
+
+            ItemsReturn = []
+
+            if not Recursive or SingleRun: # Emby server bug workaround
+                break
+
+            index += Limit
+
+        dbio.DBCloseRO("video", "get_Items_dynamic")
+        dbio.DBCloseRO("music", "get_Items_dynamic")
+        dbio.DBCloseRO(self.EmbyServer.server_id, "get_Items_dynamic")
+
+    def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra):
+        SingleRun = False
+        Limit = get_Limit(MediaTypes)
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, False)
         params = {
             'ParentId': parent_id,
             'IncludeItemTypes': IncludeItemTypes,
@@ -77,14 +166,9 @@ class API:
 
         index = 0
 
-        if Resume:
-            url = "Users/%s/Items/Resume"
-        else:
-            url = "Users/%s/Items"
-
         while True:
             params['StartIndex'] = index
-            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.user_id}, False, False)
+            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
 
             if 'Items' not in IncomingData:
                 break
@@ -172,16 +256,6 @@ class API:
 
         return []
 
-    def get_recently_added(self, ParentId, MediaTypes):
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, True)
-        params = {
-            'Limit': utils.maxnodeitems,
-            'IncludeItemTypes': IncludeItemTypes,
-            'ParentId': ParentId,
-            'Fields': Fields
-        }
-        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items/Latest" % self.EmbyServer.user_id}, False, False)
-
     def get_users(self, disabled, hidden):
         params = {
             'IsDisabled': disabled,
@@ -212,9 +286,44 @@ class API:
 
         return []
 
-    def get_Image_Binary(self, Id, ImageType, ImageIndex):
-        Data = self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Items/%s/Images/%s/%s" % (Id, ImageType, ImageIndex)}, False, True)
-        return Data
+    def get_Image_Binary(self, Id, ImageType, ImageIndex, ImageTag):
+        Params = {}
+
+        if utils.enableCoverArt:
+            Params["EnableImageEnhancers"]: True
+        else:
+            Params["EnableImageEnhancers"]: False
+
+        if utils.compressArt:
+            Params["Quality"]: 70
+
+        BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': "Items/%s/Images/%s/%s?%s" % (Id, ImageType, ImageIndex, ImageTag)}, False, True, True)
+
+        if 'Content-Type' in Headers:
+            ContentType = Headers['Content-Type']
+
+            if ContentType == "image/jpeg":
+                FileExtension = "jpg"
+
+            elif ContentType == "image/png":
+                FileExtension = "png"
+            elif ContentType == "image/gif":
+                FileExtension = "gif"
+            elif ContentType == "image/webp":
+                FileExtension = "webp"
+            elif ContentType == "image/apng":
+                FileExtension = "apng"
+            elif ContentType == "image/avif":
+                FileExtension = "avif"
+            elif ContentType == "image/svg+xml":
+                FileExtension = "svg"
+            else:
+                FileExtension = "ukn"
+        else:
+            FileExtension = "ukn"
+            ContentType = "ukn"
+
+        return BinaryData, ContentType, FileExtension
 
     def get_Item(self, Ids, MediaTypes, Dynamic, Basic, SingleItemQuery=True):
         _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)

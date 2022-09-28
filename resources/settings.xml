@@ -100,11 +100,6 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
-                <setting label="33437" id="useseriesposters" type="boolean" help="33438">
-                    <level>1</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
                 <setting id="nodesreset" label="33341" type="action" help="33401">
                     <data>NotifyAll(plugin.video.emby-next-gen,nodesreset)</data>
                     <level>0</level>
@@ -435,6 +430,16 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="33441" id="skipintroembuarydesign" type="boolean" help="33442">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33437" id="AssignEpisodePostersToTVShowPoster" type="boolean" help="33438">
+                    <level>1</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
             </group>
             <group id="2" label="33300">
                 <setting label="33246" id="menuOptions" type="boolean" help="33323">
@@ -484,6 +489,11 @@
                     <control type="toggle"/>
                 </setting>
                 <setting label="30530" id="restartMsg" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33443" id="busyMsg" type="boolean" help="33444">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle"/>
@@ -556,7 +566,7 @@
                 </setting>
                 <setting label="33334" id="refreshskin" type="boolean" help="">
                     <level>0</level>
-                    <default>true</default>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting id="skinreload" label="33409" type="action">

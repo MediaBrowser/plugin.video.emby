@@ -1,3 +1,27 @@
+7.9.2
+=============
+Another fix for library repair issue
+Fix music scan disabled for native mode
+
+
+7.9.1
+=============
+Fix library repair issue (also affected some other sync paused issues)
+Fix webservice timeout issue
+fix transcoding issue
+some minor fixes
+
+
+7.9.0
+=============
+Fix coverart issue
+Invert the option to assign TVShow posters to episode artwork. Default is off.
+change plugin startup code
+fix dynamic nodes cast view for episodes
+dynamic nodes tries query content data from internal (Kodi's) database, fallback is Emby server (performance improvement for some nodes)
+remove all Kodi jsonRPC calls and substitude them with faster (direct DB) queries (also could improve (skin) stability)
+
+
 7.7.8
 =============
 fix duplicate track# for songs in database
@@ -7,6 +31,7 @@ fix skin reload on init sync (and library added)
 add selection for episode poster assignment
 add translations
 add "reuselanguageinvoker" parameter to addon.xml
+
 
 7.7.7
 =============

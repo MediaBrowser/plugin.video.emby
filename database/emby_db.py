@@ -207,7 +207,7 @@ class EmbyDatabase:
         return self.cursor.fetchall()
 
     def get_items_by_embyparentid(self, EmbyParentId, EmbyLibraryId, EmbyType):
-        self.cursor.execute("SELECT * FROM Mapping WHERE EmbyType = ? AND EmbyParentId = ? AND EmbyLibraryId = ?", (EmbyType, EmbyParentId, EmbyLibraryId))
+        self.cursor.execute("SELECT * FROM Mapping WHERE EmbyType = ? AND EmbyParentId = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyType, EmbyParentId, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         return self.cursor.fetchall()
 
     def get_special_features(self, EmbyParentId):
@@ -294,7 +294,7 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, "%%;%s;%%" % KodiId)) # Middle item
 
     def get_stacked_kodiid(self, EmbyPresentationKey, EmbyLibraryId, EmbyType):
-        self.cursor.execute("SELECT KodiId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND EmbyLibraryId = ?", (EmbyPresentationKey, EmbyType, EmbyLibraryId))
+        self.cursor.execute("SELECT KodiId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyPresentationKey, EmbyType, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         Data = self.cursor.fetchone()
 
         if Data:
@@ -303,19 +303,19 @@ class EmbyDatabase:
         return None
 
     def get_stacked_embyid(self, EmbyPresentationKey, EmbyLibraryId, EmbyType):
-        self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND EmbyLibraryId LIKE ?", (EmbyPresentationKey, EmbyType, "%%%s%%" % EmbyLibraryId))
+        self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyPresentationKey, EmbyType, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         return self.cursor.fetchall()
 
     def get_item_by_emby_folder_wild(self, EmbyLibraryId):
-        self.cursor.execute("SELECT EmbyId, EmbyType FROM Mapping WHERE EmbyLibraryId LIKE ?", ("%%%s%%" % EmbyLibraryId,))
+        self.cursor.execute("SELECT EmbyId, EmbyType FROM Mapping WHERE EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?", (EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         return self.cursor.fetchall()
 
     def get_item_by_emby_folder_wild_and_EmbyType(self, EmbyLibraryId, EmbyType):
-        self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyType = ? AND EmbyLibraryId LIKE ?", (EmbyType, "%%%s%%" % EmbyLibraryId))
+        self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyType = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyType, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         return self.cursor.fetchall()
 
     def get_KodiId_by_EmbyId_EmbyLibraryId(self, EmbyId, EmbyLibraryId):
-        self.cursor.execute("SELECT EmbyLibraryId, KodiId FROM Mapping WHERE EmbyId = ? AND EmbyLibraryId LIKE ?", (EmbyId, "%%%s%%" % EmbyLibraryId,))
+        self.cursor.execute("SELECT EmbyLibraryId, KodiId FROM Mapping WHERE EmbyId = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyId, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
         Data = self.cursor.fetchone()
 
         if Data:

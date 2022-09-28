@@ -64,20 +64,11 @@ class Library:
 
         if VideoSynced:
             LOG.info("close_Worker: VideoLibrary.Scan initiated. Staggerd: %s" % utils.ScanStaggered)
-            utils.SyncPause['kodi_rw'] = True
             xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
 
         if MusicSynced and not utils.useDirectPaths and not utils.ScanStaggered:
             LOG.info("close_Worker: AudioLibrary.Scan initiated")
-            utils.SyncPause['kodi_rw'] = True
             xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-
-        if 'kodi_rw' in utils.SyncPause:
-            while utils.SyncPause['kodi_rw']:
-                LOG.info("Wait_for_kodi_rw_release")
-
-                if utils.sleep(0.25):
-                    break
 
         utils.progress_close()
         globals()["WorkerInProgress"] = False
@@ -139,9 +130,8 @@ class Library:
         self.close_EmbyDBRW("load_settings")
 
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
-        while not utils.StartupComplete:
-            if utils.sleep(5):
-                return
+        if utils.sleep(5):
+            return
 
         if Firstrun:
             self.select_libraries("AddLibrarySelection")
@@ -203,7 +193,10 @@ class Library:
                     if TotalRecords:
                         UpdateDataTemp = TotalRecords * [None] # preallocate memory
 
-                        for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra, False, False)):
+                        for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra)):
+                            if utils.SystemShutdown:
+                                return
+
                             if Index >= TotalRecords: # Emby server updates were in progress. New items were added after TotalRecords was calculated
                                 UpdateDataTemp.append(Item['Id'])
                             else:
@@ -392,6 +385,9 @@ class Library:
                     for ItemIndex, LibraryId in enumerate(LibraryIds):
                         if not RemoveItem[1] or LibraryId == RemoveItem[1]:
                             TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {"Id": LibraryId, "Name": self.EmbyServer.Views.ViewItems[LibraryId][0]}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': KodiItemIds[ItemIndex], 'KodiFileId': KodiFileIds[ItemIndex], 'KodiParentId': KodiParentIds[ItemIndex], 'PresentationUniqueKey': FoundRemoveItem[9]})
+                        else:
+                            embydb.delete_RemoveItem_EmbyId(RemoveItem[0])
+                            LOG.error("worker remove, item not valid %s" % str(RemoveItem))
 
                 AllRemoveItems += TempRemoveItems
                 del TempRemoveItems[:] # relese memory
@@ -458,7 +454,7 @@ class Library:
             RecordsPercent = self.EmbyServer.API.get_TotalRecordsRegular(SyncItem[0], SyncItem[3]) / 100
 
             # Sync Content
-            for index, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}, False, False), 1):
+            for index, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}), 1):
                 Item["Library"] = {"Id": SyncItem[0], "Name": SyncItem[1]}
                 Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, SyncItem[4], "add/update")
 
@@ -476,8 +472,10 @@ class Library:
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
         pluginmenu.reset_episodes_cache()
-        utils.ScanReloadSkin = True
         self.close_Worker("worker_library", MusicSynced, VideoSynced)
+        xbmc.sleep(1000) # give Kodi time for keep up
+        xbmc.executebuiltin('ReloadSkin()')
+        LOG.info("Reload skin by worker library")
         LOG.info("--<[ worker library completed ]")
 
         if not utils.sleep(1):  # give Kodi time to catch up
@@ -717,11 +715,8 @@ class Library:
             dbio.DBCloseRW("video", "select_libraries")
             dbio.DBCloseRW("music", "select_libraries")
 
-            if remove_librarys:
-                self.worker_remove()
-
-            if add_librarys:
-                self.worker_library()
+            if remove_librarys or add_librarys:
+                self.RunJobs()
 
     def refresh_boxsets(self):  # threaded by caller
         embydb = self.open_EmbyDBRW("refresh_boxsets")

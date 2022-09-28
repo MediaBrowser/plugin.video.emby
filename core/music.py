@@ -27,7 +27,7 @@ class Music:
         for ItemIndex in range(len(item['Librarys'])):
             if item['UpdateItems'][ItemIndex]:
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "artist")
-                self.music_db.update_artist(item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], item['LastScraped'], item['SortName'], item['DateCreated'], item['KodiItemIds'][ItemIndex])
+                self.music_db.update_artist(item['KodiItemIds'][ItemIndex], item['Name'], item['ProviderIds']['MusicBrainzArtist'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], item['LastScraped'], item['SortName'], item['DateCreated'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                 LOG.info("UPDATE existing artist [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
             else:
@@ -87,7 +87,7 @@ class Music:
                 # Update all existing Kodi Albums
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "single")
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "album")
-                self.music_db.update_album(item['AlbumArtistsName'], item['ProductionYear'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], 0, item['LastScraped'], item['DateCreated'], item['KodiItemIds'][ItemIndex], Compilation, item['Studio'], item['RunTimeTicks'], item['AlbumArtistsSortName'])
+                self.music_db.update_album(item['KodiItemIds'][ItemIndex], item['Name'], AlbumType, item['AlbumArtistsName'], item['ProductionYear'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], 0, item['LastScraped'], item['DateCreated'], item['ProviderIds']['MusicBrainzAlbum'], item['ProviderIds']['MusicBrainzReleaseGroup'], Compilation, item['Studio'], item['RunTimeTicks'], item['AlbumArtistsSortName'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                 LOG.info("UPDATE existing album [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
             else:
@@ -199,7 +199,7 @@ class Music:
             if item['UpdateItems'][ItemIndex]:
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "song")
                 self.music_db.delete_link_song_artist(item['KodiItemIds'][ItemIndex])
-                self.music_db.update_song(item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], item['KodiItemIds'][ItemIndex], item['Streams'][0]['Audio'][0]["BitRate"], item['Streams'][0]['Audio'][0]["SampleRate"], item['Streams'][0]['Audio'][0]["channels"], item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
+                self.music_db.update_song(item['KodiItemIds'][ItemIndex], item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], item['Streams'][0]['Audio'][0]["BitRate"], item['Streams'][0]['Audio'][0]["SampleRate"], item['Streams'][0]['Audio'][0]["channels"], item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
                 LOG.info("UPDATE song [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
             else:

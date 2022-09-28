@@ -1,7 +1,6 @@
 import struct
 from urllib.parse import urlencode, unquote
 import unicodedata
-from _thread import start_new_thread
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -84,7 +83,7 @@ DYNNODES = {
     'musicvideos': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicVideo"),
         ('MusicVideo', utils.Translate(33363), 'DefaultMusicVideos.png', "MusicVideo"),
-        ('MusicArtist', utils.Translate(33343), 'DefaultMusicVideos.png', "MusicArtist"),
+        ('MusicVideoArtist', utils.Translate(33343), 'DefaultMusicVideos.png', "MusicVideoArtist"),
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
         ('Recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png', "MusicVideo"),
         ('Inprogress', utils.Translate(30257), 'DefaultInProgressShows.png', "MusicVideo"),
@@ -105,13 +104,11 @@ DYNNODES = {
         ('Tags', utils.Translate(33371), 'DefaultTags.png', "Photo"),
         ('Tags', utils.Translate(33372), 'DefaultTags.png', "Video"),
         ('Recentlyadded', utils.Translate(33373), 'DefaultRecentlyAddedMovies.png', "Photo"),
-        ('Recentlyadded', utils.Translate(33374), 'DefaultRecentlyAddedMovies.png', "PhotoAlbum"),
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video")
     ],
     'playlists': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Everything"),
-        ('Playlist', utils.Translate(33376), 'DefaultPlaylist.png', "Everything"),
-        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder")
+        ('Playlist', utils.Translate(33376), 'DefaultPlaylist.png', "Everything")
     ],
     'audiobooks': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
@@ -210,7 +207,7 @@ def browse(Handle, Id, query, args, server_id):
         WindowId = xbmcgui.getCurrentWindowId()
         CheckQuery = "%s%s" % (args, query)
 
-        # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml etc
+        # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml etc 10502 = music, 10025 = videos, 10002 = pictures
         if CheckQuery.find("Photo") > -1 and WindowId in (10025, 10502):
             ReloadWindowId = 10002
         elif (CheckQuery.find("MusicAlbum") > -1 or CheckQuery.find("MusicArtist") > -1  or CheckQuery.find("Audio") > -1) and WindowId in (10025, 10002):
@@ -221,7 +218,8 @@ def browse(Handle, Id, query, args, server_id):
         if ReloadWindowId:
             globals()["PluginMenuActive"] = False
             LOG.info("Change of (browse) node content. Reload window: %s/%s/%s" % (CheckQuery, WindowId, ReloadWindowId))
-            start_new_thread(ChangeContentWindow, ("plugin://%s/?id=%s&mode=browse&query=%s&server=%s&arg=%s" % (utils.PluginId, Id, query, server_id, args), ReloadWindowId))
+            xbmcplugin.endOfDirectory(Handle, succeeded=False, cacheToDisc=False)
+            xbmc.executebuiltin('ActivateWindow(%s,"plugin://%s/?id=%s&mode=browse&query=%s&server=%s&arg=%s",return)' % (ReloadWindowId, utils.PluginId, Id, query, server_id, args))
             return
 
     ItemsListing = []
@@ -245,9 +243,9 @@ def browse(Handle, Id, query, args, server_id):
         Content = args[0]
     elif query == 'LetterSub':
         if args[1] == "0-9":
-            QueryArgs = (Id, [args[0]], False, True, {'NameLessThan': "A"}, True, False)
+            QueryArgs = (Id, [args[0]], False, True, {'NameLessThan': "A"}, False)
         else:
-            QueryArgs = (Id, [args[0]], False, True, {'NameStartsWith': args[1]}, True, False)
+            QueryArgs = (Id, [args[0]], False, True, {'NameStartsWith': args[1]}, False)
 
         Content = args[0]
     elif query == 'Genre':
@@ -258,7 +256,7 @@ def browse(Handle, Id, query, args, server_id):
 
         Content = args[0]
     elif query == 'GenreSub':
-        QueryArgs = (Id, [args[0]], False, True, {'GenreIds': args[1]}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'GenreIds': args[1]}, False)
         Content = args[0]
     elif query == 'Tags':
         Items = utils.EmbyServers[server_id].API.get_tags(Id, [args[0]])
@@ -268,32 +266,25 @@ def browse(Handle, Id, query, args, server_id):
 
         Content = args[0]
     elif query == 'TagsSub':
-        QueryArgs = (Id, [args[0]], False, True, {'TagIds': args[1]}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'TagIds': args[1]}, False)
         Content = args[0]
     elif query == 'Recentlyadded':
-        CacheId = "Recentlyadded_%s_%s_%s" % (server_id, Id, args[0])
-
-        if CacheId in QueryCache:
-            LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsListing = QueryCache[CacheId]
-        else:
-            ItemsListing = utils.EmbyServers[server_id].API.get_recently_added(Id, [args[0]])
-            globals()["QueryCache"][CacheId] = ItemsListing
-
+        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
         Content = args[0]
+        Unsorted = True
     elif query == 'Unwatched':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsUnplayed', 'SortBy': "Random"}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsUnplayed', 'SortBy': "Random", 'Limit': utils.maxnodeitems}, False)
         Content = args[0]
         Unsorted = True
     elif query == 'Favorite':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsFavorite'}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsFavorite'}, False)
         Content = args[0]
     elif query == 'Inprogress':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsResumable'}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsResumable'}, False)
         Content = args[0]
     elif query == 'BoxSet':
-        QueryArgs = (Id, [args[0]], False, True, {}, True, False)
-        Content = "Everything"
+        QueryArgs = (Id, ['BoxSet'], False, True, {}, False)
+        Content = "BoxSet"
     elif query == 'TvChannel':
         CacheId = "TvChannel_%s" % server_id
 
@@ -306,17 +297,17 @@ def browse(Handle, Id, query, args, server_id):
 
         Content = "TvChannel"
     elif query in ("Playlist", "Default"):
-        QueryArgs = (Id, ["Everything"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Everything"], False, True, {}, False)
         Content = "Video"
         Unsorted = True
     elif query == "Video":
-        QueryArgs = (Id, ["Video"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Video"], False, True, {}, False)
         Content = "Video"
     elif query in ("Mixed", "Everything"):
-        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist"], False, True, {}, False)
         Content = "Everything"
     elif query == 'Random':
-        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, True, False)
+        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, False)
         Content = args[0]
         Unsorted = True
     elif query == 'Upcoming':
@@ -340,39 +331,50 @@ def browse(Handle, Id, query, args, server_id):
             ItemsListing = utils.EmbyServers[server_id].API.get_NextUp(Id, ["Episode"])
             globals()["QueryCache"][CacheId] = ItemsListing
 
+        Unsorted = True
         Content = "Episode"
     elif query == 'Resume':
-        QueryArgs = (Id, [args[0]], False, True, {}, True, True)
+        QueryArgs = (Id, [args[0]], False, True, {}, True)
         Content = args[0]
     elif query == 'Season':
-        QueryArgs = (Id, ["Season"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Season"], False, True, {}, False)
         Content = "Season"
     elif query == 'Episode':
-        QueryArgs = (Id, ["Episode"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Episode"], False, True, {}, False)
         Content = "Episode"
     elif query == 'Series':
-        QueryArgs = (Id, ["Series"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Series"], False, True, {}, False)
         Content = "Series"
     elif query == 'Photo':
-        QueryArgs = (Id, ["Photo"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Photo"], False, True, {}, False)
         Content = "Photo"
     elif query == 'PhotoAlbum':
-        QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, True, False)
+        QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, False)
         Content = "PhotoAlbum"
     elif query == "Folder":
-        QueryArgs = (Id, ["Everything"], False, False, {}, True, False)
+        QueryArgs = (Id, ["Everything"], False, False, {}, False)
         Content = "Everything"
     elif query == 'MusicVideo':
-        QueryArgs = (Id, ["MusicVideo"], False, True, {}, True, False)
+        QueryArgs = (Id, ["MusicVideo"], False, True, {}, False)
         Content = "MusicVideo"
     elif query == 'MusicArtist':
-        QueryArgs = (Id, ["MusicArtist"], False, True, {}, True, False)
+        QueryArgs = (Id, ["MusicArtist"], False, True, {}, False)
         Content = "MusicArtist"
+
+
+    elif query == 'MusicVideoArtist':
+        QueryArgs = (Id, ["MusicArtist"], False, True, {}, False, False, True)
+        Content = "MusicArtist"
+
+
+
+
+
     elif query == 'Movie':
-        QueryArgs = (Id, ["Movie"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Movie"], False, True, {}, False)
         Content = "Movie"
     elif query == 'Audio':
-        QueryArgs = (Id, ["Audio"], False, True, {}, True, False)
+        QueryArgs = (Id, ["Audio"], False, True, {}, False)
         Content = "Audio"
     elif query == 'MusicAlbum':
         CacheId = "MusicAlbum_%s_%s_%s" % (server_id, Id, args[0])
@@ -402,11 +404,14 @@ def browse(Handle, Id, query, args, server_id):
             LOG.info("Using QueryCache: %s" % CacheId)
             ItemsListings = QueryCache[CacheId]
         else:
-            for Item in utils.EmbyServers[server_id].API.get_Items(*QueryArgs):
+            for Item in utils.EmbyServers[server_id].API.get_Items_dynamic(*QueryArgs):
                 if utils.SystemShutdown:
                     return
 
-                load_ListItem(Id, Item, server_id, ItemsListings)
+                if "ListItem" in Item:
+                    ItemsListings.append((Item["Path"], Item["ListItem"], Item["isFolder"]))
+                else:
+                    load_ListItem(Id, Item, server_id, ItemsListings)
 
             if not Unsorted:
                 globals()["QueryCache"][CacheId] = ItemsListings
@@ -441,6 +446,13 @@ def browse(Handle, Id, query, args, server_id):
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    elif query == 'MusicVideo':
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
     else:
@@ -494,11 +506,11 @@ def SyncThemes(server_id):
     items = {}
 
     for ViewId in views:
-        for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeVideo': "True"}, True, False):
+        for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeVideo': "True"}):
             query = normalize_string(item['Name'])
             items[item['Id']] = query
 
-        for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeSong': "True"}, True, False):
+        for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeSong': "True"}):
             query = normalize_string(item['Name'])
             items[item['Id']] = query
 
@@ -513,7 +525,12 @@ def SyncThemes(server_id):
             if utils.useDirectPaths:
                 paths.append(theme['MediaSources'][0]['Path'])
             else:
-                paths.append(direct_url(server_id, theme))
+                Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
+
+                if theme['Type'] == 'Audio':
+                    paths.append("http://127.0.0.1:57342/A-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], Filename))
+                else:
+                    paths.append("http://127.0.0.1:57342/V-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], Filename))
 
         xmls.tvtunes_nfo(nfo_file, paths)
 
@@ -606,14 +623,6 @@ def SyncLiveTV(server_id):
     else:
         utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33233))
 
-def direct_url(server_id, item):
-    Filename = utils.PathToFilenameReplaceSpecialCharecters(item['Path'])
-
-    if item['Type'] == 'Audio':
-        return "http://127.0.0.1:57342/A-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], Filename)
-
-    return "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (server_id, item['Id'], item['MediaSources'][0]['Id'], Filename)
-
 # Add or remove users from the default server session
 def AddUser(EmbyServer):
     session = EmbyServer.API.get_device()
@@ -645,10 +654,6 @@ def AddUser(EmbyServer):
 
     if result < 0:
         return
-
-
-
-#utils.Translate(33431)
 
     if not result:  # Add user
         AddNameArray = []
@@ -694,14 +699,6 @@ def normalize_string(text):
     text = text.rstrip('.')
     text = unicodedata.normalize('NFKD', text)
     return text
-
-def ChangeContentWindow(Query, WindowId):  # threaded
-    if not utils.sleep(1):
-        while xbmc.getCondVisibility("System.HasActiveModalDialog"):  # check if modal dialogs are closed
-            if utils.sleep(1):
-                return
-
-        xbmc.executebuiltin('ActivateWindow(%s,"%s",return)' % (WindowId, Query))
 
 def load_ListItem(Id, Item, server_id, list_li):
     li = listitem.set_ListItem(Item, server_id)
@@ -792,12 +789,13 @@ def favepisodes(Handle):
         episodes_kodiId += embydb.get_episode_fav()
         dbio.DBCloseRO(server_id, "favepisodes")
 
-    for episode_kodiId in episodes_kodiId:
-        Details = utils.load_VideoitemFromKodiDB("episode", str(episode_kodiId[0]))
-        FilePath = Details["file"]
-        li = utils.CreateListitem("episode", Details)
-        list_li.append((FilePath, li, False))
+    videodb = dbio.DBOpenRO("video", "favepisodes")
 
+    for episode_kodiId in episodes_kodiId:
+        li, path, isFolder = utils.load_ContentMetadataFromKodiDB(episode_kodiId[0], "episode", videodb, None)
+        list_li.append((path, li, isFolder))
+
+    dbio.DBCloseRO("video", "favepisodes")
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
@@ -829,7 +827,7 @@ def cache_textures():
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
-                for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}, False, False):
+                for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}):
                     path, _ = utils.get_path_type_from_item(server_id, Item)
                     TempUrls[ItemCounter] = (path,)
                     ItemCounter += 1
@@ -841,7 +839,7 @@ def cache_textures():
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
-                for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}, False, False):
+                for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}):
                     path, _ = utils.get_path_type_from_item(server_id, Item)
                     TempUrls[ItemCounter] = (path,)
                     ItemCounter += 1
@@ -990,6 +988,7 @@ def CacheAllEntries(urls):
         ServerId = Data[1]
         EmbyID = Data[2]
         ImageIndex = Data[3]
+        ImageTag = Data[5]
 
         if Data[4] not in EmbyArtworkIDs:
             LOG.warning("Artwork cache: Invalid (EmbyArtworkIDs) item found %s" % url)
@@ -1017,10 +1016,9 @@ def CacheAllEntries(urls):
         if not utils.checkFileExists("%s.jpg" % TempPath) and not utils.checkFileExists("%s.png" % TempPath):
             if len(Data) > 6 and ImageType == "Chapter":
                 OverlayText = unquote("-".join(Data[6:]))
-                ImageTag = Data[5]
                 ImageBinary = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText)
             else:
-                ImageBinary = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex)
+                ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag)
 
             Width, Height, ImageFormat = get_image_metadata(ImageBinary, Hash)
             cachedUrl = "%s/%s.%s" % (Hash[0], Hash, ImageFormat)
@@ -1066,18 +1064,19 @@ def get_next_episodes(Handle, libraryname):
         list_li = QueryCache[CacheId]
     else:
         videodb = dbio.DBOpenRO("video", "get_next_episodes")
-        NextEpisodeInfos = videodb.get_next_episodesIds(common.MediaTags[libraryname])
-        dbio.DBCloseRO("video", "get_next_episodes")
         list_li = []
 
-        for NextEpisodeInfo in NextEpisodeInfos:
-            EpisodeId = NextEpisodeInfo.split(";")
-            episode = utils.load_VideoitemFromKodiDB("episode", EpisodeId[1])
-            FilePath = episode["file"]
-            li = utils.CreateListitem("episode", episode)
-            list_li.append((FilePath, li, False))
+        if libraryname in common.MediaTags:
+            NextEpisodeInfos = videodb.get_next_episodesIds(common.MediaTags[libraryname])
 
-        globals()["QueryCache"][CacheId] = list_li
+            for NextEpisodeInfo in NextEpisodeInfos:
+                EpisodeId = NextEpisodeInfo.split(";")
+                li, path, isFolder = utils.load_ContentMetadataFromKodiDB(EpisodeId[1], "episode", videodb, None)
+                list_li.append((path, li, isFolder))
+
+            globals()["QueryCache"][CacheId] = list_li
+
+        dbio.DBCloseRO("video", "get_next_episodes")
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)

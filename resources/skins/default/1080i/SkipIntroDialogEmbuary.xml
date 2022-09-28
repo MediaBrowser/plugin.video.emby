@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="3301" type="dialog">
+    <defaultcontrol always="true">1</defaultcontrol>
+    <zorder>200</zorder>
+    <animation type="WindowOpen" reversible="false">
+        <effect type="fade" start="0" end="100" time="500"/>
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="fade" start="100" end="0" time="500"/>
+    </animation>
+    <coordinates>
+        <system>1</system>
+        <top>0</top>
+        <left>0</left>
+    </coordinates>
+    <controls>
+        <control type="button" id="1">
+            <left>85%</left>
+            <top>83%</top>
+            <width>14%</width>
+            <height>5%</height>
+            <visible>true</visible>
+			<label>$ADDON[plugin.video.emby-next-gen 33417]</label>
+        </control>
+    </controls>
+</window>

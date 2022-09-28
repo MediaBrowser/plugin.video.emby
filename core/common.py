@@ -1,25 +1,24 @@
 from urllib.parse import quote, urlparse
 from helper import utils, loghandler
 
-EmbyArtworkKeys = ["Primary", "Art", "Banner", "Disc", "Logo", "Thumb"]
-EmbyArtworkIDs = {"Primary": "p", "Art": "a", "Banner": "b", "Disc": "d", "Logo": "l", "Thumb": "t", "Backdrop": "B", "Chapter": "c"}
+EmbyArtworkIdShort = {"Primary": "p", "Art": "a", "Banner": "b", "Disc": "d", "Logo": "l", "Thumb": "t", "Backdrop": "B", "Chapter": "c", "SeriesPrimary": "p", "AlbumPrimary": "p", "ParentBackdrop": "B", "ParentThumb": "t", "ParentLogo": "l", "ParentBanner": "b", "AlbumArtists": "p", "ArtistItems": "p"}
 MarkerTypeMapping = {"IntroStart": "Intro Start", "IntroEnd": "Intro End", "CreditsStart": "Credits"}
-ImageTagsMapping = {
-    "Series": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
-    "Season": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Episode": {'Primary': ('thumb', 'poster', 'landscape'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Movie": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
-    "BoxSet": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')},
-    "Video": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "MusicArtist": {'Primary': ('thumb', 'poster'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "MusicAlbum": {'Primary': ('thumb', 'poster'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Audio": {'Primary': ('thumb', 'poster'), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "MusicVideo": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Photo": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "PhotoAlbum": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Folder": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "TvChannel": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb',)},
-    "Trailer": {'Primary': ('poster',), "Art": ('clearart',), "Banner": ('banner',), "Disc": ('discart',), "Logo": ('clearlogo',), "Thumb": ('thumb', 'landscape')}
+ImageTagsMappings = {
+    "Series": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb'), ("Backdrop", 'landscape')),
+    "Season": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ('SeriesPrimary', 'poster'), ("ParentThumb", 'thumb'), ("Primary", 'thumb'), ("ParentLogo", 'clearlogo'), ("ParentBackdrop", 'fanart')),
+    "Episode": (('Primary', 'thumb'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ("ParentLogo", 'clearlogo'), ("ParentBanner", 'banner'), ("ParentThumb", 'landscape'), ("ParentThumb", 'thumb'), ("ParentBackdrop", 'landscape'), ("ParentBackdrop", 'fanart'), ('Primary', 'landscape')),
+    "Movie": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "BoxSet": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "Video": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "MusicArtist": (('Primary', 'thumb'), ('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "MusicAlbum": (('Primary', 'thumb'), ('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ("ParentThumb", 'thumb'), ("Primary", 'thumb'), ("ParentLogo" ,'clearlogo'), ("ParentBackdrop", 'fanart'), ("AlbumArtists", 'poster'), ("AlbumArtists", 'thumb'), ("AlbumArtists", 'fanart'), ("ArtistItems", 'poster'), ("ArtistItems", 'thumb'), ("ArtistItems", 'fanart')),
+    "Audio": (('Primary', 'thumb'), ('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('AlbumPrimary', 'poster'), ("ParentThumb", 'thumb'), ("Primary", 'thumb'), ("ParentLogo", 'clearlogo'), ("ParentBackdrop", 'fanart'), ("AlbumArtists", 'poster'), ("AlbumArtists", 'thumb'), ("AlbumArtists", 'fanart'), ("ArtistItems", 'poster'), ("ArtistItems", 'thumb'), ("ArtistItems", 'fanart')),
+    "MusicVideo": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "Photo": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "PhotoAlbum": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "Folder": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "TvChannel": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Backdrop", 'fanart'), ('Primary', 'thumb')),
+    "Trailer": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb'))
 }
 MediaTags = {}
 LOG = loghandler.LOG('EMBY.core.common')
@@ -632,61 +631,79 @@ def set_KodiArtwork(item, server_id):
     if 'Library' not in item:
         item['Library'] = {'Id': 0}
 
-    # ImageTags
-    for EmbyArtworkKey in EmbyArtworkKeys:
-        EmbyArtworkId = None
-        EmbyArtworkTag = ""
+    if item['Type'] in ImageTagsMappings:
+        for ImageTagsMapping in ImageTagsMappings[item['Type']]:
+            EmbyArtworkId = None
+            EmbyArtworkTag = ""
 
-        if EmbyArtworkKey in item["ImageTags"]:
-            if item["ImageTags"][EmbyArtworkKey]:
-                EmbyArtworkTag = item["ImageTags"][EmbyArtworkKey]
-                EmbyArtworkId = item['Id']
+            if ImageTagsMapping[0] in item["ImageTags"]:
+                if item["ImageTags"][ImageTagsMapping[0]] and item["ImageTags"][ImageTagsMapping[0]] != "None":
+                    EmbyArtworkTag = item["ImageTags"][ImageTagsMapping[0]]
+                    EmbyArtworkId = item['Id']
+            elif "%sImageTag" % ImageTagsMapping[0] in item:
+                ImageTagKey = "%sImageTag" % ImageTagsMapping[0]
 
-        if not EmbyArtworkId:
-            if EmbyArtworkKey == "Primary":
-                if item['SeriesPrimaryImageTag']:
-                    EmbyArtworkTag = item['SeriesPrimaryImageTag']
-                    EmbyArtworkId = item['SeriesId']
-                elif item['AlbumPrimaryImageTag']:
-                    EmbyArtworkTag = item['AlbumPrimaryImageTag']
-                    EmbyArtworkId = item['AlbumId']
+                if item[ImageTagKey] and item[ImageTagKey] != "None":
+                    EmbyArtworkTag = item[ImageTagKey]
 
-        if not EmbyArtworkId:
-            EmbyParentArtworkKey = 'Parent%sItemTag' % EmbyArtworkKey
+                    if "%sItemId" % ImageTagsMapping[0] in item:
+                        EmbyArtworkId = item["%sItemId" % ImageTagsMapping[0]]
+                    else:
+                        if ImageTagsMapping[0] == "SeriesPrimary":
+                            if "SeriesId" in item:
+                                EmbyArtworkId = item["SeriesId"]
+                        elif ImageTagsMapping[0] == "AlbumPrimary":
+                            if "AlbumId" in item:
+                                EmbyArtworkId = item["AlbumId"]
+            elif ImageTagsMapping[0] == "ParentBanner":
+                if "SeriesId" in item:
+                    EmbyArtworkId = item["SeriesId"]
+                    EmbyArtworkTag = ""
+            elif ImageTagsMapping[0] == "AlbumArtists" and "AlbumArtists" in item and item["AlbumArtists"] and item["AlbumArtists"] != "None":
+                EmbyArtworkId = item["AlbumArtists"][0]['Id']
+                EmbyArtworkTag = 0
+            elif ImageTagsMapping[0] == "ArtistItems" and "ArtistItems" in item and item["ArtistItems"] and item["ArtistItems"] != "None":
+                EmbyArtworkId = item["ArtistItems"][0]['Id']
+                EmbyArtworkTag = 0
+            elif "%sImageTags" % ImageTagsMapping[0] in item:
+                BackDropsKey = "%sImageTags" % ImageTagsMapping[0]
+                EmbyBackDropsId = None
 
-            if EmbyParentArtworkKey in item:
-                if item[EmbyParentArtworkKey]:
-                    EmbyArtworkTag = item[EmbyParentArtworkKey]
-                    EmbyArtworkId = item['Parent%sItemId' % EmbyArtworkKey]
+                if BackDropsKey == "ParentBackdropImageTags":
+                    if "SeriesId" in item:
+                        EmbyBackDropsId = item["SeriesId"]
+                    elif "AlbumId" in item:
+                        EmbyBackDropsId = item["AlbumId"]
+                    else:
+                        LOG.warning("Artwork: SeriesId/AlbumId not found %s" % item["Id"])
+                else:
+                    EmbyBackDropsId = item["Id"]
 
-        if EmbyArtworkId:
-            for KodiArtworkId in ImageTagsMapping[item["Type"]][EmbyArtworkKey]:
-                item['KodiArtwork'][KodiArtworkId] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyArtworkId, EmbyArtworkIDs[EmbyArtworkKey], EmbyArtworkTag)
+                if EmbyBackDropsId:
+                    if item[BackDropsKey] and item[BackDropsKey] != "None":
+                        if ImageTagsMapping[1] == "fanart":
+                            if not "fanart" in item['KodiArtwork']["fanart"]:
+                                item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-B-%s" % (server_id, EmbyBackDropsId, item[BackDropsKey][0])
 
-    # BackdropImageTags
-    if item['BackdropImageTags']:
-        item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-B-%s" % (server_id, item['Id'], item['BackdropImageTags'][0])
+                            for index, EmbyArtworkTag in enumerate(item[BackDropsKey][1:], 1):
+                                if not "fanart%s" % index in item['KodiArtwork']["fanart"]:
+                                    item['KodiArtwork']["fanart"]["fanart%s" % index] = "http://127.0.0.1:57342/p-%s-%s-%s-B-%s" % (server_id, EmbyBackDropsId, index, EmbyArtworkTag)
+                        else:
+                            if not item['KodiArtwork'][ImageTagsMapping[1]]:
+                                item['KodiArtwork'][ImageTagsMapping[1]] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyBackDropsId, EmbyArtworkIdShort[ImageTagsMapping[0]], item[BackDropsKey][0])
 
-        for index, EmbyArtworkTag in enumerate(item['BackdropImageTags'][1:], 1):
-            item['KodiArtwork']["fanart"]["fanart%s" % index] = "http://127.0.0.1:57342/p-%s-%s-%s-B-%s" % (server_id, item['Id'], index, EmbyArtworkTag)
-    elif item['ParentBackdropImageTags']:
-        item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-B-%s" % (server_id, item['ParentBackdropItemId'], item['ParentBackdropImageTags'][0])
+            if EmbyArtworkId:
+                if ImageTagsMapping[1] == "fanart":
+                    if not "fanart" in item['KodiArtwork']["fanart"]:
+                        item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyArtworkId, EmbyArtworkIdShort[ImageTagsMapping[0]], EmbyArtworkTag)
+                else:
+                    if not item['KodiArtwork'][ImageTagsMapping[1]]:
+                        item['KodiArtwork'][ImageTagsMapping[1]] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyArtworkId, EmbyArtworkIdShort[ImageTagsMapping[0]], EmbyArtworkTag)
 
-        for index, EmbyArtworkTag in enumerate(item['ParentBackdropImageTags'][1:], 1):
-            item['KodiArtwork']["fanart"]["fanart%s" % index] = "http://127.0.0.1:57342/p-%s-%s-%s-B-%s" % (server_id, item['ParentBackdropItemId'], index, EmbyArtworkTag)
 
-    # Fallbacks
-    if not item['KodiArtwork']['thumb']:
-        if item['KodiArtwork']['poster']:
-            item['KodiArtwork']['thumb'] = item['KodiArtwork']['poster']
-
-        if not item['KodiArtwork']['thumb']:
-            if 'fanart' in item['KodiArtwork']["fanart"]:
-                item['KodiArtwork']['thumb'] = item['KodiArtwork']["fanart"]["fanart"]
-
-    if utils.useseriesposters:
-        if item['Type'] == "Episode" and item['SeriesPrimaryImageTag']:
-            item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['SeriesId'], item['SeriesPrimaryImageTag'])
+    if utils.AssignEpisodePostersToTVShowPoster:
+        if item['Type'] == "Episode" and 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
+            item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["SeriesId"], item["SeriesPrimaryImageTag"])
 
 def set_MusicVideoTracks(item):
     # Try to detect track number
