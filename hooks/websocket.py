@@ -13,14 +13,6 @@ import xbmc
 from helper import utils, playerops, loghandler
 
 LOG = loghandler.LOG('Emby.hooks.websocket')
-actions = {
-    'Stop': utils.XbmcPlayer.stop,
-    'Unpause': utils.XbmcPlayer.pause,
-    'Pause': utils.XbmcPlayer.pause,
-    'PlayPause': utils.XbmcPlayer.pause,
-    'NextTrack': utils.XbmcPlayer.playnext,
-    'PreviousTrack': utils.XbmcPlayer.playprevious
-}
 
 def maskData(mask_key, data):
     _m = array.array("B", mask_key)
@@ -58,13 +50,14 @@ class WSClient:
             self.stop = True
 
         if self.sock:
+            self.sendCommands(struct.pack('!H', 1000), 0x8)
             sockLocal = self.sock
             self.sock = None
 
             try:
                 sockLocal.shutdown(socket.SHUT_RDWR)
-            except:
-                pass
+            except Exception as error:
+                LOG.error(error)
 
             sockLocal.close()
 
@@ -143,7 +136,8 @@ class WSClient:
         # Connect
         try:
             self.sock.connect((hostname, port))
-        except:
+        except Exception as error:
+            LOG.error(error)
             return False
 
         self.sock.settimeout(15) # set timeout > ping interval (10 seconds ping)
@@ -174,7 +168,8 @@ class WSClient:
             while True:
                 try:
                     c = self.sock.recv(1).decode()
-                except: # timeout
+                except Exception as error:
+                    LOG.error(error)
                     return False
 
                 if not c:
@@ -251,7 +246,8 @@ class WSClient:
             try:
                 l = self.sock.send(data)
                 data = data[l:]
-            except:  # Server offline
+            except Exception as error:
+                LOG.error(error)
                 ServerOnline = False
                 break
 
@@ -328,7 +324,7 @@ class WSClient:
                     self._cont_data = None
                     return data
             elif opcode == 0x8:
-                self.sendCommands(struct.pack('!H', 1000) + b"", 0x8)
+                self.sendCommands(struct.pack('!H', 1000), 0x8)
                 return False
             elif opcode == 0x9:
                 self.sendCommands(payload, 0xa)  # Pong
@@ -434,7 +430,8 @@ class WSClient:
                     else:
                         Progress = 0
 
-                    utils.progress_update(Progress, utils.Translate(33199), "%s: %s" % (utils.Translate(33411), Task["Name"]))
+                    if utils.busyMsg:
+                        utils.progress_update(Progress, utils.Translate(33199), "%s: %s" % (utils.Translate(33411), Task["Name"]))
                 else:
                     if Task["Name"] in self.TasksRunning:
                         self.TasksRunning = ([s for s in self.TasksRunning if s != Task["Name"]])
@@ -445,7 +442,8 @@ class WSClient:
                 self.SyncInProgress = True
                 start_new_thread(self.EmbyServerSyncCheck, ())
 
-            utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
+            if utils.busyMsg:
+                utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
         elif IncomingData['MessageType'] == 'UserDataChanged':
             self.EmbyServer.UserDataChanged(self.EmbyServer.server_id, IncomingData['Data']['UserDataList'], IncomingData['Data']['UserId'])
         elif IncomingData['MessageType'] == 'LibraryChanged':
@@ -493,7 +491,9 @@ class WSClient:
     def EmbyServerSyncCheck(self):
         LOG.info("--> Emby server is busy, sync in progress")
         utils.SyncPause[self.EmbyServer.server_id] = True
-        utils.progress_open(utils.Translate(33411))
+
+        if utils.busyMsg:
+            utils.progress_open(utils.Translate(33411))
 
         while self.SyncRefresh or self.TasksRunning:
             self.SyncRefresh = False
@@ -501,7 +501,9 @@ class WSClient:
             if utils.sleep(5): # every 5 seconds a progress update is expected. If not, sync was canceled
                 break
 
-        utils.progress_close()
+        if utils.busyMsg:
+            utils.progress_close()
+
         self.SyncInProgress = False
         utils.SyncPause[self.EmbyServer.server_id] = False
         self.EmbyServer.library.RunJobs()
@@ -509,11 +511,23 @@ class WSClient:
 
 # Emby playstate updates (websocket Incoming)
 def Playstate(Command, SeekPositionTicks):
-    if Command == 'Seek':
-        if utils.XbmcPlayer.isPlaying():
-            seektime = SeekPositionTicks / 10000000.0
-            utils.XbmcPlayer.seekTime(seektime)
-            LOG.info("[ seek/%s ]" % seektime)
-    elif Command in actions:
-        actions[Command]()
-        LOG.info("[ command/%s ]" % Command)
+    if utils.XbmcPlayer:
+        if Command == 'Seek':
+            if utils.XbmcPlayer.isPlaying():
+                seektime = SeekPositionTicks / 10000000.0
+                utils.XbmcPlayer.seekTime(seektime)
+                LOG.info("[ seek/%s ]" % seektime)
+        elif Command == "Stop":
+            utils.XbmcPlayer.stop()
+        elif Command == "Unpause":
+            utils.XbmcPlayer.pause()
+        elif Command == "Pause":
+            utils.XbmcPlayer.pause()
+        elif Command == "PlayPause":
+            utils.XbmcPlayer.pause()
+        elif Command == "NextTrack":
+            utils.XbmcPlayer.playnext()
+        elif Command == "PreviousTrack":
+            utils.XbmcPlayer.playprevious()
+
+    LOG.info("[ command/%s ]" % Command)

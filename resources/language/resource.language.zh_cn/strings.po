@@ -1927,4 +1927,26 @@ msgctxt "#33438"
 msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
 msgstr "TVShow Kodi 海报（Emby TVShow 主图像）将用作剧集 Kodi 海报。\n切换此选项需要完全重新同步，包括所有缓存的艺术品。\n注意：不要使用初始化同步向导（跳过它）"
 
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr ""
 
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr ""
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr ""
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr ""
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr ""
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr ""

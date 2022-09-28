@@ -18,7 +18,7 @@ def set_ListItem(item, server_id):
         }
         Properties = {
             'IsFolder': 'true',
-            'IsPlayable': 'false',
+            'IsPlayable': 'false'
         }
         listitem.setInfo('video', metadata)
     elif item['Type'] == "TvChannel":
@@ -151,7 +151,6 @@ def set_ListItem(item, server_id):
         common.set_videocommon(item, server_id, 0)
         metadata = {
             'title': item['Name'],
-            'tvshowtitle': item['SeriesName'],
             'season': item.get('IndexNumber', 0),
             'originaltitle': item.get('OriginalTitle', None),
             'country': item['ProductionLocations'],
@@ -175,7 +174,6 @@ def set_ListItem(item, server_id):
             'mediatype': "season"
         }
         Properties = {
-            'TotalSeasons': item['ChildCount'],
             'NumEpisodes': item.get('RecursiveItemCount', 0),
             'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']),
             'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'],
@@ -231,6 +229,7 @@ def set_ListItem(item, server_id):
         if item['MediaSources'][0]['Type'] == "Placeholder":
             metadata['date'] = get_shortdate(item['PremiereDate'])
             Properties['IsPlayable'] = 'false'
+            item['NoLink'] = True
 
         listitem.setInfo('video', metadata)
     elif item['Type'] == "MusicVideo":
@@ -425,7 +424,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == 'Playlist':
         Properties = {
             'IsFolder': 'true',
-            'IsPlayable': 'false',
+            'IsPlayable': 'false'
         }
     elif item['Type'] == "Photo":
         item['Width'] = str(item.get('Width', 0))
@@ -442,7 +441,7 @@ def set_ListItem(item, server_id):
         }
         Properties = {
             'IsFolder': 'false',
-            'IsPlayable': 'true',
+            'IsPlayable': 'true'
         }
         listitem.setInfo('pictures', metadata)
     elif item['Type'] == "PhotoAlbum":
@@ -455,7 +454,7 @@ def set_ListItem(item, server_id):
         }
         Properties = {
             'IsFolder': 'true',
-            'IsPlayable': 'true',
+            'IsPlayable': 'true'
         }
         listitem.setInfo('pictures', metadata)
 
@@ -504,6 +503,6 @@ def get_actors(People):
     cast = []
 
     for person in People:
-        if person['Type'] in ("Actor", "Artist"):
+        if person['Type'] in ("Actor", "Artist", 'Director', 'GuestStar'):
             cast.append({'name': person['Name'], 'role': person.get('Role', "Unknown"), 'order': len(cast) + 1, 'thumbnail': person['imageurl']})
     return cast

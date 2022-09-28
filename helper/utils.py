@@ -1,7 +1,6 @@
 import os
 import shutil
 import uuid
-import json
 from urllib.parse import quote
 from datetime import datetime, timedelta
 from dateutil import tz, parser
@@ -27,12 +26,10 @@ addon_name = Addon.getAddonInfo('name')
 icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
-MinimumVersion = "7.7.0"
-StartupComplete = False
+MinimumVersion = "7.9.0"
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
-useseriesposters = False
 animateicon = True
 TranscodeFormatVideo = ""
 TranscodeFormatAudio = ""
@@ -65,6 +62,7 @@ transcodeH265 = False
 transcodeDivx = False
 transcodeXvid = False
 transcodeMpeg2 = False
+skipintroembuarydesign = False
 enableCinemaMovies = False
 enableCinemaEpisodes = False
 enableSkipIntro = False
@@ -94,6 +92,7 @@ device_id = ""
 syncdate = ""
 synctime = ""
 syncduringplayback = False
+busyMsg = True
 databasevacuum = False
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
@@ -102,27 +101,27 @@ FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
 ScanStaggered = False
-ScanReloadSkin = False
 Dialog = xbmcgui.Dialog()
-XbmcPlayer = xbmc.Player()
-waitForAbort = xbmc.Monitor().waitForAbort
+XbmcPlayer = None
+XbmcMonitor = None
+AssignEpisodePostersToTVShowPoster = False
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
 
 def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText):
     LOG.info("Add image text overlay: %s" % EmbyID)
 
     if ImageTag == "noimage":
-        ImageBytes = noimagejpg
+        BinaryData = noimagejpg
     else:
-        ImageBytes = EmbyServers[ServerId].http.request({'params': {}, 'type': "GET", 'handler': "Items/%s/Images/%s/%s?%s" % (EmbyID, ImageType, ImageIndex, ImageTag)}, False, True)
+        BinaryData, _, _ = EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag)
 
-        if not ImageBytes:
-            ImageBytes = noimagejpg
+        if not BinaryData:
+            BinaryData = noimagejpg
 
     if not ImageOverlay:
-        return ImageBytes
+        return BinaryData
 
-    img = Image.open(io.BytesIO(ImageBytes))
+    img = Image.open(io.BytesIO(BinaryData))
     ImageWidth, ImageHeight = img.size
     draw = ImageDraw.Draw(img, "RGBA")
     BoxY = int(ImageHeight * 0.9)
@@ -145,10 +144,15 @@ def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText
     return imgByteArr.getvalue()
 
 def sleep(Seconds):
-    if waitForAbort(Seconds):
-        globals()["SystemShutdown"] = True
-        xbmc.sleep(100)
-        return True
+    if not XbmcMonitor:
+        if SystemShutdown:
+            return True
+
+        xbmc.sleep(Seconds * 1000)
+    else:
+        if XbmcMonitor.waitForAbort(Seconds):
+            globals()["SystemShutdown"] = True
+            return True
 
     return False
 
@@ -232,6 +236,10 @@ def delFile(Path):
 def copyFile(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
     DestinationPath = translatePath(DestinationPath)
+
+    if checkFileExists(DestinationPath):
+        LOG.info("copy: File exists: %s to %s" % (SourcePath, DestinationPath))
+        return
 
     try:
         shutil.copy(SourcePath, DestinationPath)
@@ -408,17 +416,6 @@ def convert_to_local(date, DateOnly=False):
 
     return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-# Download external subtitles to temp folder
-def download_file_from_Embyserver(request, filename, EmbyServer):
-    path = "%s%s" % (FolderEmbyTemp, filename)
-    response = EmbyServer.http.request(request, True, True)
-
-    if response:
-        writeFileBinary(path, response)
-        return path
-
-    return None
-
 def Translate(String):
     result = Addon.getLocalizedString(String)
 
@@ -442,90 +439,51 @@ def PathToFilenameReplaceSpecialCharecters(Path):
 
     return Filename
 
-def CreateListitem(MediaType, Data): # create listitem from Kodi data
-    li = xbmcgui.ListItem(label=Data['title'], offscreen=True)
-    Data['mediatype'] = MediaType
-    Properties = {'IsPlayable': "true"}
+def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
+    DBType = ""
+    LOG.info("Fetching data from internal database: %s / %s" % (ContentType, KodiId))
 
-    if "resume" in Data:
-        Properties['resumetime'] = str(Data['resume']['position'])
-        Properties['totaltime'] = str(Data['resume']['total'])
-        del Data['resume']
+    if ContentType == "movie":
+        Path, MetaData, Properties = videodb.get_movie_metadata_for_listitem(KodiId)
+        isFolder = False
+        DBType = 'video'
+    elif ContentType == "tvshow":
+        Path, MetaData, Properties = videodb.get_tvshows_metadata_for_listitem(KodiId)
+        isFolder = True
+        DBType = 'video'
+    elif ContentType == "season":
+        Path, MetaData, Properties = videodb.get_season_metadata_for_listitem(KodiId)
+        isFolder = True
+        DBType = 'video'
+    elif ContentType == "episode":
+        Path, MetaData, Properties = videodb.get_episode_metadata_for_listitem(KodiId)
+        isFolder = False
+        DBType = 'video'
+    elif ContentType == "set":
+        Path, MetaData, Properties = videodb.get_boxset_metadata_for_listitem(KodiId)
+        isFolder = True
+        DBType = 'video'
+    elif ContentType == "musicvideo":
+        Path, MetaData, Properties = videodb.get_musicvideos_metadata_for_listitem(KodiId)
+        isFolder = False
+        DBType = 'video'
+    elif ContentType == "song":
+        Path, MetaData, Properties = musicdb.get_song_metadata_for_listitem(KodiId)
+        isFolder = False
+        DBType = 'music'
+    elif ContentType == "artist":
+        Path, MetaData, Properties = musicdb.get_artist_metadata_for_listitem(KodiId)
+        isFolder = True
+        DBType = 'music'
+    elif ContentType in ("album", "single"):
+        Path, MetaData, Properties = musicdb.get_album_metadata_for_listitem(KodiId)
+        isFolder = True
+        DBType = 'music'
 
-    if "art" in Data:
-        li.setArt(Data['art'])
-        del Data['art']
-
-    if 'cast' in Data:
-        li.setCast(Data['cast'])
-        del Data['cast']
-
-    if 'uniqueid' in Data:
-        li.setUniqueIDs(Data['uniqueid'])
-        del Data['uniqueid']
-
-    if "streamdetails" in Data:
-        for key, value in list(Data['streamdetails'].items()):
-            for stream in value:
-                li.addStreamInfo(key, stream)
-
-        del Data['streamdetails']
-
-    if "showtitle" in Data:
-        Data['TVshowTitle'] = Data['showtitle']
-        del Data["showtitle"]
-
-    if "firstaired" in Data:
-        Data['premiered'] = Data['firstaired']
-        del Data["firstaired"]
-
-    if "specialsortepisode" in Data:
-        Data['sortseason'] = Data['specialsortepisode']
-        del Data["specialsortepisode"]
-
-    if "specialsortseason" in Data:
-        Data['sortepisode'] = Data['specialsortseason']
-        del Data["specialsortseason"]
-
-    if "file" in Data:
-        del Data["file"]
-
-    if "label" in Data:
-        li.setLabel(Data['label'])
-        del Data["label"]
-
-    if "seasonid" in Data:
-        del Data["seasonid"]
-
-    if "episodeid" in Data:
-        del Data["episodeid"]
-
-    if "movieid" in Data:
-        del Data["movieid"]
-
-    if "musicvideoid" in Data:
-        del Data["musicvideoid"]
-
-    li.setInfo('video', Data)
-    return li
-
-def load_VideoitemFromKodiDB(MediaType, KodiId):
-    Details = {}
-
-    if MediaType == "movie":
-        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMovieDetails", "params":{"movieid":%s, "properties":["title", "playcount", "plot", "genre", "year", "rating", "resume", "streamdetails", "director", "trailer", "tagline", "plotoutline", "originaltitle",  "writer", "studio", "mpaa", "country", "imdbnumber", "set", "showlink", "top250", "votes", "sorttitle",  "dateadded", "tag", "userrating", "cast", "premiered", "setid", "art", "lastplayed", "uniqueid"]}}' % KodiId)
-        Data = json.loads(result)
-        Details = Data['result']['moviedetails']
-    elif MediaType == "episode":
-        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetEpisodeDetails", "params":{"episodeid":%s, "properties":["title", "playcount", "season", "episode", "showtitle", "plot", "rating", "resume", "streamdetails", "firstaired", "writer", "dateadded", "lastplayed",  "originaltitle", "seasonid", "specialsortepisode", "specialsortseason", "userrating", "votes", "cast", "art", "uniqueid", "file"]}}' % KodiId)
-        Data = json.loads(result)
-        Details = Data['result']['episodedetails']
-    elif MediaType == "musicvideo":
-        result = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMusicVideoDetails", "params":{"musicvideoid":%s, "properties":["title", "playcount", "plot", "genre", "year", "rating", "resume", "streamdetails", "director", "studio", "dateadded", "tag", "userrating", "premiered", "album", "artist", "track", "art", "lastplayed"]}}' % KodiId)
-        Data = json.loads(result)
-        Details = Data['result']['musicvideodetails']
-
-    return Details
+    listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
+    listitem.setProperties(Properties)
+    listitem.setInfo(DBType, MetaData)
+    return listitem, Path, isFolder
 
 def SizeToText(size):
     suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -659,7 +617,9 @@ def InitSettings():
     load_settings_bool('enableSkipCredits')
     load_settings_bool('askSkipIntro')
     load_settings_bool('askSkipCredits')
-    load_settings_bool('useseriesposters')
+    load_settings_bool('skipintroembuarydesign')
+    load_settings_bool('busyMsg')
+    load_settings_bool('AssignEpisodePostersToTVShowPoster')
 
     if not deviceNameOpt:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
@@ -734,6 +694,9 @@ def set_settings_bool(setting, value):
 def get_path_type_from_item(server_id, item):
     path = None
 
+    if item.get('NoLink', False):
+        return "", None
+
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
         path = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
         Type = "p"
@@ -802,7 +765,6 @@ mkDir('special://profile/playlists/video/')
 mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
-set_settings_bool('artworkcacheenable', True)
 get_device_id(False)
 DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0, 'epg': "", 'epg-version': 0, 'addons': "", 'addons-version': 0, 'viewmodes': "", 'viewmodes-version': 0, 'tv': "", 'tv-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")

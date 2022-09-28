@@ -110,7 +110,7 @@ class Movies:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        MoviesAssignedToBoxset = self.EmbyServer.API.get_Items(item['Id'], ["Movie"], True, True, {}, False, False)
+        MoviesAssignedToBoxset = self.EmbyServer.API.get_Items(item['Id'], ["Movie"], True, True, {})
 
         for ItemIndex in range(len(item['Librarys'])):
             common.set_overview(item)

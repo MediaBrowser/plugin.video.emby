@@ -17,7 +17,7 @@ class HTTP:
         self.session.close()
         self.session = None
 
-    def request(self, data, ServerConnecting, Binary):
+    def request(self, data, ServerConnecting, Binary, Headers=False):
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.EmbyServer.server, data.pop('handler', ""))
 
@@ -38,7 +38,7 @@ class HTTP:
         while True:
             if utils.SystemShutdown:
                 self.stop_session()
-                return noData(Binary)
+                return noData(Binary, Headers)
 
             # start session
             if not self.session:
@@ -47,13 +47,16 @@ class HTTP:
             try:
                 r = _requests(self.session, RequestType, **data)
                 LOG.debug("---<[ http ][%s ms]" % int(r.elapsed.total_seconds() * 1000))
-                LOG.debug("[ http response %s / %s ]" % (r.status_code, data))
+                LOG.debug("[ http response %s / %s / %s ]" % (r.status_code, r.headers, data))
 
                 if RequestType == "HEAD":
                     return r.status_code
 
                 if r.status_code == 200:
                     if Binary:
+                        if Headers:
+                            return r.content, r.headers
+
                         return r.content
 
                     return r.json()
@@ -61,12 +64,12 @@ class HTTP:
                 if r.status_code == 401:
                     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
 
-                return noData(Binary)
+                return noData(Binary, Headers)
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
                 self.stop_session()
-                return noData(Binary)
+                return noData(Binary, Headers)
             except requests.exceptions.ConnectionError:
                 LOG.error("[ ServerUnreachable ]")
                 self.stop_session()
@@ -80,15 +83,15 @@ class HTTP:
                     self.EmbyServer.ServerUnreachable()
 
                 self.stop_session()
-                return noData(Binary)
+                return noData(Binary, Headers)
             except requests.exceptions.ReadTimeout:
                 LOG.error("[ ServerTimeout ] %s" % data)
                 self.stop_session()
-                return noData(Binary)
+                return noData(Binary, Headers)
             except Exception as error:
                 LOG.error(error)
                 self.stop_session()
-                return noData(Binary)
+                return noData(Binary, Headers)
 
     def get_header(self, data):
         data['headers'] = data.setdefault('headers', {})
@@ -168,8 +171,11 @@ def _requests(session, action, **kwargs):
 
     return None
 
-def noData(Binary):
+def noData(Binary, Headers):
     if Binary:
+        if Headers:
+            return b"", {}
+
         return b""
 
     return {}

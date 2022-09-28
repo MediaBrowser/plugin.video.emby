@@ -22,7 +22,7 @@ class MusicDatabase:
     # Make sure rescan and kodi db set
     def disable_rescan(self, Timestamp):
         self.cursor.execute("DELETE FROM versiontagscan")
-        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan, lastscanned, genresupdated) VALUES (?, ?, ?, ?)", (str(utils.DatabaseFiles['music-version']), "0", Timestamp, Timestamp))
+        self.cursor.execute("INSERT OR REPLACE INTO versiontagscan(idVersion, iNeedsScan, lastscanned, artistlinksupdated, genresupdated) VALUES (?, ?, ?, ?, ?)", (str(utils.DatabaseFiles['music-version']), "0", Timestamp, Timestamp, Timestamp))
 
     def add_role(self):
         self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
@@ -38,112 +38,85 @@ class MusicDatabase:
         if Data:
             return Data[0]
 
-        return False
+        return ""
 
     def create_entry_artist(self):
         self.cursor.execute("SELECT coalesce(max(idArtist), 0) FROM artist")
         return self.cursor.fetchone()[0] + 1
 
-    def add_artist(self, KodiItemId, name, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name):
-        while True:
+    def add_artist(self, KodiItemId, ArtistName, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name):
+        while MusicbrainzId != "UNKNOWN ERROR":
             try:
-                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, name, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
-                break
-            except:  # Duplicate musicbrainz
-                LOG.warning("Duplicate artist detected: %s/%s" % (name, MusicbrainzId))
-                MusicbrainzId += " "
+                self.cursor.execute("INSERT INTO artist(idArtist, strArtist, strMusicBrainzArtistID, strGenres, strBiography, strImage, lastScraped, strSortName, dateAdded, strDisambiguation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, ArtistName, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, LibraryId_Name))
+                return
+            except Exception as error:
+                MusicbrainzId = errorhandler_MusicBrainzID(ArtistName, MusicbrainzId, error)
 
-    def update_artist(self, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, ArtistId):
-        self.cursor.execute("UPDATE artist SET strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ? WHERE idArtist = ?", (Genre, Bio, Thumb, LastScraped, SortName, DateAdded, ArtistId))
+    def update_artist(self, KodiItemId, ArtistName, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded):
+        while MusicbrainzId != "UNKNOWN ERROR":
+            try:
+                self.cursor.execute("UPDATE artist SET strArtist = ?, strMusicBrainzArtistID = ?, strGenres = ?, strBiography = ?, strImage = ?, lastScraped = ?, strSortName = ?, dateAdded = ? WHERE idArtist = ?", (ArtistName, MusicbrainzId, Genre, Bio, Thumb, LastScraped, SortName, DateAdded, KodiItemId))
+                return
+            except Exception as error:
+                MusicbrainzId = errorhandler_MusicBrainzID(ArtistName, MusicbrainzId, error)
+
+    def get_artist_metadata_for_listitem(self, kodi_id):
+        self.cursor.execute("SELECT * FROM artist WHERE idArtist = ?", (kodi_id,))
+        ItemData = self.cursor.fetchone()
+        MetaData = {'mediatype': "artist", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzartistid': ItemData[2], 'genre': ItemData[9], 'comment': ItemData[13]}
+        Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
+        return "musicdb://artists/%s/" % kodi_id, MetaData, Properties
 
     def create_entry_album(self):
         self.cursor.execute("SELECT coalesce(max(idAlbum), 0) FROM album")
         return self.cursor.fetchone()[0] + 1
 
-    def add_album(self, KodiItemId, Title, Type, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, UniqueId, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name):
-        while True:
+    def add_album(self, KodiItemId, Title, Type, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name):
+        while MusicBrainzAlbumID != "UNKNOWN ERROR":
             try:
-                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseGroupMBID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strReview, strImage, iUserrating, lastScraped, dateAdded, bCompilation, strLabel, iAlbumDuration, strArtistSort, strType, strReleaseStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, Title, UniqueId, UniqueIdReleaseGroup, Type, Artist, Year, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name, ""))
-                break
+                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseGroupMBID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strReview, strImage, iUserrating, lastScraped, dateAdded, bCompilation, strLabel, iAlbumDuration, strArtistSort, strType, strReleaseStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, Year, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, LibraryId_Name, ""))
+                return
+            except Exception as error:
+                MusicBrainzAlbumID = errorhandler_MusicBrainzID(Title, MusicBrainzAlbumID, error)
 
-            except:  # Duplicate musicbrainz
-                LOG.warning("Duplicate album detected: %s/%s/%s" % (Title, UniqueId, UniqueIdReleaseGroup))
-                UniqueId += " "
-                UniqueIdReleaseGroup += " "
+    def update_album(self, KodiItemId, Title, Type, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort):
+        while MusicBrainzAlbumID != "UNKNOWN ERROR":
+            try:
+                self.cursor.execute("UPDATE album SET strAlbum = ?, strMusicBrainzAlbumID = ?, strReleaseGroupMBID = ?, strReleaseType = ?, strArtistDisp = ?, strReleaseDate = ?, strOrigReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, dateAdded = ?, bCompilation = ?, strLabel = ?, iAlbumDuration = ?, strArtistSort = ?, strReleaseStatus = ? WHERE idAlbum = ?", (Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, Year, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, "", KodiItemId))
+                return
+            except Exception as error:
+                MusicBrainzAlbumID = errorhandler_MusicBrainzID(Title, MusicBrainzAlbumID, error)
 
-    def update_album(self, Artist, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, AlbumId, Compilation, Studios, RunTime, ArtistSort):
-        self.cursor.execute("UPDATE album SET strArtistDisp = ?, strReleaseDate = ?, strOrigReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, bScrapedMBID = 1, dateAdded = ?, bCompilation = ?, strLabel = ?, iAlbumDuration = ?, strArtistSort = ? WHERE idAlbum = ?", (Artist, Year, Year, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, AlbumId))
+    def get_album_metadata_for_listitem(self, kodi_id):
+        self.cursor.execute("SELECT * FROM album WHERE idAlbum = ?", (kodi_id,))
+        ItemData = self.cursor.fetchone()
+        MetaData = {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'genre': ItemData[6], 'year': ItemData[7], 'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31]}
+        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[31]}
+        return "musicdb://albums/%s/" % kodi_id, MetaData, Properties
 
     def create_entry_song(self):
         self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
         return self.cursor.fetchone()[0] + 1
 
-    def add_song(self, KodiItemId, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, LibraryId_Name):
-        if not PlayCount:
-            PlayCount = 0
+    def add_song(self, KodiItemId, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, LibraryId_Name):
+        BitRate, SampleRate, Channels, PlayCount, Comment = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount, Comment, LibraryId_Name)
 
-        Comment = "%s\n%s" % (Comment, LibraryId_Name)
+        while MusicBrainzTrackID != "UNKNOWN ERROR":
+            try:
+                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strOrigReleaseDate, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded, iBitRate, iSampleRate, iChannels, strMusicBrainzTrackID, strArtistSort, strDiscSubtitle, iStartOffset, iEndOffset, mood, strReplayGain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, "", 0, 0, "", ""))
+                return
+            except Exception as error:
+                MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
 
-        if not BitRate:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            BitRate = 0
+    def update_song(self, KodiItemId, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, LibraryId_Name):
+        BitRate, SampleRate, Channels, PlayCount, Comment = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount, Comment, LibraryId_Name)
 
-        if not SampleRate:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            SampleRate = 0
-
-        if not Channels:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            Channels = 0
-
-        while True:
-            IndexFix = Index
-
-            for _ in range(10): # try fix track# (max 10 duplicate songs)
-                try:
-                    self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strOrigReleaseDate, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded, iBitRate, iSampleRate, iChannels, strMusicBrainzTrackID, strArtistSort, strDiscSubtitle, iStartOffset, iEndOffset, mood, strReplayGain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, "", 0, 0, "", ""))
-                    return
-                except Exception as error:  # Duplicate track number for same album
-                    LOG.warning("Duplicate song detected (add_song), try fix trackNo: %s/%s" % (Artist, Title))
-                    LOG.error(error)
-                    IndexFix += 1000
-                    Index = IndexFix
-
-            # track# not the issue, try fix strMusicBrainzTrackID
-            LOG.warning("Duplicate song detected (add_song), fix MusicBrainzTrackID: %s/%s" % (Artist, Title))
-            MusicBrainzTrack += " "
-
-    def update_song(self, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, SongId, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, LibraryId_Name):
-        Comment = "%s\n%s" % (Comment, LibraryId_Name)
-
-        if not BitRate:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            BitRate = 0
-
-        if not SampleRate:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            SampleRate = 0
-
-        if not Channels:
-            LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
-            Channels = 0
-
-        while True:
-            IndexFix = 10000
-
-            for _ in range(10): # try fix track# (max 10 duplicate songs)
-                try:
-                    self.cursor.execute("UPDATE song SET idAlbum = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFilename = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ? WHERE idSong = ?", (AlbumId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrack, ArtistSort, SongId))
-                    return
-                except Exception as error:  # Duplicate track number for same album
-                    LOG.warning("Duplicate song detected (update_song), try fix trackNo: %s/%s" % (Artist, Title))
-                    LOG.error(error)
-                    IndexFix += 1
-                    Index = IndexFix
-
-            # track# not the issue, try fix strMusicBrainzTrackID
-            LOG.warning("Duplicate song detected (update_song), fix MusicBrainzTrackID: %s/%s" % (Artist, Title))
-            MusicBrainzTrack += " "
+        while MusicBrainzTrackID != "UNKNOWN ERROR":
+            try:
+                self.cursor.execute("UPDATE song SET idAlbum = ?, idPath = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFileName = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ?, strDiscSubtitle = ?, iStartOffset = ?, iEndOffset = ?, mood = ?, strReplayGain = ? WHERE idSong = ?", (AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, "", 0, 0, "", "", KodiItemId))
+                return
+            except Exception as error:
+                MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
 
     def link_song_artist(self, idArtist, idSong, idRole, iOrder, strArtist):
         self.cursor.execute("INSERT INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (idArtist, idSong, idRole, iOrder, strArtist))
@@ -153,6 +126,15 @@ class MusicDatabase:
 
     def rate_song(self, iTimesPlayed, lastplayed, rating, idSong):
         self.cursor.execute("UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?", (iTimesPlayed, lastplayed, rating, idSong))
+
+    def get_song_metadata_for_listitem(self, kodi_id):
+        self.cursor.execute("SELECT * FROM songview WHERE idSong = ?", (kodi_id,))
+        ItemData = self.cursor.fetchone()
+        TrackNumber = ItemData[7] % 65536
+        DiscNumber = int(int(ItemData[7]) / 65536)
+        MetaData = {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[26], 'genre': ItemData[5], 'title': ItemData[6], 'tracknumber': TrackNumber, 'discnumber': DiscNumber, 'duration': ItemData[8], 'year': ItemData[9], 'musicbrainztrackid': ItemData[13], 'playcount': ItemData[14], 'comment': ItemData[21]}
+        Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
+        return "%s%s" % (ItemData[22], ItemData[10]), MetaData, Properties
 
     # Add genres, but delete current genres first
     def update_genres_song(self, kodi_id, genres):
@@ -260,3 +242,35 @@ class MusicDatabase:
         path_id = self.cursor.fetchone()[0] + 1
         self.cursor.execute("INSERT INTO path(idPath, strPath) VALUES (?, ?)", (path_id, strPath))
         return path_id
+
+def set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount, Comment, LibraryId_Name):
+    Comment = "%s\n%s" % (Comment, LibraryId_Name)
+
+    if not PlayCount:
+        PlayCount = 0
+
+    if not BitRate:
+        LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+        BitRate = 0
+
+    if not SampleRate:
+        LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+        SampleRate = 0
+
+    if not Channels:
+        LOG.warning("No bitrate info (add_song): %s/%s" % (Artist, Title))
+        Channels = 0
+
+    return BitRate, SampleRate, Channels, PlayCount, Comment
+
+def errorhandler_MusicBrainzID(Title, MusicBrainzID, error):
+    error = str(error)
+    LOG.error(error)
+
+    if "MusicBrainz" in error:  # Duplicate musicbrainz
+        LOG.warning("Duplicate MusicBrainzID detected: %s/%s" % (Title, MusicBrainzID))
+        MusicBrainzID += " "
+        return MusicBrainzID
+
+    LOG.error("Unknown error: %s/%s" % (Title, MusicBrainzID))
+    return "UNKNOWN ERROR"

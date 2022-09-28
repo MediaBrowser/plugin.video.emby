@@ -237,6 +237,8 @@ class Views:
             return
 
         for library in Libraries:
+            iconpath = ""
+
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
                 library['MediaType'] = "podcasts"
             elif library['Type'] == 'Channel':
@@ -246,14 +248,13 @@ class Views:
 
             if "Primary" in library["ImageTags"]:
                 # Cache artwork
-                request = {'type': "GET", 'url': "%s/emby/Items/%s/Images/Primary" % (self.EmbyServer.server, library['Id']), 'params': {}}
-                Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s" % (self.EmbyServer.Name, library['Id']))
-                iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
+                BinaryData, _, FileExtension = self.EmbyServer.API.get_Image_Binary(library['Id'], "Primary", 0, library["ImageTags"]["Primary"])
 
-                if not utils.checkFileExists(iconpath):
-                    iconpath = utils.download_file_from_Embyserver(request, Filename, self.EmbyServer)
-            else:
-                iconpath = ""
+                if BinaryData:
+                    Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s.%s" % (self.EmbyServer.Name, library['Id'], FileExtension))
+                    iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
+                    utils.delFile(iconpath)
+                    utils.writeFileBinary(iconpath, BinaryData)
 
             self.ViewItems[library['Id']] = [library['Name'], library['MediaType'], iconpath]
 
