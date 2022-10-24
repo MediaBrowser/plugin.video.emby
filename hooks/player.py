@@ -223,6 +223,10 @@ class PlayerEvents(xbmc.Player):
                                 globals()["MultiselectionDone"] = True
                                 videodb = dbio.DBOpenRO("video", "onAVStarted")
                                 li, _, _ = utils.load_ContentMetadataFromKodiDB(KodiId, MediaType, videodb, None)
+
+                                if not li:
+                                    return
+
                                 dbio.DBCloseRO("video", "onAVStarted")
                                 Path = MediaSources[MediaIndex][3]
 

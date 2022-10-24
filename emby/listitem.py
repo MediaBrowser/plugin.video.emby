@@ -101,6 +101,8 @@ def set_ListItem(item, server_id):
             'mediatype': "movie"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'false',
             'IsPlayable': 'true',
             'TotalTime': str(item['RunTimeTicks']),
@@ -138,6 +140,8 @@ def set_ListItem(item, server_id):
             'mediatype': "tvshow"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'TotalEpisodes': item.get('RecursiveItemCount', 0),
             'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']),
             'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'],
@@ -174,6 +178,8 @@ def set_ListItem(item, server_id):
             'mediatype': "season"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'NumEpisodes': item.get('RecursiveItemCount', 0),
             'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']),
             'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'],
@@ -230,6 +236,8 @@ def set_ListItem(item, server_id):
             metadata['date'] = get_shortdate(item['PremiereDate'])
             Properties['IsPlayable'] = 'false'
             item['NoLink'] = True
+        else:
+            Properties['embyid'] = str(item['Id'])
 
         listitem.setInfo('video', metadata)
     elif item['Type'] == "MusicVideo":
@@ -268,6 +276,8 @@ def set_ListItem(item, server_id):
             'mediatype': "musicvideo"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'false',
             'IsPlayable': 'true',
             'TotalTime': str(item['RunTimeTicks']),
@@ -298,6 +308,8 @@ def set_ListItem(item, server_id):
             'mediatype': "video"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'false',
             'IsPlayable': 'true',
             'TotalTime': str(item['RunTimeTicks']),
@@ -323,6 +335,8 @@ def set_ListItem(item, server_id):
             'mediatype': "artist"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'true',
             'IsPlayable': 'false'
         }
@@ -350,6 +364,8 @@ def set_ListItem(item, server_id):
             'mediatype': "album"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'true',
             'IsPlayable': 'true',
             'TotalTime': str(item['RunTimeTicks'])
@@ -387,6 +403,8 @@ def set_ListItem(item, server_id):
             'mediatype': "song"
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'false',
             'IsPlayable': 'true',
             'TotalTime': str(item['RunTimeTicks']),
@@ -420,12 +438,26 @@ def set_ListItem(item, server_id):
             'userrating': item.get('CriticRating', None),
             'mediatype': "set"
         }
+        Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
+            'IsFolder': 'true',
+            'IsPlayable': 'true'
+        }
         listitem.setInfo('video', metadata)
     elif item['Type'] == 'Playlist':
+        common.set_overview(item)
+        metadata = {
+            'title': item['Name'],
+            'plot': item['Overview']
+        }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'true',
             'IsPlayable': 'false'
         }
+        listitem.setInfo('video', metadata)
     elif item['Type'] == "Photo":
         item['Width'] = str(item.get('Width', 0))
         item['Height'] = str(item.get('Height', 0))
@@ -440,6 +472,8 @@ def set_ListItem(item, server_id):
             'resolution': "%s, %s" % (item['Width'], item['Height'])
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'false',
             'IsPlayable': 'true'
         }
@@ -453,6 +487,8 @@ def set_ListItem(item, server_id):
             'count': item['UserData']['PlayCount']
         }
         Properties = {
+            'embyserverid': str(server_id),
+            'embyid': str(item['Id']),
             'IsFolder': 'true',
             'IsPlayable': 'true'
         }
@@ -505,4 +541,5 @@ def get_actors(People):
     for person in People:
         if person['Type'] in ("Actor", "Artist", 'Director', 'GuestStar'):
             cast.append({'name': person['Name'], 'role': person.get('Role', "Unknown"), 'order': len(cast) + 1, 'thumbnail': person['imageurl']})
+
     return cast

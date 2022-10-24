@@ -108,12 +108,17 @@ class API:
             ItemsFullQuery = []
 
             for Item in IncomingData['Items']:
-                Data = embydb.get_KodiId_KodiType_by_EmbyId(Item['Id'])
+                if not MusicVideo:
+                    Data = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.
 
-                if Data and Data[0][0] and not MusicVideo:  # Requested video is synced to KodiDB.
-                    LOG.info("Fetching data from internal database: %s / %s" % (Data[0][1], Data[0][0]))
-                    listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(Data[0][0], Data[0][1], videodb, musicdb)
-                    ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder})
+                    if Data:
+                        listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(Data[0], Data[1], videodb, musicdb)
+
+                        if listitem:
+                            ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder})
+                            LOG.info("Fetching data from internal database: %s / %s" % (Data[1], Data[0]))
+                    else:
+                        ItemsFullQuery.append(Item['Id'])
                 else:
                     ItemsFullQuery.append(Item['Id'])
 
@@ -304,7 +309,6 @@ class API:
 
             if ContentType == "image/jpeg":
                 FileExtension = "jpg"
-
             elif ContentType == "image/png":
                 FileExtension = "png"
             elif ContentType == "image/gif":

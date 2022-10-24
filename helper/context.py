@@ -2,28 +2,33 @@ import xbmc
 from database import dbio
 from dialogs import context
 from emby import listitem
-from . import utils, loghandler
+from . import utils, loghandler, pluginmenu
 
-SelectOptions = {'Refresh': utils.Translate(30410), 'Delete': utils.Translate(30409), 'Addon': utils.Translate(30408), 'AddFav': utils.Translate(30405), 'RemoveFav': utils.Translate(30406), 'SpecialFeatures': "Special Features"}
+SelectOptions = {'Refresh': utils.Translate(30410), 'Delete': utils.Translate(30409), 'Addon': utils.Translate(30408), 'AddFav': utils.Translate(30405), 'RemoveFav': utils.Translate(30406), 'SpecialFeatures': utils.Translate(33231)}
 LOG = loghandler.LOG('EMBY.helper.context')
 
 
 def load_item():
     item = None
-    server_id = None
+    server_id = xbmc.getInfoLabel('ListItem.Property(embyserverid)')
+    emby_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
 
-    for server_id in utils.EmbyServers:
-        kodi_id = xbmc.getInfoLabel('ListItem.DBID')
-        media = xbmc.getInfoLabel('ListItem.DBTYPE')
-        embydb = dbio.DBOpenRO(server_id, "load_item")
-        item = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
-        dbio.DBCloseRO(server_id, "load_item")
+    if not server_id:
+        for server_id in utils.EmbyServers:
+            kodi_id = xbmc.getInfoLabel('ListItem.DBID')
+            media = xbmc.getInfoLabel('ListItem.DBTYPE')
+            embydb = dbio.DBOpenRO(server_id, "load_item")
+            item = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
+            dbio.DBCloseRO(server_id, "load_item")
 
-        if item:
-            item = item[0]
-            break
+            if item:
+                item = item[0]
+                break
 
-    return item, server_id
+        return item, server_id
+
+    pluginmenu.QueryCache = {} # Clear Cache
+    return (emby_id,), server_id
 
 def delete_item(LoadItem, item=None, server_id=""):  # threaded by caller
     if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33015)):
@@ -33,6 +38,7 @@ def delete_item(LoadItem, item=None, server_id=""):  # threaded by caller
         if item:
             utils.EmbyServers[server_id].API.delete_item(item[0])
             utils.EmbyServers[server_id].library.removed([item[0]])
+            xbmc.executebuiltin("Container.Refresh()")
 
 def select_menu():
     options = []
@@ -52,10 +58,11 @@ def select_menu():
 
     dbio.DBCloseRO(server_id, "select_menu")
 
-    if item[10]:
-        options.append(SelectOptions['RemoveFav'])
-    else:
-        options.append(SelectOptions['AddFav'])
+    if len(item) > 9:
+        if item[10]:
+            options.append(SelectOptions['RemoveFav'])
+        else:
+            options.append(SelectOptions['AddFav'])
 
     options.append(SelectOptions['Refresh'])
 

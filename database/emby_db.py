@@ -214,9 +214,22 @@ class EmbyDatabase:
         self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyType = 'SpecialFeature' AND EmbyParentId = ?", (EmbyParentId,))
         return self.cursor.fetchall()
 
-    def get_KodiId_KodiType_by_EmbyId(self, item_id):
-        self.cursor.execute("SELECT KodiId, KodiType FROM Mapping WHERE EmbyId = ?", (item_id,))
-        return self.cursor.fetchall()
+    def get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(self, item_id, LibraryId=""):
+        self.cursor.execute("SELECT KodiId, KodiType, EmbyLibraryId FROM Mapping WHERE EmbyId = ?", (item_id,))
+        ItemData = self.cursor.fetchone()
+
+        if ItemData:
+            EmbyLibraryIds = ItemData[2].split(";")
+            KodiIds = ItemData[0].split(";")
+
+            if not LibraryId:
+                return (KodiIds[0], ItemData[1])
+
+            for Index, EmbyLibraryId in enumerate(EmbyLibraryIds):
+                if LibraryId == EmbyLibraryId:
+                    return (KodiIds[Index], ItemData[1])
+
+        return None
 
     def get_item_by_KodiId_KodiType(self, KodiId, KodiType):
         self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId = ?", (KodiType, KodiId))

@@ -63,6 +63,10 @@ class MusicDatabase:
     def get_artist_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM artist WHERE idArtist = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "artist", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzartistid': ItemData[2], 'genre': ItemData[9], 'comment': ItemData[13]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
         return "musicdb://artists/%s/" % kodi_id, MetaData, Properties
@@ -90,6 +94,10 @@ class MusicDatabase:
     def get_album_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM album WHERE idAlbum = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'genre': ItemData[6], 'year': ItemData[7], 'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[31]}
         return "musicdb://albums/%s/" % kodi_id, MetaData, Properties
@@ -130,6 +138,10 @@ class MusicDatabase:
     def get_song_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM songview WHERE idSong = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         TrackNumber = ItemData[7] % 65536
         DiscNumber = int(int(ItemData[7]) / 65536)
         MetaData = {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[26], 'genre': ItemData[5], 'title': ItemData[6], 'tracknumber': TrackNumber, 'discnumber': DiscNumber, 'duration': ItemData[8], 'year': ItemData[9], 'musicbrainztrackid': ItemData[13], 'playcount': ItemData[14], 'comment': ItemData[21]}

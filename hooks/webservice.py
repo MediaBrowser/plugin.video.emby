@@ -223,19 +223,24 @@ def LoadISO(QueryData, MediaIndex, client, ThreadId):
     videodb = dbio.DBOpenRO("video", "LoadISO")
     li, _, _ = utils.load_ContentMetadataFromKodiDB(QueryData['KodiId'], QueryData['Type'], videodb, None)
     dbio.DBCloseRO("video", "LoadISO")
-    Path = QueryData['MediaSources'][MediaIndex][3]
 
-    if Path.startswith('\\\\'):
-        Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+    if not li:
+        client.send(sendOK)
+    else:
+        Path = QueryData['MediaSources'][MediaIndex][3]
 
-    li.setPath(Path)
-    PlaylistPosition = playlist.getposition()
-    playlist.add(Path, li, PlaylistPosition + 1)
-    player.PlayerSkipItem = str(PlaylistPosition)
-    globals()["SkipItemVideo"] = QueryData['Payload']
-    globals()["QueryDataPrevious"] = QueryData.copy()
-    player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-    client.send(sendblankfile)
+        if Path.startswith('\\\\'):
+            Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+
+        li.setPath(Path)
+        PlaylistPosition = playlist.getposition()
+        playlist.add(Path, li, PlaylistPosition + 1)
+        player.PlayerSkipItem = str(PlaylistPosition)
+        globals()["SkipItemVideo"] = QueryData['Payload']
+        globals()["QueryDataPrevious"] = QueryData.copy()
+        player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
+        client.send(sendblankfile)
+
     close_embydb(QueryData['ServerId'], ThreadId)
 
 def http_Query(client, Payload, RequestType):
@@ -585,6 +590,12 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
     videodb = dbio.DBOpenRO("video", "UpdateItem")
     li, _, _ = utils.load_ContentMetadataFromKodiDB(QueryData['KodiId'], QueryData['Type'], videodb, None)
     dbio.DBCloseRO("video", "UpdateItem")
+
+    if not li:
+        client.send(sendOK)
+        close_embydb(QueryData['ServerId'], ThreadId)
+        return
+
     Filename = utils.PathToFilenameReplaceSpecialCharecters(MediaSource[3])
 
     if player.Transcoding:
