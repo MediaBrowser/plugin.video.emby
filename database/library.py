@@ -383,8 +383,13 @@ class Library:
                         KodiParentIds = len(LibraryIds) * [None]
 
                     for ItemIndex, LibraryId in enumerate(LibraryIds):
+                        if LibraryId in self.EmbyServer.Views.ViewItems:
+                            LibrayName = self.EmbyServer.Views.ViewItems[LibraryId][0]
+                        else:
+                            LibrayName = "unknown library"
+
                         if not RemoveItem[1] or LibraryId == RemoveItem[1]:
-                            TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {"Id": LibraryId, "Name": self.EmbyServer.Views.ViewItems[LibraryId][0]}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': KodiItemIds[ItemIndex], 'KodiFileId': KodiFileIds[ItemIndex], 'KodiParentId': KodiParentIds[ItemIndex], 'PresentationUniqueKey': FoundRemoveItem[9]})
+                            TempRemoveItems.append({'Id': FoundRemoveItem[0], 'Type': FoundRemoveItem[2], 'Library': {"Id": LibraryId, "Name": LibrayName}, 'DeleteByLibraryId': RemoveItem[1], 'KodiItemId': KodiItemIds[ItemIndex], 'KodiFileId': KodiFileIds[ItemIndex], 'KodiParentId': KodiParentIds[ItemIndex], 'PresentationUniqueKey': FoundRemoveItem[9]})
                         else:
                             embydb.delete_RemoveItem_EmbyId(RemoveItem[0])
                             LOG.error("worker remove, item not valid %s" % str(RemoveItem))
@@ -656,8 +661,10 @@ class Library:
 
             if remove_librarys:
                 for LibraryId in remove_librarys:
-                    ViewData = self.EmbyServer.Views.ViewItems[LibraryId]
-                    videodb.delete_tag(ViewData[0])
+                    if LibraryId in self.EmbyServer.Views.ViewItems:
+                        ViewData = self.EmbyServer.Views.ViewItems[LibraryId]
+                        videodb.delete_tag(ViewData[0])
+
                     items = embydb.get_item_by_emby_folder_wild(LibraryId)
 
                     for item in items:

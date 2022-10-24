@@ -360,16 +360,9 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'MusicArtist':
         QueryArgs = (Id, ["MusicArtist"], False, True, {}, False)
         Content = "MusicArtist"
-
-
     elif query == 'MusicVideoArtist':
         QueryArgs = (Id, ["MusicArtist"], False, True, {}, False, False, True)
         Content = "MusicArtist"
-
-
-
-
-
     elif query == 'Movie':
         QueryArgs = (Id, ["Movie"], False, True, {}, False)
         Content = "Movie"
@@ -793,7 +786,9 @@ def favepisodes(Handle):
 
     for episode_kodiId in episodes_kodiId:
         li, path, isFolder = utils.load_ContentMetadataFromKodiDB(episode_kodiId[0], "episode", videodb, None)
-        list_li.append((path, li, isFolder))
+
+        if li:
+            list_li.append((path, li, isFolder))
 
     dbio.DBCloseRO("video", "favepisodes")
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
@@ -1072,7 +1067,9 @@ def get_next_episodes(Handle, libraryname):
             for NextEpisodeInfo in NextEpisodeInfos:
                 EpisodeId = NextEpisodeInfo.split(";")
                 li, path, isFolder = utils.load_ContentMetadataFromKodiDB(EpisodeId[1], "episode", videodb, None)
-                list_li.append((path, li, isFolder))
+
+                if li:
+                    list_li.append((path, li, isFolder))
 
             globals()["QueryCache"][CacheId] = list_li
 

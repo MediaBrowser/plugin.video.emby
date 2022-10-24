@@ -480,6 +480,10 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
         isFolder = True
         DBType = 'music'
 
+    if not Path:
+        LOG.warning("Item not found in Kodi's database: %s" % KodiId)
+        return None, "", False
+
     listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
     listitem.setProperties(Properties)
     listitem.setInfo(DBType, MetaData)

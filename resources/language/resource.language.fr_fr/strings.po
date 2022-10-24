@@ -1251,7 +1251,7 @@ msgid "Enable FILE delete on Kodi events"
 msgstr "Activer la suppression de FICHIER sur les événements Kodi"
 
 msgctxt "#33267"
-msgid "Disable HTTP2 suppport"
+msgid "Disable HTTP2 support"
 msgstr "Désactiver la prise en charge HTTP2"
 
 msgctxt "#33268"
@@ -1391,7 +1391,7 @@ msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don'
 msgstr "Le mode de compatibilité modifie l'ID du plug-in en 4.x (plugin.video.emby). "
 
 msgctxt "#33302"
-msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
 msgstr "Dans certaines circonstances (WLan, démarrage du réseau retardé, etc.), un démarrage retardé du plug-in peut améliorer la connectivité"
 
 msgctxt "#33303"
@@ -1399,7 +1399,7 @@ msgid "You can adjust what meta information are loaded for dynamic (not synced) 
 msgstr "Vous pouvez ajuster les métadonnées chargées pour le contenu dynamique (non synchronisé). "
 
 msgctxt "#33304"
-msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
 msgstr "Soyez prudent avec cette option. "
 
 msgctxt "#33305"
@@ -1431,15 +1431,15 @@ msgid "Some skins use xps playlists. Usually not required, leave it off if you d
 msgstr "Certains habillages utilisent des listes de lecture XPS. "
 
 msgctxt "#33312"
-msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
 msgstr "Les évaluations des utilisateurs sont des informations supplémentaires à synchroniser avec Kodi. "
 
 msgctxt "#33313"
-msgid "Performs a complete Kodi database resync. Settings and artwork are optionally resetted."
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
 msgstr "Effectue une resynchronisation complète de la base de données Kodi. "
 
 msgctxt "#33314"
-msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
 msgstr "Le mode cinéma est une fonctionnalité primordiale d'Emby. "
 
 msgctxt "#33315"
@@ -1447,7 +1447,7 @@ msgid "Transcode audio bitrate"
 msgstr "Transcoder le débit audio"
 
 msgctxt "#33316"
-msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
 msgstr "Vitesse du réseau. "
 
 msgctxt "#33318"
@@ -1467,7 +1467,7 @@ msgid "This is a Emby server feature."
 msgstr "Il s'agit d'une fonctionnalité du serveur Emby."
 
 msgctxt "#33322"
-msgid "Can save bandwith"
+msgid "Can save bandwidth"
 msgstr "Peut économiser de la bande passante"
 
 msgctxt "#33323"
@@ -1711,11 +1711,11 @@ msgid "Podcasts"
 msgstr "Podcasts"
 
 msgctxt "#33383"
-msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever posssible"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
 msgstr "Les nœuds synchronisés sont beaucoup plus rapides que les nœuds dynamiques. "
 
 msgctxt "#33384"
-msgid "Dynamic nodes are build on the fly. This has na impact to performace. Try to avoid where ever possible"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
 msgstr "Les nœuds dynamiques sont construits à la volée. "
 
 msgctxt "#33385"
@@ -1771,7 +1771,7 @@ msgid "Open plugin settings"
 msgstr "Ouvrir les paramètres du plug-in"
 
 msgctxt "#33400"
-msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
 msgstr "Effectue une resynchronisation complète de la base de données Kodi (y compris le contenu non Emby). "
 
 msgctxt "#33401"
@@ -1803,7 +1803,7 @@ msgid "Vacuum databases on Kodi shutdown"
 msgstr "Vider les bases de données lors de l'arrêt de Kodi"
 
 msgctxt "#33408"
-msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
 msgstr "La base de données sera reconstruite et optimisée, au prix d'un délai d'arrêt"
 
 msgctxt "#33409"
@@ -1879,7 +1879,7 @@ msgid "Composers"
 msgstr "Compositeurs"
 
 msgctxt "#33427"
-msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
 msgstr "Fichier de paramètres corrompu détecté, restauration par défaut. "
 
 msgctxt "#33428"
@@ -1887,7 +1887,7 @@ msgid "SSL Error"
 msgstr "Erreur SSL"
 
 msgctxt "#33429"
-msgid "Artwork cacheing stopped: running low on space"
+msgid "Artwork caching stopped: running low on space"
 msgstr "Mise en cache de l'illustration arrêtée : manque d'espace"
 
 msgctxt "#33430"
@@ -1928,24 +1928,24 @@ msgstr "Les affiches TVShow Kodi (image principale d'Emby TVShow) seront utilis�
 
 msgctxt "#33439"
 msgid "Use fanart images for next up episodes"
-msgstr ""
+msgstr "Utilisez des images de fanart pour les prochains épisodes"
 
 msgctxt "#33440"
 msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
-msgstr ""
+msgstr "Écrase les pouces (Kodi) avec des fanarts (Kodi) pour le nœud des prochains épisodes"
 
 msgctxt "#33441"
 msgid "Use alternative skip intro (message) layout"
-msgstr ""
+msgstr "Utiliser une mise en page alternative pour ignorer l'intro (message)"
 
 msgctxt "#33442"
 msgid "Embuary skin design"
-msgstr ""
+msgstr "Conception de peau d'embuaire"
 
 msgctxt "#33443"
 msgid "Enable server progress"
-msgstr ""
+msgstr "Activer la progression du serveur"
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
-msgstr ""
+msgstr "Les notifications d'occupation du serveur Emby sont affichées"

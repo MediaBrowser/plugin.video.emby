@@ -51,6 +51,10 @@ class VideoDatabase:
     def get_movie_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM movie_view WHERE idMovie = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "movie", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'plotoutline': ItemData[4], 'tagline': ItemData[5], 'writer': ItemData[8], 'sorttitle': ItemData[12], 'duration': ItemData[13], 'mpaa': ItemData[14], 'genre': ItemData[16], 'director': ItemData[17], 'originaltitle': ItemData[18], 'studio': ItemData[20], 'country': ItemData[23], 'userrating': ItemData[27], 'premiered': ItemData[28], 'playcount': ItemData[33], 'lastplayed': ItemData[34], 'rating': ItemData[39]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[37], 'ResumeTime': ItemData[36]}
         return "%s%s" % (ItemData[32], ItemData[31]), MetaData, Properties
@@ -75,6 +79,10 @@ class VideoDatabase:
     def get_musicvideos_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM musicvideo_view WHERE idMVideo = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "musicvideo", "dbid": kodi_id, 'title': ItemData[2], 'duration': ItemData[6], 'director': ItemData[7], 'studio': ItemData[8], 'plot': ItemData[10], 'album': ItemData[11], 'artist': ItemData[12].split(" / "), 'genre': ItemData[13], 'track': ItemData[14], 'premiered': ItemData[27], 'playcount': ItemData[30], 'lastplayed': ItemData[31]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[34], 'ResumeTime': ItemData[33]}
         return "%s%s" % (ItemData[29], ItemData[28]), MetaData, Properties
@@ -130,6 +138,10 @@ class VideoDatabase:
     def get_tvshows_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM tvshow_view WHERE idShow = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "tvshow", "dbid": kodi_id, 'title': ItemData[1], 'tvshowtitle': ItemData[1], 'plot': ItemData[2], 'status': ItemData[3], 'premiered': ItemData[6], 'genre': ItemData[8], 'originaltitle': ItemData[9], 'imdbnumber': ItemData[13], 'mpaa': ItemData[14], 'studio': ItemData[15], 'sorttitle': ItemData[16], 'userrating': ItemData[25], 'duration': ItemData[26], 'lastplayed': ItemData[30], 'rating': ItemData[34]}
         Properties = {'TotalEpisodes': ItemData[31], 'TotalSeasons': ItemData[33], 'WatchedEpisodes': ItemData[32], 'UnWatchedEpisodes': int(ItemData[31]) - int(ItemData[32]), 'IsFolder': 'true', 'IsPlayable': 'true'}
         return "videodb://tvshows/titles/%s/" % kodi_id, MetaData, Properties
@@ -151,6 +163,10 @@ class VideoDatabase:
     def get_season_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM season_view WHERE idSeason = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "season", "dbid": kodi_id, 'season': ItemData[2], 'title': ItemData[3], 'userrating': ItemData[4], 'tvshowtitle': ItemData[6], 'plot': ItemData[7], 'premiered': ItemData[8], 'genre': ItemData[9], 'studio': ItemData[10], 'mpaa': ItemData[11], 'aired': ItemData[14]}
         Properties = {'NumEpisodes': ItemData[12], 'WatchedEpisodes': ItemData[13], 'UnWatchedEpisodes': int(ItemData[12]) - int(ItemData[13]), 'IsFolder': 'true', 'IsPlayable': 'true'}
         return "videodb://tvshows/titles/%s/%s/" % (ItemData[1], kodi_id), MetaData, Properties
@@ -175,6 +191,10 @@ class VideoDatabase:
     def get_episode_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM episode_view WHERE idEpisode = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "episode", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'writer': ItemData[6], 'premiered': ItemData[7], 'duration': ItemData[11], 'director': ItemData[12], 'season': ItemData[14], 'episode': ItemData[15], 'originaltitle': ItemData[16], 'sortseason': ItemData[17], 'sortepisode': ItemData[18], 'imdbnumber': ItemData[22], 'userrating': ItemData[27], 'playCount': ItemData[31], 'lastplayed': ItemData[32], 'tvshowtitle': ItemData[34]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[40], 'ResumeTime': ItemData[39]}
         return "%s%s" % (ItemData[30], ItemData[29]), MetaData, Properties
@@ -201,6 +221,10 @@ class VideoDatabase:
     def get_boxset_metadata_for_listitem(self, kodi_id):
         self.cursor.execute("SELECT * FROM sets WHERE idSet = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
+
+        if not ItemData:
+            return "", {}, {}
+
         MetaData = {'mediatype': "set", "dbid": kodi_id, 'title': ItemData[1], 'plot': ItemData[2]}
         Properties = {'IsFolder': 'true', 'IsPlayable': 'true'}
         return "videodb://movies/sets/%s/" % kodi_id, MetaData, Properties

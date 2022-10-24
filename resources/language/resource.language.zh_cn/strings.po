@@ -1252,7 +1252,7 @@ msgid "Enable FILE delete on Kodi events"
 msgstr "启用对 Kodi 事件的文件删除"
 
 msgctxt "#33267"
-msgid "Disable HTTP2 suppport"
+msgid "Disable HTTP2 support"
 msgstr "禁用 HTTP2 支持"
 
 msgctxt "#33268"
@@ -1392,7 +1392,7 @@ msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don'
 msgstr "兼容模式将插件 id 更改为 4.x (plugin.video.emby)。"
 
 msgctxt "#33302"
-msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can inprove connectivity"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
 msgstr "在某些情况下（WLAN、延迟网络启动等）延迟插件启动可能会改善连接性"
 
 msgctxt "#33303"
@@ -1400,7 +1400,7 @@ msgid "You can adjust what meta information are loaded for dynamic (not synced) 
 msgstr "您可以调整为动态（未同步）内容加载的元信息。"
 
 msgctxt "#33304"
-msgid "Be careful with this option. It offers FILE DELETE not only dattabase removal. (Admin permissions are required)"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
 msgstr "小心这个选项。"
 
 msgctxt "#33305"
@@ -1432,15 +1432,15 @@ msgid "Some skins use xps playlists. Usually not required, leave it off if you d
 msgstr "某些皮肤使用 xps 播放列表。"
 
 msgctxt "#33312"
-msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you cahnge this setting, a full database resync is mandatory to apply the change."
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
 msgstr "用户评分是要同步到 Kodi 的附加信息。"
 
 msgctxt "#33313"
-msgid "Performs a complete Kodi database resync. Settings and artwork are optionally resetted."
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
 msgstr "执行完整的 Kodi 数据库重新同步。"
 
 msgctxt "#33314"
-msgid "Cinema mode is a primiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
 msgstr "电影模式是 Emby 的主要功能。 "
 
 msgctxt "#33315"
@@ -1448,7 +1448,7 @@ msgid "Transcode audio bitrate"
 msgstr "转码音频比特率"
 
 msgctxt "#33316"
-msgid "Network speed. Bitrates which exeeds the bandwith will be transcoded."
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
 msgstr "网络速度。"
 
 msgctxt "#33318"
@@ -1468,7 +1468,7 @@ msgid "This is a Emby server feature."
 msgstr "这是一个 Emby 服务器功能。"
 
 msgctxt "#33322"
-msgid "Can save bandwith"
+msgid "Can save bandwidth"
 msgstr "可以节省带宽"
 
 msgctxt "#33323"
@@ -1712,11 +1712,11 @@ msgid "Podcasts"
 msgstr "播客"
 
 msgctxt "#33383"
-msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever posssible"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
 msgstr "同步节点比动态节点快得多。"
 
 msgctxt "#33384"
-msgid "Dynamic nodes are build on the fly. This has na impact to performace. Try to avoid where ever possible"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
 msgstr "动态节点是动态构建的。"
 
 msgctxt "#33385"
@@ -1772,7 +1772,7 @@ msgid "Open plugin settings"
 msgstr "打开插件设置"
 
 msgctxt "#33400"
-msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally resetted."
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
 msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 内容）。"
 
 msgctxt "#33401"
@@ -1804,7 +1804,7 @@ msgid "Vacuum databases on Kodi shutdown"
 msgstr "Kodi 关闭时的真空数据库"
 
 msgctxt "#33408"
-msgid "Datbase will be rebuild and optimized, by the cost of a shutdown delay"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
 msgstr "数据库将被重建和优化，代价是关闭延迟"
 
 msgctxt "#33409"
@@ -1880,7 +1880,7 @@ msgid "Composers"
 msgstr "作曲家"
 
 msgctxt "#33427"
-msgid "Corupted setting file detected, restore default. Restart in 5 seconds."
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
 msgstr "检测到损坏的设置文件，恢复默认值。 "
 
 msgctxt "#33428"
@@ -1888,7 +1888,7 @@ msgid "SSL Error"
 msgstr "SSL 错误"
 
 msgctxt "#33429"
-msgid "Artwork cacheing stopped: running low on space"
+msgid "Artwork caching stopped: running low on space"
 msgstr "艺术品缓存停止：空间不足"
 
 msgctxt "#33430"
@@ -1929,24 +1929,24 @@ msgstr "TVShow Kodi 海报（Emby TVShow 主图像）将用作剧集 Kodi 海报
 
 msgctxt "#33439"
 msgid "Use fanart images for next up episodes"
-msgstr ""
+msgstr "为下一集使用同人画图"
 
 msgctxt "#33440"
 msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
-msgstr ""
+msgstr "用（Kodi）粉丝覆盖（Kodi）拇指以用于下一集节点"
 
 msgctxt "#33441"
 msgid "Use alternative skip intro (message) layout"
-msgstr ""
+msgstr "使用替代跳过介绍（消息）布局"
 
 msgctxt "#33442"
 msgid "Embuary skin design"
-msgstr ""
+msgstr "Embuary皮肤设计"
 
 msgctxt "#33443"
 msgid "Enable server progress"
-msgstr ""
+msgstr "启用服务器进度"
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
-msgstr ""
+msgstr "Emby 服务器繁忙通知显示"
