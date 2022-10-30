@@ -7,10 +7,14 @@ LOG = loghandler.LOG('EMBY.emby.listitem')
 def set_ListItem(item, server_id):
     listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True)
     Properties = {}
-    common.set_KodiArtwork(item, server_id)
+
+    if 'Library' not in item:
+        item['Library'] = {'Id': 0}
+
     item['LibraryIds'] = [item['Library']['Id']]
 
     if item['Type'] == 'Folder' or item.get('NodesMenu', False):
+        common.set_KodiArtwork(item, server_id, True)
         common.set_overview(item)
         metadata = {
             'title': item['Name'],
@@ -45,7 +49,7 @@ def set_ListItem(item, server_id):
 
         common.get_streams(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -74,7 +78,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -112,7 +116,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "Series":
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'tvshowtitle': item['Name'],
@@ -152,7 +156,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "Season":
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'season': item.get('IndexNumber', 0),
@@ -193,7 +197,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_mpaa(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'tvshowtitle': item['SeriesName'],
@@ -251,7 +255,7 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_overview(item)
         common.set_MusicVideoTracks(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -289,7 +293,7 @@ def set_ListItem(item, server_id):
         common.set_RunTimeTicks(item)
         common.get_streams(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'sorttitle': item['SortName'],
@@ -317,6 +321,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('video', metadata)
     elif item['Type'] == "MusicArtist":
+        common.set_KodiArtwork(item, server_id, True)
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['Genres'] = item.get('Genres', [])
         item['Genre'] = " / ".join(item['Genres'])
@@ -342,6 +347,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('music', metadata)
     elif item['Type'] == "MusicAlbum":
+        common.set_KodiArtwork(item, server_id, True)
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['Genres'] = item.get('Genres', [])
         item['Genre'] = " / ".join(item['Genres'])
@@ -372,6 +378,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('music', metadata)
     elif item['Type'] == "Audio":
+        common.set_KodiArtwork(item, server_id, True)
         item['AlbumId'] = item.get('AlbumId', None)
         item['ProductionYear'] = item.get('ProductionYear', None)
         item['Genres'] = item.get('Genres', [])
@@ -414,7 +421,7 @@ def set_ListItem(item, server_id):
     elif item['Type'] == "BoxSet":
         common.set_RunTimeTicks(item)
         common.set_overview(item)
-        common.set_videocommon(item, server_id, 0)
+        common.set_videocommon(item, server_id, 0, True)
         metadata = {
             'title': item['Name'],
             'sorttitle': item.get('SortName', None),
@@ -446,6 +453,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('video', metadata)
     elif item['Type'] == 'Playlist':
+        common.set_KodiArtwork(item, server_id, True)
         common.set_overview(item)
         metadata = {
             'title': item['Name'],
@@ -459,6 +467,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Photo":
+        common.set_KodiArtwork(item, server_id, True)
         item['Width'] = str(item.get('Width', 0))
         item['Height'] = str(item.get('Height', 0))
         common.set_PremiereDate(item)
@@ -479,6 +488,7 @@ def set_ListItem(item, server_id):
         }
         listitem.setInfo('pictures', metadata)
     elif item['Type'] == "PhotoAlbum":
+        common.set_KodiArtwork(item, server_id, True)
         common.set_PremiereDate(item)
         metadata = {
             'title': item['Name'],
@@ -493,6 +503,8 @@ def set_ListItem(item, server_id):
             'IsPlayable': 'true'
         }
         listitem.setInfo('pictures', metadata)
+    else: # Letter etc
+        common.set_KodiArtwork(item, server_id, True)
 
     if 'Streams' in item:
         for track in item['Streams'][0]['Video']:

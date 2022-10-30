@@ -443,28 +443,31 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
     DBType = ""
     LOG.info("Fetching data from internal database: %s / %s" % (ContentType, KodiId))
 
+    People = []
+    Artwork = {}
+
     if ContentType == "movie":
-        Path, MetaData, Properties = videodb.get_movie_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork, People = videodb.get_movie_metadata_for_listitem(KodiId)
         isFolder = False
         DBType = 'video'
     elif ContentType == "tvshow":
-        Path, MetaData, Properties = videodb.get_tvshows_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork, People = videodb.get_tvshows_metadata_for_listitem(KodiId)
         isFolder = True
         DBType = 'video'
     elif ContentType == "season":
-        Path, MetaData, Properties = videodb.get_season_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork, People = videodb.get_season_metadata_for_listitem(KodiId)
         isFolder = True
         DBType = 'video'
     elif ContentType == "episode":
-        Path, MetaData, Properties = videodb.get_episode_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork, People = videodb.get_episode_metadata_for_listitem(KodiId)
         isFolder = False
         DBType = 'video'
     elif ContentType == "set":
-        Path, MetaData, Properties = videodb.get_boxset_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork = videodb.get_boxset_metadata_for_listitem(KodiId)
         isFolder = True
         DBType = 'video'
     elif ContentType == "musicvideo":
-        Path, MetaData, Properties = videodb.get_musicvideos_metadata_for_listitem(KodiId)
+        Path, MetaData, Properties, Artwork = videodb.get_musicvideos_metadata_for_listitem(KodiId)
         isFolder = False
         DBType = 'video'
     elif ContentType == "song":
@@ -487,6 +490,13 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
     listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
     listitem.setProperties(Properties)
     listitem.setInfo(DBType, MetaData)
+
+    if Artwork:
+        listitem.setArt(Artwork)
+
+    if People:
+        listitem.setCast(People)
+
     return listitem, Path, isFolder
 
 def SizeToText(size):

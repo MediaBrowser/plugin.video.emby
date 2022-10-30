@@ -153,7 +153,7 @@ class Movies:
                 self.emby_db.update_parent_id(None, EmbyMovieId)
                 LOG.info("DELETE from boxset [%s] %s %s: %s" % (item['Id'], item['KodiItemIds'][ItemIndex], item['Name'], CurrentBoxSetMovies[EmbyMovieId]))
 
-            common.set_KodiArtwork(item, self.EmbyServer.server_id)
+            common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
             self.video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], "set")
             item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "BoxSet", "set", [], item['LibraryIds'], None, item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)

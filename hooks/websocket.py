@@ -35,7 +35,7 @@ class WSClient:
         self._frame_mask = None
         self._cont_data = None
         self.EmbyServerUrl = ""
-        self.ReconnectingInProgress = False
+        self.ConnectionInProgress = False
         self.TasksRunning = []
         self.SyncInProgress = False
         self.SyncRefresh = False
@@ -51,15 +51,14 @@ class WSClient:
 
         if self.sock:
             self.sendCommands(struct.pack('!H', 1000), 0x8)
-            sockLocal = self.sock
-            self.sock = None
 
             try:
-                sockLocal.shutdown(socket.SHUT_RDWR)
+                self.sock.shutdown(socket.SHUT_RDWR)
             except Exception as error:
                 LOG.error(error)
 
-            sockLocal.close()
+            self.sock.close()
+            self.sock = None
 
     def Listen(self):
         LOG.info("--->[ websocket ]")
@@ -69,47 +68,46 @@ class WSClient:
         else:
             self.EmbyServerUrl = self.EmbyServer.server.replace('http', "ws")
 
-        if self.connect():
-            while not self.stop:
-                data = self.recv()
+        self.connect()
 
-                if self.stop:
-                    break
+        while not self.stop:
+            data = self.recv()
 
-                if data:
-                    self.on_message(data)
+            if self.stop:
+                break
 
-                if data is None:  # reconnecting
-                    self.reconnecting()
-        else:
-            LOG.info("[ websocket failed ]")
-            self.close()
+            if data:
+                self.on_message(data)
+
+            if data is None:  # connect
+                self.connect()
 
         LOG.info("---<[ websocket ]")
 
-    def reconnecting(self):
-        if not self.ReconnectingInProgress:
-            self.ReconnectingInProgress = True
+    def connect(self):
+        if not self.ConnectionInProgress:
+            self.ConnectionInProgress = True
 
             while not self.stop:
+                LOG.info("--->[ websocket connect ]")
+
+                if self.establish_connection():
+                    LOG.info("---<[ websocket connect ]")
+                    break
+
                 utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33430), time=1000, sound=False)
-                self.close(False)
-                LOG.info("--->[ websocket reconnecting ]")
+                LOG.info("[ websocket connect failed ]")
 
                 if utils.sleep(5):
                     break
 
-                if self.connect():
-                    LOG.info("---<[ websocket reconnecting ]")
-                    break
-
-                LOG.info("[ websocket reconnecting failed ]")
-
-            self.ReconnectingInProgress = False
+            self.ConnectionInProgress = False
         else:
-            LOG.info("[ websocket reconnecting in progress ]")
+            LOG.info("[ websocket connect in progress ]")
 
-    def connect(self):
+    def establish_connection(self):
+        self.close(False)
+
         url = "%s/embywebsocket?api_key=%s&device_id=%s" % (self.EmbyServerUrl, self.EmbyServer.Token, utils.device_id)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -136,27 +134,19 @@ class WSClient:
         # Connect
         try:
             self.sock.connect((hostname, port))
+            self.sock.settimeout(25) # set timeout > ping interval (10 seconds ping (2 pings))
+
+            if is_secure:
+                self.sock = ssl.SSLContext(ssl.PROTOCOL_SSLv23).wrap_socket(self.sock, do_handshake_on_connect=True, suppress_ragged_eofs=True, server_hostname=hostname)
+
+            # Handshake
+            uid = uuid.uuid4()
+            EncodingKey = base64.b64encode(uid.bytes).strip().decode('utf-8')
+            header_str = "GET %s HTTP/1.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nHost: %s:%d\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n" % (resource, hostname, port, EncodingKey)
+            self.sock.send(header_str.encode('utf-8'))
         except Exception as error:
             LOG.error(error)
             return False
-
-        self.sock.settimeout(15) # set timeout > ping interval (10 seconds ping)
-
-        if is_secure:
-            self.sock = ssl.SSLContext(ssl.PROTOCOL_SSLv23).wrap_socket(self.sock, do_handshake_on_connect=True, suppress_ragged_eofs=True, server_hostname=hostname)
-
-        # Handshake
-        headers = ["GET %s HTTP/1.1" % resource, "Upgrade: websocket", "Connection: Upgrade"]
-        hostport = "%s:%d" % (hostname, port)
-        headers.append("Host: %s" % hostport)
-        uid = uuid.uuid4()
-        EncodingKey = base64.b64encode(uid.bytes).strip().decode('utf-8')
-        headers.append("Sec-WebSocket-Key: %s" % EncodingKey)
-        headers.append("Sec-WebSocket-Version: 13")
-        headers.append("")
-        headers.append("")
-        header_str = "\r\n".join(headers)
-        self.sock.send(header_str.encode('utf-8'))
 
         # Read Headers
         status = None
@@ -242,14 +232,17 @@ class WSClient:
         data = frame_header + mask_key + maskData(mask_key, payload)
         ServerOnline = True
 
-        while data:
-            try:
-                l = self.sock.send(data)
-                data = data[l:]
-            except Exception as error:
-                LOG.error(error)
-                ServerOnline = False
-                break
+        if self.sock:
+            while data:
+                try:
+                    l = self.sock.send(data)
+                    data = data[l:]
+                except Exception as error:
+                    LOG.error(error)
+                    ServerOnline = False
+                    break
+        else:
+            ServerOnline = False
 
         return ServerOnline
 
@@ -262,7 +255,7 @@ class WSClient:
             if not self.sendCommands(b"", 0x9):
                 break  # Server offline
 
-        self.reconnecting()
+        self.connect()
 
     def recv(self):
         while True:

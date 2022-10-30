@@ -91,23 +91,7 @@ class EmbyServer:
             LOG.error("---[ SESSION ERROR EMBYCLIENT: %s ] %s ---" % (self.server_id, session))
             return False
 
-        self.API.post_capabilities({
-            'Id': session[0]['Id'],
-            'PlayableMediaTypes': "Audio,Video,Photo",
-            'SupportsMediaControl': True,
-            'SupportsSync': True,
-            'SupportedCommands': (
-                "MoveUp,MoveDown,MoveLeft,MoveRight,Select,"
-                "Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,"
-                "GoHome,PageUp,NextLetter,GoToSearch,"
-                "GoToSettings,PageDown,PreviousLetter,TakeScreenshot,"
-                "VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,"
-                "SetAudioStreamIndex,SetSubtitleStreamIndex,"
-                "SetRepeatMode,Mute,Unmute,SetVolume,Pause,Unpause,"
-                "Play,Playstate,PlayNext,PlayMediaSource"
-            ),
-            'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"
-        })
+        self.API.post_capabilities({'Id': session[0]['Id'], 'PlayableMediaTypes': "Audio,Video,Photo", 'SupportsMediaControl': True, 'SupportsSync': True, 'SupportedCommands': "MoveUp,MoveDown,MoveLeft,MoveRight,Select,Back,ToggleContextMenu,ToggleFullscreen,ToggleOsdMenu,GoHome,PageUp,NextLetter,GoToSearch,GoToSettings,PageDown,PreviousLetter,TakeScreenshot,VolumeUp,VolumeDown,ToggleMute,SendString,DisplayMessage,SetAudioStreamIndex,SetSubtitleStreamIndex,SetRepeatMode,Mute,Unmute,SetVolume,Pause,Unpause,Play,Playstate,PlayNext,PlayMediaSource", 'IconUrl': "https://raw.githubusercontent.com/MediaBrowser/plugin.video.emby/master/kodi_icon.png"})
         self.load_credentials()
 
         if 'Users' in self.ServerData:
@@ -254,30 +238,26 @@ class EmbyServer:
 
         if Dialog.is_connect_login():
             LOG.debug("Login with emby connect")
+            Dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", *utils.CustomDialogParameters)
+            Dialog.PassVar(self.connect_manager)
+            Dialog.doModal()
 
-            if self.login_connect():
-                return True
+            if Dialog.is_logged_in():
+                if Dialog.get_user():
+                    return True
         elif Dialog.is_manual_server():
             LOG.debug("Adding manual server")
+            Dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", *utils.CustomDialogParameters)
+            Dialog.PassVar(self.connect_manager)
+            Dialog.doModal()
 
-            if self.manual_server():
+            if Dialog.is_connected():
+                self.ServerData = Dialog.get_server()
                 return True
         else:
             return False  # No server selected
 
         return self.select_servers({})
-
-    # Return server or raise error
-    def manual_server(self):
-        Dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", *utils.CustomDialogParameters)
-        Dialog.PassVar(self.connect_manager)
-        Dialog.doModal()
-
-        if Dialog.is_connected():
-            self.ServerData = Dialog.get_server()
-            return True
-
-        return False
 
     def login(self):
         users = self.API.get_public_users()
@@ -300,7 +280,7 @@ class EmbyServer:
                 if Result:
                     return Result
             else:
-                return self.connect_manager.login(self.server, username, None, True)
+                return self.connect_manager.login(self.server, username, None)
         elif Dialog.is_manual_login():
             Result = self.login_manual(None)
 
@@ -321,14 +301,3 @@ class EmbyServer:
             return Dialog.get_user()
 
         return False  # User is not authenticated
-
-    # Return connect user
-    def login_connect(self):
-        Dialog = loginconnect.LoginConnect("script-emby-connect-login.xml", *utils.CustomDialogParameters)
-        Dialog.PassVar(self.connect_manager)
-        Dialog.doModal()
-
-        if Dialog.is_logged_in():
-            return Dialog.get_user()
-
-        return False  # Connect user is not logged in

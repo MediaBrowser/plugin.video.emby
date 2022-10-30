@@ -56,7 +56,10 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
                 continue
 
             server_type = "wifi" if server.get('ExchangeToken') else "network"
-            self.list_.addItem(add_listitem(server['Name'], server['Id'], server_type))
+            listitem = xbmcgui.ListItem(server['Name'])
+            listitem.setProperty('id', server['Id'])
+            listitem.setProperty('server_type', server_type)
+            self.list_.addItem(listitem)
 
         if self.user_image is not None:
             self.getControl(USER_IMAGE).setImage(self.user_image)
@@ -77,9 +80,33 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
                 LOG.info('Server Id selected: %s' % server.getProperty('id'))
                 Server_Selected_Id = server.getProperty('id')
 
-                if self._connect_server(Server_Selected_Id):
-                    self.message_box.setVisibleCondition('false')
-                    self.close()
+                for server in self.connect_manager.Found_Servers:
+                    if server['Id'] == Server_Selected_Id:
+                        if self.connect_manager.EmbyServer.ServerData:
+                            server['ConnectAccessToken'] = self.connect_manager.EmbyServer.ServerData['ConnectAccessToken']
+                            server['ConnectUserId'] = self.connect_manager.EmbyServer.ServerData['ConnectUserId']
+                            server['ConnectUser'] = self.connect_manager.EmbyServer.ServerData['ConnectUser']
+
+                        self.connect_manager.EmbyServer.ServerData = server
+                        self.message.setLabel("%s %s..." % (utils.Translate(30610), server['Name']))
+                        self.message_box.setVisibleCondition('true')
+                        self.busy.setVisibleCondition('true')
+                        result = self.connect_manager.connect_to_server()
+
+                        if not result:  # Unavailable
+                            self.busy.setVisibleCondition('false')
+                            self.message.setLabel(utils.Translate(30609))
+                            break
+
+                        if result['State'] == 0:  # Unavailable
+                            self.busy.setVisibleCondition('false')
+                            self.message.setLabel(utils.Translate(30609))
+                            break
+
+                        self._selected_server = result['Servers'][0]
+                        self.message_box.setVisibleCondition('false')
+                        self.close()
+                        break
 
     def onClick(self, control):
         if control == EMBY_CONNECT:
@@ -91,38 +118,3 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
             self.close()
         elif control == CANCEL:
             self.close()
-
-    def _connect_server(self, Server_Selected_Id):
-        for server in self.connect_manager.Found_Servers:
-            if server['Id'] == Server_Selected_Id:
-                if self.connect_manager.EmbyServer.ServerData:
-                    server['ConnectAccessToken'] = self.connect_manager.EmbyServer.ServerData['ConnectAccessToken']
-                    server['ConnectUserId'] = self.connect_manager.EmbyServer.ServerData['ConnectUserId']
-                    server['ConnectUser'] = self.connect_manager.EmbyServer.ServerData['ConnectUser']
-
-                self.connect_manager.EmbyServer.ServerData = server
-                self.message.setLabel("%s %s..." % (utils.Translate(30610), server['Name']))
-                self.message_box.setVisibleCondition('true')
-                self.busy.setVisibleCondition('true')
-                result = self.connect_manager.connect_to_server()
-
-                if not result:  # Unavailable
-                    self.busy.setVisibleCondition('false')
-                    self.message.setLabel(utils.Translate(30609))
-                    return False
-
-                if result['State'] == 0:  # Unavailable
-                    self.busy.setVisibleCondition('false')
-                    self.message.setLabel(utils.Translate(30609))
-                    return False
-
-                self._selected_server = result['Servers'][0]
-                return True
-
-        return False
-
-def add_listitem(label, server_id, server_type):
-    item = xbmcgui.ListItem(label)
-    item.setProperty('id', server_id)
-    item.setProperty('server_type', server_type)
-    return item

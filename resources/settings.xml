@@ -96,7 +96,7 @@
                     <control type="toggle"/>
                 </setting>
                 <setting label="33405" id="syncruntimelimits" type="boolean" help="33406">
-                    <level>1</level>
+                    <level>3</level>
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>

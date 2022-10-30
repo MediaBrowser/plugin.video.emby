@@ -39,7 +39,10 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
 
         for user in self.users:
             user_image = ("items/logindefault.png" if 'PrimaryImageTag' not in user else self._get_user_artwork(user['Id'], 'Primary'))
-            self.list_.addItem(add_listitem(user['Name'], user['Id'], user_image))
+            item = xbmcgui.ListItem(user['Name'])
+            item.setProperty('id', user['Id'])
+            item.setArt({'Icon': user_image})
+            self.list_.addItem(item)
 
         self.setFocus(self.list_)
 
@@ -70,9 +73,3 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
     # Load user information set by UserClient
     def _get_user_artwork(self, user_id, item_type):
         return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, user_id, item_type)
-
-def add_listitem(label, user_id, user_image):
-    item = xbmcgui.ListItem(label)
-    item.setProperty('id', user_id)
-    item.setArt({'Icon': user_image})
-    return item

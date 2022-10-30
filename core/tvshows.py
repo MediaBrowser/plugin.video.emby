@@ -122,7 +122,7 @@ class TVShows:
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "Season", "season", item['KodiParentIds'], item['LibraryIds'], item['SeriesId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                 LOG.info("ADD stacked season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
             else:
-                common.set_KodiArtwork(item, self.EmbyServer.server_id)
+                common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
                 self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "season")
                 self.video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], "season")
 
@@ -152,14 +152,22 @@ class TVShows:
             LOG.debug("No Series assigned to Episode: %s" % item)
             return False
 
+        get_PresentationUniqueKey(item)
+
         if 'SeasonId' not in item:
-            LOG.error("No season assigned to Episode: %s %s" % (item['Id'], item['Name']))
-            LOG.debug("No season assigned to Episode: %s" % item)
-            return False
+            # get seasonID from PresentationUniqueKey
+            if item['PresentationUniqueKey']:
+                LOG.info("Detect SeasonId by PresentationUniqueKey: %s" % item['PresentationUniqueKey'])
+                PresentationUniqueKeySeason = item['PresentationUniqueKey'][:item['PresentationUniqueKey'].rfind("_")]
+                item['SeasonId'] = self.emby_db.get_EmbyId_by_EmbyPresentationKey(PresentationUniqueKeySeason)
+
+            if not item['SeasonId']:
+                LOG.error("No season assigned to Episode: %s %s" % (item['Id'], item['Name']))
+                LOG.debug("No season assigned to Episode: %s" % item)
+                return False
 
         LOG.info("Process item: %s" % item['Name'])
         ItemIndex = 0
-        get_PresentationUniqueKey(item)
         common.set_mpaa(item)
         common.SwopMediaSources(item)  # 3D
         item['OriginalTitle'] = item.get('OriginalTitle', "")

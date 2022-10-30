@@ -9,7 +9,7 @@ from helper import utils, loghandler, pluginmenu
 from dialogs import skipintrocredits
 
 Transcoding = False
-PlayerSkipItem = "-1"
+PlaylistRemoveItem = "-1"
 result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Application.GetProperties", "params": {"properties": ["volume", "muted"]}}')).get('result', {})
 Volume = result.get('volume', 0)
 Muted = result.get('muted', False)
@@ -21,7 +21,6 @@ PlayingVideoAudio = True
 MultiselectionDone = False
 PositionTrackerThread = False
 TrailerPath = ""
-Intros = []
 playlistIndex = -1
 AddonModeTrailerItem = None
 MediaType = ""
@@ -36,6 +35,7 @@ SkipCreditsJumpDone = False
 SkipIntroDialog = None
 SkipIntroDialogEmbuary = None
 SkipCreditsDialog = None
+playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 LOG = loghandler.LOG('EMBY.hooks.player')
 
 class PlayerEvents(xbmc.Player):
@@ -60,7 +60,7 @@ class PlayerEvents(xbmc.Player):
     def onAVChange(self):
         LOG.info("[ onAVChange ]")
 
-        if PlayerSkipItem != "-1" or not self.isPlaying() or AddonModeTrailerItem:
+        if PlaylistRemoveItem != "-1" or not self.isPlaying() or AddonModeTrailerItem:
             LOG.debug("onAVChange not playing")
             return
 
@@ -89,10 +89,8 @@ class PlayerEvents(xbmc.Player):
             return
 
         # 3D, ISO etc. content from webserverice (addon mode)
-        if PlayerSkipItem != "-1":
-            self.playnext()
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % PlayerSkipItem)
-            return
+        if PlaylistRemoveItem != "-1":
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % PlaylistRemoveItem)
 
         # Native mode multiselection
         if MultiselectionDone:
@@ -156,7 +154,7 @@ class PlayerEvents(xbmc.Player):
                         dbio.DBCloseRO(server_id, "onAVStarted")
 
             # native content
-            if Path and not Path.startswith("http://127.0.0.1:57342"):  # native mode but allow dynamic contetn in native mode
+            if Path and not Path.startswith("http"):  # native mode but allow dynamic contetn in native mode
                 PlaySessionId = str(uuid.uuid4()).replace("-", "")
                 MediasourceID = ""
 
@@ -178,16 +176,17 @@ class PlayerEvents(xbmc.Player):
 
                             if TrailerPath != PlayingFile:  # Trailer init (load)
                                 self.pause()  # Player Pause
-                                globals()["Intros"] = []
+                                EmbyServerPlayback.http.Intros = []
                                 PlayTrailer = True
 
                                 if utils.askCinema:
                                     PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autocloseyesno) * 1000)
 
                                 if PlayTrailer:
-                                    globals()["Intros"] = EmbyServerPlayback.http.load_Trailers(EmbyId)
+                                    EmbyServerPlayback.http.load_Trailers(EmbyId)
 
-                                if Intros:
+                                if EmbyServerPlayback.http.Intros:
+                                    globals()["playlistIndex"] = playlist.getposition()
                                     play_Trailer()
                                     dbio.DBCloseRO(server_id, "onAVStarted")
                                     return
@@ -234,7 +233,6 @@ class PlayerEvents(xbmc.Player):
                                     Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
                                 li.setPath(Path)
-                                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                                 globals()["playlistIndex"] = playlist.getposition()
                                 playlist.add(Path, li, playlistIndex + 1)
                                 MediasourceID = MediaSources[MediaIndex][2]
@@ -272,7 +270,7 @@ class PlayerEvents(xbmc.Player):
     def onPlayBackSeek(self, time, seekOffset):
         LOG.info("[ onPlayBackSeek ]")
 
-        if not EmbyServerPlayback or PlayerSkipItem != "-1" or 'ItemId' not in PlayingItem and not PlayingVideoAudio:
+        if not EmbyServerPlayback or PlaylistRemoveItem != "-1" or 'ItemId' not in PlayingItem and not PlayingVideoAudio:
             return
 
         SeekPosition = int(time * 10000)
@@ -310,10 +308,6 @@ class PlayerEvents(xbmc.Player):
 
     def onPlayBackStopped(self):
         LOG.info("[ onPlayBackStopped ]")
-
-        if EmbyServerPlayback and Transcoding:
-            EmbyServerPlayback.API.close_transcode()
-
         utils.SyncPause['playing'] = False
         stop_playback(True, True)
         LOG.info("--<[ playback ]")
@@ -368,19 +362,18 @@ def stop_playback(delete, Stopped):
     # Trailers for native content
     if not Stopped:
         # Play init item after native content trailer playback
-        if TrailerPath and not Intros:
+        if TrailerPath and not EmbyServerPlayback.http.Intros:
             globals()["TrailerPath"] = "SKIP"
-            globals()["Intros"] = []
-            playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+            EmbyServerPlayback.http.Intros = []
             utils.XbmcPlayer.play(playlist, None, False, playlistIndex)
             return
 
         # play trailers for native content
-        if Intros:
+        if EmbyServerPlayback.http.Intros:
             play_Trailer()
             return
 
-    globals()["Intros"] = []
+    EmbyServerPlayback.http.Intros = []
     globals()["TrailerPath"] = ""
 
     if not EmbyServerPlayback or 'ItemId' not in PlayingItemLocal:
@@ -454,9 +447,6 @@ def stop_playback(delete, Stopped):
 
     EmbyServerPlayback.API.session_stop(PlayingItemLocal)
 
-    if Transcoding:
-        EmbyServerPlayback.API.close_transcode()
-
     if delete:
         if utils.offerDelete:
             if Runtime > 10:
@@ -481,10 +471,9 @@ def stop_playback(delete, Stopped):
     start_new_thread(start_workers, ())
 
 def play_Trailer(): # for native content
-    Path = Intros[0]['Path']
-
-    li = listitem.set_ListItem(Intros[0], EmbyServerPlayback.server_id)
-    del globals()["Intros"][0]
+    Path = EmbyServerPlayback.http.Intros[0]['Path']
+    li = listitem.set_ListItem(EmbyServerPlayback.http.Intros[0], EmbyServerPlayback.server_id)
+    del EmbyServerPlayback.http.Intros[0]
 
     if Path.startswith('\\\\'):
         Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")

@@ -94,8 +94,8 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         return control
 
     def _login(self, username, password):
-        server = self.connect_manager.get_serveraddress()
-        result = self.connect_manager.login(server, username, password, True)
+        server = self.connect_manager.get_server_address(self.connect_manager.EmbyServer.ServerData['LastConnectionMode'])
+        result = self.connect_manager.login(server, username, password)
 
         if not result:
             self._error(ERROR['Invalid'], utils.Translate(33009))
