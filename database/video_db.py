@@ -53,11 +53,13 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}, []
 
         MetaData = {'mediatype': "movie", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'plotoutline': ItemData[4], 'tagline': ItemData[5], 'writer': ItemData[8], 'sorttitle': ItemData[12], 'duration': ItemData[13], 'mpaa': ItemData[14], 'genre': ItemData[16], 'director': ItemData[17], 'originaltitle': ItemData[18], 'studio': ItemData[20], 'country': ItemData[23], 'userrating': ItemData[27], 'premiered': ItemData[28], 'playcount': ItemData[33], 'lastplayed': ItemData[34], 'rating': ItemData[39]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[37], 'ResumeTime': ItemData[36]}
-        return "%s%s" % (ItemData[32], ItemData[31]), MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "movie")
+        People = self.get_people_artwork(kodi_id, "movie")
+        return "%s%s" % (ItemData[32], ItemData[31]), MetaData, Properties, Artwork, People
 
     # musicvideo
     def update_musicvideos(self, Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate, KodiItemId, DateCreated, PlayCount, LastPlayedDate, KodiFileId, Filename):
@@ -81,11 +83,12 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}
 
         MetaData = {'mediatype': "musicvideo", "dbid": kodi_id, 'title': ItemData[2], 'duration': ItemData[6], 'director': ItemData[7], 'studio': ItemData[8], 'plot': ItemData[10], 'album': ItemData[11], 'artist': ItemData[12].split(" / "), 'genre': ItemData[13], 'track': ItemData[14], 'premiered': ItemData[27], 'playcount': ItemData[30], 'lastplayed': ItemData[31]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[34], 'ResumeTime': ItemData[33]}
-        return "%s%s" % (ItemData[29], ItemData[28]), MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "musicvideo")
+        return "%s%s" % (ItemData[29], ItemData[28]), MetaData, Properties, Artwork
 
     # tvshow
     def update_tvshow(self, c00, c01, c02, c04, c05, c06, c08, c09, c11, c12, c13, c14, c15, duration, idShow, Trailer):
@@ -140,11 +143,13 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}, []
 
         MetaData = {'mediatype': "tvshow", "dbid": kodi_id, 'title': ItemData[1], 'tvshowtitle': ItemData[1], 'plot': ItemData[2], 'status': ItemData[3], 'premiered': ItemData[6], 'genre': ItemData[8], 'originaltitle': ItemData[9], 'imdbnumber': ItemData[13], 'mpaa': ItemData[14], 'studio': ItemData[15], 'sorttitle': ItemData[16], 'userrating': ItemData[25], 'duration': ItemData[26], 'lastplayed': ItemData[30], 'rating': ItemData[34]}
         Properties = {'TotalEpisodes': ItemData[31], 'TotalSeasons': ItemData[33], 'WatchedEpisodes': ItemData[32], 'UnWatchedEpisodes': int(ItemData[31]) - int(ItemData[32]), 'IsFolder': 'true', 'IsPlayable': 'true'}
-        return "videodb://tvshows/titles/%s/" % kodi_id, MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "tvshow")
+        People = self.get_people_artwork(kodi_id, "tvshow")
+        return "videodb://tvshows/titles/%s/" % kodi_id, MetaData, Properties, Artwork, People
 
     # seasons
     def add_season(self, idSeason, idShow, season, name):
@@ -165,11 +170,13 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}, []
 
         MetaData = {'mediatype': "season", "dbid": kodi_id, 'season': ItemData[2], 'title': ItemData[3], 'userrating': ItemData[4], 'tvshowtitle': ItemData[6], 'plot': ItemData[7], 'premiered': ItemData[8], 'genre': ItemData[9], 'studio': ItemData[10], 'mpaa': ItemData[11], 'aired': ItemData[14]}
         Properties = {'NumEpisodes': ItemData[12], 'WatchedEpisodes': ItemData[13], 'UnWatchedEpisodes': int(ItemData[12]) - int(ItemData[13]), 'IsFolder': 'true', 'IsPlayable': 'true'}
-        return "videodb://tvshows/titles/%s/%s/" % (ItemData[1], kodi_id), MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "season")
+        People = self.get_people_artwork(kodi_id, "season")
+        return "videodb://tvshows/titles/%s/%s/" % (ItemData[1], kodi_id), MetaData, Properties, Artwork, People
 
     # episode
     def add_episode(self, KodiItemId, KodiFileId, Name, Overview, RatingId, Writers, PremiereDate, Poster, RunTimeTicks, Directors, ParentIndexNumber, IndexNumber, OriginalTitle, SortParentIndexNumber, SortIndexNumber, FilePath, KodiPathId, Unique, KodiShowId, KodiSeasonId, Filename, DateCreated, PlayCount, LastPlayedDate):
@@ -193,11 +200,24 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}, []
 
         MetaData = {'mediatype': "episode", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'writer': ItemData[6], 'premiered': ItemData[7], 'duration': ItemData[11], 'director': ItemData[12], 'season': ItemData[14], 'episode': ItemData[15], 'originaltitle': ItemData[16], 'sortseason': ItemData[17], 'sortepisode': ItemData[18], 'imdbnumber': ItemData[22], 'userrating': ItemData[27], 'playCount': ItemData[31], 'lastplayed': ItemData[32], 'tvshowtitle': ItemData[34]}
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[40], 'ResumeTime': ItemData[39]}
-        return "%s%s" % (ItemData[30], ItemData[29]), MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "episode")
+        People = self.get_people_artwork(kodi_id, "episode")
+        ArtworksTVShow = self.get_artwork(ItemData[26], "tvshow")
+
+        for Key, Value in list(ArtworksTVShow.items()):
+            Artwork["tvshow.%s" % Key] = Value
+
+        ArtworksSeasons = self.get_artwork(ItemData[28], "season")
+
+        for Key, Value in list(ArtworksSeasons.items()):
+            Artwork["season.%s" % Key] = Value
+
+        People += self.get_people_artwork(ItemData[26], "tvshow")
+        return "%s%s" % (ItemData[30], ItemData[29]), MetaData, Properties, Artwork, People
 
     # boxsets
     def add_boxset(self, strSet, strOverview):
@@ -223,11 +243,12 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return "", {}, {}, {}
 
         MetaData = {'mediatype': "set", "dbid": kodi_id, 'title': ItemData[1], 'plot': ItemData[2]}
         Properties = {'IsFolder': 'true', 'IsPlayable': 'true'}
-        return "videodb://movies/sets/%s/" % kodi_id, MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "set")
+        return "videodb://movies/sets/%s/" % kodi_id, MetaData, Properties, Artwork
 
     # file
     def add_file(self, path_id, filename, dateAdded, file_id, PlayCount, LastPlayedDate):
@@ -269,9 +290,9 @@ class VideoDatabase:
                 role = person['Type']
 
             if role == "MusicVideoArtist":
-                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], person['LibraryId'])
+                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], person['LibraryId'], person['Type'].lower())
             else:
-                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], False)
+                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], False, person['Type'].lower())
 
             if person['Type'] == 'Director':
                 self.cursor.execute("INSERT OR REPLACE INTO director_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
@@ -285,21 +306,29 @@ class VideoDatabase:
                 if person['imageurl']:
                     self.cursor.execute("INSERT OR REPLACE INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", (person_id, person['Type'].lower(), "thumb", person['imageurl']))
 
-    def add_get_person(self, PersonName, imageurl, LibraryId):
+    def add_get_person(self, PersonName, imageurl, LibraryId, ArtType):
         if LibraryId: # Unify Artist by LibraryId (Allow duplicates for multi Musicvideo Libraries)
-            self.cursor.execute("SELECT actor_id, name FROM actor WHERE name LIKE ? COLLATE NOCASE AND art_urls LIKE ? COLLATE NOCASE", ("%s%%" % PersonName, "%%%s%%" % LibraryId))
+            self.cursor.execute("SELECT actor_id, name, art_urls FROM actor WHERE name LIKE ? COLLATE NOCASE AND art_urls LIKE ? COLLATE NOCASE", ("%s%%" % PersonName, "%%%s%%" % LibraryId))
             Data = self.cursor.fetchall()
 
             for Info in Data:
                 CompareName = Info[1].rstrip()
 
                 if CompareName == PersonName:
+                    if imageurl != Info[2]: # update artwork
+                        self.cursor.execute("UPDATE actor SET art_urls = ? WHERE actor_id = ?", (imageurl, Info[0]))
+                        self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND type = ? AND media_type = ? ", (imageurl, Info[0], "thumb", ArtType))
+
                     return Info[0], False
         else:
-            self.cursor.execute("SELECT actor_id FROM actor WHERE name = ?", (PersonName,))
+            self.cursor.execute("SELECT actor_id, art_urls, name FROM actor WHERE name = ?", (PersonName,))
             Data = self.cursor.fetchone()
 
             if Data:
+                if imageurl != Data[1]: # update artwork
+                    self.cursor.execute("UPDATE actor SET art_urls = ? WHERE actor_id = ?", (imageurl, Data[0]))
+                    self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND type = ? AND media_type = ? ", (imageurl, Data[0], "thumb", ArtType))
+
                 return Data[0], False
 
         self.cursor.execute("SELECT coalesce(max(actor_id), 0) FROM actor")
@@ -323,6 +352,27 @@ class VideoDatabase:
             self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl))
 
         return person_id, True
+
+    def get_people_artwork(self, KodiId, ContentType):
+        People = []
+        self.cursor.execute("SELECT * FROM actor_link WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
+        ActorLinks = self.cursor.fetchall()
+
+        for ActorLink in ActorLinks:
+            self.cursor.execute("SELECT * FROM actor WHERE actor_id = ?", (ActorLink[0],))
+            Actor = self.cursor.fetchone()
+            People.append({'name': Actor[1], 'role': ActorLink[3], 'order': ActorLink[4], 'thumbnail': Actor[2]})
+
+
+        self.cursor.execute("SELECT * FROM director_link WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
+        DirectorLinks = self.cursor.fetchall()
+
+        for Index, DirectorLink in enumerate(DirectorLinks):
+            self.cursor.execute("SELECT * FROM actor WHERE actor_id = ?", (DirectorLink[0],))
+            Actor = self.cursor.fetchone()
+            People.append({'name': Actor[1], 'role': "Director", 'order': Index, 'thumbnail': Actor[2]})
+
+        return People
 
     # streams
     def delete_streams(self, file_id):
@@ -611,6 +661,17 @@ class VideoDatabase:
                 self.cursor.execute("INSERT INTO country(country_id, name) VALUES (?, ?)", (country_id, CountryName))
 
             self.cursor.execute("INSERT OR REPLACE INTO country_link(country_id, media_id, media_type) VALUES (?, ?, ?)", (country_id, media_id, media_type))
+
+    # artwork
+    def get_artwork(self, KodiId, ContentType):
+        Artwork = {}
+        self.cursor.execute("SELECT * FROM art WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
+        ArtworksData = self.cursor.fetchall()
+
+        for ArtworkData in ArtworksData:
+            Artwork[ArtworkData[3]] = ArtworkData[4]
+
+        return Artwork
 
     # settings
     def get_FileSettings(self, KodiFileId):

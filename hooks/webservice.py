@@ -8,7 +8,6 @@ DefaultVideoSettings = {}
 MediaTypeMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
-Intros = []
 SkipItemVideo = ""
 TrailerInitPayload = ""
 PlaySessionId = ""
@@ -235,9 +234,8 @@ def LoadISO(QueryData, MediaIndex, client, ThreadId):
         li.setPath(Path)
         PlaylistPosition = playlist.getposition()
         playlist.add(Path, li, PlaylistPosition + 1)
-        player.PlayerSkipItem = str(PlaylistPosition)
+        player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
-        globals()["QueryDataPrevious"] = QueryData.copy()
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
         client.send(sendblankfile)
 
@@ -245,13 +243,11 @@ def LoadISO(QueryData, MediaIndex, client, ThreadId):
 
 def http_Query(client, Payload, RequestType):
     if 'main.m3u8' in Payload:  # Dynamic Transcode query
-        player.PlayerSkipItem = "-1"
         player.queuePlayingItem(QueryDataPrevious['EmbyID'], QueryDataPrevious['MediasourceID'], PlaySessionId, QueryDataPrevious['IntroStartPositionTicks'], QueryDataPrevious['IntroEndPositionTicks'], QueryDataPrevious['CreditsPositionTicks'])
         client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryDataPrevious['ServerId']].server, QueryDataPrevious['EmbyID'], Payload)).encode())
         return
 
     if SkipItemVideo == Payload:  # 3D, iso (playlist modification)
-        player.PlayerSkipItem = "-1"
         player.queuePlayingItem(QueryDataPrevious['EmbyID'], QueryDataPrevious['MediasourceID'], PlaySessionId, QueryDataPrevious['IntroStartPositionTicks'], QueryDataPrevious['IntroEndPositionTicks'], QueryDataPrevious['CreditsPositionTicks'])
         client.send(sendblankfile)
         globals()["SkipItemVideo"] = ""
@@ -259,7 +255,6 @@ def http_Query(client, Payload, RequestType):
 
     if Cancel:
         globals()["Cancel"] = False
-        player.PlayerSkipItem = "-1"
         client.send(sendblankfile)
         player.Cancel()
         return
@@ -312,10 +307,6 @@ def http_Query(client, Payload, RequestType):
         utils.SyncPause['playing'] = True
 
     globals()["PlaySessionId"] = str(uuid.uuid4()).replace("-", "")
-
-    if player.Transcoding:
-        utils.EmbyServers[QueryData['ServerId']].API.close_transcode()
-
     player.Transcoding = False
     player.EmbyServerPlayback = utils.EmbyServers[QueryData['ServerId']]
 
@@ -328,46 +319,42 @@ def http_Query(client, Payload, RequestType):
         return
 
     if QueryData['Type'] == 'audio':
-        player.PlayerSkipItem = "-1"
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
         client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/audio/%s/stream?static=true&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])).encode())
         return
 
     if QueryData['Type'] == 'tvchannel':
         player.Transcoding = True
-        player.PlayerSkipItem = "-1"
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
         client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/stream.ts?PlaySessionId=%s&DeviceId=%s&api_key=%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token)).encode())
         return
 
     if QueryData['Type'] == 'channel':
         player.Transcoding = True
-        player.PlayerSkipItem = "-1"
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        globals()["QueryDataPrevious"] = QueryData.copy()
         client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/master.m3u8?MediaSourceId=%s&PlaySessionId=%s&VideoCodec=%s&AudioCodec=%s&TranscodeReasons=ContainerNotSupported&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.TranscodeFormatVideo, utils.TranscodeFormatAudio, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, "stream.ts")).encode())
         return
 
     # Cinnemamode
     if (utils.enableCinemaMovies and QueryData['Type'] == "movie") or (utils.enableCinemaEpisodes and QueryData['Type'] == "episode"):
         if TrailerInitPayload != QueryData['Payload']:  # Trailer init (load)
-            globals()["Intros"] = []
+            utils.EmbyServers[QueryData['ServerId']].http.Intros = []
             PlayTrailer = True
 
             if utils.askCinema:
                 PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autocloseyesno) * 1000)
 
             if PlayTrailer:
-                globals()["Intros"] = utils.EmbyServers[QueryData['ServerId']].http.load_Trailers(QueryData['EmbyID'])
+                utils.EmbyServers[QueryData['ServerId']].http.load_Trailers(QueryData['EmbyID'])
 
-        if Intros:
+        if utils.EmbyServers[QueryData['ServerId']].http.Intros:
             xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "one" }, "id": 1 }')
-            URL = Intros[0]['Path']
+            URL = utils.EmbyServers[QueryData['ServerId']].http.Intros[0]['Path']
             xbmc.log("EMBY.hooks.webservice: Trailer URL: %s" % URL, xbmc.LOGDEBUG)
-            li = listitem.set_ListItem(Intros[0], QueryData['ServerId'])
+            li = listitem.set_ListItem(utils.EmbyServers[QueryData['ServerId']].http.Intros[0], QueryData['ServerId'])
             li.setPath("http://127.0.0.1:57342" + QueryData['Payload'])
             player.AddonModeTrailerItem = li
-            del Intros[0]
+            del utils.EmbyServers[QueryData['ServerId']].http.Intros[0]
             globals()["TrailerInitPayload"] = QueryData['Payload']
             client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % URL).encode())
             return
@@ -400,7 +387,6 @@ def http_Query(client, Payload, RequestType):
 
         if MediaIndex == -1:
             globals()["Cancel"] = True
-            player.PlayerSkipItem = "-1"
             client.send(sendblankfile)
             return
 
@@ -421,7 +407,6 @@ def http_Query(client, Payload, RequestType):
     else:
         URL = "%s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s" % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
 
-    player.PlayerSkipItem = "-1"
     player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
     client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % URL).encode())
     close_embydb(QueryData['ServerId'], ThreadId)
@@ -507,7 +492,6 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
                 SubTitlesAdd(0, QueryData, ThreadId)
                 close_embydb(QueryData['ServerId'], ThreadId)
 
-            player.PlayerSkipItem = "-1"
             player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
             URL = 'HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])
 
@@ -525,7 +509,6 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
                 if status_code == 200:
                     client.send(URL.encode())
                 else:
-                    globals()["QueryDataPrevious"] = QueryData.copy()
                     player.Transcoding = True
                     client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/master.m3u8?MediaSourceId=%s&PlaySessionId=%s&VideoCodec=%s&AudioCodec=%s&TranscodeReasons=DirectPlayError&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.TranscodeFormatVideo, utils.TranscodeFormatAudio, utils.device_id, utils.EmbyServers[QueryData['ServerId']].Token, QueryData['Filename'])).encode())
 
@@ -613,9 +596,8 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
         li.setPath(URL)
         PlaylistPosition = playlist.getposition()
         playlist.add(URL, li, PlaylistPosition + 1)
-        player.PlayerSkipItem = str(PlaylistPosition)
+        player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
-        globals()["QueryDataPrevious"] = QueryData.copy()
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
         client.send(sendblankfile)
         close_embydb(QueryData['ServerId'], ThreadId)
@@ -624,7 +606,6 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
     li.setPath("http://127.0.0.1:57342" + QueryData['Payload'])
     utils.XbmcPlayer.updateInfoTag(li)
     SubTitlesAdd(MediaIndex, QueryData, ThreadId)
-    player.PlayerSkipItem = "-1"
     player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
     client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % URL).encode())
     close_embydb(QueryData['ServerId'], ThreadId)
@@ -652,7 +633,6 @@ def GETTranscodeURL(Filename, Audio, Subtitle, QueryData):
     if Filename:
         Filename = "&stream-" + Filename
 
-    globals()["QueryDataPrevious"] = QueryData.copy()
     return "%s/emby/videos/%s/master.m3u8?api_key=%s&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&VideoCodec=%s&AudioCodec=%s%s%s%s%s&TranscodeReasons=%s%s" % (utils.EmbyServers[QueryData['ServerId']].server, QueryData['EmbyID'], utils.EmbyServers[QueryData['ServerId']].Token, QueryData['MediasourceID'], PlaySessionId, utils.device_id, utils.TranscodeFormatVideo, utils.TranscodeFormatAudio, TranscodingVideo, TranscodingAudio, Audio, Subtitle, QueryData['TranscodeReasons'], Filename)
 
 def IsTranscoding(Bitrate, Codec, QueryData):
@@ -719,6 +699,10 @@ def GetParametersFromURLQuery(Payload):
         # Dynamic content played, cleare cache
         if QueryData['KodiFileId'] == "None":
             pluginmenu.QueryCache = {} # Clear Cache
+
+        globals()["QueryDataPrevious"] = QueryData.copy()
+        player.PlaylistRemoveItem = "-1"
+
     elif Data[0] == "a":  # Audio
         QueryData['MediasourceID'] = None
         QueryData['Filename'] = Data[3]
@@ -749,7 +733,6 @@ EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "
 sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 sendblankfile = ('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: %s\r\nContent-type: audio/wav\r\n\r\n' % len(blankfileData)).encode() + blankfileData
 DefaultVideoSettings = xmls.load_defaultvideosettings()
-Intros = []
 SkipItemVideo = ""
 TrailerInitPayload = ""
 PlaySessionId = ""

@@ -1,3 +1,4 @@
+from _thread import start_new_thread
 import requests
 from helper import utils, loghandler
 
@@ -8,6 +9,7 @@ class HTTP:
     def __init__(self, EmbyServer):
         self.session = None
         self.EmbyServer = EmbyServer
+        self.Intros = []
 
     def stop_session(self):
         if not self.session:
@@ -18,22 +20,44 @@ class HTTP:
         self.session = None
 
     def request(self, data, ServerConnecting, Binary, Headers=False):
+        RequestType = data.pop('type', "GET")
+
+        if RequestType in ('HEAD', 'GET'):
+            return self.execute_request(data, ServerConnecting, Binary, RequestType, Headers)
+
+        if RequestType == "POST":
+            if ServerConnecting:
+                return self.execute_request(data, ServerConnecting, Binary, RequestType, Headers)
+
+            start_new_thread(self.execute_request, (data, ServerConnecting, Binary, RequestType, Headers))
+        elif RequestType == "DELETE":
+            start_new_thread(self.execute_request, (data, ServerConnecting, Binary, RequestType, Headers))
+
+        return noData(Binary, Headers)
+
+    def execute_request(self, data, ServerConnecting, Binary, RequestType, Headers):
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.EmbyServer.server, data.pop('handler', ""))
 
-        data = self.get_header(data)
+        if 'headers' not in data:
+            data['headers'] = {'Content-type': "application/json", 'Accept-Charset': "UTF-8,*", 'Accept-encoding': "gzip", 'User-Agent': "%s/%s" % (utils.addon_name, utils.addon_version)}
 
-        if not data:
-            return {}
+        if 'Authorization' not in data['headers']:
+            auth = "Emby Client=%s,Device=%s,DeviceId=%s,Version=%s" % (utils.addon_name, utils.device_name, utils.device_id, utils.addon_version)
+
+            if self.EmbyServer.Token and self.EmbyServer.user_id:
+                auth = '%s,UserId=%s' % (auth, self.EmbyServer.user_id)
+                data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.Token})
+            else:
+                data['headers'].update({'Authorization': auth})
 
         if ServerConnecting:  # Server connect
             data['timeout'] = 15
         else:
             data['timeout'] = 300
 
-        LOG.debug("--->[ http ] %s" % data)
+        LOG.debug("[ http ] %s" % data)
         Retries = 0
-        RequestType = data.pop('type', "GET")
 
         while True:
             if utils.SystemShutdown:
@@ -44,34 +68,46 @@ class HTTP:
             if not self.session:
                 self.session = requests.Session()
 
+            # http request
             try:
-                r = _requests(self.session, RequestType, **data)
-                LOG.debug("---<[ http ][%s ms]" % int(r.elapsed.total_seconds() * 1000))
-                LOG.debug("[ http response %s / %s / %s ]" % (r.status_code, r.headers, data))
-
                 if RequestType == "HEAD":
-                    return r.status_code
+                    return self.session.head(**data).status_code()
 
-                if r.status_code == 200:
-                    if Binary:
-                        if Headers:
-                            return r.content, r.headers
+                if RequestType == "GET":
+                    r = self.session.get(**data)
 
-                        return r.content
+                    if r.status_code == 200:
+                        if Binary:
+                            if Headers:
+                                return r.content, r.headers
 
-                    return r.json()
+                            return r.content
 
-                if r.status_code == 401:
-                    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
+                        return r.json()
+
+                    if r.status_code == 401:
+                        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
+
+                    return noData(Binary, Headers)
+
+                if RequestType == "POST":
+                    r = self.session.post(**data)
+
+                    if ServerConnecting:
+                        return r.json()
+                elif RequestType == "DELETE":
+                    self.session.delete(**data).json()
 
                 return noData(Binary, Headers)
             except requests.exceptions.SSLError:
                 LOG.error("[ SSL error ]")
+                LOG.debug("[ SSL error ] %s" % data)
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
                 self.stop_session()
                 return noData(Binary, Headers)
             except requests.exceptions.ConnectionError:
                 LOG.error("[ ServerUnreachable ]")
+                LOG.debug("[ ServerUnreachable ] %s" % data)
                 self.stop_session()
 
                 if not ServerConnecting:
@@ -85,91 +121,62 @@ class HTTP:
                 self.stop_session()
                 return noData(Binary, Headers)
             except requests.exceptions.ReadTimeout:
-                LOG.error("[ ServerTimeout ] %s" % data)
+                LOG.error("[ ServerTimeout ]")
+                LOG.debug("[ ServerTimeout ] %s" % data)
                 self.stop_session()
                 return noData(Binary, Headers)
             except Exception as error:
-                LOG.error(error)
+                LOG.error("[ Unknown ]")
+                LOG.debug("[ Unknown ] %s" % str(error))
                 self.stop_session()
                 return noData(Binary, Headers)
 
-    def get_header(self, data):
-        data['headers'] = data.setdefault('headers', {})
-
-        if not data['headers']:
-            data['headers'].update({
-                'Content-type': "application/json",
-                'Accept-Charset': "UTF-8,*",
-                'Accept-encoding': "gzip",
-                'User-Agent': "%s/%s" % (utils.addon_name, utils.addon_version)
-            })
-
-        if 'Authorization' not in data['headers']:
-            data = self._authorization(data)
-
-        return data
-
-    def _authorization(self, data):
-        auth = "Emby Client=%s, " % utils.addon_name
-        auth += "Device=%s, " % utils.device_name
-        auth += "DeviceId=%s, " % utils.device_id
-        auth += "Version=%s" % utils.addon_version
-        data['headers'].update({'Authorization': auth})
-
-        if self.EmbyServer.Token and self.EmbyServer.user_id:
-            auth += ', UserId=%s' % self.EmbyServer.user_id
-            data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.Token})
-
-        return data
-
     def load_Trailers(self, EmbyId):
-        Intros = []
-        ValidIntros = []
+        ReceivedIntros = []
+        self.Intros = []
 
         if utils.localTrailers:
             IntrosLocal = self.EmbyServer.API.get_local_trailers(EmbyId)
 
             for IntroLocal in IntrosLocal:
-                Intros.append(IntroLocal)
+                ReceivedIntros.append(IntroLocal)
 
         if utils.Trailers:
             IntrosExternal = self.EmbyServer.API.get_intros(EmbyId)
 
             if 'Items' in IntrosExternal:
                 for IntroExternal in IntrosExternal['Items']:
-                    Intros.append(IntroExternal)
+                    ReceivedIntros.append(IntroExternal)
 
-            for Intro in Intros:
-                if Intro['Path'].find("http") == -1:
-                    Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.server, Intro['Id'], self.EmbyServer.Token, utils.device_id)
-                    ValidIntros.append(Intro)
-                else:
-                    try:
-                        r = requests.head(Intro['Path'], allow_redirects=True)
+            if ReceivedIntros:
+                Index = 0
 
-                        if Intro['Path'] == r.url:
-                            ValidIntros.append(Intro)
-                        else:  # filter URL redirections, mostly invalid links
-                            LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
-                    except:
-                        LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
+                for Index, Intro in enumerate(ReceivedIntros):
+                    if self.verify_intros(Intro):
+                        break
 
-        return ValidIntros
+                for Intro in ReceivedIntros[Index + 1:]:
+                    start_new_thread(self.verify_intros, (Intro,))
 
-def _requests(session, action, **kwargs):
-    if action == "GET":
-        return session.get(**kwargs)
+    def verify_intros(self, Intro):
+        if Intro['Path'].find("http") == -1: # Local Trailer
+            Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.server, Intro['Id'], self.EmbyServer.Token, utils.device_id)
+            self.Intros.append(Intro)
+            return True
 
-    if action == "POST":
-        return session.post(**kwargs)
+        try:
+            r = requests.head(Intro['Path'], allow_redirects=True, timeout=2)
 
-    if action == "HEAD":
-        return session.head(**kwargs)
+            if Intro['Path'] == r.url:
+                self.Intros.append(Intro)
+                return True
 
-    if action == "DELETE":
-        return session.delete(**kwargs)
+            # filter URL redirections, mostly invalid links
+            LOG.error("Invalid Trailer Path (url compare): %s / %s" % (Intro['Path'], r.url))
+        except:
+            LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
 
-    return None
+        return False
 
 def noData(Binary, Headers):
     if Binary:

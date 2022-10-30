@@ -140,6 +140,7 @@ def get_filename(item, MediaID, API, ItemIndex):
     Temp = item['FullPath'].lower()
 
     if Temp.startswith("plugin://"):
+        item['Filename'] = Temp
         return
 
     if Temp.endswith(".bdmv"):
@@ -373,6 +374,9 @@ def SwopMediaSources(item):
                 item['Path'] = item['MediaSources'][0]['Path']
 
 def get_streams(item):
+    if 'MediaSources' not in item:
+        return
+
     item['Streams'] = []
 
     for IndexMediaSources, MediaSource in enumerate(item['MediaSources']):
@@ -514,7 +518,7 @@ def set_genres(item):
 
     item['Genre'] = " / ".join(item['Genres'])
 
-def set_videocommon(item, server_id, ItemIndex):
+def set_videocommon(item, server_id, ItemIndex, DynamicNode=False):
     item['ProductionLocations'] = item.get('ProductionLocations', [])
     item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', None)
     item['ProductionYear'] = item.get('ProductionYear', 0)
@@ -537,7 +541,7 @@ def set_videocommon(item, server_id, ItemIndex):
     set_studios(item)
     set_overview(item)
     set_PremiereDate(item)
-    set_KodiArtwork(item, server_id)
+    set_KodiArtwork(item, server_id, DynamicNode)
 
 def set_PremiereDate(item):
     if 'PremiereDate' in item:
@@ -615,7 +619,7 @@ def set_chapters(item, server_id):
             ChapterDuplicateCheck.append(Chapter["StartPositionTicks"])
 
 # Set Kodi artwork
-def set_KodiArtwork(item, server_id):
+def set_KodiArtwork(item, server_id, DynamicNode):
     item['ParentLogoItemId'] = item.get('ParentLogoItemId', None)
     item['ParentLogoImageTag'] = item.get('ParentLogoImageTag', None)
     item['ParentThumbItemId'] = item.get('ParentThumbItemId', None)
@@ -627,9 +631,6 @@ def set_KodiArtwork(item, server_id):
     item['AlbumPrimaryImageTag'] = item.get('AlbumPrimaryImageTag', None)
     item['SeriesPrimaryImageTag'] = item.get('SeriesPrimaryImageTag', None)
     item['KodiArtwork'] = {'clearart': "", 'clearlogo': "", 'discart': "", 'landscape': "", 'thumb': "", 'banner': "", 'poster': "", 'fanart': {}}
-
-    if 'Library' not in item:
-        item['Library'] = {'Id': 0}
 
     if item['Type'] in ImageTagsMappings:
         for ImageTagsMapping in ImageTagsMappings[item['Type']]:
@@ -699,6 +700,20 @@ def set_KodiArtwork(item, server_id):
     if utils.AssignEpisodePostersToTVShowPoster:
         if item['Type'] == "Episode" and 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
             item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["SeriesId"], item["SeriesPrimaryImageTag"])
+
+    if DynamicNode:
+        if item['Type'] == "Episode":
+            if 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
+                item['KodiArtwork']['tvshow.poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["SeriesId"], item["SeriesPrimaryImageTag"])
+
+            if 'ParentThumbItemId' in item and "ParentThumbImageTag" in item and item["ParentThumbImageTag"] and item["ParentThumbImageTag"] != "None":
+                item['KodiArtwork']['tvshow.thumb'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentThumbItemId"], item["ParentThumbImageTag"])
+
+            if 'ParentLogoItemId' in item and "ParentLogoImageTag" in item and item["ParentLogoImageTag"] and item["ParentLogoImageTag"] != "None":
+                item['KodiArtwork']['tvshow.clearlogo'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentLogoItemId"], item["ParentLogoImageTag"])
+
+            if 'ParentBackdropItemId' in item and "ParentBackdropImageTags" in item and item["ParentBackdropImageTags"]:
+                item['KodiArtwork']['tvshow.fanart'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentBackdropItemId"], item["ParentBackdropImageTags"][0])
 
 def set_MusicVideoTracks(item):
     # Try to detect track number

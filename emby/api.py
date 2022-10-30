@@ -115,7 +115,7 @@ class API:
                         listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(Data[0], Data[1], videodb, musicdb)
 
                         if listitem:
-                            ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder})
+                            ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder, "Type": Item['Type']})
                             LOG.info("Fetching data from internal database: %s / %s" % (Data[1], Data[0]))
                     else:
                         ItemsFullQuery.append(Item['Id'])
@@ -454,9 +454,6 @@ class API:
 
     def session_stop(self, params):
         self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Playing/Stopped"}, False, False)
-
-    def close_transcode(self):
-        self.EmbyServer.http.request({'params': {'DeviceId': utils.device_id}, 'type': "DELETE", 'handler': "Videos/ActiveEncodings"}, False, False)
 
     def delete_item(self, item_id):
         self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Items/%s" % item_id}, False, False)

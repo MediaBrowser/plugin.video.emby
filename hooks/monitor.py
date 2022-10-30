@@ -43,8 +43,10 @@ class monitor(xbmc.Monitor):
         LOG.info("--<[ kodi scan/%s ]" % library)
         globals()["KodiScanCount"] -= 1
 
-        if KodiScanCount:
+        if KodiScanCount > 0: # use > 0 in case the start event was not detected
             return
+
+        globals()["KodiScanCount"] = 0
 
         if utils.ScanStaggered:
             utils.ScanStaggered = False
@@ -81,6 +83,7 @@ def Notification(method, data):  # threaded by caller
     elif method == 'Other.restore':
         BackupRestore()
     elif method == 'Other.skinreload':
+        pluginmenu.QueryCache = {} # Clear Cache
         xbmc.executebuiltin('ReloadSkin()')
         LOG.info("Reload skin by notification")
     elif method == 'Other.reset_device_id':
@@ -479,11 +482,6 @@ def System_OnQuit():
     utils.SystemShutdown = True
     utils.SyncPause = {}
     webservice.close()
-
-    for EmbyServer in list(utils.EmbyServers.values()):
-        if player.Transcoding:
-            EmbyServer.API.close_transcode()
-
     EmbyServer_DisconnectAll()
 
 def ServersConnect():

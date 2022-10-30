@@ -218,7 +218,7 @@ class EmbyDatabase:
         self.cursor.execute("SELECT KodiId, KodiType, EmbyLibraryId FROM Mapping WHERE EmbyId = ?", (item_id,))
         ItemData = self.cursor.fetchone()
 
-        if ItemData:
+        if ItemData and ItemData[0]:
             EmbyLibraryIds = ItemData[2].split(";")
             KodiIds = ItemData[0].split(";")
 
@@ -308,6 +308,15 @@ class EmbyDatabase:
 
     def get_stacked_kodiid(self, EmbyPresentationKey, EmbyLibraryId, EmbyType):
         self.cursor.execute("SELECT KodiId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyPresentationKey, EmbyType, EmbyLibraryId, "%s;%%" % EmbyLibraryId, "%%;%s" % EmbyLibraryId, "%%;%s;%%" % EmbyLibraryId))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return Data[0]
+
+        return None
+
+    def get_EmbyId_by_EmbyPresentationKey(self, EmbyPresentationKey):
+        self.cursor.execute("SELECT EmbyId FROM Mapping WHERE EmbyPresentationKey = ?", (EmbyPresentationKey,))
         Data = self.cursor.fetchone()
 
         if Data:

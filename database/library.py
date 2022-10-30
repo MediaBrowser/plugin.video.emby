@@ -600,6 +600,7 @@ class Library:
     # Send event back to service.py
     def select_libraries(self, mode):  # threaded by caller
         libraries = ()
+        pluginmenu.QueryCache = {}
 
         if mode in ('RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
             for LibraryId, Value in list(self.Whitelist.items()):

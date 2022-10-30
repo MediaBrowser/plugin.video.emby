@@ -1,3 +1,31 @@
+7.9.4
+=============
+fix strm files with plugin links
+fix episode sync when no seasonid is assigned
+improve content detection for dynamic nodes
+fix folder view for synced content
+improve querycache for dynamic nodes
+improve http requests
+clean connection code
+improve cinema mode path validation (speed up trailer load, if multiple (> 1) trailers are loaded) -> threaded loading
+fix kodi scan event issue
+clear query cache on skin reload
+fix 3d content in cinemamode
+fix cinemamode when autoplay next is enabled
+fix listitem artworks for multiversion episodes
+fix people artwork updates
+
+
+7.9.3
+=============
+add translations
+fix item/library remove issue
+fix playback crash when Emby content is invalid
+fix dynamic nodes for identical content assinged to multiple Emby libraries
+add emby options context menu support for dynamic nodes
+fix music fanart
+
+
 7.9.2
 =============
 Another fix for library repair issue

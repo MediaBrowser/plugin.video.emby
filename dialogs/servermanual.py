@@ -61,7 +61,6 @@ class ServerManual(xbmcgui.WindowXMLDialog):
                 # Display error
                 self._error(ERROR['Empty'], utils.Translate(30617))
                 LOG.error("Server cannot be null")
-
             elif self._connect_to_server(server, port):
                 self.close()
         # Remind me later
