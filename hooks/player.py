@@ -8,7 +8,6 @@ from emby import listitem
 from helper import utils, loghandler, pluginmenu
 from dialogs import skipintrocredits
 
-Transcoding = False
 PlaylistRemoveItem = "-1"
 result = json.loads(xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Application.GetProperties", "params": {"properties": ["volume", "muted"]}}')).get('result', {})
 Volume = result.get('volume', 0)
@@ -22,7 +21,7 @@ MultiselectionDone = False
 PositionTrackerThread = False
 TrailerPath = ""
 playlistIndex = -1
-AddonModeTrailerItem = None
+SkipItem = False
 MediaType = ""
 LibraryId = ""
 KodiId = ""
@@ -60,8 +59,8 @@ class PlayerEvents(xbmc.Player):
     def onAVChange(self):
         LOG.info("[ onAVChange ]")
 
-        if PlaylistRemoveItem != "-1" or not self.isPlaying() or AddonModeTrailerItem:
-            LOG.debug("onAVChange not playing")
+        if PlaylistRemoveItem != "-1" or SkipItem or not self.isPlaying():
+            LOG.debug("skip onAVChange")
             return
 
         globals()["PlayingItem"]['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
@@ -82,10 +81,7 @@ class PlayerEvents(xbmc.Player):
             utils.SyncPause['playing'] = True
 
         # Trailer from webserverice (addon mode)
-        if AddonModeTrailerItem:
-            if self.isPlaying():
-                self.updateInfoTag(AddonModeTrailerItem)
-
+        if SkipItem:
             return
 
         # 3D, ISO etc. content from webserverice (addon mode)
@@ -222,11 +218,11 @@ class PlayerEvents(xbmc.Player):
                                 globals()["MultiselectionDone"] = True
                                 videodb = dbio.DBOpenRO("video", "onAVStarted")
                                 li, _, _ = utils.load_ContentMetadataFromKodiDB(KodiId, MediaType, videodb, None)
+                                dbio.DBCloseRO("video", "onAVStarted")
 
                                 if not li:
                                     return
 
-                                dbio.DBCloseRO("video", "onAVStarted")
                                 Path = MediaSources[MediaIndex][3]
 
                                 if Path.startswith('\\\\'):
@@ -339,13 +335,15 @@ def stop_playback(delete, Stopped):
     if MultiselectionDone:
         return
 
-    LOG.info("[ played info ] %s" % PlayingItem)
+    LOG.info("[ played info ] %s / %s" % (PlayingItem, MediaType))
 
     # remove cached query for next up node
     if MediaType == "episode" and LibraryId in EmbyServerPlayback.Views.ViewItems:
         CacheId = "next_episodes_%s" % EmbyServerPlayback.Views.ViewItems[LibraryId][0]
+        LOG.info("[ played info cache Id ] %s" % CacheId)
 
         if CacheId in pluginmenu.QueryCache:
+            LOG.info("[ played info clear cache ]")
             del pluginmenu.QueryCache[CacheId]
 
     close_SkipIntroDialog()
@@ -355,8 +353,7 @@ def stop_playback(delete, Stopped):
     globals()["PlayingItem"] = {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}
 
     # Trailer is playing, skip
-    if AddonModeTrailerItem:
-        globals()["AddonModeTrailerItem"] = None
+    if SkipItem:
         return
 
     # Trailers for native content
@@ -472,7 +469,7 @@ def stop_playback(delete, Stopped):
 
 def play_Trailer(): # for native content
     Path = EmbyServerPlayback.http.Intros[0]['Path']
-    li = listitem.set_ListItem(EmbyServerPlayback.http.Intros[0], EmbyServerPlayback.server_id)
+    li = listitem.set_ListItem(EmbyServerPlayback.http.Intros[0], EmbyServerPlayback.ServerData['ServerId'])
     del EmbyServerPlayback.http.Intros[0]
 
     if Path.startswith('\\\\'):

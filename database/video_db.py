@@ -1,6 +1,8 @@
+from helper import loghandler
 from . import common_db
 
 FavoriteTags = {"Favorite movies": None, "Favorite musicvideos": None, "Favorite tvshows": None, "Favorite episodes": None}
+LOG = loghandler.LOG('EMBY.database.video_db')
 
 class VideoDatabase:
     def __init__(self, cursor):
@@ -289,10 +291,7 @@ class VideoDatabase:
             else:
                 role = person['Type']
 
-            if role == "MusicVideoArtist":
-                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], person['LibraryId'], person['Type'].lower())
-            else:
-                person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], False, person['Type'].lower())
+            person_id, NewPersion = self.add_get_person(person['Name'], person['imageurl'], person['LibraryId'], person['Type'].lower())
 
             if person['Type'] == 'Director':
                 self.cursor.execute("INSERT OR REPLACE INTO director_link(actor_id, media_id, media_type) VALUES (?, ?, ?)", (person_id, KodiId, MediaType))
@@ -307,49 +306,26 @@ class VideoDatabase:
                     self.cursor.execute("INSERT OR REPLACE INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", (person_id, person['Type'].lower(), "thumb", person['imageurl']))
 
     def add_get_person(self, PersonName, imageurl, LibraryId, ArtType):
-        if LibraryId: # Unify Artist by LibraryId (Allow duplicates for multi Musicvideo Libraries)
-            self.cursor.execute("SELECT actor_id, name, art_urls FROM actor WHERE name LIKE ? COLLATE NOCASE AND art_urls LIKE ? COLLATE NOCASE", ("%s%%" % PersonName, "%%%s%%" % LibraryId))
-            Data = self.cursor.fetchall()
+        self.cursor.execute("SELECT actor_id, name, art_urls FROM actor WHERE name LIKE ? COLLATE NOCASE AND art_urls LIKE ? COLLATE NOCASE", ("%s%%" % PersonName, "%%%s" % LibraryId))
+        Data = self.cursor.fetchone()
 
-            for Info in Data:
-                CompareName = Info[1].rstrip()
+        if Data:
+            if imageurl != Data[1]: # update artwork
+                self.cursor.execute("UPDATE actor SET art_urls = ? WHERE actor_id = ?", (imageurl, Data[0]))
+                self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND type = ? AND media_type = ? ", (imageurl, Data[0], "thumb", ArtType))
 
-                if CompareName == PersonName:
-                    if imageurl != Info[2]: # update artwork
-                        self.cursor.execute("UPDATE actor SET art_urls = ? WHERE actor_id = ?", (imageurl, Info[0]))
-                        self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND type = ? AND media_type = ? ", (imageurl, Info[0], "thumb", ArtType))
-
-                    return Info[0], False
-        else:
-            self.cursor.execute("SELECT actor_id, art_urls, name FROM actor WHERE name = ?", (PersonName,))
-            Data = self.cursor.fetchone()
-
-            if Data:
-                if imageurl != Data[1]: # update artwork
-                    self.cursor.execute("UPDATE actor SET art_urls = ? WHERE actor_id = ?", (imageurl, Data[0]))
-                    self.cursor.execute("UPDATE art SET url = ? WHERE media_id = ? AND type = ? AND media_type = ? ", (imageurl, Data[0], "thumb", ArtType))
-
-                return Data[0], False
+            return Data[0], False
 
         self.cursor.execute("SELECT coalesce(max(actor_id), 0) FROM actor")
         person_id = self.cursor.fetchone()[0] + 1
 
-        if LibraryId:
-             # Unify Artist by LibraryId (Allow duplicates for multi Musicvideo Libraries)
+        while True:
             try:
                 self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl))
-            except:
-                while True:
-                    PersonName += " "
-
-                    try:
-                        self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl))
-                    except:
-                        continue
-
-                    break
-        else:
-            self.cursor.execute("INSERT INTO actor(actor_id, name, art_urls) VALUES (?, ?, ?)", (person_id, PersonName, imageurl))
+                break
+            except Exception as Error:
+                LOG.warning("Duplicate PersonName detected: %s / %s" % (PersonName, Error))
+                PersonName += " "
 
         return person_id, True
 

@@ -52,7 +52,7 @@ class API:
         if not utils.getCast:
             self.DynamicListsRemoveFields += ("People",)
 
-    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, MusicVideo=False):
+    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False):
         SingleRun = False
         Limit = get_Limit(MediaTypes)
         IncludeItemTypes, _ = self.get_MediaData(MediaTypes, Basic, True)
@@ -84,13 +84,13 @@ class API:
         else:
             url = "Users/%s/Items"
 
-        embydb = dbio.DBOpenRO(self.EmbyServer.server_id, "get_Items_dynamic")
+        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
         videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
         musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
 
         while True:
             params['StartIndex'] = index
-            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.user_id}, False, False)
+            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.ServerData['UserId']}, False, False)
 
             if Latest:
                 if not IncomingData:
@@ -108,7 +108,7 @@ class API:
             ItemsFullQuery = []
 
             for Item in IncomingData['Items']:
-                if not MusicVideo:
+                if not SkipLocalDB:
                     Data = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.
 
                     if Data:
@@ -143,7 +143,7 @@ class API:
 
         dbio.DBCloseRO("video", "get_Items_dynamic")
         dbio.DBCloseRO("music", "get_Items_dynamic")
-        dbio.DBCloseRO(self.EmbyServer.server_id, "get_Items_dynamic")
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
 
     def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra):
         SingleRun = False
@@ -173,7 +173,7 @@ class API:
 
         while True:
             params['StartIndex'] = index
-            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.ServerData['UserId']}, False, False)
 
             if 'Items' not in IncomingData:
                 break
@@ -207,7 +207,7 @@ class API:
         if Extra:
             params.update(Extra)
 
-        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.ServerData['UserId']}, False, False)
 
         if 'TotalRecordCount' in Data:
             return int(Data['TotalRecordCount'])
@@ -224,7 +224,7 @@ class API:
             'Recursive': True,
             'Fields': Fields
         }
-        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.ServerData['UserId']}, False, False)
 
         if 'Items' in Data:
             return Data['Items']
@@ -273,7 +273,7 @@ class API:
 
     def get_user(self, user_id):
         if not user_id:
-            return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s" % self.EmbyServer.user_id}, False, False)
+            return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s" % self.EmbyServer.ServerData['UserId']}, False, False)
 
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s" % user_id}, False, False)
 
@@ -281,17 +281,23 @@ class API:
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Library/VirtualFolders/Query"}, False, False)
 
     def get_views(self):
-        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Views" % self.EmbyServer.user_id}, False, False)
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Views" % self.EmbyServer.ServerData['UserId']}, False, False)
+
+
 
     def get_Item_Basic(self, Id, ParentId, Type):
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1}, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1}, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.ServerData['UserId']}, False, False)
 
         if 'Items' in Data:
             return Data['Items']
 
         return []
 
-    def get_Image_Binary(self, Id, ImageType, ImageIndex, ImageTag):
+    def get_Item_Binary(self, Id):
+        Data = self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Items/%s/Download" % Id}, False, True)
+        return Data
+
+    def get_Image_Binary(self, Id, ImageType, ImageIndex, ImageTag, UserImage=False):
         Params = {}
 
         if utils.enableCoverArt:
@@ -302,7 +308,11 @@ class API:
         if utils.compressArt:
             Params["Quality"]: 70
 
-        BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': "Items/%s/Images/%s/%s?%s" % (Id, ImageType, ImageIndex, ImageTag)}, False, True, True)
+
+        if UserImage:
+            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': "Users/%s/Images/%s?Format=original" % (Id, ImageType)}, False, True, True)
+        else:
+            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': "Items/%s/Images/%s/%s?%s" % (Id, ImageType, ImageIndex, ImageTag)}, False, True, True)
 
         if 'Content-Type' in Headers:
             ContentType = Headers['Content-Type']
@@ -336,7 +346,7 @@ class API:
             'Fields': Fields,
             'LocationTypes': "FileSystem,Remote,Offline"
         }
-        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.user_id}, False, False)
+        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Users/%s/Items" % self.EmbyServer.ServerData['UserId']}, False, False)
 
         if SingleItemQuery:
             if 'Items' in Data:
@@ -355,7 +365,7 @@ class API:
 
     def get_channels(self):
         params = {
-            'UserId': self.EmbyServer.user_id,
+            'UserId': self.EmbyServer.ServerData['UserId'],
             'EnableImages': True,
             'EnableUserData': True,
             'Fields': EmbyFields['TvChannel']
@@ -369,7 +379,7 @@ class API:
 
     def get_channelprogram(self):
         params = {
-            'UserId': self.EmbyServer.user_id,
+            'UserId': self.EmbyServer.ServerData['UserId'],
             'EnableImages': True,
             'EnableUserData': True,
             'Fields': "Overview"
@@ -377,31 +387,25 @@ class API:
         return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "LiveTv/Programs"}, False, False)
 
     def get_specialfeatures(self, item_id):
-        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/SpecialFeatures" % (self.EmbyServer.user_id, item_id)}, False, False)
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/SpecialFeatures" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
     def get_intros(self, item_id):
-        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/Intros" % (self.EmbyServer.user_id, item_id)}, False, False)
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/Intros" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
     def get_additional_parts(self, item_id):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Videos/%s/AdditionalParts" % item_id}, False, False)
 
     def get_local_trailers(self, item_id):
-        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/LocalTrailers" % (self.EmbyServer.user_id, item_id)}, False, False)
+        return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Users/%s/Items/%s/LocalTrailers" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
-    def get_themes(self, item_id):
-        params = {
-            'UserId': self.EmbyServer.user_id,
-            'InheritFromParent': True,
-            'EnableThemeSongs': True,
-            'EnableThemeVideos': True
-        }
-        return self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': "Items/%s/ThemeMedia" % item_id}, False, False)
+    def get_themes(self, item_id, Songs, Videos):
+        return self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], 'InheritFromParent': True, 'EnableThemeSongs': Songs, 'EnableThemeVideos': Videos}, 'type': "GET", 'handler': "Items/%s/ThemeMedia" % item_id}, False, False)
 
     def get_plugins(self):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "Plugins"}, False, False)
 
     def get_sync_queue(self, date):
-        return self.EmbyServer.http.request({'params': {'LastUpdateDT': date}, 'type': "GET", 'handler': "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.user_id}, False, False)
+        return self.EmbyServer.http.request({'params': {'LastUpdateDT': date}, 'type': "GET", 'handler': "Emby.Kodi.SyncQueue/%s/GetItems" % self.EmbyServer.ServerData['UserId']}, False, False)
 
     def get_system_info(self):
         return self.EmbyServer.http.request({'params': {}, 'type': "GET", 'handler': "System/Configuration"}, False, False)
@@ -413,13 +417,13 @@ class API:
             params["PlayCount"] = PlayCount
             params["Played"] = bool(PlayCount)
 
-        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.user_id, item_id)}, False, False)
+        self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Users/%s/Items/%s/UserData" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
     def set_played(self, item_id, PlayCount):
         if PlayCount:
-            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
         else:
-            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/PlayedItems/%s" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
     def refresh_item(self, item_id):
         params = {
@@ -433,9 +437,9 @@ class API:
 
     def favorite(self, item_id, Add):
         if Add:
-            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+            self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
         else:
-            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.user_id, item_id)}, False, False)
+            self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Users/%s/FavoriteItems/%s" % (self.EmbyServer.ServerData['UserId'], item_id)}, False, False)
 
     def post_capabilities(self, params):
         self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Capabilities/Full"}, False, False)
@@ -454,6 +458,9 @@ class API:
 
     def session_stop(self, params):
         self.EmbyServer.http.request({'params': params, 'type': "POST", 'handler': "Sessions/Playing/Stopped"}, False, False)
+
+    def session_logout(self):
+        self.EmbyServer.http.request({'params': {}, 'type': "POST", 'handler': "Sessions/Logout"}, False, False)
 
     def delete_item(self, item_id):
         self.EmbyServer.http.request({'params': {}, 'type': "DELETE", 'handler': "Items/%s" % item_id}, False, False)
@@ -488,7 +495,7 @@ class API:
     def get_upcoming(self, ParentId, MediaTypes):
         _, Fields = self.get_MediaData(MediaTypes, False, False)
         params = {
-            'UserId': self.EmbyServer.user_id,
+            'UserId': self.EmbyServer.ServerData['UserId'],
             'ParentId': ParentId,
             'Fields': Fields,
             'EnableImages': True,
@@ -504,7 +511,7 @@ class API:
     def get_NextUp(self, ParentId, MediaTypes):
         _, Fields = self.get_MediaData(MediaTypes, False, False)
         params = {
-            'UserId': self.EmbyServer.user_id,
+            'UserId': self.EmbyServer.ServerData['UserId'],
             'ParentId': ParentId,
             'Fields': Fields,
             'EnableImages': True,

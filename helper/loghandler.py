@@ -8,7 +8,7 @@ class LOG:
 
     def debug(self, msg):
 #        for EmbyServer in utils.EmbyServers.values():
-#            msg = msg.replace(EmbyServer.Token, "MASKED_API_KEY")
+#            msg = msg.replace(EmbyServer.ServerData['AccessToken'], "MASKED_API_KEY")
 
         msg = "%s: %s" % (self.Prefix, msg)
         xbmc.log(msg, xbmc.LOGDEBUG)

@@ -29,7 +29,7 @@ class Library:
 
         globals()["WorkerInProgress"] = True
         Items = []
-        embydb = dbio.DBOpenRO(self.EmbyServer.server_id, Worker)
+        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], Worker)
 
         if not embydb:
             globals()["WorkerInProgress"] = False
@@ -45,7 +45,7 @@ class Library:
         elif Worker == "library":
             Items = embydb.get_PendingSync()
 
-        dbio.DBCloseRO(self.EmbyServer.server_id, Worker)
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], Worker)
 
         if not Items:
             globals()["WorkerInProgress"] = False
@@ -85,10 +85,10 @@ class Library:
             utils.sleep(1)
 
         self.EmbyDBOpen = True
-        return dbio.DBOpenRW(self.EmbyServer.server_id, TaskId)
+        return dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], TaskId)
 
     def close_EmbyDBRW(self, TaskId):
-        dbio.DBCloseRW(self.EmbyServer.server_id, TaskId)
+        dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], TaskId)
         self.EmbyDBOpen = False
         utils.SyncPause['priority'] = False
 
@@ -219,7 +219,7 @@ class Library:
         if not UserDataItems:
             return ContinueJobs
 
-        embydb = dbio.DBOpenRO(self.EmbyServer.server_id, "userdata")
+        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "userdata")
         utils.progress_open(utils.Translate(33178))
         Items = []
         ItemsNotSynced = []
@@ -241,7 +241,7 @@ class Library:
                 ItemsNotSynced.append(str(UserDataItem))
                 LOG.info("Skip not synced item: %s " % UserDataItem)
 
-        dbio.DBCloseRO(self.EmbyServer.server_id, "userdata")
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "userdata")
         UpdateItems = ItemsSort(Items, False)
         embydb = self.open_EmbyDBRW("userdata")
         MusicSynced = False
@@ -552,7 +552,7 @@ class Library:
         if Worker_is_paused():
             LOG.info("-->[ worker delay %s]" % str(utils.SyncPause))
             dbio.DBCloseRW(ContentCategory, "ItemOps")
-            dbio.DBCloseRW(self.EmbyServer.server_id, "ItemOps")
+            dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], "ItemOps")
             self.EmbyDBOpen = False
 
             while Worker_is_paused():
@@ -563,7 +563,7 @@ class Library:
 
             self.EmbyDBOpen = True
             LOG.info("--<[ worker delay %s]" % str(utils.SyncPause))
-            embydb = dbio.DBOpenRW(self.EmbyServer.server_id, "ItemOps")
+            embydb = dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], "ItemOps")
             kodidb = dbio.DBOpenRW(ContentCategory, "ItemOps")
             self.load_libraryObject(Item['Type'], embydb, kodidb)
 
@@ -703,6 +703,7 @@ class Library:
                             embydb.add_PendingSync(LibraryId, library_name, library_type, "MusicVideo", "video")
                         elif library_type == 'homevideos':
                             embydb.add_PendingSync(LibraryId, library_name, library_type, "Video", "video")
+                            embydb.add_PendingSync(LibraryId, library_name, library_type, "BoxSet", "video")
                         elif library_type == 'tvshows':
                             embydb.add_PendingSync(LibraryId, library_name, library_type, "Series", "video")
                             embydb.add_PendingSync(LibraryId, library_name, library_type, "Season", "video")

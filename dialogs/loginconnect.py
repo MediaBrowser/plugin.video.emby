@@ -14,7 +14,6 @@ LOG = loghandler.LOG('EMBY.dialogs.loginconnect')
 
 class LoginConnect(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
-        self._user = None
         self.error = None
         self.user_field = None
         self.password_field = None
@@ -22,17 +21,8 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         self.remind_button = None
         self.error_toggle = None
         self.error_msg = None
-        self.connect_manager = None
+        self.EmbyServer = None
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def PassVar(self, connect_manager):
-        self.connect_manager = connect_manager
-
-    def is_logged_in(self):
-        return bool(self._user)
-
-    def get_user(self):
-        return self._user
 
     def onInit(self):
         self.user_field = self._add_editcontrol(755, 338, 40, 415, False)
@@ -86,13 +76,12 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
         return control
 
     def _login(self, username, password):
-        result = self.connect_manager.login_to_connect(username, password)
+        result = self.EmbyServer.login_to_connect(username, password)
 
         if not result:
             self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
-        self._user = result
         utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), result['User']['Name']), icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
         return True
 

@@ -543,8 +543,8 @@ def get_shortdate(EmbyDate):
         DateTime = EmbyDate.split(" ")
         DateTemp = DateTime[0].split("-")
         return "%s-%s-%s" % (DateTemp[2], DateTemp[1], DateTemp[0])
-    except:
-        LOG.debug("No valid date: %s" % EmbyDate)
+    except Exception as Error:
+        LOG.debug("No valid date: %s / %s" % (EmbyDate, Error))
         return ""
 
 def get_actors(People):

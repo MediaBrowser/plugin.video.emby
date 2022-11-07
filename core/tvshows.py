@@ -27,7 +27,7 @@ class TVShows:
         common.set_trailer(item, self.EmbyServer)
 
         for ItemIndex in range(len(item['Librarys'])):
-            common.set_videocommon(item, self.EmbyServer.server_id, ItemIndex)
+            common.set_videocommon(item, self.EmbyServer.ServerData['ServerId'], ItemIndex)
             Stacked = False
 
             if not common.get_file_path(item, "tvshows", ItemIndex):
@@ -122,7 +122,7 @@ class TVShows:
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "Season", "season", item['KodiParentIds'], item['LibraryIds'], item['SeriesId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                 LOG.info("ADD stacked season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
             else:
-                common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
+                common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
                 self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "season")
                 self.video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], "season")
 

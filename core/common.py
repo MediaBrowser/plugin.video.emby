@@ -32,7 +32,7 @@ def library_check(item, EmbyServer, emby_db):
     item['KodiFileIds'] = []
     item['UpdateItems'] = []
     item['Librarys'] = []
-    item['ServerId'] = EmbyServer.server_id
+    item['ServerId'] = EmbyServer.ServerData['ServerId']
     ExistingItem = emby_db.get_item_by_id(item['Id'])
 
     if ExistingItem:
@@ -140,7 +140,7 @@ def get_filename(item, MediaID, API, ItemIndex):
     Temp = item['FullPath'].lower()
 
     if Temp.startswith("plugin://"):
-        item['Filename'] = Temp
+        item['Filename'] = item['FullPath']
         return
 
     if Temp.endswith(".bdmv"):
@@ -331,6 +331,8 @@ def set_people(item, ServerId, ItemIndex):
 
     if "People" in item:
         for Index, People in enumerate(item['People']):
+            People['LibraryId'] = item['LibraryIds'][ItemIndex]
+
             if 'Name' in People:
                 if People['Type'] == "Writer":
                     item['Writers'].append(People['Name'])
@@ -339,16 +341,10 @@ def set_people(item, ServerId, ItemIndex):
                 elif People['Type'] == "Actor":
                     item['Cast'].append(People['Name'])
 
-                if item['Type'] == "MusicVideo":
-                    if 'PrimaryImageTag' in People:
-                        People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s-%s" % (ServerId, People['Id'], People['PrimaryImageTag'], item['LibraryIds'][ItemIndex])
-                    else:
-                        People['imageurl'] = item['LibraryIds'][ItemIndex]
+                if 'PrimaryImageTag' in People:
+                    People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s-%s" % (ServerId, People['Id'], People['PrimaryImageTag'], item['LibraryIds'][ItemIndex])
                 else:
-                    if 'PrimaryImageTag' in People:
-                        People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (ServerId, People['Id'], People['PrimaryImageTag'])
-                    else:
-                        People['imageurl'] = ""
+                    People['imageurl'] = item['LibraryIds'][ItemIndex]
             else:
                 PeopleInvalidRecords.append(Index)
 
@@ -475,7 +471,7 @@ def set_trailer(item, EmbyServer):
     if item['LocalTrailerCount']:
         for IntroLocal in EmbyServer.API.get_local_trailers(item['Id']):
             Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-            item['Trailer'] = "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (EmbyServer.server_id, IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], Filename)
+            item['Trailer'] = "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (EmbyServer.ServerData['ServerId'], IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], Filename)
             break
 
     if 'RemoteTrailers' in item:
@@ -572,38 +568,47 @@ def set_studios(item):
     item['Studio'] = " / ".join(item['Studios'])
 
 def set_chapters(item, server_id):
+    Chapters = {}
     item['ChapterInfo'] = []
     item['IntroStartPositionTicks'] = 0
     item['IntroEndPositionTicks'] = 0
     item['CreditsPositionTicks'] = 0
-    ChapterDuplicateCheck = []
 
     if 'Chapters' in item:
+        MarkerLabel = ""
+
         for index, Chapter in enumerate(item['Chapters']):
             ChapterImage = None
+            Chapter["StartPositionTicks"] = round(float(Chapter["StartPositionTicks"] or 0) / 10000000)
 
             if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "IntroEnd" or Chapter['MarkerType'] == "CreditsStart"):
                 if Chapter['MarkerType'] == "IntroStart":
-                    item['IntroStartPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                    item['IntroStartPositionTicks'] = Chapter["StartPositionTicks"]
                 elif Chapter['MarkerType'] == "IntroEnd":
-                    item['IntroEndPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                    item['IntroEndPositionTicks'] = Chapter["StartPositionTicks"]
                 elif Chapter['MarkerType'] == "CreditsStart":
-                    item['CreditsPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                    item['CreditsPositionTicks'] = Chapter["StartPositionTicks"]
+
+                MarkerLabel = quote(MarkerTypeMapping[Chapter['MarkerType']])
 
                 if "ImageTag" in Chapter:
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(MarkerTypeMapping[Chapter['MarkerType']]))
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], MarkerLabel)
                 else: # inject blank image, otherwise not possible to use text overlay (webservice.py)
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", quote(MarkerTypeMapping[Chapter['MarkerType']]))
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", MarkerLabel)
             else:
                 if "Name" in Chapter:
+                    Chapter['Name'] = Chapter['Name'].replace("-", " ")
+
                     if Chapter['Name'] == "Title Sequence" or Chapter['Name'] == "End Credits" or Chapter['Name'] == "Intro Start" or Chapter['Name'] == "Intro End":
                         if Chapter['Name'] == "Intro Start" and not item['IntroStartPositionTicks']:
-                            item['IntroStartPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                            item['IntroStartPositionTicks'] = Chapter["StartPositionTicks"]
                         elif Chapter['Name'] == "Intro End" and not item['IntroEndPositionTicks']:
-                            item['IntroEndPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
+                            item['IntroEndPositionTicks'] = Chapter["StartPositionTicks"]
                         elif Chapter['Name'] == "End Credits" and not item['CreditsPositionTicks']:
-                            item['CreditsPositionTicks'] = int(int(Chapter["StartPositionTicks"]) / 10000000)
-                    elif " 0" in Chapter['Name'] or int(Chapter["StartPositionTicks"]) % 3000000000 != 0: # embedded chapter
+                            item['CreditsPositionTicks'] = Chapter["StartPositionTicks"]
+
+                        MarkerLabel = quote(Chapter['Name'])
+                    elif " 0" in Chapter['Name'] or Chapter["StartPositionTicks"] % 300 != 0: # embedded chapter
                         continue
 
                     if "ImageTag" in Chapter:
@@ -612,11 +617,20 @@ def set_chapters(item, server_id):
                         else:
                             ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s" % (server_id, item['Id'], index, Chapter['ImageTag'])
 
-            if Chapter["StartPositionTicks"] in ChapterDuplicateCheck:
-                continue
+            if not Chapter["StartPositionTicks"] in Chapters:
+                Chapters[Chapter["StartPositionTicks"]] = ChapterImage
+            else:
+                if MarkerLabel:
+                    Data = Chapters[Chapter["StartPositionTicks"]].split("-")
 
-            item['ChapterInfo'].append({"StartPositionTicks": round(float((Chapter["StartPositionTicks"] or 0) / 10000000.0), 6), "Image": ChapterImage})
-            ChapterDuplicateCheck.append(Chapter["StartPositionTicks"])
+                    if len(Data) == 7: # replace existing chapter label with marker label
+                        Data[6] = MarkerLabel
+                        Chapters[Chapter["StartPositionTicks"]] = "-".join(Data)
+                    else: # add marker label
+                        Chapters[Chapter["StartPositionTicks"]] += "-%s" % MarkerLabel
+
+    for StartPositionTicks, ChapterImage in list(Chapters.items()):
+        item['ChapterInfo'].append({"StartPositionTicks": StartPositionTicks, "Image": ChapterImage})
 
 # Set Kodi artwork
 def set_KodiArtwork(item, server_id, DynamicNode):
@@ -668,7 +682,6 @@ def set_KodiArtwork(item, server_id, DynamicNode):
                 EmbyArtworkTag = 0
             elif "%sImageTags" % ImageTagsMapping[0] in item:
                 BackDropsKey = "%sImageTags" % ImageTagsMapping[0]
-                EmbyBackDropsId = None
 
                 if BackDropsKey == "ParentBackdropImageTags":
                     EmbyBackDropsId = item["ParentBackdropItemId"]
@@ -746,9 +759,9 @@ def delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, e
 def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, ItemIndex):
     set_RunTimeTicks(item)
     get_streams(item)
-    set_chapters(item, EmbyServer.server_id)
+    set_chapters(item, EmbyServer.ServerData['ServerId'])
     get_filename(item, FileId, EmbyServer.API, ItemIndex)
-    set_videocommon(item, EmbyServer.server_id, ItemIndex)
+    set_videocommon(item, EmbyServer.ServerData['ServerId'], ItemIndex)
     emby_db.add_streamdata(item['Id'], item['Streams'])
     video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], MediaType)
     video_db.add_bookmark_chapter(item['KodiFileIds'][ItemIndex], item['RunTimeTicks'], item['ChapterInfo'])

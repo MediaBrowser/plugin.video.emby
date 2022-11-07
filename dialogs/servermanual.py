@@ -13,9 +13,7 @@ LOG = loghandler.LOG('EMBY.dialogs.servermanual')
 
 
 class ServerManual(xbmcgui.WindowXMLDialog):
-    def __init__(self, *args, **kwargs):
-        self._server = None
-        self.connect_manager = None
+    def __init__(self, *args):
         self.error = None
         self.connect_button = None
         self.cancel_button = None
@@ -23,16 +21,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self.error_msg = None
         self.host_field = None
         self.port_field = None
-        xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def PassVar(self, connect_manager):
-        self.connect_manager = connect_manager
-
-    def is_connected(self):
-        return bool(self._server)
-
-    def get_server(self):
-        return self._server
+        xbmcgui.WindowXMLDialog.__init__(self, *args)
 
     def onInit(self):
         self.connect_button = self.getControl(CONNECT)
@@ -85,13 +74,11 @@ class ServerManual(xbmcgui.WindowXMLDialog):
     def _connect_to_server(self, server, port):
         server_address = "%s:%s" % (server, port) if port else server
         self._message("%s %s..." % (utils.Translate(30610), server_address))
-        result = self.connect_manager.connect_to_address(server_address)
 
-        if not result or result['State'] == 0:  # Unavailable
+        if not self.connect_to_address(server_address):  # Unavailable
             self._message(utils.Translate(30609))
             return False
 
-        self._server = result['Servers'][0]
         return True
 
     def _message(self, message):
