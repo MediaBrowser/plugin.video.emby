@@ -1,3 +1,22 @@
+7.10.0
+=============
+small playback improvement in addon mode for multicontent and transcoding
+improve cinemamode in addon mode
+unify actors/artists for each libraries
+fix dynamic nodes status update
+fix chapter marker image overlay for intros
+add collection support for homevideos and musicvideos
+fix tv tunes
+add option to sync themes locally (tv tunes)
+fix xml issues
+fix boxsets for dynamic nodes when folders are assigned
+image enhancement toggle -> reset artwork
+change default setting for sync while playback to enabled
+change to sync while playback 
+Rewrite Emby login code, fixing issues and remove duplicate http queries. Also fix emby connect and support dynamic IPs. Assign user picture as login icons.
+fix strm plugin issue
+
+
 7.9.4
 =============
 fix strm files with plugin links

@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 import json
 from _thread import start_new_thread
 import xbmc
@@ -10,6 +11,7 @@ QueueItemsStatusupdate = ()
 QueryItemStatusThread = False
 QueueItemsRemove = ()
 QueryItemRemoveThread = False
+SettingsChangedThread = False
 KodiScanCount = 0
 SleepMode = False
 PatchFiles = {"script-emby-connect-login-manual.xml", "script-emby-connect-login.xml", "script-emby-connect-server.xml", "script-emby-connect-server-manual.xml", "script-emby-connect-users.xml"}
@@ -71,7 +73,12 @@ class monitor(xbmc.Monitor):
         LOG.info("--<[ kodi clean/%s ]" % library)
 
     def onSettingsChanged(self):
-        start_new_thread(settingschanged, ())
+        # delay settings changed updated
+        if not SettingsChangedThread:
+            globals()["SettingsChangedThread"] = True
+            start_new_thread(settingschanged, ())
+        else:
+            LOG.info("[ Reload settings skip ]")
 
 def Notification(method, data):  # threaded by caller
     if method == 'Other.managelibsselection':
@@ -305,7 +312,7 @@ def BackupRestore():
     utils.copytree(RestoreFolderAddonData, utils.FolderAddonUserdata)
     RestoreFolderDatabase = "%s/Database/" % RestoreFolder
     utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
-    xbmc.executebuiltin('RestartApp')
+    utils.restart_kodi()
 
 # Emby backup
 def Backup():
@@ -364,7 +371,7 @@ def EmbyServer_DisconnectAll():
 
 # Update progress, skip for seasons and series. Just update episodes
 def UserDataChanged(server_id, UserDataList, UserId):
-    if UserId != utils.EmbyServers[server_id].user_id:
+    if UserId != utils.EmbyServers[server_id].ServerData['UserId']:
         return
 
     LOG.info("[ UserDataChanged ] %s" % UserDataList)
@@ -397,7 +404,7 @@ def UserDataChanged(server_id, UserDataList, UserId):
 
 def ServerConnect(ServerSettings):
     EmbyServerObj = emby.EmbyServer(UserDataChanged, ServerSettings)
-    server_id, EmbyServer = EmbyServerObj.register()
+    server_id, EmbyServer = EmbyServerObj.ServerInitConnection()
 
     if not server_id or server_id == 'cancel' or utils.SystemShutdown:
         LOG.error("EmbyServer Connect error")
@@ -412,18 +419,19 @@ def ServerConnect(ServerSettings):
     return True
 
 def settingschanged():  # threaded by caller
-    utils.SkipUpdateSettings -= 1
+    globals()["SettingsChangedThread"] = False
 
-    if utils.SkipUpdateSettings >= 0:
+    if utils.sleep(0.5):
         return
 
-    LOG.info("[ Reload settings ]")
-    utils.SkipUpdateSettings = 0
+    LOG.info("-->[ Reload settings ]")
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
     RestartKodi = False
     syncdatePrevious = utils.syncdate
     synctimePrevious = utils.synctime
     disablehttp2Previous = utils.disablehttp2
     xspplaylistsPreviousValue = utils.xspplaylists
+    enableCoverArtPreviousValue = utils.enableCoverArt
     syncruntimelimitsPreviousValue = utils.syncruntimelimits
     utils.InitSettings()
 
@@ -437,9 +445,20 @@ def settingschanged():  # threaded by caller
         if xmls.advanced_settings_runtimelimits(None):
             RestartKodi = True
 
+    # Toggle coverart setting
+    if enableCoverArtPreviousValue != utils.enableCoverArt:
+        DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message="Changing artwork requires an artwork cache reset. Proceed?")
+
+        if DelArtwork:
+            RestartKodi = True
+            pluginmenu.DeleteThumbnails()
+        else:
+            utils.set_settings_bool("enableCoverArt", enableCoverArtPreviousValue)
+
+    LOG.info("--<[ Reload settings ]")
+
     # Restart Kodi
     if RestartKodi:
-        utils.SystemShutdown = True
         utils.SyncPause = {}
         webservice.close()
         EmbyServer_DisconnectAll()
@@ -447,7 +466,7 @@ def settingschanged():  # threaded by caller
         if utils.sleep(5):  # Give Kodi time to complete startup before reset
             return
 
-        xbmc.executebuiltin('RestartApp')
+        utils.restart_kodi()
         return
 
     # Manual adjusted sync time/date
@@ -539,10 +558,50 @@ def setup():
 
         return False
 
-    xmls.KodiDefaultNodes()
-    xmls.sources()
-    xmls.add_favorites()
+    # copy default nodes
+    utils.mkDir("special://profile/library/video/")
+    utils.mkDir("special://profile/library/music/")
+    utils.copytree("special://xbmc/system/library/video/", "special://profile/library/video/")
+    utils.copytree("special://xbmc/system/library/music/", "special://profile/library/music/")
 
+    # add favorite emby nodes
+    index = 0
+
+    for FavNode in [{'Name': utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}, {'Name': "Favorite musicvideos", 'Tag': "Favorite musicvideos", 'MediaType': "musicvideos"}]:
+        index += 1
+        filepath = "special://profile/library/video/emby_%s.xml" % FavNode['Tag'].replace(" ", "_")
+
+        if not utils.checkFileExists(filepath):
+            utils.mkDir("special://profile/library/video/")
+            Data = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+
+            if FavNode['MediaType'] == 'episodes':
+                Data += ('<node order="%s" type="folder">\n' % index).encode("utf-8")
+            else:
+                Data += ('<node order="%s" type="filter">\n' % index).encode("utf-8")
+
+            Data += b'    <icon>DefaultFavourites.png</icon>\n'
+            Data += ('    <label>EMBY: %s</label>\n' % FavNode['Name']).encode("utf-8")
+            Data += ('    <content>%s</content>\n' % FavNode['MediaType']).encode("utf-8")
+
+            if FavNode['MediaType'] == 'episodes':
+                params = {'mode': "favepisodes"}
+                Data += ('    <path>plugin://%s/?%s"</path>\n' % (utils.PluginId, urlencode(params))).encode("utf-8")
+            else:
+                Data += b'    <match>all</match>\n'
+                Data += b'    <rule field="tag" operator="is">\n'
+                Data += ('        <value>%s</value>\n' % FavNode['Tag']).encode("utf-8")
+                Data += b'    </rule>\n'
+
+            Data += b'</node>'
+            utils.writeFileBinary(filepath, Data)
+        else:
+            LOG.info("Favorite node exists, skip: %s" % filepath)
+
+    # verify sources.xml
+    xmls.sources()
+
+    # verify advancedsettings.xml
     if xmls.advanced_settings():
         return False
 
@@ -587,7 +646,7 @@ def StartUp():
     elif not Ret:  # db reset required
         LOG.warning("[ DB reset required, Kodi restart ]")
         webservice.close()
-        xbmc.executebuiltin('RestartApp')
+        utils.restart_kodi()
     else:  # Regular start
         start_new_thread(ServersConnect, ())
 

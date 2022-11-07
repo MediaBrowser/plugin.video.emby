@@ -31,13 +31,11 @@ class MusicVideos:
                 Artist['Type'] = "Actor"
                 Artist['Role'] = "MusicVideoArtist"
                 Artist['PrimaryImageTag'] = "0"
-                Artist['LibraryId'] = item['Librarys'][ItemIndex]['Id']
 
             for People in item['People']:
                 if People['Type'] == "Actor":
                     People['Role'] = "MusicVideoArtist"
                     People['PrimaryImageTag'] = "0"
-                    People['LibraryId'] = item['Librarys'][ItemIndex]['Id']
 
             if not item['Artist']:
                 LOG.warning("No artist found: %s %s %s " % (item['Name'], item['FullPath'], item['Id']))

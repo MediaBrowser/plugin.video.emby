@@ -1,5 +1,3 @@
-import xbmc
-
 from helper import loghandler, utils
 from core import common
 
@@ -40,7 +38,7 @@ class EmbyDatabase:
         except Exception as Error: # Database invalid! Database reset mandatory
             LOG.error("Database invalid, performing reset: %s" % Error)
             utils.set_settings('MinimumSetup', "INVALID DATABASE")
-            xbmc.executebuiltin('RestartApp')
+            utils.restart_kodi()
             return False
 
         return True

@@ -196,7 +196,7 @@ class Views:
                 'mode': "browse",
                 'id': view['LibraryId'],
                 'arg': view['MediaType'],
-                'server': self.EmbyServer.server_id,
+                'server': self.EmbyServer.ServerData['ServerId'],
                 'query': "NodesMenu"
             }
             path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
@@ -251,7 +251,7 @@ class Views:
                 BinaryData, _, FileExtension = self.EmbyServer.API.get_Image_Binary(library['Id'], "Primary", 0, library["ImageTags"]["Primary"])
 
                 if BinaryData:
-                    Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s.%s" % (self.EmbyServer.Name, library['Id'], FileExtension))
+                    Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s.%s" % (self.EmbyServer.ServerData['ServerName'], library['Id'], FileExtension))
                     iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
                     utils.delFile(iconpath)
                     utils.writeFileBinary(iconpath, BinaryData)
@@ -425,7 +425,6 @@ def add_nodes(path, view):
 
 # Nodes
 def node_songsbygenres(View, folder, node):
-    Index = 1
     FolderPath = "%sgenres/" % folder
     utils.delFolder(FolderPath)
     utils.mkDir(FolderPath)

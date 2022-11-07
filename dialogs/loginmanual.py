@@ -14,7 +14,7 @@ LOG = loghandler.LOG('EMBY.dialogs.loginmanual')
 
 class LoginManual(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
-        self._user = None
+        self.SelectedUser = {}
         self.error = None
         self.username = None
         self.user_field = None
@@ -23,18 +23,8 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         self.error_toggle = None
         self.error_msg = None
         self.cancel_button = None
-        self.connect_manager = None
+        self.EmbyServer = None
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def PassVar(self, connect_manager, username):
-        self.connect_manager = connect_manager
-        self.username = username
-
-    def is_logged_in(self):
-        return bool(self._user)
-
-    def get_user(self):
-        return self._user
 
     def onInit(self):
         self.signin_button = self.getControl(SIGN_IN)
@@ -94,14 +84,14 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         return control
 
     def _login(self, username, password):
-        server = self.connect_manager.get_server_address(self.connect_manager.EmbyServer.ServerData['LastConnectionMode'])
-        result = self.connect_manager.login(server, username, password)
+        server = self.EmbyServer.ServerData[self.EmbyServer.ServerData['LastConnectionMode']]
+        result = self.EmbyServer.ServerLogin(server, username, password)
 
         if not result:
             self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
-        self._user = result
+        self.SelectedUser = result
         return True
 
     def _error(self, state, message):

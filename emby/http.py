@@ -22,7 +22,7 @@ class HTTP:
     def request(self, data, ServerConnecting, Binary, Headers=False):
         RequestType = data.pop('type', "GET")
 
-        if RequestType in ('HEAD', 'GET'):
+        if RequestType == 'GET':
             return self.execute_request(data, ServerConnecting, Binary, RequestType, Headers)
 
         if RequestType == "POST":
@@ -37,7 +37,7 @@ class HTTP:
 
     def execute_request(self, data, ServerConnecting, Binary, RequestType, Headers):
         if 'url' not in data:
-            data['url'] = "%s/emby/%s" % (self.EmbyServer.server, data.pop('handler', ""))
+            data['url'] = "%s/emby/%s" % (self.EmbyServer.ServerData['ServerUrl'], data.pop('handler', ""))
 
         if 'headers' not in data:
             data['headers'] = {'Content-type': "application/json", 'Accept-Charset': "UTF-8,*", 'Accept-encoding': "gzip", 'User-Agent': "%s/%s" % (utils.addon_name, utils.addon_version)}
@@ -45,14 +45,14 @@ class HTTP:
         if 'Authorization' not in data['headers']:
             auth = "Emby Client=%s,Device=%s,DeviceId=%s,Version=%s" % (utils.addon_name, utils.device_name, utils.device_id, utils.addon_version)
 
-            if self.EmbyServer.Token and self.EmbyServer.user_id:
-                auth = '%s,UserId=%s' % (auth, self.EmbyServer.user_id)
-                data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.Token})
+            if self.EmbyServer.ServerData['AccessToken'] and self.EmbyServer.ServerData['UserId']:
+                auth = '%s,UserId=%s' % (auth, self.EmbyServer.ServerData['UserId'])
+                data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.ServerData['AccessToken']})
             else:
                 data['headers'].update({'Authorization': auth})
 
         if ServerConnecting:  # Server connect
-            data['timeout'] = 15
+            data['timeout'] = 30
         else:
             data['timeout'] = 300
 
@@ -70,9 +70,6 @@ class HTTP:
 
             # http request
             try:
-                if RequestType == "HEAD":
-                    return self.session.head(**data).status_code()
-
                 if RequestType == "GET":
                     r = self.session.get(**data)
 
@@ -127,7 +124,7 @@ class HTTP:
                 return noData(Binary, Headers)
             except Exception as error:
                 LOG.error("[ Unknown ]")
-                LOG.debug("[ Unknown ] %s" % str(error))
+                LOG.debug("[ Unknown ] %s / %s" % (data, str(error)))
                 self.stop_session()
                 return noData(Binary, Headers)
 
@@ -160,7 +157,7 @@ class HTTP:
 
     def verify_intros(self, Intro):
         if Intro['Path'].find("http") == -1: # Local Trailer
-            Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.server, Intro['Id'], self.EmbyServer.Token, utils.device_id)
+            Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.ServerData['ServerUrl'], Intro['Id'], self.EmbyServer.ServerData['AccessToken'], utils.device_id)
             self.Intros.append(Intro)
             return True
 
@@ -173,8 +170,8 @@ class HTTP:
 
             # filter URL redirections, mostly invalid links
             LOG.error("Invalid Trailer Path (url compare): %s / %s" % (Intro['Path'], r.url))
-        except:
-            LOG.error("Invalid Trailer Path: %s" % Intro['Path'])
+        except Exception as Error:
+            LOG.error("Invalid Trailer Path: %s / %s" % (Intro['Path'], Error))
 
         return False
 

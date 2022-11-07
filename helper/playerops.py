@@ -20,8 +20,8 @@ def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
         xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), Data[1], int(Data[0])))
     else:
         item = EmbyServer.API.get_Item(EmbyID, ['Everything'], True, False)
-        li = listitem.set_ListItem(item, EmbyServer.server_id)
-        path, Type = utils.get_path_type_from_item(EmbyServer.server_id, item)
+        li = listitem.set_ListItem(item, EmbyServer.ServerData['ServerId'])
+        path, Type = utils.get_path_type_from_item(EmbyServer.ServerData['ServerId'], item)
 
         if not path:
             return False, False, None
@@ -46,7 +46,7 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
     FirstItem = True
     Offset = 0
     isPlaylist = False
-    embydb = dbio.DBOpenRO(EmbyServer.server_id, "AddPlaylistItem")
+    embydb = dbio.DBOpenRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
     globals()["Pictures"] = []
 
     for ID in ItemIds:
@@ -93,7 +93,7 @@ def Play(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer):
                         Offset = 0
                         FirstItem = False
 
-    dbio.DBCloseRO(EmbyServer.server_id, "AddPlaylistItem")
+    dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
     # picture
     if not isPlaylist:

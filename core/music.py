@@ -22,7 +22,7 @@ class Music:
         item['ProviderIds']['MusicBrainzArtist'] = item['ProviderIds'].get('MusicBrainzArtist', None)
         common.set_genres(item)
         common.set_overview(item)
-        common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
+        common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
 
         for ItemIndex in range(len(item['Librarys'])):
             if item['UpdateItems'][ItemIndex]:
@@ -56,7 +56,7 @@ class Music:
         item['ProviderIds'] = item.get('ProviderIds', [])
         item['ProviderIds']['MusicBrainzAlbum'] = item['ProviderIds'].get('MusicBrainzAlbum', None)
         item['ProviderIds']['MusicBrainzReleaseGroup'] = item['ProviderIds'].get('MusicBrainzReleaseGroup', None)
-        common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
+        common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
         common.set_RunTimeTicks(item)
 
         if not item['ProductionYear']:
@@ -122,7 +122,7 @@ class Music:
         item['UserData']['LastPlayedDate'] = item['UserData'].get('LastPlayedDate', None)
         common.set_genres(item)
         common.set_overview(item)
-        common.set_KodiArtwork(item, self.EmbyServer.server_id, False)
+        common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
         common.get_streams(item)
         common.set_playstate(item)
 

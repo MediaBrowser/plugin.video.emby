@@ -26,7 +26,7 @@ addon_name = Addon.getAddonInfo('name')
 icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
-MinimumVersion = "7.9.0"
+MinimumVersion = "7.10.0"
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
@@ -46,8 +46,6 @@ MinimumSetup = ""
 limitIndex = 5
 autocloseyesno = 5
 maxnodeitems = "25"
-username = ""
-server = ""
 deviceName = "Kodi"
 useDirectPaths = False
 menuOptions = False
@@ -87,7 +85,6 @@ getCast = False
 deviceNameOpt = False
 artworkcacheenable = True
 syncruntimelimits = False
-SkipUpdateSettings = 0
 device_id = ""
 syncdate = ""
 synctime = ""
@@ -143,6 +140,11 @@ def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText
     img.save(imgByteArr, format=img.format)
     return imgByteArr.getvalue()
 
+def restart_kodi():
+    LOG.info("Restart Kodi")
+    globals()["SystemShutdown"] = True
+    xbmc.executebuiltin('RestartApp')
+
 def sleep(Seconds):
     if not XbmcMonitor:
         if SystemShutdown:
@@ -150,7 +152,7 @@ def sleep(Seconds):
 
         xbmc.sleep(Seconds * 1000)
     else:
-        if XbmcMonitor.waitForAbort(Seconds):
+        if SystemShutdown or XbmcMonitor.waitForAbort(Seconds):
             globals()["SystemShutdown"] = True
             return True
 
@@ -244,8 +246,8 @@ def copyFile(SourcePath, DestinationPath):
     try:
         shutil.copy(SourcePath, DestinationPath)
         LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
-    except:
-        LOG.error("copy issue: %s to %s" % (SourcePath, DestinationPath))
+    except Exception as Error:
+        LOG.error("copy issue: %s to %s -> %s" % (SourcePath, DestinationPath, Error))
 
 def renameFolder(SourcePath, DestinationPath):
     SourcePath = translatePath(SourcePath)
@@ -290,7 +292,8 @@ def getFreeSpace(Path):
         free = space.f_bavail * space.f_frsize / 1024
     #    total = space.f_blocks * space.f_frsize / 1024
         return free
-    except: # not suported by Windows
+    except Exception as Error: # not suported by Windows
+        LOG.warning("getFreeSpace: %s" % Error)
         return 9999999
 
 def writeFileBinary(Path, Data):
@@ -403,12 +406,12 @@ def convert_to_local(date, DateOnly=False):
             timestamp = datetime.fromtimestamp(timestamp)
         else:
             timestamp = datetime(1970, 1, 1) + timedelta(seconds=int(timestamp))
-    except:
-        LOG.warning("invalid timestamp")
+    except Exception as Error:
+        LOG.warning("invalid timestamp: %s" % Error)
         return "0"
 
     if timestamp.year < 1900:
-        LOG.warning("invalid timestamp < 1900")
+        LOG.warning("invalid timestamp < 1900: %s" % timestamp.year)
         return "0"
 
     if DateOnly:
@@ -582,8 +585,6 @@ def InitSettings():
     load_settings('backupPath')
     load_settings('MinimumSetup')
     load_settings('limitIndex')
-    load_settings('username')
-    load_settings('server')
     load_settings('deviceName')
     load_settings('useDirectPaths')
     load_settings('syncdate')
@@ -692,12 +693,10 @@ def load_settings(setting):
     globals()[setting] = value
 
 def set_settings(setting, value):
-    globals()["SkipUpdateSettings"] += 1
     globals()[setting] = value
     Addon.setSetting(setting, value)
 
 def set_settings_bool(setting, value):
-    globals()["SkipUpdateSettings"] += 1
     globals()[setting] = value
 
     if value:

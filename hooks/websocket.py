@@ -34,7 +34,7 @@ class WSClient:
         self._frame_length = None
         self._frame_mask = None
         self._cont_data = None
-        self.EmbyServerUrl = ""
+        self.EmbyServerSocketUrl = ""
         self.ConnectionInProgress = False
         self.TasksRunning = []
         self.SyncInProgress = False
@@ -44,7 +44,7 @@ class WSClient:
         start_new_thread(self.Listen, ())
 
     def close(self, Terminate=True):
-        LOG.info("Close wesocket connection %s" % self.EmbyServer.server_id)
+        LOG.info("Close wesocket connection %s" % self.EmbyServer.ServerData['ServerId'])
 
         if Terminate:
             self.stop = True
@@ -63,10 +63,10 @@ class WSClient:
     def Listen(self):
         LOG.info("--->[ websocket ]")
 
-        if self.EmbyServer.server.startswith('https'):
-            self.EmbyServerUrl = self.EmbyServer.server.replace('https', "wss")
+        if self.EmbyServer.ServerData['ServerUrl'].startswith('https'):
+            self.EmbyServerSocketUrl = self.EmbyServer.ServerData['ServerUrl'].replace('https', "wss")
         else:
-            self.EmbyServerUrl = self.EmbyServer.server.replace('http', "ws")
+            self.EmbyServerSocketUrl = self.EmbyServer.ServerData['ServerUrl'].replace('http', "ws")
 
         self.connect()
 
@@ -108,7 +108,7 @@ class WSClient:
     def establish_connection(self):
         self.close(False)
 
-        url = "%s/embywebsocket?api_key=%s&device_id=%s" % (self.EmbyServerUrl, self.EmbyServer.Token, utils.device_id)
+        url = "%s/embywebsocket?api_key=%s&device_id=%s" % (self.EmbyServerSocketUrl, self.EmbyServer.ServerData['AccessToken'], utils.device_id)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -351,9 +351,13 @@ class WSClient:
         return unified[:bufsize]
 
     def on_message(self, IncomingData):  # threaded
-        IncomingData = IncomingData[1].decode('utf-8')
-        LOG.debug("Incoming data: %s" % IncomingData)
-        IncomingData = json.loads(IncomingData)
+        try:
+            IncomingData = IncomingData[1].decode('utf-8')
+            LOG.debug("Incoming data: %s" % IncomingData)
+            IncomingData = json.loads(IncomingData)
+        except: # connection interrupted and data corrupted
+            LOG.error("Incoming data: %s" % IncomingData)
+            return
 
         if IncomingData['MessageType'] == 'GeneralCommand':
             if IncomingData['Data']['Name'] == 'DisplayMessage':
@@ -438,7 +442,7 @@ class WSClient:
             if utils.busyMsg:
                 utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
         elif IncomingData['MessageType'] == 'UserDataChanged':
-            self.EmbyServer.UserDataChanged(self.EmbyServer.server_id, IncomingData['Data']['UserDataList'], IncomingData['Data']['UserId'])
+            self.EmbyServer.UserDataChanged(self.EmbyServer.ServerData['ServerId'], IncomingData['Data']['UserDataList'], IncomingData['Data']['UserId'])
         elif IncomingData['MessageType'] == 'LibraryChanged':
             LOG.info("[ LibraryChanged ] %s" % IncomingData['Data'])
             self.EmbyServer.library.removed(IncomingData['Data']['ItemsRemoved'])
@@ -456,7 +460,6 @@ class WSClient:
                 self.EmbyServer.library.RunJobs()
         elif IncomingData['MessageType'] == 'ServerRestarting':
             LOG.info("[ ServerRestarting ]")
-            self.EmbyServer.Online = False
 
             if utils.restartMsg:
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33006), icon=utils.icon)
@@ -464,16 +467,15 @@ class WSClient:
             if utils.sleep(5):
                 return
 
-            self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
+            self.EmbyServer.ServerReconnect()
         elif IncomingData['MessageType'] == 'ServerShuttingDown':
             LOG.info("[ ServerShuttingDown ]")
-            self.EmbyServer.Online = False
             utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33236))
 
             if utils.sleep(5):
                 return
 
-            self.EmbyServer.ServerReconnect(self.EmbyServer.server_id)
+            self.EmbyServer.ServerReconnect()
         elif IncomingData['MessageType'] == 'RestartRequired':
             utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33237))
         elif IncomingData['MessageType'] == 'Play':
@@ -483,7 +485,7 @@ class WSClient:
 
     def EmbyServerSyncCheck(self):
         LOG.info("--> Emby server is busy, sync in progress")
-        utils.SyncPause[self.EmbyServer.server_id] = True
+        utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = True
 
         if utils.busyMsg:
             utils.progress_open(utils.Translate(33411))
@@ -498,7 +500,7 @@ class WSClient:
             utils.progress_close()
 
         self.SyncInProgress = False
-        utils.SyncPause[self.EmbyServer.server_id] = False
+        utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = False
         self.EmbyServer.library.RunJobs()
         LOG.info("--< Emby server is busy, sync in progress")
 

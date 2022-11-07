@@ -1,5 +1,5 @@
 import xbmcgui
-from helper import loghandler
+from helper import loghandler, utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -14,34 +14,33 @@ LOG = loghandler.LOG('EMBY.dialogs.userconnect')
 
 class UsersConnect(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
-        self._user = None
-        self._manual_login = False
+        self.SelectedUser = {}
+        self.ManualLogin = False
         self.list_ = None
-        self.server = None
-        self.users = None
+        self.ServerData = {}
+        self.API = None
+        self.users = []
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-
-    def PassVar(self, server, users):
-        self.server = server
-        self.users = users
-
-    def is_user_selected(self):
-        return bool(self._user)
-
-    def get_user(self):
-        return self._user
-
-    def is_manual_login(self):
-        return self._manual_login
 
     def onInit(self):
         self.list_ = self.getControl(LIST)
 
         for user in self.users:
-            user_image = ("items/logindefault.png" if 'PrimaryImageTag' not in user else self._get_user_artwork(user['Id'], 'Primary'))
+            user['UserImageUrl'] = utils.icon
+
+            # Download user picture
+            BinaryData, _, FileExtension = self.API.get_Image_Binary(user['Id'], "Primary", 0, 0, True)
+
+            if BinaryData:
+                Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s_%s.%s" % (self.ServerData['ServerName'], user['Name'], user['Id'], FileExtension))
+                iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
+                utils.delFile(iconpath)
+                utils.writeFileBinary(iconpath, BinaryData)
+                user['UserImageUrl'] = iconpath
+
             item = xbmcgui.ListItem(user['Name'])
             item.setProperty('id', user['Id'])
-            item.setArt({'Icon': user_image})
+            item.setArt({'Icon': user['UserImageUrl']})
             self.list_.addItem(item)
 
         self.setFocus(self.list_)
@@ -58,18 +57,16 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
 
                 for user in self.users:
                     if user['Id'] == selected_id:
-                        self._user = user
+                        self.SelectedUser = user
+                        self.ServerData['UserImageUrl'] = user['UserImageUrl']
+                        self.ServerData['UserName'] = user['Name']
                         break
 
                 self.close()
 
     def onClick(self, control):
         if control == MANUAL:
-            self._manual_login = True
+            self.ManualLogin = True
             self.close()
         elif control == CANCEL:
             self.close()
-
-    # Load user information set by UserClient
-    def _get_user_artwork(self, user_id, item_type):
-        return "%s/emby/Users/%s/Images/%s?Format=original" % (self.server, user_id, item_type)
