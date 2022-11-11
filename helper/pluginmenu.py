@@ -588,13 +588,19 @@ class Menu:
                         temp2 = temp[1].split(".")
                         timestampStart += temp2[0].replace(":", "")[:6]
                         temp2 = temp2[1].split("+")
-                        timestampStart += " +" + temp2[1].replace(":", "")
+
+                        if len(temp2) > 1:
+                            timestampStart += " +" + temp2[1].replace(":", "")
+
                         temp = item['EndDate'].split("T")
                         timestampEnd = temp[0].replace("-", "")
                         temp2 = temp[1].split(".")
                         timestampEnd += temp2[0].replace(":", "")[:6]
                         temp2 = temp2[1].split("+")
-                        timestampEnd += " +" + temp2[1].replace(":", "")
+
+                        if len(temp2) > 1:
+                            timestampEnd += " +" + temp2[1].replace(":", "")
+
                         epg += '  <channel id="%s">\n' % item['ChannelId']
                         epg += '  <display-name lang="en">%s</display-name>\n' % ChannelNames[item['ChannelId']]
                         epg += '  </channel>\n'
