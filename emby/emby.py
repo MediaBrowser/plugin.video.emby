@@ -10,8 +10,7 @@ LOG = loghandler.LOG('EMBY.emby.emby')
 
 
 class EmbyServer:
-    def __init__(self, UserDataChanged, ServerSettings):
-        self.UserDataChanged = UserDataChanged
+    def __init__(self, ServerSettings):
         self.EmbySession = []
         self.Websocket = None
         self.Found_Servers = []
@@ -31,33 +30,26 @@ class EmbyServer:
             start_new_thread(self.ServerReconnect, ())
 
     def ServerReconnect(self):
+        LOG.info("Reconnecting: %s / %s" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
+
         if not self.ServerReconnecting:
             self.ServerReconnecting = True
-            Tries = 0
             self.stop()
 
             while True:
-                if utils.SystemShutdown:
+                if utils.sleep(1):
                     break
+
+                LOG.info("Reconnect try again: %s / %s" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
 
                 if self.ServerConnect():
                     self.start()
                     break
 
-                # Delay reconnect: Fast 40 re-tries (first 10 seconds), after delay by 5 seconds
-                if Tries > 40:
-                    if utils.sleep(5):
-                        break
-                else:
-                    Tries += 1
-
-                    if utils.sleep(0.25):
-                        break
-
             self.ServerReconnecting = False
 
     def start(self):
-        LOG.info("---[ START EMBYCLIENT: %s ]---" % self.ServerData['ServerId'])
+        LOG.info("---[ START EMBYCLIENT: %s / %s ]---" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
         self.Views.update_views()
         self.library.load_settings()
         self.Views.update_nodes()
@@ -113,6 +105,8 @@ class EmbyServer:
                 if 'ServerId' in LoadedServerSettings and LoadedServerSettings['ServerId']: # file content is not valid
                     self.ServerData = LoadedServerSettings
 
+            utils.DatabaseFiles[self.ServerData['ServerId']] = utils.translatePath("special://profile/Database/emby_%s.db" % self.ServerData['ServerId'])
+
         # Refresh EmbyConnect Emby server addresses (dynamic IP)
         if self.ServerData["LastConnectionMode"] in ("EmbyConnectLocalAddress", "EmbyConnectRemoteAddress"):
             LOG.info("Refresh Emby server urls from EmbyConnect")
@@ -122,14 +116,16 @@ class EmbyServer:
             if result:
                 for server in result:
                     if server['SystemId'] == self.ServerData['ServerId']:
-                        self.ServerData['EmbyConnectRemoteAddress'] = server['Url']
-                        self.ServerData['EmbyConnectLocalAddress'] = server['LocalAddress']
+                        if self.ServerData['EmbyConnectRemoteAddress'] != server['Url'] or self.ServerData['EmbyConnectLocalAddress'] != server['LocalAddress']: # update server settings
+                            self.ServerData['EmbyConnectRemoteAddress'] = server['Url']
+                            self.ServerData['EmbyConnectLocalAddress'] = server['LocalAddress']
+                            self.save_credentials()
+                            LOG.info("Update Emby server urls from EmbyConnect")
+
                         LOG.info("Refresh Emby server urls from EmbyConnect, found")
                         break
 
-        if self.ServerConnect(False):
-            SignedIn = True
-        else:
+        if self.Firstrun:
             SignedIn = True
             self.ServerDetect()
 
@@ -180,11 +176,18 @@ class EmbyServer:
                     SignedIn = False
                     break
 
-        if SignedIn:
-            self.start()
-            return self.ServerData['ServerId'], self
+            if SignedIn:
+                self.save_credentials()
+                self.start()
+                return self.ServerData['ServerId'], self
 
-        return False, None
+        # re-establish connection
+        start_new_thread(self.establish_existing_connection, ())
+        return self.ServerData['ServerId'], self
+
+    def establish_existing_connection(self):
+        if self.ServerConnect():
+            self.start()
 
     def save_credentials(self):
         if not self.ServerSettings:
@@ -192,7 +195,11 @@ class EmbyServer:
 
         utils.writeFileString(self.ServerSettings, json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False))
 
-    def ServerConnect(self, SaveCredentails=True):
+    def ServerDisconnect(self):
+        utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
+        utils.delFile("%sservers_%s.json" % (utils.FolderAddonUserdata, self.ServerData['ServerId']))
+
+    def ServerConnect(self):
         # Connect to server verification
         if self.ServerData["AccessToken"]:
             SystemInfo = self._try_connect(self.ServerData["ServerUrl"])
@@ -228,9 +235,6 @@ class EmbyServer:
 
                 if not self.ServerData['UserImageUrl']:
                     self.ServerData['UserImageUrl'] = utils.icon
-
-                if SaveCredentails:
-                    self.save_credentials()
 
                 return True
 
@@ -317,9 +321,7 @@ class EmbyServer:
 
         # remove old access token and credential data file
         if self.ServerData['ServerId'] in utils.EmbyServers:
-            utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
-            del utils.EmbyServers[self.ServerData['ServerId']]
-            utils.delFile("%sservers_%s.json" % (utils.FolderAddonUserdata, self.ServerData['ServerId']))
+            self.ServerDisconnect()
 
         result = self.http.request({'type': "POST", 'url': "%s/emby/Users/AuthenticateByName" % ServerUrl, 'params': {'username': username, 'pw': password or ""}}, True, False)
 
@@ -409,9 +411,7 @@ class EmbyServer:
         MESSAGE = b"who is EmbyServer?"
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(1.0)  # This controls the socket.timeout exception
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.setsockopt(socket.IPPROTO_IP, socket.SO_REUSEADDR, 1)
         LOG.debug("MultiGroup: %s" % str(MULTI_GROUP))
         LOG.debug("Sending UDP Data: %s" % MESSAGE)
         found_servers = []

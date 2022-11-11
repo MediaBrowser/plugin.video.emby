@@ -7,17 +7,17 @@ Pictures = []
 
 
 def AddPlaylistItem(Position, EmbyID, Offset, EmbyServer, embydb):
-    Data = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(EmbyID)
+    KodiId, KodiType = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(EmbyID)
 
-    if Data:  # Requested video is synced to KodiDB. No additional info required
-        if Data[1] in ("song", "album", "artist"):
+    if KodiId:  # Requested video is synced to KodiDB. No additional info required
+        if KodiType in ("song", "album", "artist"):
             playlistID = 0
             playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         else:
             playlistID = 1
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
-        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), Data[1], int(Data[0])))
+        xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {"playlistid": %s, "position": %s, "item": {"%sid": %d}}}' % (playlistID, GetPlaylistPos(Position, playlist, Offset), KodiType, int(KodiId)))
     else:
         item = EmbyServer.API.get_Item(EmbyID, ['Everything'], True, False)
         li = listitem.set_ListItem(item, EmbyServer.ServerData['ServerId'])

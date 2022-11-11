@@ -1,6 +1,5 @@
 import sqlite3
 from _thread import get_ident
-
 from helper import utils, loghandler
 from . import emby_db, video_db, music_db, texture_db
 
@@ -23,8 +22,7 @@ def DBVacuum():
         else:
             globals()["DBConnectionsRW"][DBID] = [None, False]
 
-        globals()["DBConnectionsRW"][DBID][1] = True
-        globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(DBFile, timeout=999999)
+        globals()["DBConnectionsRW"][DBID] = [sqlite3.connect(DBFile, timeout=999999), True]
 
         if DBID == "music":
             DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
@@ -47,7 +45,7 @@ def DBOpenRO(DBID, TaskId):
     try:
         globals()["DBConnectionsRO"][DBIDThreadID] = sqlite3.connect("file:%s?immutable=1&mode=ro" % utils.DatabaseFiles[DBID].decode('utf-8'), uri=True, timeout=999999) #, check_same_thread=False
     except Exception as Error:
-        LOG.error("Database IO: %s / %s" % (utils.DatabaseFiles[DBID], Error))
+        LOG.error("Database IO: %s / %s / %s" % (DBID, TaskId, Error))
         return None
 
     DBConnectionsRO[DBIDThreadID].execute("PRAGMA journal_mode=WAL")
@@ -81,8 +79,7 @@ def DBOpenRW(DBID, TaskId):
     else:
         globals()["DBConnectionsRW"][DBID] = [None, False]
 
-    globals()["DBConnectionsRW"][DBID][1] = True
-    globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID].decode('utf-8'), timeout=999999)
+    globals()["DBConnectionsRW"][DBID] = [sqlite3.connect(utils.DatabaseFiles[DBID].decode('utf-8'), timeout=999999), True]
     DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
     LOG.info("---> DBOpenRW: %s/%s" % (DBID, TaskId))
 

@@ -130,13 +130,10 @@ class Library:
         self.close_EmbyDBRW("load_settings")
 
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
-        if utils.sleep(5):
-            return
-
         if Firstrun:
             self.select_libraries("AddLibrarySelection")
 
-        if utils.SystemShutdown:
+        if utils.sleep(5):
             return
 
         self.RunJobs()
@@ -144,6 +141,7 @@ class Library:
 
         if self.LastSyncTime:
             LOG.info("-->[ retrieve changes ] %s" % self.LastSyncTime)
+            utils.progress_open("Startup sync")
 
             for plugin in self.EmbyServer.API.get_plugins():
                 if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
@@ -156,6 +154,9 @@ class Library:
                     LOG.info("--<[ Kodi companion ]")
                     break
 
+            ProgressBarTotal = len(self.WhitelistArray) / 50
+            ProgressBarIndex = 0
+
             for UserSync in (False, True):
                 if UserSync:
                     extra = {'MinDateLastSavedForUser': self.LastSyncTime}
@@ -164,8 +165,19 @@ class Library:
 
                 for Whitelist in self.WhitelistArray:
                     LOG.info("[ retrieve changes ] %s / %s / %s" % (Whitelist[0], Whitelist[1], UserSync))
+                    LibraryName = ""
+                    ProgressBarIndex += 1
 
-                    if Whitelist[0] not in self.EmbyServer.Views.ViewItems:
+                    if UserSync:
+                        ProgressBarLabel = "Startup sync / userdata"
+                    else:
+                        ProgressBarLabel = "Startup sync / content"
+
+                    if Whitelist[0] in self.EmbyServer.Views.ViewItems:
+                        LibraryName = self.EmbyServer.Views.ViewItems[Whitelist[0]][0]
+                        utils.progress_update(int(ProgressBarIndex / ProgressBarTotal), ProgressBarLabel, LibraryName)
+
+                    if not LibraryName:
                         LOG.info("[ KodiStartSync remove library %s ]" % Whitelist[0])
                         continue
 
@@ -186,6 +198,7 @@ class Library:
                         continue
 
                     if utils.SystemShutdown:
+                        utils.progress_close()
                         return
 
                     TotalRecords = self.EmbyServer.API.get_TotalRecordsRegular(Whitelist[0], Content, extra)
@@ -195,6 +208,7 @@ class Library:
 
                         for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra)):
                             if utils.SystemShutdown:
+                                utils.progress_close()
                                 return
 
                             if Index >= TotalRecords: # Emby server updates were in progress. New items were added after TotalRecords was calculated
@@ -211,6 +225,7 @@ class Library:
         UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
         LOG.info("--<[ retrieve changes ]")
         pluginmenu.reset_episodes_cache()
+        utils.progress_close()
         self.updated(UpdateData)
 
     def worker_userdata(self):

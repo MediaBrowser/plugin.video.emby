@@ -859,6 +859,27 @@ def select_managelibs():  # threaded by monitor.py
         if EmbyServersCounter > 0:
             manage_libraries(0)
 
+def manage_servers(ServerConnect):  # threaded by caller
+    MenuItems = ["Add Server", "Remove Server", "Add User"]
+    Selection = utils.Dialog.select("Server ops", MenuItems) # Manage libraries
+
+    if Selection == 0:
+        ServerConnect(None)
+    elif Selection == 1:
+        _, ServerIds, ServerItems = get_EmbyServerList()
+        Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
+
+        if Selection > -1:
+            utils.Dialog.notification(heading=utils.addon_name, message="Disconnected from Emby server: %s" % utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName'], icon=utils.icon, time=1500, sound=False)
+            utils.EmbyServers[ServerIds[Selection]].ServerDisconnect()
+            del utils.EmbyServers[ServerIds[Selection]]
+    elif Selection == 2:
+        _, ServerIds, ServerItems = get_EmbyServerList()
+        Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
+
+        if Selection > -1:
+            AddUser(utils.EmbyServers[ServerIds[Selection]])
+
 def manage_libraries(ServerSelection):  # threaded by caller
     MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060), utils.Translate(33234)]
     Selection = utils.Dialog.select(utils.Translate(33194), MenuItems) # Manage libraries
@@ -879,18 +900,6 @@ def manage_libraries(ServerSelection):  # threaded by caller
         SyncThemes(EmbyServerId)
     elif Selection == 6:
         SyncLiveTV(EmbyServerId)
-
-def select_adduser():
-    EmbyServersCounter, ServerIds, ServerItems = get_EmbyServerList()
-
-    if EmbyServersCounter > 1:
-        Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
-
-        if Selection > -1:
-            AddUser(utils.EmbyServers[ServerIds[Selection]])
-    else:
-        if EmbyServersCounter > 0:
-            AddUser(utils.EmbyServers[ServerIds[0]])
 
 def favepisodes(Handle):
     Handle = int(Handle)
