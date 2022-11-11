@@ -4,7 +4,6 @@
 
 [![Wiki](https://img.shields.io/badge/get%20started-wiki-brightgreen.svg)](https://github.com/MediaBrowser/plugin.video.emby/wiki) 
 [![Forums](https://img.shields.io/badge/report%20issues-forums-3960C1.svg)](https://emby.media/community/index.php?/forum/99-kodi/)
-[![Donate](https://img.shields.io/badge/donate-kofi-blue.svg)](https://ko-fi.com/A5354BI)
 [![Emby for Kodi objects](https://img.shields.io/badge/patch-objects-3960C1.svg)](https://github.com/MediaBrowser/plugin.video.emby.objects)
 [![Emby](https://img.shields.io/badge/server-emby-52b54b.svg)](https://emby.media/)
 
