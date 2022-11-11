@@ -14,7 +14,6 @@ QueryItemRemoveThread = False
 SettingsChangedThread = False
 KodiScanCount = 0
 SleepMode = False
-PatchFiles = {"script-emby-connect-login-manual.xml", "script-emby-connect-login.xml", "script-emby-connect-server.xml", "script-emby-connect-server-manual.xml", "script-emby-connect-users.xml"}
 LOG = loghandler.LOG('EMBY.hooks.monitor')
 
 class monitor(xbmc.Monitor):
@@ -33,7 +32,7 @@ class monitor(xbmc.Monitor):
                 if not QueryItemRemoveThread:
                     globals()["QueryItemRemoveThread"] = True
                     start_new_thread(VideoLibrary_OnRemove, ())
-        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.addserver', 'Other.adduserselection', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual'):
+        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual', 'Other.manageserver'):
             start_new_thread(Notification, (method, data))
 
     def onScanStarted(self, library):
@@ -95,10 +94,8 @@ def Notification(method, data):  # threaded by caller
         LOG.info("Reload skin by notification")
     elif method == 'Other.reset_device_id':
         pluginmenu.reset_device_id()
-    elif method == 'Other.addserver':
-        ServerConnect(None)
-    elif method == 'Other.adduserselection':
-        pluginmenu.select_adduser()
+    elif method == 'Other.manageserver':
+        pluginmenu.manage_servers(ServerConnect)
     elif method == 'Other.databasereset':
         pluginmenu.databasereset()
     elif method == 'Other.nodesreset':
@@ -152,8 +149,7 @@ def VideoLibrary_OnRemove():
         return
 
     RemoveItems = QueueItemsRemove
-    globals()["QueueItemsRemove"] = ()
-    globals()["QueryItemRemoveThread"] = False
+    globals().update({"QueueItemsRemove": (), "QueryItemRemoveThread": False})
 
     if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33264)):
         for server_id, EmbyServer in list(utils.EmbyServers.items()):
@@ -188,8 +184,7 @@ def VideoLibrary_OnUpdate():
         return
 
     UpdateItems = QueueItemsStatusupdate
-    globals()["QueueItemsStatusupdate"] = ()
-    globals()["QueryItemStatusThread"] = False
+    globals().update({"QueueItemsStatusupdate": (), "QueryItemStatusThread": False})
     ItemsSkipUpdateRemove = []
 
     for server_id, EmbyServer in list(utils.EmbyServers.items()):
@@ -215,7 +210,7 @@ def VideoLibrary_OnUpdate():
             UpdateItemsFiltered = []
 
             for item in items:
-                if int(item[0]) in player.ItemSkipUpdate:
+                if int(item[0]) in utils.ItemSkipUpdate:
                     UpdateItemsFiltered.append(item)
                     break
 
@@ -231,7 +226,7 @@ def VideoLibrary_OnUpdate():
                         LOG.info("[ VideoLibrary_OnUpdate skip playcount %s/%s ]" % (media, UpdateItemFiltered[0]))
                         continue
 
-                    if int(UpdateItemFiltered[0]) not in player.ItemSkipUpdate:  # Check EmbyID
+                    if int(UpdateItemFiltered[0]) not in utils.ItemSkipUpdate:  # Check EmbyID
                         LOG.info("[ VideoLibrary_OnUpdate update playcount %s ]" % UpdateItemFiltered[0])
 
                         if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
@@ -243,7 +238,7 @@ def VideoLibrary_OnUpdate():
                         LOG.info("[ VideoLibrary_OnUpdate skip playcount %s ]" % UpdateItemFiltered[0])
                 else:
                     if 'item' not in data:
-                        if int(UpdateItemFiltered[0]) not in player.ItemSkipUpdate:  # Check EmbyID
+                        if int(UpdateItemFiltered[0]) not in utils.ItemSkipUpdate:  # Check EmbyID
                             if not '{"item":%s}' % UpdateItem in UpdateItems:
                                 LOG.info("[ VideoLibrary_OnUpdate reset progress %s ]" % UpdateItemFiltered[0])
 
@@ -258,7 +253,7 @@ def VideoLibrary_OnUpdate():
                             LOG.info("VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) %s" % UpdateItemFiltered[0])
 
         for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
-            player.ItemSkipUpdate.append(int(EmbyItemId))
+            utils.ItemSkipUpdate.append(int(EmbyItemId))
 
             if 'Progress' in EmbyUpdateItem:
                 if 'PlayCount' in EmbyUpdateItem:
@@ -274,10 +269,10 @@ def VideoLibrary_OnUpdate():
         dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
 
     for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
-        if ItemSkipUpdateRemove in player.ItemSkipUpdate:
-            player.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
+        if ItemSkipUpdateRemove in utils.ItemSkipUpdate:
+            utils.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
 
-    LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(player.ItemSkipUpdate))
+    LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
     pluginmenu.reset_episodes_cache()
 
 def BackupRestore():
@@ -360,50 +355,8 @@ def Backup():
     utils.Dialog.ok(heading=utils.addon_name, message="%s %s" % (utils.Translate(33091), backup))
     return None
 
-
-def EmbyServer_ReconnectAll():
-    for EmbyServer in list(utils.EmbyServers.values()):
-        EmbyServer.ServerReconnect()
-
-def EmbyServer_DisconnectAll():
-    for EmbyServer in list(utils.EmbyServers.values()):
-        EmbyServer.stop()
-
-# Update progress, skip for seasons and series. Just update episodes
-def UserDataChanged(server_id, UserDataList, UserId):
-    if UserId != utils.EmbyServers[server_id].ServerData['UserId']:
-        return
-
-    LOG.info("[ UserDataChanged ] %s" % UserDataList)
-    UpdateData = []
-    embydb = dbio.DBOpenRO(server_id, "UserDataChanged")
-
-    for ItemData in UserDataList:
-        ItemData['ItemId'] = int(ItemData['ItemId'])
-
-        if ItemData['ItemId'] not in player.ItemSkipUpdate:  # Check EmbyID
-            e_item = embydb.get_item_by_id(ItemData['ItemId'])
-
-            if e_item:
-                if e_item[5] == "Season":
-                    LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
-                else:
-                    UpdateData.append(ItemData)
-            else:
-                LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
-        else:
-            LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(player.ItemSkipUpdate))
-            LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
-            player.ItemSkipUpdate.remove(ItemData['ItemId'])
-            LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(player.ItemSkipUpdate))
-
-    dbio.DBCloseRO(server_id, "UserDataChanged")
-
-    if UpdateData:
-        utils.EmbyServers[server_id].library.userdata(UpdateData)
-
 def ServerConnect(ServerSettings):
-    EmbyServerObj = emby.EmbyServer(UserDataChanged, ServerSettings)
+    EmbyServerObj = emby.EmbyServer(ServerSettings)
     server_id, EmbyServer = EmbyServerObj.ServerInitConnection()
 
     if not server_id or server_id == 'cancel' or utils.SystemShutdown:
@@ -417,6 +370,14 @@ def ServerConnect(ServerSettings):
 
     utils.EmbyServers[server_id] = EmbyServer
     return True
+
+def EmbyServer_ReconnectAll():
+    for EmbyServer in list(utils.EmbyServers.values()):
+        EmbyServer.ServerReconnect()
+
+def EmbyServer_DisconnectAll():
+    for EmbyServer in list(utils.EmbyServers.values()):
+        EmbyServer.stop()
 
 def settingschanged():  # threaded by caller
     globals()["SettingsChangedThread"] = False
@@ -519,13 +480,12 @@ def ServersConnect():
         if Filename.startswith('server'):
             ServersSettings.append("%s%s" % (utils.FolderAddonUserdata, Filename))
 
-    if not ServersSettings:  # First run
+    if not utils.WizardCompleted:  # First run
+        utils.set_settings_bool('WizardCompleted', True)
         ServerConnect(None)
     else:
         for ServerSettings in ServersSettings:
-            while not ServerConnect(ServerSettings):
-                if utils.sleep(2):
-                    return
+            ServerConnect(ServerSettings)
 
     if utils.refreshskin:
         xbmc.executebuiltin('ReloadSkin()')
@@ -539,6 +499,7 @@ def ServersConnect():
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
 
     LOG.info("[ Startup completed Emby-next-gen ]")
+    utils.PluginStarted = True
 
 def syncEmby():
     for EmbyServer in list(utils.EmbyServers.values()):

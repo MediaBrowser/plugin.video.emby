@@ -26,6 +26,7 @@ addon_name = Addon.getAddonInfo('name')
 icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
+ItemSkipUpdate = []
 MinimumVersion = "7.10.0"
 refreshskin = True
 device_name = "Kodi"
@@ -44,7 +45,7 @@ backupPath = ""
 disablehttp2 = "true"
 MinimumSetup = ""
 limitIndex = 5
-autocloseyesno = 5
+autoclose = 5
 maxnodeitems = "25"
 deviceName = "Kodi"
 useDirectPaths = False
@@ -101,7 +102,9 @@ ScanStaggered = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = None
 XbmcMonitor = None
+WizardCompleted = True
 AssignEpisodePostersToTVShowPoster = False
+PluginStarted = False
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
 
 def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText):
@@ -191,17 +194,25 @@ def progress_update(Progress, Heading, Message):
         ProgressBar[0].update(Progress, heading=Heading, message=Message)
 
 # Delete objects from kodi cache
-def delFolder(path):
+def delFolder(path, Pattern=""):
     LOG.debug("--[ delete folder ]")
-    delete_path = path is not None
-    path = path or FolderEmbyTemp
     dirs, files = listDir(path)
-    delete_recursive(path, dirs)
+    SelectedDirs = ()
+
+    if not Pattern:
+        SelectedDirs = dirs
+    else:
+        for Dir in dirs:
+            if Pattern in Dir:
+                SelectedDirs += (Dir,)
+
+    delete_recursive(path, SelectedDirs)
 
     for Filename in files:
-        delFile("%s%s" % (path, Filename))
+        if Pattern in Filename:
+            delFile("%s%s" % (path, Filename))
 
-    if delete_path:
+    if path:
         rmFolder(path)
 
     LOG.warning("DELETE %s" % path)
@@ -221,7 +232,10 @@ def rmFolder(Path):
     Path = translatePath(Path)
 
     if os.path.isdir(Path):
-        os.rmdir(Path)
+        try:
+            os.rmdir(Path)
+        except Exception as Error:
+            LOG.error("Delete folder issue: %s / %s" % (Error, Path))
 
 def mkDir(Path):
     Path = translatePath(Path)
@@ -365,8 +379,8 @@ def delete_playlists():
 
 # Remove all nodes
 def delete_nodes():
-    delFolder("special://profile/library/video/")
-    delFolder("special://profile/library/music/")
+    delFolder("special://profile/library/video/", "emby_")
+    delFolder("special://profile/library/music/", "emby_")
     mkDir("special://profile/library/video/")
     mkDir("special://profile/library/music/")
 
@@ -577,7 +591,7 @@ def InitSettings():
     load_settings('videoBitrate')
     load_settings('audioBitrate')
     load_settings('resumeJumpBack')
-    load_settings('autocloseyesno')
+    load_settings('autoclose')
     load_settings('displayMessage')
     load_settings('newvideotime')
     load_settings('newmusictime')
@@ -635,6 +649,7 @@ def InitSettings():
     load_settings_bool('skipintroembuarydesign')
     load_settings_bool('busyMsg')
     load_settings_bool('AssignEpisodePostersToTVShowPoster')
+    load_settings_bool('WizardCompleted')
 
     if not deviceNameOpt:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
@@ -670,10 +685,7 @@ def InitSettings():
         AddonXml = AddonXml.replace(ToggleIcon[0], ToggleIcon[1])
         writeFileString("special://home/addons/plugin.video.emby-next-gen/addon.xml", AddonXml)
 
-    globals()["limitIndex"] = int(limitIndex)
-    globals()["startupDelay"] = int(startupDelay)
-    globals()["videoBitrate"] = int(videoBitrate)
-    globals()["audioBitrate"] = int(audioBitrate)
+    globals().update({"limitIndex": int(limitIndex), "startupDelay": int(startupDelay), "videoBitrate": int(videoBitrate), "audioBitrate": int(audioBitrate)})
 
 def set_syncdate(timestamp):
     TimeStamp = parser.parse(timestamp.encode('utf-8'))

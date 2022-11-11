@@ -3,13 +3,8 @@
     <section id="plugin.video.emby-next-gen">
         <category id="general" label="29999" help="">
             <group id="1" label="30613">
-                <setting id="addserver" label="30614" type="action" help="33307">
-                    <data>NotifyAll(plugin.video.emby-next-gen,addserver)</data>
-                    <level>0</level>
-                    <control type="button" format="action"/>
-                </setting>
-                <setting id="adduserselection" label="33054" type="action" help="33319">
-                    <data>NotifyAll(plugin.video.emby-next-gen,adduserselection)</data>
+                <setting id="manageserver" label="30614" type="action" help="33307">
+                    <data>NotifyAll(plugin.video.emby-next-gen,manageserver)</data>
                     <level>0</level>
                     <control type="button" format="action"/>
                 </setting>
@@ -17,6 +12,11 @@
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle"/>
+                </setting>
+                <setting id="factoryreset" label="33340" type="action" help="33400">
+                    <data>NotifyAll(plugin.video.emby-next-gen,factoryreset)</data>
+                    <level>0</level>
+                    <control type="button" format="action"/>
                 </setting>
             </group>
             <group id="2" label="33110">
@@ -55,7 +55,13 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
-                <setting label="30511" id="useDirectPaths" type="boolean" help="">
+                <setting id="useDirectPaths" type="boolean" help="">
+                    <level>0</level>
+                    <visible>false</visible>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="WizardCompleted" type="boolean" help="">
                     <level>0</level>
                     <visible>false</visible>
                     <default>false</default>
@@ -107,11 +113,6 @@
                 </setting>
                 <setting id="databasereset" label="33058" type="action" help="33313">
                     <data>NotifyAll(plugin.video.emby-next-gen,databasereset)</data>
-                    <level>0</level>
-                    <control type="button" format="action"/>
-                </setting>
-                <setting id="factoryreset" label="33340" type="action" help="33400">
-                    <data>NotifyAll(plugin.video.emby-next-gen,factoryreset)</data>
                     <level>0</level>
                     <control type="button" format="action"/>
                 </setting>
@@ -269,7 +270,7 @@
                         <popup>false</popup>
                     </control>
                 </setting>
-                <setting id="autocloseyesno" type="integer" label="33424" help="33425">
+                <setting id="autoclose" type="integer" label="33424" help="33425">
                     <level>0</level>
                     <default>5</default>
                     <constraints>

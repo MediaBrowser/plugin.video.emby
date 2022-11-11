@@ -11,6 +11,7 @@ import ssl
 from _thread import start_new_thread
 import xbmc
 from helper import utils, playerops, loghandler
+from database import dbio
 
 LOG = loghandler.LOG('Emby.hooks.websocket')
 
@@ -442,7 +443,36 @@ class WSClient:
             if utils.busyMsg:
                 utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
         elif IncomingData['MessageType'] == 'UserDataChanged':
-            self.EmbyServer.UserDataChanged(self.EmbyServer.ServerData['ServerId'], IncomingData['Data']['UserDataList'], IncomingData['Data']['UserId'])
+            if IncomingData['Data']['UserId'] != self.EmbyServer.ServerData['UserId']:
+                return
+
+            LOG.info("[ UserDataChanged ] %s" % IncomingData['Data']['UserDataList'])
+            UpdateData = []
+            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
+
+            for ItemData in IncomingData['Data']['UserDataList']:
+                ItemData['ItemId'] = int(ItemData['ItemId'])
+
+                if ItemData['ItemId'] not in utils.ItemSkipUpdate:  # Check EmbyID
+                    e_item = embydb.get_item_by_id(ItemData['ItemId'])
+
+                    if e_item:
+                        if e_item[5] == "Season":
+                            LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
+                        else:
+                            UpdateData.append(ItemData)
+                    else:
+                        LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
+                else:
+                    LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
+                    LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
+                    utils.ItemSkipUpdate.remove(ItemData['ItemId'])
+                    LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
+
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
+
+            if UpdateData:
+                self.EmbyServer.library.userdata(UpdateData)
         elif IncomingData['MessageType'] == 'LibraryChanged':
             LOG.info("[ LibraryChanged ] %s" % IncomingData['Data'])
             self.EmbyServer.library.removed(IncomingData['Data']['ItemsRemoved'])

@@ -16,14 +16,8 @@ def set_ListItem(item, server_id):
     if item['Type'] == 'Folder' or item.get('NodesMenu', False):
         common.set_KodiArtwork(item, server_id, True)
         common.set_overview(item)
-        metadata = {
-            'title': item['Name'],
-            'plot': item['Overview']
-        }
-        Properties = {
-            'IsFolder': 'true',
-            'IsPlayable': 'false'
-        }
+        metadata = {'title': item['Name'], 'plot': item['Overview']}
+        Properties = {'IsFolder': 'true', 'IsPlayable': 'false'}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "TvChannel":
         item['CurrentProgram'] = item.get('CurrentProgram', {})
@@ -43,34 +37,13 @@ def set_ListItem(item, server_id):
             item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = 0
 
         item['CurrentProgram']['Genres'] = item['CurrentProgram'].get('Genres', [])
-        item['CurrentProgram']['Genres'] = item['CurrentProgram'].get('Genres', [])
         item['CurrentProgram']['UserData']['PlayCount'] = item['CurrentProgram']['UserData'].get('PlayCount', 0)
         item['CurrentProgram']['UserData']['LastPlayedDate'] = item['CurrentProgram']['UserData'].get('LastPlayedDate', "")
-
         common.get_streams(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item['SortName'],
-            'country': item['ProductionLocations'],
-            'genre': item['CurrentProgram']['Genres'],
-            'playcount': item['CurrentProgram']['UserData']['PlayCount'],
-            'overlay': 5 if item['CurrentProgram']['UserData']['PlayCount'] else 4,
-            'plot': item['CurrentProgram']['Overview'],
-            'tagline': item['Taglines'][0],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['CurrentProgram']['UserData']['LastPlayedDate'],
-            'duration': item['CurrentProgram']['RunTimeTicks'],
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "video"
-        }
-        Properties = {
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['CurrentProgram']['RunTimeTicks']),
-            'ResumeTime': item['CurrentProgram']['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item['SortName'], 'country': item['ProductionLocations'], 'genre': item['CurrentProgram']['Genres'], 'playcount': item['CurrentProgram']['UserData']['PlayCount'], 'overlay': 5 if item['CurrentProgram']['UserData']['PlayCount'] else 4, 'plot': item['CurrentProgram']['Overview'], 'tagline': item['Taglines'][0], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['CurrentProgram']['UserData']['LastPlayedDate'], 'duration': item['CurrentProgram']['RunTimeTicks'], 'userrating': item.get('CriticRating', None), 'mediatype': "video"}
+        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['CurrentProgram']['RunTimeTicks']), 'ResumeTime': item['CurrentProgram']['UserData']['PlaybackPositionTicks']}
         listitem.setInfo('video', metadata)
     elif item['Type'] in ("Movie", "Trailer"):
         common.SwopMediaSources(item)  # 3D
@@ -79,117 +52,22 @@ def set_ListItem(item, server_id):
         common.set_mpaa(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item['SortName'],
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'mpaa': item['OfficialRating'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'duration': item['RunTimeTicks'],
-            'imdbnumber': item.get('Unique', None),
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "movie"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks']),
-            'ResumeTime': item['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item['SortName'], 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'mpaa': item['OfficialRating'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'duration': item['RunTimeTicks'], 'imdbnumber': item.get('Unique', None), 'userrating': item.get('CriticRating', None), 'mediatype': "movie"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks']), 'ResumeTime': item['UserData']['PlaybackPositionTicks']}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Series":
         common.set_mpaa(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'tvshowtitle': item['Name'],
-            'status': item.get('status', None),
-            'sorttitle': item['SortName'],
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'mpaa': item['OfficialRating'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'imdbnumber': item.get('Unique', None),
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "tvshow"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'TotalEpisodes': item.get('RecursiveItemCount', 0),
-            'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']),
-            'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'],
-            'IsFolder': 'true',
-            'IsPlayable': 'true'
-        }
+        metadata = {'title': item['Name'], 'tvshowtitle': item['Name'], 'status': item.get('status', None), 'sorttitle': item['SortName'], 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'mpaa': item['OfficialRating'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'imdbnumber': item.get('Unique', None), 'userrating': item.get('CriticRating', None), 'mediatype': "tvshow"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'TotalEpisodes': item.get('RecursiveItemCount', 0), 'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']), 'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'], 'IsFolder': 'true', 'IsPlayable': 'true'}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Season":
         common.set_mpaa(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'season': item.get('IndexNumber', 0),
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'mpaa': item['OfficialRating'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'imdbnumber': item.get('Unique', None),
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "season"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'NumEpisodes': item.get('RecursiveItemCount', 0),
-            'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']),
-            'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'],
-            'IsFolder': 'true',
-            'IsPlayable': 'true'
-        }
+        metadata = {'title': item['Name'], 'season': item.get('IndexNumber', 0), 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'mpaa': item['OfficialRating'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'imdbnumber': item.get('Unique', None), 'userrating': item.get('CriticRating', None), 'mediatype': "season"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'NumEpisodes': item.get('RecursiveItemCount', 0), 'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']), 'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'], 'IsFolder': 'true', 'IsPlayable': 'true'}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Episode":
         common.SwopMediaSources(item)  # 3D
@@ -198,42 +76,8 @@ def set_ListItem(item, server_id):
         common.set_mpaa(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'tvshowtitle': item['SeriesName'],
-            'season': item.get('ParentIndexNumber', 0),
-            'episode': item.get('IndexNumber', 0),
-            'sortepisode': item.get('SortIndexNumber', None),
-            'sortseason': item.get('SortParentIndexNumber', None),
-            'sorttitle': item['SortName'],
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'mpaa': item['OfficialRating'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'duration': item['RunTimeTicks'],
-            'imdbnumber': item.get('Unique', None),
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "episode"
-        }
-        Properties = {
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks']),
-            'ResumeTime': item['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'tvshowtitle': item['SeriesName'], 'season': item.get('ParentIndexNumber', 0), 'episode': item.get('IndexNumber', 0), 'sortepisode': item.get('SortIndexNumber', None), 'sortseason': item.get('SortParentIndexNumber', None), 'sorttitle': item['SortName'], 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'mpaa': item['OfficialRating'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'duration': item['RunTimeTicks'], 'imdbnumber': item.get('Unique', None), 'userrating': item.get('CriticRating', None), 'mediatype': "episode"}
+        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks']), 'ResumeTime': item['UserData']['PlaybackPositionTicks']}
 
         # Upcoming
         if item['MediaSources'][0]['Type'] == "Placeholder":
@@ -256,37 +100,8 @@ def set_ListItem(item, server_id):
         common.set_overview(item)
         common.set_MusicVideoTracks(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item['SortName'],
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'duration': item['RunTimeTicks'],
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "musicvideo"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks']),
-            'ResumeTime': item['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item['SortName'], 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'duration': item['RunTimeTicks'], 'userrating': item.get('CriticRating', None), 'mediatype': "musicvideo"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks']), 'ResumeTime': item['UserData']['PlaybackPositionTicks']}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Video":
         common.SwopMediaSources(item)  # 3D
@@ -294,31 +109,8 @@ def set_ListItem(item, server_id):
         common.get_streams(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item['SortName'],
-            'originaltitle': item.get('OriginalTitle', None),
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'duration': item['RunTimeTicks'],
-            'mediatype': "video"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks']),
-            'ResumeTime': item['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item['SortName'], 'originaltitle': item.get('OriginalTitle', None), 'genre': item['Genres'], 'year': item['ProductionYear'], 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'duration': item['RunTimeTicks'], 'mediatype': "video"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks']), 'ResumeTime': item['UserData']['PlaybackPositionTicks']}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "MusicArtist":
         common.set_KodiArtwork(item, server_id, True)
@@ -329,22 +121,8 @@ def set_ListItem(item, server_id):
         item['ProviderIds']['MusicBrainzArtist'] = item['ProviderIds'].get('MusicBrainzArtist', None)
         common.set_overview(item)
         common.set_RunTimeTicks(item)
-        metadata = {
-            'title': item['Name'],
-            'duration': str(item['RunTimeTicks']),
-            'genre': item['Genre'],
-            'artist': item['Name'],
-            'musicbrainzartistid': item['ProviderIds']['MusicBrainzArtist'],
-            'comment': item['Overview'],
-            'playcount': item['UserData']['PlayCount'],
-            'mediatype': "artist"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'true',
-            'IsPlayable': 'false'
-        }
+        metadata = {'title': item['Name'], 'duration': str(item['RunTimeTicks']), 'genre': item['Genre'], 'artist': item['Name'], 'musicbrainzartistid': item['ProviderIds']['MusicBrainzArtist'], 'comment': item['Overview'], 'playcount': item['UserData']['PlayCount'], 'mediatype': "artist"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'false'}
         listitem.setInfo('music', metadata)
     elif item['Type'] == "MusicAlbum":
         common.set_KodiArtwork(item, server_id, True)
@@ -357,25 +135,8 @@ def set_ListItem(item, server_id):
         item['ProductionYear'] = item.get('ProductionYear')
         common.set_RunTimeTicks(item)
         common.set_overview(item)
-        metadata = {
-            'title': item['Name'],
-            'duration': str(item['RunTimeTicks']),
-            'genre': item['Genre'],
-            'artist': [item['Name']],
-            'year': item['ProductionYear'],
-            'musicbrainzalbumartistid': item['ProviderIds']['MusicBrainzAlbumArtist'],
-            'musicbrainzalbumid': item['ProviderIds']['MusicBrainzAlbum'],
-            'comment': item['Overview'],
-            'playcount': item['UserData']['PlayCount'],
-            'mediatype': "album"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'true',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks'])
-        }
+        metadata = {'title': item['Name'], 'duration': str(item['RunTimeTicks']), 'genre': item['Genre'], 'artist': [item['Name']], 'year': item['ProductionYear'], 'musicbrainzalbumartistid': item['ProviderIds']['MusicBrainzAlbumArtist'], 'musicbrainzalbumid': item['ProviderIds']['MusicBrainzAlbum'], 'comment': item['Overview'], 'playcount': item['UserData']['PlayCount'], 'mediatype': "album"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks'])}
         listitem.setInfo('music', metadata)
     elif item['Type'] == "Audio":
         common.set_KodiArtwork(item, server_id, True)
@@ -394,114 +155,35 @@ def set_ListItem(item, server_id):
         common.set_overview(item)
         common.set_RunTimeTicks(item)
         common.get_streams(item)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item['SortName'],
-            'tracknumber': item['IndexNumber'],
-            'discnumber': item['ParentIndexNumber'],
-            'playcount': item['UserData']['PlayCount'],
-            'comment': item['Overview'],
-            'duration': item['RunTimeTicks'],
-            'musicbrainzartistid': item['ProviderIds']['MusicBrainzArtist'],
-            'musicbrainzalbumartistid': item['ProviderIds']['MusicBrainzAlbumArtist'],
-            'musicbrainzalbumid': item['ProviderIds']['MusicBrainzAlbum'],
-            'musicbrainztrackid': item['ProviderIds']['MusicBrainzTrack'],
-            'year': item['ProductionYear'],
-            'mediatype': "song"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'false',
-            'IsPlayable': 'true',
-            'TotalTime': str(item['RunTimeTicks']),
-            'ResumeTime': item['UserData']['PlaybackPositionTicks']
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item['SortName'], 'tracknumber': item['IndexNumber'], 'discnumber': item['ParentIndexNumber'], 'playcount': item['UserData']['PlayCount'], 'comment': item['Overview'], 'duration': item['RunTimeTicks'], 'musicbrainzartistid': item['ProviderIds']['MusicBrainzArtist'], 'musicbrainzalbumartistid': item['ProviderIds']['MusicBrainzAlbumArtist'], 'musicbrainzalbumid': item['ProviderIds']['MusicBrainzAlbum'], 'musicbrainztrackid': item['ProviderIds']['MusicBrainzTrack'], 'year': item['ProductionYear'], 'mediatype': "song"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': str(item['RunTimeTicks']), 'ResumeTime': item['UserData']['PlaybackPositionTicks']}
         listitem.setInfo('music', metadata)
     elif item['Type'] == "BoxSet":
         common.set_RunTimeTicks(item)
         common.set_overview(item)
         common.set_videocommon(item, server_id, 0, True)
-        metadata = {
-            'title': item['Name'],
-            'sorttitle': item.get('SortName', None),
-            'originaltitle': item.get('OriginalTitle', None),
-            'country': item['ProductionLocations'],
-            'genre': item['Genres'],
-            'year': item['ProductionYear'],
-            'rating': item.get('CommunityRating', None),
-            'playcount': item['UserData']['PlayCount'],
-            'overlay': 5 if item['UserData']['PlayCount'] else 4,
-            'director': item['Directors'],
-            'plot': item['Overview'],
-            'plotoutline': item.get('ShortOverview', ""),
-            'studio': item['Studios'],
-            'tagline': item['Taglines'][0],
-            'writer': item['Writers'],
-            'premiered': item['PremiereDate'],
-            'date': get_shortdate(item['DateCreated']),
-            'lastplayed': item['UserData']['LastPlayedDate'],
-            'duration': item['RunTimeTicks'],
-            'userrating': item.get('CriticRating', None),
-            'mediatype': "set"
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'true',
-            'IsPlayable': 'true'
-        }
+        metadata = {'title': item['Name'], 'sorttitle': item.get('SortName', None), 'originaltitle': item.get('OriginalTitle', None), 'country': item['ProductionLocations'], 'genre': item['Genres'], 'year': item['ProductionYear'], 'rating': item.get('CommunityRating', None), 'playcount': item['UserData']['PlayCount'], 'overlay': 5 if item['UserData']['PlayCount'] else 4, 'director': item['Directors'], 'plot': item['Overview'], 'plotoutline': item.get('ShortOverview', ""), 'studio': item['Studios'], 'tagline': item['Taglines'][0], 'writer': item['Writers'], 'premiered': item['PremiereDate'], 'date': get_shortdate(item['DateCreated']), 'lastplayed': item['UserData']['LastPlayedDate'], 'duration': item['RunTimeTicks'], 'userrating': item.get('CriticRating', None), 'mediatype': "set"}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}
         listitem.setInfo('video', metadata)
     elif item['Type'] == 'Playlist':
         common.set_KodiArtwork(item, server_id, True)
         common.set_overview(item)
-        metadata = {
-            'title': item['Name'],
-            'plot': item['Overview']
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'true',
-            'IsPlayable': 'false'
-        }
+        metadata = {'title': item['Name'], 'plot': item['Overview']}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'false'}
         listitem.setInfo('video', metadata)
     elif item['Type'] == "Photo":
         common.set_KodiArtwork(item, server_id, True)
         item['Width'] = str(item.get('Width', 0))
         item['Height'] = str(item.get('Height', 0))
         common.set_PremiereDate(item)
-        metadata = {
-            'title': item['Name'],
-            'picturepath': item['KodiArtwork']['poster'],
-            'exif:width': item['Width'],
-            'exif:height': item['Height'],
-            'date': get_shortdate(item['PremiereDate']),
-            'count': item['UserData']['PlayCount'],
-            'resolution': "%s, %s" % (item['Width'], item['Height'])
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'false',
-            'IsPlayable': 'true'
-        }
+        metadata = {'title': item['Name'], 'picturepath': item['KodiArtwork']['poster'], 'exif:width': item['Width'], 'exif:height': item['Height'], 'date': get_shortdate(item['PremiereDate']), 'count': item['UserData']['PlayCount'], 'resolution': "%s, %s" % (item['Width'], item['Height'])}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true'}
         listitem.setInfo('pictures', metadata)
     elif item['Type'] == "PhotoAlbum":
         common.set_KodiArtwork(item, server_id, True)
         common.set_PremiereDate(item)
-        metadata = {
-            'title': item['Name'],
-            'picturepath': item['KodiArtwork']['poster'],
-            'date': get_shortdate(item['PremiereDate']),
-            'count': item['UserData']['PlayCount']
-        }
-        Properties = {
-            'embyserverid': str(server_id),
-            'embyid': str(item['Id']),
-            'IsFolder': 'true',
-            'IsPlayable': 'true'
-        }
+        metadata = {'title': item['Name'], 'picturepath': item['KodiArtwork']['poster'], 'date': get_shortdate(item['PremiereDate']), 'count': item['UserData']['PlayCount']}
+        Properties = {'embyserverid': str(server_id), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}
         listitem.setInfo('pictures', metadata)
     else: # Letter etc
         common.set_KodiArtwork(item, server_id, True)

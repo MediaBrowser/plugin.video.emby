@@ -7,6 +7,7 @@ DefaultVideoSettings = {}
 MediaTypeMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
+sendNoContent = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 BlankWAV = b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x10\x00\x00\x00\x01\x00\x01\x00\x44\xac\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00\x64\x61\x74\x61\x74\x00\x00\x00\x00'
 sendBlankWAV = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 45\r\nContent-type: audio/wav\r\n\r\n'.encode() + BlankWAV # used to "stop" playback by sending a WAV file with silance. File is valid, so Kodi will not raise an error message
 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -87,11 +88,19 @@ def worker_Query(client, data):  # thread by caller
         xbmc.sleep(100)
 
     while not utils.EmbyServers:
-        xbmc.log("EMBY.hooks.webservice: No Emby servers found, delay query", xbmc.LOGINFO)
+        Break = False
+
+        if utils.PluginStarted:
+            xbmc.log("EMBY.hooks.webservice: No Emby servers found, skip", xbmc.LOGINFO)
+            Break = True
 
         if utils.sleep(1) or DelayQuery >= 60:
+            xbmc.log("EMBY.hooks.webservice: No Emby servers found, delay query", xbmc.LOGINFO)
+            Break = True
+
+        if Break:
             xbmc.log("Terminate query", xbmc.LOGERROR)
-            client.send(sendOK)
+            client.send(sendNoContent)
             client.close()
             return
 
@@ -160,12 +169,6 @@ def worker_Query(client, data):  # thread by caller
             client.send(sendOK)
             client.close()
             context.delete_item(True)
-            return
-
-        if mode == 'adduserselection':  # Simple commands
-            client.send(sendOK)
-            client.close()
-            pluginmenu.select_adduser()
             return
 
         if mode == 'reset_device_id':  # Simple commands
@@ -344,7 +347,7 @@ def http_Query(client, Payload, RequestType):
             PlayTrailer = True
 
             if utils.askCinema:
-                PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autocloseyesno) * 1000)
+                PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autoclose) * 1000)
 
             if PlayTrailer:
                 utils.EmbyServers[QueryData['ServerId']].http.load_Trailers(QueryData['EmbyID'])
@@ -447,8 +450,6 @@ def SubTitlesAdd(MediaIndex, QueryData, ThreadId):
 
         if Data[3] in ("srt", "ass"):
             SRTFound = True
-            SubTitleURL = "%s/emby/videos/%s/%s/Subtitles/%s/stream.%s" % (utils.EmbyServers[QueryData['ServerId']].ServerData['ServerUrl'], QueryData['EmbyID'], QueryData['MediasourceID'], Data[2], Data[3])
-            request = {'type': "GET", 'url': SubTitleURL, 'params': {}}
 
             # Get Subtitle Settings
             videodb = dbio.DBOpenRO("video", "SubTitlesAdd")
@@ -468,12 +469,11 @@ def SubTitlesAdd(MediaIndex, QueryData, ThreadId):
             else:
                 SubtileLanguage = "unknown"
 
-            Filename = utils.PathToFilenameReplaceSpecialCharecters("%s.%s.%s" % (CounterSubTitle, SubtileLanguage, Data[3]))
-            response = utils.EmbyServers[QueryData['ServerId']].http.request(request, True, True)
+            BinaryData = utils.EmbyServers[QueryData['ServerId']].API.get_Subtitle_Binary(QueryData['EmbyID'], QueryData['MediasourceID'], Data[2], Data[3])
 
-            if response:
-                Path = "%s%s" % (utils.FolderEmbyTemp, Filename)
-                utils.writeFileBinary(Path, response)
+            if BinaryData:
+                Path = "%s%s" % (utils.FolderEmbyTemp, utils.PathToFilenameReplaceSpecialCharecters("%s.%s.%s" % (CounterSubTitle, SubtileLanguage, Data[3])))
+                utils.writeFileBinary(Path, BinaryData)
 
                 if DefaultVideoSettings["SubtitlesLanguage"].lower() in Data[5].lower():
                     DefaultSubtitlePath = Path
@@ -504,14 +504,7 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
             URL = 'HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s/emby/videos/%s/stream?static=true&MediaSourceId=%s&PlaySessionId=%s&DeviceId=%s&api_key=%s&%s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % (utils.EmbyServers[QueryData['ServerId']].ServerData['ServerUrl'], QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, utils.device_id, utils.EmbyServers[QueryData['ServerId']].ServerData['AccessToken'], QueryData['Filename'])
 
             if QueryData['Remote']:  # remote content -> verify source
-                params = {
-                    'static': True,
-                    'MediaSourceId': QueryData['MediasourceID'],
-                    'PlaySessionId': PlaySessionId,
-                    'DeviceId': utils.device_id
-
-                }
-                status_code = utils.EmbyServers[QueryData['ServerId']].http.request({'params': params, 'type': "HEAD", 'handler': "videos/%s/stream" % QueryData['EmbyID']}, False, False)
+                status_code = utils.EmbyServers[QueryData['ServerId']].API.get_stream_statuscode(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId)
                 xbmc.log("EMBY.hooks.webservice: Remote content verification: %s" % status_code, xbmc.LOGINFO)
 
                 if status_code == 200:
@@ -658,20 +651,14 @@ def IsTranscoding(Bitrate, Codec, QueryData):
             IsTranscodingByCodec(Bitrate, QueryData)
             return True
 
-    QueryData['TargetVideoBitrate'] = utils.videoBitrate
-    QueryData['TargetAudioBitrate'] = utils.audioBitrate
-    QueryData['TranscodeReasons'] = "ContainerBitrateExceedsLimit"
+    QueryData.update({'TranscodeReasons': "ContainerBitrateExceedsLimit", 'TargetVideoBitrate': utils.videoBitrate, 'TargetAudioBitrate': utils.audioBitrate})
     return Bitrate >= QueryData['TargetVideoBitrate']
 
 def IsTranscodingByCodec(Bitrate, QueryData):
     if Bitrate >= utils.videoBitrate:
-        QueryData['TranscodeReasons'] = "ContainerBitrateExceedsLimit"
-        QueryData['TargetVideoBitrate'] = utils.videoBitrate
-        QueryData['TargetAudioBitrate'] = utils.audioBitrate
+        QueryData.update({'TranscodeReasons': "ContainerBitrateExceedsLimit", 'TargetVideoBitrate': utils.videoBitrate, 'TargetAudioBitrate': utils.audioBitrate})
     else:
-        QueryData['TranscodeReasons'] = "VideoCodecNotSupported"
-        QueryData['TargetVideoBitrate'] = 0
-        QueryData['TargetAudioBitrate'] = 0
+        QueryData.update({'TranscodeReasons': "VideoCodecNotSupported", 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0})
 
 def GetParametersFromURLQuery(Payload):
     Temp = Payload[Payload.rfind("/") + 1:]
@@ -679,27 +666,14 @@ def GetParametersFromURLQuery(Payload):
     QueryData = {'MediaSources': [], 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0, 'Payload': Payload, 'Type': MediaTypeMapping[Data[0]], 'ServerId': Data[1], 'EmbyID': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0}
 
     if Data[0] == "p":  # Image/picture
-        QueryData['ImageIndex'] = Data[3]
-        QueryData['ImageType'] = EmbyArtworkIDs[Data[4]]
-        QueryData['ImageTag'] = Data[5]
+        QueryData.update({'ImageIndex': Data[3], 'ImageType': EmbyArtworkIDs[Data[4]], 'ImageTag': Data[5]})
 
-        if len(Data) == 7 and QueryData['ImageType'] == "Chapter":
+        if QueryData['ImageType'] == "Chapter":
             QueryData['Overlay'] = unquote(Data[6])
         else:
             QueryData['Overlay'] = ""
     elif Data[0] in ("e", "m", "M", "i", "T", "v"):  # Video or iso
-        QueryData['MediasourceID'] = Data[3]
-        QueryData['KodiId'] = Data[4]
-        QueryData['KodiFileId'] = Data[5]
-        QueryData['BitrateFromURL'] = int(Data[6])
-        QueryData['ExternalSubtitle'] = Data[7]
-        QueryData['MediasourcesCount'] = int(Data[8])
-        QueryData['CodecVideo'] = Data[9]
-        QueryData['IntroStartPositionTicks'] = int(Data[10])
-        QueryData['IntroEndPositionTicks'] = int(Data[11])
-        QueryData['CreditsPositionTicks'] = int(Data[12])
-        QueryData['Remote'] = int(Data[13])
-        QueryData['Filename'] = Data[14]
+        QueryData.update({'MediasourceID': Data[3], 'KodiId': Data[4], 'KodiFileId': Data[5], 'BitrateFromURL': int(Data[6]), 'ExternalSubtitle': Data[7], 'MediasourcesCount': int(Data[8]), 'CodecVideo': Data[9], 'IntroStartPositionTicks': int(Data[10]), 'IntroEndPositionTicks': int(Data[11]), 'CreditsPositionTicks': int(Data[12]), 'Remote': int(Data[13]), 'Filename': Data[14]})
 
         if QueryData['KodiFileId'] == "0": # Dynamic content played, cleare cache
             pluginmenu.QueryCache = {} # Clear Cache
@@ -708,19 +682,10 @@ def GetParametersFromURLQuery(Payload):
 
         globals()["QueryDataPrevious"] = QueryData.copy()
         player.PlaylistRemoveItem = "-1"
-
-    elif Data[0] == "a":  # Audio
-        QueryData['MediasourceID'] = None
-        QueryData['Filename'] = Data[3]
-    elif Data[0] == "t":  # tv channel
-        QueryData['MediasourceID'] = None
-        QueryData['Filename'] = Data[3]
-    elif Data[0] == "c":  # channel
-        QueryData['MediasourceID'] = Data[3]
-        QueryData['Filename'] = Data[4]
+    elif Data[0] in ("a", "t"):  # Audio, tv channel
+        QueryData.update({'MediasourceID': None, 'Filename': Data[3]})
     else:
-        QueryData['MediasourceID'] = Data[3]
-        QueryData['Filename'] = Data[4]
+        QueryData.update({'MediasourceID': Data[3], 'Filename': Data[4]})
 
     return QueryData
 

@@ -19,23 +19,10 @@ class HTTP:
         self.session.close()
         self.session = None
 
+    # decide threaded or wait for response
     def request(self, data, ServerConnecting, Binary, Headers=False):
         RequestType = data.pop('type', "GET")
 
-        if RequestType == 'GET':
-            return self.execute_request(data, ServerConnecting, Binary, RequestType, Headers)
-
-        if RequestType == "POST":
-            if ServerConnecting:
-                return self.execute_request(data, ServerConnecting, Binary, RequestType, Headers)
-
-            start_new_thread(self.execute_request, (data, ServerConnecting, Binary, RequestType, Headers))
-        elif RequestType == "DELETE":
-            start_new_thread(self.execute_request, (data, ServerConnecting, Binary, RequestType, Headers))
-
-        return noData(Binary, Headers)
-
-    def execute_request(self, data, ServerConnecting, Binary, RequestType, Headers):
         if 'url' not in data:
             data['url'] = "%s/emby/%s" % (self.EmbyServer.ServerData['ServerUrl'], data.pop('handler', ""))
 
@@ -52,81 +39,79 @@ class HTTP:
                 data['headers'].update({'Authorization': auth})
 
         if ServerConnecting:  # Server connect
-            data['timeout'] = 30
+            data['timeout'] = (15, 30)
         else:
-            data['timeout'] = 300
+            data['timeout'] = (15, 300)
 
         LOG.debug("[ http ] %s" % data)
-        Retries = 0
 
-        while True:
-            if utils.SystemShutdown:
-                self.stop_session()
+        # start session
+        if not self.session:
+            self.session = requests.Session()
+
+        # http request
+        try:
+            if RequestType == "HEAD":
+                r = self.session.head(**data)
+                return r.status_code
+
+            if RequestType == "GET":
+                r = self.session.get(**data)
+
+                if r.status_code == 200:
+                    if Binary:
+                        if Headers:
+                            return r.content, r.headers
+
+                        return r.content
+
+                    return r.json()
+
+                if r.status_code == 401:
+                    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
+
+                LOG.error("[ Statuscode ] %s" % r.status_code)
                 return noData(Binary, Headers)
-
-            # start session
-            if not self.session:
-                self.session = requests.Session()
-
-            # http request
-            try:
-                if RequestType == "GET":
-                    r = self.session.get(**data)
-
-                    if r.status_code == 200:
-                        if Binary:
-                            if Headers:
-                                return r.content, r.headers
-
-                            return r.content
-
-                        return r.json()
-
-                    if r.status_code == 401:
-                        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
-
-                    return noData(Binary, Headers)
-
-                if RequestType == "POST":
+            if RequestType == "POST":
+                if ServerConnecting:
                     r = self.session.post(**data)
+                    return r.json()
 
-                    if ServerConnecting:
-                        return r.json()
-                elif RequestType == "DELETE":
-                    self.session.delete(**data).json()
+                data['timeout'] = (15, 0.001) # Don't wait for response
+                self.session.post(**data)
+            elif RequestType == "DELETE":
+                data['timeout'] = (15, 0.001) # Don't wait for response
+                self.session.delete(**data).json()
 
-                return noData(Binary, Headers)
-            except requests.exceptions.SSLError:
-                LOG.error("[ SSL error ]")
-                LOG.debug("[ SSL error ] %s" % data)
-                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
-                self.stop_session()
-                return noData(Binary, Headers)
-            except requests.exceptions.ConnectionError:
-                LOG.error("[ ServerUnreachable ]")
-                LOG.debug("[ ServerUnreachable ] %s" % data)
-                self.stop_session()
+            return noData(Binary, Headers)
+        except requests.exceptions.SSLError:
+            LOG.error("[ SSL error ]")
+            LOG.debug("[ SSL error ] %s" % data)
+            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
+            self.stop_session()
+            return noData(Binary, Headers)
+        except requests.exceptions.ConnectionError:
+            LOG.error("[ ServerUnreachable ]")
+            LOG.debug("[ ServerUnreachable ] %s" % data)
+            self.stop_session()
+            self.EmbyServer.ServerUnreachable()
+            self.stop_session()
+            return noData(Binary, Headers)
+        except requests.exceptions.ReadTimeout:
+            if data['timeout'] == (15, 0.001):
+                LOG.info("[ Nonblocking ]")
+                LOG.debug("[ Nonblocking ] %s" % data)
+                return None
 
-                if not ServerConnecting:
-                    if Retries < 3:
-                        Retries += 1
-                        LOG.error("[ ServerUnreachable/retries %s ]" % Retries)
-                        continue
-
-                    self.EmbyServer.ServerUnreachable()
-
-                self.stop_session()
-                return noData(Binary, Headers)
-            except requests.exceptions.ReadTimeout:
-                LOG.error("[ ServerTimeout ]")
-                LOG.debug("[ ServerTimeout ] %s" % data)
-                self.stop_session()
-                return noData(Binary, Headers)
-            except Exception as error:
-                LOG.error("[ Unknown ]")
-                LOG.debug("[ Unknown ] %s / %s" % (data, str(error)))
-                self.stop_session()
-                return noData(Binary, Headers)
+            LOG.error("[ ServerTimeout ]")
+            LOG.debug("[ ServerTimeout ] %s" % data)
+            self.stop_session()
+            return noData(Binary, Headers)
+        except Exception as error:
+            LOG.error("[ Unknown ] %s" % str(error))
+            LOG.debug("[ Unknown ] %s / %s" % (data, str(error)))
+            self.stop_session()
+            return noData(Binary, Headers)
 
     def load_Trailers(self, EmbyId):
         ReceivedIntros = []

@@ -221,13 +221,13 @@ class EmbyDatabase:
             KodiIds = ItemData[0].split(";")
 
             if not LibraryId:
-                return (KodiIds[0], ItemData[1])
+                return KodiIds[0], ItemData[1]
 
             for Index, EmbyLibraryId in enumerate(EmbyLibraryIds):
                 if LibraryId == EmbyLibraryId:
-                    return (KodiIds[Index], ItemData[1])
+                    return KodiIds[Index], ItemData[1]
 
-        return None
+        return None, None
 
     def get_item_by_KodiId_KodiType(self, KodiId, KodiType):
         self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId = ?", (KodiType, KodiId))

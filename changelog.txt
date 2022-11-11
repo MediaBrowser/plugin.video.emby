@@ -1,3 +1,22 @@
+7.10.2
+=============
+fix HEAD queries
+Improvement for Emby server login, mainly for multiservers but also for single server
+fix Emby server connection if Emby server is not online at Kodi start
+fix Database (Emby server ID not loaded) for edge case
+use timeouts for some POST and DELETE http queries, instead of threading them (more reliable Kodi playback seeking)
+add server disconnect/remove function
+add startup sync progress bar
+Remove same delays on Wizard
+Avoid removing custom nodes on factory or node reset (don't put you custom nodes in the "emby_*" folders or label the files "emby_*")
+
+
+7.10.1
+=============
+fix playback stop if emby server no loaded
+fix chapter sync issue
+
+
 7.10.0
 =============
 small playback improvement in addon mode for multicontent and transcoding

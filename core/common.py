@@ -578,7 +578,7 @@ def set_chapters(item, server_id):
         MarkerLabel = ""
 
         for index, Chapter in enumerate(item['Chapters']):
-            ChapterImage = None
+            ChapterImage = ""
             Chapter["StartPositionTicks"] = round(float(Chapter["StartPositionTicks"] or 0) / 10000000)
 
             if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "IntroEnd" or Chapter['MarkerType'] == "CreditsStart"):
@@ -610,24 +610,22 @@ def set_chapters(item, server_id):
                         MarkerLabel = quote(Chapter['Name'])
                     elif " 0" in Chapter['Name'] or Chapter["StartPositionTicks"] % 300 != 0: # embedded chapter
                         continue
+                else:
+                    Chapter["Name"] = "unknown"
 
-                    if "ImageTag" in Chapter:
-                        if "Name" in Chapter and "Chapter " not in Chapter['Name']:
-                            ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(Chapter['Name']))
-                        else:
-                            ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s" % (server_id, item['Id'], index, Chapter['ImageTag'])
+                if "ImageTag" in Chapter:
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(Chapter['Name']))
+                else:
+                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", quote(Chapter['Name']))
 
             if not Chapter["StartPositionTicks"] in Chapters:
                 Chapters[Chapter["StartPositionTicks"]] = ChapterImage
             else:
+                # replace existing chapter label with marker label
                 if MarkerLabel:
                     Data = Chapters[Chapter["StartPositionTicks"]].split("-")
-
-                    if len(Data) == 7: # replace existing chapter label with marker label
-                        Data[6] = MarkerLabel
-                        Chapters[Chapter["StartPositionTicks"]] = "-".join(Data)
-                    else: # add marker label
-                        Chapters[Chapter["StartPositionTicks"]] += "-%s" % MarkerLabel
+                    Data[6] = MarkerLabel
+                    Chapters[Chapter["StartPositionTicks"]] = "-".join(Data)
 
     for StartPositionTicks, ChapterImage in list(Chapters.items()):
         item['ChapterInfo'].append({"StartPositionTicks": StartPositionTicks, "Image": ChapterImage})
