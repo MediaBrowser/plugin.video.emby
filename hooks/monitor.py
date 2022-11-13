@@ -24,6 +24,10 @@ class monitor(xbmc.Monitor):
 
             if not QueryItemStatusThread:
                 globals()["QueryItemStatusThread"] = True
+
+                if "episode" in data: # Immediately reset episode caches (next episode node) -> skin helpers widget refresh
+                    pluginmenu.reset_episodes_cache()
+
                 start_new_thread(VideoLibrary_OnUpdate, ())
         elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
             if utils.enableDeleteByKodiEvent:
@@ -99,7 +103,7 @@ def Notification(method, data):  # threaded by caller
     elif method == 'Other.databasereset':
         pluginmenu.databasereset()
     elif method == 'Other.nodesreset':
-        pluginmenu.nodesreset()
+        utils.nodesreset()
     elif method == 'Other.factoryreset':
         if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
             pluginmenu.factoryreset()
@@ -273,7 +277,6 @@ def VideoLibrary_OnUpdate():
             utils.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
 
     LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
-    pluginmenu.reset_episodes_cache()
 
 def BackupRestore():
     RestoreFolder = utils.Dialog.browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
@@ -394,6 +397,7 @@ def settingschanged():  # threaded by caller
     xspplaylistsPreviousValue = utils.xspplaylists
     enableCoverArtPreviousValue = utils.enableCoverArt
     syncruntimelimitsPreviousValue = utils.syncruntimelimits
+    maxnodeitemsPreviousValue = utils.maxnodeitems
     utils.InitSettings()
 
     # Http2 mode changed, rebuild advanced settings -> restart Kodi
@@ -415,6 +419,11 @@ def settingschanged():  # threaded by caller
             pluginmenu.DeleteThumbnails()
         else:
             utils.set_settings_bool("enableCoverArt", enableCoverArtPreviousValue)
+
+
+    # Toggle node items limit
+    if maxnodeitemsPreviousValue != utils.maxnodeitems:
+        utils.nodesreset()
 
     LOG.info("--<[ Reload settings ]")
 

@@ -651,15 +651,19 @@ def SyncThemes(server_id):
 
 def SyncLiveTV(server_id):
     if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)') and xbmc.getCondVisibility('System.AddonIsEnabled(pvr.iptvsimple)'):
+        xbmc.executebuiltin('Dialog.Close(addoninformation)')
         ChannelNames = {}
 
         # build m3u playlist
+        utils.progress_open(utils.Translate(33449))
         channels = utils.EmbyServers[server_id].API.get_channels()
 
         if channels:
+            ProgressBarTotal = len(channels) / 100
             playlist = "#EXTM3U\n"
 
-            for item in channels:
+            for ProgressBarIndex, item in enumerate(channels):
+                utils.progress_update(int(ProgressBarIndex / ProgressBarTotal), utils.Translate(33449), item['Name'])
                 ChannelNames[item['Id']] = item['Name']
 
                 if item['TagItems']:
@@ -690,14 +694,17 @@ def SyncLiveTV(server_id):
             iptvsimple.setSetting('m3uPath', PlaylistFile)
 
             # build epg
+            utils.progress_update(0, utils.Translate(33450), "")
             epgdata = utils.EmbyServers[server_id].API.get_channelprogram()
 
             if epgdata:
+                ProgressBarTotal = len(epgdata['Items']) / 100
                 EPGFile = "%s%s" % (utils.FolderEmbyTemp, 'livetv.epg')
                 epg = '<?xml version="1.0" encoding="utf-8" ?>\n'
                 epg += '<tv>\n'
 
-                for item in epgdata['Items']:
+                for ProgressBarIndex, item in enumerate(epgdata['Items']):
+                    utils.progress_update(int(ProgressBarIndex / ProgressBarTotal), utils.Translate(33450), ChannelNames[item['ChannelId']])
                     temp = item['StartDate'].split("T")
                     timestampStart = temp[0].replace("-", "")
                     temp2 = temp[1].split(".")
@@ -732,7 +739,7 @@ def SyncLiveTV(server_id):
                 iptvsimple.setSetting('epgPathType', "0")
                 iptvsimple.setSetting('epgPath', EPGFile)
 
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33232))
+        utils.progress_close()
     else:
         utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33233))
 
@@ -870,7 +877,7 @@ def manage_servers(ServerConnect):  # threaded by caller
         Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
 
         if Selection > -1:
-            utils.Dialog.notification(heading=utils.addon_name, message="Disconnected from Emby server: %s" % utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName'], icon=utils.icon, time=1500, sound=False)
+            utils.Dialog.notification(heading=utils.addon_name, message="%s: %s" % (utils.Translate(33448), utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName']), icon=utils.icon, time=1500, sound=False)
             utils.EmbyServers[ServerIds[Selection]].ServerDisconnect()
             del utils.EmbyServers[ServerIds[Selection]]
     elif Selection == 2:
@@ -1195,7 +1202,7 @@ def get_next_episodes(Handle, libraryname):
         if libraryname in common.MediaTags:
             NextEpisodeInfos = videodb.get_next_episodesIds(common.MediaTags[libraryname])
 
-            for NextEpisodeInfo in NextEpisodeInfos:
+            for NextEpisodeInfo in NextEpisodeInfos[:int(utils.maxnodeitems)]:
                 EpisodeId = NextEpisodeInfo.split(";")
                 li, path, isFolder = utils.load_ContentMetadataFromKodiDB(EpisodeId[1], "episode", videodb, None)
 
@@ -1222,6 +1229,10 @@ def factoryreset():
     if utils.sleep(5):  # Give Kodi time to complete startup before reset
         return
 
+    for ServerId, EmbyServer in list(utils.EmbyServers.items()):
+        EmbyServer.ServerDisconnect()
+        del utils.EmbyServers[ServerId]
+
     # delete settings
     utils.delFolder(utils.FolderAddonUserdata)
 
@@ -1245,17 +1256,6 @@ def factoryreset():
     utils.delete_playlists()
     utils.delete_nodes()
     LOG.info("[ complete reset ]")
-    utils.restart_kodi()
-
-def nodesreset():
-    if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33342)):
-        return
-
-    utils.delete_nodes()
-
-    for EmbyServer in list(utils.EmbyServers.values()):
-        EmbyServer.Views.update_nodes()
-
     utils.restart_kodi()
 
 # Reset both the emby database and the kodi database.

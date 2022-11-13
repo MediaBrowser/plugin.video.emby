@@ -1,7 +1,3 @@
-# Emby for Kodi language file
-# Addon Name: Emby for Kodi
-# Addon id: plugin.video.emby-next-gen
-# Addon Provider: angelblue05
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
@@ -248,10 +244,6 @@ msgstr ""
 
 msgctxt "#30512"
 msgid "Enable artwork caching"
-msgstr ""
-
-msgctxt "#30515"
-msgid "Paging - max items requested (default: 50)"
 msgstr ""
 
 msgctxt "#30516"
@@ -1940,4 +1932,32 @@ msgstr ""
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
+msgstr ""
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr ""
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr ""
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr ""
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr ""
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr ""
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr ""
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
 msgstr ""

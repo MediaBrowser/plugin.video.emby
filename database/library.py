@@ -17,6 +17,7 @@ class Library:
         self.LastSyncTime = ""
         self.ContentObject = None
         self.EmbyDBOpen = False
+        self.DatabaseInit = False
 
     def open_Worker(self, Worker):
         if Worker_is_paused():
@@ -28,6 +29,13 @@ class Library:
             return False, []
 
         globals()["WorkerInProgress"] = True
+
+        while not self.DatabaseInit:
+            LOG.info("[ worker %s wait for database init ]" % Worker)
+
+            if utils.sleep(1):
+                return False, []
+
         Items = []
         embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], Worker)
 
@@ -109,8 +117,11 @@ class Library:
             self.Whitelist, self.WhitelistArray = embydb.get_Whitelist()
         else:
             self.close_EmbyDBRW("load_settings")
+            LOG.error("load_settings, database corrupt")
             return
 
+        self.LastSyncTime = embydb.get_LastIncrementalSync()
+        self.close_EmbyDBRW("load_settings")
         videodb = dbio.DBOpenRW("video", "load_settings")
 
         for ViewItem in list(self.EmbyServer.Views.ViewItems.values()):
@@ -126,8 +137,7 @@ class Library:
         texturedb = dbio.DBOpenRW("texture", "load_settings")
         texturedb.add_Index()
         dbio.DBCloseRW("texture", "load_settings")
-        self.LastSyncTime = embydb.get_LastIncrementalSync()
-        self.close_EmbyDBRW("load_settings")
+        self.DatabaseInit = True
 
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
         if Firstrun:
@@ -141,7 +151,7 @@ class Library:
 
         if self.LastSyncTime:
             LOG.info("-->[ retrieve changes ] %s" % self.LastSyncTime)
-            utils.progress_open("Startup sync")
+            utils.progress_open(utils.Translate(33445))
 
             for plugin in self.EmbyServer.API.get_plugins():
                 if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
@@ -169,9 +179,9 @@ class Library:
                     ProgressBarIndex += 1
 
                     if UserSync:
-                        ProgressBarLabel = "Startup sync / userdata"
+                        ProgressBarLabel = utils.Translate(33446)
                     else:
-                        ProgressBarLabel = "Startup sync / content"
+                        ProgressBarLabel = utils.Translate(33447)
 
                     if Whitelist[0] in self.EmbyServer.Views.ViewItems:
                         LibraryName = self.EmbyServer.Views.ViewItems[Whitelist[0]][0]
@@ -218,6 +228,8 @@ class Library:
 
                         UpdateData += UpdateDataTemp
 
+            utils.progress_close()
+
         # Update sync update timestamp
         self.set_syncdate(utils.currenttime())
 
@@ -225,7 +237,6 @@ class Library:
         UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
         LOG.info("--<[ retrieve changes ]")
         pluginmenu.reset_episodes_cache()
-        utils.progress_close()
         self.updated(UpdateData)
 
     def worker_userdata(self):

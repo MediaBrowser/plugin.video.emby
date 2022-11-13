@@ -716,6 +716,12 @@ def set_settings_bool(setting, value):
     else:
         Addon.setSetting(setting, "false")
 
+def nodesreset():
+    delete_nodes()
+
+    for EmbyServer in list(EmbyServers.values()):
+        EmbyServer.Views.update_nodes()
+
 def get_path_type_from_item(server_id, item):
     path = None
 

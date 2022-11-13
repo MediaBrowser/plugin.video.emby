@@ -162,7 +162,7 @@ def worker_Query(client, data):  # thread by caller
         if mode == 'nodesreset':  # Simple commands
             client.send(sendOK)
             client.close()
-            pluginmenu.nodesreset()
+            utils.nodesreset()
             return
 
         if mode == 'delete':  # Simple commands

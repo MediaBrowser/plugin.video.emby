@@ -1,4 +1,5 @@
 from _thread import start_new_thread
+import queue
 import requests
 from helper import utils, loghandler
 
@@ -10,14 +11,53 @@ class HTTP:
         self.session = None
         self.EmbyServer = EmbyServer
         self.Intros = []
+        self.AsyncCommandQueue = queue.Queue()
+
+    def async_commands(self):
+        CommandRetry = ()
+        CommandRetryCounter = 0
+
+        while True:
+            if CommandRetry:
+                Command = CommandRetry
+                CommandRetry = ()
+            else:
+                Command = self.AsyncCommandQueue.get()
+
+            try:
+                if Command[0] == "POST":
+                    Command[1]['timeout'] = (5, 5)
+                    self.session.post(**Command[1])
+                elif Command[0] == "DELETE":
+                    Command[1]['timeout'] = (5, 5)
+                    self.session.delete(**Command[1])
+                elif Command[0] == "QUIT":
+                    LOG.info("Queue closed")
+                    break
+
+                CommandRetryCounter = 0
+            except Exception as error:
+                if CommandRetryCounter < 5:
+                    CommandRetryCounter += 1
+                    CommandRetry = Command
+                    LOG.warning("async_commands retry: %s" % CommandRetryCounter)
+                else:
+                    CommandRetryCounter = 0
+                    CommandRetry = ()
+                    LOG.warning("async_commands error: %s" % str(error))
 
     def stop_session(self):
         if not self.session:
             return
 
-        LOG.warning("--<[ session/%s ]" % id(self.session))
-        self.session.close()
+        try:
+            self.session.close()
+        except Exception as error:
+            LOG.warning("session close error: %s" % str(error))
+
+        self.AsyncCommandQueue.put(("QUIT",))
         self.session = None
+        LOG.info("session close")
 
     # decide threaded or wait for response
     def request(self, data, ServerConnecting, Binary, Headers=False):
@@ -48,6 +88,7 @@ class HTTP:
         # start session
         if not self.session:
             self.session = requests.Session()
+            start_new_thread(self.async_commands, ())
 
         # http request
         try:
@@ -71,18 +112,16 @@ class HTTP:
                     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
 
                 LOG.error("[ Statuscode ] %s" % r.status_code)
+                LOG.debug("[ Statuscode ] %s" % data)
                 return noData(Binary, Headers)
             if RequestType == "POST":
                 if ServerConnecting:
                     r = self.session.post(**data)
                     return r.json()
 
-                data['timeout'] = (15, 0.001) # Don't wait for response
-                self.session.post(**data)
+                self.AsyncCommandQueue.put(("POST", data))
             elif RequestType == "DELETE":
-                data['timeout'] = (15, 0.001) # Don't wait for response
-                self.session.delete(**data).json()
-
+                self.AsyncCommandQueue.put(("DELETE", data))
             return noData(Binary, Headers)
         except requests.exceptions.SSLError:
             LOG.error("[ SSL error ]")
@@ -98,11 +137,6 @@ class HTTP:
             self.stop_session()
             return noData(Binary, Headers)
         except requests.exceptions.ReadTimeout:
-            if data['timeout'] == (15, 0.001):
-                LOG.info("[ Nonblocking ]")
-                LOG.debug("[ Nonblocking ] %s" % data)
-                return None
-
             LOG.error("[ ServerTimeout ]")
             LOG.debug("[ ServerTimeout ] %s" % data)
             self.stop_session()

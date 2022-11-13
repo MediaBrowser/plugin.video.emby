@@ -1,16 +1,3 @@
-# Emby for Kodi language file
-# Addon Name: Emby for Kodi
-# Addon id: plugin.video.emby-next-gen
-# Addon Provider: angelblue05
-# Translators:
-# Saiez, 2019
-# sualfred <su4lfred@gmail.com>, 2019
-# Wolfgang Petri <horstepipe@googlemail.com>, 2019
-# Mike Delling <mike.delling@gmail.com>, 2019
-# Ja Ku <asd2304@gmail.com>, 2019
-# Benni <semool@secure-mail.biz>, 2021
-# Markus Maurer <admin@ryuum3gum1n.de>, 2020
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
@@ -260,10 +247,6 @@ msgstr "Wiedergabemodus"
 msgctxt "#30512"
 msgid "Enable artwork caching"
 msgstr "Artwork Cache aktivieren"
-
-msgctxt "#30515"
-msgid "Paging - max items requested (default: 50)"
-msgstr "Maximal parallel abgefragte Serverelemente (Standard: 50)"
 
 msgctxt "#30516"
 msgid "Playback"
@@ -1948,3 +1931,31 @@ msgstr "Serverfortschritt aktivieren"
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
 msgstr "Emby-Server-Beschäftigt-Benachrichtigungen werden angezeigt"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Inhaltsänderungen abfragen"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Inhaltsänderungen / Benutzerdaten abfragen"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Inhaltsänderungen / Inhalt abfragen"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Vom Emby-Server getrennt"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "LiveTV-Kanäle synchronisieren"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Livetv-epg synchronisieren"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - angeforderte Elemente (Standardfaktor: 70)"

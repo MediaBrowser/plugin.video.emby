@@ -1,15 +1,3 @@
-# Emby for Kodi language file
-# Addon Name: Emby for Kodi
-# Addon id: plugin.video.emby-next-gen
-# Addon Provider: angelblue05
-# Translators:
-# z cherry <chengweizhu.zjzs@gmail.com>, 2019
-# lei zhang <hazhanglei@gmail.com>, 2019
-# Noisy✘ <164980316@qq.com>, 2019
-# jindaxia <jfk_jin@sina.com>, 2019
-# angelblue05 <tamara.angel05@gmail.com>, 2019
-# 無情天 X <kofzhanganguo@126.com>, 2019
-# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi\n"
@@ -258,10 +246,6 @@ msgstr "播放模式"
 msgctxt "#30512"
 msgid "Enable artwork caching"
 msgstr "启用艺术图缓存"
-
-msgctxt "#30515"
-msgid "Paging - max items requested (default: 50)"
-msgstr "分页 - 获取最大项目数（默认值：50）"
 
 msgctxt "#30516"
 msgid "Playback"
@@ -1950,3 +1934,31 @@ msgstr "启用服务器进度"
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
 msgstr "Emby 服务器繁忙通知显示"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "查询内容变化"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "查询内容变化/userdata"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "查询内容变化/内容"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "与Emby服务器断开连接"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "同步直播频道"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "同步直播电视节目"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "分页 - 请求的项目（默认因子：70）"
