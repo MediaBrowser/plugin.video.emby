@@ -45,7 +45,7 @@ class WSClient:
         start_new_thread(self.Listen, ())
 
     def close(self, Terminate=True):
-        LOG.info("Close wesocket connection %s" % self.EmbyServer.ServerData['ServerId'])
+        LOG.info("Close wesocket connection %s / %s" % (self.EmbyServer.ServerData['ServerId'], self.EmbyServer.ServerData['ServerName']))
 
         if Terminate:
             self.stop = True

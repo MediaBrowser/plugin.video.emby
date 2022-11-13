@@ -1,3 +1,16 @@
+7.10.3
+=============
+fix minor issue on factory reset
+fix next episode cache issue
+fix http session close error
+fix progress bar for startup sync
+Improvement http POST and DELETE commands using a threading queue
+fix database init issue
+add progress bar for livetv sync
+respect item limit for next episodes
+add translations
+
+
 7.10.2
 =============
 fix HEAD queries

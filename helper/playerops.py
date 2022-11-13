@@ -1,8 +1,9 @@
 import xbmc
-from helper import utils
+from helper import utils, loghandler
 from database import dbio
 from emby import listitem
 
+LOG = loghandler.LOG('EMBY.helper.playerops')
 Pictures = []
 
 
@@ -109,17 +110,20 @@ def setPlayerPosition(StartPositionTicks):
     if StartPositionTicks != -1:
         Position = StartPositionTicks / 10000000
 
-        for _ in range(10):
+        for _ in range(20):
             if utils.XbmcPlayer.isPlaying():
-                for _ in range(10):
+                try:
                     utils.XbmcPlayer.seekTime(Position)
                     CurrentTime = utils.XbmcPlayer.getTime()
+                except Exception as error:
+                    LOG.error(error)
+                    continue
 
-                    if CurrentTime >= Position - 10:
-                        return
+                if CurrentTime >= Position - 10:
+                    return
 
-                    if utils.sleep(0.5):
-                        return
+                if utils.sleep(0.5):
+                    return
             else:
                 if utils.sleep(0.5):
                     return

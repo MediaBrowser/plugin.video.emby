@@ -363,7 +363,7 @@ def stop_playback(delete, Stopped):
     Runtime = int(PlayingItemLocal['RunTimeTicks'])
     PlayPosition = int(PlayingItemLocal['PositionTicks'])
 
-    # Manual progress update
+    # Manual progress update (experimental and needs complete code rewrite)
     if utils.syncruntimelimits and LibraryId:
         MinResumePct = float(EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MinResumePct']) / 100
         MaxResumePct = float(EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MaxResumePct']) / 100

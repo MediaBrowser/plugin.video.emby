@@ -130,8 +130,6 @@
                         <heading>33260</heading>
                     </control>
                 </setting>
-            </group>           
-            <group id="2" label="33175">
                 <setting id="limitIndex" type="integer" label="30515" help="33175">
                     <level>0</level>
                     <default>70</default>
