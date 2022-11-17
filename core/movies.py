@@ -33,12 +33,12 @@ class Movies:
                 LOG.debug("MovieId %s not found" % item['Id'])
                 item['KodiItemIds'][ItemIndex] = self.video_db.create_movie_entry()
                 item['KodiFileIds'][ItemIndex] = self.video_db.create_entry_file()
-                item['KodiPathId'] = self.video_db.get_add_path(item['Path'], "movies")
             else:
                 self.video_db.delete_links_genres(item['KodiItemIds'][ItemIndex], "movie")
                 self.video_db.delete_ratings(item['KodiItemIds'][ItemIndex], "movie")
                 common.delete_ContentItemReferences(item['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], self.video_db, self.emby_db, "movie")
 
+            item['KodiPathId'] = self.video_db.get_add_path(item['Path'], "movies")
             common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "movie", "m", ItemIndex)
             item['Unique'] = self.video_db.add_uniqueids(item['KodiItemIds'][ItemIndex], item['ProviderIds'], "movie", 'imdb')
             item['RatingId'] = self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "movie", "default", item['CommunityRating'])

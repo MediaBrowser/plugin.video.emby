@@ -42,9 +42,6 @@ class TVShows:
                     Stacked = True
                 else:
                     item['KodiItemIds'][ItemIndex] = self.video_db.create_entry_tvshow()
-
-                item['KodiPathParentId'] = self.video_db.get_add_path(item['PathParent'], "tvshows", None)
-                item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None, item['KodiPathParentId'])
             else:
                 self.video_db.delete_links_actors(item['KodiItemIds'][ItemIndex], "tvshow")
                 self.video_db.delete_links_director(item['KodiItemIds'][ItemIndex], "tvshow")
@@ -56,6 +53,9 @@ class TVShows:
                 self.video_db.delete_uniqueids(item['KodiItemIds'][ItemIndex], "tvshow")
                 self.video_db.delete_ratings(item['KodiItemIds'][ItemIndex], "tvshow")
                 self.video_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "tvshow")
+
+            item['KodiPathParentId'] = self.video_db.get_add_path(item['PathParent'], "tvshows", None)
+            item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None, item['KodiPathParentId'])
 
             if Stacked:
                 item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]

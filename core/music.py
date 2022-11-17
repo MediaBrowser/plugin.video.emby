@@ -144,9 +144,9 @@ class Music:
 
             if not item['UpdateItems'][ItemIndex]:
                 item['KodiItemIds'][ItemIndex] = self.music_db.create_entry_song()
-                item['KodiPathId'] = self.music_db.get_add_path(item['Path'])
                 LOG.debug("SongId %s not found" % item['Id'])
 
+            item['KodiPathId'] = self.music_db.get_add_path(item['Path'])
             self.get_ArtistInfos(item, "Composers", ItemIndex)
             self.get_ArtistInfos(item, "ArtistItems", ItemIndex)
 

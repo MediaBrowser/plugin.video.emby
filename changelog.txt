@@ -1,3 +1,12 @@
+7.10.4
+=============
+fix dynamic nodes progress for tvshows, season 
+add dynamic nodes support for reset position, set (un)watched
+support realtime updates for dynamic nodes
+fix sets (remove movie after played)
+fix path update if strm file content has changed on content updates
+
+
 7.10.3
 =============
 fix minor issue on factory reset

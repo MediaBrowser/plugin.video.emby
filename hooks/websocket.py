@@ -10,7 +10,7 @@ import hashlib
 import ssl
 from _thread import start_new_thread
 import xbmc
-from helper import utils, playerops, loghandler
+from helper import utils, playerops, loghandler, pluginmenu
 from database import dbio
 
 LOG = loghandler.LOG('Emby.hooks.websocket')
@@ -448,6 +448,7 @@ class WSClient:
 
             LOG.info("[ UserDataChanged ] %s" % IncomingData['Data']['UserDataList'])
             UpdateData = []
+            DynamicNodesRefresh = False
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
 
             for ItemData in IncomingData['Data']['UserDataList']:
@@ -463,6 +464,7 @@ class WSClient:
                             UpdateData.append(ItemData)
                     else:
                         LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
+                        DynamicNodesRefresh = True
                 else:
                     LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
                     LOG.info("[ UserDataChanged skip update/%s ]" % ItemData['ItemId'])
@@ -470,6 +472,14 @@ class WSClient:
                     LOG.info("UserDataChanged ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
 
             dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
+
+            if DynamicNodesRefresh:
+                MenuPath =  xbmc.getInfoLabel('Container.FolderPath')
+
+                if MenuPath.startswith("plugin://%s/" % utils.PluginId) and "mode=browse" in MenuPath.lower():
+                    LOG.info("[ UserDataChanged refresh dynamic nodes ]")
+                    pluginmenu.QueryCache = {}
+                    xbmc.executebuiltin('Container.Refresh')
 
             if UpdateData:
                 self.EmbyServer.library.userdata(UpdateData)
