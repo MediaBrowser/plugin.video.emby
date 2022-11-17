@@ -35,7 +35,7 @@ class VideoDatabase:
 
     # movies
     def update_movie(self, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, Fanart, ProductionLocation, Path, KodiPathId, PremiereDate, KodiItemId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId):
-        self.cursor.execute("UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, c21 = ?, c22 = ?, c23 = ?, premiered = ?, idSet = ? WHERE idMovie = ?", (Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, int(RunTimeTicks), OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, Fanart, ProductionLocation, Path, KodiPathId, PremiereDate, None, KodiItemId))
+        self.cursor.execute("UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, c21 = ?, c22 = ?, c23 = ?, premiered = ? WHERE idMovie = ?", (Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, int(RunTimeTicks), OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, Fanart, ProductionLocation, Path, KodiPathId, PremiereDate, KodiItemId))
         self.update_file(KodiPathId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId)
 
     def add_movie(self, KodiItemId, KodiFileId, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, Path, KodiPathId, PremiereDate, Filename, DateCreated, PlayCount, LastPlayedDate):
@@ -654,7 +654,7 @@ class VideoDatabase:
         self.cursor.execute("SELECT idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings Where idFile = ?", (KodiFileId,))
         return self.cursor.fetchone()
 
-    # Other
+    # Path
     def get_add_path(self, Path, MediaType, LinkId=None):
         self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
         Data = self.cursor.fetchone()

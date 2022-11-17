@@ -11,6 +11,7 @@ from core import common
 from . import utils, loghandler, playerops
 
 LOG = loghandler.LOG('EMBY.helper.pluginmenu')
+DynamicNodeServerId = ""
 QueryCache = {}
 MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "Everything", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
 letters = ["0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
@@ -477,7 +478,7 @@ def browse(Handle, Id, query, args, server_id):
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
     else:
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
@@ -835,6 +836,9 @@ def load_ListItem(Id, Item, server_id, list_li):
     else:
         path, _ = utils.get_path_type_from_item(server_id, Item)
         list_li.append((path, li, False, Item["Type"]))
+
+        if Item['Type'] in ("Movie", "Episode", "MusicVideo", "Video", "Audio"):
+            globals()["DynamicNodeServerId"] = server_id
 
 #Menu structure nodes
 def add_ListItem(ListItemData, label, path, isFolder, artwork, HelpText):

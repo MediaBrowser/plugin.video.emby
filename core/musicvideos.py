@@ -48,11 +48,11 @@ class MusicVideos:
                 LOG.debug("MusicVideoId for %s not found" % item['Id'])
                 item['KodiItemIds'][ItemIndex] = self.video_db.create_entry_musicvideos()
                 item['KodiFileIds'][ItemIndex] = self.video_db.create_entry_file()
-                item['KodiPathId'] = self.video_db.get_add_path(item['Path'], "musicvideo")
             else:
                 self.video_db.delete_links_genres(item['KodiItemIds'][ItemIndex], "musicvideo")
                 common.delete_ContentItemReferences(item['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], self.video_db, self.emby_db, "musicvideo")
 
+            item['KodiPathId'] = self.video_db.get_add_path(item['Path'], "musicvideo")
             common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "musicvideo", "M", ItemIndex)
 
             if item['UpdateItems'][ItemIndex]:

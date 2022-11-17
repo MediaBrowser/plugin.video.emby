@@ -148,7 +148,7 @@ def System_OnSleep():
     globals()["SleepMode"] = True
 
 # Remove Items
-def VideoLibrary_OnRemove():
+def VideoLibrary_OnRemove(): # Cache queries to minimize database openings
     if utils.sleep(0.5):
         return
 
@@ -184,7 +184,7 @@ def VideoLibrary_OnRemove():
 
 # Mark as watched/unwatched updates
 def VideoLibrary_OnUpdate():
-    if utils.sleep(0.5):
+    if utils.sleep(0.5): # Cache queries to minimize database openings and redeuce threads
         return
 
     UpdateItems = QueueItemsStatusupdate
@@ -193,19 +193,47 @@ def VideoLibrary_OnUpdate():
 
     for server_id, EmbyServer in list(utils.EmbyServers.items()):
         EmbyUpdateItems = {}
-        embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnUpdate")
+        embydb = None
 
         for UpdateItem in UpdateItems:
             data = json.loads(UpdateItem)
 
-            if 'item' in data:
-                kodi_id = data['item']['id']
-                media = data['item']['type']
-            else:
-                kodi_id = data['id']
-                media = data['type']
+            # Update dynamic item
+            EmbyId = ""
 
-            items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
+            if 'item' in data:
+                ItemId = int(data['item']['id'])
+
+                if ItemId > 1000000000:
+                    EmbyId = ItemId - 1000000000
+                    media = data['item']['type']
+            else:
+                ItemId = int(data['id'])
+
+                if ItemId > 1000000000:
+                    EmbyId = ItemId - 1000000000
+                    media = data['type']
+
+            if EmbyId:
+                LOG.info("VideoLibrary_OnUpdate dynamic item detected: %s" % EmbyId)
+                items = ((EmbyId,),)
+
+                if pluginmenu.DynamicNodeServerId != server_id:
+                    continue
+
+            # Update synced item
+            if not EmbyId:
+                if 'item' in data:
+                    kodi_id = data['item']['id']
+                    media = data['item']['type']
+                else:
+                    kodi_id = data['id']
+                    media = data['type']
+
+                if not embydb:
+                    embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnUpdate")
+
+                items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
 
             if not items:
                 continue
@@ -263,14 +291,19 @@ def VideoLibrary_OnUpdate():
                 if 'PlayCount' in EmbyUpdateItem:
                     EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], EmbyUpdateItem['PlayCount'])
                 else:
-                    kodidb = dbio.DBOpenRO("video", "VideoLibrary_OnUpdate")
-                    PlayCount = kodidb.get_playcount(EmbyUpdateItem['EmbyItem'][5]) # EmbyUpdateItem['EmbyItem'][5] = KodiFileId
-                    dbio.DBCloseRO("video", "VideoLibrary_OnUpdate")
+                    if not EmbyId:
+                        kodidb = dbio.DBOpenRO("video", "VideoLibrary_OnUpdate")
+                        PlayCount = kodidb.get_playcount(EmbyUpdateItem['EmbyItem'][5])
+                        dbio.DBCloseRO("video", "VideoLibrary_OnUpdate")
+                    else:
+                        PlayCount = -1
+
                     EmbyServer.API.set_progress(EmbyItemId, EmbyUpdateItem['Progress'], PlayCount)
             else:
                 EmbyServer.API.set_played(EmbyItemId, EmbyUpdateItem['PlayCount'])
 
-        dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
+        if embydb:
+            dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
 
     for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
         if ItemSkipUpdateRemove in utils.ItemSkipUpdate:
