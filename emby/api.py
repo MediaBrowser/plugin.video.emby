@@ -74,10 +74,6 @@ class API:
         else:
             url = "Users/%s/Items"
 
-        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
-        videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
-        musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
-
         while True:
             params['StartIndex'] = index
             IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url % self.EmbyServer.ServerData['UserId']}, False, False)
@@ -97,9 +93,16 @@ class API:
             ItemsReturn = []
             ItemsFullQuery = []
 
-            for Item in IncomingData['Items']:
-                if not SkipLocalDB:
-                    KodiId, KodiType = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.
+            if SkipLocalDB:
+                for Item in IncomingData['Items']:
+                    ItemsFullQuery.append(Item['Id'])
+            else:
+                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
+                videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
+                musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
+
+                for Item in IncomingData['Items']:
+                    KodiId, KodiType = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.zz
 
                     if KodiId:
                         listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(KodiId, KodiType, videodb, musicdb)
@@ -107,12 +110,15 @@ class API:
                         if listitem:
                             ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder, "Type": Item['Type']})
                             LOG.info("Fetching data from internal database: %s / %s" % (KodiType, KodiId))
+                        else:
+                            LOG.warning("Kodi id found, but no listitem created: %s / %s" % (KodiType, KodiId))
                     else:
                         ItemsFullQuery.append(Item['Id'])
-                else:
-                    ItemsFullQuery.append(Item['Id'])
 
-            IncomingData['Items'].clear()  # free memory
+                IncomingData['Items'].clear()  # free memory
+                dbio.DBCloseRO("video", "get_Items_dynamic")
+                dbio.DBCloseRO("music", "get_Items_dynamic")
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
 
             # Load All Data
             while ItemsFullQuery:
@@ -130,10 +136,6 @@ class API:
                 break
 
             index += Limit
-
-        dbio.DBCloseRO("video", "get_Items_dynamic")
-        dbio.DBCloseRO("music", "get_Items_dynamic")
-        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
 
     def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra):
         SingleRun = False

@@ -98,7 +98,7 @@ FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % Plugin
 FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
-ScanStaggered = False
+WidgetRefresh = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = None
 XbmcMonitor = None
@@ -106,6 +106,14 @@ WizardCompleted = True
 AssignEpisodePostersToTVShowPoster = False
 PluginStarted = False
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
+
+def refresh_widgets():
+    LOG.info("Refresh widgets initialted")
+
+    if not WidgetRefresh:
+        LOG.info("Refresh widgets started")
+        globals()["WidgetRefresh"] = True
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
 
 def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText):
     LOG.info("Add image text overlay: %s" % EmbyID)
@@ -262,13 +270,6 @@ def copyFile(SourcePath, DestinationPath):
         LOG.debug("copy: %s to %s" % (SourcePath, DestinationPath))
     except Exception as Error:
         LOG.error("copy issue: %s to %s -> %s" % (SourcePath, DestinationPath, Error))
-
-def renameFolder(SourcePath, DestinationPath):
-    SourcePath = translatePath(SourcePath)
-    DestinationPath = translatePath(DestinationPath)
-    SourcePath = SourcePath.encode('utf-8')
-    DestinationPath = DestinationPath.encode('utf-8')
-    os.rename(SourcePath, DestinationPath)
 
 def readFileBinary(Path):
     Path = translatePath(Path)
@@ -506,7 +507,7 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
 
     listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
     listitem.setProperties(Properties)
-    listitem.setInfo(DBType, MetaData)
+    set_ListItem_MetaData(DBType, listitem, MetaData)
 
     if Artwork:
         listitem.setArt(Artwork)
@@ -515,6 +516,15 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
         listitem.setCast(People)
 
     return listitem, Path, isFolder
+
+def set_ListItem_MetaData(Content, ListItem, MetaData):
+    MetaDataFiltered = {}
+
+    for Key, Value in list(MetaData.items()):
+        if Value:
+            MetaDataFiltered[Key] = Value
+
+    ListItem.setInfo(Content, MetaDataFiltered)
 
 def SizeToText(size):
     suffixes = ['B', 'KB', 'MB', 'GB', 'TB']

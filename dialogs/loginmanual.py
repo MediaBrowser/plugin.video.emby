@@ -47,8 +47,8 @@ class LoginManual(xbmcgui.WindowXMLDialog):
         self.signin_button.controlUp(self.password_field)
         self.cancel_button.controlDown(self.user_field)
 
-    def onClick(self, control):
-        if control == SIGN_IN:
+    def onClick(self, controlId):
+        if controlId == SIGN_IN:
             # Sign in to emby connect
             self._disable_error()
             user = self.user_field.getText()
@@ -60,7 +60,7 @@ class LoginManual(xbmcgui.WindowXMLDialog):
                 LOG.error("Username cannot be null")
             elif self._login(user, password):
                 self.close()
-        elif control == CANCEL:
+        elif controlId == CANCEL:
             # Remind me later
             self.close()
 

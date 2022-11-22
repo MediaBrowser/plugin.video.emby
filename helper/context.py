@@ -27,7 +27,7 @@ def load_item():
 
         return item, server_id
 
-    pluginmenu.QueryCache = {} # Clear Cache
+    pluginmenu.reset_querycache() # Clear Cache
     return (emby_id,), server_id
 
 def delete_item(LoadItem, item=None, server_id=""):  # threaded by caller

@@ -23,6 +23,7 @@ DYNNODES = {
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Series"),
         ('Series', utils.Translate(33349), 'DefaultTVShows.png', "Series"),
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Recentlyaddedseries', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png', "Series"),
         ('Recentlyadded', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png', "Episode"),
         ('Unwatched', utils.Translate(33345), 'OverlayUnwatched.png', "Series"),
         ('Unwatched', utils.Translate(33344), 'OverlayUnwatched.png', "Episode"),
@@ -225,7 +226,7 @@ def browse(Handle, Id, query, args, server_id):
             xbmc.executebuiltin('ActivateWindow(%s,"plugin://%s/?id=%s&mode=browse&query=%s&server=%s&arg=%s",return)' % (ReloadWindowId, utils.PluginId, Id, query, server_id, args))
             return
 
-    ItemsList = []
+    ItemsListings = []
     args = args.split("_")
     Content = ""
     Unsorted = False
@@ -237,20 +238,20 @@ def browse(Handle, Id, query, args, server_id):
         globals()["PluginMenuActive"] = True
 
         for node in DYNNODES[args[0]]:
-            ItemsList.append({'Id': Id, 'Type': node[0], 'Overview': utils.Translate(33387), 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]})
+            load_ListItem(Id, {'Id': Id, 'Type': node[0], 'Overview': utils.Translate(33387), 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]}, server_id, ItemsListings)
 
         Content = node[3]
     elif query == 'Letter':
         CacheId = "Letter_%s_%s" % (server_id, Id)
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
             for node in letters:
-                ItemsList.append({'Id': Id, 'Type': "Letter", 'Overview': utils.Translate(33387), 'IsFolder': True, 'Name': node, 'artwork': "", 'args': "%s_%s" % (args[0], node)})
+                load_ListItem(Id, {'Id': Id, 'Type': "Letter", 'Overview': utils.Translate(33387), 'IsFolder': True, 'Name': node, 'artwork': "", 'args': "%s_%s" % (args[0], node)}, server_id, ItemsListings)
 
-            globals()["QueryCache"][CacheId] = ItemsList
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'LetterSub':
@@ -263,16 +264,16 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'Genre':
         CacheId = "Genre_%s_%s" % (server_id, Id)
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
             Items = utils.EmbyServers[server_id].API.get_genres(Id, [args[0]])
 
             for Item in Items:
-                ItemsList.append({'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])})
+                load_ListItem(Id, {'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])}, server_id, ItemsListings)
 
-            globals()["QueryCache"][CacheId] = ItemsList
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'GenreSub':
@@ -281,16 +282,16 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'Tags':
         CacheId = "Tags_%s_%s" % (server_id, Id)
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
             Items = utils.EmbyServers[server_id].API.get_tags(Id, [args[0]])
 
             for Item in Items:
-                ItemsList.append({'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])})
+                load_ListItem(Id, {'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])}, server_id, ItemsListings)
 
-            globals()["QueryCache"][CacheId] = ItemsList
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'TagsSub':
@@ -298,6 +299,10 @@ def browse(Handle, Id, query, args, server_id):
         Content = args[0]
     elif query == 'Recentlyadded':
         QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
+        Content = args[0]
+        Unsorted = True
+    elif query == 'Recentlyaddedseries':
+        QueryArgs = (Id, ['Everything'], False, True, {'Limit': utils.maxnodeitems}, False, True)
         Content = args[0]
         Unsorted = True
     elif query == 'Unwatched':
@@ -316,12 +321,14 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'TvChannel':
         CacheId = "TvChannel_%s" % server_id
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
-            ItemsList = utils.EmbyServers[server_id].API.get_channels()
-            globals()["QueryCache"][CacheId] = ItemsList
+            for Item in utils.EmbyServers[server_id].API.get_channels():
+                load_ListItem(Id, Item, server_id, ItemsListings)
+
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = "TvChannel"
     elif query in ("Playlist", "Default"):
@@ -343,23 +350,27 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'Upcoming':
         CacheId = "Upcoming_%s" % "Upcoming"
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
-            ItemsList = utils.EmbyServers[server_id].API.get_upcoming(Id, ["Episode"])
-            globals()["QueryCache"][CacheId] = ItemsList
+            for Item in utils.EmbyServers[server_id].API.get_upcoming(Id, ["Episode"]):
+                load_ListItem(Id, Item, server_id, ItemsListings)
+
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = "Episode"
     elif query == 'NextUp':
         CacheId = "NextUp_%s_%s" % (server_id, Id)
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
-            ItemsList = utils.EmbyServers[server_id].API.get_NextUp(Id, ["Episode"])
-            globals()["QueryCache"][CacheId] = ItemsList
+            for Item in utils.EmbyServers[server_id].API.get_NextUp(Id, ["Episode"]):
+                load_ListItem(Id, Item, server_id, ItemsListings)
+
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Unsorted = True
         Content = "Episode"
@@ -401,48 +412,37 @@ def browse(Handle, Id, query, args, server_id):
     elif query == 'MusicAlbum':
         CacheId = "MusicAlbum_%s_%s_%s" % (server_id, Id, args[0])
 
-        if CacheId in QueryCache:
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsList = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
-            ItemsList = utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["MusicAlbum"], True)
+            for Item in utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["MusicAlbum"], True):
+                load_ListItem(Id, Item, server_id, ItemsListings)
+
             Content = "MusicAlbum"
 
             # Append audio with no album information
-            AudioItems = utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["Audio", "MusicVideo"], True)
+            for Item in utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["Audio", "MusicVideo"], True):
+                if not 'AlbumId' in Item:
+                    load_ListItem(Id, Item, server_id, ItemsListings)
 
-            for AudioItem in AudioItems:
-                if not 'AlbumId' in AudioItem:
-                    ItemsList.append(AudioItem)
-
-            globals()["QueryCache"][CacheId] = ItemsList
-
-    ItemsListings = []
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
     if QueryArgs:
         CacheId = str(QueryArgs)
 
-        if Cache and CacheId in QueryCache:
+        if Cache and CacheId in QueryCache and QueryCache[CacheId][0]:
             LOG.info("Using QueryCache: %s" % CacheId)
-            ItemsListings = QueryCache[CacheId]
+            ItemsListings = QueryCache[CacheId][1]
         else:
             for Item in utils.EmbyServers[server_id].API.get_Items_dynamic(*QueryArgs):
                 if utils.SystemShutdown:
                     return
 
-                if "ListItem" in Item:
-                    ItemsListings.append((Item["Path"], Item["ListItem"], Item["isFolder"], Item["Type"]))
-                else:
-                    load_ListItem(Id, Item, server_id, ItemsListings)
+                load_ListItem(Id, Item, server_id, ItemsListings)
 
             if Cache:
-                globals()["QueryCache"][CacheId] = ItemsListings
-    else:
-        for Item in ItemsList:
-            if utils.SystemShutdown:
-                return
-
-            load_ListItem(Id, Item, server_id, ItemsListings)
+                globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
     LOG.info("Dynamic nodes: addDirectoryItems")
     xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
@@ -821,7 +821,13 @@ def normalize_string(text):
     text = unicodedata.normalize('NFKD', text)
     return text
 
-def load_ListItem(Id, Item, server_id, list_li):
+def load_ListItem(Id, Item, server_id, ItemsListings):
+    # Item was fetched from internal database
+    if "ListItem" in Item:
+        ItemsListings.append((Item["Path"], Item["ListItem"], Item["isFolder"], Item["Type"]))
+        return
+
+    # Create Kodi listitem for dynamic loaded item
     li = listitem.set_ListItem(Item, server_id)
 
     if not Item.get('NodesMenu', False):
@@ -832,10 +838,10 @@ def load_ListItem(Id, Item, server_id, list_li):
     if Item.get('IsFolder', False):
         params = {'id': Item['Id'], 'mode': "browse", 'query': Item['Type'], 'server': server_id, 'arg': Item.get('args', Id)}
         path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
-        list_li.append((path, li, True, Item["Type"]))
+        ItemsListings.append((path, li, True, Item["Type"]))
     else:
         path, _ = utils.get_path_type_from_item(server_id, Item)
-        list_li.append((path, li, False, Item["Type"]))
+        ItemsListings.append((path, li, False, Item["Type"]))
 
         if Item['Type'] in ("Movie", "Episode", "MusicVideo", "Video", "Audio"):
             globals()["DynamicNodeServerId"] = server_id
@@ -1181,27 +1187,32 @@ def add_textures(ArtworkCacheItems, KodiTime):
 
     dbio.DBCloseRW("texture", "artwork_cache")
 
-def reset_episodes_cache():
-    LOG.info("Delete next_episodes QueryCache")
-    UpdateCache = QueryCache.copy()
-
-    for CacheItem in QueryCache:
-        if CacheItem.startswith("next_episodes"):
-            del UpdateCache[CacheItem]
-
-    globals()["QueryCache"] = UpdateCache
+def reset_querycache():
+    for CacheList in list(QueryCache.values()):
+        CacheList[0] = False
 
 def get_next_episodes(Handle, libraryname):
     Handle = int(Handle)
     CacheId = "next_episodes_%s" % libraryname
 
-    if CacheId in QueryCache:
+    if CacheId in QueryCache and QueryCache[CacheId][0]:
         LOG.info("Using QueryCache: %s" % CacheId)
-        list_li = QueryCache[CacheId]
+        list_li = QueryCache[CacheId][1]
     else:
         LOG.info("Rebuid QueryCache: %s" % CacheId)
-        videodb = dbio.DBOpenRO("video", "get_next_episodes")
         list_li = []
+
+        for EmbyServer in list(utils.EmbyServers.values()):
+            DelayQuery = 0
+
+            while not EmbyServer.library.DatabaseInit:
+                if utils.sleep(1) :
+                    return
+
+                if DelayQuery >= 10:
+                    continue
+
+        videodb = dbio.DBOpenRO("video", "get_next_episodes")
 
         if libraryname in common.MediaTags:
             NextEpisodeInfos = videodb.get_next_episodesIds(common.MediaTags[libraryname])
@@ -1213,7 +1224,7 @@ def get_next_episodes(Handle, libraryname):
                 if li:
                     list_li.append((path, li, isFolder))
 
-            globals()["QueryCache"][CacheId] = list_li
+            globals()["QueryCache"][CacheId] = [True, list_li]
 
         dbio.DBCloseRO("video", "get_next_episodes")
 

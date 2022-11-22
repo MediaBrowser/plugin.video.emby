@@ -43,6 +43,7 @@ class PlayerEvents(xbmc.Player):
         SkipIntroDialog.set_JumpFunction(jump_Intro)
         SkipIntroDialogEmbuary.set_JumpFunction(jump_Intro)
         SkipCreditsDialog.set_JumpFunction(jump_Credits)
+        xbmc.Player.__init__(self)
 
     def onPlayBackStarted(self):
         if not PlayBackEnded:
@@ -117,6 +118,18 @@ class PlayerEvents(xbmc.Player):
 
                 if len(Temp) > 5:
                     globals()["LibraryId"] = Temp[4]
+
+                # Update player info for dynamic content (played via widget)
+                if KodiId == -1:
+                    FullPath = PlayerItem.getFilenameAndPath()
+
+                    for CacheList in list(pluginmenu.QueryCache.values()):
+                        for ListItemCache in CacheList[1]:
+                            if ListItemCache[0] == FullPath:
+                                self.updateInfoTag(ListItemCache[1])
+                                break
+
+                    pluginmenu.reset_querycache() # Clear Cache
 
             globals()["MediaType"] = PlayerItem.getMediaType()
 

@@ -63,21 +63,10 @@ class Library:
         LOG.info("-->[ worker %s started ] queue size: %d" % (Worker, len(Items)))
         return True, Items
 
-    def close_Worker(self, TaskId, MusicSynced, VideoSynced):
+    def close_Worker(self, TaskId):
         self.close_EmbyDBRW(TaskId)
         utils.SyncPause['kodi_rw'] = False
-
-        if VideoSynced and MusicSynced and not utils.useDirectPaths:
-            utils.ScanStaggered = True
-
-        if VideoSynced:
-            LOG.info("close_Worker: VideoLibrary.Scan initiated. Staggerd: %s" % utils.ScanStaggered)
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-
-        if MusicSynced and not utils.useDirectPaths and not utils.ScanStaggered:
-            LOG.info("close_Worker: AudioLibrary.Scan initiated")
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-
+        utils.refresh_widgets()
         utils.progress_close()
         globals()["WorkerInProgress"] = False
 
@@ -236,7 +225,7 @@ class Library:
         # Run jobs
         UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
         LOG.info("--<[ retrieve changes ]")
-        pluginmenu.reset_episodes_cache()
+        pluginmenu.reset_querycache()
         self.updated(UpdateData)
 
     def worker_userdata(self):
@@ -270,8 +259,6 @@ class Library:
         dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "userdata")
         UpdateItems = ItemsSort(Items, False)
         embydb = self.open_EmbyDBRW("userdata")
-        MusicSynced = False
-        VideoSynced = False
 
         for ItemNotSynced in ItemsNotSynced:
             embydb.delete_Userdata(ItemNotSynced)
@@ -293,13 +280,8 @@ class Library:
 
                 dbio.DBCloseRW(ContentType, "worker_userdata")
 
-                if ContentType == "music":
-                    MusicSynced = True
-                else:
-                    VideoSynced = True
-
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_userdata", MusicSynced, VideoSynced)
+        self.close_Worker("worker_userdata")
         LOG.info("--<[ worker userdata completed ]")
         self.RunJobs()
         return True
@@ -314,8 +296,6 @@ class Library:
         RecordsPercent = len(UpdateItems) / 100
         index = 0
         embydb = self.open_EmbyDBRW("worker_update")
-        MusicSynced = False
-        VideoSynced = False
 
         while UpdateItems:
             TempLibraryInfos = UpdateItems[:100]  # Chunks of 100
@@ -341,11 +321,6 @@ class Library:
 
                     dbio.DBCloseRW(ContentType, "worker_update")
 
-                    if ContentType == "music":
-                        MusicSynced = True
-                    else:
-                        VideoSynced = True
-
             # Remove not detected Items
             for TempLibraryInfo in TempLibraryInfos:
                 if TempLibraryInfo in UpdateItems:
@@ -353,7 +328,7 @@ class Library:
                     embydb.delete_UpdateItem(TempLibraryInfo)
 
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_update", MusicSynced, VideoSynced)
+        self.close_Worker("worker_update")
         LOG.info("--<[ worker update completed ]")
         self.RunJobs()
         return True
@@ -429,8 +404,6 @@ class Library:
 
         UpdateItems = ItemsSort(AllRemoveItems, True)
         del AllRemoveItems[:] # relese memory
-        MusicSynced = False
-        VideoSynced = False
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
@@ -449,13 +422,8 @@ class Library:
 
                 dbio.DBCloseRW(ContentType, "worker_remove")
 
-                if ContentType == "music":
-                    MusicSynced = True
-                else:
-                    VideoSynced = True
-
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_remove", MusicSynced, VideoSynced)
+        self.close_Worker("worker_remove")
         LOG.info("--<[ worker remove completed ]")
         self.RunJobs()
         return True
@@ -466,8 +434,6 @@ class Library:
         if not SyncItems:
             return
 
-        MusicSynced = False
-        VideoSynced = False
         utils.progress_open("%s %s" % (utils.Translate(33021), utils.Translate(33238)))
         newContent = utils.newContent
         utils.newContent = False  # Disable new content notification on init sync
@@ -492,18 +458,13 @@ class Library:
                 if not Continue:
                     return
 
-            if SyncItem[4] == "music":
-                MusicSynced = True
-            else:
-                VideoSynced = True
-
             dbio.DBCloseRW(SyncItem[4], "worker_library")
             embydb.remove_PendingSync(SyncItem[0], SyncItem[1], SyncItem[2], SyncItem[3], SyncItem[4])
 
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
-        pluginmenu.reset_episodes_cache()
-        self.close_Worker("worker_library", MusicSynced, VideoSynced)
+        pluginmenu.reset_querycache()
+        self.close_Worker("worker_library")
         xbmc.sleep(1000) # give Kodi time for keep up
         xbmc.executebuiltin('ReloadSkin()')
         LOG.info("Reload skin by worker library")
@@ -597,7 +558,7 @@ class Library:
 
         if utils.SystemShutdown:
             dbio.DBCloseRW(ContentCategory, "ItemOps")
-            self.close_Worker("ItemOps", False, False)
+            self.close_Worker("ItemOps")
             LOG.info("[ worker exit ]")
             Continue = False
 
@@ -626,7 +587,7 @@ class Library:
     # Send event back to service.py
     def select_libraries(self, mode):  # threaded by caller
         libraries = ()
-        pluginmenu.QueryCache = {}
+        pluginmenu.reset_querycache()
 
         if mode in ('RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
             for LibraryId, Value in list(self.Whitelist.items()):

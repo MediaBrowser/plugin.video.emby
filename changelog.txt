@@ -1,3 +1,10 @@
+7.10.5
+=============
+fix dynamic nodes shown as widgets
+fix dynamic nodes crashes when used as widgets
+add recently added tvshows to dynamic items
+
+
 7.10.4
 =============
 fix dynamic nodes progress for tvshows, season 

@@ -2,9 +2,9 @@ import xbmcgui
 
 class SkipIntro(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
-        xbmcgui.WindowXML.__init__(self, *args, **kwargs)
         self.dialog_open = False
         self.JumpFunction = None
+        xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def set_JumpFunction(self, JumpFunction):
         self.JumpFunction = JumpFunction
@@ -20,8 +20,8 @@ class SkipIntro(xbmcgui.WindowXMLDialog):
             self.dialog_open = False
             self.close()
 
-    def onClick(self, controlID):
-        if controlID == 1:
+    def onClick(self, controlId):
+        if controlId == 1:
             self.JumpFunction()
             self.dialog_open = False
             self.close()

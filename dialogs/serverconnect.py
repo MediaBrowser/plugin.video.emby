@@ -91,12 +91,12 @@ class ServerConnect(xbmcgui.WindowXMLDialog):
                         self.close()
                         break
 
-    def onClick(self, control):
-        if control == EMBY_CONNECT:
+    def onClick(self, controlId):
+        if controlId == EMBY_CONNECT:
             self.EmbyServer.ServerData['LastConnectionMode'] = "EmbyConnect"
-        elif control == MANUAL_SERVER:
+        elif controlId == MANUAL_SERVER:
             self.EmbyServer.ServerData['LastConnectionMode'] = "ManualAddress"
-        elif control == CANCEL:
+        elif controlId == CANCEL:
             self.EmbyServer.ServerData['LastConnectionMode'] = ""
 
         self.close()
