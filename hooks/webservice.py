@@ -674,12 +674,6 @@ def GetParametersFromURLQuery(Payload):
             QueryData['Overlay'] = ""
     elif Data[0] in ("e", "m", "M", "i", "T", "v"):  # Video or iso
         QueryData.update({'MediasourceID': Data[3], 'KodiId': Data[4], 'KodiFileId': Data[5], 'BitrateFromURL': int(Data[6]), 'ExternalSubtitle': Data[7], 'MediasourcesCount': int(Data[8]), 'CodecVideo': Data[9], 'IntroStartPositionTicks': int(Data[10]), 'IntroEndPositionTicks': int(Data[11]), 'CreditsPositionTicks': int(Data[12]), 'Remote': int(Data[13]), 'Filename': Data[14]})
-
-        if QueryData['KodiFileId'] == "0": # Dynamic content played, cleare cache
-            pluginmenu.QueryCache = {} # Clear Cache
-        elif Data[0] == "e": # Episode
-            pluginmenu.reset_episodes_cache()
-
         globals()["QueryDataPrevious"] = QueryData.copy()
         player.PlaylistRemoveItem = "-1"
     elif Data[0] in ("a", "t"):  # Audio, tv channel

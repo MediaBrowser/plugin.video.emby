@@ -21,6 +21,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self.error_msg = None
         self.host_field = None
         self.port_field = None
+        self.connect_to_address = None
         xbmcgui.WindowXMLDialog.__init__(self, *args)
 
     def onInit(self):
@@ -39,8 +40,8 @@ class ServerManual(xbmcgui.WindowXMLDialog):
         self.connect_button.controlUp(self.port_field)
         self.cancel_button.controlDown(self.host_field)
 
-    def onClick(self, control):
-        if control == CONNECT:
+    def onClick(self, controlId):
+        if controlId == CONNECT:
             # Sign in to emby connect
             self._disable_error()
             server = self.host_field.getText()
@@ -53,7 +54,7 @@ class ServerManual(xbmcgui.WindowXMLDialog):
             elif self._connect_to_server(server, port):
                 self.close()
         # Remind me later
-        elif control == CANCEL:
+        elif controlId == CANCEL:
             self.close()
 
     def onAction(self, action):

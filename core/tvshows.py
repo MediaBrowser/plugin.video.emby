@@ -254,7 +254,7 @@ class TVShows:
 
                 common.set_userdata_update_data(Item)
                 self.video_db.update_bookmark_playstate(Item['KodiFileIds'][ItemIndex], Item['PlayCount'], Item['LastPlayedDate'], Item['PlaybackPositionTicks'], RuntimeSeconds)
-                pluginmenu.reset_episodes_cache()
+                pluginmenu.reset_querycache()
 
             self.emby_db.update_favourite(Item['IsFavorite'], Item['Id'])
             LOG.info("USERDATA [%s/%s/%s] %s" % (Item['KodiType'], Item['KodiFileIds'][ItemIndex], Item['KodiItemIds'][ItemIndex], Item['Id']))

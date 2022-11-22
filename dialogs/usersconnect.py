@@ -64,9 +64,9 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
 
                 self.close()
 
-    def onClick(self, control):
-        if control == MANUAL:
+    def onClick(self, controlId):
+        if controlId == MANUAL:
             self.ManualLogin = True
             self.close()
-        elif control == CANCEL:
+        elif controlId == CANCEL:
             self.close()

@@ -27,10 +27,12 @@ class HTTP:
             try:
                 if Command[0] == "POST":
                     Command[1]['timeout'] = (5, 5)
-                    self.session.post(**Command[1])
+                    r = self.session.post(**Command[1])
+                    r.close()
                 elif Command[0] == "DELETE":
                     Command[1]['timeout'] = (5, 5)
-                    self.session.delete(**Command[1])
+                    r = self.session.delete(**Command[1])
+                    r.close()
                 elif Command[0] == "QUIT":
                     LOG.info("Queue closed")
                     break
@@ -85,6 +87,10 @@ class HTTP:
 
         LOG.debug("[ http ] %s" % data)
 
+        # SHutdown
+        if utils.sleep(0.01):
+            return noData(Binary, Headers)
+
         # start session
         if not self.session:
             self.session = requests.Session()
@@ -94,10 +100,12 @@ class HTTP:
         try:
             if RequestType == "HEAD":
                 r = self.session.head(**data)
+                r.close()
                 return r.status_code
 
             if RequestType == "GET":
                 r = self.session.get(**data)
+                r.close()
 
                 if r.status_code == 200:
                     if Binary:
@@ -117,6 +125,7 @@ class HTTP:
             if RequestType == "POST":
                 if ServerConnecting:
                     r = self.session.post(**data)
+                    r.close()
                     return r.json()
 
                 self.AsyncCommandQueue.put(("POST", data))
@@ -182,6 +191,7 @@ class HTTP:
 
         try:
             r = requests.head(Intro['Path'], allow_redirects=True, timeout=2)
+            r.close()
 
             if Intro['Path'] == r.url:
                 self.Intros.append(Intro)

@@ -474,12 +474,14 @@ class WSClient:
             dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
 
             if DynamicNodesRefresh:
+                pluginmenu.reset_querycache()
                 MenuPath =  xbmc.getInfoLabel('Container.FolderPath')
 
                 if MenuPath.startswith("plugin://%s/" % utils.PluginId) and "mode=browse" in MenuPath.lower():
                     LOG.info("[ UserDataChanged refresh dynamic nodes ]")
-                    pluginmenu.QueryCache = {}
                     xbmc.executebuiltin('Container.Refresh')
+                else:
+                    utils.refresh_widgets()
 
             if UpdateData:
                 self.EmbyServer.library.userdata(UpdateData)

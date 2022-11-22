@@ -24,10 +24,7 @@ class monitor(xbmc.Monitor):
 
             if not QueryItemStatusThread:
                 globals()["QueryItemStatusThread"] = True
-
-                if "episode" in data: # Immediately reset episode caches (next episode node) -> skin helpers widget refresh
-                    pluginmenu.reset_episodes_cache()
-
+                pluginmenu.reset_querycache() # Clear Cache
                 start_new_thread(VideoLibrary_OnUpdate, ())
         elif method == 'VideoLibrary.OnRemove':  # Buffer updated items -> not overloading threads
             if utils.enableDeleteByKodiEvent:
@@ -42,10 +39,10 @@ class monitor(xbmc.Monitor):
     def onScanStarted(self, library):
         utils.SyncPause['kodi_rw'] = True
         globals()["KodiScanCount"] += 1
-        LOG.info("-->[ kodi scan/%s ]" % library)
+        LOG.info("-->[ kodi scan/%s/%s ]" % (library, utils.WidgetRefresh))
 
     def onScanFinished(self, library):
-        LOG.info("--<[ kodi scan/%s ]" % library)
+        LOG.info("--<[ kodi scan/%s/%s ]" % (library, utils.WidgetRefresh))
         globals()["KodiScanCount"] -= 1
 
         if KodiScanCount > 0: # use > 0 in case the start event was not detected
@@ -53,13 +50,16 @@ class monitor(xbmc.Monitor):
 
         globals()["KodiScanCount"] = 0
 
-        if utils.ScanStaggered:
-            utils.ScanStaggered = False
-            LOG.info("[ kodi scan/%s ] Trigger music scan" % library)
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
-            return
+        if utils.WidgetRefresh:
+            if library == "video":
+                LOG.info("[ kodi scan/%s ] Trigger music scan" % library)
+                xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
+                return
 
-        start_new_thread(syncEmby, ())
+            utils.WidgetRefresh = False
+        else:
+            start_new_thread(syncEmby, ())
+
         utils.SyncPause['kodi_rw'] = False
 
     def onCleanStarted(self, library):
@@ -93,7 +93,7 @@ def Notification(method, data):  # threaded by caller
     elif method == 'Other.restore':
         BackupRestore()
     elif method == 'Other.skinreload':
-        pluginmenu.QueryCache = {} # Clear Cache
+        pluginmenu.reset_querycache() # Clear Cache
         xbmc.executebuiltin('ReloadSkin()')
         LOG.info("Reload skin by notification")
     elif method == 'Other.reset_device_id':
@@ -397,7 +397,7 @@ def ServerConnect(ServerSettings):
 
     if not server_id or server_id == 'cancel' or utils.SystemShutdown:
         LOG.error("EmbyServer Connect error")
-        return False
+        return
 
     # disconnect previous Emby server instance on manual reconnect to the same Emby server
     if server_id in utils.EmbyServers:
@@ -405,7 +405,6 @@ def ServerConnect(ServerSettings):
         utils.EmbyServers[server_id].stop()
 
     utils.EmbyServers[server_id] = EmbyServer
-    return True
 
 def EmbyServer_ReconnectAll():
     for EmbyServer in list(utils.EmbyServers.values()):
@@ -534,11 +533,7 @@ def ServersConnect():
         xbmc.log("EMBY.hooks.webservice: Reload Skin on connection established", xbmc.LOGINFO)
     else:
         xbmc.log("EMBY.hooks.webservice: Skin refresh: connection established", xbmc.LOGINFO)
-
-        if not utils.useDirectPaths:
-            utils.ScanStaggered = True
-
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":""},"id":1}')
+        utils.refresh_widgets()
 
     LOG.info("[ Startup completed Emby-next-gen ]")
     utils.PluginStarted = True
