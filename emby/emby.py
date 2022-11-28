@@ -49,7 +49,7 @@ class EmbyServer:
             self.ServerReconnecting = False
 
     def start(self):
-        LOG.info("---[ START EMBYCLIENT: %s / %s ]---" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
+        LOG.info("---[ START EMBYCLIENT: %s / %s / %s ]---" % (self.ServerData['ServerName'], self.ServerData['ServerId'], self.ServerData["LastConnectionMode"]))
         self.Views.update_views()
         self.library.load_settings()
         self.Views.update_nodes()
@@ -203,11 +203,11 @@ class EmbyServer:
         # Connect to server verification
         if self.ServerData["AccessToken"]:
             SystemInfo = self._try_connect(self.ServerData["ServerUrl"])
-            self.ServerData['RemoteAddress'] = SystemInfo.get('WanAddress', self.ServerData['RemoteAddress'])
-            self.ServerData['LocalAddress'] = SystemInfo.get('LocalAddress', self.ServerData['LocalAddress'])
 
             if SystemInfo:
                 LOG.info("User is authenticated.")
+                self.ServerData['RemoteAddress'] = SystemInfo.get('WanAddress', self.ServerData['RemoteAddress'])
+                self.ServerData['LocalAddress'] = SystemInfo.get('LocalAddress', self.ServerData['LocalAddress'])
                 utils.DatabaseFiles[self.ServerData['ServerId']] = utils.translatePath("special://profile/Database/emby_%s.db" % self.ServerData['ServerId'])
                 self.EmbySession = self.API.get_device()
 
@@ -236,6 +236,9 @@ class EmbyServer:
                 if not self.ServerData['UserImageUrl']:
                     self.ServerData['UserImageUrl'] = utils.icon
 
+                return True
+
+            if self.connect_to_server():
                 return True
 
         return False
@@ -396,14 +399,10 @@ class EmbyServer:
 
             self.ServerData['LastConnectionMode'] = Connection
             self.ServerData['ServerUrl'] = ConnectUrl
-
-            if self.ServerData['AccessToken']:
-                return "SignedIn"
-
-            return "ServerSignIn"
+            return True
 
         LOG.info("Tested all connection modes. Failing server connection.")
-        return "NotConnected"
+        return False
 
     def ServerDetect(self):
         LOG.debug("Begin getAvailableServers")

@@ -617,6 +617,8 @@ class Library:
             Text = utils.Translate(33433)
         elif mode == 'AddLibrarySelection':
             Text = utils.Translate(33120)
+        else:
+            return
 
         selection = utils.Dialog.multiselect(Text, choices)
 

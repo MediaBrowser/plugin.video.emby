@@ -27,7 +27,7 @@ icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
 ItemSkipUpdate = []
-MinimumVersion = "7.10.0"
+MinimumVersion = "7.11.0"
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
@@ -85,13 +85,11 @@ getProductionLocations = False
 getCast = False
 deviceNameOpt = False
 artworkcacheenable = True
-syncruntimelimits = False
 device_id = ""
 syncdate = ""
 synctime = ""
 syncduringplayback = False
 busyMsg = True
-databasevacuum = False
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId
 FolderAddonUserdataLibrary = "special://profile/addon_data/%s/library/" % PluginId
@@ -506,7 +504,7 @@ def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
         return None, "", False
 
     listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
-    listitem.setProperties(Properties)
+    set_ListItem_Properties(listitem, Properties)
     set_ListItem_MetaData(DBType, listitem, MetaData)
 
     if Artwork:
@@ -522,9 +520,26 @@ def set_ListItem_MetaData(Content, ListItem, MetaData):
 
     for Key, Value in list(MetaData.items()):
         if Value:
+            if Key.lower() in ("count", "year", "episode", "season", "sortepisode", "sortseason", "tracknumber", "userrating", "playcount", "duration", "dbid", "discnumber"):
+                Value = int(Value)
+            elif Key.lower() == "rating":
+                Value = float(Value)
+
             MetaDataFiltered[Key] = Value
 
     ListItem.setInfo(Content, MetaDataFiltered)
+
+def set_ListItem_Properties(ListItem, Properties):
+    PropertiesFiltered = {}
+
+    for Key, Value in list(Properties.items()):
+        if Value:
+            if Key.lower() in ("resumetime", "totaltime"):
+                Value = float(Value)
+
+            PropertiesFiltered[Key] = Value
+
+    ListItem.setProperties(PropertiesFiltered)
 
 def SizeToText(size):
     suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -650,8 +665,6 @@ def InitSettings():
     load_settings_bool('deviceNameOpt')
     load_settings_bool('useDirectPaths')
     load_settings_bool('enableDeleteByKodiEvent')
-    load_settings_bool('syncruntimelimits')
-    load_settings_bool('databasevacuum')
     load_settings_bool('enableSkipIntro')
     load_settings_bool('enableSkipCredits')
     load_settings_bool('askSkipIntro')
@@ -733,25 +746,17 @@ def nodesreset():
         EmbyServer.Views.update_nodes()
 
 def get_path_type_from_item(server_id, item):
-    path = None
-
     if item.get('NoLink', False):
         return "", None
 
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
-        path = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
-        Type = "p"
-        return path, Type
+        return "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary']), "p"
 
     if item['Type'] == "TvChannel":
-        path = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
-        Type = "t"
-        return path, Type
+        return "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id']), "t"
 
     if item['Type'] == "Audio":
-        path = "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
-        Type = "a"
-        return path, Type
+        return "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path'])), "a"
 
     if item['Type'] == "MusicVideo":
         Type = "M"
@@ -767,37 +772,35 @@ def get_path_type_from_item(server_id, item):
         return None, None
 
     if 'Path' in item:
-        if item['Path'].lower().endswith(".iso"):
-            Type = "i"
-            path = item['Path']
+        path = item['Path']
 
+        # Strm
+        if path.lower().endswith('.strm'):
+            if 'MediaSources' in item and len(item['MediaSources']) > 0:
+                path = item['MediaSources'][0].get('Path', None)
+        elif path.lower().endswith(".iso"): # Iso
             if path.startswith('\\\\'):
                 path = path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
-        else:
-            if not path:
-                try:
-                    IsRemote = item['MediaSources'][0].get('IsRemote', False)
 
-                    if IsRemote:
-                        IsRemote = "1"
-                    else:
-                        IsRemote = "0"
+            return path, "i"
 
-                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(item['Path']))
-                except:
-                    path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], PathToFilenameReplaceSpecialCharecters(item['Path']))
+        # Plugin (youtube)
+        if path.lower().startswith("plugin://"):
+            return path, "v"
 
-                if path.endswith('.strm'):
-                    path = path.replace('.strm', "")
+        # Regular
+        if item['MediaSources'][0].get('IsRemote', "0") != "0":
+            IsRemote = "1"
 
-                    if 'Container' in item:
-                        if not path.endswith(item['Container']):
-                            path = "%s.%s" % (path, item['Container'])
-    else: # Channel
-        path = "http://127.0.0.1:57342/c-%s-%s-%s-stream.ts" % (server_id, item['Id'], item['MediaSources'][0]['Id'])
-        Type = "c"
+        try:
+            path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(path))
+        except:
+            path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], PathToFilenameReplaceSpecialCharecters(path))
 
-    return path, Type
+        return path, Type
+
+    # Channel
+    return "http://127.0.0.1:57342/c-%s-%s-%s-stream.ts" % (server_id, item['Id'], item['MediaSources'][0]['Id']), "c"
 
 mkDir(FolderAddonUserdata)
 mkDir(FolderEmbyTemp)

@@ -1962,4 +1962,8 @@ msgstr "Synchronizace živého vysílání epg"
 
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
-msgstr "Paging – požadované položky (výchozí faktor: 70)"
+msgstr "Paging - požadované položky (výchozí faktor: 70)"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""

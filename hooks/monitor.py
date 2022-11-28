@@ -190,16 +190,19 @@ def VideoLibrary_OnUpdate():
     UpdateItems = QueueItemsStatusupdate
     globals().update({"QueueItemsStatusupdate": (), "QueryItemStatusThread": False})
     ItemsSkipUpdateRemove = []
+    items = ()
 
     for server_id, EmbyServer in list(utils.EmbyServers.items()):
         EmbyUpdateItems = {}
         embydb = None
+        EmbyId = ""
 
         for UpdateItem in UpdateItems:
             data = json.loads(UpdateItem)
 
             # Update dynamic item
             EmbyId = ""
+            media = ""
 
             if 'item' in data:
                 ItemId = int(data['item']['id'])
@@ -428,18 +431,12 @@ def settingschanged():  # threaded by caller
     disablehttp2Previous = utils.disablehttp2
     xspplaylistsPreviousValue = utils.xspplaylists
     enableCoverArtPreviousValue = utils.enableCoverArt
-    syncruntimelimitsPreviousValue = utils.syncruntimelimits
     maxnodeitemsPreviousValue = utils.maxnodeitems
     utils.InitSettings()
 
     # Http2 mode changed, rebuild advanced settings -> restart Kodi
     if disablehttp2Previous != utils.disablehttp2:
         if xmls.advanced_settings():
-            RestartKodi = True
-
-    # Toggle runtimelimits setting
-    if syncruntimelimitsPreviousValue != utils.syncruntimelimits:
-        if xmls.advanced_settings_runtimelimits(None):
             RestartKodi = True
 
     # Toggle coverart setting
@@ -644,7 +641,9 @@ def StartUp():
     elif not Ret:  # db reset required
         LOG.warning("[ DB reset required, Kodi restart ]")
         webservice.close()
-        utils.restart_kodi()
+
+        if not utils.XbmcMonitor.waitForAbort(5):
+            utils.restart_kodi()
     else:  # Regular start
         start_new_thread(ServersConnect, ())
 
@@ -656,10 +655,6 @@ def StartUp():
         utils.SyncPause = {}
         webservice.close()
         EmbyServer_DisconnectAll()
-
-        if utils.databasevacuum:
-            start_new_thread(dbio.DBVacuum, ()) # thread vaccuum to prevent Kodi killing this task
-
         LOG.warning("[ Shutdown Emby-next-gen ]")
 
     utils.XbmcPlayer = None

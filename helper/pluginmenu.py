@@ -196,7 +196,7 @@ def browse(Handle, Id, query, args, server_id):
             label = Node['title']
             node = Node['type']
             LOG.debug("--[ Nodes/%s/%s ] %s" % (node, label, Node['path']))
-            add_ListItem(ListItemData, label, Node['path'], True, Node['icon'], utils.Translate(33387))
+            add_ListItem(ListItemData, label, Node['path'], True, Node['icon'], "")
 
         globals()["PluginMenuActive"] = True
         xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
@@ -531,7 +531,7 @@ def SyncThemes(server_id):
     UseAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Audio")
     UseVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Video")
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    utils.progress_open("Sync themes")
+    utils.progress_open(utils.Translate(30516))
 
     for LibraryID, LibraryInfo in list(utils.EmbyServers[server_id].Views.ViewItems.items()):
         if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
@@ -554,7 +554,7 @@ def SyncThemes(server_id):
     TotalItems = len(items) / 100
 
     for ItemId, name in list(items.items()):
-        utils.progress_update(int(Index / TotalItems), "Emby", "%s" % "Sync themes")
+        utils.progress_update(int(Index / TotalItems), utils.Translate(30516), name)
         nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, name)
         nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
 

@@ -11,10 +11,10 @@ class EmbyDatabase:
         # Table
         try:
             self.cursor.execute("CREATE TABLE IF NOT EXISTS Mapping (EmbyId INTEGER PRIMARY KEY, EmbyLibraryId TEXT COLLATE NOCASE, EmbyType TEXT COLLATE NOCASE, KodiType TEXT COLLATE NOCASE, KodiId TEXT COLLATE NOCASE, KodiFileId TEXT COLLATE NOCASE, KodiPathId INTEGER, KodiParentId TEXT COLLATE NOCASE, EmbyParentId INTEGER, EmbyPresentationKey TEXT COLLATE NOCASE, EmbyFavourite BOOL, EmbyFolder TEXT COLLATE NOCASE, IntroStart INTEGER, IntroEnd INTEGER, CreditStart INTEGER) WITHOUT ROWID")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS MediaSources (EmbyId INTEGER, MediaIndex INTEGER, MediaSourceId TEXT COLLATE NOCASE, Path TEXT COLLATE NOCASE, Name TEXT COLLATE NOCASE, Size INTEGER)")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, BitRate INTEGER)")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, DisplayTitle TEXT COLLATE NOCASE)")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS Subtitles (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, Language TEXT COLLATE NOCASE, DisplayTitle TEXT COLLATE NOCASE)")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS MediaSources (EmbyId INTEGER, MediaIndex INTEGER, MediaSourceId TEXT COLLATE NOCASE, Path TEXT COLLATE NOCASE, Name TEXT COLLATE NOCASE, Size INTEGER, UNIQUE(EmbyId, MediaIndex, MediaSourceId))")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, BitRate INTEGER, UNIQUE(EmbyId, MediaIndex, StreamIndex))")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, DisplayTitle TEXT COLLATE NOCASE, UNIQUE(EmbyId, MediaIndex, StreamIndex))")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS Subtitles (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, Language TEXT COLLATE NOCASE, DisplayTitle TEXT COLLATE NOCASE, UNIQUE(EmbyId, MediaIndex, StreamIndex))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS RemoveItems (EmbyId INTEGER, EmbyLibraryId TEXT COLLATE NOCASE, UNIQUE(EmbyId, EmbyLibraryId))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS UpdateItems (EmbyId INTEGER PRIMARY KEY) WITHOUT ROWID")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS UserdataItems (Data TEXT COLLATE NOCASE)")
@@ -370,46 +370,41 @@ class EmbyDatabase:
             for SubtitleStream in Stream['Subtitle']:
                 self.cursor.execute("INSERT OR REPLACE INTO Subtitles (EmbyId, MediaIndex, StreamIndex, Codec, Language, DisplayTitle) VALUES (?, ?, ?, ?, ?, ?)", (EmbyId, Stream['Index'], SubtitleStream['Index'], SubtitleStream['codec'], SubtitleStream['language'], SubtitleStream['DisplayTitle']))
 
-    def add_multiversion(self, item, ItemType, API, video_db, update):
+    def add_multiversion(self, item, ItemType, API, video_db, ItemIndex):
         if len(item['MediaSources']) > 1:
             LOG.debug("Multiversion video detected: %s" % item['Id'])
 
             for DataSource in item['MediaSources']:
-                ItemReferenced = API.get_Item(DataSource['Id'], [ItemType], False, False)
+                ItemReferenced = API.get_Item(DataSource['Id'], [ItemType], False, False) # Get Emby itemId from DataSource['Id'] -> Mediasource id
 
                 if not ItemReferenced:  # Server restarted
                     LOG.debug("Multiversion video detected, referenced item not found: %s" % DataSource['Id'])
                     continue
 
-                LOG.debug("Multiversion video detected, referenced item: %s" % ItemReferenced['Id'])
-                e_MultiItem = self.get_item_by_id(ItemReferenced['Id'])
+                if item['Id'] != ItemReferenced['Id']:
+                    ExistingItem = self.get_item_by_id(ItemReferenced['Id'])
 
-                if not e_MultiItem:
+                    if ExistingItem:
+                        # Remove old Kodi video-db references
+                        if str(item['KodiItemIds'][ItemIndex]) != str(ExistingItem[0]) and str(item['KodiFileIds'][ItemIndex]) != str(ExistingItem[1]):
+                            common.delete_ContentItemReferences(None, ExistingItem[0], ExistingItem[1], video_db, None, ItemType.lower())
+
+                            if ItemType == "Episode":
+                                video_db.delete_episode(ExistingItem[0], ExistingItem[1])
+                            elif ItemType == "Movie":
+                                video_db.delete_movie(ExistingItem[0], ExistingItem[1])
+                            elif ItemType == "MusicVideo":
+                                video_db.delete_musicvideos(ExistingItem[0], ExistingItem[1])
+
+                    # Add references
                     if ItemType == "Episode":
-                        self.add_reference(ItemReferenced['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
+                        self.add_reference(ItemReferenced['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'])
                     elif ItemType == "Movie":
                         self.add_reference(ItemReferenced['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Movie", "movie", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
                     elif ItemType == "MusicVideo":
                         self.add_reference(ItemReferenced['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "MusicVideo", "musicvideo", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
-                else:
-                    KodiId = join_Ids(item['KodiItemIds'])
-                    KodiParentId = join_Ids(item['KodiParentIds'])
-                    KodiFileId = join_Ids(item['KodiFileIds'])
-                    self.cursor.execute("UPDATE Mapping SET EmbyPresentationKey = ?, EmbyFavourite = ?, KodiId = ?, KodiFileId = ?, KodiPathId = ?, KodiParentId = ? WHERE EmbyId = ?", (item['PresentationUniqueKey'], item['UserData']['IsFavorite'], KodiId, KodiFileId, item['KodiPathId'], KodiParentId, ItemReferenced['Id']))
-                    self.remove_item_streaminfos(ItemReferenced['Id'])
-                    LOG.debug("Multiversion video detected, referenced item exists: %s" % ItemReferenced['Id'])
 
-                    if item['Id'] != ItemReferenced['Id'] and not update:
-                        common.delete_ContentItemReferences(None, e_MultiItem[0], e_MultiItem[1], video_db, None, ItemType.lower())
-
-                        if ItemType == "Episode":
-                            video_db.delete_episode(e_MultiItem[0], e_MultiItem[1])
-                        elif ItemType == "Movie":
-                            video_db.delete_movie(e_MultiItem[0], e_MultiItem[1])
-                        elif ItemType == "MusicVideo":
-                            video_db.delete_musicvideos(e_MultiItem[0], e_MultiItem[1])
-
-                self.add_streamdata(ItemReferenced['Id'], item['Streams'])
+                    self.add_streamdata(ItemReferenced['Id'], item['Streams'])
 
 def join_Ids(Ids):
     IdsFiltered = []

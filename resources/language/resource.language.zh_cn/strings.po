@@ -1962,3 +1962,7 @@ msgstr "同步直播电视节目"
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "分页 - 请求的项目（默认因子：70）"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""

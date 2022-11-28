@@ -218,17 +218,6 @@ class Views:
             self.Nodes['NodesSynced'].append(NodeData)
 
     def update_views(self):
-        if utils.syncruntimelimits:
-            Data = self.EmbyServer.API.get_libraries()
-
-            if 'Items' in Data:
-                Libraries = Data['Items']
-            else:
-                return
-
-            for library in Libraries:
-                self.LibraryOptions[library['ItemId']] = library['LibraryOptions']
-
         Data = self.EmbyServer.API.get_views()
 
         if 'Items' in Data:

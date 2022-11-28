@@ -1962,3 +1962,7 @@ msgstr "Sincronizza livetv epg"
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "Cercapersone - elementi richiesti (fattore predefinito: 70)"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""
