@@ -1962,3 +1962,7 @@ msgstr ""
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "Paging - artiklar begärda (standardfaktor: 70)"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""

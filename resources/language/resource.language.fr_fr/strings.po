@@ -1962,3 +1962,7 @@ msgstr "synchroniser l'epg de télévision en direct"
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "Paging - éléments demandés (facteur par défaut : 70)"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""

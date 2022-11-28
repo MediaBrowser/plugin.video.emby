@@ -12,10 +12,16 @@ class Movies:
         self.video_db.init_favorite_tags()
 
     def movie(self, item):
+        LOG.info("Process item: %s" % item['Name'])
+
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if not 'MediaSources' in item or not item['MediaSources']:
+            LOG.error("No mediasources found for movie: %s" % item['Id'])
+            LOG.debug("No mediasources found for movie: %s" % item)
+            return False
+
         ItemIndex = 0
         common.SwopMediaSources(item)  # 3D
         item['OriginalTitle'] = item.get('OriginalTitle', "")
@@ -26,18 +32,14 @@ class Movies:
         common.set_trailer(item, self.EmbyServer)
 
         for ItemIndex in range(len(item['Librarys'])):
+            if item['KodiItemIds'][ItemIndex]: # existing item
+                self.remove_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['LibraryIds'][ItemIndex])
+
             if not common.get_file_path(item, "movies", ItemIndex):
                 continue
 
-            if not item['UpdateItems'][ItemIndex]:
-                LOG.debug("MovieId %s not found" % item['Id'])
-                item['KodiItemIds'][ItemIndex] = self.video_db.create_movie_entry()
-                item['KodiFileIds'][ItemIndex] = self.video_db.create_entry_file()
-            else:
-                self.video_db.delete_links_genres(item['KodiItemIds'][ItemIndex], "movie")
-                self.video_db.delete_ratings(item['KodiItemIds'][ItemIndex], "movie")
-                common.delete_ContentItemReferences(item['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], self.video_db, self.emby_db, "movie")
-
+            item['KodiItemIds'][ItemIndex] = self.video_db.create_movie_entry()
+            item['KodiFileIds'][ItemIndex] = self.video_db.create_entry_file()
             item['KodiPathId'] = self.video_db.get_add_path(item['Path'], "movies")
             common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "movie", "m", ItemIndex)
             item['Unique'] = self.video_db.add_uniqueids(item['KodiItemIds'][ItemIndex], item['ProviderIds'], "movie", 'imdb')
@@ -46,17 +48,8 @@ class Movies:
             if not item['ProductionLocations']:
                 item['ProductionLocations'].append("")
 
-            if item['UpdateItems'][ItemIndex]:
-                self.video_db.update_movie(item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['KodiItemIds'][ItemIndex], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiFileIds'][ItemIndex])
-                self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                LOG.info("UPDATE movie [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
-            else:
-                self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
-                item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
-                item['KodiFileIds'][ItemIndex] = item['KodiFileIds'][ItemIndex]
-                self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Movie", "movie", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
-                LOG.info("ADD movie [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
-
+            self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
+            self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Movie", "movie", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
             self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "movie")
             self.video_db.set_Favorite(item['UserData']['IsFavorite'], item['KodiItemIds'][ItemIndex], "movie")
             self.video_db.add_genres_and_links(item['Genres'], item['KodiItemIds'][ItemIndex], "movie")
@@ -66,7 +59,7 @@ class Movies:
                 self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "movie", "tomatometerallcritics", item['CriticRating'])
 
             self.video_db.add_tags_and_links(item['KodiItemIds'][ItemIndex], "movie", item['TagItems'])
-            self.emby_db.add_multiversion(item, "Movie", self.EmbyServer.API, self.video_db, item['UpdateItems'][ItemIndex])
+            self.emby_db.add_multiversion(item, "Movie", self.EmbyServer.API, self.video_db, ItemIndex)
 
         # Add Special features
         if 'SpecialFeatureCount' in item:
@@ -103,6 +96,11 @@ class Movies:
                         LOG.info("ADD SpecialFeature %s: %s" % (SF_item['Id'], SF_item['Name']))
 
                     self.emby_db.add_streamdata(SF_item['Id'], SF_item['Streams'])
+
+            if item['UpdateItems'][ItemIndex]:
+                LOG.info("UPDATE movie [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+            else:
+                LOG.info("ADD movie [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiFileIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
 
         return not item['UpdateItems'][ItemIndex]
 
@@ -193,15 +191,14 @@ class Movies:
                     LOG.info("DELETE multi version movies from embydb %s" % Item['Id'])
 
                     for StackedId in StackedIds:
-                        self.emby_db.remove_item(StackedId[0], Item['Library']['Id'])
-
-                    for StackedId in StackedIds:
                         StackedItem = self.EmbyServer.API.get_Item(StackedId[0], ['Movie'], False, False)
 
                         if StackedItem:
                             StackedItem['Library'] = Item['Library']
                             LOG.info("UPDATE remaining multi version movie %s" % StackedItem['Id'])
-                            self.movie(StackedItem)  # update all stacked items
+                            self.movie(StackedItem)  # update all remaining multiversion items
+                        else:
+                            self.emby_db.remove_item(StackedId[0], Item['Library']['Id'])
         elif Item['Type'] == 'BoxSet':
             self.remove_boxset(Item['KodiItemId'], Item['KodiFileId'], Item['Id'], Item['Library']['Id'])
         elif Item['Type'] == 'SpecialFeature':

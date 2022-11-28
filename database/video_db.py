@@ -34,10 +34,6 @@ class VideoDatabase:
         return -1
 
     # movies
-    def update_movie(self, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, Fanart, ProductionLocation, Path, KodiPathId, PremiereDate, KodiItemId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId):
-        self.cursor.execute("UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, c21 = ?, c22 = ?, c23 = ?, premiered = ? WHERE idMovie = ?", (Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, int(RunTimeTicks), OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, Fanart, ProductionLocation, Path, KodiPathId, PremiereDate, KodiItemId))
-        self.update_file(KodiPathId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId)
-
     def add_movie(self, KodiItemId, KodiFileId, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, Path, KodiPathId, PremiereDate, Filename, DateCreated, PlayCount, LastPlayedDate):
         self.cursor.execute("INSERT INTO movie (idMovie, idFile, c00, c01, c02, c03, c05, c06, c08, c09, c10, c11, c12, c14, c15, c16, c18, c19, c20, c21, c22, c23, premiered, c02, c13) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, KodiFileId, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, int(RunTimeTicks), OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, Path, KodiPathId, PremiereDate, "", 0))
         self.add_file(KodiPathId, Filename, DateCreated, KodiFileId, PlayCount, LastPlayedDate)
@@ -64,10 +60,6 @@ class VideoDatabase:
         return "%s%s" % (ItemData[32], ItemData[31]), MetaData, Properties, Artwork, People
 
     # musicvideo
-    def update_musicvideos(self, Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate, KodiItemId, DateCreated, PlayCount, LastPlayedDate, KodiFileId, Filename):
-        self.cursor.execute("UPDATE musicvideo SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c13 = ?, c14 = ?, premiered = ? WHERE idMVideo = ?", (Name, Poster, int(RunTimeTicks), Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate, KodiItemId))
-        self.update_file(KodiPathId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId)
-
     def add_musicvideos(self, KodiItemId, KodiFileId, Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate, DateCreated, PlayCount, LastPlayedDate, Filename):
         self.cursor.execute("INSERT INTO musicvideo (idMVideo, idFile, c00, c01, c04, c05, c06, c08, c09, c10, c11, c12, c13, c14, premiered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, KodiFileId, Name, Poster, int(RunTimeTicks), Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate))
         self.add_file(KodiPathId, Filename, DateCreated, KodiFileId, PlayCount, LastPlayedDate)
@@ -185,10 +177,6 @@ class VideoDatabase:
         self.cursor.execute("INSERT INTO episode(idEpisode, idFile, c00, c01, c03, c04, c05, c06, c09, c10, c12, c13, c14, c15, c16, c18, c19, c20, idShow, idSeason, c11, c17) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (KodiItemId, KodiFileId, Name, Overview, RatingId, Writers, PremiereDate, Poster, int(RunTimeTicks), Directors, ParentIndexNumber, IndexNumber, OriginalTitle, SortParentIndexNumber, SortIndexNumber, FilePath, KodiPathId, Unique, KodiShowId, KodiSeasonId, "", -1))
         self.add_file(KodiPathId, Filename, DateCreated, KodiFileId, PlayCount, LastPlayedDate)
 
-    def update_episode(self, Name, Overview, RatingId, Writers, PremiereDate, Poster, RunTimeTicks, Directors, ParentIndexNumber, IndexNumber, OriginalTitle, SortParentIndexNumber, SortIndexNumber, FilePath, KodiPathId, Unique, KodiShowId, KodiSeasonId, KodiItemId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId):
-        self.cursor.execute("UPDATE episode SET c00 = ?, c01 = ?, c03 = ?, c04 = ?, c05 = ?, c06 = ?, c09 = ?, c10 = ?, c12 = ?, c13 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, idShow = ?, idSeason = ? WHERE idEpisode = ?", (Name, Overview, RatingId, Writers, PremiereDate, Poster, int(RunTimeTicks), Directors, ParentIndexNumber, IndexNumber, OriginalTitle, SortParentIndexNumber, SortIndexNumber, FilePath, KodiPathId, Unique, KodiShowId, KodiSeasonId, KodiItemId))
-        self.update_file(KodiPathId, Filename, DateCreated, PlayCount, LastPlayedDate, KodiFileId)
-
     def create_entry_episode(self):
         self.cursor.execute("SELECT coalesce(max(idEpisode), 0) FROM episode")
         return self.cursor.fetchone()[0] + 1
@@ -258,12 +246,6 @@ class VideoDatabase:
             PlayCount = None
 
         self.cursor.execute("INSERT INTO files(idPath, strFilename, dateAdded, idFile, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (path_id, filename, dateAdded, file_id, PlayCount, LastPlayedDate))
-
-    def update_file(self, path_id, filename, dateAdded, PlayCount, LastPlayedDate, file_id):
-        if not PlayCount:
-            PlayCount = None
-
-        self.cursor.execute("UPDATE files SET idPath = ?, strFilename = ?, dateAdded = ?, playCount = ?, lastPlayed = ? WHERE idFile = ?", (path_id, filename, dateAdded, PlayCount, LastPlayedDate, file_id))
 
     def create_entry_file(self):
         self.cursor.execute("SELECT coalesce(max(idFile), 0) FROM files")
@@ -509,24 +491,18 @@ class VideoDatabase:
 
     def add_bookmark_chapter(self, KodiFileId, RunTimeTicks, Chapters):
         for Chapter in Chapters:
-            self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
-            bookmark_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, thumbNailImage, player, type, playerState) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (bookmark_id, KodiFileId, Chapter['StartPositionTicks'], RunTimeTicks, Chapter['Image'], "VideoPlayer", 0, ""))
+            self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, thumbNailImage, player, type, playerState) VALUES (?, ?, ?, ?, ?, ?, ?)", (KodiFileId, Chapter['StartPositionTicks'], RunTimeTicks, Chapter['Image'], "VideoPlayer", 0, ""))
 
     def add_bookmark_playstate(self, KodiFileId, PlaybackPositionTicks, RunTimeTicks):
         if PlaybackPositionTicks:
-            self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
-            bookmark_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (bookmark_id, KodiFileId, PlaybackPositionTicks, RunTimeTicks, "VideoPlayer", 1, "", ""))
+            self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?)", (KodiFileId, PlaybackPositionTicks, RunTimeTicks, "VideoPlayer", 1, "", ""))
 
     def update_bookmark_playstate(self, file_id, playcount, date_played, resume, Runtime):
         self.cursor.execute("DELETE FROM bookmark WHERE idFile = ? AND type = ?", (file_id, "1"))
         self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", (playcount, date_played, file_id))
 
         if resume:
-            self.cursor.execute("SELECT coalesce(max(idBookmark), 0) FROM bookmark")
-            bookmark_id = self.cursor.fetchone()[0] + 1
-            self.cursor.execute("INSERT INTO bookmark(idBookmark, idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (bookmark_id, file_id, resume, Runtime, "VideoPlayer", 1, "", ""))
+            self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?)", (file_id, resume, Runtime, "VideoPlayer", 1, "", ""))
 
     def add_file_bookmark(self, KodiItemId, KodiSeasonId, KodiShowId, ChapterInfo, RunTimeTicks, DateCreated, PlayCount, LastPlayedDate): # workaround due to Kodi episode bookmark bug
         self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))

@@ -65,66 +65,6 @@ def restart_required(Filepath, xmlData):
 
     WriteXmlFile(Filepath, xmlData)
 
-def advanced_settings_runtimelimits(xmlData):
-    WriteData = False
-    Filepath = ""
-
-    if not xmlData: # Toggle via settings menu, otherwise it's triggered by Kodi start
-        Filepath = 'special://profile/advancedsettings.xml'
-        FileData = utils.readFileString(Filepath)
-        xmlData = xml.etree.ElementTree.fromstring(FileData)
-
-    if utils.syncruntimelimits:
-        video = xmlData.find('video')
-
-        if video is not None:
-            playcountminimumpercent = video.find('playcountminimumpercent')
-
-            if playcountminimumpercent is not None:
-                if playcountminimumpercent.text != "101":
-                    video.remove(playcountminimumpercent)
-                    xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
-                    WriteData = True
-            else:
-                xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
-                WriteData = True
-
-            ignorepercentatend = video.find('ignorepercentatend')
-
-            if ignorepercentatend is not None:
-                if ignorepercentatend.text != "101":
-                    video.remove(ignorepercentatend)
-                    xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
-                    WriteData = True
-            else:
-                xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
-                WriteData = True
-        else:
-            video = xml.etree.ElementTree.SubElement(xmlData, 'video')
-            xml.etree.ElementTree.SubElement(video, 'playcountminimumpercent').text = "101"
-            xml.etree.ElementTree.SubElement(video, 'ignorepercentatend').text = "101"
-            WriteData = True
-    else:
-        video = xmlData.find('video')
-
-        if video is not None:
-            playcountminimumpercent = video.find('playcountminimumpercent')
-
-            if playcountminimumpercent is not None:
-                video.remove(playcountminimumpercent)
-                WriteData = True
-
-            ignorepercentatend = video.find('ignorepercentatend')
-
-            if ignorepercentatend is not None:
-                video.remove(ignorepercentatend)
-                WriteData = True
-
-    if Filepath and WriteData:
-        restart_required(Filepath, xmlData)
-
-    return WriteData
-
 def advanced_settings():
     WriteData = False
     Filepath = 'special://profile/advancedsettings.xml'
@@ -202,9 +142,6 @@ def advanced_settings():
         xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
-        WriteData = True
-
-    if advanced_settings_runtimelimits(xmlData):
         WriteData = True
 
     if WriteData:

@@ -106,6 +106,8 @@ class PlayerEvents(xbmc.Player):
 
                 globals()["PlayingVideoAudio"] = True
             except:
+                # Bluray
+                LOG.info("No path, probably bluray detected")
                 Path = ""
                 PlayerItem = None
                 globals()["PlayingVideoAudio"] = False
@@ -375,69 +377,6 @@ def stop_playback(delete, Stopped):
     # Set watched status
     Runtime = int(PlayingItemLocal['RunTimeTicks'])
     PlayPosition = int(PlayingItemLocal['PositionTicks'])
-
-    # Manual progress update (experimental and needs complete code rewrite)
-    if utils.syncruntimelimits and LibraryId:
-        MinResumePct = float(EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MinResumePct']) / 100
-        MaxResumePct = float(EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MaxResumePct']) / 100
-        RuntimeSeconds = float(Runtime / 10000000)
-        PlayPositionSeconds = float(PlayPosition / 10000000)
-        PercentProgress = PlayPosition / Runtime
-        Playcount = 0
-
-        if MediaType == "musicvideo":
-            Data = json.loads(xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMusicVideoDetails", "params":{"musicvideoid":%s, "properties":["playcount"]}}' % KodiId))
-            Playcount = int(Data['result']['musicvideodetails']['playcount'])
-        elif MediaType == "episode":
-            Data = json.loads(xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetEpisodeDetails", "params":{"episodeid":%s, "properties":["playcount"]}}' % KodiId))
-            Playcount = int(Data['result']['episodedetails']['playcount'])
-        elif MediaType == "movie":
-            Data = json.loads(xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.GetMovieDetails", "params":{"movieid":%s, "properties":["playcount"]}}' % KodiId))
-            Playcount = int(Data['result']['moviedetails']['playcount'])
-
-        if PercentProgress < MinResumePct:
-            LOG.info("Watched status %s: PercentProgress %s smaller MinResumePct %s" % (PlayingItemLocal['ItemId'], PercentProgress, MinResumePct))
-
-            if MediaType == "musicvideo":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMusicVideoDetails", "params":{"musicvideoid":%s, "resume": {"position": 0,"total":%s}}}' % (KodiId, RuntimeSeconds))
-            elif MediaType == "episode":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetEpisodeDetails", "params":{"episodeid":%s, "resume": {"position": 0,"total":%s}}}' % (KodiId, RuntimeSeconds))
-            elif MediaType == "movie":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "resume": {"position": 0,"total":%s}}}' % (KodiId, RuntimeSeconds))
-        elif RuntimeSeconds < float(EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MinResumeDurationSeconds']):
-            LOG.info("Watched status %s: Runtime %s smaller MinResumeDurationSeconds %s" % (PlayingItemLocal['ItemId'], RuntimeSeconds, EmbyServerPlayback.Views.LibraryOptions[LibraryId]['MinResumeDurationSeconds']))
-
-            if MediaType == "musicvideo":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMusicVideoDetails", "params":{"musicvideoid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-            elif MediaType == "episode":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetEpisodeDetails", "params":{"episodeid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-            elif MediaType == "movie":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-        elif PercentProgress > MaxResumePct:
-            LOG.info("Watched status %s: Runtime %s greater MaxResumePct %s" % (PlayingItemLocal['ItemId'], RuntimeSeconds, MaxResumePct))
-
-            if MediaType == "musicvideo":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMusicVideoDetails", "params":{"musicvideoid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-            elif MediaType == "episode":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetEpisodeDetails", "params":{"episodeid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-            elif MediaType == "movie":
-                Playcount += 1
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "playcount": %s, "resume": {"position": 0,"total":%s}}}' % (KodiId, Playcount, RuntimeSeconds))
-        else:
-            LOG.info("Watched status %s: Progress %s" % (PlayingItemLocal['ItemId'], PlayPositionSeconds))
-
-            if MediaType == "musicvideo":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMusicVideoDetails", "params":{"musicvideoid":%s, "resume": {"position": %s,"total":%s}}}' % (KodiId, PlayPositionSeconds, RuntimeSeconds))
-            elif MediaType == "episode":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetEpisodeDetails", "params":{"episodeid":%s, "resume": {"position": %s,"total":%s}}}' % (KodiId, PlayPositionSeconds, RuntimeSeconds))
-            elif MediaType == "movie":
-                xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"VideoLibrary.SetMovieDetails", "params":{"movieid":%s, "resume": {"position": %s,"total":%s}}}' % (KodiId, PlayPositionSeconds, RuntimeSeconds))
-
     EmbyServerPlayback.API.session_stop(PlayingItemLocal)
 
     if delete:

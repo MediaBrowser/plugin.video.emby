@@ -245,9 +245,13 @@ def LoadISO(QueryData, MediaIndex, client, ThreadId):
         player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        client.send(sendBlankWAV)
+        send_BlankWAV(client)
 
     close_embydb(QueryData['ServerId'], ThreadId)
+
+def send_BlankWAV(client):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    client.send(sendBlankWAV)
 
 def http_Query(client, Payload, RequestType):
     if 'main.m3u8' in Payload:  # Dynamic Transcode query
@@ -257,13 +261,13 @@ def http_Query(client, Payload, RequestType):
 
     if SkipItemVideo == Payload:  # 3D, iso (playlist modification)
         player.queuePlayingItem(QueryDataPrevious['EmbyID'], QueryDataPrevious['MediasourceID'], PlaySessionId, QueryDataPrevious['IntroStartPositionTicks'], QueryDataPrevious['IntroEndPositionTicks'], QueryDataPrevious['CreditsPositionTicks'])
-        client.send(sendBlankWAV)
+        send_BlankWAV(client)
         globals()["SkipItemVideo"] = ""
         return
 
     if Cancel:
         globals()["Cancel"] = False
-        client.send(sendBlankWAV)
+        send_BlankWAV(client)
         player.Cancel()
         return
 
@@ -380,7 +384,7 @@ def http_Query(client, Payload, RequestType):
     # Play Kodi synced item
     if QueryData['KodiId']:  # Item synced to Kodi DB
         if QueryData['MediasourcesCount'] == 1:
-            if QueryData['Type'] == 'i':
+            if QueryData['MediaType'] == 'i':
                 LoadISO(QueryData, 0, client, ThreadId)
                 return
 
@@ -399,7 +403,7 @@ def http_Query(client, Payload, RequestType):
 
         if MediaIndex == -1:
             globals()["Cancel"] = True
-            client.send(sendBlankWAV)
+            send_BlankWAV(client)
             return
 
         # check if multiselection must be forced as native
@@ -599,7 +603,7 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
         player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        client.send(sendBlankWAV)
+        send_BlankWAV(client)
         close_embydb(QueryData['ServerId'], ThreadId)
         return
 
@@ -663,7 +667,7 @@ def IsTranscodingByCodec(Bitrate, QueryData):
 def GetParametersFromURLQuery(Payload):
     Temp = Payload[Payload.rfind("/") + 1:]
     Data = Temp.split("-")
-    QueryData = {'MediaSources': [], 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0, 'Payload': Payload, 'Type': MediaTypeMapping[Data[0]], 'ServerId': Data[1], 'EmbyID': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0}
+    QueryData = {'MediaSources': [], 'TargetVideoBitrate': 0, 'TargetAudioBitrate': 0, 'Payload': Payload, 'Type': MediaTypeMapping[Data[0]], 'ServerId': Data[1], 'EmbyID': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'MediaType': Data[0]}
 
     if Data[0] == "p":  # Image/picture
         QueryData.update({'ImageIndex': Data[3], 'ImageType': EmbyArtworkIDs[Data[4]], 'ImageTag': Data[5]})

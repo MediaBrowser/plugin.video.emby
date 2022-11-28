@@ -81,7 +81,7 @@ def library_check(item, EmbyServer, emby_db):
             item['KodiFileIds'].append(None)
             item['UpdateItems'].append(False)
             item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': "%s-%s" % (item['Library']['Id'], item['Library']['Name'])})
-        else: # realtime or startup sync
+        else: # realtime or startup sync -> detect "LibraryId_Name" by query item-id for each library on Emby server (Realtime content updates sends no library information)
             for LibraryIdWhitelist, _ in list(EmbyServer.library.Whitelist.items()):
                 if EmbyServer.API.get_Item_Basic(item['Id'], LibraryIdWhitelist, item['Type']):
                     LibraryName = Check_LibraryIsSynced(LibraryIdWhitelist, EmbyServer.library.Whitelist)
@@ -578,7 +578,6 @@ def set_chapters(item, server_id):
         MarkerLabel = ""
 
         for index, Chapter in enumerate(item['Chapters']):
-            ChapterImage = ""
             Chapter["StartPositionTicks"] = round(float(Chapter["StartPositionTicks"] or 0) / 10000000)
 
             if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "IntroEnd" or Chapter['MarkerType'] == "CreditsStart"):

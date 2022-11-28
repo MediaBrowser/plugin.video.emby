@@ -1962,3 +1962,7 @@ msgstr "Synchronizuj epg na żywo"
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "Paging - żądane pozycje (domyślny współczynnik: 70)"
+
+msgctxt "#30516"
+msgid "Sync themes"
+msgstr ""

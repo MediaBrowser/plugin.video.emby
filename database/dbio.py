@@ -1,5 +1,6 @@
 import sqlite3
 from _thread import get_ident
+import xbmc
 from helper import utils, loghandler
 from . import emby_db, video_db, music_db, texture_db
 
@@ -9,7 +10,14 @@ LOG = loghandler.LOG('EMBY.database.dbio')
 
 
 def DBVacuum():
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    utils.progress_open(utils.Translate(33436))
+    TotalItems = len(utils.DatabaseFiles) / 100
+    Index = 1
+
     for DBID, DBFile in list(utils.DatabaseFiles.items()):
+        utils.progress_update(int(Index / TotalItems), utils.Translate(33436), str(DBID))
+
         if 'version' in DBID:
             continue
 
@@ -38,6 +46,9 @@ def DBVacuum():
         DBConnectionsRW[DBID][0].close()
         globals()["DBConnectionsRW"][DBID][1] = False
         LOG.info("---< DBVacuum: %s" % DBID)
+        Index += 1
+
+    utils.progress_close()
 
 def DBOpenRO(DBID, TaskId):
     DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
