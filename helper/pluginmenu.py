@@ -535,7 +535,7 @@ def SyncThemes(server_id):
     UseAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Audio")
     UseVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Video")
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    utils.progress_open(utils.Translate(30516))
+    utils.progress_open(utils.Translate(33451))
 
     for LibraryID, LibraryInfo in list(utils.EmbyServers[server_id].Views.ViewItems.items()):
         if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
@@ -558,7 +558,7 @@ def SyncThemes(server_id):
     TotalItems = len(items) / 100
 
     for ItemId, name in list(items.items()):
-        utils.progress_update(int(Index / TotalItems), utils.Translate(30516), name)
+        utils.progress_update(int(Index / TotalItems), utils.Translate(33451), name)
         nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, name)
         nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
 
