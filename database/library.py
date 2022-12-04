@@ -196,7 +196,7 @@ class Library:
                         LOG.info("Skip library type startup sync: %s" % Whitelist[1])
                         continue
 
-                    if utils.SystemShutdown:
+                    if utils.sleep(0.01):
                         utils.progress_close()
                         return
 
@@ -206,7 +206,7 @@ class Library:
                         UpdateDataTemp = TotalRecords * [None] # preallocate memory
 
                         for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra)):
-                            if utils.SystemShutdown:
+                            if utils.sleep(0.01):
                                 utils.progress_close()
                                 return
 

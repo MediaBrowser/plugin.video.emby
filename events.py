@@ -14,3 +14,5 @@ if __name__ == "__main__":
             break
         except:
             xbmc.sleep(100)
+
+    sock.close()

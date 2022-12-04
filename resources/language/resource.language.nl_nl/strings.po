@@ -1965,4 +1965,8 @@ msgstr "Paginering - gevraagde items (standaardfactor: 70)"
 
 msgctxt "#30516"
 msgid "Sync themes"
-msgstr ""
+msgstr "Synchroniseer thema's"
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr "Controleer vrije ruimte"

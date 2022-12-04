@@ -1962,4 +1962,8 @@ msgstr "Paging - angeforderte Elemente (Standardfaktor: 70)"
 
 msgctxt "#30516"
 msgid "Sync themes"
-msgstr ""
+msgstr "Themen synchronisieren"
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr "Überprüfung des freien Speicherplatz"

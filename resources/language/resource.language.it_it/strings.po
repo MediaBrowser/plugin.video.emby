@@ -1965,4 +1965,8 @@ msgstr "Cercapersone - elementi richiesti (fattore predefinito: 70)"
 
 msgctxt "#30516"
 msgid "Sync themes"
-msgstr ""
+msgstr "sincronizza i temi"
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr "Verifica lo spazio libero"

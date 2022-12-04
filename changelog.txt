@@ -1,3 +1,11 @@
+7.11.1
+=============
+add option to disable free space verification
+fix several playback issue for edge cases
+workarounds for kodi issues
+add translations
+
+
 7.11.0
 =============
 fix sync issue when content released from multiversion
@@ -10,7 +18,7 @@ clean code
 fix minor server connection issue when mode switched (e.g. from localaddress to remoteaddress)
 fix variable type for Kodi listitems
 fix youtube links for dynamic items
-fix vaccum db and progress bar
+fix vacuum db and progress bar
 fix iso playback in addon mode
 remove option to use runtimlimits from Emby server (too experimental) added on the list for 8.x
 add translations
