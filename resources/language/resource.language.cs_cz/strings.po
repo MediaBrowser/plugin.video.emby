@@ -1966,4 +1966,8 @@ msgstr "Paging - požadované položky (výchozí faktor: 70)"
 
 msgctxt "#30516"
 msgid "Sync themes"
-msgstr ""
+msgstr "Synchronizace motivů"
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr "Ověřte volné místo"

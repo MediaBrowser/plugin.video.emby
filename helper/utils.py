@@ -56,6 +56,7 @@ connectMsg = False
 enableDeleteByKodiEvent = False
 addUsersHidden = False
 enableContextDelete = False
+verifyFreeSpace = True
 enableContext = False
 transcodeH265 = False
 transcodeDivx = False
@@ -299,14 +300,17 @@ def writeFileString(Path, Data):
         outfile.write(Data)
 
 def getFreeSpace(Path):
-    try:
-        Path = translatePath(Path)
-        space = os.statvfs(Path)
-        free = space.f_bavail * space.f_frsize / 1024
-    #    total = space.f_blocks * space.f_frsize / 1024
-        return free
-    except Exception as Error: # not suported by Windows
-        LOG.warning("getFreeSpace: %s" % Error)
+    if verifyFreeSpace:
+        try:
+            Path = translatePath(Path)
+            space = os.statvfs(Path)
+            free = space.f_bavail * space.f_frsize / 1024
+        #    total = space.f_blocks * space.f_frsize / 1024
+            return free
+        except Exception as Error: # not suported by Windows
+            LOG.warning("getFreeSpace: %s" % Error)
+            return 9999999
+    else:
         return 9999999
 
 def writeFileBinary(Path, Data):
@@ -673,6 +677,7 @@ def InitSettings():
     load_settings_bool('busyMsg')
     load_settings_bool('AssignEpisodePostersToTVShowPoster')
     load_settings_bool('WizardCompleted')
+    load_settings_bool('verifyFreeSpace')
 
     if not deviceNameOpt:
         globals()["device_name"] = xbmc.getInfoLabel('System.FriendlyName')
@@ -789,9 +794,14 @@ def get_path_type_from_item(server_id, item):
             return path, "v"
 
         # Regular
-        if item['MediaSources'][0].get('IsRemote', "0") != "0":
-            IsRemote = "1"
+        IsRemote = item['MediaSources'][0].get('IsRemote', "0")
 
+        if IsRemote and IsRemote != "0":
+            IsRemote = "1"
+        else:
+            IsRemote = "0"
+
+        # build path
         try:
             path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(path))
         except:

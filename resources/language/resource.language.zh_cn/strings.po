@@ -1966,3 +1966,7 @@ msgstr "分页 - 请求的项目（默认因子：70）"
 msgctxt "#30516"
 msgid "Sync themes"
 msgstr ""
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr ""

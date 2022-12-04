@@ -445,7 +445,11 @@ def browse(Handle, Id, query, args, server_id):
                 globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
     LOG.info("Dynamic nodes: addDirectoryItems")
-    xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
+
+    if not xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings)):
+        LOG.error("Dynamic nodes: addDirectoryItems FAIL")
+        xbmc.executebuiltin('ReloadSkin()')
+        return
 
     # Set Sorting
     if Unsorted:

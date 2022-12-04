@@ -628,6 +628,11 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="30517" id="verifyFreeSpace" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting id="databasevacuummanual" label="33436" type="action" help="334078">
                     <data>NotifyAll(plugin.video.emby-next-gen,databasevacuummanual)</data>
                     <level>3</level>

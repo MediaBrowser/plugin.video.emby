@@ -128,6 +128,7 @@ class PlayerEvents(xbmc.Player):
                     for CacheList in list(pluginmenu.QueryCache.values()):
                         for ListItemCache in CacheList[1]:
                             if ListItemCache[0] == FullPath:
+                                LOG.info("Update player info")
                                 self.updateInfoTag(ListItemCache[1])
                                 break
 
@@ -348,7 +349,7 @@ def stop_playback(delete, Stopped):
 
         if CacheId in pluginmenu.QueryCache:
             LOG.info("[ played info clear cache ]")
-            del pluginmenu.QueryCache[CacheId]
+            pluginmenu.QueryCache[CacheId][0] = False
 
     close_SkipIntroDialog()
     close_SkipCreditsDialog()

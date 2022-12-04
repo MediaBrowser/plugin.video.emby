@@ -1965,4 +1965,8 @@ msgstr "Paging - éléments demandés (facteur par défaut : 70)"
 
 msgctxt "#30516"
 msgid "Sync themes"
-msgstr ""
+msgstr "Thèmes de synchronisation"
+
+msgctxt "#30517"
+msgid "Verify free space"
+msgstr "Vérifiez l'espace disponible"
