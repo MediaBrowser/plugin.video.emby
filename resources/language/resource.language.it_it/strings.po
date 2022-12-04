@@ -1963,10 +1963,10 @@ msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
 msgstr "Cercapersone - elementi richiesti (fattore predefinito: 70)"
 
-msgctxt "#30516"
+msgctxt "#33451"
 msgid "Sync themes"
 msgstr "sincronizza i temi"
 
-msgctxt "#30517"
+msgctxt "#33452"
 msgid "Verify free space"
 msgstr "Verifica lo spazio libero"
