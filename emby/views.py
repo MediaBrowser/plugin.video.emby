@@ -618,8 +618,6 @@ def node_tags(root):
 
 def node_recentlyadded(root):
     xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
     xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
 
 def node_genres(root):
@@ -682,8 +680,6 @@ def node_recentlyplayedepisodes(root):
 
 def node_recentlyaddedepisodes(root):
     xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"}).text = "0"
     xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
 
 def node_randomalbums(root):

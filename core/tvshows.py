@@ -133,7 +133,6 @@ class TVShows:
                 else:
                     self.video_db.add_season(item['KodiItemIds'][ItemIndex], item['KodiParentIds'][ItemIndex], item['IndexNumber'], item['Name'])
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "Season", "season", item['KodiParentIds'], item['LibraryIds'], item['SeriesId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                    self.video_db.add_path_bookmark(item['KodiParentIds'][ItemIndex], item['IndexNumber'])  # workaround due to Kodi episode bookmark bug
                     LOG.info("ADD season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
 
         return not item['UpdateItems'][ItemIndex]
@@ -210,7 +209,6 @@ class TVShows:
             item['RatingId'] = self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "episode", "default", item['CommunityRating'])
             self.video_db.add_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['RatingId'], item['Writers'], item['PremiereDate'], item['KodiArtwork']['thumb'], item['RunTimeTicks'], item['Directors'], item['ParentIndexNumber'], item['IndexNumber'], item['OriginalTitle'], item['SortParentIndexNumber'], item['SortIndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['Unique'], item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['SeasonId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'])
-            self.video_db.add_file_bookmark(item['KodiItemIds'][ItemIndex], item['KodiSeasonId'], item['KodiParentIds'][ItemIndex], item['ChapterInfo'], item['RunTimeTicks'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate']) # workaround due to Kodi episode bookmark bug
             self.emby_db.add_multiversion(item, "Episode", self.EmbyServer.API, self.video_db, ItemIndex)
 
             if item['UpdateItems'][ItemIndex]:
@@ -325,14 +323,12 @@ class TVShows:
 
     def remove_season(self, KodiSeasonId, EmbyItemId, EmbyLibrayId):
         self.video_db.common.delete_artwork(KodiSeasonId, "season")
-        self.video_db.delete_path_bookmark(KodiSeasonId)  # workaround due to Kodi episode bookmark bug
         self.video_db.delete_season(KodiSeasonId)
         self.video_db.delete_links_tags(KodiSeasonId, "season")
         self.emby_db.remove_item(EmbyItemId, EmbyLibrayId)
         LOG.info("DELETE season [%s] %s" % (KodiSeasonId, EmbyItemId))
 
     def remove_episode(self, KodiItemId, KodiFileId, EmbyItemId, EmbyLibraryId):
-        self.video_db.delete_file_bookmark(KodiItemId)  # workaround due to Kodi episode bookmark bug
         common.delete_ContentItem(EmbyItemId, KodiItemId, KodiFileId, self.video_db, self.emby_db, "episode", EmbyLibraryId)
         self.video_db.delete_episode(KodiItemId, KodiFileId)
         LOG.info("DELETE episode [%s/%s] %s" % (KodiItemId, KodiFileId, EmbyItemId))

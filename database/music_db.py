@@ -65,11 +65,10 @@ class MusicDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return {}
 
-        MetaData = {'mediatype': "artist", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzartistid': ItemData[2], 'genre': ItemData[9], 'comment': ItemData[13]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
-        return "musicdb://artists/%s/" % kodi_id, MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "artist")
+        return {'mediatype': "artist", "dbid": kodi_id, 'title': ItemData[1], 'artist': ItemData[1],'musicbrainzartistid': ItemData[2], 'genre': ItemData[9], 'comment': ItemData[13], 'path': "musicdb://artists/%s/" % kodi_id, 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     def create_entry_album(self):
         self.cursor.execute("SELECT coalesce(max(idAlbum), 0) FROM album")
@@ -96,11 +95,11 @@ class MusicDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return {}
 
-        MetaData = {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'genre': ItemData[6], 'year': ItemData[7], 'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[31]}
-        return "musicdb://albums/%s/" % kodi_id, MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "album")
+        Artwork += self.get_artwork(kodi_id, "single")
+        return {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'genre': ItemData[6], 'year': ItemData[7], 'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31], 'path': "musicdb://albums/%s/" % kodi_id, 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     def create_entry_song(self):
         self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
@@ -140,13 +139,17 @@ class MusicDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}
+            return {}
 
-        TrackNumber = ItemData[7] % 65536
-        DiscNumber = int(int(ItemData[7]) / 65536)
-        MetaData = {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[26], 'genre': ItemData[5], 'title': ItemData[6], 'tracknumber': TrackNumber, 'discnumber': DiscNumber, 'duration': ItemData[8], 'year': ItemData[9], 'musicbrainztrackid': ItemData[13], 'playcount': ItemData[14], 'comment': ItemData[21]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
-        return "%s%s" % (ItemData[22], ItemData[10]), MetaData, Properties
+        Artwork = self.get_artwork(kodi_id, "song")
+        Track = 0
+        Disc = 0
+
+        if ItemData[7]:
+            Track = int(ItemData[5]) % 65536
+            Disc = int(int(ItemData[5]) / 65536)
+
+        return {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[1], 'genre': ItemData[3], 'title': ItemData[4], 'tracknumber': Track, 'discnumber': Disc, 'duration': ItemData[6], 'year': ItemData[9], 'musicbrainztrackid': ItemData[13], 'playcount': ItemData[14], 'comment': ItemData[21], 'path': ItemData[22], 'pathandfilename': "%s%s" % (ItemData[22], ItemData[10]), 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     # Add genres, but delete current genres first
     def update_genres_song(self, kodi_id, genres):
@@ -254,6 +257,17 @@ class MusicDatabase:
         path_id = self.cursor.fetchone()[0] + 1
         self.cursor.execute("INSERT INTO path(idPath, strPath) VALUES (?, ?)", (path_id, strPath))
         return path_id
+
+    # artwork
+    def get_artwork(self, KodiId, ContentType):
+        Artwork = {}
+        self.cursor.execute("SELECT * FROM art WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
+        ArtworksData = self.cursor.fetchall()
+
+        for ArtworkData in ArtworksData:
+            Artwork[ArtworkData[3]] = ArtworkData[4]
+
+        return Artwork
 
 def set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount, Comment, LibraryId_Name):
     Comment = "%s\n%s" % (Comment, LibraryId_Name)

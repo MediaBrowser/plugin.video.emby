@@ -27,7 +27,7 @@ icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
 ItemSkipUpdate = []
-MinimumVersion = "7.11.0"
+MinimumVersion = "7.12.0"
 refreshskin = True
 device_name = "Kodi"
 xspplaylists = False
@@ -107,7 +107,7 @@ PluginStarted = False
 ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open, Init in progress
 
 def refresh_widgets():
-    LOG.info("Refresh widgets initialted")
+    LOG.info("Refresh widgets initialized")
 
     if not WidgetRefresh:
         LOG.info("Refresh widgets started")
@@ -459,73 +459,15 @@ def PathToFilenameReplaceSpecialCharecters(Path):
 
     return Filename
 
-def load_ContentMetadataFromKodiDB(KodiId, ContentType, videodb, musicdb):
-    DBType = ""
-    LOG.info("Fetching data from internal database: %s / %s" % (ContentType, KodiId))
-
-    People = []
-    Artwork = {}
-
-    if ContentType == "movie":
-        Path, MetaData, Properties, Artwork, People = videodb.get_movie_metadata_for_listitem(KodiId)
-        isFolder = False
-        DBType = 'video'
-    elif ContentType == "tvshow":
-        Path, MetaData, Properties, Artwork, People = videodb.get_tvshows_metadata_for_listitem(KodiId)
-        isFolder = True
-        DBType = 'video'
-    elif ContentType == "season":
-        Path, MetaData, Properties, Artwork, People = videodb.get_season_metadata_for_listitem(KodiId)
-        isFolder = True
-        DBType = 'video'
-    elif ContentType == "episode":
-        Path, MetaData, Properties, Artwork, People = videodb.get_episode_metadata_for_listitem(KodiId)
-        isFolder = False
-        DBType = 'video'
-    elif ContentType == "set":
-        Path, MetaData, Properties, Artwork = videodb.get_boxset_metadata_for_listitem(KodiId)
-        isFolder = True
-        DBType = 'video'
-    elif ContentType == "musicvideo":
-        Path, MetaData, Properties, Artwork = videodb.get_musicvideos_metadata_for_listitem(KodiId)
-        isFolder = False
-        DBType = 'video'
-    elif ContentType == "song":
-        Path, MetaData, Properties = musicdb.get_song_metadata_for_listitem(KodiId)
-        isFolder = False
-        DBType = 'music'
-    elif ContentType == "artist":
-        Path, MetaData, Properties = musicdb.get_artist_metadata_for_listitem(KodiId)
-        isFolder = True
-        DBType = 'music'
-    elif ContentType in ("album", "single"):
-        Path, MetaData, Properties = musicdb.get_album_metadata_for_listitem(KodiId)
-        isFolder = True
-        DBType = 'music'
-
-    if not Path:
-        LOG.warning("Item not found in Kodi's database: %s" % KodiId)
-        return None, "", False
-
-    listitem = xbmcgui.ListItem(label=MetaData['title'], offscreen=True)
-    set_ListItem_Properties(listitem, Properties)
-    set_ListItem_MetaData(DBType, listitem, MetaData)
-
-    if Artwork:
-        listitem.setArt(Artwork)
-
-    if People:
-        listitem.setCast(People)
-
-    return listitem, Path, isFolder
-
 def set_ListItem_MetaData(Content, ListItem, MetaData):
     MetaDataFiltered = {}
 
     for Key, Value in list(MetaData.items()):
         if Value:
-            if Key.lower() in ("count", "year", "episode", "season", "sortepisode", "sortseason", "tracknumber", "userrating", "playcount", "duration", "dbid", "discnumber"):
+            if Key.lower() in ("count", "year", "episode", "season", "sortepisode", "sortseason", "tracknumber", "userrating", "playcount", "dbid", "discnumber"):
                 Value = int(Value)
+            elif Key.lower() == "duration":
+                Value = int(float(Value))
             elif Key.lower() == "rating":
                 Value = float(Value)
 
