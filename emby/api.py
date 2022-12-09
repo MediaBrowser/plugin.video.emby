@@ -1,5 +1,6 @@
 from helper import utils, loghandler
 from database import dbio
+from emby import listitem
 
 EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50, "Folder": 1000}
 EmbyFields = {
@@ -91,29 +92,51 @@ class API:
                     break
 
             ItemsReturn = []
-            ItemsFullQuery = []
+            ItemsFullQuery = ()
 
             if SkipLocalDB:
                 for Item in IncomingData['Items']:
-                    ItemsFullQuery.append(Item['Id'])
+                    ItemsFullQuery += (Item['Id'],)
             else:
+                KodiItems = ()
                 embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
                 videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
                 musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
 
                 for Item in IncomingData['Items']:
-                    KodiId, KodiType = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.zz
+                    KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.zz
 
                     if KodiId:
-                        listitem, path, isFolder = utils.load_ContentMetadataFromKodiDB(KodiId, KodiType, videodb, musicdb)
-
-                        if listitem:
-                            ItemsReturn.append({"ListItem": listitem, "Path": path, "isFolder": isFolder, "Type": Item['Type']})
-                            LOG.info("Fetching data from internal database: %s / %s" % (KodiType, KodiId))
-                        else:
-                            LOG.warning("Kodi id found, but no listitem created: %s / %s" % (KodiType, KodiId))
+                        if Item['Type'] == "Movie":
+                            KodiItems += ((videodb.get_movie_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "Series":
+                            KodiItems += ((videodb.get_tvshows_metadata_for_listitem(KodiId), Item['Type']),)
+                            isFolder = True
+                        elif Item['Type'] == "Season":
+                            KodiItems += ((videodb.get_season_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "Episode":
+                            KodiItems += ((videodb.get_episode_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "BoxSet":
+                            KodiItems += ((videodb.get_boxset_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "MusicVideo":
+                            KodiItems += ((videodb.get_musicvideos_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "MusicArtist":
+                            KodiItems += ((musicdb.get_artist_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "MusicAlbum":
+                            KodiItems += ((musicdb.get_album_metadata_for_listitem(KodiId), Item['Type']),)
+                        elif Item['Type'] == "Audio":
+                            KodiItems += ((musicdb.get_song_metadata_for_listitem(KodiId), Item['Type']),)
                     else:
-                        ItemsFullQuery.append(Item['Id'])
+                        ItemsFullQuery += (Item['Id'],)
+
+                for KodiItem in KodiItems:
+                    if KodiItem[0]:
+                        isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem[0])
+
+                        if 'pathandfilename' in KodiItem[0]:
+                            ItemsReturn.append({"ListItem": ListItem, "Path": KodiItem[0]['pathandfilename'], "isFolder": isFolder, "Type": KodiItem[1]})
+                        else:
+                            ItemsReturn.append({"ListItem": ListItem, "Path": KodiItem[0]['path'], "isFolder": isFolder, "Type": KodiItem[1]})
 
                 IncomingData['Items'].clear()  # free memory
                 dbio.DBCloseRO("video", "get_Items_dynamic")

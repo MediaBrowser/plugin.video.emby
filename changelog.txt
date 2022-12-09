@@ -1,3 +1,17 @@
+7.12.0
+=============
+remove chapters/bookmarks Kodi workarounds
+several code improvements
+add Kodi workaround for items played via widgets which are not using Kodi's internal functions as nodes (all dynamic nodes and next episode node) should be more stable (addon mode only)
+fix multiselection progress update issue in native mode
+
+
+7.11.2
+=============
+fix remote content playback issue -> https://emby.media/community/index.php?/topic/106853-embyforkodi-next-gen-7xx-support/&do=findComment&comment=1207092
+fixed minor database issues
+
+
 7.11.1
 =============
 add option to disable free space verification

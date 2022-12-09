@@ -5,8 +5,71 @@ from core import common
 LOG = loghandler.LOG('EMBY.emby.listitem')
 
 
-def set_ListItem(item, server_id):
-    listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True)
+def set_ListItem_from_Kodi_database(KodiItem, Path=None):
+    KodiItemPathandfilename = None
+    KodiItemPath = None
+
+    if Path:
+        ListItem = xbmcgui.ListItem(label=KodiItem['title'], label2=KodiItem['title'], offscreen=True, path=Path)
+    else:
+        if 'pathandfilename' in KodiItem:
+            ListItem = xbmcgui.ListItem(label=KodiItem['title'], label2=KodiItem['title'], offscreen=True, path=KodiItem['pathandfilename'])
+        elif 'path' in KodiItem:
+            ListItem = xbmcgui.ListItem(label=KodiItem['title'], label2=KodiItem['title'], offscreen=True, path=KodiItem['path'])
+        else:
+            ListItem = xbmcgui.ListItem(label=KodiItem['title'], label2=KodiItem['title'], offscreen=True)
+
+    if 'pathandfilename' in KodiItem:
+        KodiItemPathandfilename = KodiItem["pathandfilename"]
+        del KodiItem["pathandfilename"]
+
+    Properties = KodiItem['properties']
+    del KodiItem["properties"]
+    utils.set_ListItem_Properties(ListItem, Properties)
+
+    if 'people' in KodiItem:
+        if KodiItem['people']:
+            cast = []
+
+            for person in KodiItem['people']:
+                cast.append({'name': person[0], 'role': person[1], 'order': person[2], 'thumbnail': person[3]})
+
+            ListItem.setCast(cast)
+
+        del KodiItem['people']
+
+    if 'artwork' in KodiItem:
+        if KodiItem['artwork']:
+            ListItem.setArt(KodiItem['artwork'])
+
+        del KodiItem['artwork']
+
+    if KodiItem['mediatype'] in ("episode", "movie", "musicvideo", "tvshow", "season", "set"):
+        utils.set_ListItem_MetaData('video', ListItem, KodiItem)
+    else:
+        utils.set_ListItem_MetaData('music', ListItem, KodiItem)
+
+        if 'path' in KodiItem:
+            KodiItemPath = KodiItem["path"]
+            del KodiItem["path"]
+
+    IsFolder = bool(Properties['IsFolder'] == "true")
+
+    if KodiItemPathandfilename:
+        KodiItem["pathandfilename"] = KodiItemPathandfilename
+
+    if KodiItemPath:
+        KodiItem["path"] = KodiItemPath
+
+    ListItem.setContentLookup(False)
+    return IsFolder, ListItem
+
+def set_ListItem(item, server_id, Path=None):
+    if Path:
+        listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True, path=Path)
+    else:
+        listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True)
+
     Properties = {}
 
     if 'Library' not in item:

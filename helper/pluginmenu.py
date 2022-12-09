@@ -924,24 +924,36 @@ def manage_libraries(ServerSelection):  # threaded by caller
 
 def favepisodes(Handle):
     Handle = int(Handle)
-    list_li = []
-    episodes_kodiId = []
+    CacheId = "favepisodes"
 
-    for server_id in utils.EmbyServers:
-        embydb = dbio.DBOpenRO(server_id, "favepisodes")
-        episodes_kodiId += embydb.get_episode_fav()
-        dbio.DBCloseRO(server_id, "favepisodes")
+    if CacheId in QueryCache and QueryCache[CacheId][0]:
+        LOG.info("Using QueryCache: %s" % CacheId)
+        ListItems = QueryCache[CacheId][1]
+    else:
+        LOG.info("Rebuid QueryCache: %s" % CacheId)
+        ListItems = ()
+        episodes_kodiId = ()
 
-    videodb = dbio.DBOpenRO("video", "favepisodes")
+        for server_id in utils.EmbyServers:
+            embydb = dbio.DBOpenRO(server_id, "favepisodes")
+            episodes_kodiId += embydb.get_episode_fav()
+            dbio.DBCloseRO(server_id, "favepisodes")
 
-    for episode_kodiId in episodes_kodiId:
-        li, path, isFolder = utils.load_ContentMetadataFromKodiDB(episode_kodiId[0], "episode", videodb, None)
+        KodiItems = ()
+        videodb = dbio.DBOpenRO("video", "favepisodes")
 
-        if li:
-            list_li.append((path, li, isFolder))
+        for episode_kodiId in episodes_kodiId:
+            KodiItems += (videodb.get_episode_metadata_for_listitem(episode_kodiId[0]),)
 
-    dbio.DBCloseRO("video", "favepisodes")
-    xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
+        dbio.DBCloseRO("video", "favepisodes")
+
+        for KodiItem in KodiItems:
+            if KodiItem:
+                isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
+                ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
+                globals()["QueryCache"][CacheId] = [True, ListItems]
+
+    xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
@@ -1201,10 +1213,10 @@ def get_next_episodes(Handle, libraryname):
 
     if CacheId in QueryCache and QueryCache[CacheId][0]:
         LOG.info("Using QueryCache: %s" % CacheId)
-        list_li = QueryCache[CacheId][1]
+        ListItems = QueryCache[CacheId][1]
     else:
         LOG.info("Rebuid QueryCache: %s" % CacheId)
-        list_li = []
+        ListItems = ()
 
         for EmbyServer in list(utils.EmbyServers.values()):
             DelayQuery = 0
@@ -1216,6 +1228,7 @@ def get_next_episodes(Handle, libraryname):
                 if DelayQuery >= 10:
                     continue
 
+        KodiItems = ()
         videodb = dbio.DBOpenRO("video", "get_next_episodes")
 
         if libraryname in common.MediaTags:
@@ -1223,16 +1236,17 @@ def get_next_episodes(Handle, libraryname):
 
             for NextEpisodeInfo in NextEpisodeInfos[:int(utils.maxnodeitems)]:
                 EpisodeId = NextEpisodeInfo.split(";")
-                li, path, isFolder = utils.load_ContentMetadataFromKodiDB(EpisodeId[1], "episode", videodb, None)
-
-                if li:
-                    list_li.append((path, li, isFolder))
-
-            globals()["QueryCache"][CacheId] = [True, list_li]
+                KodiItems += (videodb.get_episode_metadata_for_listitem(EpisodeId[1]),)
 
         dbio.DBCloseRO("video", "get_next_episodes")
 
-    xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
+        for KodiItem in KodiItems:
+            if KodiItem:
+                isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
+                ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
+                globals()["QueryCache"][CacheId] = [True, ListItems]
+
+    xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)

@@ -19,58 +19,33 @@ class Library:
         self.EmbyDBOpen = False
         self.DatabaseInit = False
 
-    def open_Worker(self, Worker):
+    def open_Worker(self, WorkerName):
         if Worker_is_paused():
-            LOG.info("[ worker %s sync paused ]" % Worker)
-            return False, []
+            LOG.info("[ worker %s sync paused ]" % WorkerName)
+            return False
 
         if WorkerInProgress:
-            LOG.info("[ worker %s in progress ]" % Worker)
-            return False, []
+            LOG.info("[ worker %s in progress ]" % WorkerName)
+            return False
 
         globals()["WorkerInProgress"] = True
 
         while not self.DatabaseInit:
-            LOG.info("[ worker %s wait for database init ]" % Worker)
+            LOG.info("[ worker %s wait for database init ]" % WorkerName)
 
             if utils.sleep(1):
-                return False, []
+                return False
 
-        Items = []
-        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], Worker)
+        return True
 
-        if not embydb:
-            globals()["WorkerInProgress"] = False
-            LOG.info("[ worker %s exit ] database io error")
-            return False, []
-
-        if Worker == "userdata":
-            Items = embydb.get_Userdata()
-        elif Worker == "update":
-            Items = embydb.get_UpdateItem()
-        elif Worker == "remove":
-            Items = embydb.get_RemoveItem()
-        elif Worker == "library":
-            Items = embydb.get_PendingSync()
-
-        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], Worker)
-
-        if not Items:
-            globals()["WorkerInProgress"] = False
-            LOG.info("[ worker %s exit ] queue size: 0" % Worker)
-            return True, []
-
-        LOG.info("-->[ worker %s started ] queue size: %d" % (Worker, len(Items)))
-        return True, Items
-
-    def close_Worker(self, TaskId):
-        self.close_EmbyDBRW(TaskId)
+    def close_Worker(self, WorkerName):
+        self.close_EmbyDBRW(WorkerName)
         utils.SyncPause['kodi_rw'] = False
         utils.refresh_widgets()
         utils.progress_close()
         globals()["WorkerInProgress"] = False
 
-    def open_EmbyDBRW(self, TaskId):
+    def open_EmbyDBRW(self, WorkerName):
         # if worker in progress, interrupt workers database ops (worker has lower priority) compared to all other Emby database (rw) ops
         if self.EmbyDBOpen:
             if WorkerInProgress:
@@ -78,14 +53,14 @@ class Library:
 
         # wait for DB close
         while self.EmbyDBOpen:
-            LOG.info("open_EmbyDBRW waiting: %s" % TaskId)
+            LOG.info("open_EmbyDBRW waiting: %s" % WorkerName)
             utils.sleep(1)
 
         self.EmbyDBOpen = True
-        return dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], TaskId)
+        return dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
 
-    def close_EmbyDBRW(self, TaskId):
-        dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], TaskId)
+    def close_EmbyDBRW(self, WorkerName):
+        dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
         self.EmbyDBOpen = False
         utils.SyncPause['priority'] = False
 
@@ -229,12 +204,21 @@ class Library:
         self.updated(UpdateData)
 
     def worker_userdata(self):
-        ContinueJobs, UserDataItems = self.open_Worker("userdata")
+        WorkerName = "worker_userdata"
+        ContinueJobs = self.open_Worker(WorkerName)
 
-        if not UserDataItems:
-            return ContinueJobs
+        if ContinueJobs:
+            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            UserDataItems = embydb.get_Userdata()
+            LOG.info("-->[ worker_userdata started ] queue size: %d" % len(UserDataItems))
 
-        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "userdata")
+            if not UserDataItems:
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                globals()["WorkerInProgress"] = False
+                return ContinueJobs
+        else:
+            return False
+
         utils.progress_open(utils.Translate(33178))
         Items = []
         ItemsNotSynced = []
@@ -256,9 +240,9 @@ class Library:
                 ItemsNotSynced.append(str(UserDataItem))
                 LOG.info("Skip not synced item: %s " % UserDataItem)
 
-        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "userdata")
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
         UpdateItems = ItemsSort(Items, False)
-        embydb = self.open_EmbyDBRW("userdata")
+        embydb = self.open_EmbyDBRW(WorkerName)
 
         for ItemNotSynced in ItemsNotSynced:
             embydb.delete_Userdata(ItemNotSynced)
@@ -266,36 +250,46 @@ class Library:
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
                 RecordsPercent = len(CategoryItems) / 100
-                kodidb = dbio.DBOpenRW(ContentType, "worker_userdata")
+                kodidb = dbio.DBOpenRW(ContentType, WorkerName)
 
                 for Items in CategoryItems:
                     self.ContentObject = None
 
                     for index, Item in enumerate(Items, 1):
                         embydb.delete_Userdata(Item["UpdateItem"])
-                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "userdata")
+                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, WorkerName)
 
                         if not Continue:
                             return False
 
-                dbio.DBCloseRW(ContentType, "worker_userdata")
+                dbio.DBCloseRW(ContentType, WorkerName)
 
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_userdata")
+        self.close_Worker(WorkerName)
         LOG.info("--<[ worker userdata completed ]")
         self.RunJobs()
         return True
 
     def worker_update(self):
-        ContinueJobs, UpdateItems = self.open_Worker("update")
+        WorkerName = "worker_update"
+        ContinueJobs = self.open_Worker(WorkerName)
 
-        if not UpdateItems:
-            return ContinueJobs
+        if ContinueJobs:
+            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            UpdateItems = embydb.get_UpdateItem()
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            LOG.info("-->[ worker_update started ] queue size: %d" % len(UpdateItems))
+
+            if not UpdateItems:
+                globals()["WorkerInProgress"] = False
+                return ContinueJobs
+        else:
+            return False
 
         utils.progress_open(utils.Translate(33178))
         RecordsPercent = len(UpdateItems) / 100
         index = 0
-        embydb = self.open_EmbyDBRW("worker_update")
+        embydb = self.open_EmbyDBRW(WorkerName)
 
         while UpdateItems:
             TempLibraryInfos = UpdateItems[:100]  # Chunks of 100
@@ -304,7 +298,7 @@ class Library:
 
             for ContentType, CategoryItems in list(SortedItems.items()):
                 if content_available(ContentType, CategoryItems):
-                    kodidb = dbio.DBOpenRW(ContentType, "worker_update")
+                    kodidb = dbio.DBOpenRW(ContentType, WorkerName)
 
                     for Items in CategoryItems:
                         self.ContentObject = None
@@ -313,13 +307,13 @@ class Library:
                             Item['Library'] = {}   #LibraryInfos[Item['Id']]
                             embydb.delete_UpdateItem(Item['Id'])
                             UpdateItems.remove(Item['Id'])
-                            Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "add/update")
+                            Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, WorkerName)
                             index += 1
 
                             if not Continue:
                                 return False
 
-                    dbio.DBCloseRW(ContentType, "worker_update")
+                    dbio.DBCloseRW(ContentType, WorkerName)
 
             # Remove not detected Items
             for TempLibraryInfo in TempLibraryInfos:
@@ -328,21 +322,31 @@ class Library:
                     embydb.delete_UpdateItem(TempLibraryInfo)
 
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_update")
+        self.close_Worker(WorkerName)
         LOG.info("--<[ worker update completed ]")
         self.RunJobs()
         return True
 
     def worker_remove(self):
-        ContinueJobs, RemoveItems = self.open_Worker("remove")
+        WorkerName = "worker_remove"
+        ContinueJobs = self.open_Worker(WorkerName)
 
-        if not RemoveItems:
-            return ContinueJobs
+        if ContinueJobs:
+            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            RemoveItems = embydb.get_RemoveItem()
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            LOG.info("-->[ worker_remove started ] queue size: %d" % len(RemoveItems))
+
+            if not RemoveItems:
+                globals()["WorkerInProgress"] = False
+                return ContinueJobs
+        else:
+            return False
 
         utils.progress_open(utils.Translate(33261))
         RecordsPercent = len(RemoveItems) / 100
         AllRemoveItems = []
-        embydb = self.open_EmbyDBRW("remove")
+        embydb = self.open_EmbyDBRW(WorkerName)
 
         for index, RemoveItem in enumerate(RemoveItems, 1):
             utils.progress_update(int(index / RecordsPercent), utils.Translate(33261), str(RemoveItem[0]))
@@ -407,7 +411,7 @@ class Library:
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
-                kodidb = dbio.DBOpenRW(ContentType, "worker_remove")
+                kodidb = dbio.DBOpenRW(ContentType, WorkerName)
 
                 for Items in CategoryItems:
                     self.ContentObject = None
@@ -415,34 +419,40 @@ class Library:
 
                     for index, Item in enumerate(Items, 1):
                         embydb.delete_RemoveItem(Item['Id'], Item['Library']["Id"])
-                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, "remove")
+                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, ContentType, WorkerName)
 
                         if not Continue:
                             return False
 
-                dbio.DBCloseRW(ContentType, "worker_remove")
+                dbio.DBCloseRW(ContentType, WorkerName)
 
         embydb.update_LastIncrementalSync(utils.currenttime())
-        self.close_Worker("worker_remove")
+        self.close_Worker(WorkerName)
         LOG.info("--<[ worker remove completed ]")
         self.RunJobs()
         return True
 
     def worker_library(self):
-        _, SyncItems = self.open_Worker("library")
+        WorkerName = "worker_library"
+        self.open_Worker(WorkerName)
+        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+        SyncItems = embydb.get_PendingSync()
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+        LOG.info("-->[ worker_library started ] queue size: %d" % len(SyncItems))
 
         if not SyncItems:
+            globals()["WorkerInProgress"] = False
             return
 
         utils.progress_open("%s %s" % (utils.Translate(33021), utils.Translate(33238)))
         newContent = utils.newContent
         utils.newContent = False  # Disable new content notification on init sync
-        embydb = self.open_EmbyDBRW("library")
+        embydb = self.open_EmbyDBRW(WorkerName)
 
         for SyncItem in SyncItems:
             embydb.add_Whitelist(SyncItem[0], SyncItem[2], SyncItem[1])
             self.Whitelist[SyncItem[0]] = (SyncItem[2], SyncItem[1])
-            kodidb = dbio.DBOpenRW(SyncItem[4], "worker_library")
+            kodidb = dbio.DBOpenRW(SyncItem[4], WorkerName)
 
             if SyncItem[4] == "video":
                 common.MediaTags[SyncItem[1]] = kodidb.get_add_tag(SyncItem[1])
@@ -453,18 +463,18 @@ class Library:
             # Sync Content
             for index, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}), 1):
                 Item["Library"] = {"Id": SyncItem[0], "Name": SyncItem[1]}
-                Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, SyncItem[4], "add/update")
+                Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), Item, embydb, kodidb, SyncItem[4], WorkerName)
 
                 if not Continue:
                     return
 
-            dbio.DBCloseRW(SyncItem[4], "worker_library")
+            dbio.DBCloseRW(SyncItem[4], WorkerName)
             embydb.remove_PendingSync(SyncItem[0], SyncItem[1], SyncItem[2], SyncItem[3], SyncItem[4])
 
         utils.newContent = newContent
         self.EmbyServer.Views.update_nodes()
         pluginmenu.reset_querycache()
-        self.close_Worker("worker_library")
+        self.close_Worker(WorkerName)
         xbmc.sleep(1000) # give Kodi time for keep up
         xbmc.executebuiltin('ReloadSkin()')
         LOG.info("Reload skin by worker library")
@@ -473,13 +483,13 @@ class Library:
         if not utils.sleep(1):  # give Kodi time to catch up
             self.RunJobs()
 
-    def ItemOps(self, ProgressValue, Item, embydb, kodidb, ContentCategory, Task):
+    def ItemOps(self, ProgressValue, Item, embydb, kodidb, ContentCategory, WorkerName):
         Ret = False
 
         if not self.ContentObject:
             self.load_libraryObject(Item['Type'], embydb, kodidb)
 
-        if Task == "add/update":
+        if WorkerName in ("worker_library", "worker_update"):
             if Item['Type'] == "Audio":
                 Ret = self.ContentObject.song(Item)
                 ProgressMsg = Item['Name']
@@ -528,18 +538,18 @@ class Library:
                     MsgTime = int(utils.newvideotime) * 1000
 
                 utils.Dialog.notification(heading="%s %s" % (utils.Translate(33049), Item['Type']), message=Item['Name'], icon=utils.icon, time=MsgTime, sound=False)
-        elif Task == "remove":
+        elif WorkerName == "worker_remove":
             utils.progress_update(ProgressValue, "Emby: %s" % Item['Type'], str(Item['Id']))
             self.ContentObject.remove(Item)
-        elif Task == "userdata":
+        elif WorkerName == "worker_userdata":
             utils.progress_update(ProgressValue, "Emby: %s" % Item['Type'], str(Item['Id']))
             self.ContentObject.userdata(Item)
 
         # Check if Kodi db or emby is about to open -> close db, wait, reopen db
         if Worker_is_paused():
             LOG.info("-->[ worker delay %s]" % str(utils.SyncPause))
-            dbio.DBCloseRW(ContentCategory, "ItemOps")
-            dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], "ItemOps")
+            dbio.DBCloseRW(ContentCategory, WorkerName)
+            dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
             self.EmbyDBOpen = False
 
             while Worker_is_paused():
@@ -550,15 +560,16 @@ class Library:
 
             self.EmbyDBOpen = True
             LOG.info("--<[ worker delay %s]" % str(utils.SyncPause))
-            embydb = dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], "ItemOps")
-            kodidb = dbio.DBOpenRW(ContentCategory, "ItemOps")
+            embydb = dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            kodidb = dbio.DBOpenRW(ContentCategory, WorkerName)
             self.load_libraryObject(Item['Type'], embydb, kodidb)
 
         Continue = True
 
         if utils.SystemShutdown:
-            dbio.DBCloseRW(ContentCategory, "ItemOps")
-            self.close_Worker("ItemOps")
+            dbio.DBCloseRW(ContentCategory, WorkerName)
+            dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
+            self.EmbyDBOpen = False
             LOG.info("[ worker exit ]")
             Continue = False
 

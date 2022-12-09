@@ -57,13 +57,13 @@ class PlayerEvents(xbmc.Player):
     def onAVChange(self):
         LOG.info("[ onAVChange ]")
 
-        if PlaylistRemoveItem != "-1" or SkipItem or not self.isPlaying():
-            LOG.debug("skip onAVChange")
-            return
-
-        globals()["PlayingItem"].update({'RunTimeTicks': int(self.getTotalTime() * 10000000), 'PositionTicks': max(int(self.getTime() * 10000000), 0)})
-
         if EmbyServerPlayback and "ItemId" in PlayingItem:
+            if PlaylistRemoveItem != "-1" or SkipItem or not self.isPlaying():
+                LOG.debug("skip onAVChange")
+                return
+
+            LOG.info("onAVChange update progress")
+            globals()["PlayingItem"].update({'RunTimeTicks': int(self.getTotalTime() * 10000000), 'PositionTicks': max(int(self.getTime() * 10000000), 0)})
             EmbyServerPlayback.API.session_progress(PlayingItem)
 
     def onAVStarted(self):
@@ -224,21 +224,18 @@ class PlayerEvents(xbmc.Player):
                                 self.pause()  # Player Resume
                             else:
                                 globals()["MultiselectionDone"] = True
-                                videodb = dbio.DBOpenRO("video", "onAVStarted")
-                                li, _, _ = utils.load_ContentMetadataFromKodiDB(KodiId, MediaType, videodb, None)
-                                dbio.DBCloseRO("video", "onAVStarted")
-
-                                if not li:
-                                    return
-
                                 Path = MediaSources[MediaIndex][3]
 
                                 if Path.startswith('\\\\'):
                                     Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
-                                li.setPath(Path)
+                                ListItem = load_KodiItem("onAVStarted", KodiId, MediaType, Path)
+
+                                if not ListItem:
+                                    return
+
                                 globals()["playlistIndex"] = playlist.getposition()
-                                playlist.add(Path, li, playlistIndex + 1)
+                                playlist.add(Path, ListItem, playlistIndex + 1)
                                 MediasourceID = MediaSources[MediaIndex][2]
                                 self.playnext()
                                 xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % playlistIndex)
@@ -255,13 +252,12 @@ class PlayerEvents(xbmc.Player):
             if not self.isPlaying(): #check again if playing
                 return
 
-            globals()["PlayingItem"]['RunTimeTicks'] = int(self.getTotalTime() * 10000000)
-
             if EmbyServerPlayback and 'ItemId' in PlayingItem:
                 if VideoPlayback:
                     xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
 
                 utils.ItemSkipUpdate += [PlayingItem['ItemId'], PlayingItem['ItemId'], PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg) and once for Kodi database incoming msg
+                globals()["PlayingItem"].update({'RunTimeTicks': int(self.getTotalTime() * 10000000), 'PositionTicks': max(int(self.getTime() * 10000000), 0)})
                 EmbyServerPlayback.API.session_playing(PlayingItem)
                 LOG.debug("ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
 
@@ -336,11 +332,12 @@ def SETVolume(data):
 
 def stop_playback(delete, Stopped):
     LOG.info("[ played info ] %s / %s" % (PlayingItem, MediaType))
+
+    if MultiselectionDone or not EmbyServerPlayback or 'ItemId' not in PlayingItem:
+        return
+
     PlayingItemLocal = PlayingItem.copy()
     globals().update({"PlayBackEnded": True, "PlayingItem": {'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False}})
-
-    if MultiselectionDone or not EmbyServerPlayback or 'ItemId' not in PlayingItemLocal:
-        return
 
     # remove cached query for next up node
     if MediaType == "episode" and LibraryId in EmbyServerPlayback.Views.ViewItems:
@@ -527,3 +524,16 @@ def Cancel():
     utils.XbmcPlayer.stop()
     utils.SyncPause['playing'] = False
     start_new_thread(start_workers, ())
+
+def load_KodiItem(TaskId, KodiItemId, Type, Path):
+    videodb = dbio.DBOpenRO("video", TaskId)
+
+    if Type == "movie":
+        KodiItem = videodb.get_movie_metadata_for_listitem(KodiItemId, Path)
+    elif Type == "episode":
+        KodiItem = videodb.get_episode_metadata_for_listitem(KodiItemId, Path)
+    elif Type == "musicvideo":
+        KodiItem = videodb.get_musicvideos_metadata_for_listitem(KodiItemId, Path)
+
+    dbio.DBCloseRO("video", TaskId)
+    return listitem.set_ListItem_from_Kodi_database(KodiItem, Path)[1]

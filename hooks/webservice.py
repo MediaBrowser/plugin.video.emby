@@ -28,6 +28,8 @@ player = None
 uuid = None
 parse_qsl = None
 unquote = None
+PayloadHeadRequest = ""
+
 
 def start():
     xbmc.log("EMBY.hooks.webservice: Start", xbmc.LOGINFO)
@@ -218,6 +220,7 @@ def worker_Query(client, data):  # thread by caller
         if IncomingData[1].startswith('/p-'):
             http_Query(client, IncomingData[1], IncomingData[0])
         else:
+            globals()["PayloadHeadRequest"] = IncomingData[1]
             client.send(sendOK)
     else:
         client.send(sendOK)
@@ -227,21 +230,18 @@ def worker_Query(client, data):  # thread by caller
 def LoadISO(QueryData, MediaIndex, client, ThreadId):
     player.MultiselectionDone = True
     QueryData['MediaSources'] = open_embydb(QueryData['ServerId'], ThreadId).get_mediasource(QueryData['EmbyID'])
-    videodb = dbio.DBOpenRO("video", "LoadISO")
-    li, _, _ = utils.load_ContentMetadataFromKodiDB(QueryData['KodiId'], QueryData['Type'], videodb, None)
-    dbio.DBCloseRO("video", "LoadISO")
+    Path = QueryData['MediaSources'][MediaIndex][3]
 
-    if not li:
+    if Path.startswith('\\\\'):
+        Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+
+    ListItem = player.load_KodiItem("LoadISO", QueryData['KodiId'], QueryData['Type'], Path)
+
+    if not ListItem:
         client.send(sendOK)
     else:
-        Path = QueryData['MediaSources'][MediaIndex][3]
-
-        if Path.startswith('\\\\'):
-            Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
-
-        li.setPath(Path)
         PlaylistPosition = playlist.getposition()
-        playlist.add(Path, li, PlaylistPosition + 1)
+        playlist.add(Path, ListItem, PlaylistPosition + 1)
         player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
@@ -297,6 +297,14 @@ def http_Query(client, Payload, RequestType):
         xbmc.log("EMBY.hooks.webservice: [ nfo query -> refresh item %s ]" % Payload, xbmc.LOGINFO)
         client.send(sendOK)
         return
+
+    # Workaround for invalid Kodi GET requests when played via widget
+    if not Payload.startswith("/p-"):
+        if Payload != PayloadHeadRequest:
+            xbmc.log("Invalid GET request filtered: %s " % Payload, xbmc.LOGWARNING)
+            client.send(sendNoContent)
+            client.close()
+            return
 
     QueryData = GetParametersFromURLQuery(Payload)
 
@@ -379,16 +387,13 @@ def http_Query(client, Payload, RequestType):
                 utils.EmbyServers[QueryData['ServerId']].http.load_Trailers(QueryData['EmbyID'])
 
         if utils.EmbyServers[QueryData['ServerId']].http.Intros:
-            videodb = dbio.DBOpenRO("video", "http_Query")
-            globals()["TrailerInitItem"][1], _, _ = utils.load_ContentMetadataFromKodiDB(QueryData['KodiId'], QueryData['Type'], videodb, None)
+            globals()["TrailerInitItem"][1] = player.load_KodiItem("http_Query", QueryData['KodiId'], QueryData['Type'], None) # query path
             player.SkipItem = True
-            dbio.DBCloseRO("video", "http_Query")
             xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "one" }, "id": 1 }')
             URL = utils.EmbyServers[QueryData['ServerId']].http.Intros[0]['Path']
             xbmc.log("EMBY.hooks.webservice: Trailer URL: %s" % URL, xbmc.LOGDEBUG)
-            li = listitem.set_ListItem(utils.EmbyServers[QueryData['ServerId']].http.Intros[0], QueryData['ServerId'])
-            li.setPath("http://127.0.0.1:57342" + QueryData['Payload'])
-            utils.XbmcPlayer.updateInfoTag(li)
+            ListItem = listitem.set_ListItem(utils.EmbyServers[QueryData['ServerId']].http.Intros[0], QueryData['ServerId'], "http://127.0.0.1:57342" + QueryData['Payload'])
+            utils.XbmcPlayer.updateInfoTag(ListItem)
             del utils.EmbyServers[QueryData['ServerId']].http.Intros[0]
             globals()["TrailerInitItem"][0] = QueryData['Payload']
             xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
@@ -400,6 +405,7 @@ def http_Query(client, Payload, RequestType):
         if TrailerInitItem[0]:
             utils.XbmcPlayer.updateInfoTag(TrailerInitItem[1])
 
+    globals()["PayloadHeadRequest"] = ""
     globals()["TrailerInitItem"][0] = ""
     player.SkipItem = False
     ThreadId = get_ident()
@@ -538,8 +544,7 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
 
                 if status_code != 200:
                     send_redirect(client, QueryData, "videos/%s/master.m3u8?VideoCodec=%s&AudioCodec=%s&TranscodeReasons=DirectPlayError" % (QueryData['EmbyID'], utils.TranscodeFormatVideo, utils.TranscodeFormatAudio), QueryData['Filename'])
-
-                return
+                    return
 
             send_redirect(client, QueryData, URL, EndParameter)
             return
@@ -612,19 +617,16 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
 
     if "3d" in MediaSource[4].lower():
         # inject new playlist item (not update curerent playlist item to initiate 3d selection popup msg
-        videodb = dbio.DBOpenRO("video", "UpdateItem")
-        li, _, _ = utils.load_ContentMetadataFromKodiDB(QueryData['KodiId'], QueryData['Type'], videodb, None)
-        dbio.DBCloseRO("video", "UpdateItem")
+        Path = build_Path(QueryData, URL, EndParameter)
+        ListItem = player.load_KodiItem("UpdateItem", QueryData['KodiId'], QueryData['Type'], Path)
 
-        if not li:
+        if not ListItem:
             client.send(sendOK)
             close_embydb(QueryData['ServerId'], ThreadId)
             return
 
-        Path = build_Path(QueryData, URL, EndParameter)
-        li.setPath(Path)
         PlaylistPosition = playlist.getposition()
-        playlist.add(Path, li, PlaylistPosition + 1)
+        playlist.add(Path, ListItem, PlaylistPosition + 1)
         player.PlaylistRemoveItem = str(PlaylistPosition)
         globals()["SkipItemVideo"] = QueryData['Payload']
         player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])

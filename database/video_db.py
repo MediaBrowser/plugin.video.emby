@@ -46,18 +46,19 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM movie WHERE idMovie = ?", (kodi_id,))
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
 
-    def get_movie_metadata_for_listitem(self, kodi_id):
+    def get_movie_metadata_for_listitem(self, kodi_id, PathAndFilename=None):
         self.cursor.execute("SELECT * FROM movie_view WHERE idMovie = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}, []
+            return {}
 
-        MetaData = {'mediatype': "movie", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'plotoutline': ItemData[4], 'tagline': ItemData[5], 'writer': ItemData[8], 'sorttitle': ItemData[12], 'duration': ItemData[13], 'mpaa': ItemData[14], 'genre': ItemData[16], 'director': ItemData[17], 'originaltitle': ItemData[18], 'studio': ItemData[20], 'country': ItemData[23], 'userrating': ItemData[27], 'premiered': ItemData[28], 'playcount': ItemData[33], 'lastplayed': ItemData[34], 'rating': ItemData[39]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[37], 'ResumeTime': ItemData[36]}
-        Artwork = self.get_artwork(kodi_id, "movie")
+        if not PathAndFilename:
+            PathAndFilename = "%s%s" % (ItemData[32], ItemData[31])
+
+        Artwork = self.get_artwork(kodi_id, "movie", "")
         People = self.get_people_artwork(kodi_id, "movie")
-        return "%s%s" % (ItemData[32], ItemData[31]), MetaData, Properties, Artwork, People
+        return {'mediatype': "movie", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'plotoutline': ItemData[4], 'tagline': ItemData[5], 'writer': ItemData[8], 'sorttitle': ItemData[12], 'duration': ItemData[13], 'mpaa': ItemData[14], 'genre': ItemData[16], 'director': ItemData[17], 'originaltitle': ItemData[18], 'studio': ItemData[20], 'country': ItemData[23], 'userrating': ItemData[27], 'premiered': ItemData[28], 'playcount': ItemData[33], 'lastplayed': ItemData[34], 'dateadded': ItemData[35], 'rating': ItemData[39], 'trailer': ItemData[20], 'path': ItemData[30], 'pathandfilename': PathAndFilename, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[40], 'ResumeTime': ItemData[39]}, 'people': People, 'artwork': Artwork}
 
     # musicvideo
     def add_musicvideos(self, KodiItemId, KodiFileId, Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, FilePath, KodiPathId, PremiereDate, DateCreated, PlayCount, LastPlayedDate, Filename):
@@ -72,17 +73,19 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM musicvideo WHERE idMVideo = ?", (kodi_id,))
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
 
-    def get_musicvideos_metadata_for_listitem(self, kodi_id):
+    def get_musicvideos_metadata_for_listitem(self, kodi_id, PathAndFilename=None):
         self.cursor.execute("SELECT * FROM musicvideo_view WHERE idMVideo = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}
+            return {}
 
-        MetaData = {'mediatype': "musicvideo", "dbid": kodi_id, 'title': ItemData[2], 'duration': ItemData[6], 'director': ItemData[7], 'studio': ItemData[8], 'plot': ItemData[10], 'album': ItemData[11], 'artist': ItemData[12].split(" / "), 'genre': ItemData[13], 'track': ItemData[14], 'premiered': ItemData[27], 'playcount': ItemData[30], 'lastplayed': ItemData[31]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[34], 'ResumeTime': ItemData[33]}
-        Artwork = self.get_artwork(kodi_id, "musicvideo")
-        return "%s%s" % (ItemData[29], ItemData[28]), MetaData, Properties, Artwork
+        if not PathAndFilename:
+            PathAndFilename = "%s%s" % (ItemData[29], ItemData[28])
+
+        Artwork = self.get_artwork(kodi_id, "musicvideo", "")
+        People = self.get_people_artwork(kodi_id, "musicvideo")
+        return {'mediatype': "musicvideo", "dbid": kodi_id, 'title': ItemData[2], 'duration': ItemData[6], 'director': ItemData[7], 'studio': ItemData[8], 'plot': ItemData[10], 'album': ItemData[11], 'artist': ItemData[12].split(" / "), 'genre': ItemData[13], 'track': ItemData[14], 'premiered': ItemData[27], 'playcount': ItemData[30], 'lastplayed': ItemData[31], 'path': ItemData[29], 'pathandfilename': PathAndFilename, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[33], 'ResumeTime': ItemData[34]}, 'people': People, 'artwork': Artwork}
 
     # tvshow
     def update_tvshow(self, c00, c01, c02, c04, c05, c06, c08, c09, c11, c12, c13, c14, c15, duration, idShow, Trailer):
@@ -107,12 +110,12 @@ class VideoDatabase:
     def get_next_episodesIds(self, TagId):
         self.cursor.execute("SELECT media_id FROM tag_link WHERE tag_id = ? AND media_type = ?", (TagId, "tvshow"))
         TvShowIds = self.cursor.fetchall()
-        NextEpisodeInfos = []
+        NextEpisodeInfos = ()
 
         for idShow in TvShowIds:
             self.cursor.execute("SELECT idEpisode, idFile, c12, playCount, lastPlayed FROM episode_view WHERE idShow = ? ORDER BY CAST(c12 AS INT) ASC, CAST(c13 AS INT) ASC", (idShow[0],))
             Episodes = self.cursor.fetchall()
-            LastPlayedItem = ["", -1] # timestamp, Id
+            LastPlayedItem = ("", -1) # timestamp, Id
             NextEpisodeForTVShow = "-1"
 
             for Episode in Episodes:
@@ -121,13 +124,13 @@ class VideoDatabase:
 
                 if Episode[3] and Episode[4] and Episode[4] > LastPlayedItem[0]:
                     NextEpisodeForTVShow = ""
-                    LastPlayedItem = [Episode[4], Episode[0]]
+                    LastPlayedItem = (Episode[4], Episode[0])
 
                 if not NextEpisodeForTVShow and NextEpisodeForTVShow != "-1" and not Episode[3]:
                     NextEpisodeForTVShow = "%s;%s" % (LastPlayedItem[0], Episode[0])
 
             if NextEpisodeForTVShow and NextEpisodeForTVShow != "-1":
-                NextEpisodeInfos.append(NextEpisodeForTVShow)
+                NextEpisodeInfos += (NextEpisodeForTVShow,)
 
         NextEpisodeInfos = sorted(NextEpisodeInfos, reverse=True)
         return NextEpisodeInfos
@@ -137,13 +140,11 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}, []
+            return {}
 
-        MetaData = {'mediatype': "tvshow", "dbid": kodi_id, 'title': ItemData[1], 'tvshowtitle': ItemData[1], 'plot': ItemData[2], 'status': ItemData[3], 'premiered': ItemData[6], 'genre': ItemData[8], 'originaltitle': ItemData[9], 'imdbnumber': ItemData[13], 'mpaa': ItemData[14], 'studio': ItemData[15], 'sorttitle': ItemData[16], 'userrating': ItemData[25], 'duration': ItemData[26], 'lastplayed': ItemData[30], 'rating': ItemData[34]}
-        Properties = {'TotalEpisodes': ItemData[31], 'TotalSeasons': ItemData[33], 'WatchedEpisodes': ItemData[32], 'UnWatchedEpisodes': int(ItemData[31]) - int(ItemData[32]), 'IsFolder': 'true', 'IsPlayable': 'true'}
-        Artwork = self.get_artwork(kodi_id, "tvshow")
+        Artwork = self.get_artwork(kodi_id, "tvshow", "")
         People = self.get_people_artwork(kodi_id, "tvshow")
-        return "videodb://tvshows/titles/%s/" % kodi_id, MetaData, Properties, Artwork, People
+        return {'mediatype': "tvshow", "dbid": kodi_id, 'title': ItemData[1], 'tvshowtitle': ItemData[1], 'plot': ItemData[2], 'tvshowstatus': ItemData[3], 'premiered': ItemData[6], 'genre': ItemData[8], 'originaltitle': ItemData[9], 'imdbnumber': ItemData[13], 'mpaa': ItemData[14], 'studio': ItemData[15], 'sorttitle': ItemData[16], 'userrating': ItemData[25], 'duration': ItemData[26], 'lastplayed': ItemData[30], 'rating': ItemData[34], 'path': "videodb://tvshows/titles/%s/" % kodi_id, 'properties': {'TotalEpisodes': ItemData[31], 'TotalSeasons': ItemData[33], 'WatchedEpisodes': ItemData[32], 'UnWatchedEpisodes': int(ItemData[31]) - int(ItemData[32]), 'IsFolder': 'true', 'IsPlayable': 'true'}, 'people': People, 'artwork': Artwork}
 
     # seasons
     def add_season(self, idSeason, idShow, season, name):
@@ -164,13 +165,11 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}, []
+            return {}
 
-        MetaData = {'mediatype': "season", "dbid": kodi_id, 'season': ItemData[2], 'title': ItemData[3], 'userrating': ItemData[4], 'tvshowtitle': ItemData[6], 'plot': ItemData[7], 'premiered': ItemData[8], 'genre': ItemData[9], 'studio': ItemData[10], 'mpaa': ItemData[11], 'aired': ItemData[14]}
-        Properties = {'NumEpisodes': ItemData[12], 'WatchedEpisodes': ItemData[13], 'UnWatchedEpisodes': int(ItemData[12]) - int(ItemData[13]), 'IsFolder': 'true', 'IsPlayable': 'true'}
-        Artwork = self.get_artwork(kodi_id, "season")
+        Artwork = self.get_artwork(kodi_id, "season", "")
         People = self.get_people_artwork(kodi_id, "season")
-        return "videodb://tvshows/titles/%s/%s/" % (ItemData[1], kodi_id), MetaData, Properties, Artwork, People
+        return {'mediatype': "season", "dbid": kodi_id, 'season': ItemData[2], 'title': ItemData[3], 'userrating': ItemData[4], 'tvshowtitle': ItemData[6], 'plot': ItemData[7], 'premiered': ItemData[8], 'genre': ItemData[9], 'studio': ItemData[10], 'mpaa': ItemData[11], 'firstaired': ItemData[14], 'path': "videodb://tvshows/titles/%s/%s/" % (ItemData[1], kodi_id), 'properties': {'NumEpisodes': ItemData[12], 'WatchedEpisodes': ItemData[13], 'UnWatchedEpisodes': int(ItemData[12]) - int(ItemData[13]), 'IsFolder': 'true', 'IsPlayable': 'true'}, 'people': People, 'artwork': Artwork}
 
     # episode
     def add_episode(self, KodiItemId, KodiFileId, Name, Overview, RatingId, Writers, PremiereDate, Poster, RunTimeTicks, Directors, ParentIndexNumber, IndexNumber, OriginalTitle, SortParentIndexNumber, SortIndexNumber, FilePath, KodiPathId, Unique, KodiShowId, KodiSeasonId, Filename, DateCreated, PlayCount, LastPlayedDate):
@@ -185,29 +184,22 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM episode WHERE idEpisode = ?", (kodi_id,))
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (file_id,))
 
-    def get_episode_metadata_for_listitem(self, kodi_id):
+    def get_episode_metadata_for_listitem(self, kodi_id, PathAndFilename=None):
         self.cursor.execute("SELECT * FROM episode_view WHERE idEpisode = ?", (kodi_id,))
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}, []
+            return {}
 
-        MetaData = {'mediatype': "episode", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'writer': ItemData[6], 'premiered': ItemData[7], 'duration': ItemData[11], 'director': ItemData[12], 'season': ItemData[14], 'episode': ItemData[15], 'originaltitle': ItemData[16], 'sortseason': ItemData[17], 'sortepisode': ItemData[18], 'imdbnumber': ItemData[22], 'userrating': ItemData[27], 'playCount': ItemData[31], 'lastplayed': ItemData[32], 'tvshowtitle': ItemData[34]}
-        Properties = {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[40], 'ResumeTime': ItemData[39]}
-        Artwork = self.get_artwork(kodi_id, "episode")
+        if not PathAndFilename:
+            PathAndFilename = "%s%s" % (ItemData[30], ItemData[29])
+
         People = self.get_people_artwork(kodi_id, "episode")
-        ArtworksTVShow = self.get_artwork(ItemData[26], "tvshow")
-
-        for Key, Value in list(ArtworksTVShow.items()):
-            Artwork["tvshow.%s" % Key] = Value
-
-        ArtworksSeasons = self.get_artwork(ItemData[28], "season")
-
-        for Key, Value in list(ArtworksSeasons.items()):
-            Artwork["season.%s" % Key] = Value
-
         People += self.get_people_artwork(ItemData[26], "tvshow")
-        return "%s%s" % (ItemData[30], ItemData[29]), MetaData, Properties, Artwork, People
+        Artwork = self.get_artwork(kodi_id, "episode", "")
+        Artwork.update(self.get_artwork(ItemData[26], "tvshow", "tvshow."))
+        Artwork.update(self.get_artwork(ItemData[28], "season", "season."))
+        return {'mediatype': "episode", "dbid": kodi_id, 'title': ItemData[2], 'plot': ItemData[3], 'writer': ItemData[6], 'premiered': ItemData[7], 'duration': ItemData[11], 'director': ItemData[12], 'season': ItemData[14], 'episode': ItemData[15], 'originaltitle': ItemData[16], 'sortseason': ItemData[17], 'sortepisode': ItemData[18], 'imdbnumber': ItemData[22], 'userrating': ItemData[27], 'playCount': ItemData[31], 'lastplayed': ItemData[32], 'tvshowtitle': ItemData[34], 'genre': ItemData[35], 'studio': ItemData[36], 'path': ItemData[30], 'pathandfilename': PathAndFilename, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true', 'TotalTime': ItemData[40], 'ResumeTime': ItemData[39]}, 'people': People, 'artwork': Artwork}
 
     # boxsets
     def add_boxset(self, strSet, strOverview):
@@ -233,12 +225,10 @@ class VideoDatabase:
         ItemData = self.cursor.fetchone()
 
         if not ItemData:
-            return "", {}, {}, {}
+            return {}
 
-        MetaData = {'mediatype': "set", "dbid": kodi_id, 'title': ItemData[1], 'plot': ItemData[2]}
-        Properties = {'IsFolder': 'true', 'IsPlayable': 'true'}
-        Artwork = self.get_artwork(kodi_id, "set")
-        return "videodb://movies/sets/%s/" % kodi_id, MetaData, Properties, Artwork
+        Artwork = self.get_artwork(kodi_id, "set", "")
+        return{'mediatype': "set", "dbid": kodi_id, 'title': ItemData[1], 'plot': ItemData[2], 'path': "videodb://movies/sets/%s/" % kodi_id, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     # file
     def add_file(self, path_id, filename, dateAdded, file_id, PlayCount, LastPlayedDate):
@@ -312,23 +302,25 @@ class VideoDatabase:
         return person_id, True
 
     def get_people_artwork(self, KodiId, ContentType):
-        People = []
+        People = ()
+        PeopleCounter = 0
         self.cursor.execute("SELECT * FROM actor_link WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
         ActorLinks = self.cursor.fetchall()
 
         for ActorLink in ActorLinks:
             self.cursor.execute("SELECT * FROM actor WHERE actor_id = ?", (ActorLink[0],))
             Actor = self.cursor.fetchone()
-            People.append({'name': Actor[1], 'role': ActorLink[3], 'order': ActorLink[4], 'thumbnail': Actor[2]})
-
+            People += ((Actor[1], ActorLink[3], PeopleCounter, Actor[2]),)
+            PeopleCounter += 1
 
         self.cursor.execute("SELECT * FROM director_link WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
         DirectorLinks = self.cursor.fetchall()
 
-        for Index, DirectorLink in enumerate(DirectorLinks):
+        for DirectorLink in DirectorLinks:
             self.cursor.execute("SELECT * FROM actor WHERE actor_id = ?", (DirectorLink[0],))
             Actor = self.cursor.fetchone()
-            People.append({'name': Actor[1], 'role': "Director", 'order': Index, 'thumbnail': Actor[2]})
+            People += ((Actor[1], "Director", PeopleCounter, Actor[2]),)
+            PeopleCounter += 1
 
         return People
 
@@ -504,98 +496,6 @@ class VideoDatabase:
         if resume:
             self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type, thumbNailImage, playerState) VALUES (?, ?, ?, ?, ?, ?, ?)", (file_id, resume, Runtime, "VideoPlayer", 1, "", ""))
 
-    def add_file_bookmark(self, KodiItemId, KodiSeasonId, KodiShowId, ChapterInfo, RunTimeTicks, DateCreated, PlayCount, LastPlayedDate): # workaround due to Kodi episode bookmark bug
-        self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            SeasonNumber = Data[0]
-            Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-            Data = self.cursor.fetchone()
-
-            if Data:
-                idPath = Data[0]
-                FileId = self.create_entry_file()
-                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile, dateAdded, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (idPath, KodiItemId, FileId, DateCreated, PlayCount, LastPlayedDate))
-                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
-
-            Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-            Data = self.cursor.fetchone()
-
-            if Data:
-                idPath = Data[0]
-                FileId = self.create_entry_file()
-                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile, dateAdded, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (idPath, KodiItemId, FileId, DateCreated, PlayCount, LastPlayedDate))
-                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
-
-            Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-            Data = self.cursor.fetchone()
-
-            if Data:
-                idPath = Data[0]
-                FileId = self.create_entry_file()
-                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile, dateAdded, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (idPath, KodiItemId, FileId, DateCreated, PlayCount, LastPlayedDate))
-                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
-
-            Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-            Data = self.cursor.fetchone()
-
-            if Data:
-                idPath = Data[0]
-                FileId = self.create_entry_file()
-                self.cursor.execute("INSERT INTO files(idPath, strFilename, idFile, dateAdded, playCount, lastPlayed) VALUES (?, ?, ?, ?, ?, ?)", (idPath, KodiItemId, FileId, DateCreated, PlayCount, LastPlayedDate))
-                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
-
-    def add_path_bookmark(self, KodiShowId, SeasonNumber): # workaround due to Kodi episode bookmark bug
-        Path = "videodb://tvshows/titles/%s/%s/" % (KodiShowId, SeasonNumber)
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-        Data = self.cursor.fetchone()
-
-        if not Data:
-            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
-
-        Path = "videodb://tvshows/titles/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-        Data = self.cursor.fetchone()
-
-        if not Data:
-            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
-
-        Path = "videodb://inprogresstvshows/%s/%s/" % (KodiShowId, SeasonNumber)
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-        Data = self.cursor.fetchone()
-
-        if not Data:
-            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
-
-        Path = "videodb://inprogresstvshows/%s/-2/" % KodiShowId # -2 if this is the only season for the TV Show
-        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
-        Data = self.cursor.fetchone()
-
-        if not Data:
-            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
-
-    def delete_path_bookmark(self, KodiSeasonId): # workaround due to Kodi episode bookmark bug
-        self.cursor.execute("SELECT idShow, season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
-        Data = self.cursor.fetchone()
-
-        if Data:
-            Path = "videodb://tvshows/titles/%s/%s/" % (Data[0], Data[1])
-            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
-            Path = "videodb://tvshows/titles/%s/-2/" % Data[0] # -2 if this is the only season for the TV Show
-            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
-            Path = "videodb://inprogresstvshows/%s/%s/" % (Data[0], Data[1])
-            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
-            Path = "videodb://inprogresstvshows/%s/-2/" % Data[0] # -2 if this is the only season for the TV Show
-            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
-
-    def delete_file_bookmark(self, KodiFileId): # workaround due to Kodi episode bookmark bug
-        self.cursor.execute("DELETE FROM files WHERE strFilename = ?", (KodiFileId,))
-
     # countries
     def delete_links_countries(self, Media_id, media_type):
         self.cursor.execute("DELETE FROM country_link WHERE media_id = ? AND media_type = ?", (Media_id, media_type))
@@ -615,13 +515,13 @@ class VideoDatabase:
             self.cursor.execute("INSERT OR REPLACE INTO country_link(country_id, media_id, media_type) VALUES (?, ?, ?)", (country_id, media_id, media_type))
 
     # artwork
-    def get_artwork(self, KodiId, ContentType):
+    def get_artwork(self, KodiId, ContentType, PrefixKey):
         Artwork = {}
         self.cursor.execute("SELECT * FROM art WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
         ArtworksData = self.cursor.fetchall()
 
         for ArtworkData in ArtworksData:
-            Artwork[ArtworkData[3]] = ArtworkData[4]
+            Artwork["%s%s" % (PrefixKey, ArtworkData[3])] = ArtworkData[4]
 
         return Artwork
 
