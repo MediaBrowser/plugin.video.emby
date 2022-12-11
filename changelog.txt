@@ -1,3 +1,17 @@
+7.13.0
+=============
+Fix tvshow path assignment
+
+
+7.12.1
+=============
+minor code fixes
+use notification callbacks also for player event
+fix minor player issues
+fix intros in native mode
+change recently added nodes
+
+
 7.12.0
 =============
 remove chapters/bookmarks Kodi workarounds

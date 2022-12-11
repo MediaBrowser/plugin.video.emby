@@ -2,10 +2,10 @@ from urllib.parse import urlencode
 import json
 from _thread import start_new_thread
 import xbmc
-from helper import pluginmenu, utils, playerops, xmls, loghandler
+from helper import pluginmenu, utils, playerops, xmls, loghandler, player
 from database import dbio
 from emby import emby
-from . import player, webservice
+from . import webservice
 
 QueueItemsStatusupdate = ()
 QueryItemStatusThread = False
@@ -16,10 +16,13 @@ KodiScanCount = 0
 SleepMode = False
 LOG = loghandler.LOG('EMBY.hooks.monitor')
 
+
 class monitor(xbmc.Monitor):
     def onNotification(self, sender, method, data):
          # Skip unsupported notifications -> e.g. "Playlist.OnAdd" floats threading! -> Never let that happen
-        if method == 'VideoLibrary.OnUpdate':  # Buffer updated items -> not overloading threads
+        if method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual', 'Other.manageserver', 'Player.OnPlay', 'Player.OnStop', 'Player.OnAVChange', 'Player.OnSeek', 'Player.OnAVStart', 'Player.OnPause', 'Player.OnResume'):
+            start_new_thread(Notification, (method, data))
+        elif method == 'VideoLibrary.OnUpdate':  # Buffer updated items -> not overloading threads
             globals()["QueueItemsStatusupdate"] += (data,)
 
             if not QueryItemStatusThread:
@@ -33,8 +36,6 @@ class monitor(xbmc.Monitor):
                 if not QueryItemRemoveThread:
                     globals()["QueryItemRemoveThread"] = True
                     start_new_thread(VideoLibrary_OnRemove, ())
-        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Application.OnVolumeChanged', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual', 'Other.manageserver'):
-            start_new_thread(Notification, (method, data))
 
     def onScanStarted(self, library):
         utils.SyncPause['kodi_rw'] = True
@@ -84,7 +85,21 @@ class monitor(xbmc.Monitor):
             LOG.info("[ Reload settings skip ]")
 
 def Notification(method, data):  # threaded by caller
-    if method == 'Other.managelibsselection':
+    if method == "Player.OnPlay":
+        player.Play()
+    elif method == "Player.OnStop":
+        player.Stop(data)
+    elif method == "Player.OnAVChange":
+        player.AVChange()
+    elif method == "Player.OnSeek":
+        player.Seek(data)
+    elif method == "Player.OnAVStart":
+        player.AVStart(data)
+    elif method == "Player.OnPause":
+        player.Pause()
+    elif method == "Player.OnResume":
+        player.Resume()
+    elif method == 'Other.managelibsselection':
         pluginmenu.select_managelibs()
     elif method == 'Other.settings':
         xbmc.executebuiltin('Addon.OpenSettings(%s)' % utils.PluginId)
@@ -632,7 +647,6 @@ def setup():
 def StartUp():
     LOG.info("[ Start Emby-next-gen ]")
     utils.XbmcMonitor = monitor()  # Init Monitor
-    utils.XbmcPlayer = player.PlayerEvents()  # Init Player
     Ret = setup()
 
     if Ret == "stop":  # db upgrade declined

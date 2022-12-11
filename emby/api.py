@@ -1,6 +1,6 @@
 from helper import utils, loghandler
 from database import dbio
-from emby import listitem
+from . import listitem
 
 EmbyPagingFactors = {"MusicArtist": 100, "MusicAlbum": 100, "Audio": 200, "Movie": 50, "BoxSet": 50, "Series": 50, "Season": 50, "Episode": 50, "MusicVideo": 50, "Video": 50, "Everything": 50, "Photo": 50, "PhotoAlbum": 50, "Playlist": 50, "Channels": 50, "Folder": 1000}
 EmbyFields = {
@@ -111,7 +111,6 @@ class API:
                             KodiItems += ((videodb.get_movie_metadata_for_listitem(KodiId), Item['Type']),)
                         elif Item['Type'] == "Series":
                             KodiItems += ((videodb.get_tvshows_metadata_for_listitem(KodiId), Item['Type']),)
-                            isFolder = True
                         elif Item['Type'] == "Season":
                             KodiItems += ((videodb.get_season_metadata_for_listitem(KodiId), Item['Type']),)
                         elif Item['Type'] == "Episode":

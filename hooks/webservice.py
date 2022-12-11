@@ -1,7 +1,6 @@
 import socket
 from _thread import start_new_thread, get_ident
 import xbmc
-Running = False
 ModulesLoaded = False
 DefaultVideoSettings = {}
 MediaTypeMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
@@ -10,7 +9,6 @@ sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nConte
 sendNoContent = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 BlankWAV = b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x10\x00\x00\x00\x01\x00\x01\x00\x44\xac\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00\x64\x61\x74\x61\x74\x00\x00\x00\x00'
 sendBlankWAV = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 45\r\nContent-type: audio/wav\r\n\r\n'.encode() + BlankWAV # used to "stop" playback by sending a WAV file with silance. File is valid, so Kodi will not raise an error message
-playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 SkipItemVideo = ""
 TrailerInitItem = ["", None] # payload/listitem of the trailer initiated content item
 PlaySessionId = ""
@@ -29,33 +27,28 @@ uuid = None
 parse_qsl = None
 unquote = None
 PayloadHeadRequest = ""
+Socket = None
 
 
 def start():
     xbmc.log("EMBY.hooks.webservice: Start", xbmc.LOGINFO)
     close()
-    globals()["Running"] = True
     start_new_thread(Listen, ())
 
 def close():
-    if Running:
+    if Socket:
         try:
-            Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            Socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            Socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            Socket.connect(("127.0.0.1", 57342))
-            Socket.send('QUIT'.encode())
             Socket.shutdown(socket.SHUT_RDWR)
             Socket.close()
         except Exception as Error:
             xbmc.log("EMBY.hooks.webservice: Socket shutdown (close) %s" % Error, xbmc.LOGERROR)
 
-        globals()["Running"] = False
+        globals()["Socket"] = None
         xbmc.log("Shutdown weservice", xbmc.LOGINFO)
 
 def Listen():
     xbmc.log("EMBY.hooks.webservice: -->[ webservice/57342 ]", xbmc.LOGINFO)
-    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    globals()["Socket"] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     Socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     Socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     Socket.bind(('127.0.0.1', 57342))
@@ -63,25 +56,19 @@ def Listen():
     Socket.listen()
 
     while True:
-        client, _ = Socket.accept()
-        client.settimeout(None)
-        data = client.recv(1024).decode()
-
-        if data == "QUIT":
+        try:
+            client, _ = Socket.accept()
+        except:
             break
 
-        start_new_thread(worker_Query, (client, data))
-
-    try:
-        Socket.shutdown(socket.SHUT_RDWR)
-        Socket.close()
-    except Exception as Error:
-        xbmc.log("EMBY.hooks.webservice: Socket shutdown (listen) %s" % Error, xbmc.LOGERROR)
+        start_new_thread(worker_Query, (client,))
 
     xbmc.log("EMBY.hooks.webservice: --<[ webservice/57342 ]", xbmc.LOGINFO)
-    globals()["Running"] = False
+    globals()["Socket"] = None
 
-def worker_Query(client, data):  # thread by caller
+def worker_Query(client):  # thread by caller
+    data = client.recv(1024).decode()
+    client.settimeout(None)
     DelayQuery = 0
 
     # Waiting for socket init
@@ -227,7 +214,7 @@ def worker_Query(client, data):  # thread by caller
 
     client.close()
 
-def LoadISO(QueryData, MediaIndex, client, ThreadId):
+def LoadISO(QueryData, MediaIndex, client, ThreadId): # native content
     player.MultiselectionDone = True
     QueryData['MediaSources'] = open_embydb(QueryData['ServerId'], ThreadId).get_mediasource(QueryData['EmbyID'])
     Path = QueryData['MediaSources'][MediaIndex][3]
@@ -240,12 +227,8 @@ def LoadISO(QueryData, MediaIndex, client, ThreadId):
     if not ListItem:
         client.send(sendOK)
     else:
-        PlaylistPosition = playlist.getposition()
-        playlist.add(Path, ListItem, PlaylistPosition + 1)
-        player.PlaylistRemoveItem = str(PlaylistPosition)
-        globals()["SkipItemVideo"] = QueryData['Payload']
-        player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediaSources'][MediaIndex][2], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        send_BlankWAV(client)
+        QueryData['MediasourceID'] = QueryData['MediaSources'][MediaIndex][2]
+        add_playlist_item(client, ListItem, QueryData, Path)
 
     close_embydb(QueryData['ServerId'], ThreadId)
 
@@ -282,7 +265,6 @@ def http_Query(client, Payload, RequestType):
         return
 
     if SkipItemVideo == Payload:  # 3D, iso (playlist modification)
-        player.queuePlayingItem(QueryDataPrevious['EmbyID'], QueryDataPrevious['MediasourceID'], PlaySessionId, QueryDataPrevious['IntroStartPositionTicks'], QueryDataPrevious['IntroEndPositionTicks'], QueryDataPrevious['CreditsPositionTicks'])
         send_BlankWAV(client)
         globals()["SkipItemVideo"] = ""
         return
@@ -303,7 +285,6 @@ def http_Query(client, Payload, RequestType):
         if Payload != PayloadHeadRequest:
             xbmc.log("Invalid GET request filtered: %s " % Payload, xbmc.LOGWARNING)
             client.send(sendNoContent)
-            client.close()
             return
 
     QueryData = GetParametersFromURLQuery(Payload)
@@ -393,11 +374,11 @@ def http_Query(client, Payload, RequestType):
             URL = utils.EmbyServers[QueryData['ServerId']].http.Intros[0]['Path']
             xbmc.log("EMBY.hooks.webservice: Trailer URL: %s" % URL, xbmc.LOGDEBUG)
             ListItem = listitem.set_ListItem(utils.EmbyServers[QueryData['ServerId']].http.Intros[0], QueryData['ServerId'], "http://127.0.0.1:57342" + QueryData['Payload'])
-            utils.XbmcPlayer.updateInfoTag(ListItem)
             del utils.EmbyServers[QueryData['ServerId']].http.Intros[0]
             globals()["TrailerInitItem"][0] = QueryData['Payload']
             xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
             client.send(('HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: %s\r\nConnection: close\r\nContent-length: 0\r\n\r\n' % URL).encode())
+            utils.XbmcPlayer.updateInfoTag(ListItem)
             return
 
         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.SetRepeat", "params": {"playerid": 1, "repeat": "off" }, "id": 1 }')
@@ -625,12 +606,7 @@ def UpdateItem(MediaSource, AudioStream, Subtitle, QueryData, MediaIndex, client
             close_embydb(QueryData['ServerId'], ThreadId)
             return
 
-        PlaylistPosition = playlist.getposition()
-        playlist.add(Path, ListItem, PlaylistPosition + 1)
-        player.PlaylistRemoveItem = str(PlaylistPosition)
-        globals()["SkipItemVideo"] = QueryData['Payload']
-        player.queuePlayingItem(QueryData['EmbyID'], QueryData['MediasourceID'], PlaySessionId, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'])
-        send_BlankWAV(client)
+        add_playlist_item(client, ListItem, QueryData, Path)
         close_embydb(QueryData['ServerId'], ThreadId)
         return
 
@@ -706,7 +682,7 @@ def GetParametersFromURLQuery(Payload):
     elif Data[0] in ("e", "m", "M", "i", "T", "v"):  # Video or iso
         QueryData.update({'MediasourceID': Data[3], 'KodiId': Data[4], 'KodiFileId': Data[5], 'BitrateFromURL': int(Data[6]), 'ExternalSubtitle': Data[7], 'MediasourcesCount': int(Data[8]), 'CodecVideo': Data[9], 'IntroStartPositionTicks': int(Data[10]), 'IntroEndPositionTicks': int(Data[11]), 'CreditsPositionTicks': int(Data[12]), 'Remote': int(Data[13]), 'Filename': Data[14]})
         globals()["QueryDataPrevious"] = QueryData.copy()
-        player.PlaylistRemoveItem = "-1"
+        player.PlaylistRemoveItem = -1
     elif Data[0] in ("a", "t"):  # Audio, tv channel
         QueryData.update({'Filename': Data[3]})
     elif Data[0] == "c":  # e.g. channel
@@ -717,17 +693,20 @@ def GetParametersFromURLQuery(Payload):
 
     return QueryData
 
+def add_playlist_item(client, ListItem, QueryData, Path):
+    player.replace_playlist_listitem(ListItem, PlaySessionId, QueryData, Path)
+    globals()["SkipItemVideo"] = QueryData['Payload']
+    send_BlankWAV(client)
+
 xbmc.log("EMBY.hooks.webservice: -->[ Init ]", xbmc.LOGINFO)
 start_new_thread(Listen, ())
-Running = True
 
 # Late imports to start the socket as fast as possible
 import uuid
 from urllib.parse import parse_qsl, unquote
 from database import dbio
 from emby import listitem
-from helper import utils, xmls, context, playerops, pluginmenu
-from . import player
+from helper import utils, xmls, context, playerops, pluginmenu, player
 DefaultVideoSettings = xmls.load_defaultvideosettings()
 ModulesLoaded = True
 xbmc.log("EMBY.hooks.webservice: --<[ Init ]", xbmc.LOGINFO)
