@@ -54,8 +54,8 @@ class TVShows:
                 self.video_db.delete_ratings(item['KodiItemIds'][ItemIndex], "tvshow")
                 self.video_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "tvshow")
 
-            item['KodiPathParentId'] = self.video_db.get_add_path(item['PathParent'], "tvshows", None)
-            item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None, item['KodiPathParentId'])
+            KodiPathParentId = self.video_db.get_add_path(item['PathParent'], "tvshows", None)
+            item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None, KodiPathParentId)
 
             if Stacked:
                 item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
@@ -80,7 +80,7 @@ class TVShows:
                     self.video_db.add_tvshow(item['KodiItemIds'][ItemIndex], item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['Trailer'])
                     item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                    self.video_db.add_link_tvshow(item['KodiItemIds'][ItemIndex], item['KodiPathParentId'])
+                    self.video_db.add_link_tvshow(item['KodiItemIds'][ItemIndex], item['KodiPathId'])
                     LOG.info("ADD tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
 
             self.video_db.add_tags_and_links(item['KodiItemIds'][ItemIndex], "tvshow", item['TagItems'])
