@@ -12,10 +12,10 @@ class MusicVideos:
         self.video_db.init_favorite_tags()
 
     def musicvideo(self, item):
-        LOG.info("Process item: %s" % item['Name'])
-
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
+
+        LOG.info("Process item: %s" % item['Name'])
 
         if not 'MediaSources' in item or not item['MediaSources']:
             LOG.error("No mediasources found for musicvideo: %s" % item['Id'])

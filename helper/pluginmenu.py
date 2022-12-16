@@ -332,7 +332,7 @@ def browse(Handle, Id, query, args, server_id):
 
         Content = "TvChannel"
     elif query in ("Playlist", "Default"):
-        QueryArgs = (Id, ["Everything"], False, True, {}, False)
+        QueryArgs = (Id, ["Everything"], False, True, {}, False, False, False, True)
         Content = "Video"
         Unsorted = True
     elif query == "Video":
@@ -393,7 +393,7 @@ def browse(Handle, Id, query, args, server_id):
         QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, False)
         Content = "PhotoAlbum"
     elif query == "Folder":
-        QueryArgs = (Id, ["Everything"], False, False, {}, False)
+        QueryArgs = (Id, ["Everything"], False, False, {}, False, False, False, True)
     elif query == 'MusicVideo':
         QueryArgs = (Id, ["MusicVideo"], False, True, {}, False)
         Content = "MusicVideo"
@@ -589,7 +589,7 @@ def SyncThemes(server_id):
             LOG.warning("Themes download: running out of space")
             break
 
-        if utils.sleep(0.001):
+        if utils.SystemShutdown:
             utils.progress_close()
             return
 
@@ -1259,37 +1259,32 @@ def factoryreset():
     DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
 
-    if utils.sleep(5):  # Give Kodi time to complete startup before reset
-        return
-
     for ServerId, EmbyServer in list(utils.EmbyServers.items()):
         EmbyServer.ServerDisconnect()
+        EmbyServer.stop()
         del utils.EmbyServers[ServerId]
 
-    # delete settings
     utils.delFolder(utils.FolderAddonUserdata)
+    utils.delete_playlists()
+    utils.delete_nodes()
 
-    # delete database
-    _, files = utils.listDir("special://profile/Database/")
-
-    for Filename in files:
-        if Filename.startswith('emby'):
-            utils.delFile("special://profile/Database/%s" % Filename)
-
-    videodb = dbio.DBOpenRW("video", "setup")
-    videodb.common.delete_tables("Video")
-    dbio.DBCloseRW("video", "setup")
-    musicdb = dbio.DBOpenRW("music", "setup")
-    musicdb.common.delete_tables("Music")
-    dbio.DBCloseRW("music", "setup")
+    # delete databases
+    delete_database('emby')
+    delete_database('MyMusic')
+    delete_database('MyVideos')
 
     if DelArtwork:
         DeleteThumbnails()
 
-    utils.delete_playlists()
-    utils.delete_nodes()
     LOG.info("[ complete reset ]")
     utils.restart_kodi()
+
+def delete_database(Database):
+    _, files = utils.listDir("special://profile/Database/")
+
+    for Filename in files:
+        if Filename.startswith(Database):
+            utils.delFile("special://profile/Database/%s" % Filename)
 
 # Reset both the emby database and the kodi database.
 def databasereset():

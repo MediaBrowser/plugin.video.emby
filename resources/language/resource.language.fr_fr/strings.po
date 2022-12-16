@@ -1970,3 +1970,7 @@ msgstr "Thèmes de synchronisation"
 msgctxt "#33452"
 msgid "Verify free space"
 msgstr "Vérifiez l'espace disponible"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Sélectionnez la source multimédia"

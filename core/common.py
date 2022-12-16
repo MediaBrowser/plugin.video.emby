@@ -24,7 +24,8 @@ MediaTags = {}
 LOG = loghandler.LOG('EMBY.core.common')
 
 def library_check(item, EmbyServer, emby_db):
-    if not item:
+    if not item or "Id" not in item:
+        LOG.error("library_check: %s" % item)
         return False
 
     item['KodiItemIds'] = []

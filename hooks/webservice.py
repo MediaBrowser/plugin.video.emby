@@ -27,28 +27,34 @@ uuid = None
 parse_qsl = None
 unquote = None
 PayloadHeadRequest = ""
-Socket = None
+Running = False
 
 
 def start():
     xbmc.log("EMBY.hooks.webservice: Start", xbmc.LOGINFO)
     close()
+    globals()["Running"] = True
     start_new_thread(Listen, ())
 
 def close():
-    if Socket:
+    if Running:
         try:
+            Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            Socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            Socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            Socket.connect(("127.0.0.1", 57342))
+            Socket.send('QUIT'.encode())
             Socket.shutdown(socket.SHUT_RDWR)
             Socket.close()
         except Exception as Error:
             xbmc.log("EMBY.hooks.webservice: Socket shutdown (close) %s" % Error, xbmc.LOGERROR)
 
-        globals()["Socket"] = None
+        globals()["Running"] = False
         xbmc.log("Shutdown weservice", xbmc.LOGINFO)
 
 def Listen():
-    xbmc.log("EMBY.hooks.webservice: -->[ webservice/57342 ]", xbmc.LOGINFO)
-    globals()["Socket"] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ webservice/57342 ]", xbmc.LOGINFO)
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     Socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     Socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     Socket.bind(('127.0.0.1', 57342))
@@ -56,19 +62,28 @@ def Listen():
     Socket.listen()
 
     while True:
-        try:
-            client, _ = Socket.accept()
-        except:
+        client, _ = Socket.accept()
+        client.settimeout(None)
+        data = client.recv(1024).decode()
+
+        if data == "QUIT":
+            client.send(sendNoContent)
+            client.close()
             break
 
-        start_new_thread(worker_Query, (client,))
+        start_new_thread(worker_Query, (client, data))
 
-    xbmc.log("EMBY.hooks.webservice: --<[ webservice/57342 ]", xbmc.LOGINFO)
-    globals()["Socket"] = None
+    try:
+        Socket.shutdown(socket.SHUT_RDWR)
+        Socket.close()
+    except Exception as Error:
+        xbmc.log("EMBY.hooks.webservice: Socket shutdown (listen) %s" % Error, xbmc.LOGERROR)
 
-def worker_Query(client):  # thread by caller
-    data = client.recv(1024).decode()
-    client.settimeout(None)
+    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", xbmc.LOGINFO)
+    globals()["Running"] = False
+
+def worker_Query(client, data):  # thread by caller
+    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ worker_Query ]", xbmc.LOGDEBUG)
     DelayQuery = 0
 
     # Waiting for socket init
@@ -80,10 +95,14 @@ def worker_Query(client):  # thread by caller
         Break = False
 
         if utils.PluginStarted:
-            xbmc.log("EMBY.hooks.webservice: No Emby servers found, skip", xbmc.LOGINFO)
+            xbmc.log("EMBY.hooks.webservice: No Emby servers found, skip query", xbmc.LOGINFO)
             Break = True
 
-        if utils.sleep(1) or DelayQuery >= 60:
+        if utils.sleep(1):
+            xbmc.log("EMBY.hooks.webservice: Kodi Shutdown", xbmc.LOGINFO)
+            Break = True
+
+        if DelayQuery >= 60:
             xbmc.log("EMBY.hooks.webservice: No Emby servers found, delay query", xbmc.LOGINFO)
             Break = True
 
@@ -91,6 +110,7 @@ def worker_Query(client):  # thread by caller
             xbmc.log("Terminate query", xbmc.LOGERROR)
             client.send(sendNoContent)
             client.close()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event skinreload", xbmc.LOGDEBUG)
             return
 
         DelayQuery += 1
@@ -105,6 +125,7 @@ def worker_Query(client):  # thread by caller
             client.send(sendOK)
             client.close()
             context.select_menu()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event contextmenu", xbmc.LOGDEBUG)
             return
 
         # no delay
@@ -117,12 +138,14 @@ def worker_Query(client):  # thread by caller
             client.send(sendOK)
             client.close()
             xbmc.executebuiltin('Addon.OpenSettings(%s)' % utils.PluginId)
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event settings", xbmc.LOGDEBUG)
             return
 
         if mode == 'managelibsselection':  # Simple commands
             client.send(sendOK)
             client.close()
             pluginmenu.select_managelibs()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event managelibsselection", xbmc.LOGDEBUG)
             return
 
         if mode == 'texturecache':  # Simple commands
@@ -134,43 +157,49 @@ def worker_Query(client):  # thread by caller
             else:
                 pluginmenu.cache_textures()
 
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event texturecache", xbmc.LOGDEBUG)
             return
 
         if mode == 'databasereset':  # Simple commands
             client.send(sendOK)
             client.close()
             pluginmenu.databasereset()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event databasereset", xbmc.LOGDEBUG)
             return
 
         if mode == 'databasereset':  # Simple commands
             client.send(sendOK)
             client.close()
             pluginmenu.databasereset()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event databasereset", xbmc.LOGDEBUG)
             return
 
         if mode == 'nodesreset':  # Simple commands
             client.send(sendOK)
             client.close()
             utils.nodesreset()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event nodesreset", xbmc.LOGDEBUG)
             return
 
         if mode == 'delete':  # Simple commands
             client.send(sendOK)
             client.close()
             context.delete_item(True)
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event delete", xbmc.LOGDEBUG)
             return
 
         if mode == 'reset_device_id':  # Simple commands
             client.send(sendOK)
             client.close()
             pluginmenu.reset_device_id()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event reset_device_id", xbmc.LOGDEBUG)
             return
 
         if mode == 'skinreload':  # Simple commands
             client.send(sendOK)
             client.close()
             xbmc.executebuiltin('ReloadSkin()')
-            xbmc.log("EMBY.hooks.webservice: Reload skin by webservice", xbmc.LOGINFO)
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event skinreload", xbmc.LOGDEBUG)
             return
 
         if mode == 'play':
@@ -178,6 +207,7 @@ def worker_Query(client):  # thread by caller
             client.close()
             data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
             playerops.Play((data[1],), "PlayNow", -1, -1, utils.EmbyServers[data[0]])
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event play", xbmc.LOGDEBUG)
             return
 
         # wait for loading
@@ -197,6 +227,7 @@ def worker_Query(client):  # thread by caller
 
         client.send(sendOK)
         client.close()
+        xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event browse", xbmc.LOGDEBUG)
         return
 
     if 'extrafanart' in IncomingData[1] or 'extrathumbs' in IncomingData[1] or 'Extras/' in IncomingData[1] or 'favicon.ico' in IncomingData[1] or IncomingData[1].endswith('/'):
@@ -213,6 +244,7 @@ def worker_Query(client):  # thread by caller
         client.send(sendOK)
 
     client.close()
+    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ]", xbmc.LOGDEBUG)
 
 def LoadISO(QueryData, MediaIndex, client, ThreadId): # native content
     player.MultiselectionDone = True
@@ -409,7 +441,7 @@ def http_Query(client, Payload, RequestType):
         for Data in QueryData['MediaSources']:
             Selection.append("%s - %s - %s" % (Data[4], utils.SizeToText(float(Data[5])), Data[3]))
 
-        MediaIndex = utils.Dialog.select(heading="Select Media Source:", list=Selection)
+        MediaIndex = utils.Dialog.select(utils.Translate(33453), Selection)
 
         if MediaIndex == -1:
             globals()["Cancel"] = True
@@ -700,6 +732,7 @@ def add_playlist_item(client, ListItem, QueryData, Path):
 
 xbmc.log("EMBY.hooks.webservice: -->[ Init ]", xbmc.LOGINFO)
 start_new_thread(Listen, ())
+Running = True
 
 # Late imports to start the socket as fast as possible
 import uuid

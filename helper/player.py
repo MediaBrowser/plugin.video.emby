@@ -77,6 +77,7 @@ def AVStart(EventData):
     # 3D, ISO etc. content from webserverice (addon mode)
     if PlaylistRemoveItem != -1:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{"playlistid":1, "position":%s}}' % PlaylistRemoveItem)
+        globals()["PlaylistRemoveItem"] = -1
 
     # Native mode multiselection
     if MultiselectionDone:
@@ -208,7 +209,7 @@ def AVStart(EventData):
                         for MediaSource in MediaSources:
                             Selection.append("%s - %s - %s" % (MediaSource[4], utils.SizeToText(float(MediaSource[5])), MediaSource[3]))
 
-                        MediaIndex = utils.Dialog.select("Select Media Source:", Selection)
+                        MediaIndex = utils.Dialog.select(utils.Translate(33453), Selection)
 
                         if MediaIndex == -1:
                             Cancel()
@@ -404,6 +405,7 @@ def play_Trailer(): # for native content
 
 def PositionTracker():  # threaded
     LoopCounter = 0
+    LOG.info("THREAD: --->[ position tracker ]")
 
     while EmbyServerPlayback and "ItemId" in PlayingItem and not utils.SystemShutdown:
         if not utils.sleep(1):
@@ -451,6 +453,7 @@ def PositionTracker():  # threaded
                 LoopCounter += 1
 
     globals()["PositionTrackerThread"] = False
+    LOG.info("THREAD: ---<[ position tracker ]")
 
 def jump_Intro():
     if utils.XbmcPlayer.isPlaying():

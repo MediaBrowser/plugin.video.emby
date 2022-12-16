@@ -20,6 +20,9 @@ class Library:
         self.DatabaseInit = False
 
     def open_Worker(self, WorkerName):
+        if utils.SystemShutdown:
+            return False
+
         if Worker_is_paused():
             LOG.info("[ worker %s sync paused ]" % WorkerName)
             return False
@@ -86,13 +89,16 @@ class Library:
 
         self.LastSyncTime = embydb.get_LastIncrementalSync()
         self.close_EmbyDBRW("load_settings")
+
+        # Init database
         videodb = dbio.DBOpenRW("video", "load_settings")
+        videodb.init_favorite_tags()
+        videodb.add_Index()
+        videodb.get_add_path("http://127.0.0.1:57342/dynamic/", None, None)
 
         for ViewItem in list(self.EmbyServer.Views.ViewItems.values()):
             common.MediaTags[ViewItem[0]] = videodb.get_tag(ViewItem[0])
 
-        videodb.init_favorite_tags()
-        videodb.add_Index()
         dbio.DBCloseRW("video", "load_settings")
         musicdb = dbio.DBOpenRW("music", "load_settings")
         musicdb.add_Index()
@@ -104,17 +110,16 @@ class Library:
         self.DatabaseInit = True
 
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
+        LOG.info("THREAD: --->[ retrieve changes ]")
+
         if Firstrun:
             self.select_libraries("AddLibrarySelection")
-
-        if utils.sleep(5):
-            return
 
         self.RunJobs()
         UpdateData = []
 
         if self.LastSyncTime:
-            LOG.info("-->[ retrieve changes ] %s" % self.LastSyncTime)
+            LOG.info("retrieve changes, last synced: %s" % self.LastSyncTime)
             utils.progress_open(utils.Translate(33445))
 
             for plugin in self.EmbyServer.API.get_plugins():
@@ -171,8 +176,9 @@ class Library:
                         LOG.info("Skip library type startup sync: %s" % Whitelist[1])
                         continue
 
-                    if utils.sleep(0.01):
+                    if utils.SystemShutdown:
                         utils.progress_close()
+                        LOG.info("THREAD: ---<[ retrieve changes ] shutdown 2")
                         return
 
                     TotalRecords = self.EmbyServer.API.get_TotalRecordsRegular(Whitelist[0], Content, extra)
@@ -181,8 +187,9 @@ class Library:
                         UpdateDataTemp = TotalRecords * [None] # preallocate memory
 
                         for Index, Item in enumerate(self.EmbyServer.API.get_Items(Whitelist[0], Content.split(','), True, True, extra)):
-                            if utils.sleep(0.01):
+                            if utils.SystemShutdown:
                                 utils.progress_close()
+                                LOG.info("THREAD: ---<[ retrieve changes ] shutdown 3")
                                 return
 
                             if Index >= TotalRecords: # Emby server updates were in progress. New items were added after TotalRecords was calculated
@@ -199,7 +206,7 @@ class Library:
 
         # Run jobs
         UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
-        LOG.info("--<[ retrieve changes ]")
+        LOG.info("THREAD: ---<[ retrieve changes ]")
         pluginmenu.reset_querycache()
         self.updated(UpdateData)
 
@@ -475,13 +482,10 @@ class Library:
         self.EmbyServer.Views.update_nodes()
         pluginmenu.reset_querycache()
         self.close_Worker(WorkerName)
-        xbmc.sleep(1000) # give Kodi time for keep up
         xbmc.executebuiltin('ReloadSkin()')
         LOG.info("Reload skin by worker library")
         LOG.info("--<[ worker library completed ]")
-
-        if not utils.sleep(1):  # give Kodi time to catch up
-            self.RunJobs()
+        self.RunJobs()
 
     def ItemOps(self, ProgressValue, Item, embydb, kodidb, ContentCategory, WorkerName):
         Ret = False

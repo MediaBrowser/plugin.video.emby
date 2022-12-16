@@ -33,7 +33,6 @@ class Music:
             else:
                 item['KodiItemIds'][ItemIndex] = self.music_db.create_entry_artist()
                 self.music_db.add_artist(item['KodiItemIds'][ItemIndex], item['Name'], item['ProviderIds']['MusicBrainzArtist'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], item['LastScraped'], item['SortName'], item['DateCreated'], item['Librarys'][ItemIndex]['LibraryId_Name'])
-                item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "MusicArtist", "artist", [], item['LibraryIds'], None, item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                 LOG.info("ADD artist [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
 

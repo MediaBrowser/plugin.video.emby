@@ -58,7 +58,6 @@ class TVShows:
             item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None, KodiPathParentId)
 
             if Stacked:
-                item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                 LOG.info("ADD stacked tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
             else:
@@ -78,7 +77,6 @@ class TVShows:
                     LOG.info("UPDATE tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
                 else:
                     self.video_db.add_tvshow(item['KodiItemIds'][ItemIndex], item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['Trailer'])
-                    item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                     self.video_db.add_link_tvshow(item['KodiItemIds'][ItemIndex], item['KodiPathId'])
                     LOG.info("ADD tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
@@ -92,8 +90,8 @@ class TVShows:
             return False
 
         if 'SeriesId' not in item:
-            LOG.error("No Series assigned to Episode: %s %s" % (item['Id'], item['Name']))
-            LOG.debug("No Series assigned to Episode: %s" % item)
+            LOG.error("No SeriesId assigned to Season: %s %s" % (item['Id'], item['Name']))
+            LOG.debug("No SeriesId assigned to Season: %s" % item)
             return False
 
         LOG.info("Process item: %s" % item['Name'])
@@ -106,7 +104,12 @@ class TVShows:
 
             if not item['UpdateItems'][ItemIndex]:
                 LOG.debug("KodiSeasonId %s not found" % item['Id'])
-                self.get_kodi_show_id(item, ItemIndex)
+
+                if not self.get_kodi_show_id(item, ItemIndex):
+                    LOG.warning("Season, tvshow invalid assignment: %s" % item['Id'])
+                    LOG.debug("Season, tvshow invalid assignment: %s" % item)
+                    continue
+
                 StackedKodiId = self.emby_db.get_stacked_kodiid(item['PresentationUniqueKey'], item['Librarys'][ItemIndex]['Id'], "Season")
 
                 if StackedKodiId:
@@ -138,10 +141,10 @@ class TVShows:
         return not item['UpdateItems'][ItemIndex]
 
     def episode(self, item):
-        LOG.info("Process item: %s" % item['Name'])
-
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
+
+        LOG.info("Process item: %s" % item['Name'])
 
         if not 'MediaSources' in item or not item['MediaSources']:
             LOG.error("No mediasources found for episode: %s" % item['Id'])
@@ -149,8 +152,8 @@ class TVShows:
             return False
 
         if 'SeriesId' not in item:
-            LOG.error("No Series assigned to Episode: %s %s" % (item['Id'], item['Name']))
-            LOG.debug("No Series assigned to Episode: %s" % item)
+            LOG.error("No SeriesId assigned to Episode: %s %s" % (item['Id'], item['Name']))
+            LOG.debug("No SeriesId assigned to Episode: %s" % item)
             return False
 
         get_PresentationUniqueKey(item)
@@ -192,13 +195,23 @@ class TVShows:
             item['KodiItemIds'][ItemIndex] = self.video_db.create_entry_episode()
             item['KodiFileIds'][ItemIndex] = self.video_db.create_entry_file()
             item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None)
-            self.get_kodi_show_id(item, ItemIndex)
+
+            if not self.get_kodi_show_id(item, ItemIndex):
+                LOG.warning("Episode, tvshow invalid assignment: %s" % item['Id'])
+                LOG.debug("Episode, tvshow invalid assignment: %s" % item)
+                continue
 
             # KodiSeasonId
             item['KodiSeasonId'] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(item['SeasonId'], item['LibraryIds'][ItemIndex])
 
             if not item['KodiSeasonId']:
                 SeasonItem = self.EmbyServer.API.get_Item(item['SeasonId'], ['Season'], False, False)
+
+                if not SeasonItem:
+                    LOG.warning("Episode, season invalid assignment: %s" % item['Id'])
+                    LOG.debug("Episode, season invalid assignment: %s" % item)
+                    continue
+
                 SeasonItem['Library'] = item['Library']
                 self.season(SeasonItem)
                 item['KodiSeasonId'] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(item['SeasonId'], item['LibraryIds'][ItemIndex])
@@ -223,11 +236,16 @@ class TVShows:
 
         if not Item['KodiParentIds'][ItemIndex]:
             TVShowItem = self.EmbyServer.API.get_Item(Item['SeriesId'], ['Series'], False, False)
+
+            if not TVShowItem:
+                return False
+
             LOG.info("Add TVShow by SeriesId %s" % Item['SeriesId'])
             TVShowItem['Library'] = Item['Library']
-            TVShowItem['ServerId'] = TVShowItem['ServerId']
             self.tvshow(TVShowItem)
             Item['KodiParentIds'][ItemIndex] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(Item['SeriesId'], Item['LibraryIds'][ItemIndex])
+
+        return True
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     def userdata(self, Item):

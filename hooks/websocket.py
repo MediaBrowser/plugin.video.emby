@@ -28,18 +28,18 @@ class WSClient:
     def __init__(self, EmbyServer):
         self.EmbyServer = EmbyServer
         self.stop = False
-        LOG.debug("WSClient initializing...")
         self.sock = None
-        self._recv_buffer = []
+        self._recv_buffer = ()
         self._frame_header = None
         self._frame_length = None
         self._frame_mask = None
         self._cont_data = None
         self.EmbyServerSocketUrl = ""
         self.ConnectionInProgress = False
-        self.TasksRunning = []
+        self.TasksRunning = ()
         self.SyncInProgress = False
         self.SyncRefresh = False
+        LOG.debug("WSClient initializing...")
 
     def start(self):
         start_new_thread(self.Listen, ())
@@ -60,9 +60,15 @@ class WSClient:
 
             self.sock.close()
             self.sock = None
+            self._recv_buffer = ()
+            self._frame_header = None
+            self._frame_length = None
+            self._frame_mask = None
+            self._cont_data = None
+            self.TasksRunning = ()
 
     def Listen(self):
-        LOG.info("--->[ websocket ]")
+        LOG.info("THREAD: --->[ websocket ]")
 
         if self.EmbyServer.ServerData['ServerUrl'].startswith('https'):
             self.EmbyServerSocketUrl = self.EmbyServer.ServerData['ServerUrl'].replace('https', "wss")
@@ -80,10 +86,10 @@ class WSClient:
             if data:
                 self.on_message(data)
 
-            if data is None:  # connect
+            if data is None:  # re-connect
                 self.connect()
 
-        LOG.info("---<[ websocket ]")
+        LOG.info("THREAD: ---<[ websocket ]")
 
     def connect(self):
         if not self.ConnectionInProgress:
@@ -105,6 +111,7 @@ class WSClient:
             self.ConnectionInProgress = False
         else:
             LOG.info("[ websocket connect in progress ]")
+            utils.sleep(1)
 
     def establish_connection(self):
         self.close(False)
@@ -135,7 +142,7 @@ class WSClient:
         # Connect
         try:
             self.sock.connect((hostname, port))
-            self.sock.settimeout(25) # set timeout > ping interval (10 seconds ping (2 pings))
+            self.sock.settimeout(60) # set timeout > ping interval (10 seconds ping (6 pings -> timeout))
 
             if is_secure:
                 self.sock = ssl.SSLContext(ssl.PROTOCOL_SSLv23).wrap_socket(self.sock, do_handshake_on_connect=True, suppress_ragged_eofs=True, server_hostname=hostname)
@@ -154,7 +161,7 @@ class WSClient:
         headers = {}
 
         while True:
-            line = []
+            line = ()
 
             while True:
                 try:
@@ -166,7 +173,7 @@ class WSClient:
                 if not c:
                     return False
 
-                line.append(c)
+                line += (c,)
 
                 if c == "\n":
                     break
@@ -248,15 +255,19 @@ class WSClient:
         return ServerOnline
 
     def ping(self):
+        LOG.info("THREAD: --->[ ping ]")
+
         while True:
             # Check Kodi shutdown
             if utils.sleep(10) or self.stop:
+                LOG.info("THREAD: ---<[ ping ] shutdown")
                 return
 
             if not self.sendCommands(b"", 0x9):
                 break  # Server offline
 
         self.connect()
+        LOG.info("THREAD: ---<[ ping ]")
 
     def recv(self):
         while True:
@@ -339,16 +350,16 @@ class WSClient:
                 LOG.debug("Websocket issue: %s" % Error)
                 return None
 
-            self._recv_buffer.append(bytesData)
+            self._recv_buffer += (bytesData,)
             shortage -= len(bytesData)
 
         unified = b"".join(self._recv_buffer)
 
         if shortage == 0:
-            self._recv_buffer = []
+            self._recv_buffer = ()
             return unified
 
-        self._recv_buffer = [unified[bufsize:]]
+        self._recv_buffer = unified[bufsize:]
         return unified[:bufsize]
 
     def on_message(self, IncomingData):  # threaded
@@ -417,7 +428,7 @@ class WSClient:
             for Task in IncomingData['Data']:
                 if Task["State"] == "Running":
                     if not Task["Name"] in self.TasksRunning:
-                        self.TasksRunning.append(Task["Name"])
+                        self.TasksRunning += (Task["Name"],)
 
                         if not self.SyncInProgress:
                             self.SyncInProgress = True
@@ -432,7 +443,8 @@ class WSClient:
                         utils.progress_update(Progress, utils.Translate(33199), "%s: %s" % (utils.Translate(33411), Task["Name"]))
                 else:
                     if Task["Name"] in self.TasksRunning:
-                        self.TasksRunning = ([s for s in self.TasksRunning if s != Task["Name"]])
+                        ItemIndex = self.TasksRunning.index(Task["Name"])
+                        self.TasksRunning = self.TasksRunning[:ItemIndex] + self.TasksRunning[ItemIndex+ 1 :]
         elif IncomingData['MessageType'] == 'RefreshProgress':
             self.SyncRefresh = True
 
@@ -447,7 +459,7 @@ class WSClient:
                 return
 
             LOG.info("[ UserDataChanged ] %s" % IncomingData['Data']['UserDataList'])
-            UpdateData = []
+            UpdateData = ()
             DynamicNodesRefresh = False
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
 
@@ -461,7 +473,7 @@ class WSClient:
                         if e_item[5] == "Season":
                             LOG.info("[ UserDataChanged skip %s/%s ]" % (e_item[5], ItemData['ItemId']))
                         else:
-                            UpdateData.append(ItemData)
+                            UpdateData += (ItemData,)
                     else:
                         LOG.info("[ UserDataChanged item not found %s ]" % ItemData['ItemId'])
                         DynamicNodesRefresh = True
@@ -526,7 +538,7 @@ class WSClient:
             Playstate(IncomingData['Data']['Command'], int(IncomingData['Data'].get('SeekPositionTicks', -1)))
 
     def EmbyServerSyncCheck(self):
-        LOG.info("--> Emby server is busy, sync in progress")
+        LOG.info("THREAD: --->[ Emby server is busy, sync in progress ]")
         utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = True
 
         if utils.busyMsg:
@@ -544,7 +556,7 @@ class WSClient:
         self.SyncInProgress = False
         utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = False
         self.EmbyServer.library.RunJobs()
-        LOG.info("--< Emby server is busy, sync in progress")
+        LOG.info("THREAD: ---<[ Emby server is busy, sync in progress ]")
 
 # Emby playstate updates (websocket Incoming)
 def Playstate(Command, SeekPositionTicks):

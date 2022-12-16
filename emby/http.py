@@ -14,6 +14,7 @@ class HTTP:
         self.AsyncCommandQueue = queue.Queue()
 
     def async_commands(self):
+        LOG.info("THREAD: --->[ async queue ]")
         CommandRetry = ()
         CommandRetryCounter = 0
 
@@ -48,17 +49,21 @@ class HTTP:
                     CommandRetry = ()
                     LOG.warning("async_commands error: %s" % str(error))
 
+        LOG.info("THREAD: ---<[ async queue ]")
+
     def stop_session(self):
         if not self.session:
             return
 
+        LocalSession = self.session  # Use local var -> self.session must be set to "none" instantly -> self var is also used to detect open sessions
+        self.session = None
+        self.AsyncCommandQueue.put(("QUIT",))
+
         try:
-            self.session.close()
+            LocalSession.close()
         except Exception as error:
             LOG.warning("session close error: %s" % str(error))
 
-        self.AsyncCommandQueue.put(("QUIT",))
-        self.session = None
         LOG.info("session close")
 
     # decide threaded or wait for response
@@ -87,8 +92,9 @@ class HTTP:
 
         LOG.debug("[ http ] %s" % data)
 
-        # SHutdown
-        if utils.sleep(0.01):
+        # Shutdown
+        if utils.SystemShutdown:
+            self.stop_session()
             return noData(Binary, Headers)
 
         # start session
@@ -131,6 +137,7 @@ class HTTP:
                 self.AsyncCommandQueue.put(("POST", data))
             elif RequestType == "DELETE":
                 self.AsyncCommandQueue.put(("DELETE", data))
+
             return noData(Binary, Headers)
         except requests.exceptions.SSLError:
             LOG.error("[ SSL error ]")
@@ -143,7 +150,6 @@ class HTTP:
             LOG.debug("[ ServerUnreachable ] %s" % data)
             self.stop_session()
             self.EmbyServer.ServerUnreachable()
-            self.stop_session()
             return noData(Binary, Headers)
         except requests.exceptions.ReadTimeout:
             LOG.error("[ ServerTimeout ]")
@@ -184,9 +190,12 @@ class HTTP:
                     start_new_thread(self.verify_intros, (Intro,))
 
     def verify_intros(self, Intro):
+        LOG.info("THREAD: --->[ verify intros ]")
+
         if Intro['Path'].find("http") == -1: # Local Trailer
             Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.ServerData['ServerUrl'], Intro['Id'], self.EmbyServer.ServerData['AccessToken'], utils.device_id)
             self.Intros.append(Intro)
+            LOG.info("THREAD: ---<[ verify intros ] local trailer")
             return True
 
         try:
@@ -195,6 +204,7 @@ class HTTP:
 
             if Intro['Path'] == r.url:
                 self.Intros.append(Intro)
+                LOG.info("THREAD: ---<[ verify intros ] remote trailer")
                 return True
 
             # filter URL redirections, mostly invalid links
@@ -202,6 +212,7 @@ class HTTP:
         except Exception as Error:
             LOG.error("Invalid Trailer Path: %s / %s" % (Intro['Path'], Error))
 
+        LOG.info("THREAD: ---<[ verify intros ] invalid")
         return False
 
 def noData(Binary, Headers):

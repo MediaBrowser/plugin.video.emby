@@ -100,7 +100,6 @@ SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (
 WidgetRefresh = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()  # Init Player
-XbmcMonitor = None
 WizardCompleted = True
 AssignEpisodePostersToTVShowPoster = False
 PluginStarted = False
@@ -156,14 +155,13 @@ def restart_kodi():
     xbmc.executebuiltin('RestartApp')
 
 def sleep(Seconds):
-    if not XbmcMonitor:
-        if SystemShutdown:
-            return True
+    if SystemShutdown:
+        return True
 
-        xbmc.sleep(Seconds * 1000)
-    else:
-        if SystemShutdown or XbmcMonitor.waitForAbort(Seconds):
-            globals()["SystemShutdown"] = True
+    for _ in range(0, int(Seconds * 1000), 500):
+        xbmc.sleep(500)
+
+        if SystemShutdown:
             return True
 
     return False
@@ -261,7 +259,7 @@ def copyFile(SourcePath, DestinationPath):
     DestinationPath = translatePath(DestinationPath)
 
     if checkFileExists(DestinationPath):
-        LOG.info("copy: File exists: %s to %s" % (SourcePath, DestinationPath))
+        LOG.debug("copy: File exists: %s to %s" % (SourcePath, DestinationPath))
         return
 
     try:
@@ -697,13 +695,13 @@ def get_path_type_from_item(server_id, item):
         return "", None
 
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
-        return "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary']), "p"
+        return "http://127.0.0.1:57342/dynamic/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary']), "p"
 
     if item['Type'] == "TvChannel":
-        return "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id']), "t"
+        return "http://127.0.0.1:57342/dynamic/t-%s-%s-stream.ts" % (server_id, item['Id']), "t"
 
     if item['Type'] == "Audio":
-        return "http://127.0.0.1:57342/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path'])), "a"
+        return "http://127.0.0.1:57342/dynamic/a-%s-%s-%s" % (server_id, item['Id'], PathToFilenameReplaceSpecialCharecters(item['Path'])), "a"
 
     if item['Type'] == "MusicVideo":
         Type = "M"
@@ -745,20 +743,18 @@ def get_path_type_from_item(server_id, item):
 
         # build path
         try:
-            path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(path))
+            path = "http://127.0.0.1:57342/dynamic/%s-%s-%s-%s-0-0-%s-0-1-%s-0-0-0-%s-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], item['MediaSources'][0]['MediaStreams'][0]['BitRate'], item['MediaSources'][0]['MediaStreams'][0]['Codec'], IsRemote, PathToFilenameReplaceSpecialCharecters(path))
         except:
-            path = "http://127.0.0.1:57342/%s-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], PathToFilenameReplaceSpecialCharecters(path))
+            path = "http://127.0.0.1:57342/dynamic/%s-%s-%s-%s-0-0-0-0-1--0-0-0-0-%s" % (Type, server_id, item['Id'], item['MediaSources'][0]['Id'], PathToFilenameReplaceSpecialCharecters(path))
 
         return path, Type
 
     # Channel
-    return "http://127.0.0.1:57342/c-%s-%s-%s-stream.ts" % (server_id, item['Id'], item['MediaSources'][0]['Id']), "c"
+    return "http://127.0.0.1:57342/dynamic/c-%s-%s-%s-stream.ts" % (server_id, item['Id'], item['MediaSources'][0]['Id']), "c"
 
 mkDir(FolderAddonUserdata)
 mkDir(FolderEmbyTemp)
 mkDir(FolderUserdataThumbnails)
-mkDir('special://profile/playlists/video/')
-mkDir('special://profile/playlists/music/')
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
 get_device_id(False)
