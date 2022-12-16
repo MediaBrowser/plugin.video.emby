@@ -30,7 +30,7 @@ class EmbyServer:
             start_new_thread(self.ServerReconnect, ())
 
     def ServerReconnect(self):
-        LOG.info("Reconnecting: %s / %s" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
+        LOG.info("THREAD: --->[ Reconnecting ] %s / %s" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
 
         if not self.ServerReconnecting:
             self.ServerReconnecting = True
@@ -47,6 +47,8 @@ class EmbyServer:
                     break
 
             self.ServerReconnecting = False
+
+        LOG.info("THREAD: ---<[ Reconnecting ] %s / %s" % (self.ServerData['ServerName'], self.ServerData['ServerId']))
 
     def start(self):
         LOG.info("---[ START EMBYCLIENT: %s / %s / %s ]---" % (self.ServerData['ServerName'], self.ServerData['ServerId'], self.ServerData["LastConnectionMode"]))
@@ -131,7 +133,7 @@ class EmbyServer:
 
             # Menu dialogs
             while True:
-                if utils.sleep(0.01):
+                if utils.SystemShutdown:
                     SignedIn = False
                     break
 
@@ -186,8 +188,12 @@ class EmbyServer:
         return self.ServerData['ServerId'], self
 
     def establish_existing_connection(self):
+        LOG.info("THREAD: --->[ establish_existing_connection]")
+
         if self.ServerConnect():
             self.start()
+
+        LOG.info("THREAD: ---<[ establish_existing_connection]")
 
     def save_credentials(self):
         if not self.ServerSettings:
@@ -373,6 +379,9 @@ class EmbyServer:
             Connections.append("RemoteAddress")
 
         for Connection in Connections:
+            if utils.SystemShutdown:
+                return False
+
             ConnectUrl = self.ServerData.get(Connection)
 
             if not ConnectUrl:

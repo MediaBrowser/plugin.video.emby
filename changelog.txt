@@ -1,3 +1,18 @@
+7.13.1
+=============
+Improve dynamic nodes lookup if content is synced to Kodi (e.g. for playlists)
+remove reuselanguageinvoker due to Kodi bug -> https://github.com/xbmc/xbmc/issues/21653
+fix shutdown issue
+fix dynamic movie nodes content, when synced to Kodi (movies, musicvideos progress was wrong)
+add translations
+fix playlist ops for multiselection content
+fix minor websocket issue
+increase websocket timeout from 25 seconds to 60 seconds
+improve factory reset in case of a fatal database inconsitency
+fix sync issue for invalid (Emby server) content
+fix boxset issue when content was updated
+
+
 7.13.0
 =============
 Fix tvshow path assignment

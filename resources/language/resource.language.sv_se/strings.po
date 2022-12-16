@@ -1970,3 +1970,7 @@ msgstr "Synkronisera teman"
 msgctxt "#33452"
 msgid "Verify free space"
 msgstr "Verifiera ledigt utrymme"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Välj Mediakälla"

@@ -53,7 +53,7 @@ class API:
         if not utils.getCast:
             self.DynamicListsRemoveFields += ("People",)
 
-    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False):
+    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False, UseAncestors = False):
         SingleRun = False
         Limit = get_Limit(MediaTypes)
         IncludeItemTypes, _ = self.get_MediaData(MediaTypes, Basic, True)
@@ -104,7 +104,20 @@ class API:
                 musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
 
                 for Item in IncomingData['Items']:
+                    if Item['Type'] in ("Photo", "PhotoAlbum"):
+                        ItemsFullQuery += (Item['Id'],)
+                        continue
+
                     KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.zz
+
+                    if not KodiId and UseAncestors and Item['Type'] in ("Movie", "Series", "Season", "Episode", "BoxSet", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"):
+                        Ancestors = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "GET", 'handler': "Items/%s/Ancestors" % Item['Id']}, False, False)
+
+                        for Ancestor in Ancestors:
+                            KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], Ancestor['Id']) # Requested video is synced to KodiDB.zz
+
+                            if KodiId:
+                                break
 
                     if KodiId:
                         if Item['Type'] == "Movie":

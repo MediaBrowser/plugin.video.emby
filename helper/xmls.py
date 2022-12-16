@@ -59,10 +59,6 @@ def load_defaultvideosettings():
 
 def restart_required(Filepath, xmlData):
     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=10000, sound=True)
-
-    if utils.sleep(10):  # Give Kodi time to complete startup before reset
-        return
-
     WriteXmlFile(Filepath, xmlData)
 
 def advanced_settings():

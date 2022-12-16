@@ -1965,8 +1965,12 @@ msgstr "分页 - 请求的项目（默认因子：70）"
 
 msgctxt "#33451"
 msgid "Sync themes"
-msgstr ""
+msgstr "同步主题"
 
 msgctxt "#33452"
 msgid "Verify free space"
-msgstr ""
+msgstr "验证可用空间"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "选择媒体源"

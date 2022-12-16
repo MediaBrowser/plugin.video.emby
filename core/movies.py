@@ -12,10 +12,10 @@ class Movies:
         self.video_db.init_favorite_tags()
 
     def movie(self, item):
-        LOG.info("Process item: %s" % item['Name'])
-
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
+
+        LOG.info("Process item: %s" % item['Name'])
 
         if not 'MediaSources' in item or not item['MediaSources']:
             LOG.error("No mediasources found for movie: %s" % item['Id'])
@@ -48,7 +48,7 @@ class Movies:
             if not item['ProductionLocations']:
                 item['ProductionLocations'].append("")
 
-            self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
+            self.video_db.add_movie(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['ShortOverview'], item['Taglines'][0], item['RatingId'], item['Writers'], item['KodiArtwork']['poster'], item['Unique'], item['SortName'], item['RunTimeTicks'], item['OfficialRating'], item['Genre'], item['Directors'], item['OriginalTitle'], item['Studio'], item['Trailer'], item['KodiArtwork']['fanart'].get('fanart', ""), item['ProductionLocations'][0], item['Path'], item['KodiPathId'], item['PremiereDate'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], item['KodiParentIds'][ItemIndex])
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Movie", "movie", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
             self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "movie")
             self.video_db.set_Favorite(item['UserData']['IsFavorite'], item['KodiItemIds'][ItemIndex], "movie")
@@ -153,7 +153,6 @@ class Movies:
 
             common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
             self.video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], "set")
-            item['KodiItemIds'][ItemIndex] = item['KodiItemIds'][ItemIndex]
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "BoxSet", "set", [], item['LibraryIds'], None, item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
             LOG.info("UPDATE boxset [%s] %s %s" % (item['Id'], item['KodiItemIds'][ItemIndex], item['Name']))
 

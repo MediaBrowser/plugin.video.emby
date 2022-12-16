@@ -85,6 +85,8 @@ class monitor(xbmc.Monitor):
             LOG.info("[ Reload settings skip ]")
 
 def Notification(method, data):  # threaded by caller
+    LOG.debug("THREAD: --->[ notification ] %s" % method)
+
     if method == "Player.OnPlay":
         player.Play()
     elif method == "Player.OnStop":
@@ -141,6 +143,8 @@ def Notification(method, data):  # threaded by caller
     elif method == 'Other.databasevacuummanual':
         dbio.DBVacuum()
 
+    LOG.debug("THREAD: ---<[ notification ] %s" % method)
+
 def System_OnWake():
     if not SleepMode:
         LOG.warning("System.OnSleep was never called, skip System.OnWake")
@@ -167,6 +171,7 @@ def VideoLibrary_OnRemove(): # Cache queries to minimize database openings
     if utils.sleep(0.5):
         return
 
+    LOG.info("THREAD: --->[ VideoLibrary_OnRemove ]")
     RemoveItems = QueueItemsRemove
     globals().update({"QueueItemsRemove": (), "QueryItemRemoveThread": False})
 
@@ -197,11 +202,14 @@ def VideoLibrary_OnRemove(): # Cache queries to minimize database openings
 
             dbio.DBCloseRO(server_id, "VideoLibrary_OnRemove")
 
+    LOG.info("THREAD: ---<[ VideoLibrary_OnRemove ]")
+
 # Mark as watched/unwatched updates
 def VideoLibrary_OnUpdate():
     if utils.sleep(0.5): # Cache queries to minimize database openings and redeuce threads
         return
 
+    LOG.info("THREAD: --->[ VideoLibrary_OnUpdate ]")
     UpdateItems = QueueItemsStatusupdate
     globals().update({"QueueItemsStatusupdate": (), "QueryItemStatusThread": False})
     ItemsSkipUpdateRemove = []
@@ -328,6 +336,7 @@ def VideoLibrary_OnUpdate():
             utils.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
 
     LOG.info("VideoLibrary_OnUpdate ItemSkipUpdate: %s" % str(utils.ItemSkipUpdate))
+    LOG.info("THREAD: ---<[ VideoLibrary_OnUpdate ]")
 
 def BackupRestore():
     RestoreFolder = utils.Dialog.browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
@@ -433,12 +442,11 @@ def EmbyServer_DisconnectAll():
         EmbyServer.stop()
 
 def settingschanged():  # threaded by caller
-    globals()["SettingsChangedThread"] = False
-
     if utils.sleep(0.5):
         return
 
-    LOG.info("-->[ Reload settings ]")
+    LOG.info("THREAD: --->[ reload settings ]")
+    globals()["SettingsChangedThread"] = False
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     RestartKodi = False
     syncdatePrevious = utils.syncdate
@@ -469,18 +477,13 @@ def settingschanged():  # threaded by caller
     if maxnodeitemsPreviousValue != utils.maxnodeitems:
         utils.nodesreset()
 
-    LOG.info("--<[ Reload settings ]")
-
     # Restart Kodi
     if RestartKodi:
         utils.SyncPause = {}
         webservice.close()
         EmbyServer_DisconnectAll()
-
-        if utils.sleep(5):  # Give Kodi time to complete startup before reset
-            return
-
         utils.restart_kodi()
+        LOG.info("THREAD: ---<[ reload settings ] restart")
         return
 
     # Manual adjusted sync time/date
@@ -510,20 +513,22 @@ def settingschanged():  # threaded by caller
                     for Filename in files:
                         utils.delFile("%s%s" % (playlistfolder, Filename))
 
+    LOG.info("THREAD: ---<[ reload settings ]")
+
 def System_OnQuit():
-    LOG.warning("---<[ EXITING ]")
+    LOG.info("System_OnQuit")
     utils.SystemShutdown = True
     utils.SyncPause = {}
     webservice.close()
     EmbyServer_DisconnectAll()
 
 def ServersConnect():
+    LOG.info("THREAD: --->[ ServersConnect ]")
+
     if utils.startupDelay:
         if utils.sleep(utils.startupDelay):
-            return
-
-        if utils.SystemShutdown:
             utils.SyncPause = {}
+            LOG.info("THREAD: ---<[ ServersConnect ] shutdown")
             return
 
     _, files = utils.listDir(utils.FolderAddonUserdata)
@@ -547,19 +552,20 @@ def ServersConnect():
         xbmc.log("EMBY.hooks.webservice: Skin refresh: connection established", xbmc.LOGINFO)
         utils.refresh_widgets()
 
-    LOG.info("[ Startup completed Emby-next-gen ]")
     utils.PluginStarted = True
+    LOG.info("THREAD: ---<[ ServersConnect ]")
 
 def syncEmby():
+    LOG.info("THREAD: --->[ syncEmby ]")
+
     for EmbyServer in list(utils.EmbyServers.values()):
         EmbyServer.library.RunJobs()
+
+    LOG.info("THREAD: ---<[ syncEmby ]")
 
 def setup():
     # Detect corupted setting file
     if not xmls.verify_settings_file():
-        if utils.sleep(10):  # Give Kodi time to load skin
-            return False
-
         utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33427))
         utils.delFile("%ssettings.xml" % utils.FolderAddonUserdata)
 
@@ -618,13 +624,11 @@ def setup():
     if utils.MinimumSetup == utils.MinimumVersion:
         return True
 
+    xbmc.executebuiltin('ReplaceWindow(10000)', True)
     utils.refreshskin = False
 
     # Clean installation
     if not utils.MinimumSetup:
-        if utils.sleep(10):  # Give Kodi time to load skin
-            return False
-
         value = utils.Dialog.yesno(heading=utils.Translate(30511), message=utils.Translate(33035), nolabel=utils.Translate(33036), yeslabel=utils.Translate(33037))
 
         if value:
@@ -646,7 +650,6 @@ def setup():
 
 def StartUp():
     LOG.info("[ Start Emby-next-gen ]")
-    utils.XbmcMonitor = monitor()  # Init Monitor
     Ret = setup()
 
     if Ret == "stop":  # db upgrade declined
@@ -655,15 +658,15 @@ def StartUp():
     elif not Ret:  # db reset required
         LOG.warning("[ DB reset required, Kodi restart ]")
         webservice.close()
-
-        if not utils.XbmcMonitor.waitForAbort(5):
-            utils.restart_kodi()
+        utils.restart_kodi()
     else:  # Regular start
         start_new_thread(ServersConnect, ())
 
         # Waiting/blocking function till Kodi stops
         LOG.info("Monitor listening")
-        utils.XbmcMonitor.waitForAbort(0)
+        XbmcMonitor = monitor()  # Init Monitor
+        XbmcMonitor.waitForAbort(0)
+        XbmcMonitor = None
 
         # Shutdown
         utils.SyncPause = {}
@@ -672,5 +675,4 @@ def StartUp():
         LOG.warning("[ Shutdown Emby-next-gen ]")
 
     utils.XbmcPlayer = None
-    utils.XbmcMonitor = None
     utils.SystemShutdown = True

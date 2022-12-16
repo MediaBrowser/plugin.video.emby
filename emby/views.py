@@ -296,6 +296,7 @@ def add_playlist(path, view):
     if not utils.xspplaylists:
         return
 
+    utils.mkDir(path)
     filepath = "%s%s" % (path, "emby_%s_%s.xsp" % (view['MediaType'], view['FileName']))
     xmlData = utils.readFileString(filepath)
 

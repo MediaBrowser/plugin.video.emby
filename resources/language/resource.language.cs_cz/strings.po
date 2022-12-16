@@ -1971,3 +1971,7 @@ msgstr "Synchronizace motivů"
 msgctxt "#33452"
 msgid "Verify free space"
 msgstr "Ověřte volné místo"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Vyberte zdroj médií"
