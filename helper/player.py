@@ -444,7 +444,7 @@ def PositionTracker():  # threaded
                     else:
                         close_SkipCreditsDialog()
 
-                if LoopCounter % 4 == 0: # modulo 4
+                if LoopCounter % 10 == 0: # modulo 4
                     globals()["PlayingItem"]['PositionTicks'] = Position * 10000000
                     LOG.debug("PositionTracker: Report progress %s" % PlayingItem['PositionTicks'])
                     EmbyServerPlayback.API.session_progress(PlayingItem)
