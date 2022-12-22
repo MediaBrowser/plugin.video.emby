@@ -71,9 +71,11 @@ class monitor(xbmc.Monitor):
     def onCleanFinished(self, library):
         globals()["KodiScanCount"] -= 1
 
-        if not KodiScanCount:
-            utils.SyncPause['kodi_rw'] = False
+        if KodiScanCount > 0: # use > 0 in case the start event was not detected
+            return
 
+        globals()["KodiScanCount"] = 0
+        utils.SyncPause['kodi_rw'] = False
         LOG.info("--<[ kodi clean/%s ]" % library)
 
     def onSettingsChanged(self):

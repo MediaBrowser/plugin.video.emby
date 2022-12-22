@@ -1,3 +1,9 @@
+7.13.2
+=============
+fix minor issue when Kodi library clean was triggered (edge case)
+adjust keepalive session tracker interval from 4 to 10 seconds
+
+
 7.13.1
 =============
 Improve dynamic nodes lookup if content is synced to Kodi (e.g. for playlists)
