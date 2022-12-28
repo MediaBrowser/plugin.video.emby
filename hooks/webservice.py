@@ -312,12 +312,13 @@ def http_Query(client, Payload, RequestType):
         client.send(sendOK)
         return
 
-    # Workaround for invalid Kodi GET requests when played via widget
-    if not Payload.startswith("/p-"):
-        if Payload != PayloadHeadRequest:
-            xbmc.log("Invalid GET request filtered: %s " % Payload, xbmc.LOGWARNING)
-            client.send(sendNoContent)
-            return
+    if utils.usekodiworkarounds:
+        # Workaround for invalid Kodi GET requests when played via widget
+        if not Payload.startswith("/p-"):
+            if Payload != PayloadHeadRequest:
+                xbmc.log("Invalid GET request filtered: %s " % Payload, xbmc.LOGWARNING)
+                client.send(sendNoContent)
+                return
 
     QueryData = GetParametersFromURLQuery(Payload)
 

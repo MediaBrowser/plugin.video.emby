@@ -574,6 +574,7 @@ def InitSettings():
     load_settings('synctime')
     load_settings('maxnodeitems')
     load_settings_bool('syncduringplayback')
+    load_settings_bool('usekodiworkarounds')
     load_settings_bool('refreshskin')
     load_settings_bool('animateicon')
     load_settings_bool('disablehttp2')
@@ -695,7 +696,7 @@ def get_path_type_from_item(server_id, item):
         return "", None
 
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
-        return "http://127.0.0.1:57342/dynamic/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary']), "p"
+        return "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary']), "p"
 
     if item['Type'] == "TvChannel":
         return "http://127.0.0.1:57342/dynamic/t-%s-%s-stream.ts" % (server_id, item['Id']), "t"

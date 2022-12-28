@@ -1973,3 +1973,7 @@ msgstr "Verificar espacio libre"
 msgctxt "#33453"
 msgid "Select Media Source"
 msgstr "Seleccione la fuente de medios"
+
+msgctxt "#33454"
+msgid "Use Kodi bugs workaround"
+msgstr ""

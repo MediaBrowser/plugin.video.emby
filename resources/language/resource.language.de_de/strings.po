@@ -1971,3 +1971,7 @@ msgstr "Überprüfung des freien Speicherplatz"
 msgctxt "#33453"
 msgid "Select Media Source"
 msgstr "Medienquelle auswählen"
+
+msgctxt "#33454"
+msgid "Use Kodi bugs workaround"
+msgstr ""
