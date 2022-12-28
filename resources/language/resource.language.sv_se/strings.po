@@ -1974,3 +1974,7 @@ msgstr "Verifiera ledigt utrymme"
 msgctxt "#33453"
 msgid "Select Media Source"
 msgstr "Välj Mediakälla"
+
+msgctxt "#33454"
+msgid "Use Kodi bugs workaround"
+msgstr ""

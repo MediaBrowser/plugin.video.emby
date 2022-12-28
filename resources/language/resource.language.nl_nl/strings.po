@@ -1974,3 +1974,7 @@ msgstr "Controleer vrije ruimte"
 msgctxt "#33453"
 msgid "Select Media Source"
 msgstr "Selecteer mediabron"
+
+msgctxt "#33454"
+msgid "Use Kodi bugs workaround"
+msgstr ""

@@ -1975,3 +1975,7 @@ msgstr "Ověřte volné místo"
 msgctxt "#33453"
 msgid "Select Media Source"
 msgstr "Vyberte zdroj médií"
+
+msgctxt "#33454"
+msgid "Use Kodi bugs workaround"
+msgstr ""

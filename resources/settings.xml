@@ -628,6 +628,11 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="33454" id="usekodiworkarounds" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting label="33452" id="verifyFreeSpace" type="boolean" help="">
                     <level>3</level>
                     <default>true</default>
