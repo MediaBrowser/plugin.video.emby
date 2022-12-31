@@ -1,3 +1,10 @@
+7.13.4
+=============
+fix boxset issue
+fix edgecase sync issue
+fix edgecase dynamic node (widget) issue
+
+
 7.13.3
 =============
 Fix photoalbum views

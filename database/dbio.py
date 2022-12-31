@@ -75,9 +75,13 @@ def DBOpenRO(DBID, TaskId):
 
 def DBCloseRO(DBID, TaskId):
     DBIDThreadID = "%s%s%s" % (DBID, TaskId, get_ident())
-    DBConnectionsRO[DBIDThreadID].cursor().close()
-    DBConnectionsRO[DBIDThreadID].close()
-    LOG.info("---< DBCloseRO: %s" % DBIDThreadID)
+
+    if DBIDThreadID in DBConnectionsRO:
+        DBConnectionsRO[DBIDThreadID].cursor().close()
+        DBConnectionsRO[DBIDThreadID].close()
+        LOG.info("---< DBCloseRO: %s" % DBIDThreadID)
+    else:
+        LOG.error("---< DBCloseRO (database was not opened): %s" % DBIDThreadID)
 
 def DBOpenRW(DBID, TaskId):
     if DBID == "folder":
@@ -109,12 +113,15 @@ def DBCloseRW(DBID, TaskId):
     if DBID == "folder":
         return
 
-    changes = DBConnectionsRW[DBID][0].total_changes
+    if DBID in DBConnectionsRW:
+        changes = DBConnectionsRW[DBID][0].total_changes
 
-    if changes:
-        DBConnectionsRW[DBID][0].commit()
+        if changes:
+            DBConnectionsRW[DBID][0].commit()
 
-    DBConnectionsRW[DBID][0].cursor().close()
-    DBConnectionsRW[DBID][0].close()
-    globals()["DBConnectionsRW"][DBID][1] = False
-    LOG.info("---< DBCloseRW: %s / %s / %s rows updated on db close" % (DBID, changes, TaskId))
+        DBConnectionsRW[DBID][0].cursor().close()
+        DBConnectionsRW[DBID][0].close()
+        globals()["DBConnectionsRW"][DBID][1] = False
+        LOG.info("---< DBCloseRW: %s / %s / %s rows updated on db close" % (DBID, changes, TaskId))
+    else:
+        LOG.error("---< DBCloseRW (database was not opened): %s / %s" % (DBID, TaskId))

@@ -90,6 +90,7 @@ device_id = ""
 syncdate = ""
 synctime = ""
 syncduringplayback = False
+usekodiworkarounds = False
 busyMsg = True
 FolderAddonUserdata = "special://profile/addon_data/%s/" % PluginId
 FolderEmbyTemp = "special://profile/addon_data/%s/temp/" % PluginId

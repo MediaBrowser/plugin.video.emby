@@ -407,13 +407,19 @@ class EmbyDatabase:
                     self.add_streamdata(ItemReferenced['Id'], item['Streams'])
 
 def join_Ids(Ids):
-    IdsFiltered = []
+    if Ids:
+        IdsFiltered = []
 
-    for Id in Ids:
-        if Id:
-            IdsFiltered.append(str(Id))
+        for Id in Ids:
+            if Id is None:
+                IdsFiltered.append("")
+            else:
+                IdsFiltered.append(str(Id))
 
-    if IdsFiltered:
-        return ";".join(IdsFiltered)
+        if IdsFiltered:
+            IdsString = ";".join(IdsFiltered)
+
+            if IdsString:
+                return IdsString
 
     return None
