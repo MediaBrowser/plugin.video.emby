@@ -104,7 +104,7 @@ class API:
                 musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
 
                 for Item in IncomingData['Items']:
-                    if Item['Type'] in ("Photo", "PhotoAlbum"):
+                    if Item['Type'] in ("Photo", "PhotoAlbum") or not embydb:
                         ItemsFullQuery += (Item['Id'],)
                         continue
 
