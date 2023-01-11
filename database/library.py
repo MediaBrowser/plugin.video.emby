@@ -361,7 +361,7 @@ class Library:
 
             if FoundRemoveItems:
                 if FoundRemoveItems[0][2] == "Folder":
-                    LOG.info("Detect media by folder id %s / % s" % (RemoveItem[0], FoundRemoveItems[0][11]))
+                    LOG.info("Detect media by folder id %s / %s" % (RemoveItem[0], FoundRemoveItems[0][11]))
                     FoundRemoveItems = embydb.get_media_by_folder(FoundRemoveItems[0][11])
 
             if not FoundRemoveItems:
@@ -496,40 +496,38 @@ class Library:
         if WorkerName in ("worker_library", "worker_update"):
             if Item['Type'] == "Audio":
                 Ret = self.ContentObject.song(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] == "MusicAlbum":
                 Ret = self.ContentObject.album(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] in ("MusicArtist", "AlbumArtist"):
                 Ret = self.ContentObject.artist(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] in ("Movie", "Video"):
                 Ret = self.ContentObject.movie(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] == "BoxSet":
                 Ret = self.ContentObject.boxset(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] == "MusicVideo":
                 Ret = self.ContentObject.musicvideo(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] == "Episode":
                 Ret = self.ContentObject.episode(Item)
-                ProgressMsg = "%s / %s / %s" % (Item.get('SeriesName', 'Unknown Seriesname'), Item.get('SeasonName', 'Unknown Seasonname'), Item['Name'])
+                ProgressMsg = "%s / %s / %s" % (Item.get('SeriesName', 'Unknown Seriesname'), Item.get('SeasonName', 'Unknown Seasonname'), Item.get('Name', "unknown"))
             elif Item['Type'] == "Season":
                 Ret = self.ContentObject.season(Item)
-                ProgressMsg = "%s / %s" % (Item['SeriesName'], Item['Name'])
+                ProgressMsg = "%s / %s" % (Item['SeriesName'], Item.get('Name', "unknown"))
             elif Item['Type'] == "Series":
                 Ret = self.ContentObject.tvshow(Item)
-                ProgressMsg = Item['Name']
+                ProgressMsg = Item.get('Name', "unknown")
             elif Item['Type'] == "Folder":
                 self.ContentObject.folder(Item)
 
                 if "Path" in Item:
                     ProgressMsg = Item['Path']
-                elif "Name" in Item:
-                    ProgressMsg = Item['Name']
                 else:
-                    ProgressMsg = "unknown"
+                    ProgressMsg = Item.get('Name', "unknown")
             else:
                 ProgressMsg = "unknown"
 
@@ -541,7 +539,7 @@ class Library:
                 else:
                     MsgTime = int(utils.newvideotime) * 1000
 
-                utils.Dialog.notification(heading="%s %s" % (utils.Translate(33049), Item['Type']), message=Item['Name'], icon=utils.icon, time=MsgTime, sound=False)
+                utils.Dialog.notification(heading="%s %s" % (utils.Translate(33049), Item['Type']), message=Item.get('Name', "unknown"), icon=utils.icon, time=MsgTime, sound=False)
         elif WorkerName == "worker_remove":
             utils.progress_update(ProgressValue, "Emby: %s" % Item['Type'], str(Item['Id']))
             self.ContentObject.remove(Item)

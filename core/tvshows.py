@@ -15,7 +15,12 @@ class TVShows:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
+
         ItemIndex = 0
         get_PresentationUniqueKey(item)
         item['Status'] = item.get('Status', "")
@@ -94,7 +99,12 @@ class TVShows:
             LOG.debug("No SeriesId assigned to Season: %s" % item)
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
+
         ItemIndex = 0
         item['IndexNumber'] = item.get('IndexNumber', 0)
         get_PresentationUniqueKey(item)
@@ -144,7 +154,11 @@ class TVShows:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
 
         if not 'MediaSources' in item or not item['MediaSources']:
             LOG.error("No mediasources found for episode: %s" % item['Id'])

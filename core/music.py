@@ -14,7 +14,12 @@ class Music:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
+
         ItemIndex = 0
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
@@ -44,7 +49,12 @@ class Music:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
+
         ItemIndex = 0
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
@@ -107,7 +117,12 @@ class Music:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
+
         ItemIndex = 0
         item['AlbumId'] = item.get('AlbumId', None)
         common.set_RunTimeTicks(item)
