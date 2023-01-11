@@ -15,7 +15,11 @@ class Movies:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        LOG.info("Process item: %s" % item['Name'])
+        if 'Name' in item:
+            LOG.info("Process item: %s" % item['Name'])
+        else:
+            LOG.error("No name assinged: %s" % item)
+            return False
 
         if not 'MediaSources' in item or not item['MediaSources']:
             LOG.error("No mediasources found for movie: %s" % item['Id'])
