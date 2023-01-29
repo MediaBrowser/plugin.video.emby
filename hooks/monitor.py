@@ -58,10 +58,9 @@ class monitor(xbmc.Monitor):
                 return
 
             utils.WidgetRefresh = False
-        else:
-            start_new_thread(syncEmby, ())
 
         utils.SyncPause['kodi_rw'] = False
+        start_new_thread(syncEmby, ())
 
     def onCleanStarted(self, library):
         utils.SyncPause['kodi_rw'] = True
