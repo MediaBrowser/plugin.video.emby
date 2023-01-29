@@ -1,3 +1,8 @@
+7.13.6
+=============
+fix init sync issue
+
+
 7.13.5
 =============
 fix folder remove logging issue
