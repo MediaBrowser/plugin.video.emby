@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.13.6" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="8.1.1" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0" />
@@ -13,7 +13,15 @@
         <menu id="kodi.core.main">
             <item library="events.py" args="contextmenu">
                 <label>30401</label>
-                <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))]</visible>
+                <visible>[!String.Contains(ListItem.Path,"pvr://guide/")]</visible>
+            </item>
+            <item library="events.py" args="record">
+                <label>33490</label>
+                <visible>[String.Contains(ListItem.Path,"pvr://guide/")]</visible>
+            </item>
+            <item library="events.py" args="specials">
+                <label>33485</label>
+                <visible>[String.Contains(ListItem.FileName,"-s-")]</visible>
             </item>
         </menu>
     </extension>

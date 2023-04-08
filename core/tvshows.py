@@ -1,7 +1,6 @@
-from helper import loghandler, pluginmenu
+import xbmc
+from helper import pluginmenu
 from . import common
-
-LOG = loghandler.LOG('EMBY.core.tvshows')
 
 
 class TVShows:
@@ -15,12 +14,11 @@ class TVShows:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not 'Name' in item:
+            xbmc.log(f"EMBY.core.music: Process item: {item}", 3) # LOGERROR
             return False
 
+        xbmc.log(f"EMBY.core.tvshows: Process item: {item['Name']}", 1) # LOGINFO
         ItemIndex = 0
         get_PresentationUniqueKey(item)
         item['Status'] = item.get('Status', "")
@@ -39,7 +37,7 @@ class TVShows:
                 continue
 
             if not item['UpdateItems'][ItemIndex]:
-                LOG.debug("KodiItemId %s not found" % item['Id'])
+                xbmc.log(f"EMBY.core.tvshows: KodiItemId {item['Id']} not found", 0) # LOGDEBUG
                 StackedKodiId = self.emby_db.get_stacked_kodiid(item['PresentationUniqueKey'], item['Librarys'][ItemIndex]['Id'], "Series")
 
                 if StackedKodiId:
@@ -64,7 +62,7 @@ class TVShows:
 
             if Stacked:
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                LOG.info("ADD stacked tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+                xbmc.log(f"EMBY.core.tvshows: ADD stacked tvshow [{item['KodiPathId']} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
             else:
                 self.video_db.set_Favorite(item['UserData']['IsFavorite'], item['KodiItemIds'][ItemIndex], "tvshow")
                 self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "tvshow")
@@ -79,12 +77,12 @@ class TVShows:
                 if item['UpdateItems'][ItemIndex]:
                     self.video_db.update_tvshow(item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['KodiItemIds'][ItemIndex], item['Trailer'])
                     self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                    LOG.info("UPDATE tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+                    xbmc.log(f"EMBY.core.tvshows: UPDATE tvshow [{item['KodiPathId']} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
                 else:
                     self.video_db.add_tvshow(item['KodiItemIds'][ItemIndex], item['Name'], item['Overview'], item['Status'], item['RatingId'], item['PremiereDate'], item['KodiArtwork']['poster'], item['Genre'], item['OriginalTitle'], item['KodiArtwork']['fanart'].get('fanart', ""), item['Unique'], item['OfficialRating'], item['Studio'], item['SortName'], item['RunTimeTicks'], item['Trailer'])
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Series", "tvshow", [], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
                     self.video_db.add_link_tvshow(item['KodiItemIds'][ItemIndex], item['KodiPathId'])
-                    LOG.info("ADD tvshow [%s/%s] %s: %s" % (item['KodiPathId'], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+                    xbmc.log(f"EMBY.core.tvshows: ADD tvshow [{item['KodiPathId']} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
 
             self.video_db.add_tags_and_links(item['KodiItemIds'][ItemIndex], "tvshow", item['TagItems'])
 
@@ -95,16 +93,15 @@ class TVShows:
             return False
 
         if 'SeriesId' not in item:
-            LOG.error("No SeriesId assigned to Season: %s %s" % (item['Id'], item['Name']))
-            LOG.debug("No SeriesId assigned to Season: %s" % item)
+            xbmc.log(f"EMBY.core.tvshows: No SeriesId assigned to Season: {item['Id']} {item['Name']}", 3) # LOGERROR
+            xbmc.log(f"EMBY.core.tvshows: No SeriesId assigned to Season: {item}", 0) # LOGDEBUG
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not 'Name' in item:
+            xbmc.log(f"EMBY.core.music: Process item: {item}", 3) # LOGERROR
             return False
 
+        xbmc.log(f"EMBY.core.tvshows: Process item: {item['Name']}", 1) # LOGINFO
         ItemIndex = 0
         item['IndexNumber'] = item.get('IndexNumber', 0)
         get_PresentationUniqueKey(item)
@@ -113,11 +110,11 @@ class TVShows:
             Stacked = False
 
             if not item['UpdateItems'][ItemIndex]:
-                LOG.debug("KodiSeasonId %s not found" % item['Id'])
+                xbmc.log(f"EMBY.core.tvshows: KodiSeasonId {item['Id']} not found", 0) # LOGDEBUG
 
                 if not self.get_kodi_show_id(item, ItemIndex):
-                    LOG.warning("Season, tvshow invalid assignment: %s" % item['Id'])
-                    LOG.debug("Season, tvshow invalid assignment: %s" % item)
+                    xbmc.log(f"EMBY.core.tvshows: Season, tvshow invalid assignment: {item['Id']}", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.core.tvshows: Season, tvshow invalid assignment: {item}", 0) # LOGDEBUG
                     continue
 
                 StackedKodiId = self.emby_db.get_stacked_kodiid(item['PresentationUniqueKey'], item['Librarys'][ItemIndex]['Id'], "Season")
@@ -133,7 +130,7 @@ class TVShows:
 
             if Stacked:
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "Season", "season", item['KodiParentIds'], item['LibraryIds'], item['SeriesId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                LOG.info("ADD stacked season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
+                xbmc.log(f"EMBY.core.tvshows: ADD stacked season [{item['KodiParentIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Name'] or item['IndexNumber']}: {item['Id']}", 1) # LOGINFO
             else:
                 common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
                 self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "season")
@@ -142,11 +139,11 @@ class TVShows:
                 if item['UpdateItems'][ItemIndex]:
                     self.video_db.update_season(item['KodiParentIds'][ItemIndex], item['IndexNumber'], item['Name'], item['KodiItemIds'][ItemIndex])
                     self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                    LOG.info("UPDATE season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
+                    xbmc.log(f"EMBY.core.tvshows: UPDATE season [{item['KodiParentIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Name'] or item['IndexNumber']}: {item['Id']}", 1) # LOGINFO
                 else:
                     self.video_db.add_season(item['KodiItemIds'][ItemIndex], item['KodiParentIds'][ItemIndex], item['IndexNumber'], item['Name'])
                     self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "Season", "season", item['KodiParentIds'], item['LibraryIds'], item['SeriesId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                    LOG.info("ADD season [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Name'] or item['IndexNumber'], item['Id']))
+                    xbmc.log(f"EMBY.core.tvshows: ADD season [{item['KodiParentIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Name'] or item['IndexNumber']}: {item['Id']}", 1) # LOGINFO
 
         return not item['UpdateItems'][ItemIndex]
 
@@ -154,20 +151,14 @@ class TVShows:
         if not common.library_check(item, self.EmbyServer, self.emby_db):
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not common.verify_content(item, "episode"):
             return False
 
-        if not 'MediaSources' in item or not item['MediaSources']:
-            LOG.error("No mediasources found for episode: %s" % item['Id'])
-            LOG.debug("No mediasources found for episode: %s" % item)
-            return False
+        xbmc.log(f"EMBY.core.tvshows: Process item: {item['Name']}", 1) # LOGINFO
 
         if 'SeriesId' not in item:
-            LOG.error("No SeriesId assigned to Episode: %s %s" % (item['Id'], item['Name']))
-            LOG.debug("No SeriesId assigned to Episode: %s" % item)
+            xbmc.log(f"EMBY.core.tvshows: No SeriesId assigned to Episode: {item['Id']} {item['Name']}", 3) # LOGERROR
+            xbmc.log(f"EMBY.core.tvshows: No SeriesId assigned to Episode: {item}", 0) # LOGDEBUG
             return False
 
         get_PresentationUniqueKey(item)
@@ -175,14 +166,20 @@ class TVShows:
         if 'SeasonId' not in item:
             # get seasonID from PresentationUniqueKey
             if item['PresentationUniqueKey']:
-                LOG.info("Detect SeasonId by PresentationUniqueKey: %s" % item['PresentationUniqueKey'])
+                xbmc.log(f"EMBY.core.tvshows: Detect SeasonId by PresentationUniqueKey: {item['PresentationUniqueKey']}", 1) # LOGINFO
                 PresentationUniqueKeySeason = item['PresentationUniqueKey'][:item['PresentationUniqueKey'].rfind("_")]
                 item['SeasonId'] = self.emby_db.get_EmbyId_by_EmbyPresentationKey(PresentationUniqueKeySeason)
 
+            # Inject fake season 0 e.g. for recordings
             if not item['SeasonId']:
-                LOG.error("No season assigned to Episode: %s %s" % (item['Id'], item['Name']))
-                LOG.debug("No season assigned to Episode: %s" % item)
-                return False
+                xbmc.log(f"EMBY.core.tvshows: No season assigned to Episode: {item['Id']} {item['Name']}", 3) # LOGERROR
+                xbmc.log(f"EMBY.core.tvshows: No season assigned to Episode: {item}", 0) # LOGDEBUG
+
+                for ItemIndex in range(len(item['Librarys'])):
+                    SeasonItem = {'Id': f"999999997{item['Id']}", 'Name': "Season 0", 'IndexNumber': 0, 'SeriesId': item['SeriesId'], 'Library': item['Librarys'][ItemIndex], 'Type': "Season", 'PresentationUniqueKey': f"{item['PresentationUniqueKey']}-000", 'UserData': {'IsFavorite': 0}}
+                    self.season(SeasonItem)
+
+                item['SeasonId'] = SeasonItem['Id']
 
         ItemIndex = 0
         common.set_mpaa(item)
@@ -211,8 +208,8 @@ class TVShows:
             item['KodiPathId'] = self.video_db.get_add_path(item['Path'], None)
 
             if not self.get_kodi_show_id(item, ItemIndex):
-                LOG.warning("Episode, tvshow invalid assignment: %s" % item['Id'])
-                LOG.debug("Episode, tvshow invalid assignment: %s" % item)
+                xbmc.log(f"EMBY.core.tvshows: Episode, tvshow invalid assignment: {item['Id']}", 2) # LOGWARNING
+                xbmc.log(f"EMBY.core.tvshows: Episode, tvshow invalid assignment: {item}", 0) # LOGDEBUG
                 continue
 
             # KodiSeasonId
@@ -222,26 +219,26 @@ class TVShows:
                 SeasonItem = self.EmbyServer.API.get_Item(item['SeasonId'], ['Season'], False, False)
 
                 if not SeasonItem:
-                    LOG.warning("Episode, season invalid assignment: %s" % item['Id'])
-                    LOG.debug("Episode, season invalid assignment: %s" % item)
+                    xbmc.log(f"EMBY.core.tvshows: Episode, season invalid assignment: {item['Id']}", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.core.tvshows: Episode, season invalid assignment: {item}", 0) # LOGDEBUG
                     continue
 
                 SeasonItem['Library'] = item['Library']
                 self.season(SeasonItem)
                 item['KodiSeasonId'] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(item['SeasonId'], item['LibraryIds'][ItemIndex])
 
-            common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "episode", "e", ItemIndex)
+            common.set_ContentItem(item, self.video_db, self.emby_db, self.EmbyServer, "episode", ItemIndex)
             self.video_db.add_link_tag(common.MediaTags[item['Librarys'][ItemIndex]['Name']], item['KodiItemIds'][ItemIndex], "episode")
             item['Unique'] = self.video_db.add_uniqueids(item['KodiItemIds'][ItemIndex], item['ProviderIds'], "episode", 'tvdb')
             item['RatingId'] = self.video_db.add_ratings(item['KodiItemIds'][ItemIndex], "episode", "default", item['CommunityRating'])
-            self.video_db.add_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['RatingId'], item['Writers'], item['PremiereDate'], item['KodiArtwork']['thumb'], item['RunTimeTicks'], item['Directors'], item['ParentIndexNumber'], item['IndexNumber'], item['OriginalTitle'], item['SortParentIndexNumber'], item['SortIndexNumber'], "%s%s" % (item['Path'], item['Filename']), item['KodiPathId'], item['Unique'], item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
+            self.video_db.add_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['RatingId'], item['Writers'], item['PremiereDate'], item['KodiArtwork']['thumb'], item['RunTimeTicks'], item['Directors'], item['ParentIndexNumber'], item['IndexNumber'], item['OriginalTitle'], item['SortParentIndexNumber'], item['SortIndexNumber'], f"{item['Path']}{item['Filename']}", item['KodiPathId'], item['Unique'], item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['SeasonId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'])
             self.emby_db.add_multiversion(item, "Episode", self.EmbyServer.API, self.video_db, ItemIndex)
 
             if item['UpdateItems'][ItemIndex]:
-                LOG.info("UPDATE episode [%s/%s/%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['Name']))
+                xbmc.log(f"EMBY.core.tvshows: UPDATE episode [{item['KodiParentIds'][ItemIndex]} / {item['KodiSeasonId']} / {item['KodiItemIds'][ItemIndex]} / {item['KodiFileIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
             else:
-                LOG.info("ADD episode [%s/%s/%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['Name']))
+                xbmc.log(f"EMBY.core.tvshows: ADD episode [{item['KodiParentIds'][ItemIndex]} / {item['KodiSeasonId']} / {item['KodiItemIds'][ItemIndex]} / {item['KodiFileIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
 
         return not item['UpdateItems'][ItemIndex]
 
@@ -254,7 +251,7 @@ class TVShows:
             if not TVShowItem:
                 return False
 
-            LOG.info("Add TVShow by SeriesId %s" % Item['SeriesId'])
+            xbmc.log(f"EMBY.core.tvshows: Add TVShow by SeriesId {Item['SeriesId']}", 1) # LOGINFO
             TVShowItem['Library'] = Item['Library']
             self.tvshow(TVShowItem)
             Item['KodiParentIds'][ItemIndex] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(Item['SeriesId'], Item['LibraryIds'][ItemIndex])
@@ -282,7 +279,7 @@ class TVShows:
                 pluginmenu.reset_querycache()
 
             self.emby_db.update_favourite(Item['IsFavorite'], Item['Id'])
-            LOG.info("USERDATA [%s/%s/%s] %s" % (Item['KodiType'], Item['KodiFileIds'][ItemIndex], Item['KodiItemIds'][ItemIndex], Item['Id']))
+            xbmc.log(f"EMBY.core.tvshows: USERDATA [{Item['KodiType']} / {Item['KodiFileIds'][ItemIndex]} / {Item['KodiItemIds'][ItemIndex]}] {Item['Id']}", 1) # LOGINFO
 
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons
@@ -295,14 +292,14 @@ class TVShows:
 
                 # multiversion
                 if StackedIds:
-                    LOG.info("DELETE multi version episodes from embydb %s" % Item['Id'])
+                    xbmc.log(f"EMBY.core.tvshows: DELETE multi version episodes from embydb {Item['Id']}", 1) # LOGINFO
 
                     for StackedId in StackedIds:
                         StackedItem = self.EmbyServer.API.get_Item(StackedId[0], ['Episode'], False, False)
 
                         if StackedItem:
                             StackedItem['Library'] = Item['Library']
-                            LOG.info("UPDATE remaining multi version episode %s" % StackedItem['Id'])
+                            xbmc.log(f"EMBY.core.tvshows: UPDATE remaining multi version episode {StackedItem['Id']}", 1) # LOGINFO
                             self.episode(StackedItem)  # update all remaining multiversion items
                         else:
                             self.emby_db.remove_item(StackedId[0], Item['Library']['Id'])
@@ -323,27 +320,27 @@ class TVShows:
             self.remove_tvshow(Item['KodiItemId'], Item['Id'], Item['Library']['Id'])
 
             if not Item['DeleteByLibraryId']:
-                LOG.info("DELETE stacked tvshow [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.tvshows: DELETE stacked tvshow [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
                 StackedSeasonItems = self.emby_db.get_items_by_embyparentid(Item['Id'], Item['Library']['Id'], "Season")
 
                 for StackedSeasonItem in StackedSeasonItems:
                     self.remove_season(StackedSeasonItem[4], StackedSeasonItem[0], Item['Library']['Id'])
-                    LOG.info("DELETE stacked season [%s] %s" % (StackedSeasonItem[4], StackedSeasonItem[0]))
+                    xbmc.log(f"EMBY.core.tvshows: DELETE stacked season [{StackedSeasonItem[4]}] {StackedSeasonItem[0]}", 1) # LOGINFO
                     StackedItems = self.emby_db.get_items_by_embyparentid(StackedSeasonItem[0], Item['Library']['Id'], "Episode")
 
                     for StackedItem in StackedItems:
                         self.remove_episode(StackedItem[4], StackedItem[5], StackedItem[0], Item['Library']['Id'])
-                        LOG.info("DELETE stacked episode [%s/%s] %s" % (StackedItem[4], StackedItem[5], StackedItem[0]))
+                        xbmc.log(f"EMBY.core.tvshows: DELETE stacked episode [{StackedItem[4]} / {StackedItem[5]}] {StackedItem[0]}", 1) # LOGINFO
         elif Item['Type'] == 'Season':
             self.remove_season(Item['KodiItemId'], Item['Id'], Item['Library']['Id'])
 
             if not Item['DeleteByLibraryId']:
-                LOG.info("DELETE stacked season [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.tvshows: DELETE stacked season [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
                 StackedItems = self.emby_db.get_items_by_embyparentid(Item['Id'], Item['Library']['Id'], "Episode")
 
                 for StackedItem in StackedItems:
                     self.remove_episode(StackedItem[4], StackedItem[5], StackedItem[0], Item['Library']['Id'])
-                    LOG.info("DELETE stacked episode [%s/%s] %s" % (StackedItem[4], StackedItem[5], StackedItem[0]))
+                    xbmc.log(f"EMBY.core.tvshows: DELETE stacked episode [{StackedItem[4]} / {StackedItem[5]}] {StackedItem[0]}", 1) # LOGINFO
 
     def remove_tvshow(self, KodiTVShowId, EmbyItemId, EmbyLibrayId):
         self.video_db.common.delete_artwork(KodiTVShowId, "tvshow")
@@ -351,19 +348,19 @@ class TVShows:
         self.video_db.delete_links_tags(KodiTVShowId, "tvshow")
         self.video_db.delete_link_tvshow(KodiTVShowId)
         self.emby_db.remove_item(EmbyItemId, EmbyLibrayId)
-        LOG.info("DELETE tvshow [%s] %s" % (KodiTVShowId, EmbyItemId))
+        xbmc.log(f"EMBY.core.tvshows: DELETE tvshow [{KodiTVShowId}] {EmbyItemId}", 1) # LOGINFO
 
     def remove_season(self, KodiSeasonId, EmbyItemId, EmbyLibrayId):
         self.video_db.common.delete_artwork(KodiSeasonId, "season")
         self.video_db.delete_season(KodiSeasonId)
         self.video_db.delete_links_tags(KodiSeasonId, "season")
         self.emby_db.remove_item(EmbyItemId, EmbyLibrayId)
-        LOG.info("DELETE season [%s] %s" % (KodiSeasonId, EmbyItemId))
+        xbmc.log(f"EMBY.core.tvshows: DELETE season [{KodiSeasonId}] {EmbyItemId}", 1) # LOGINFO
 
     def remove_episode(self, KodiItemId, KodiFileId, EmbyItemId, EmbyLibraryId):
         common.delete_ContentItem(EmbyItemId, KodiItemId, KodiFileId, self.video_db, self.emby_db, "episode", EmbyLibraryId)
         self.video_db.delete_episode(KodiItemId, KodiFileId)
-        LOG.info("DELETE episode [%s/%s] %s" % (KodiItemId, KodiFileId, EmbyItemId))
+        xbmc.log(f"EMBY.core.tvshows: DELETE episode [{KodiItemId} / {KodiFileId}] {EmbyItemId}", 1) # LOGINFO
 
 def get_PresentationUniqueKey(Item):
     if "PresentationUniqueKey" in Item:

@@ -1,3 +1,81 @@
+8.1.1
+=============
+compatibility with Emby server beta 4.8.0.29
+workarounds for .29 performance issues
+use async http queries (for init and startup sync)
+
+
+8.1.0
+=============
+fix rare sync issue
+compatibility with Emby server beta 4.8.0.27
+add HDR flag in Kodi's dynamic listitems
+add HDR flag in Kodi's database
+fix audio sync issue
+fix subtitle issue
+
+
+8.0.4
+=============
+fix multiversion sync issue
+fix access restricted issue
+
+
+8.0.3
+=============
+fix bluray sync
+fix sync isse after remote mode disabled
+add option to disable ssl verification
+
+
+8.0.2
+=============
+fix skip intro
+fix artwork cache issue
+improve http communication
+major changes in player controlls (major changes)
+new remote control function added
+watch together/remote mode, could forward control to supported clients (option) -> multi box control
+add NowPlayingQueue support -> requested here: https://emby.media/community/index.php?/topic/116318-playlist-bei-wiedergabe-auf-anderem-ger%C3%A4t-leer/#comment-1229462
+fix sleep mode
+
+
+8.0.1
+=============
+improve watch together feature (support 3rd party apps)
+improve livetv sync (cache EPG etc.)
+Kodi workaround getting proper progress information
+replace Kodi (python) player API (unreliable) with json rpc commands
+replace Kodi (python) playerlist API (unreliable) with json rpc commands
+added sort of "qos" for http queries (prioritize realtime queries, queue async queries)
+
+
+8.0.0
+=============
+use Kodi 20 improvements for plugin
+change database index (faster music album artwork loading)
+fix search by actor
+keep photos, photoalbums, upcoming always cached
+ask for transcoding audio streams (option)
+fix special content playback via context menu
+rewrite logs -> native xbmc.log
+support chapter bookmarks for all content in addon mode (using Kodi's path substitution, tricking Kodi believing it's local content)
+shorten filenames
+change context menu (add specials as seperate item)
+unify iso, bmdv, plugin detection (maybe side effects, must be reviewed)
+rewrite transcodec options
+improve livetv playback
+cache translations
+improve startup sync (maybe side effects, must be reviewed)
+improve EPG sync (based on iptv-simple scheduler)
+add (basic) livetv recording option
+add support for Favorite Collection
+add support for Favorites combined in one node
+(minor) http session improvements
+add remote control support
+Watch-together E4K implementation
+
+
 7.13.6
 =============
 fix init sync issue

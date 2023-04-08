@@ -6,14 +6,14 @@ class CommonDatabase:
 
     # reset
     def delete_tables(self, DatabaseName):
-        utils.progress_open("%s-%s %s" % (utils.Translate(33415), DatabaseName, utils.Translate(33416)))
+        utils.progress_open(f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}")
 
         # Temporay remove triggers
         self.cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='trigger'")
         Triggers = self.cursor.fetchall()
 
         for Trigger in Triggers:
-            self.cursor.execute("DROP TRIGGER %s" % Trigger[0])
+            self.cursor.execute(f"DROP TRIGGER {Trigger[0]}")
 
         # Delete tables
         self.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
@@ -26,8 +26,8 @@ class CommonDatabase:
 
             if name not in ('version', 'versiontagscan'):
                 Counter += 1
-                utils.progress_update(int(Counter * Increment), utils.Translate(33199), "%s-%s %s: %s" % (utils.Translate(33415), DatabaseName, utils.Translate(33416), name))
-                self.cursor.execute("DELETE FROM " + name)
+                utils.progress_update(int(Counter * Increment), utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}: {name}")
+                self.cursor.execute(f"DELETE FROM {name}")
 
         # readding triggers
         for Trigger in Triggers:

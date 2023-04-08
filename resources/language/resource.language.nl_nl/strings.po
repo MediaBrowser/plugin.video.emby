@@ -1978,3 +1978,271 @@ msgstr "Selecteer mediabron"
 msgctxt "#33454"
 msgid "Use Kodi bugs workaround"
 msgstr ""
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4v3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr ""
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr ""
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr ""
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr ""
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr ""
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr ""
+
+msgctxt "#33485"
+msgid "Specials"
+msgstr ""
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr ""
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr ""
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr ""
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr ""
+
+msgctxt "#33490"
+msgid "Emby Record"
+msgstr ""
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr ""
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr ""
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr ""
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr ""
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr ""
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr ""
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr ""
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr ""
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr ""
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr ""
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr ""
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr ""
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr ""
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr ""
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr ""
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr ""
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr ""
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr ""
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr ""
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr ""
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr ""
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr ""
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr ""
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr ""
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr ""
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr ""
+
+msgctxt "#33517"
+msgid "Watch together"
+msgstr ""
+
+msgctxt "#33518"
+msgid "Remove client"
+msgstr ""
+
+msgctxt "#33519"
+msgid "Add client"
+msgstr ""
+
+msgctxt "#33520"
+msgid "Enable remote mode"
+msgstr ""
+
+msgctxt "#33521"
+msgid "Disable remote mode"
+msgstr ""

@@ -81,6 +81,16 @@
                     <level>0</level>
                     <control type="button" format="action"/>
                 </setting>
+                <setting label="33234" id="synclivetv" type="boolean">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="usepathsubstitution" label="33486" type="boolean" help="33487">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting id="texturecache" label="33059" type="action" help="33310">
                     <data>NotifyAll(plugin.video.emby-next-gen,texturecache)</data>
                     <level>0</level>
@@ -137,7 +147,29 @@
                         <popup>false</popup>
                     </control>
                 </setting>
-            </group> 
+            </group>
+            <group id="2" label="33488">
+                <setting label="30302" id="uniquepeoplemovies" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30305" id="uniquepeopletvshows" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33489" id="uniquepeopleepisodes" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33363" id="uniquepeoplemusicvideos" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
         </category>
         <category id="playback" label="30516" help="">
             <group id="1" label="33298">
@@ -276,81 +308,306 @@
                     </control>
                 </setting>
             </group>
-            <group id="5" label="33243">
-                <setting label="30522" id="transcodeH265" type="boolean" help="">
+            <group id="5" label="33495">
+                <setting label="33498" id="remotecontrol_force_clients" type="boolean" help="33499">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33500" id="remotecontrol_client_control" type="boolean" help="33501">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33502" id="remotecontrol_sync_clients" type="boolean" help="33503">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33510" id="remotecontrol_auto_ack" type="boolean" help="33511">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="useDirectPaths">false</condition>
-                        </dependency>
-                    </dependencies>
                 </setting>
-                <setting label="33214" id="transcodeDivx" type="boolean" help="">
+                <setting id="remotecontrol_drift" type="integer" label="33508" help="33509">
                     <level>0</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="useDirectPaths">false</condition>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting label="33215" id="transcodeXvid" type="boolean" help="">
-                    <level>0</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="useDirectPaths">false</condition>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting label="33216" id="transcodeMpeg2" type="boolean" help="">
-                    <level>0</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="useDirectPaths">false</condition>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting id="TranscodeFormatVideo" type="string" label="33244" help="">
-                    <level>0</level>
-                    <default>h264</default>
+                    <default>200</default>
                     <constraints>
-                        <options>
-                            <option label="33326">h264</option>
-                            <option label="33327">hevc</option>
-                        </options>
-                        <allowempty>true</allowempty>
+                        <minimum>100</minimum>
+                        <step>100</step>
+                        <maximum>10000</maximum>
                     </constraints>
-                    <control type="spinner" format="string"/>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="useDirectPaths">false</condition>
-                        </dependency>
-                    </dependencies>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
-                <setting id="TranscodeFormatAudio" type="string" label="33245" help="">
+                <setting id="remotecontrol_wait_clients" type="integer" label="33504" help="33505">
                     <level>0</level>
-                    <default>aac</default>
+                    <default>30</default>
                     <constraints>
-                        <options>
-                            <option label="33328">aac</option>
-                            <option label="33329">ac3</option>
-                        </options>
-                        <allowempty>true</allowempty>
+                        <minimum>5</minimum>
+                        <step>1</step>
+                        <maximum>120</maximum>
                     </constraints>
-                    <control type="spinner" format="string"/>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="watchtogeter_start_delay" type="integer" label="33506" help="33507">
+                    <level>0</level>
+                    <default>20</default>
+                    <constraints>
+                        <minimum>5</minimum>
+                        <step>1</step>
+                        <maximum>60</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting label="33515" id="remotecontrol_keep_clients" type="boolean" help="33516">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33514" id="remotecontrol_resync_clients" type="boolean" help="33513">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="remotecontrol_resync_time" type="integer" label="33512" help="33513">
+                    <level>0</level>
+                    <default>10</default>
+                    <constraints>
+                        <minimum>5</minimum>
+                        <step>1</step>
+                        <maximum>60</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="remotecontrol_resync_clients">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="6" label="33470">
+                <setting label="33455" id="transcode_h264" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting label="33456" id="transcode_hevc" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33457" id="transcode_av1" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33458" id="transcode_vp8" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33459" id="transcode_vp9" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33460" id="transcode_wmv3" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33461" id="transcode_mpeg4" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33462" id="transcode_mpeg2video" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33463" id="transcode_mjpeg" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33464" id="transcode_msmpeg4v3" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="7" label="33471">
+                <setting label="33465" id="transcode_aac" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33466" id="transcode_mp3" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33467" id="transcode_mp2" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33468" id="transcode_dts" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33469" id="transcode_ac3" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33474" id="transcode_eac3" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33475" id="transcode_pcm_mulaw" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33476" id="transcode_pcm_s24le" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33477" id="transcode_vorbis" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33478" id="transcode_wmav2" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33479" id="transcode_ac4" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="8" label="33472">
                 <setting id="videoBitrate" type="integer" label="30160" help="33316">
                     <level>0</level>
                     <default>100000000</default>
@@ -402,6 +659,64 @@
                             <option label="33296">448000</option>
                             <option label="33297">512000</option>
                         </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="9" label="33480">
+                <setting label="33482" id="transcode_livetv_video" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33481" id="transcode_livetv_audio" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="10" label="33473">
+                <setting id="TranscodeFormatVideo" type="string" label="33244" help="">
+                    <level>0</level>
+                    <default>h264</default>
+                    <constraints>
+                        <options>
+                            <option label="33326">h264</option>
+                            <option label="33327">hevc</option>
+                        </options>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="TranscodeFormatAudio" type="string" label="33245" help="">
+                    <level>0</level>
+                    <default>aac</default>
+                    <constraints>
+                        <options>
+                            <option label="33328">aac</option>
+                            <option label="33329">ac3</option>
+                        </options>
+                        <allowempty>true</allowempty>
                     </constraints>
                     <control type="spinner" format="string"/>
                     <dependencies>
@@ -552,7 +867,14 @@
                     </dependencies>
                 </setting>
             </group>
-            <group id="5" label="33410">
+            <group id="5" label="30412">
+                <setting label="33483" id="transcode_select_audiostream" type="boolean" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="6" label="33410">
                 <setting label="33333" id="animateicon" type="boolean" help="">
                     <level>0</level>
                     <default>false</default>
@@ -629,6 +951,11 @@
                     <control type="toggle"/>
                 </setting>
                 <setting label="33454" id="usekodiworkarounds" type="boolean" help="">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30500" id="sslverify" type="boolean" help="">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle"/>

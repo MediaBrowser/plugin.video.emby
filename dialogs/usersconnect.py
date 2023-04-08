@@ -1,5 +1,6 @@
+import xbmc
 import xbmcgui
-from helper import loghandler, utils
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -9,7 +10,6 @@ ACTION_MOUSE_LEFT_CLICK = 100
 LIST = 155
 MANUAL = 200
 CANCEL = 201
-LOG = loghandler.LOG('EMBY.dialogs.userconnect')
 
 
 class UsersConnect(xbmcgui.WindowXMLDialog):
@@ -32,8 +32,8 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
             BinaryData, _, FileExtension = self.API.get_Image_Binary(user['Id'], "Primary", 0, 0, True)
 
             if BinaryData:
-                Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s_%s.%s" % (self.ServerData['ServerName'], user['Name'], user['Id'], FileExtension))
-                iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
+                Filename = utils.PathToFilenameReplaceSpecialCharecters(f"{self.ServerData['ServerName']}_{user['Name']}_{user['Id']}.{FileExtension}")
+                iconpath = f"{utils.FolderEmbyTemp}{Filename}"
                 utils.delFile(iconpath)
                 utils.writeFileBinary(iconpath, BinaryData)
                 user['UserImageUrl'] = iconpath
@@ -53,7 +53,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
             if self.getFocusId() == LIST:
                 user = self.list_.getSelectedItem()
                 selected_id = user.getProperty('id')
-                LOG.info('User Id selected: %s' % selected_id)
+                xbmc.log(f"EMBY.dialogs.userconnect: User Id selected: {selected_id}", 1) # LOGINFO
 
                 for user in self.users:
                     if user['Id'] == selected_id:

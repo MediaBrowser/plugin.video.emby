@@ -1,7 +1,6 @@
 import xml.etree.ElementTree
-from . import utils, loghandler
-
-LOG = loghandler.LOG('EMBY.helper.xmls')
+import xbmc
+from . import utils
 
 
 # Create master lock compatible sources.
@@ -12,7 +11,7 @@ def sources():
 
     # skip if kodi.emby.media already added
     if 'http://kodi.emby.media' in xmlData:
-        LOG.info("Source http://kodi.emby.media exists, no change")
+        xbmc.log("EMBY.helper.xmls: Source http://kodi.emby.media exists, no change", 1) # LOGINFO
         return
 
     if xmlData:
@@ -57,30 +56,58 @@ def load_defaultvideosettings():
 
     return {}
 
-def restart_required(Filepath, xmlData):
-    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=10000, sound=True)
-    WriteXmlFile(Filepath, xmlData)
-
 def advanced_settings():
     WriteData = False
     Filepath = 'special://profile/advancedsettings.xml'
     FileData = utils.readFileString(Filepath)
 
     if FileData:
-        http2check = "<disablehttp2>%s</disablehttp2>" % utils.disablehttp2
-
-        if "<curllowspeedtime>120</curllowspeedtime>" in FileData and "<curlclienttimeout>120</curlclienttimeout>" in FileData and http2check in FileData:
-            LOG.info("advancedsettings.xml valid, no change")
+        if "<from>/emby_addon_mode/</from>" in FileData and "<curllowspeedtime>120</curllowspeedtime>" in FileData and "<curlclienttimeout>120</curlclienttimeout>" in FileData and f"<disablehttp2>{utils.disablehttp2}</disablehttp2>" in FileData:
+            xbmc.log("EMBY.helper.xmls: advancedsettings.xml valid, no change", 1) # LOGINFO
             return False
 
         xmlData = xml.etree.ElementTree.fromstring(FileData)
+        pathsubstitution = xmlData.find('pathsubstitution')
+
+        if pathsubstitution is not None:
+            substitute = pathsubstitution.find('substitute')
+
+            if substitute is not None:
+                fromPath = substitute.find('from')
+
+                if fromPath.text != "/emby_addon_mode/":
+                    xbmc.log("EMBY.helper.xmls: advancedsettings.xml set path substitution from", 2) # LOGWARNING
+                    substitute.remove(fromPath)
+                    xml.etree.ElementTree.SubElement(substitute, 'from').text = "/emby_addon_mode/"
+                    WriteData = True
+
+                toPath = substitute.find('to')
+
+                if toPath.text != "http://127.0.0.1:57342/":
+                    xbmc.log("EMBY.helper.xmls: advancedsettings.xml set path substitution to", 2) # LOGWARNING
+                    substitute.remove(toPath)
+                    xml.etree.ElementTree.SubElement(substitute, 'to').text = "http://127.0.0.1:57342/"
+                    WriteData = True
+            else:
+                substitute = xml.etree.ElementTree.SubElement(pathsubstitution, 'substitute')
+                xml.etree.ElementTree.SubElement(substitute, 'from').text = "/emby_addon_mode/"
+                xml.etree.ElementTree.SubElement(substitute, 'to').text = "http://127.0.0.1:57342/"
+                WriteData = True
+        else:
+            xbmc.log("EMBY.helper.xmls: advancedsettings.xml set pathsubstitution", 2) # LOGWARNING
+            pathsubstitution = xml.etree.ElementTree.SubElement(xmlData, 'pathsubstitution')
+            substitute = xml.etree.ElementTree.SubElement(pathsubstitution, 'substitute')
+            xml.etree.ElementTree.SubElement(substitute, 'from').text = "/emby_addon_mode/"
+            xml.etree.ElementTree.SubElement(substitute, 'to').text = "http://127.0.0.1:57342/"
+            WriteData = True
+
         videolibrary = xmlData.find('videolibrary')
 
         if videolibrary is not None:
             cleanonupdate = videolibrary.find('cleanonupdate')
 
             if cleanonupdate is not None and cleanonupdate.text == "true":
-                LOG.warning("cleanonupdate disabled")
+                xbmc.log("EMBY.helper.xmls: cleanonupdate disabled", 2) # LOGWARNING
                 videolibrary.remove(cleanonupdate)
                 WriteData = True
                 utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33097))
@@ -92,7 +119,7 @@ def advanced_settings():
 
             if curlclienttimeout is not None:
                 if curlclienttimeout.text != "120":
-                    LOG.warning("advancedsettings.xml set curlclienttimeout")
+                    xbmc.log("EMBY.helper.xmls: advancedsettings.xml set curlclienttimeout", 2) # LOGWARNING
                     Network.remove(curlclienttimeout)
                     xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
                     WriteData = True
@@ -104,7 +131,7 @@ def advanced_settings():
 
             if curllowspeedtime is not None:
                 if curllowspeedtime.text != "120":
-                    LOG.warning("advancedsettings.xml set curllowspeedtime")
+                    xbmc.log("EMBY.helper.xmls: advancedsettings.xml set curllowspeedtime", 2) # LOGWARNING
                     Network.remove(curllowspeedtime)
                     xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
                     WriteData = True
@@ -117,7 +144,7 @@ def advanced_settings():
 
             if curldisablehttp2 is not None:
                 if curldisablehttp2.text != utils.disablehttp2:
-                    LOG.warning("advancedsettings.xml set disablehttp2")
+                    xbmc.log("EMBY.helper.xmls: advancedsettings.xml set disablehttp2", 2) # LOGWARNING
                     Network.remove(curldisablehttp2)
                     xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
                     WriteData = True
@@ -125,25 +152,31 @@ def advanced_settings():
                 xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
                 WriteData = True
         else:
-            LOG.warning("advancedsettings.xml set network")
+            xbmc.log("EMBY.helper.xmls: advancedsettings.xml set network", 2) # LOGWARNING
             Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
             xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
             xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
             xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
             WriteData = True
     else:
-        LOG.warning("advancedsettings.xml set data")
+        xbmc.log("EMBY.helper.xmls: advancedsettings.xml set data", 2) # LOGWARNING
         xmlData = xml.etree.ElementTree.Element('advancedsettings')
         Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
         xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+        pathsubstitution = xml.etree.ElementTree.SubElement(xmlData, 'pathsubstitution')
+        substitute = xml.etree.ElementTree.SubElement(pathsubstitution, 'substitute')
+        xml.etree.ElementTree.SubElement(substitute, 'from').text = "/emby_addon_mode/"
+        xml.etree.ElementTree.SubElement(substitute, 'to').text = "http://127.0.0.1:57342/"
         WriteData = True
 
     if WriteData:
-        restart_required(Filepath, xmlData)
+        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33268), icon=utils.icon, time=10000, sound=True)
+        WriteXmlFile(Filepath, xmlData)
+        return True
 
-    return WriteData
+    return False
 
 def WriteXmlFile(FilePath, Data):
     DataQueue = [(0, Data)]
@@ -157,12 +190,12 @@ def WriteXmlFile(FilePath, Data):
             children.append((level + 1, child))
 
         if children:
-            element.text = '\n' + '    ' * (level + 1)
+            element.text = f"\n{'    ' * (level + 1)}"
 
         if DataQueue:
-            element.tail = '\n' + '    ' * DataQueue[0][0]
+            element.tail = f"\n{'    ' * DataQueue[0][0]}"
         else:
-            element.tail = '\n' + '    ' * (level - 1)
+            element.tail = f"\n{'    ' * (level - 1)}"
 
         DataQueue[0:0] = children
 
@@ -172,13 +205,13 @@ def WriteXmlFile(FilePath, Data):
     utils.writeFileBinary(FilePath, Data)
 
 def verify_settings_file():
-    xmlData = utils.readFileString("%ssettings.xml" % utils.FolderAddonUserdata)
+    xmlData = utils.readFileString(f"{utils.FolderAddonUserdata}settings.xml")
 
     if xmlData:
         try:
             xml.etree.ElementTree.fromstring(xmlData)
         except Exception as Error:
-            LOG.error("Setting file corupted, restore: %s" % Error)
+            xbmc.log(f"EMBY.helper.xmls: Setting file corupted, restore: {Error}", 3) # LOGERROR
             return False
 
     return True
