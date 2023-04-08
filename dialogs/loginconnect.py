@@ -1,5 +1,6 @@
+import xbmc
 import xbmcgui
-from helper import utils, loghandler
+from helper import utils
 
 ACTION_PARENT_DIR = 9
 ACTION_PREVIOUS_MENU = 10
@@ -9,7 +10,6 @@ CANCEL = 201
 ERROR_TOGGLE = 202
 ERROR_MSG = 203
 ERROR = {'Invalid': 1, 'Empty': 2}
-LOG = loghandler.LOG('EMBY.dialogs.loginconnect')
 
 
 class LoginConnect(xbmcgui.WindowXMLDialog):
@@ -49,7 +49,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
             if not user or not password:
                 # Display error
                 self._error(ERROR['Empty'], utils.Translate(30608))
-                LOG.error("Username or password cannot be null")
+                xbmc.log("EMBY.dialogs.loginconnect: Username or password cannot be null", 3) # LOGERROR
             elif self._login(user, password):
                 self.close()
         elif controlId == CANCEL:
@@ -82,7 +82,7 @@ class LoginConnect(xbmcgui.WindowXMLDialog):
             self._error(ERROR['Invalid'], utils.Translate(33009))
             return False
 
-        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33000), result['User']['Name']), icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33000)} {result['User']['Name']}", icon=result['User'].get('ImageUrl') or utils.icon, time=2000, sound=False)
         return True
 
     def _error(self, state, message):

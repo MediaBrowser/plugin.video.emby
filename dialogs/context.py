@@ -1,7 +1,5 @@
+import xbmc
 import xbmcgui
-from helper import loghandler
-
-LOG = loghandler.LOG('EMBY.dialogs.context')
 
 
 class ContextMenu(xbmcgui.WindowXMLDialog):
@@ -12,6 +10,7 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def PassVar(self, options):
+        self.selected_option = None
         self._options = options
 
     def is_selected(self):
@@ -21,7 +20,7 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
         return self.selected_option
 
     def onInit(self):
-        LOG.info("options: %s" % self._options)
+        xbmc.log(f"EMBY.dialogs.context: options: {self._options}", 1) # LOGINFO
         self.list_ = self.getControl(155)
 
         for option in self._options:
@@ -31,11 +30,13 @@ class ContextMenu(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
         if action in (92, 9, 10):
+            self.list_.reset()
             self.close()
 
         if action in (7, 100):
             if self.getFocusId() == 155:
                 option = self.list_.getSelectedItem()
                 self.selected_option = option.getLabel()
-                LOG.info('option selected: %s' % self.selected_option)
+                xbmc.log(f"EMBY.dialogs.context: option selected: {self.selected_option}", 1) # LOGINFO
+                self.list_.reset()
                 self.close()

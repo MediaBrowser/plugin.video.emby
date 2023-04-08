@@ -1,9 +1,8 @@
 from _thread import start_new_thread
 import queue
 import requests
-from helper import utils, loghandler
-
-LOG = loghandler.LOG('EMBY.emby.http')
+import xbmc
+from helper import utils
 
 
 class HTTP:
@@ -11,10 +10,12 @@ class HTTP:
         self.session = None
         self.EmbyServer = EmbyServer
         self.Intros = []
+        self.HeaderCache = {}
         self.AsyncCommandQueue = queue.Queue()
+        self.Priority = False
 
     def async_commands(self):
-        LOG.info("THREAD: --->[ async queue ]")
+        xbmc.log("EMBY.emby.http: THREAD: --->[ async queue ]", 1) # LOGINFO
         CommandRetry = ()
         CommandRetryCounter = 0
 
@@ -26,30 +27,49 @@ class HTTP:
                 Command = self.AsyncCommandQueue.get()
 
             try:
+                self.wait_for_priority_request()
+
                 if Command[0] == "POST":
-                    Command[1]['timeout'] = (5, 5)
+                    Command[1]['timeout'] = (1, 0.5)
                     r = self.session.post(**Command[1])
                     r.close()
                 elif Command[0] == "DELETE":
-                    Command[1]['timeout'] = (5, 5)
+                    Command[1]['timeout'] = (1, 0.5)
                     r = self.session.delete(**Command[1])
                     r.close()
                 elif Command[0] == "QUIT":
-                    LOG.info("Queue closed")
+                    xbmc.log("EMBY.emby.http: Queue closed", 1) # LOGINFO
                     break
 
                 CommandRetryCounter = 0
             except Exception as error:
+                if utils.sleep(5):
+                    return
+
                 if CommandRetryCounter < 5:
                     CommandRetryCounter += 1
                     CommandRetry = Command
-                    LOG.warning("async_commands retry: %s" % CommandRetryCounter)
+                    xbmc.log(f"EMBY.emby.http: Async_commands retry: {CommandRetryCounter} / error: {error}", 2) # LOGWARNING
                 else:
                     CommandRetryCounter = 0
                     CommandRetry = ()
-                    LOG.warning("async_commands error: %s" % str(error))
+                    xbmc.log(f"EMBY.emby.http: Async_commands error: {error}", 2) # LOGWARNING
 
-        LOG.info("THREAD: ---<[ async queue ]")
+        xbmc.log("EMBY.emby.http: THREAD: ---<[ async queue ]", 1) # LOGINFO
+
+    def wait_for_priority_request(self):
+        LOGDone = False
+
+        while self.Priority:
+            if not LOGDone:
+                LOGDone = True
+                xbmc.log("EMBY.emby.http: Delay queries, priority request in progress", 1) # LOGINFO
+
+            if utils.sleep(0.1):
+                return
+
+        if LOGDone:
+            xbmc.log("EMBY.emby.http: Delay queries, continue", 1) # LOGINFO
 
     def stop_session(self):
         if not self.session:
@@ -62,105 +82,142 @@ class HTTP:
         try:
             LocalSession.close()
         except Exception as error:
-            LOG.warning("session close error: %s" % str(error))
+            xbmc.log(f"EMBY.emby.http: Session close error: {error}", 2) # LOGWARNING
 
-        LOG.info("session close")
+        xbmc.log("EMBY.emby.http: Session close", 1) # LOGINFO
 
     # decide threaded or wait for response
-    def request(self, data, ServerConnecting, Binary, Headers=False):
+    def request(self, data, ForceReceiveData, Binary, GetHeaders=False, LastWill=False, Priority=False):
+        ServerUnreachable = False
+
+        if Priority:
+            self.Priority = True
+
         RequestType = data.pop('type', "GET")
 
         if 'url' not in data:
-            data['url'] = "%s/emby/%s" % (self.EmbyServer.ServerData['ServerUrl'], data.pop('handler', ""))
+            data['url'] = f"{self.EmbyServer.ServerData['ServerUrl']}/emby/{data.pop('handler', '')}"
 
         if 'headers' not in data:
-            data['headers'] = {'Content-type': "application/json", 'Accept-Charset': "UTF-8,*", 'Accept-encoding': "gzip", 'User-Agent': "%s/%s" % (utils.addon_name, utils.addon_version)}
+            Header = {'Content-type': "application/json", 'Accept-Charset': "UTF-8,*", 'Accept-encoding': "gzip", 'User-Agent': f"{utils.addon_name}/{utils.addon_version}"}
+        else:
+            Header = data['headers']
+            del data['headers']
 
-        if 'Authorization' not in data['headers']:
-            auth = "Emby Client=%s,Device=%s,DeviceId=%s,Version=%s" % (utils.addon_name, utils.device_name, utils.device_id, utils.addon_version)
+        if 'Authorization' not in Header:
+            auth = f"Emby Client={utils.addon_name},Device={utils.device_name},DeviceId={utils.device_id},Version={utils.addon_version}"
 
             if self.EmbyServer.ServerData['AccessToken'] and self.EmbyServer.ServerData['UserId']:
-                auth = '%s,UserId=%s' % (auth, self.EmbyServer.ServerData['UserId'])
-                data['headers'].update({'Authorization': auth, 'X-Emby-Token': self.EmbyServer.ServerData['AccessToken']})
+                Header.update({'Authorization': f"{auth},UserId={self.EmbyServer.ServerData['UserId']}", 'X-Emby-Token': self.EmbyServer.ServerData['AccessToken']})
             else:
-                data['headers'].update({'Authorization': auth})
+                Header.update({'Authorization': auth})
 
-        if ServerConnecting:  # Server connect
-            data['timeout'] = (15, 30)
+        if Priority or RequestType in ("POST", "DELETE"):
+            data['timeout'] = (1, 0.5)
+            RepeatSend = 20 # retry 20 times (10 seconds)
         else:
             data['timeout'] = (15, 300)
+            RepeatSend = 1
 
-        LOG.debug("[ http ] %s" % data)
+        xbmc.log(f"EMBY.emby.http: [ http ] {data}", 0) # LOGDEBUG
+        data['verify'] = utils.sslverify
 
-        # Shutdown
-        if utils.SystemShutdown:
-            self.stop_session()
-            return noData(Binary, Headers)
+        for Index in range(RepeatSend): # timeout 10 seconds
+            if not Priority:
+                self.wait_for_priority_request()
 
-        # start session
-        if not self.session:
-            self.session = requests.Session()
-            start_new_thread(self.async_commands, ())
+            if Index > 0:
+                xbmc.log(f"EMBY.emby.http: Request no send, retry: {Index}", 2) # LOGWARNING
 
-        # http request
-        try:
-            if RequestType == "HEAD":
-                r = self.session.head(**data)
-                r.close()
-                return r.status_code
+            # Shutdown
+            if utils.SystemShutdown and not LastWill:
+                self.stop_session()
+                return self.noData(Binary, GetHeaders)
 
-            if RequestType == "GET":
-                r = self.session.get(**data)
-                r.close()
+            # start session
+            if not self.session:
+                self.HeaderCache = {}
+                self.session = requests.Session()
+                start_new_thread(self.async_commands, ())
 
-                if r.status_code == 200:
-                    if Binary:
-                        if Headers:
+            # Update session headers
+            if Header != self.HeaderCache:
+                self.HeaderCache = Header.copy()
+                self.session.headers = Header
+
+            # http request
+            try:
+                if RequestType == "HEAD":
+                    r = self.session.head(**data)
+                    r.close()
+                    self.Priority = False
+                    return r.status_code
+
+                if RequestType == "GET":
+                    r = self.session.get(**data)
+                    r.close()
+                    self.Priority = False
+
+                    if r.status_code == 200:
+                        if Binary:
+                            if GetHeaders:
+                                return r.content, r.headers
+
+                            return r.content
+
+                        return r.json()
+
+                    if r.status_code == 401:
+                        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
+
+                    xbmc.log(f"EMBY.emby.http: [ Statuscode ] {r.status_code}", 3) # LOGERROR
+                    xbmc.log(f"EMBY.emby.http: [ Statuscode ] {data}", 0) # LOGDEBUG
+                    return self.noData(Binary, GetHeaders)
+                if RequestType == "POST":
+                    if Priority or ForceReceiveData:
+                        r = self.session.post(**data)
+                        r.close()
+                        self.Priority = False
+
+                        if GetHeaders:
                             return r.content, r.headers
 
-                        return r.content
+                        return r.json()
 
-                    return r.json()
+                    self.AsyncCommandQueue.put(("POST", data))
+                elif RequestType == "DELETE":
+                    self.AsyncCommandQueue.put(("DELETE", data))
 
-                if r.status_code == 401:
-                    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33147))
+                return self.noData(Binary, GetHeaders)
+            except requests.exceptions.SSLError:
+                xbmc.log("EMBY.emby.http: [ SSL error ]", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: [ SSL error ] {data}", 0) # LOGDEBUG
+                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
+                self.stop_session()
+                return self.noData(Binary, GetHeaders)
+            except requests.exceptions.ConnectionError:
+                xbmc.log("EMBY.emby.http: [ ServerUnreachable ]", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {data}", 0) # LOGDEBUG
+                ServerUnreachable = True
+                continue
+            except requests.exceptions.ReadTimeout:
+                xbmc.log("EMBY.emby.http: [ ServerReadTimeout ]", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: [ ServerReadTimeout ] {data}", 0) # LOGDEBUG
 
-                LOG.error("[ Statuscode ] %s" % r.status_code)
-                LOG.debug("[ Statuscode ] %s" % data)
-                return noData(Binary, Headers)
-            if RequestType == "POST":
-                if ServerConnecting:
-                    r = self.session.post(**data)
-                    r.close()
-                    return r.json()
+                if data['timeout'][0] < 10:
+                    continue
 
-                self.AsyncCommandQueue.put(("POST", data))
-            elif RequestType == "DELETE":
-                self.AsyncCommandQueue.put(("DELETE", data))
+                return self.noData(Binary, GetHeaders)
+            except Exception as error:
+                xbmc.log(f"EMBY.emby.http: [ Unknown ] {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: [ Unknown ] {data} / {error}", 0) # LOGDEBUG
+                return self.noData(Binary, GetHeaders)
 
-            return noData(Binary, Headers)
-        except requests.exceptions.SSLError:
-            LOG.error("[ SSL error ]")
-            LOG.debug("[ SSL error ] %s" % data)
-            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428))
-            self.stop_session()
-            return noData(Binary, Headers)
-        except requests.exceptions.ConnectionError:
-            LOG.error("[ ServerUnreachable ]")
-            LOG.debug("[ ServerUnreachable ] %s" % data)
+        if ServerUnreachable:
             self.stop_session()
             self.EmbyServer.ServerUnreachable()
-            return noData(Binary, Headers)
-        except requests.exceptions.ReadTimeout:
-            LOG.error("[ ServerTimeout ]")
-            LOG.debug("[ ServerTimeout ] %s" % data)
-            self.stop_session()
-            return noData(Binary, Headers)
-        except Exception as error:
-            LOG.error("[ Unknown ] %s" % str(error))
-            LOG.debug("[ Unknown ] %s / %s" % (data, str(error)))
-            self.stop_session()
-            return noData(Binary, Headers)
+
+        return self.noData(Binary, GetHeaders)
 
     def load_Trailers(self, EmbyId):
         ReceivedIntros = []
@@ -190,12 +247,12 @@ class HTTP:
                     start_new_thread(self.verify_intros, (Intro,))
 
     def verify_intros(self, Intro):
-        LOG.info("THREAD: --->[ verify intros ]")
+        xbmc.log("EMBY.emby.http: THREAD: --->[ verify intros ]", 1) # LOGINFO
 
         if Intro['Path'].find("http") == -1: # Local Trailer
-            Intro['Path'] = "%s/emby/videos/%s/stream?static=true&api_key=%s&DeviceId=%s" % (self.EmbyServer.ServerData['ServerUrl'], Intro['Id'], self.EmbyServer.ServerData['AccessToken'], utils.device_id)
+            Intro['Path'] = f"{self.EmbyServer.ServerData['ServerUrl']}/emby/videos/{Intro['Id']}/stream?static=true&api_key={self.EmbyServer.ServerData['AccessToken']}&DeviceId={utils.device_id}"
             self.Intros.append(Intro)
-            LOG.info("THREAD: ---<[ verify intros ] local trailer")
+            xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] local trailer", 1) # LOGINFO
             return True
 
         try:
@@ -204,22 +261,24 @@ class HTTP:
 
             if Intro['Path'] == r.url:
                 self.Intros.append(Intro)
-                LOG.info("THREAD: ---<[ verify intros ] remote trailer")
+                xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] remote trailer", 1) # LOGINFO
                 return True
 
             # filter URL redirections, mostly invalid links
-            LOG.error("Invalid Trailer Path (url compare): %s / %s" % (Intro['Path'], r.url))
+            xbmc.log(f"EMBY.emby.http: Invalid Trailer Path (url compare): {Intro['Path']} / {r.url}", 3) # LOGERROR
         except Exception as Error:
-            LOG.error("Invalid Trailer Path: %s / %s" % (Intro['Path'], Error))
+            xbmc.log(f"EMBY.emby.http: Invalid Trailer Path: {Intro['Path']} / {Error}", 3) # LOGERROR
 
-        LOG.info("THREAD: ---<[ verify intros ] invalid")
+        xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] invalid", 1) # LOGINFO
         return False
 
-def noData(Binary, Headers):
-    if Binary:
-        if Headers:
-            return b"", {}
+    def noData(self, Binary, GetHeaders):
+        self.Priority = False
 
-        return b""
+        if Binary:
+            if GetHeaders:
+                return b"", {}
 
-    return {}
+            return b""
+
+        return {}

@@ -1,6 +1,7 @@
 import xml.etree.ElementTree
 from urllib.parse import urlencode
-from helper import utils, xmls, loghandler
+import xbmc
+from helper import utils, xmls
 from database import dbio
 
 SyncNodes = {
@@ -117,7 +118,6 @@ SyncNodes = {
         ('randomsongs', utils.Translate(33394), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
     ]
 }
-LOG = loghandler.LOG('EMBY.emby.views')
 
 
 class Views:
@@ -147,7 +147,7 @@ class Views:
 
             if library_id in list(self.EmbyServer.library.Whitelist.keys()):  # synced nodes
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                    view['Tag'] = "%s-%s" % (library_id, view['Tag'])
+                    view['Tag'] = f"{library_id}-{view['Tag']}"
 
                 if view['MediaType'] == 'mixed':
                     ViewName = view['Name']
@@ -156,10 +156,10 @@ class Views:
                         view['MediaType'] = media
 
                         if media == 'music':
-                            view['Tag'] = "%s-%s" % (library_id, view['Tag'])
+                            view['Tag'] = f"{library_id}-{view['Tag']}"
 
                         node_path, playlist_path = get_node_playlist_path(view['MediaType'])
-                        view['Name'] = "%s / %s" % (ViewName, view['MediaType'])
+                        view['Name'] = f"{ViewName} / {view['MediaType']}"
                         add_playlist(playlist_path, view)
                         add_nodes(node_path, view)
                         self.window_nodes(view, False)
@@ -199,12 +199,12 @@ class Views:
                 'server': self.EmbyServer.ServerData['ServerId'],
                 'query': "NodesMenu"
             }
-            path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
+            path = f"plugin://{utils.PluginId}/?{urlencode(params)}"
         else:
             if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                path = "library://music/emby_%s_%s/" % (view['MediaType'], view['FileName'])
+                path = f"library://music/emby_{view['MediaType']}_{view['FileName']}/"
             else:
-                path = "library://video/emby_%s_%s/" % (view['MediaType'], view['FileName'])
+                path = f"library://video/emby_{view['MediaType']}_{view['FileName']}/"
 
         NodeData['title'] = view['Name']
         NodeData['path'] = path
@@ -240,8 +240,8 @@ class Views:
                 BinaryData, _, FileExtension = self.EmbyServer.API.get_Image_Binary(library['Id'], "Primary", 0, library["ImageTags"]["Primary"])
 
                 if BinaryData:
-                    Filename = utils.PathToFilenameReplaceSpecialCharecters("%s_%s.%s" % (self.EmbyServer.ServerData['ServerName'], library['Id'], FileExtension))
-                    iconpath = "%s%s" % (utils.FolderEmbyTemp, Filename)
+                    Filename = utils.PathToFilenameReplaceSpecialCharecters(f"{self.EmbyServer.ServerData['ServerName']}_{library['Id']}.{FileExtension}")
+                    iconpath = f"{utils.FolderEmbyTemp}{Filename}"
                     utils.delFile(iconpath)
                     utils.writeFileBinary(iconpath, BinaryData)
 
@@ -255,10 +255,10 @@ class Views:
             else:
                 path = 'special://profile/playlists/video/'
 
-            PlaylistPath = '%semby_%s.xsp' % (path, self.ViewItems[LibraryId][0].replace(" ", "_"))
+            PlaylistPath = f"{path}emby_{self.ViewItems[LibraryId][0].replace(' ', '_')}.xsp"
             utils.delFolder(PlaylistPath)
         else:
-            LOG.info("Delete playlist: library not found: %s" % LibraryId)
+            xbmc.log(f"EMBY.emby.views: Delete playlist, library not found: {LibraryId}", 1) # LOGINFO
 
     def delete_node_by_id(self, LibraryId):
         if LibraryId in self.ViewItems:
@@ -276,10 +276,10 @@ class Views:
                 else:
                     path = "special://profile/library/video/"
 
-                NodePath = '%semby_%s_%s/' % (path, mediatype, self.ViewItems[LibraryId][0].replace(" ", "_"))
+                NodePath = f"{path}emby_{mediatype}_{self.ViewItems[LibraryId][0].replace(' ', '_')}/"
                 utils.delFolder(NodePath)
         else:
-            LOG.info("Delete node: library not found: %s" % LibraryId)
+            xbmc.log(f"EMBY.emby.views: Delete node, library not found: {LibraryId}", 1) # LOGINFO
 
 def get_node_playlist_path(MediaType):
     if MediaType in ('music', 'audiobooks', 'podcasts'):
@@ -297,7 +297,7 @@ def add_playlist(path, view):
         return
 
     utils.mkDir(path)
-    filepath = "%s%s" % (path, "emby_%s_%s.xsp" % (view['MediaType'], view['FileName']))
+    filepath = f"{path}emby_{view['MediaType']}_{view['FileName']}.xsp"
     xmlData = utils.readFileString(filepath)
 
     if xmlData:
@@ -323,9 +323,9 @@ def add_playlist(path, view):
 
 # Create or update the video node file
 def add_nodes(path, view):
-    folder = "%semby_%s_%s/" % (path, view['MediaType'], view['FileName'])
+    folder = f"{path}emby_{view['MediaType']}_{view['FileName']}/"
     utils.mkDir(folder)
-    filepath = "%s%s" % (folder, "index.xml")
+    filepath = f"{folder}index.xml"
 
     if not utils.checkFileExists(filepath):
         if view['MediaType'] == 'movies':
@@ -337,7 +337,7 @@ def add_nodes(path, view):
         else:
             xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
 
-        xml.etree.ElementTree.SubElement(xmlData, 'label').text = "EMBY: %s (%s)" % (view['Name'], view['MediaType'])
+        xml.etree.ElementTree.SubElement(xmlData, 'label').text = f"EMBY: {view['Name']} ({view['MediaType']})"
 
         if view['Icon']:
             Icon = view['Icon']
@@ -368,7 +368,7 @@ def add_nodes(path, view):
         elif node[0] == "songsbygenres":
             node_songsbygenres(view, folder, node)
         else:
-            filepath = "%s%s.xml" % (folder, node[0])
+            filepath = f"{folder}{node[0]}.xml"
 
             if not utils.checkFileExists(filepath):
                 if node[0] == 'nextepisodes':
@@ -415,12 +415,12 @@ def add_nodes(path, view):
 
 # Nodes
 def node_songsbygenres(View, folder, node):
-    FolderPath = "%sgenres/" % folder
+    FolderPath = f"{folder}genres/"
     utils.delFolder(FolderPath)
     utils.mkDir(FolderPath)
 
     # index.xml
-    FileName = "%sindex.xml" % FolderPath
+    FileName = f"{FolderPath}index.xml"
     xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
     xmlData.set('type', "folder")
     xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
@@ -433,7 +433,7 @@ def node_songsbygenres(View, folder, node):
     dbio.DBCloseRO("music", "node_songsbygenres")
 
     for Index, Genre in enumerate(Genres, 1):
-        FileName = "%s%s.xml" % (FolderPath, Index)
+        FileName = f"{FolderPath}{Index}.xml"
         xmlData = xml.etree.ElementTree.Element('node')
         xmlData.set('order', str(Index))
         xmlData.set('type', "filter")
@@ -449,11 +449,11 @@ def node_songsbygenres(View, folder, node):
 
 def node_letter(View, folder, node):
     Index = 1
-    FolderPath = "%sletter/" % folder
+    FolderPath = f"{folder}letter/"
     utils.mkDir(FolderPath)
 
     # index.xml
-    FileName = "%sindex.xml" % FolderPath
+    FileName = f"{FolderPath}index.xml"
 
     if not utils.checkFileExists(FileName):
         if View['MediaType'] == 'movies':
@@ -471,7 +471,7 @@ def node_letter(View, folder, node):
         xmls.WriteXmlFile(FileName, xmlData)
 
     # 0-9.xml
-    FileName = "%s0-9.xml" % FolderPath
+    FileName = f"{FolderPath}0-9.xml"
 
     if not utils.checkFileExists(FileName):
         xmlData, xmlRule = set_letter_common("0-9", Index, View)
@@ -521,7 +521,7 @@ def node_letter(View, folder, node):
 
         for FileName in FileNames:
             Index += 1
-            FilePath = "%s%s.xml" % (FolderPath, FileName)
+            FilePath = f"{FolderPath}{FileName}.xml"
 
             if not utils.checkFileExists(FilePath):
                 xmlData, xmlRule = set_letter_common(FileName, Index, View)
@@ -579,7 +579,7 @@ def node_countries(root):
     xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
 
 def node_nextepisodes(root, LibraryName):
-    xml.etree.ElementTree.SubElement(root, 'path').text = "plugin://%s/?%s" % (utils.PluginId, urlencode({'libraryname': LibraryName, 'mode': "nextepisodes"}))
+    xml.etree.ElementTree.SubElement(root, 'path').text = f"plugin://{utils.PluginId}/?{urlencode({'libraryname': LibraryName, 'mode': 'nextepisodes'})}"
 
 def node_years(root):
     xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "title"

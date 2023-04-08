@@ -1,6 +1,8 @@
 from urllib.parse import quote, urlparse
-from helper import utils, loghandler
+import xbmc
+from helper import utils
 
+MediaTypeMapping = {"movie": "m", "episode": "e", "musicvideo": "M", "picture": "p", "audio": "a", "tvchannel": "t", "specialaudio": "A", "specialvideo": "V", "video": "v", "channel": "c"}
 EmbyArtworkIdShort = {"Primary": "p", "Art": "a", "Banner": "b", "Disc": "d", "Logo": "l", "Thumb": "t", "Backdrop": "B", "Chapter": "c", "SeriesPrimary": "p", "AlbumPrimary": "p", "ParentBackdrop": "B", "ParentThumb": "t", "ParentLogo": "l", "ParentBanner": "b", "AlbumArtists": "p", "ArtistItems": "p"}
 MarkerTypeMapping = {"IntroStart": "Intro Start", "IntroEnd": "Intro End", "CreditsStart": "Credits"}
 ImageTagsMappings = {
@@ -21,11 +23,10 @@ ImageTagsMappings = {
     "Trailer": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb'))
 }
 MediaTags = {}
-LOG = loghandler.LOG('EMBY.core.common')
 
 def library_check(item, EmbyServer, emby_db):
     if not item or "Id" not in item:
-        LOG.error("library_check: %s" % item)
+        xbmc.log(f"EMBY.core.common: library_check: {item}", 3)
         return False
 
     item['KodiItemIds'] = []
@@ -42,12 +43,12 @@ def library_check(item, EmbyServer, emby_db):
         # Update existing items
         for LibraryId in LibraryIds:
             if LibraryId not in EmbyServer.Views.ViewItems:
-                LOG.info("[ library_check remove library %s ]" % LibraryId)
+                xbmc.log(f"EMBY.core.common: [ library_check remove library {LibraryId} ]", 1) # LOGINFO
                 return False
 
             LibraryName = EmbyServer.Views.ViewItems[LibraryId][0]
             item['UpdateItems'].append(True)
-            item['Librarys'].append({'Id': LibraryId, 'Name': LibraryName, 'LibraryId_Name': "%s-%s" % (LibraryId, LibraryName)})
+            item['Librarys'].append({'Id': LibraryId, 'Name': LibraryName, 'LibraryId_Name': f"{LibraryId}-{LibraryName}"})
 
         if ExistingItem[0]:
             item['KodiItemIds'] = str(ExistingItem[0]).split(";")
@@ -73,7 +74,7 @@ def library_check(item, EmbyServer, emby_db):
                 item['KodiParentIds'].append(None)
                 item['KodiFileIds'].append(None)
                 item['UpdateItems'].append(False)
-                item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': "%s-%s" % (item['Library']['Id'], item['Library']['Name'])})
+                item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
     else:
         # New item
         if item['Library']: # Init sync
@@ -81,7 +82,7 @@ def library_check(item, EmbyServer, emby_db):
             item['KodiParentIds'].append(None)
             item['KodiFileIds'].append(None)
             item['UpdateItems'].append(False)
-            item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': "%s-%s" % (item['Library']['Id'], item['Library']['Name'])})
+            item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
         else: # realtime or startup sync -> detect "LibraryId_Name" by query item-id for each library on Emby server (Realtime content updates sends no library information)
             for LibraryIdWhitelist, _ in list(EmbyServer.library.Whitelist.items()):
                 if EmbyServer.API.get_Item_Basic(item['Id'], LibraryIdWhitelist, item['Type']):
@@ -90,7 +91,7 @@ def library_check(item, EmbyServer, emby_db):
                     item['KodiParentIds'].append(None)
                     item['KodiFileIds'].append(None)
                     item['UpdateItems'].append(False)
-                    item['Librarys'].append({'Id': LibraryIdWhitelist, 'Name': LibraryName, 'LibraryId_Name': "%s-%s" % (LibraryIdWhitelist, LibraryName)})
+                    item['Librarys'].append({'Id': LibraryIdWhitelist, 'Name': LibraryName, 'LibraryId_Name': f"{LibraryIdWhitelist}-{LibraryName}"})
 
     if not item['Librarys']:
         return False
@@ -111,40 +112,43 @@ def Check_LibraryIsSynced(library_id, Whitelist):
             break
 
     if not Library_Name:
-        LOG.info("Library %s is not synced. Skip update." % library_id)
+        xbmc.log(f"EMBY.core.common: Library {library_id} is not synced. Skip update", 1) # LOGINFO
         return False
 
     return Library_Name
 
-def get_Bitrate_Codec(item):
+def get_Bitrate_Codec(item, StreamType):
     Bitrate = 0
     Codec = ""
 
-    if item['Streams'][0]['Video']:
-        if 'BitRate' in item['Streams'][0]['Video'][0]:
-            Bitrate = item['Streams'][0]['Video'][0]['BitRate']
+    if item['Streams'][0][StreamType]:
+        if 'BitRate' in item['Streams'][0][StreamType][0]:
+            Bitrate = item['Streams'][0][StreamType][0]['BitRate']
         else:
-            LOG.warning("No Video Bitrate found: %s %s " % (item['Id'], item['Name']))
+            xbmc.log(f"EMBY.core.common: No {StreamType} Bitrate found: {item['Id']} {item['Name']}", 2) # LOGWARNING
 
-        if 'codec' in item['Streams'][0]['Video'][0]:
-            Codec = item['Streams'][0]['Video'][0]['codec']
+        if 'codec' in item['Streams'][0][StreamType][0]:
+            Codec = item['Streams'][0][StreamType][0]['codec']
         else:
-            LOG.warning("No Video Codec found: %s %s " % (item['Id'], item['Name']))
+            xbmc.log(f"EMBY.core.common: No {StreamType} Codec found: {item['Id']} {item['Name']}", 2) # LOGWARNING
     else:
-        LOG.warning("No Video Streams found: %s %s " % (item['Id'], item['Name']))
+        xbmc.log(f"EMBY.core.common: No Streams Bitrate found: {item['Id']} {item['Name']}", 2) # LOGWARNING
 
     return Bitrate, Codec
 
-def get_filename(item, MediaID, API, ItemIndex):
+def get_filename(item, API, ItemIndex, MediaType):
     # Native Kodi plugins starts with plugin:// -> If native Kodi plugin, drop the link directly in Kodi DB. Emby server cannot play Kodi-Plugins
     ForceNativeMode = False
+    MediaID = MediaTypeMapping[MediaType]
     Temp = item['FullPath'].lower()
 
     if Temp.startswith("plugin://"):
         item['Filename'] = item['FullPath']
         return
 
-    if Temp.endswith(".bdmv"):
+    Container = item.get('Container', "")
+
+    if Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
         ForceNativeMode = True
 
     # Native
@@ -157,34 +161,41 @@ def get_filename(item, MediaID, API, ItemIndex):
         # Detect Multipart videos
         if 'PartCount' in item:
             if (item['PartCount']) >= 2:
-                AdditionalParts = API.get_additional_parts(item['Id'])
+                AdditionalParts = API.get_additional_parts(item['Id'], [MediaType])
                 item['Filename'] = item['FullPath']
                 item['StackTimes'] = str(item['RunTimeTicks'])
 
                 for AdditionalItem in AdditionalParts['Items']:
                     Path = AdditionalItem['Path']
-                    item['Filename'] = "%s , %s" % (item['Filename'], Path)
+                    item['Filename'] = f"{item['Filename']} , {Path}"
 
                     if 'RunTimeTicks' not in AdditionalItem:
                         AdditionalItem['RunTimeTicks'] = 0
 
                     RunTimePart = round(float((AdditionalItem['RunTimeTicks']) / 10000000.0), 6)
                     item['RunTimeTicks'] += RunTimePart
-                    item['StackTimes'] = "%s,%s" % (item['StackTimes'], item['RunTimeTicks'])
+                    item['StackTimes'] = f"{item['StackTimes']},{item['RunTimeTicks']}"
 
-                item['Filename'] = "stack://" + item['Filename']
+                item['Filename'] = f"stack://{item['Filename']}"
 
         return
 
     # Addon
+    HasSpecials = ""
+
+    if 'SpecialFeatureCount' in item:
+        if int(item['SpecialFeatureCount']):
+            HasSpecials = "s"
+
     item['Filename'] = utils.PathToFilenameReplaceSpecialCharecters(item['FullPath'])
     item['Filename'] = item['Filename'].replace("-", "_").replace(" ", "")
 
     if MediaID == "a":
-        item['Filename'] = "a-%s-%s-%s" % (item['ServerId'], item['Id'], item['Filename'])
+        item['Filename'] = f"a-{item['Id']}-{item['Filename']}"
         return
 
-    Bitrate, Codec = get_Bitrate_Codec(item)
+    VideoBitrate, VideoCodec = get_Bitrate_Codec(item, "Video")
+    AudioBitrate, AudioCodec = get_Bitrate_Codec(item, "Audio")
     IsRemote = item['MediaSources'][0].get('IsRemote', False)
 
     if IsRemote:
@@ -192,34 +203,32 @@ def get_filename(item, MediaID, API, ItemIndex):
     else:
         IsRemote = "0"
 
-    if Temp.endswith(".iso"):
-        item['Filename'] = "i-%s-%s-%s-%s-%s-%s-%s-%s-%s-0-0-0-0-%s" % (item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, "iso-container.mp4")
-    else:
-        item['Filename'] = "%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s" % (MediaID, item['ServerId'], item['Id'], item['MediaSources'][0]['Id'], item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], Bitrate, item['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'], IsRemote, item['Filename'])
+    item['Filename'] = f"{MediaID}-{item['Id']}-{item['MediaSources'][0]['Id']}-{item['KodiItemIds'][ItemIndex]}-{item['KodiFileIds'][ItemIndex]}-{item['Streams'][0]['HasExternalSubtitle']}-{len(item['MediaSources'])}-{item['IntroStartPositionTicks']}-{item['IntroEndPositionTicks']}-{item['CreditsPositionTicks']}-{IsRemote}-{VideoCodec}-{VideoBitrate}-{AudioCodec}-{AudioBitrate}-{HasSpecials}-{item['Filename']}"
 
-        # Detect Multipart videos
-        if 'PartCount' in item:
-            if (item['PartCount']) >= 2:
-                AdditionalParts = API.get_additional_parts(item['Id'])
-                item['StackTimes'] = str(item['RunTimeTicks'])
-                StackedFilename = item['Path'] + item['Filename']
+    # Detect Multipart videos
+    if 'PartCount' in item:
+        if (item['PartCount']) >= 2:
+            AdditionalParts = API.get_additional_parts(item['Id'], [MediaType])
+            item['StackTimes'] = str(item['RunTimeTicks'])
+            StackedFilename = f"{item['Path']}{item['Filename']}"
 
-                for AdditionalItem in AdditionalParts['Items']:
-                    AdditionalFilename = utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
-                    AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
-                    get_streams(AdditionalItem)
-                    Bitrate, Codec = get_Bitrate_Codec(item)
-                    StackedFilename = "%s , %s%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-0-0-0-0-%s" % (StackedFilename, item['Path'], MediaID, item['ServerId'], AdditionalItem['Id'], AdditionalItem['MediaSources'][0]['Id'], item['KodiPathId'], item['KodiFileIds'][ItemIndex], Bitrate, AdditionalItem['Streams'][0]['HasExternalSubtitle'], len(item['MediaSources']), Codec, AdditionalFilename)
+            for AdditionalItem in AdditionalParts['Items']:
+                AdditionalFilename = utils.PathToFilenameReplaceSpecialCharecters(AdditionalItem['Path'])
+                AdditionalFilename = AdditionalFilename.replace("-", "_").replace(" ", "")
+                get_streams(AdditionalItem)
+                VideoBitrate, VideoCodec = get_Bitrate_Codec(item, "Video")
+                AudioBitrate, AudioCodec = get_Bitrate_Codec(item, "Audio")
+                StackedFilename = f"{StackedFilename} , {item['Path']}{MediaID}-{AdditionalItem['Id']}-{AdditionalItem['MediaSources'][0]['Id']}-{item['KodiPathId']}-{item['KodiFileIds'][ItemIndex]}-{AdditionalItem['Streams'][0]['HasExternalSubtitle']}-{len(item['MediaSources'])}-0-0-0-0-{VideoCodec}-{VideoBitrate}-{AudioCodec}-{AudioBitrate}-{AdditionalFilename}"
 
-                    if 'RunTimeTicks' in AdditionalItem:
-                        RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
-                    else:
-                        RunTimePart = 0
+                if 'RunTimeTicks' in AdditionalItem:
+                    RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
+                else:
+                    RunTimePart = 0
 
-                    item['RunTimeTicks'] += RunTimePart
-                    item['StackTimes'] = "%s,%s" % (item['StackTimes'], item['RunTimeTicks'])
+                item['RunTimeTicks'] += RunTimePart
+                item['StackTimes'] = f"{item['StackTimes']},{item['RunTimeTicks']}"
 
-                item['Filename'] = "stack://" + StackedFilename
+            item['Filename'] = f"stack://{StackedFilename}"
 
 def adjust_resume(resume_seconds):
     resume = 0
@@ -251,7 +260,7 @@ def get_file_path(item, MediaID, ItemIndex):
 
         if 'Container' in item:
             if not path.endswith(item['Container']):
-                path = "%s.%s" % (path, item['Container'])
+                path = f"{path}.{item['Container']}"
 
     if not path:
         return False
@@ -261,9 +270,9 @@ def get_file_path(item, MediaID, ItemIndex):
 
     if 'Container' in item:
         if item['Container'] == 'dvd':
-            path = "%s/VIDEO_TS/VIDEO_TS.IFO" % path
+            path = f"{path}/VIDEO_TS/VIDEO_TS.IFO"
         elif item['Container'] == 'bluray':
-            path = "%s/BDMV/index.bdmv" % path
+            path = f"{path}/BDMV/index.bdmv"
 
     path = path.replace('\\\\', "\\")
 
@@ -280,20 +289,14 @@ def get_file_path(item, MediaID, ItemIndex):
     ForceNativeMode = False
     Temp = item['FullPath'].lower()
     item['Path'] = ""
+    Container = item.get('Container', "")
 
-    if 'Container' not in item:
-        Container = ""
-    else:
-        Container = item['Container']
-
-    if Temp.startswith("plugin://"):
-        ForceNativeMode = True
-    elif Container in ('dvd', 'bluray') and not Temp.endswith(".iso"):
+    if Temp.startswith("plugin://") or Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
         ForceNativeMode = True
     elif Temp.startswith("http"):
         UrlData = urlparse(item['FullPath'])
         UrlPath = quote(UrlData[2])
-        item['FullPath'] = "%s://%s%s" % (UrlData[0], UrlData[1], UrlPath)
+        item['FullPath'] = f"{UrlData[0]}://{UrlData[1]}{UrlPath}"
 
     if utils.useDirectPaths or ForceNativeMode:
         Temp2 = item['FullPath'].rsplit('\\', 1)[1] if '\\' in item['FullPath'] else item['FullPath'].rsplit('/', 1)[1]
@@ -302,23 +305,23 @@ def get_file_path(item, MediaID, ItemIndex):
 
         if MediaID == "tvshows":
             item['PathParent'] = item['Path']
-            item['Path'] = "%s%s" % (item['FullPath'], PathChar)
+            item['Path'] = f"{item['FullPath']}{PathChar}"
     else:
         if MediaID == "tvshows":
-            item['PathParent'] = "http://127.0.0.1:57342/tvshows/%s/" % item['LibraryIds'][ItemIndex]
-            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['LibraryIds'][ItemIndex], item['Id'])
+            item['PathParent'] = f"{utils.AddonModePath}tvshows/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/"
+            item['Path'] = f"{utils.AddonModePath}tvshows/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/{item['Id']}/"
         elif MediaID == "episodes":
-            item['Path'] = "http://127.0.0.1:57342/tvshows/%s/%s/" % (item['LibraryIds'][ItemIndex], item['SeriesId'])
+            item['Path'] = f"{utils.AddonModePath}tvshows/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/{item['SeriesId']}/{item['Id']}/"
         elif MediaID == "movies":
-            item['Path'] = "http://127.0.0.1:57342/movies/%s/" % item['LibraryIds'][ItemIndex]
+            item['Path'] = f"{utils.AddonModePath}movies/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/"
         elif MediaID == "musicvideos":
-            item['Path'] = "http://127.0.0.1:57342/musicvideos/%s/" % item['LibraryIds'][ItemIndex]
+            item['Path'] = f"{utils.AddonModePath}musicvideos/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/"
         elif MediaID == "audio":
-            item['Path'] = "http://127.0.0.1:57342/audio/%s/" % item['LibraryIds'][ItemIndex]
+            item['Path'] = f"{utils.AddonModePath}audio/{item['ServerId']}/{item['LibraryIds'][ItemIndex]}/"
 
     if not item['FullPath']:  # Invalid Path
-        LOG.error("Invalid path: %s" % item['Id'])
-        LOG.debug("Invalid path: %s" % item)
+        xbmc.log(f"EMBY.core.common: Invalid path: {item['Id']}", 3) # LOGERROR
+        xbmc.log(f"EMBY.core.common: Invalid path: {item}", 0) # LOGDEBUG
         return False
 
     return True
@@ -343,25 +346,22 @@ def set_people(item, ServerId, ItemIndex):
                     item['Cast'].append(People['Name'])
 
                 if 'PrimaryImageTag' in People:
-                    People['imageurl'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s-%s" % (ServerId, People['Id'], People['PrimaryImageTag'], item['LibraryIds'][ItemIndex])
+                    People['imageurl'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{People['Id']}-0-p-{People['PrimaryImageTag']}-{item['LibraryIds'][ItemIndex]}"
                 else:
-                    People['imageurl'] = item['LibraryIds'][ItemIndex]
+                    People['imageurl'] = f"p-{People['Id']}-0-p-0-{item['LibraryIds'][ItemIndex]}"
             else:
                 PeopleInvalidRecords.append(Index)
 
         for PeopleInvalidRecord in PeopleInvalidRecords:
             del item['People'][PeopleInvalidRecord]
-            LOG.warning("Invalid people detected: %s / %s" % (item['Id'], item['Name']))
+            xbmc.log(f"EMBY.core.common: Invalid people detected: {item['Id']} / {item['Name']}", 2) # LOGWARNING
     else:
         item['People'] = []
-
-    item['Writers'] = " / ".join(item['Writers'])
-    item['Directors'] = " / ".join(item['Directors'])
 
 def SwopMediaSources(item):
     if len(item['MediaSources']) > 1:
         if item['MediaSources'][0].get('Video3DFormat'):
-            LOG.info("3D detected, swap MediaSources %s" % item['Name'])
+            xbmc.log(f"EMBY.core.common: 3D detected, swap MediaSources {item['Name']}", 1) # LOGINFO
             Item0 = item['MediaSources'][0]
             Item1 = item['MediaSources'][1]
             item['MediaSources'][0] = Item1
@@ -382,54 +382,59 @@ def get_streams(item):
         MediaSource['Size'] = MediaSource.get('Size', "")
 
         # Videos
-        item['Streams'].append({'SubtitleLanguage': [], 'Subtitle': [], 'Audio': [], 'Video': [], 'Id': MediaSource['Id'], 'Index': IndexMediaSources, 'Path': MediaSource['Path'], 'Name': MediaSource['Name'], 'Size': MediaSource['Size']})
+        item['Streams'].append({'Subtitle': [], 'Audio': [], 'Video': [], 'Id': MediaSource['Id'], 'Index': IndexMediaSources, 'Path': MediaSource['Path'], 'Name': MediaSource['Name'], 'Size': MediaSource['Size']})
         HasExternalSubtitle = "0"
 
         for Index, Stream in enumerate(MediaSource['MediaStreams']):
             Codec = Stream.get('Codec')
 
+            if not Codec:
+                Codec = Stream.get('CodecTag', "")
+
             if Codec:
-                Codec = Codec.lower()
+                Codec = Codec.lower().replace("-", "")
 
             if Stream['Type'] == "Audio" or Stream['Type'] == "Default":
-                item['Streams'][IndexMediaSources]['Audio'].append({'SampleRate': Stream.get('SampleRate'), 'BitRate': Stream.get('BitRate'), 'codec': Codec, 'channels': Stream.get('Channels'), 'language': Stream.get('Language'), 'Index': Index, 'DisplayTitle': Stream.get('DisplayTitle', "unknown")})
+                item['Streams'][IndexMediaSources]['Audio'].append({'SampleRate': Stream.get('SampleRate', 0), 'BitRate': Stream.get('BitRate', 0), 'codec': Codec, 'channels': Stream.get('Channels', 0), 'language': Stream.get('Language', ""), 'Index': Index, 'DisplayTitle': Stream.get('DisplayTitle', "unknown")})
             elif Stream['Type'] == "Video":
-                StreamData = {'codec': Codec, 'height': Stream.get('Height'), 'width': Stream.get('Width'), '3d': Stream.get('Video3DFormat'), 'BitRate': Stream.get('BitRate'), 'Index': Index, 'aspect': None}
+                StreamData = {'language': Stream.get('Language', ""),'hdrtype': '', 'codec': Codec, 'height': Stream.get('Height', 0), 'width': Stream.get('Width', 0), '3d': Stream.get('Video3DFormat', ""), 'BitRate': Stream.get('BitRate', 0), 'Index': Index, 'aspect': 0.0}
+
+                CodecTag = Stream.get('CodecTag', "")
+
+                if CodecTag == "dvhe":
+                    StreamData['hdrtype'] = "dolbyvision"
+                elif CodecTag == "hvc1":
+                    StreamData['hdrtype'] = "hdr10"
 
                 if "AspectRatio" in Stream:
                     AspectRatio = Stream['AspectRatio'].split(':')
 
                     if len(AspectRatio) != 2:
-                        LOG.warning("AspectRatio detected by alternative method: %s / %s" % (item['Id'], item['Name']))
+                        xbmc.log(f"EMBY.core.common: AspectRatio detected by alternative method: {item['Id']} / {item['Name']}", 2) # LOGWARNING
                         AspectRatio = Stream['AspectRatio'].split('/')
 
                     if len(AspectRatio) == 2 and AspectRatio[0].isnumeric() and AspectRatio[1].isnumeric() and float(AspectRatio[1]) > 0:
                         StreamData['aspect'] = round(float(AspectRatio[0]) / float(AspectRatio[1]), 6)
                     else:
-                        LOG.warning("AspectRatio not detected: %s / %s" % (item['Id'], item['Name']))
+                        xbmc.log(f"EMBY.core.common: AspectRatio not detected: {item['Id']} / {item['Name']}", 2) # LOGWARNING
 
                 item['Streams'][IndexMediaSources]['Video'].append(StreamData)
             elif Stream['Type'] == "Subtitle":
-                Language = Stream.get('Language', "unknown")
+                IsExternal = Stream.get('IsExternal', False)
 
-                if Stream['Codec'] in ("srt", "ass"):
+                if IsExternal:
                     HasExternalSubtitle = "1"
 
-                item['Streams'][IndexMediaSources]['Subtitle'].append({'Index': Index, 'language': Language, 'DisplayTitle': Stream.get('DisplayTitle', "unknown"), 'codec': Codec})
-                item['Streams'][IndexMediaSources]['SubtitleLanguage'].append(Language)
+                item['Streams'][IndexMediaSources]['Subtitle'].append({'Index': Index, 'language': Stream.get('Language', ""), 'DisplayTitle': Stream.get('DisplayTitle', "unknown"), 'codec': Codec, 'external': IsExternal})
 
         item['Streams'][IndexMediaSources]['HasExternalSubtitle'] = HasExternalSubtitle
-
-    if not item['Streams'][0]['Audio']:
-        LOG.debug("No Audio Streams found: %s %s" % (item['Name'], item.get('Path')))
-        item['Streams'][0]['Audio'].append({'SampleRate': 0, 'BitRate': 0, 'codec': None, 'channels': 0, 'language': None, 'Index': None, 'DisplayTitle': None})
 
 def set_RunTimeTicks(item):
     if 'RunTimeTicks' in item:
         item['RunTimeTicks'] = round(float((item['RunTimeTicks'] or 0) / 10000000.0), 6)
     else:
         item['RunTimeTicks'] = 0
-        LOG.debug("No Runtime found: %s %s" % (item['Name'], item['Id']))
+        xbmc.log(f"EMBY.core.common: No Runtime found: {item['Name']} {item['Id']}", 0) # LOGDEBUG
 
 def set_overview(item):
     if 'Overview' in item:
@@ -469,42 +474,41 @@ def set_mpaa(item):
 def set_trailer(item, EmbyServer):
     item['Trailer'] = ""
 
-    if item['LocalTrailerCount']:
+    if 'LocalTrailerCount' in item and item['LocalTrailerCount']:
         for IntroLocal in EmbyServer.API.get_local_trailers(item['Id']):
             Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-            item['Trailer'] = "http://127.0.0.1:57342/V-%s-%s-%s-%s" % (EmbyServer.ServerData['ServerId'], IntroLocal['Id'], IntroLocal['MediaSources'][0]['Id'], Filename)
+            item['Trailer'] = f"{utils.AddonModePath}dynamic/{item['ServerId']}/V-{EmbyServer.ServerData['ServerId']}-{IntroLocal['Id']}-{IntroLocal['MediaSources'][0]['Id']}-{Filename}"
             break
 
-    if 'RemoteTrailers' in item:
-        if item['RemoteTrailers']:
-            try:
-                item['Trailer'] = "plugin://plugin.video.youtube/play/?video_id=%s" % item['RemoteTrailers'][0]['Url'].rsplit('=', 1)[1]
-            except:
-                LOG.error("Trailer not valid: %s" % item['Name'])
+    if 'RemoteTrailers' in item and item['RemoteTrailers']:
+        try:
+            item['Trailer'] = f"plugin://plugin.video.youtube/play/?video_id={item['RemoteTrailers'][0]['Url'].rsplit('=', 1)[1]}"
+        except:
+            xbmc.log(f"EMBY.core.common: Trailer not valid: {item['Name']}", 3) # LOGERROR
 
 def set_userdata_update_data(item):
-    if item['PlayCount'] == 0 or not item['Played']:
-        item['PlayCount'] = None
+    if not item['Played']:
+        item['PlayCount'] = 0
     else:
-        item['LastPlayedDate'] = item.get('LastPlayedDate', None)
+        item['LastPlayedDate'] = item.get('LastPlayedDate', "")
 
     if 'LastPlayedDate' in item:
         item['LastPlayedDate'] = utils.convert_to_local(item['LastPlayedDate'])
     else:
-        item['LastPlayedDate'] = None
+        item['LastPlayedDate'] = ""
 
     item['PlaybackPositionTicks'] = adjust_resume((item['PlaybackPositionTicks'] or 0) / 10000000.0)
 
 def set_playstate(item):
-    if item['UserData']['PlayCount'] == 0 or not item['UserData']['Played']:
-        item['UserData']['PlayCount'] = None
+    if not item['UserData']['Played']:
+        item['UserData']['PlayCount'] = 0
     else:
-        item['UserData']['LastPlayedDate'] = item['UserData'].get('LastPlayedDate', None)
+        item['UserData']['LastPlayedDate'] = item['UserData'].get('LastPlayedDate', "")
 
     if 'LastPlayedDate' in item['UserData']:
         item['UserData']['LastPlayedDate'] = utils.convert_to_local(item['UserData']['LastPlayedDate'])
     else:
-        item['UserData']['LastPlayedDate'] = None
+        item['UserData']['LastPlayedDate'] = ""
 
 def set_genres(item):
     if 'Genres' in item:
@@ -515,9 +519,9 @@ def set_genres(item):
 
     item['Genre'] = " / ".join(item['Genres'])
 
-def set_videocommon(item, server_id, ItemIndex, DynamicNode=False):
+def set_videocommon(item, ServerId, ItemIndex, DynamicNode=False):
     item['ProductionLocations'] = item.get('ProductionLocations', [])
-    item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', None)
+    item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', "")
     item['ProductionYear'] = item.get('ProductionYear', 0)
     item['UserData']['PlaybackPositionTicks'] = adjust_resume((item['UserData']['PlaybackPositionTicks'] or 0) / 10000000.0)
 
@@ -534,21 +538,21 @@ def set_videocommon(item, server_id, ItemIndex, DynamicNode=False):
 
     set_genres(item)
     set_playstate(item)
-    set_people(item, server_id, ItemIndex)
+    set_people(item, ServerId, ItemIndex)
     set_studios(item)
     set_overview(item)
     set_PremiereDate(item)
-    set_KodiArtwork(item, server_id, DynamicNode)
+    set_KodiArtwork(item, ServerId, DynamicNode)
 
 def set_PremiereDate(item):
     if 'PremiereDate' in item:
         item['PremiereDate'] = utils.convert_to_local(item['PremiereDate'], True)
     else:
-        if 'ProductionYear' in item:
-            item['PremiereDate'] = item['ProductionYear']
+        if 'ProductionYear' in item and item['ProductionYear']:
+            item['PremiereDate'] = str(item['ProductionYear'])
         else:
-            item['PremiereDate'] = "0"
-            item['ProductionYear'] = "0"
+            item['PremiereDate'] = ""
+            item['ProductionYear'] = 0
 
 def set_studios(item):
     StudioNames = []
@@ -568,7 +572,7 @@ def set_studios(item):
 
     item['Studio'] = " / ".join(item['Studios'])
 
-def set_chapters(item, server_id):
+def set_chapters(item, ServerId):
     Chapters = {}
     item['ChapterInfo'] = []
     item['IntroStartPositionTicks'] = 0
@@ -592,9 +596,9 @@ def set_chapters(item, server_id):
                 MarkerLabel = quote(MarkerTypeMapping[Chapter['MarkerType']])
 
                 if "ImageTag" in Chapter:
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], MarkerLabel)
+                    ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-{index}-c-{Chapter['ImageTag']}-{MarkerLabel}"
                 else: # inject blank image, otherwise not possible to use text overlay (webservice.py)
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", MarkerLabel)
+                    ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-{index}-c-noimage-{MarkerLabel}"
             else:
                 if "Name" in Chapter:
                     Chapter['Name'] = Chapter['Name'].replace("-", " ")
@@ -614,9 +618,9 @@ def set_chapters(item, server_id):
                     Chapter["Name"] = "unknown"
 
                 if "ImageTag" in Chapter:
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, Chapter['ImageTag'], quote(Chapter['Name']))
+                    ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-{index}-c-{Chapter['ImageTag']}-{quote(Chapter['Name'])}"
                 else:
-                    ChapterImage = "http://127.0.0.1:57342/p-%s-%s-%s-c-%s-%s" % (server_id, item['Id'], index, "noimage", quote(Chapter['Name']))
+                    ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-{index}-c-noimage-{quote(Chapter['Name'])}"
 
             if not Chapter["StartPositionTicks"] in Chapters:
                 Chapters[Chapter["StartPositionTicks"]] = ChapterImage
@@ -624,14 +628,14 @@ def set_chapters(item, server_id):
                 # replace existing chapter label with marker label
                 if MarkerLabel:
                     Data = Chapters[Chapter["StartPositionTicks"]].split("-")
-                    Data[6] = MarkerLabel
+                    Data[5] = MarkerLabel
                     Chapters[Chapter["StartPositionTicks"]] = "-".join(Data)
 
     for StartPositionTicks, ChapterImage in list(Chapters.items()):
         item['ChapterInfo'].append({"StartPositionTicks": StartPositionTicks, "Image": ChapterImage})
 
 # Set Kodi artwork
-def set_KodiArtwork(item, server_id, DynamicNode):
+def set_KodiArtwork(item, ServerId, DynamicNode):
     item['ParentLogoItemId'] = item.get('ParentLogoItemId', None)
     item['ParentLogoImageTag'] = item.get('ParentLogoImageTag', None)
     item['ParentThumbItemId'] = item.get('ParentThumbItemId', None)
@@ -653,14 +657,14 @@ def set_KodiArtwork(item, server_id, DynamicNode):
                 if item["ImageTags"][ImageTagsMapping[0]] and item["ImageTags"][ImageTagsMapping[0]] != "None":
                     EmbyArtworkTag = item["ImageTags"][ImageTagsMapping[0]]
                     EmbyArtworkId = item['Id']
-            elif "%sImageTag" % ImageTagsMapping[0] in item:
-                ImageTagKey = "%sImageTag" % ImageTagsMapping[0]
+            elif f"{ImageTagsMapping[0]}ImageTag" in item:
+                ImageTagKey = f"{ImageTagsMapping[0]}ImageTag"
 
                 if item[ImageTagKey] and item[ImageTagKey] != "None":
                     EmbyArtworkTag = item[ImageTagKey]
 
-                    if "%sItemId" % ImageTagsMapping[0] in item:
-                        EmbyArtworkId = item["%sItemId" % ImageTagsMapping[0]]
+                    if f"{ImageTagsMapping[0]}ItemId" in item:
+                        EmbyArtworkId = item[f"{ImageTagsMapping[0]}ItemId"]
                     else:
                         if ImageTagsMapping[0] == "SeriesPrimary":
                             if "SeriesId" in item:
@@ -678,8 +682,8 @@ def set_KodiArtwork(item, server_id, DynamicNode):
             elif ImageTagsMapping[0] == "ArtistItems" and "ArtistItems" in item and item["ArtistItems"] and item["ArtistItems"] != "None":
                 EmbyArtworkId = item["ArtistItems"][0]['Id']
                 EmbyArtworkTag = 0
-            elif "%sImageTags" % ImageTagsMapping[0] in item:
-                BackDropsKey = "%sImageTags" % ImageTagsMapping[0]
+            elif f"{ImageTagsMapping[0]}ImageTags" in item:
+                BackDropsKey = f"{ImageTagsMapping[0]}ImageTags"
 
                 if BackDropsKey == "ParentBackdropImageTags":
                     EmbyBackDropsId = item["ParentBackdropItemId"]
@@ -690,41 +694,41 @@ def set_KodiArtwork(item, server_id, DynamicNode):
                     if item[BackDropsKey] and item[BackDropsKey] != "None":
                         if ImageTagsMapping[1] == "fanart":
                             if not "fanart" in item['KodiArtwork']["fanart"]:
-                                item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-B-%s" % (server_id, EmbyBackDropsId, item[BackDropsKey][0])
+                                item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-B-{item[BackDropsKey][0]}"
 
                             for index, EmbyArtworkTag in enumerate(item[BackDropsKey][1:], 1):
-                                if not "fanart%s" % index in item['KodiArtwork']["fanart"]:
-                                    item['KodiArtwork']["fanart"]["fanart%s" % index] = "http://127.0.0.1:57342/p-%s-%s-%s-B-%s" % (server_id, EmbyBackDropsId, index, EmbyArtworkTag)
+                                if not f"fanart{index}" in item['KodiArtwork']["fanart"]:
+                                    item['KodiArtwork']["fanart"][f"fanart{index}"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-{index}-B-{EmbyArtworkTag}"
                         else:
                             if not item['KodiArtwork'][ImageTagsMapping[1]]:
-                                item['KodiArtwork'][ImageTagsMapping[1]] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyBackDropsId, EmbyArtworkIdShort[ImageTagsMapping[0]], item[BackDropsKey][0])
+                                item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{item[BackDropsKey][0]}"
 
             if EmbyArtworkId:
                 if ImageTagsMapping[1] == "fanart":
                     if not "fanart" in item['KodiArtwork']["fanart"]:
-                        item['KodiArtwork']["fanart"]["fanart"] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyArtworkId, EmbyArtworkIdShort[ImageTagsMapping[0]], EmbyArtworkTag)
+                        item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}"
                 else:
                     if not item['KodiArtwork'][ImageTagsMapping[1]]:
-                        item['KodiArtwork'][ImageTagsMapping[1]] = "http://127.0.0.1:57342/p-%s-%s-0-%s-%s" % (server_id, EmbyArtworkId, EmbyArtworkIdShort[ImageTagsMapping[0]], EmbyArtworkTag)
+                        item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}"
 
 
     if utils.AssignEpisodePostersToTVShowPoster:
         if item['Type'] == "Episode" and 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
-            item['KodiArtwork']['poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["SeriesId"], item["SeriesPrimaryImageTag"])
+            item['KodiArtwork']['poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['SeriesId']}-0-p-{item['SeriesPrimaryImageTag']}"
 
     if DynamicNode:
         if item['Type'] == "Episode":
             if 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
-                item['KodiArtwork']['tvshow.poster'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["SeriesId"], item["SeriesPrimaryImageTag"])
+                item['KodiArtwork']['tvshow.poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['SeriesId']}-0-p-{item['SeriesPrimaryImageTag']}"
 
             if 'ParentThumbItemId' in item and "ParentThumbImageTag" in item and item["ParentThumbImageTag"] and item["ParentThumbImageTag"] != "None":
-                item['KodiArtwork']['tvshow.thumb'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentThumbItemId"], item["ParentThumbImageTag"])
+                item['KodiArtwork']['tvshow.thumb'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['ParentThumbItemId']}-0-p-{item['ParentThumbImageTag']}"
 
             if 'ParentLogoItemId' in item and "ParentLogoImageTag" in item and item["ParentLogoImageTag"] and item["ParentLogoImageTag"] != "None":
-                item['KodiArtwork']['tvshow.clearlogo'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentLogoItemId"], item["ParentLogoImageTag"])
+                item['KodiArtwork']['tvshow.clearlogo'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['ParentLogoItemId']}-0-p-{item['ParentLogoImageTag']}"
 
             if 'ParentBackdropItemId' in item and "ParentBackdropImageTags" in item and item["ParentBackdropImageTags"]:
-                item['KodiArtwork']['tvshow.fanart'] = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item["ParentBackdropItemId"], item["ParentBackdropImageTags"][0])
+                item['KodiArtwork']['tvshow.fanart'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['ParentBackdropItemId']}-0-p-{item['ParentBackdropImageTags'][0]}"
 
 def set_MusicVideoTracks(item):
     # Try to detect track number
@@ -754,11 +758,11 @@ def delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, e
     if EmbyItemId:
         emby_db.remove_item_streaminfos(EmbyItemId)
 
-def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, ItemIndex):
+def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, ItemIndex):
     set_RunTimeTicks(item)
     get_streams(item)
     set_chapters(item, EmbyServer.ServerData['ServerId'])
-    get_filename(item, FileId, EmbyServer.API, ItemIndex)
+    get_filename(item, EmbyServer.API, ItemIndex, MediaType)
     set_videocommon(item, EmbyServer.ServerData['ServerId'], ItemIndex)
     emby_db.add_streamdata(item['Id'], item['Streams'])
     video_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], MediaType)
@@ -767,7 +771,7 @@ def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, Item
     video_db.add_studios_and_links(item['Studios'], item['KodiItemIds'][ItemIndex], MediaType)
     video_db.add_people_and_links(item['People'], item['KodiItemIds'][ItemIndex], MediaType)
     video_db.add_countries_and_links(item['ProductionLocations'], item['KodiItemIds'][ItemIndex], MediaType)
-    video_db.add_streams(item['KodiFileIds'][ItemIndex], item['Streams'][0]['Video'], item['Streams'][0]['Audio'], item['Streams'][0]['SubtitleLanguage'], item['RunTimeTicks'])
+    video_db.add_streams(item['KodiFileIds'][ItemIndex], item['Streams'][0]['Video'], item['Streams'][0]['Audio'], item['Streams'][0]['Subtitle'], item['RunTimeTicks'])
 
     if "StackTimes" in item:
         video_db.add_stacktimes(item['KodiFileIds'][ItemIndex], item['StackTimes'])
@@ -775,3 +779,118 @@ def set_ContentItem(item, video_db, emby_db, EmbyServer, MediaType, FileId, Item
 def delete_ContentItem(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType, EmbyLibraryId):
     delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType)
     emby_db.remove_item(EmbyItemId, EmbyLibraryId)
+
+def get_path_type_from_item(ServerId, item):
+    HasSpecials = ""
+
+    if 'SpecialFeatureCount' in item:
+        if int(item['SpecialFeatureCount']):
+            HasSpecials = "s"
+
+    if item.get('NoLink'):
+        return "", None
+
+    if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
+        if 'Path' in item:
+            return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}-{utils.PathToFilenameReplaceSpecialCharecters(item['Path'])}", "p"
+
+        return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}", "p"
+
+    if item['Type'] == "TvChannel":
+        return f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-stream.ts", "t"
+
+    if item['Type'] == "Audio":
+        return f"http://127.0.0.1:57342/dynamic/{ServerId}/a-{item['Id']}-{utils.PathToFilenameReplaceSpecialCharecters(item['Path'])}", "a"
+
+    if item['Type'] == "MusicVideo":
+        Type = "M"
+    elif item['Type'] == "Movie":
+        Type = "m"
+    elif item['Type'] == "Episode":
+        Type = "e"
+    elif item['Type'] == "Video":
+        Type = "v"
+    elif item['Type'] == "Trailer":
+        Type = "T"
+    else:
+        return None, None
+
+    if 'Path' in item:
+        path = item['Path']
+
+        # Strm
+        if path.lower().endswith('.strm'):
+            if 'MediaSources' in item and len(item['MediaSources']) > 0:
+                path = item['MediaSources'][0].get('Path', "")
+        elif path.lower().endswith(".iso"): # Iso
+            if path.startswith('\\\\'):
+                path = path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
+
+            return path, "i"
+
+        # Plugin (youtube)
+        if path.lower().startswith("plugin://"):
+            return path, "v"
+
+        # Regular
+        IsRemote = item['MediaSources'][0].get('IsRemote', "0")
+
+        if IsRemote and IsRemote != "0":
+            IsRemote = "1"
+        else:
+            IsRemote = "0"
+
+        get_streams(item)
+        set_chapters(item, ServerId)
+        VideoBitrate, VideoCodec = get_Bitrate_Codec(item, "Video")
+        AudioBitrate, AudioCodec = get_Bitrate_Codec(item, "Audio")
+        path = f"{utils.AddonModePath}dynamic/{ServerId}/{Type}-{item['Id']}-{item['MediaSources'][0]['Id']}-0-0-{item['Streams'][0]['HasExternalSubtitle']}-{len(item['MediaSources'])}-{item['IntroStartPositionTicks']}-{item['IntroEndPositionTicks']}-{item['CreditsPositionTicks']}-{IsRemote}-{VideoCodec}-{VideoBitrate}-{AudioCodec}-{AudioBitrate}-{HasSpecials}-{utils.PathToFilenameReplaceSpecialCharecters(path)}"
+        return path, Type
+
+    # Channel
+    return f"http://127.0.0.1:57342/dynamic/{ServerId}/c-{item['Id']}-{item['MediaSources'][0]['Id']}-stream.ts", "c"
+
+def verify_content(Item, MediaType):
+    if not 'Name' in Item:
+        xbmc.log(f"EMBY.core.common: No name assinged: {Item}", 3) # LOGERROR
+        return False
+
+    if not 'MediaSources' in Item or not Item['MediaSources']:
+        xbmc.log(f"EMBY.core.common: No mediasources found for {MediaType}: {Item['Id']}", 3) # LOGERROR
+        xbmc.log(f"EMBY.core.common: No mediasources found for {MediaType}: {Item}", 0) # LOGDEBUG
+        return False
+
+    if len(Item['MediaSources']) > 0:
+        if not 'MediaStreams' in Item['MediaSources'][0] or not Item['MediaSources'][0]['MediaStreams']:
+            xbmc.log(f"EMBY.core.common: No mediastreams found for {MediaType}: {Item['Id']} / {Item.get('Path', '')}", 2) # LOGWARNING
+            xbmc.log(f"EMBY.core.common: No mediastreams found for {MediaType}: {Item}", 0) # LOGDEBUG
+    else:
+        xbmc.log(f"EMBY.core.common: Empty mediasources found for {MediaType}: {Item['Id']}", 3) # LOGERROR
+        xbmc.log(f"EMBY.core.common: Empty mediasources found for {MediaType}: {Item}", 0) # LOGDEBUG
+        return False
+
+    return True
+
+def load_tvchannel(item, ServerId):
+    item['CurrentProgram'] = item.get('CurrentProgram', {})
+    item['CurrentProgram']['UserData'] = item['CurrentProgram'].get('UserData', {})
+
+    if 'Name' in item['CurrentProgram']:
+        item['Name'] = f"{item['Name']} / {item['CurrentProgram']['Name']}"
+
+    if 'RunTimeTicks' in item['CurrentProgram']:
+        item['CurrentProgram']['RunTimeTicks'] = round(float((item['CurrentProgram']['RunTimeTicks']) / 10000000.0), 6)
+    else:
+        item['CurrentProgram']['RunTimeTicks'] = 0
+
+    if 'PlaybackPositionTicks' in item['CurrentProgram']['UserData']:
+        item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = round(float((item['CurrentProgram']['UserData']['PlaybackPositionTicks']) / 10000000.0), 6)
+    else:
+        item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = 0
+
+    item['CurrentProgram']['Genres'] = item['CurrentProgram'].get('Genres', [])
+    item['CurrentProgram']['UserData']['PlayCount'] = item['CurrentProgram']['UserData'].get('PlayCount', 0)
+    item['CurrentProgram']['UserData']['LastPlayedDate'] = item['CurrentProgram']['UserData'].get('LastPlayedDate', "")
+    get_streams(item)
+    set_overview(item)
+    set_videocommon(item, ServerId, 0, True)
