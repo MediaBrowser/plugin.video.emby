@@ -349,7 +349,7 @@ def set_people(item, ServerId, ItemIndex):
             else:
                 PeopleInvalidRecords.append(Index)
 
-        for PeopleInvalidRecord in PeopleInvalidRecords:
+        for PeopleInvalidRecord in PeopleInvalidRecords[::-1]: # reversed order
             del item['People'][PeopleInvalidRecord]
             LOG.warning("Invalid people detected: %s / %s" % (item['Id'], item['Name']))
     else:
