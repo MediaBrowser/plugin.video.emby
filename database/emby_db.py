@@ -182,23 +182,8 @@ class EmbyDatabase:
         self.cursor.execute("UPDATE Mapping SET KodiParentId = ? WHERE EmbyId = ?", (KodiParentId, EmbyId))
 
     def get_item_by_parent_id(self, KodiParentId, KodiType):
-        self.cursor.execute("SELECT EmbyId, KodiId FROM Mapping WHERE KodiType = ? AND KodiParentId = ?", (KodiType, KodiParentId))
-        Items = self.cursor.fetchall()
-
-        # Try query by MultiKodiIDs
-        if not Items: # First item
-            self.cursor.execute("SELECT EmbyId, KodiId FROM Mapping WHERE KodiType = ? AND KodiParentId LIKE ?", (KodiType, f"{KodiParentId};%%"))
-            Items = self.cursor.fetchall()
-
-            if not Items: # Last item
-                self.cursor.execute("SELECT EmbyId, KodiId FROM Mapping WHERE KodiType = ? AND KodiParentId LIKE ?", (KodiType, f"%%;{KodiParentId}"))
-                Items = self.cursor.fetchall()
-
-                if not Items: # Middle item
-                    self.cursor.execute("SELECT EmbyId, KodiId FROM Mapping WHERE KodiType = ? AND KodiParentId LIKE ?", (KodiType, f"%%;{KodiParentId};%%"))
-                    Items = self.cursor.fetchall()
-
-        return Items
+        self.cursor.execute("SELECT EmbyId, KodiId FROM Mapping WHERE KodiType = ? AND (KodiParentId = ? OR KodiParentId LIKE ? OR KodiParentId LIKE ? OR KodiParentId LIKE ?)", (KodiType, KodiParentId, f"{KodiParentId};%%", f"%%;{KodiParentId}", f"%%;{KodiParentId};%%"))
+        return self.cursor.fetchall()
 
     def get_media_by_parent_id(self, EmbyParentId):
         self.cursor.execute("SELECT * FROM Mapping WHERE EmbyParentId = ?", (EmbyParentId,))
@@ -230,23 +215,8 @@ class EmbyDatabase:
         return None, None
 
     def get_item_by_KodiId_KodiType(self, KodiId, KodiType):
-        self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId = ?", (KodiType, KodiId))
-        Items = self.cursor.fetchall()
-
-        # Try query by MultiKodiIDs
-        if not Items: # First item
-            self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"{KodiId};%%"))
-            Items = self.cursor.fetchall()
-
-            if not Items: # Last item
-                self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"%%;{KodiId}"))
-                Items = self.cursor.fetchall()
-
-                if not Items: # Middle item
-                    self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"%%;{KodiId};%%"))
-                    Items = self.cursor.fetchall()
-
-        return Items
+        self.cursor.execute("SELECT * FROM Mapping WHERE KodiType = ? AND (KodiId = ? OR KodiId LIKE ? OR KodiId LIKE ? OR KodiId LIKE ?)", (KodiType, KodiId, f"{KodiId};%%", f"%%;{KodiId}", f"%%;{KodiId};%%"))
+        return self.cursor.fetchall()
 
     def get_media_by_id(self, EmbyId):
         self.cursor.execute("SELECT * FROM Mapping WHERE EmbyId = ?", (EmbyId,))
@@ -299,10 +269,7 @@ class EmbyDatabase:
         self.remove_item_streaminfos(EmbyId)
 
     def remove_item_music_by_kodiid(self, KodiType, KodiId):
-        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId = ?", (KodiType, KodiId)) # Unique item
-        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"{KodiId};%%")) # First item
-        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"%%;{KodiId}")) # Last item
-        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND KodiId LIKE ?", (KodiType, f"%%;{KodiId};%%")) # Middle item
+        self.cursor.execute("DELETE FROM Mapping WHERE KodiType = ? AND (KodiId = ? OR KodiId LIKE ? OR KodiId LIKE ? OR KodiId LIKE ?)", (KodiType, KodiId, f"{KodiId};%%", f"%%;{KodiId}", f"%%;{KodiId};%%"))
 
     def get_stacked_kodiid(self, EmbyPresentationKey, EmbyLibraryId, EmbyType):
         self.cursor.execute("SELECT KodiId FROM Mapping WHERE EmbyPresentationKey = ? AND EmbyType = ? AND (EmbyLibraryId = ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ? OR EmbyLibraryId LIKE ?)", (EmbyPresentationKey, EmbyType, EmbyLibraryId, f"{EmbyLibraryId};%%", f"%%;{EmbyLibraryId}", f"%%;{EmbyLibraryId};%%"))
@@ -350,7 +317,12 @@ class EmbyDatabase:
                 return None
 
             KodiIds = Data[1].split(";")
-            return KodiIds[EmbyLibraryIdIndex]
+
+            if EmbyLibraryIdIndex > len(KodiIds) - 1:
+                return None
+
+            Data = KodiIds[EmbyLibraryIdIndex]
+            return Data
 
         return None
 

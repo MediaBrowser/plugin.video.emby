@@ -175,8 +175,8 @@ class MusicDatabase:
                 Genres.append(SongGenre.strip())
 
         Genres = list(dict.fromkeys(Genres)) # filter doubles
-        Temp = sorted(Genres, reverse=False, key=str.lower)
-        return Temp
+        Genres = sorted(Genres, reverse=False, key=str.lower)
+        return Genres
 
     def delete_artist(self, ArtistId):
         self.common.delete_artwork(ArtistId, "artist")

@@ -1094,7 +1094,6 @@ def CacheAllEntries(urls):
             else:
                 utils.writeFileBinary(Path, ImageBinary)
                 Size = len(ImageBinary)
-#                ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': f"d{UnixTime}s{Size}", 'Path': Path, 'cachedUrl': cachedUrl}
                 ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': f"d0s{Size}", 'Path': Path, 'cachedUrl': cachedUrl}
 
         Value = int((IndexUrl + 1) / total * 100)
@@ -1107,7 +1106,6 @@ def add_textures(ArtworkCacheItems):
 
     for ArtworkCacheItem in ArtworkCacheItems:
         if ArtworkCacheItem:
-#            texturedb.add_texture(ArtworkCacheItem["Url"], ArtworkCacheItem["cachedUrl"], ArtworkCacheItem["ImageHash"], "1", ArtworkCacheItem["Width"], ArtworkCacheItem["Height"], KodiTime)
             texturedb.add_texture(ArtworkCacheItem["Url"], ArtworkCacheItem["cachedUrl"], ArtworkCacheItem["ImageHash"], "1", ArtworkCacheItem["Width"], ArtworkCacheItem["Height"], "")
 
     dbio.DBCloseRW("texture", "artwork_cache")

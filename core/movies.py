@@ -10,7 +10,7 @@ class Movies:
         self.video_db.init_favorite_tags()
 
     def movie(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Movie"):
             return False
 
         if not common.verify_content(item, "movie"):
@@ -99,7 +99,7 @@ class Movies:
         return not item['UpdateItems'][ItemIndex]
 
     def boxset(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "BoxSet"):
             return False
 
         MoviesAssignedToBoxset = self.EmbyServer.API.get_Items(item['Id'], ["Movie", "Video"], True, True, {})

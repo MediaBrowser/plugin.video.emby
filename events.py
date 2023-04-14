@@ -2,13 +2,6 @@ import sys
 import socket
 
 Argv = ';'.join(sys.argv)
-
-if "contextmenu" in Argv:
-    from urllib.parse import quote
-    InfoTags = sys.listitem.getVideoInfoTag()
-    Label = InfoTags.getTitle()
-    Argv += f';{quote(Label)}'
-
 DataSend, XbmcMonitor, sock = f"EVENT {Argv}".encode('utf-8'), None, socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)

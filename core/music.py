@@ -10,7 +10,7 @@ class Music:
         self.music_db = musicdb
 
     def artist(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "MusicArtist"):
             xbmc.log(f"EMBY.core.music artist, general error: Process item: {item}", 3) # LOGERROR
             return False
 
@@ -45,7 +45,7 @@ class Music:
         return not item['UpdateItems'][ItemIndex]
 
     def album(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "MusicAlbum"):
             xbmc.log(f"EMBY.core.music album, general error: Process item: {item}", 3) # LOGERROR
             return False
 
@@ -113,7 +113,7 @@ class Music:
         return not item['UpdateItems'][ItemIndex]
 
     def song(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Audio"):
             xbmc.log(f"EMBY.core.music song, general error: Process item: {item}", 3) # LOGERROR
             return False
 

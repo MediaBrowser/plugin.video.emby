@@ -1,6 +1,7 @@
 from _thread import start_new_thread
 import queue
 import json
+import xbmc
 from helper import utils
 from database import dbio
 from . import listitem
@@ -26,11 +27,13 @@ EmbyFields = {
 }
 LiveStreamEmbyID = 0
 
+
 class API:
     def __init__(self, EmbyServer):
         self.DynamicListsRemoveFields = ()
         self.EmbyServer = EmbyServer
         self.update_settings()
+        self.ProcessProgress = {}
 
     def update_settings(self):
         self.DynamicListsRemoveFields = ()
@@ -75,138 +78,110 @@ class API:
         globals()["LiveStreamEmbyID"] = 0
         self.EmbyServer.http.request({'data': json.dumps({'LiveStreamId': LiveStreamId}), 'type': "POST", 'handler': "LiveStreams/Close"}, False, False)
 
-    def get_Items_dynamic(self, parent_id, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False, UseAncestors=False):
-        SingleRun = False
+    def get_Items_dynamic(self, ParentId, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False, UseAncestors=False):
+        CustomLimit = False
         Limit = get_Limit(MediaTypes)
         IncludeItemTypes, _ = self.get_MediaData(MediaTypes, Basic, True)
-        params = {'ParentId': parent_id, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit}
+        Params = {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit}
 
         if Extra:
-            params.update(Extra)
+            Params.update(Extra)
 
             if "Limit" in Extra:
                 Limit = Extra["Limit"]
-                SingleRun = True
-
-        index = 0
+                CustomLimit = True
 
         if Resume:
-            url = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
         elif Latest:
-            url = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
         else:
-            url = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
 
-        while True:
-            params['StartIndex'] = index
-            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': url}, False, False)
+        ItemsFullQuery = 10000 * [None] # pre allocate memory
+        embydb = None
+        videodb = None
+        musicdb = None
 
-            if Latest:
-                if not IncomingData:
-                    break
+        for ItemIndex, BasicItem in enumerate(self.get_Items_Custom(Request, Params, Limit, not Recursive or CustomLimit)):
+            KodiItem = (False, )
 
-                IncomingData = {'Items': IncomingData}
-            else:
-                if 'Items' not in IncomingData:
-                    break
+            if SkipLocalDB or BasicItem['Type'] in ("Photo", "PhotoAlbum", "BoxSet"):
+                if ItemIndex % 10000 == 0: # modulo 10000
+                    ItemsFullQuery += 10000 * [None] # pre allocate memory
 
-                if not IncomingData['Items']:
-                    break
+                ItemsFullQuery[ItemIndex] = BasicItem['Id']
+                continue
 
-            ItemsReturn = []
-            ItemsFullQuery = ()
-
-            if SkipLocalDB:
-                for Item in IncomingData['Items']:
-                    ItemsFullQuery += (Item['Id'],)
-            else:
-                KodiItems = ()
+            if not embydb:
                 embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
                 videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
                 musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
 
-                for Item in IncomingData['Items']:
-                    if Item['Type'] in ("Photo", "PhotoAlbum", "BoxSet"):
-                        ItemsFullQuery += (Item['Id'],)
-                        continue
+            KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], ParentId) # Requested video is synced to KodiDB.zz
 
-                    KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], parent_id) # Requested video is synced to KodiDB.zz
+            if not KodiId and UseAncestors and BasicItem['Type'] in ("Movie", "Series", "Season", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"):
+                Ancestors = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "GET", 'handler': f"Items/{BasicItem['Id']}/Ancestors"}, False, False)
 
-                    if not KodiId and UseAncestors and Item['Type'] in ("Movie", "Series", "Season", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"):
-                        Ancestors = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "GET", 'handler': f"Items/{Item['Id']}/Ancestors"}, False, False)
-
-                        for Ancestor in Ancestors:
-                            KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(Item['Id'], Ancestor['Id']) # Requested video is synced to KodiDB.zz
-
-                            if KodiId:
-                                break
+                for Ancestor in Ancestors:
+                    KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], Ancestor['Id']) # Requested video is synced to KodiDB.zz
 
                     if KodiId:
-                        if Item['Type'] == "Movie":
-                            KodiItems += ((videodb.get_movie_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "Series":
-                            KodiItems += ((videodb.get_tvshows_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "Season":
-                            KodiItems += ((videodb.get_season_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "Episode":
-                            KodiItems += ((videodb.get_episode_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "BoxSet":
-                            KodiItems += ((videodb.get_boxset_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "MusicVideo":
-                            KodiItems += ((videodb.get_musicvideos_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "MusicArtist":
-                            KodiItems += ((musicdb.get_artist_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "MusicAlbum":
-                            KodiItems += ((musicdb.get_album_metadata_for_listitem(KodiId), Item['Type']),)
-                        elif Item['Type'] == "Audio":
-                            KodiItems += ((musicdb.get_song_metadata_for_listitem(KodiId), Item['Type']),)
-                    else:
-                        ItemsFullQuery += (Item['Id'],)
+                        break
 
-                for KodiItem in KodiItems:
-                    if KodiItem[0]:
-                        isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem[0])
+            if KodiId:
+                if BasicItem['Type'] == "Movie":
+                    KodiItem = ((videodb.get_movie_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "Series":
+                    KodiItem = ((videodb.get_tvshows_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "Season":
+                    KodiItem = ((videodb.get_season_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "Episode":
+                    KodiItem = ((videodb.get_episode_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "BoxSet":
+                    KodiItem = ((videodb.get_boxset_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "MusicVideo":
+                    KodiItem = ((videodb.get_musicvideos_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "MusicArtist":
+                    KodiItem = ((musicdb.get_artist_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "MusicAlbum":
+                    KodiItem = ((musicdb.get_album_metadata_for_listitem(KodiId), BasicItem['Type']))
+                elif BasicItem['Type'] == "Audio":
+                    KodiItem = ((musicdb.get_song_metadata_for_listitem(KodiId), BasicItem['Type']))
+            else:
+                ItemsFullQuery += (BasicItem['Id'],)
 
-                        if 'pathandfilename' in KodiItem[0]:
-                            ItemsReturn.append({"ListItem": ListItem, "Path": KodiItem[0]['pathandfilename'], "isFolder": isFolder, "Type": KodiItem[1]})
-                        else:
-                            ItemsReturn.append({"ListItem": ListItem, "Path": KodiItem[0]['path'], "isFolder": isFolder, "Type": KodiItem[1]})
+                if ItemIndex % 10000 == 0: # modulo 10000
+                    ItemsFullQuery += 10000 * [None] # pre allocate memory
 
-                IncomingData['Items'].clear()  # free memory
-                dbio.DBCloseRO("video", "get_Items_dynamic")
-                dbio.DBCloseRO("music", "get_Items_dynamic")
-                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
+                ItemsFullQuery[ItemIndex] = BasicItem['Id']
 
-            # Load All Data
-            while ItemsFullQuery:
-                TempItemsFullQuery = ItemsFullQuery[:100]  # Chunks of 100
-                ItemsFullQuery = ItemsFullQuery[100:]
-                ItemsFull = self.get_Item(",".join(TempItemsFullQuery), ["Everything"], True, Basic, False)
-                ItemsReturn += ItemsFull
+            if KodiItem[0]:
+                isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem[0])
 
-            for ItemReturn in ItemsReturn:
-                yield ItemReturn
+                if 'pathandfilename' in KodiItem[0]:
+                    yield {"ListItem": ListItem, "Path": KodiItem[0]['pathandfilename'], "isFolder": isFolder, "Type": KodiItem[1]}
+                else:
+                    yield {"ListItem": ListItem, "Path": KodiItem[0]['path'], "isFolder": isFolder, "Type": KodiItem[1]}
 
-            if not Recursive or SingleRun: # Emby server bug workaround
-                break
+        if embydb:
+            dbio.DBCloseRO("video", "get_Items_dynamic")
+            dbio.DBCloseRO("music", "get_Items_dynamic")
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
 
-            index += Limit
+        ItemsFullQuery = list(dict.fromkeys(ItemsFullQuery)) # filter doubles
 
-    def get_Items(self, parent_id, MediaTypes, Basic, Recursive, Extra):
-        SingleRun = False
-        Limit = get_Limit(MediaTypes)
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, False)
-        params = {'ParentId': parent_id, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit, 'Fields': Fields}
+        if None in ItemsFullQuery:
+            ItemsFullQuery.remove(None)
 
-        if Extra:
-            params.update(Extra)
+        if ItemsFullQuery:
+            for Item in self.get_Items_Ids(ItemsFullQuery, ["Everything"], True, Basic):
+                yield Item
 
-            if "Limit" in Extra:
-                Limit = Extra["Limit"]
-                SingleRun = True
-
+    def get_Items_Ids(self, Ids, MediaTypes, Dynamic, Basic, ProcessProgressId=""):
+        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
         ItemsQueue = queue.Queue()
-        start_new_thread(self.async_get_Items, (ItemsQueue, not Recursive or SingleRun, params, Limit))
+        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, Ids, ProcessProgressId))
 
         while True:
             Item = ItemsQueue.get()
@@ -216,39 +191,160 @@ class API:
 
             yield Item
 
-    def async_get_Items(self, ItemsQueue, SingleLoop, params, Limit):
-        index = 0
+    def async_get_Items_Ids(self, Request, ItemsQueue, Params, Ids, ProcessProgressId=""):
+        Index = 0
 
-        while True:
-            params['StartIndex'] = index
-            IncomingData = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        while Ids:
+            # Limit URI lenght
+            URILenght = 1500
+            IdsIndex = 100
 
-            if 'Items' not in IncomingData:
+            while len(",".join(Ids[:IdsIndex])) < URILenght and IdsIndex < len(Ids):
+                IdsIndex += 5
+
+            Params['Ids'] = ",".join(Ids[:IdsIndex])  # Chunks of 100 -> due to URI lenght limitation, more tah 100 Ids not possible to request (HTTP error 414)
+            Ids = Ids[IdsIndex:]
+            IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
+
+            if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
                 ItemsQueue.put("QUIT")
-                return
-
-            if not IncomingData['Items']:
-                ItemsQueue.put("QUIT")
+                del IncomingData  # release memory
                 return
 
             for Item in IncomingData['Items']:
                 ItemsQueue.put(Item)
 
-            IncomingData['Items'].clear()  # free memory
+            Index += len(IncomingData['Items'])
+            del IncomingData  # release memory
 
-            if SingleLoop: # Emby server bug workaround
+            if not self.async_throttle_queries(Index, 10000, ProcessProgressId):
+                ItemsQueue.put("QUIT")
+
+        ItemsQueue.put("QUIT")
+
+    def async_throttle_queries(self, Index, Limit, ProcessProgressId):
+        # Throttle queries -> give Kodi time to catch up
+        if ProcessProgressId and ProcessProgressId in self.ProcessProgress:
+            ProcessLimit = Index - 2 * Limit
+
+            while ProcessLimit > self.ProcessProgress[ProcessProgressId]:
+                if utils.sleep(2) or self.ProcessProgress[ProcessProgressId] == -1: # Cancel
+                    return False
+
+                xbmc.log(f"EMBY.emby.api: Throttle queries {ProcessLimit} / {ProcessProgressId} / {self.ProcessProgress[ProcessProgressId]}", 1) # LOGINFO
+
+        return True
+
+    def get_Items_Custom(self, Request, Params, Limit, CustomLimit):
+        ItemsQueue = queue.Queue()
+        start_new_thread(self.async_get_Items, (Request, ItemsQueue, CustomLimit, Params, Limit))
+
+        while True:
+            Item = ItemsQueue.get()
+
+            if Item == "QUIT":
+                return
+
+            yield Item
+
+    def get_Items(self, ParentId, MediaTypes, Basic, Recursive, Extra, ProcessProgressId=""):
+        CustomLimit = False
+        Limit = get_Limit(MediaTypes)
+        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, False)
+        Params = {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit, 'Fields': Fields}
+
+        if Extra:
+            Params.update(Extra)
+
+            if "Limit" in Extra:
+                Limit = Extra["Limit"]
+                CustomLimit = True
+
+        ItemsQueue = queue.Queue()
+        start_new_thread(self.async_get_Items, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, not Recursive or CustomLimit, Params, Limit, ProcessProgressId))
+
+        while True:
+            Item = ItemsQueue.get()
+
+            if Item == "QUIT":
+                return
+
+            yield Item
+
+    def get_channelprogram(self):
+        Limit = get_Limit(("livetv",))
+        Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': "Overview", 'Limit': Limit}
+        ItemsQueue = queue.Queue()
+        start_new_thread(self.async_get_Items, ("LiveTv/Programs", ItemsQueue, False, Params, Limit))
+
+        while True:
+            Item = ItemsQueue.get()
+
+            if Item == "QUIT":
+                return
+
+            yield Item
+
+    def async_get_Items(self, Request, ItemsQueue, CustomLimit, Params, Limit, ProcessProgressId=""):
+        Index = 0
+        ItemCounter = 0
+
+        while True:
+            Params['StartIndex'] = Index
+            IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
+            DirectItems = Request.lower().find("latest") != -1
+
+            if DirectItems:
+                if not IncomingData or utils.SystemShutdown:
+                    ItemsQueue.put("QUIT")
+                    return
+
+                for Item in IncomingData:
+                    ItemsQueue.put(Item)
+
+                ItemCounter += len(IncomingData)
+            else:
+                if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
+                    ItemsQueue.put("QUIT")
+                    return
+
+                for Item in IncomingData['Items']:
+                    ItemsQueue.put(Item)
+
+                ItemCounter += len(IncomingData['Items'])
+
+            del IncomingData  # release memory
+
+            if CustomLimit: # Emby server bug workaround
                 ItemsQueue.put("QUIT")
                 return
 
-            index += Limit
+            if not self.async_throttle_queries(Index, Limit, ProcessProgressId):
+                ItemsQueue.put("QUIT")
+
+            Index += Limit
+
+    def get_Item(self, Ids, MediaTypes, Dynamic, Basic, Specials=False):
+        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
+
+        if Specials: # Bugfix workaround
+            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'IncludeItemTypes': 'Workaround', 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        else:
+            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+
+        if 'Items' in Data:
+            if Data['Items']:
+                return Data['Items'][0]
+
+        return {}
 
     def get_TotalRecords(self, parent_id, item_type, Extra):
-        params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': True, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': True, 'Limit': 1}
+        Params = {'ParentId': parent_id, 'IncludeItemTypes': item_type, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': True, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': True, 'Limit': 1}
 
         if Extra:
-            params.update(Extra)
+            Params.update(Extra)
 
-        Data = self.EmbyServer.http.request({'params': params, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        Data = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
 
         if 'TotalRecordCount' in Data:
             return int(Data['TotalRecordCount'])
@@ -314,14 +410,6 @@ class API:
     def get_views(self):
         return self.EmbyServer.http.request({'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Views"}, False, False)
 
-    def get_Item_Basic(self, Id, ParentId, Type):
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
-
-        if 'Items' in Data:
-            return Data['Items']
-
-        return []
-
     def get_Item_Binary(self, Id):
         Data = self.EmbyServer.http.request({'type': "GET", 'handler': f"Items/{Id}/Download"}, False, True)
         return Data
@@ -336,7 +424,6 @@ class API:
 
         if utils.compressArt:
             Params["Quality"]: 70
-
 
         if UserImage:
             BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Users/{Id}/Images/{ImageType}?Format=original"}, False, True, True)
@@ -368,25 +455,13 @@ class API:
 
         return BinaryData, ContentType, FileExtension
 
-    def get_Item(self, Ids, MediaTypes, Dynamic, Basic, SingleItemQuery=True, Specials=False):
-        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
+    def verify_whitelisted(self, Id, ParentId, Type):
+        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
 
-        if Specials: # Bugfix workaround
-            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'IncludeItemTypes': 'Workaround', 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
-        else:
-            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        if 'Items' in Data and Data['Items']:
+            return True
 
-        if SingleItemQuery:
-            if 'Items' in Data:
-                if Data['Items']:
-                    return Data['Items'][0]
-
-            return {}
-
-        if 'Items' in Data:
-            return Data['Items']
-
-        return []
+        return False
 
     def get_device(self):
         return self.EmbyServer.http.request({'params': {'DeviceId': utils.device_id}, 'type': "GET", 'handler': "Sessions"}, False, False)
@@ -423,25 +498,6 @@ class API:
 
         return []
 
-    def get_channelprogram(self):
-        Limit = get_Limit(("LiveTV",))
-        index = 0
-
-        while True:
-            IncomingData = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': "Overview", 'Limit': Limit, 'StartIndex': index}, 'type': "GET", 'handler': "LiveTv/Programs"}, False, False)
-
-            if 'Items' not in IncomingData:
-                break
-
-            if not IncomingData['Items']:
-                break
-
-            for Item in IncomingData['Items']:
-                yield Item
-
-            IncomingData['Items'].clear()  # free memory
-            index += Limit
-
     def get_specialfeatures(self, item_id, MediaTypes):
         _, Fields = self.get_MediaData(MediaTypes, False, False)
         return self.EmbyServer.http.request({'params': {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/SpecialFeatures"}, False, False)
@@ -470,13 +526,12 @@ class API:
         return self.EmbyServer.http.request({'type': "GET", 'handler': "System/Configuration"}, False, False)
 
     def set_progress(self, item_id, Progress, PlayCount):
-        params = {"PlaybackPositionTicks": Progress}
+        Params = {"PlaybackPositionTicks": Progress}
 
         if PlayCount != -1:
-            params["PlayCount"] = PlayCount
-            params["Played"] = bool(PlayCount)
+            Params.update({"PlayCount": PlayCount, "Played": bool(PlayCount)})
 
-        self.EmbyServer.http.request({'data': json.dumps(params), 'type': "POST", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/UserData"}, False, False)
+        self.EmbyServer.http.request({'data': json.dumps(Params), 'type': "POST", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/UserData"}, False, False)
 
     def set_played(self, item_id, PlayCount):
         if PlayCount:

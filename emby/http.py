@@ -117,7 +117,7 @@ class HTTP:
             RepeatSend = 20 # retry 20 times (10 seconds)
         else:
             data['timeout'] = (15, 300)
-            RepeatSend = 1
+            RepeatSend = 2
 
         xbmc.log(f"EMBY.emby.http: [ http ] {data}", 0) # LOGDEBUG
         data['verify'] = utils.sslverify

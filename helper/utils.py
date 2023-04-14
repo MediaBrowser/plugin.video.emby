@@ -161,6 +161,7 @@ def refresh_widgets():
 
 def SendJson(JsonString, ForceBreak=False):
     LogSend = False
+    Ret = {}
 
     for Index in range(70): # retry -> timout 25 seconds
         Ret = xbmc.executeJSONRPC(JsonString)
@@ -792,6 +793,121 @@ def nodesreset():
 
     for EmbyServer in list(EmbyServers.values()):
         EmbyServer.Views.update_nodes()
+
+def SyncLiveTV(Toggle):
+    PlaylistFile = "%s%s" % (FolderEmbyTemp, 'livetv.m3u')
+
+    if synclivetv:
+        playlist = "#EXTM3U\n"
+
+        for ServerId, EmbyServer in list(EmbyServers.items()):
+            Channels = EmbyServer.API.get_channels()
+
+            for item in Channels:
+                if item['TagItems']:
+                    Tag = item['TagItems'][0]['Name']
+                else:
+                    Tag = "--No Info--"
+
+                ImageUrl = ""
+
+                if item['ImageTags']:
+                    if 'Primary' in item['ImageTags']:
+                        ImageUrl = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}"
+
+                StreamUrl = f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-livetv"
+
+                if item['Name'].lower().find("radio") != -1 or item['MediaType'] != "Video":
+                    playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" radio="true" group-title="{Tag}",{item["Name"]}\n'
+                else:
+                    playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" group-title="{Tag}",{item["Name"]}\n'
+
+                playlist += f"{StreamUrl}\n"
+
+        writeFileString(PlaylistFile, playlist)
+
+        if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)'):
+            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
+            iptvsimple = xbmcaddon.Addon(id="pvr.iptvsimple")
+
+            if iptvsimple.getAddonInfo('version').startswith("20"):
+                ConfigChanged = False
+                iptvsimpleConfigFile = "special://profile/addon_data/pvr.iptvsimple/instance-settings-1.xml"
+                iptvsimpleConfig = readFileString(iptvsimpleConfigFile)
+
+                if iptvsimpleConfig:
+                    PosStart = iptvsimpleConfig.find('<setting id="kodi_addon_instance_name">')
+
+                    if PosStart != -1:
+                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
+                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
+
+                        if CurrentValue != '<setting id="kodi_addon_instance_name">Emby for Kodi next gen</setting>':
+                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="kodi_addon_instance_name">Emby for Kodi next gen</setting>')
+                            ConfigChanged = True
+
+                    PosStart = iptvsimpleConfig.find('<setting id="m3uPathType"')
+
+                    if PosStart != -1:
+                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
+                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
+
+                        if CurrentValue != '<setting id="m3uPathType" default="true">0</setting>':
+                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="m3uPathType" default="true">0</setting>')
+                            ConfigChanged = True
+
+                    PosStart = iptvsimpleConfig.find('<setting id="m3uPath"')
+
+                    if PosStart != -1:
+                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
+                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
+
+                        if CurrentValue != '<setting id="m3uPath">special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u</setting>':
+                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="m3uPath">special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u</setting>')
+                            ConfigChanged = True
+
+                    PosStart = iptvsimpleConfig.find('<setting id="epgPathType"')
+
+                    if PosStart != -1:
+                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
+                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
+
+                        if CurrentValue != '<setting id="epgPathType" default="true">1</setting>':
+                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="epgPathType" default="true">1</setting>')
+                            ConfigChanged = True
+
+                    PosStart = iptvsimpleConfig.find('<setting id="epgUrl"')
+
+                    if PosStart != -1:
+                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
+                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
+
+                        if CurrentValue != '<setting id="epgUrl">http://127.0.0.1:57342/livetv/epg</setting>':
+                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="epgUrl">http://127.0.0.1:57342/livetv/epg</setting>')
+                            ConfigChanged = True
+
+                if ConfigChanged:
+                    xbmc.log("EMBY.database.library: Modify iptv simple configuration", 1) # LOGINFO
+                    writeFileString(iptvsimpleConfigFile, iptvsimpleConfig)
+            else:
+                iptvsimple.setSetting('m3uPathType', "0") # refresh -> the parameter (settings) modification triggers a refresh
+
+                if iptvsimple.getSetting('m3uPath')  != "special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u":
+                    iptvsimple.setSetting('m3uPath', "special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u")
+
+                if iptvsimple.getSetting('epgPathType') != "1":
+                    iptvsimple.setSetting('epgPathType', "1")
+
+                if iptvsimple.getSetting('epgUrl') != "http://127.0.0.1:57342/livetv/epg":
+                    iptvsimple.setSetting('epgUrl', "http://127.0.0.1:57342/livetv/epg")
+
+        if Toggle:
+            sleep(1)
+            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":false}}')
+            sleep(1)
+            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
+    else:
+        delFile(PlaylistFile)
 
 mkDir(FolderAddonUserdata)
 mkDir(FolderEmbyTemp)

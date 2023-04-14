@@ -42,7 +42,7 @@ class monitor(xbmc.Monitor):
         elif method == "Player.OnStop":
             player.PlayerEvents.put(("stop", data))
         elif method == 'Player.OnSeek':
-            player.PlayerEvents.put(("seek",))
+            player.PlayerEvents.put(("seek", data))
         elif method == "Player.OnAVChange":
             player.PlayerEvents.put(("avchange",))
         elif method == "Player.OnAVStart":
@@ -247,17 +247,17 @@ def Playlist_Add():
     xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Playlist_Add ]", 1) # LOGINFO
     UpdateItems = PlaylistItemsAdd
     globals().update({"PlaylistItemsAdd": (), "PlaylistItemAddThread": False})
-    UpdateItemsPlaylist = [[], [], []]
+    UpdateItemsPlaylist = [(), (), ()]
     PlaylistItemsNew = [{}, {}, {}]
 
     for UpdateItem in UpdateItems:
         data = json.loads(UpdateItem)
 
         if 'item' not in data or 'id' not in data['item']:
-            UpdateItemsPlaylist[data['playlistid']].append((data['position'], 0, ""))
+            UpdateItemsPlaylist[data['playlistid']] += ((data['position'], 0, ""),)
             continue
 
-        UpdateItemsPlaylist[data['playlistid']].append((data['position'], data['item']['id'], data['item']['type']))
+        UpdateItemsPlaylist[data['playlistid']] += ((data['position'], data['item']['id'], data['item']['type']),)
 
     for ServerId in utils.EmbyServers:
         embydb = dbio.DBOpenRO(ServerId, "Playlist_Add")
@@ -554,6 +554,7 @@ def settingschanged():  # threaded by caller
     enableCoverArtPreviousValue = utils.enableCoverArt
     maxnodeitemsPreviousValue = utils.maxnodeitems
     AddonModePathPreviousValue = utils.AddonModePath
+    synclivetvPreviousValue = utils.synclivetv
     utils.InitSettings()
 
     # Http2 mode changed, rebuild advanced settings -> restart Kodi
@@ -621,6 +622,10 @@ def settingschanged():  # threaded by caller
 
                     for Filename in files:
                         utils.delFile(f"{playlistfolder}{Filename}")
+
+    # Toggle live tv
+    if synclivetvPreviousValue != utils.synclivetv:
+        utils.SyncLiveTV(True)
 
     xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ]", 1) # LOGINFO
 
@@ -778,7 +783,6 @@ def StartUp():
         XbmcMonitor.waitForAbort(0)
 
         # Shutdown
-        player.PlayerEvents.put(("QUIT",))
         player.stop_playback(False, False)
 
         for RemoteCommandQueue in list(playerops.RemoteCommandQueue.values()):
@@ -789,5 +793,6 @@ def StartUp():
         EmbyServer_DisconnectAll()
         xbmc.log("EMBY.hooks.monitor: [ Shutdown Emby-next-gen ]", 2) # LOGWARNING
 
+    player.PlayerEvents.put(("QUIT",))
     utils.XbmcPlayer = None
     utils.SystemShutdown = True
