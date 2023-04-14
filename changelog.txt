@@ -1,3 +1,12 @@
+8.1.2
+=============
+fix playback progress issue
+async queries for dynamic nodes and Ids queries (performance)
+fix invalid people issue
+fix shutdown/restart issue
+fix livetv sync
+
+
 8.1.1
 =============
 compatibility with Emby server beta 4.8.0.29

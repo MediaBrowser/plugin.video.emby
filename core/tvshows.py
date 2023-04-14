@@ -11,7 +11,7 @@ class TVShows:
         self.video_db.init_favorite_tags()
 
     def tvshow(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Series"):
             return False
 
         if not 'Name' in item:
@@ -89,7 +89,7 @@ class TVShows:
         return not item['UpdateItems'][ItemIndex]
 
     def season(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Season"):
             return False
 
         if 'SeriesId' not in item:
@@ -148,7 +148,7 @@ class TVShows:
         return not item['UpdateItems'][ItemIndex]
 
     def episode(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Episode"):
             return False
 
         if not common.verify_content(item, "episode"):

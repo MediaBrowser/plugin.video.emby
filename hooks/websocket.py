@@ -54,6 +54,7 @@ class WSClient:
             self.AsyncMessageQueue.put("QUIT")
 
         if self.sock:
+            self.sock.settimeout(1)
             self.sendCommands(struct.pack('!H', 1000), 0x8)
 
             try:

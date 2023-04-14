@@ -56,6 +56,8 @@ def PlayPlaylistItem(PlaylistId, Index):
     globals()['PlayerId'] = PlaylistId
 
 def GetFilenameandpath():
+    Result = None
+
     if PlayerId != -1:
         Result = utils.SendJson('{"jsonrpc": "2.0", "method": "xbmc.GetInfoLabels", "params":{"labels": ["player.Filenameandpath"]}, "id": 1}').get("result", {})
 
@@ -220,6 +222,7 @@ def Seek(SeekPositionTicks, isRemote=False, TimeStamp=0):
 # wait for prezise progress information
 def PlayBackPositionExact():
     PlaybackPositionCompare = 0
+    PlaybackPosition = 0
 
     for _ in range(10): # timeout 2 seconds
         PlaybackPosition = PlayBackPosition()
@@ -244,6 +247,8 @@ def PlayBackPositionExact():
     return PlaybackPosition
 
 def PlayBackPosition():
+    Result = None
+
     if PlayerId != -1:
         for _ in range(5): # try 5 times
             Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["time"]}},"id":1}}').get("result", {})
@@ -297,6 +302,8 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
         globals().update({"RemoteMode": False, "WatchTogether": False, "RemotePlaybackInit": True, "RemoteControl": False})
 
     ItemsData = []
+    path = ""
+    li = None
     QueryEmbyIds = ()
     Reference = {}
     Counter = [0, 0, 0]
@@ -320,7 +327,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
     if EmbyIdStart in Reference:
-        Item = EmbyServer.API.get_Item(EmbyIdStart, ['Everything'], True, False, True)
+        Item = EmbyServer.API.get_Item(EmbyIdStart, ['Everything'], True, False)
 
         if not Item:
             return
@@ -396,9 +403,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     #load additional items after playback started
     if PlayCommand not in ("PlayInit", "PlaySingle"):
         if QueryEmbyIds:
-            Items = EmbyServer.API.get_Item(QueryEmbyIds, ['Everything'], True, False, False)
-
-            for Item in Items:
+            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Everything"], True, False):
                 li = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
                 path, Type = common.get_path_type_from_item(EmbyServer.ServerData['ServerId'], Item)
                 ItemsData[Reference[Item['Id']]] = (False, Item['Id'], Type, li, path)

@@ -10,7 +10,7 @@ class MusicVideos:
         self.video_db.init_favorite_tags()
 
     def musicvideo(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "MusicVideo"):
             return False
 
         if not common.verify_content(item, "musicvideo"):
@@ -44,7 +44,7 @@ class MusicVideos:
             if not item['Artist']:
                 xbmc.log(f"EMBY.core.musicvideos: No artist found: {item['Name']} {item['FullPath']} {item['Id']}", 2) # LOGWARNING
                 item['Artist'] = "--NO INFO--"
-                item['ArtistItems'].append({'Name': '--NO INFO--', 'Type': "Actor", 'Role': "MusicVideoArtist", 'LibraryId': item['Librarys'][ItemIndex]['Id']})
+                item['ArtistItems'].append({'Name': '--NO INFO--', 'Type': "Actor", 'Role': "MusicVideoArtist", 'LibraryId': item['Librarys'][ItemIndex]['Id'], 'Id': "999999996"})
 
             item['People'] = item['People'] + item['ArtistItems']
             item['KodiItemIds'][ItemIndex] = self.video_db.create_entry_musicvideos()

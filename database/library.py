@@ -1,6 +1,5 @@
 import json
 import xbmc
-import xbmcaddon
 from core import movies, musicvideos, tvshows, music, folder, common
 from helper import utils, pluginmenu
 from . import dbio
@@ -192,21 +191,9 @@ class Library:
         # Update sync update timestamp
         self.set_syncdate(utils.currenttime())
 
-       # iptvsimple
+        # iptvsimple update
         if utils.synclivetv:
-            if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)'):
-                utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
-                iptvsimple = xbmcaddon.Addon(id="pvr.iptvsimple")
-                iptvsimple.setSetting('m3uPathType', "1") # refresh -> the parameter (settings) modification triggers a refresh
-
-                if iptvsimple.getSetting('m3uUrl')  != "http://127.0.0.1:57342/livetv/m3u":
-                    iptvsimple.setSetting('m3uUrl', "http://127.0.0.1:57342/livetv/m3u")
-
-                if iptvsimple.getSetting('epgPathType') != "1":
-                    iptvsimple.setSetting('epgPathType', "1")
-
-                if iptvsimple.getSetting('epgUrl') != "http://127.0.0.1:57342/livetv/epg":
-                    iptvsimple.setSetting('epgUrl', "http://127.0.0.1:57342/livetv/epg")
+            utils.SyncLiveTV(False)
 
         # Run jobs
         xbmc.log("EMBY.database.library: THREAD: ---<[ retrieve changes ]", 1) # LOGINFO
@@ -308,43 +295,78 @@ class Library:
         utils.progress_open(utils.Translate(33178))
         RecordsPercent = len(UpdateItems) / 100
         index = 0
-        embydb = self.open_EmbyDBRW(WorkerName)
+        embydb = None
+        TempLibraryInfos = []
 
-        while UpdateItems:
-            TempLibraryInfos = UpdateItems[:100]  # Chunks of 100
-            Items = self.EmbyServer.API.get_Item(",".join(TempLibraryInfos), ["Everything"], False, False, False)
-            SortedItems = ItemsSort(Items, False)
+        if UpdateItems:
+            TempLibraryInfos = UpdateItems
+            Items = 10000 * [None] # pre allocate memory
+            ItemArrayIndex = 0
+            self.EmbyServer.API.ProcessProgress["worker_update"] = 0
 
-            for ContentType, CategoryItems in list(SortedItems.items()):
-                if content_available(ContentType, CategoryItems):
-                    kodidb = dbio.DBOpenRW(ContentType, WorkerName)
+            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items_Ids(UpdateItems, ["Everything"], False, False, "worker_update"), 1):
+                if ItemArrayIndex >= 10000:
+                    self.EmbyServer.API.ProcessProgress["worker_update"] = ItemIndex
+                    Continue, index, embydb = self.worker_update_items(embydb, Items, UpdateItems, RecordsPercent, WorkerName, index)
 
-                    for Items in CategoryItems:
-                        self.ContentObject = None
+                    if not Continue:
+                        self.EmbyServer.API.ProcessProgress["worker_update"] = -1
+                        return False
 
-                        for Item in Items:
-                            Item['Library'] = {}   #LibraryInfos[Item['Id']]
-                            embydb.delete_UpdateItem(Item['Id'])
-                            UpdateItems.remove(Item['Id'])
-                            Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), index, Item, embydb, kodidb, ContentType, WorkerName)
-                            index += 1
+                    Items = 10000 * [None] # pre allocate memory
+                    ItemArrayIndex = 0
 
-                            if not Continue:
-                                return False
+                Items[ItemArrayIndex] = Item
+                ItemArrayIndex += 1
 
-                    dbio.DBCloseRW(ContentType, WorkerName)
+            Continue, index, embydb = self.worker_update_items(embydb, Items, UpdateItems, RecordsPercent, WorkerName, index)
 
-            # Remove not detected Items
-            for TempLibraryInfo in TempLibraryInfos:
-                if TempLibraryInfo in UpdateItems:
-                    UpdateItems.remove(TempLibraryInfo)
-                    embydb.delete_UpdateItem(TempLibraryInfo)
+            if not Continue:
+                return False
+
+        # Remove not detected Items
+        for TempLibraryInfo in TempLibraryInfos:
+            if TempLibraryInfo in UpdateItems:
+                UpdateItems.remove(TempLibraryInfo)
+                embydb.delete_UpdateItem(TempLibraryInfo)
 
         embydb.update_LastIncrementalSync(utils.currenttime())
         self.close_Worker(WorkerName)
         xbmc.log("EMBY.database.library: --<[ worker update completed ]", 1) # LOGINFO
         self.RunJobs()
         return True
+
+    def worker_update_items(self, embydb, Items, UpdateItems, RecordsPercent, WorkerName, index):
+        Items = list([item for item in Items if item is not None])
+
+        if None in Items:
+            Items.remove(None)
+
+        SortedItems = ItemsSort(Items, False)
+
+        if not embydb:
+            embydb = self.open_EmbyDBRW(WorkerName)
+
+        for ContentType, CategoryItems in list(SortedItems.items()):
+            if content_available(ContentType, CategoryItems):
+                kodidb = dbio.DBOpenRW(ContentType, WorkerName)
+
+                for ProcessItems in CategoryItems:
+                    self.ContentObject = None
+
+                    for Item in ProcessItems:
+                        Item['Library'] = {}   #LibraryInfos[Item['Id']]
+                        embydb.delete_UpdateItem(Item['Id'])
+                        UpdateItems.remove(Item['Id'])
+                        Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), index, Item, embydb, kodidb, ContentType, WorkerName)
+                        index += 1
+
+                        if not Continue:
+                            return False, index, embydb
+
+                dbio.DBCloseRW(ContentType, WorkerName)
+
+        return True, index, embydb
 
     def worker_remove(self):
         WorkerName = "worker_remove"
@@ -419,14 +441,12 @@ class Library:
                             xbmc.log(f"EMBY.database.library: Worker remove, item not valid {RemoveItem}", 3) # LOGERROR
 
                 AllRemoveItems += TempRemoveItems
-                del TempRemoveItems[:] # relese memory
             else:
                 embydb.delete_RemoveItem_EmbyId(RemoveItem[0])
                 xbmc.log(f"EMBY.database.library: Worker remove, item not found in local database {RemoveItem[0]}", 1) # LOGINFO
                 continue
 
         UpdateItems = ItemsSort(AllRemoveItems, True)
-        del AllRemoveItems[:] # relese memory
 
         for ContentType, CategoryItems in list(UpdateItems.items()):
             if content_available(ContentType, CategoryItems):
@@ -480,13 +500,16 @@ class Library:
                 common.MediaTags[SyncItem[1]] = kodidb.get_add_tag(SyncItem[1])
 
             self.ContentObject = None
+            self.EmbyServer.API.ProcessProgress["worker_library"] = 0
 
             # Sync Content
-            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}), 1):
+            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items(SyncItem[0], [SyncItem[3]], False, True, {}, "worker_library"), 1):
                 Item["Library"] = {"Id": SyncItem[0], "Name": SyncItem[1]}
                 Continue, embydb, kodidb = self.ItemOps(SyncItemProgress, ItemIndex, Item, embydb, kodidb, SyncItem[4], WorkerName)
+                self.EmbyServer.API.ProcessProgress["worker_library"] = ItemIndex
 
                 if not Continue:
+                    self.EmbyServer.API.ProcessProgress["worker_library"] = -1
                     return
 
             dbio.DBCloseRW(SyncItem[4], WorkerName)

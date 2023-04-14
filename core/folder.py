@@ -7,7 +7,7 @@ class Folder:
         self.emby_db = embydb
 
     def folder(self, Item):
-        if not common.library_check(Item, self.EmbyServer, self.emby_db):
+        if not common.library_check(Item, self.EmbyServer, self.emby_db, "Folder"):
             return False
 
         if 'Path' in Item and Item['Path']:

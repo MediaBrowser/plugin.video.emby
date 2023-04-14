@@ -26,7 +26,6 @@ player = None
 PayloadHeadRequest = ""
 Running = False
 LiveTVEPGCache = ("", 0)
-LiveTVM3UCache = ("", 0)
 Socket = None
 
 def start():
@@ -115,7 +114,7 @@ def worker_Query(client):  # thread by caller
         if args[1] == "contextmenu":
             client.send(sendOK)
             client.close()
-            context.select_menu(urllibparse.unquote(args[len(args) - 1]))
+            context.select_menu()
             xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event contextmenu", 0) # LOGDEBUG
             return
 
@@ -295,46 +294,6 @@ def send_redirect(client, QueryData, Data, Filename):
     client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {Path}\r\nContent-length: 0\r\n\r\n".encode())
 
 def http_Query(client, Payload):
-    if Payload == '/livetv/m3u':
-        _, UnixTime = utils.currenttime_kodi_format_and_unixtime()
-
-        if not LiveTVM3UCache[0] or LiveTVM3UCache[1] < UnixTime - 600: # Use cache for queries < 10 minutes
-            playlist = "#EXTM3U\n"
-
-            for ServerId, EmbyServer in list(utils.EmbyServers.items()):
-                Channels = EmbyServer.API.get_channels()
-
-                for item in Channels:
-                    if item['TagItems']:
-                        Tag = item['TagItems'][0]['Name']
-                    else:
-                        Tag = "--No Info--"
-
-                    ImageUrl = ""
-
-                    if item['ImageTags']:
-                        if 'Primary' in item['ImageTags']:
-                            ImageUrl = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}"
-
-                    StreamUrl = f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-livetv"
-
-                    if item['Name'].lower().find("radio") != -1 or item['MediaType'] != "Video":
-                        playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" radio="true" group-title="{Tag}",{item["Name"]}\n'
-                    else:
-                        playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" group-title="{Tag}",{item["Name"]}\n'
-
-                    playlist += f"{StreamUrl}\n"
-
-
-            playlist = playlist.encode()
-            globals()["LiveTVM3UCache"] = (playlist, UnixTime)
-        else:
-            xbmc.log("EMBY.hooks.webservice: Use M3U cache", 1) # LOGINFO
-            playlist = LiveTVM3UCache[0]
-
-        client.send(f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(playlist)}\r\nContent-Type: text/plain\r\n\r\n".encode() + playlist)
-        return
-
     if Payload == '/livetv/epg':
         _, UnixTime = utils.currenttime_kodi_format_and_unixtime()
 

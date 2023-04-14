@@ -52,6 +52,16 @@ def PlayerCommands():
 
         if Commands[0] == "seek":
             xbmc.log("EMBY.hooks.player: [ onSeek ]", 1) # LOGINFO
+            EventData = json.loads(Commands[1])
+
+            if 'player' in EventData and 'time' in EventData['player']:
+                PositionTicks = (EventData['player']['time']['hours'] * 3600000 + EventData['player']['time']['minutes'] * 60000 + EventData['player']['time']['seconds'] * 1000 + EventData['player']['time']['milliseconds']) * 10000
+
+                if int(PlayingItem['RunTimeTicks']) < PositionTicks:
+                    PlayingItem['PositionTicks'] = PlayingItem['RunTimeTicks']
+                else:
+                    PlayingItem['PositionTicks'] = PositionTicks
+
             playerops.AVChange = False
             playerops.RemoteCommand(EmbyServerPlayback.ServerData['ServerId'], EmbyServerPlayback.EmbySession[0]['Id'], "seek")
         elif Commands[0] == "avchange":

@@ -68,7 +68,7 @@ def specials():
         return
 
     ItemData = SpecialFeaturesSelections[resp]
-    SpecialFeatureItem = utils.EmbyServers[ServerId].API.get_Item(ItemData['Id'], ['Movie'], True, False, True, True)
+    SpecialFeatureItem = utils.EmbyServers[ServerId].API.get_Item(ItemData['Id'], ['Movie'], True, False, True)
 
     if SpecialFeatureItem:
         li = listitem.set_ListItem(SpecialFeatureItem, ServerId)
@@ -78,7 +78,7 @@ def specials():
         utils.Playlists[1].add(path, li, index=Pos)
         playerops.PlayPlaylistItem(1, Pos)
 
-def select_menu(ListItemLabel):
+def select_menu():
     item, ServerId = load_item()
 
     if not item:
@@ -136,7 +136,7 @@ def select_menu(ListItemLabel):
                 playerops.RemoteMode = False
 
                 if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
-                    if not add_remoteclients(ServerId, ListItemLabel):
+                    if not add_remoteclients(ServerId):
                         continue
 
                 playerops.PlayEmby([item[0]], "PlayInit", 0, 0, utils.EmbyServers[ServerId], 0)
@@ -181,7 +181,7 @@ def select_menu(ListItemLabel):
             elif selected_option == SelectOptions['RemoveFav']:
                 utils.EmbyServers[ServerId].API.favorite(item[0], False)
             elif selected_option == SelectOptions['Add client control']:
-                add_remoteclients(ServerId, ListItemLabel)
+                add_remoteclients(ServerId)
             elif selected_option == SelectOptions['Remove client control']:
                 SelectionLabels = []
                 SessionIds = []
@@ -210,7 +210,7 @@ def select_menu(ListItemLabel):
         else:
             break
 
-def add_remoteclients(ServerId, ListItemLabel):
+def add_remoteclients(ServerId):
     ActiveSessions = utils.EmbyServers[ServerId].API.get_active_sessions()
     SelectionLabels = []
     ClientData = []

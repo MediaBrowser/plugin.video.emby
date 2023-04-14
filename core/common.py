@@ -24,7 +24,7 @@ ImageTagsMappings = {
 }
 MediaTags = {}
 
-def library_check(item, EmbyServer, emby_db):
+def library_check(item, EmbyServer, emby_db, EmbyType=""):
     if not item or "Id" not in item:
         xbmc.log(f"EMBY.core.common: library_check: {item}", 3)
         return False
@@ -36,6 +36,10 @@ def library_check(item, EmbyServer, emby_db):
     item['Librarys'] = []
     item['ServerId'] = EmbyServer.ServerData['ServerId']
     ExistingItem = emby_db.get_item_by_id(item['Id'])
+
+    if EmbyType and ExistingItem and ExistingItem[5] != EmbyType:
+        xbmc.log(f"EMBY.core.common: No matching content type: {EmbyType} / {ExistingItem[5]}", 2) # LOGWARNING
+        ExistingItem = ()
 
     if ExistingItem:
         LibraryIds = ExistingItem[6].split(";")
@@ -85,7 +89,7 @@ def library_check(item, EmbyServer, emby_db):
             item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
         else: # realtime or startup sync -> detect "LibraryId_Name" by query item-id for each library on Emby server (Realtime content updates sends no library information)
             for LibraryIdWhitelist, _ in list(EmbyServer.library.Whitelist.items()):
-                if EmbyServer.API.get_Item_Basic(item['Id'], LibraryIdWhitelist, item['Type']):
+                if EmbyServer.API.verify_whitelisted(item['Id'], LibraryIdWhitelist, item['Type']):
                     LibraryName = Check_LibraryIsSynced(LibraryIdWhitelist, EmbyServer.library.Whitelist)
                     item['KodiItemIds'].append(None)
                     item['KodiParentIds'].append(None)
@@ -352,7 +356,7 @@ def set_people(item, ServerId, ItemIndex):
             else:
                 PeopleInvalidRecords.append(Index)
 
-        for PeopleInvalidRecord in PeopleInvalidRecords:
+        for PeopleInvalidRecord in PeopleInvalidRecords[::-1]: # reversed order
             del item['People'][PeopleInvalidRecord]
             xbmc.log(f"EMBY.core.common: Invalid people detected: {item['Id']} / {item['Name']}", 2) # LOGWARNING
     else:
@@ -710,7 +714,6 @@ def set_KodiArtwork(item, ServerId, DynamicNode):
                 else:
                     if not item['KodiArtwork'][ImageTagsMapping[1]]:
                         item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}"
-
 
     if utils.AssignEpisodePostersToTVShowPoster:
         if item['Type'] == "Episode" and 'SeriesId' in item and "SeriesPrimaryImageTag" in item and item["SeriesPrimaryImageTag"] and item["SeriesPrimaryImageTag"] != "None":
