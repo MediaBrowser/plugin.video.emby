@@ -52,6 +52,10 @@ def PlayerCommands():
 
         if Commands[0] == "seek":
             xbmc.log("EMBY.hooks.player: [ onSeek ]", 1) # LOGINFO
+
+            if not EmbyServerPlayback or 'ItemId' not in PlayingItem or 'RunTimeTicks' not in PlayingItem:
+                continue
+
             EventData = json.loads(Commands[1])
 
             if 'player' in EventData and 'time' in EventData['player']:

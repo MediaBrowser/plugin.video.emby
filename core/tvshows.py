@@ -274,7 +274,7 @@ class TVShows:
                 else:
                     RuntimeSeconds = 0
 
-                common.set_userdata_update_data(Item)
+                common.set_playstate(Item)
                 self.video_db.update_bookmark_playstate(Item['KodiFileIds'][ItemIndex], Item['PlayCount'], Item['LastPlayedDate'], Item['PlaybackPositionTicks'], RuntimeSeconds)
                 pluginmenu.reset_querycache()
 
