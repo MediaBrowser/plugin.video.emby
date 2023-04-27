@@ -112,7 +112,7 @@ class HTTP:
             else:
                 Header.update({'Authorization': auth})
 
-        if Priority or RequestType in ("POST", "DELETE"):
+        if not ForceReceiveData and (Priority or RequestType in ("POST", "DELETE")):
             data['timeout'] = (1, 0.5)
             RepeatSend = 20 # retry 20 times (10 seconds)
         else:

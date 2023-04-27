@@ -176,7 +176,7 @@ def get_filename(item, API, ItemIndex, MediaType):
                     if 'RunTimeTicks' not in AdditionalItem:
                         AdditionalItem['RunTimeTicks'] = 0
 
-                    RunTimePart = round(float((AdditionalItem['RunTimeTicks']) / 10000000.0), 6)
+                    RunTimePart = round(float(AdditionalItem.get('RunTimeTicks', 0) / 10000000.0), 6)
                     item['RunTimeTicks'] += RunTimePart
                     item['StackTimes'] = f"{item['StackTimes']},{item['RunTimeTicks']}"
 
@@ -225,7 +225,7 @@ def get_filename(item, API, ItemIndex, MediaType):
                 StackedFilename = f"{StackedFilename} , {item['Path']}{MediaID}-{AdditionalItem['Id']}-{AdditionalItem['MediaSources'][0]['Id']}-{item['KodiPathId']}-{item['KodiFileIds'][ItemIndex]}-{AdditionalItem['Streams'][0]['HasExternalSubtitle']}-{len(item['MediaSources'])}-0-0-0-0-{VideoCodec}-{VideoBitrate}-{AudioCodec}-{AudioBitrate}-{AdditionalFilename}"
 
                 if 'RunTimeTicks' in AdditionalItem:
-                    RunTimePart = round(float((AdditionalItem['RunTimeTicks'] or 0) / 10000000.0), 6)
+                    RunTimePart = round(float(AdditionalItem.get('RunTimeTicks', 0) / 10000000.0), 6)
                 else:
                     RunTimePart = 0
 
@@ -435,7 +435,7 @@ def get_streams(item):
 
 def set_RunTimeTicks(item):
     if 'RunTimeTicks' in item:
-        item['RunTimeTicks'] = round(float((item['RunTimeTicks'] or 0) / 10000000.0), 6)
+        item['RunTimeTicks'] = round(float(item.get('RunTimeTicks', 0) / 10000000.0), 6)
     else:
         item['RunTimeTicks'] = 0
         xbmc.log(f"EMBY.core.common: No Runtime found: {item['Name']} {item['Id']}", 0) # LOGDEBUG
@@ -490,29 +490,21 @@ def set_trailer(item, EmbyServer):
         except:
             xbmc.log(f"EMBY.core.common: Trailer not valid: {item['Name']}", 3) # LOGERROR
 
-def set_userdata_update_data(item):
-    if not item['Played']:
-        item['PlayCount'] = 0
+def set_playstate(UserData):
+    if not UserData['Played']:
+        UserData['PlayCount'] = 0
     else:
-        item['LastPlayedDate'] = item.get('LastPlayedDate', "")
+        if not UserData.get('PlayCount', 0): # Workaround for Emby server bug -> UserData {'PlaybackPositionTicks': 0, 'PlayCount': 0, 'IsFavorite': False, 'Played': True}
+            UserData['PlayCount'] = 1
 
-    if 'LastPlayedDate' in item:
-        item['LastPlayedDate'] = utils.convert_to_local(item['LastPlayedDate'])
+        UserData['LastPlayedDate'] = UserData.get('LastPlayedDate', "")
+
+    if 'LastPlayedDate' in UserData:
+        UserData['LastPlayedDate'] = utils.convert_to_local(UserData['LastPlayedDate'])
     else:
-        item['LastPlayedDate'] = ""
+        UserData['LastPlayedDate'] = ""
 
-    item['PlaybackPositionTicks'] = adjust_resume((item['PlaybackPositionTicks'] or 0) / 10000000.0)
-
-def set_playstate(item):
-    if not item['UserData']['Played']:
-        item['UserData']['PlayCount'] = 0
-    else:
-        item['UserData']['LastPlayedDate'] = item['UserData'].get('LastPlayedDate', "")
-
-    if 'LastPlayedDate' in item['UserData']:
-        item['UserData']['LastPlayedDate'] = utils.convert_to_local(item['UserData']['LastPlayedDate'])
-    else:
-        item['UserData']['LastPlayedDate'] = ""
+    UserData['PlaybackPositionTicks'] = adjust_resume(UserData.get('PlaybackPositionTicks', 0) / 10000000.0)
 
 def set_genres(item):
     if 'Genres' in item:
@@ -527,7 +519,6 @@ def set_videocommon(item, ServerId, ItemIndex, DynamicNode=False):
     item['ProductionLocations'] = item.get('ProductionLocations', [])
     item['PresentationUniqueKey'] = item.get('PresentationUniqueKey', "")
     item['ProductionYear'] = item.get('ProductionYear', 0)
-    item['UserData']['PlaybackPositionTicks'] = adjust_resume((item['UserData']['PlaybackPositionTicks'] or 0) / 10000000.0)
 
     if 'DateCreated' in item:
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
@@ -541,7 +532,7 @@ def set_videocommon(item, ServerId, ItemIndex, DynamicNode=False):
             item['Taglines'] = [""]
 
     set_genres(item)
-    set_playstate(item)
+    set_playstate(item['UserData'])
     set_people(item, ServerId, ItemIndex)
     set_studios(item)
     set_overview(item)
@@ -587,7 +578,7 @@ def set_chapters(item, ServerId):
         MarkerLabel = ""
 
         for index, Chapter in enumerate(item['Chapters']):
-            Chapter["StartPositionTicks"] = round(float(Chapter["StartPositionTicks"] or 0) / 10000000)
+            Chapter["StartPositionTicks"] = round(float(Chapter.get("StartPositionTicks", 0) / 10000000))
 
             if "MarkerType" in Chapter and (Chapter['MarkerType'] == "IntroStart" or Chapter['MarkerType'] == "IntroEnd" or Chapter['MarkerType'] == "CreditsStart"):
                 if Chapter['MarkerType'] == "IntroStart":
@@ -800,7 +791,7 @@ def get_path_type_from_item(ServerId, item):
         return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}", "p"
 
     if item['Type'] == "TvChannel":
-        return f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-stream.ts", "t"
+        return f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-livetv", "t"
 
     if item['Type'] == "Audio":
         return f"http://127.0.0.1:57342/dynamic/{ServerId}/a-{item['Id']}-{utils.PathToFilenameReplaceSpecialCharecters(item['Path'])}", "a"
@@ -882,12 +873,12 @@ def load_tvchannel(item, ServerId):
         item['Name'] = f"{item['Name']} / {item['CurrentProgram']['Name']}"
 
     if 'RunTimeTicks' in item['CurrentProgram']:
-        item['CurrentProgram']['RunTimeTicks'] = round(float((item['CurrentProgram']['RunTimeTicks']) / 10000000.0), 6)
+        item['CurrentProgram']['RunTimeTicks'] = round(float(item['CurrentProgram']['RunTimeTicks'] / 10000000.0), 6)
     else:
         item['CurrentProgram']['RunTimeTicks'] = 0
 
     if 'PlaybackPositionTicks' in item['CurrentProgram']['UserData']:
-        item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = round(float((item['CurrentProgram']['UserData']['PlaybackPositionTicks']) / 10000000.0), 6)
+        item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = round(float(item['CurrentProgram']['UserData']['PlaybackPositionTicks'] / 10000000.0), 6)
     else:
         item['CurrentProgram']['UserData']['PlaybackPositionTicks'] = 0
 

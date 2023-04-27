@@ -137,7 +137,7 @@ class Music:
         common.set_overview(item)
         common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
         common.get_streams(item)
-        common.set_playstate(item)
+        common.set_playstate(item['UserData'])
 
         # Track and disc number
         if item['IndexNumber']:
@@ -248,7 +248,7 @@ class Music:
 
         for ItemIndex in range(len(Item['Librarys'])):
             if Item['Type'] == 'Audio':
-                common.set_userdata_update_data(Item)
+                common.set_playstate(Item)
                 self.music_db.rate_song(Item['PlayCount'], Item['LastPlayedDate'], 0, Item['KodiItemIds'][ItemIndex])
 
             self.emby_db.update_favourite(Item['Id'], Item['IsFavorite'])

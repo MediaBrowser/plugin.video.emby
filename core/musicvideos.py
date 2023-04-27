@@ -78,7 +78,7 @@ class MusicVideos:
         else:
             RuntimeSeconds = 0
 
-        common.set_userdata_update_data(Item)
+        common.set_playstate(Item)
 
         for ItemIndex in range(len(Item['Librarys'])):
             self.video_db.set_Favorite(Item['IsFavorite'], Item['KodiItemId'], "musicvideo")
