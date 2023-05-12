@@ -22,10 +22,12 @@ class MusicVideos:
         item['ArtistItems'] = item.get('ArtistItems', [])
         item['Album'] = item.get('Album', "--NO INFO--")
         item['Artist'] = " / ".join(item['Artists'])
+        item['Settings'] = len(item['Librarys']) * [{}]
         common.set_MusicVideoTracks(item)
 
         for ItemIndex in range(len(item['Librarys'])):
             if item['KodiItemIds'][ItemIndex]: # existing item
+                item['Settings'][ItemIndex] = self.video_db.get_settings(item['KodiFileIds'][ItemIndex])
                 self.remove_musicvideo(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['LibraryIds'][ItemIndex])
 
             if not common.get_file_path(item, "musicvideos", ItemIndex):
@@ -58,6 +60,9 @@ class MusicVideos:
             self.video_db.add_genres_and_links(item['Genres'], item['KodiItemIds'][ItemIndex], "musicvideo")
             self.video_db.add_tags_and_links(item['KodiItemIds'][ItemIndex], "musicvideo", item['TagItems'])
             self.emby_db.add_multiversion(item, "MusicVideo", self.EmbyServer.API, self.video_db, ItemIndex)
+
+            if item['Settings'][ItemIndex]:
+                self.video_db.add_settings(item['KodiFileIds'][ItemIndex], item['Settings'][ItemIndex])
 
         if item['UpdateItems'][ItemIndex]:
             xbmc.log(f"EMBY.core.musicvideos: UPDATE musicvideo [{item['KodiPathId']} / {item['KodiFileIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO

@@ -452,7 +452,7 @@ class WSClient:
                 elif IncomingData['Data']['Name'] == 'GoToSearch':
                     xbmc.executebuiltin('VideoLibrary.Search')
                 elif IncomingData['Data']['Name'] == 'GoToSettings':
-                    xbmc.executebuiltin('ActivateWindow(Settings)')
+                    utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "settings"}}')
                 elif IncomingData['Data']['Name'] == 'PageUp':
                     xbmc.executebuiltin('Action(PageUp)')
                 elif IncomingData['Data']['Name'] == 'PageDown':
@@ -577,7 +577,9 @@ class WSClient:
             elif IncomingData['MessageType'] == 'Playstate':
                 if playerops.PlayerId != -1:
                     if IncomingData['Data']['Command'] == 'Seek':
-                        playerops.Seek(int(IncomingData['Data']['SeekPositionTicks']), True)
+                        playerops.Seek(int(IncomingData['Data']['SeekPositionTicks']), True, 0, False)
+                    elif IncomingData['Data']['Command'] == 'SeekRelative':
+                        playerops.Seek(int(IncomingData['Data']['SeekPositionTicks']), True, 0, True)
                     elif IncomingData['Data']['Command'] == "Stop":
                         playerops.Stop(True)
                     elif IncomingData['Data']['Command'] == "Unpause":

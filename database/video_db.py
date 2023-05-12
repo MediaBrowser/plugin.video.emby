@@ -280,6 +280,19 @@ class VideoDatabase:
     def add_streams(self, file_id, videostream, audiostream, subtitlestream, runtime):
         video_db_kodiversion.add_streams(self.cursor, file_id, videostream, audiostream, subtitlestream, runtime)
 
+    # settings
+    def get_settings(self, idFile):
+        self.cursor.execute("SELECT Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, DeinterlaceMode, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel FROM settings WHERE idFile = ?", (idFile,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return {"Deinterlace": Data[0], "ViewMode": Data[1], "ZoomAmount": Data[2], "PixelRatio": Data[3], "VerticalShift": Data[4], "AudioStream": Data[5], "SubtitleStream": Data[6], "SubtitleDelay": Data[7], "SubtitlesOn": Data[8], "Brightness": Data[9], "Contrast": Data[10], "Gamma": Data[11], "VolumeAmplification": Data[12], "AudioDelay": Data[13], "ResumeTime": Data[14], "Sharpness": Data[15], "NoiseReduction": Data[16], "NonLinStretch": Data[17], "PostProcess": Data[18], "ScalingMethod": Data[19], "DeinterlaceMode": Data[20], "StereoMode": Data[21], "StereoInvert": Data[22], "VideoStream": Data[23], "TonemapMethod": Data[24], "TonemapParam": Data[25], "Orientation": Data[26], "CenterMixLevel": Data[27]}
+
+        return {}
+
+    def add_settings(self, idFile, Settings):
+        self.cursor.execute("INSERT OR REPLACE INTO settings(idFile, Deinterlace, ViewMode, ZoomAmount, PixelRatio, VerticalShift, AudioStream, SubtitleStream, SubtitleDelay, SubtitlesOn, Brightness, Contrast, Gamma, VolumeAmplification, AudioDelay, ResumeTime, Sharpness, NoiseReduction, NonLinStretch, PostProcess, ScalingMethod, DeinterlaceMode, StereoMode, StereoInvert, VideoStream, TonemapMethod, TonemapParam, Orientation, CenterMixLevel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (idFile, Settings['Deinterlace'], Settings['ViewMode'], Settings['ZoomAmount'], Settings['PixelRatio'], Settings['VerticalShift'], Settings['AudioStream'], Settings['SubtitleStream'], Settings['SubtitleDelay'], Settings['SubtitlesOn'], Settings['Brightness'], Settings['Contrast'], Settings['Gamma'], Settings['VolumeAmplification'], Settings['AudioDelay'], Settings['ResumeTime'], Settings['Sharpness'], Settings['NoiseReduction'], Settings['NonLinStretch'], Settings['PostProcess'], Settings['ScalingMethod'], Settings['DeinterlaceMode'], Settings['StereoMode'], Settings['StereoInvert'], Settings['VideoStream'], Settings['TonemapMethod'], Settings['TonemapParam'], Settings['Orientation'], Settings['CenterMixLevel']))
+
     # stacked times
     def delete_stacktimes(self, file_id):
         self.cursor.execute("DELETE FROM stacktimes WHERE idFile = ?", (file_id,))

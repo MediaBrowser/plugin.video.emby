@@ -96,7 +96,7 @@ class MusicDatabase:
 
         Artwork = self.get_artwork(kodi_id, "album")
         Artwork += self.get_artwork(kodi_id, "single")
-        return {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'genre': ItemData[6], 'year': ItemData[7], 'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31], 'path': f"musicdb://albums/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'albumartists': ItemData[4], 'genre': ItemData[6], 'releasedate': ItemData[7], 'year': utils.convert_to_local(ItemData[7], False, True),'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31], 'path': f"musicdb://albums/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     def create_entry_song(self):
         self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
@@ -141,7 +141,7 @@ class MusicDatabase:
         Artwork = self.get_artwork(kodi_id, "song")
         Track = ItemData[5] % 65536
         Disc = int(int(ItemData[5]) / 65536)
-        return {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[1], 'genre': ItemData[3], 'title': ItemData[4], 'tracknumber': Track, 'discnumber': Disc, 'duration': ItemData[6], 'year': ItemData[9], 'musicbrainztrackid': ItemData[13], 'playcount': ItemData[14], 'comment': ItemData[21], 'path': ItemData[22], 'pathandfilename': f"{ItemData[22]}{ItemData[10]}", 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[1], 'genre': ItemData[3], 'title': ItemData[4], 'tracknumber': Track, 'discnumber': Disc, 'duration': ItemData[6], 'releasedate': ItemData[7], 'year': utils.convert_to_local(ItemData[7], False, True), 'musicbrainztrackid': ItemData[11], 'playcount': ItemData[12], 'comment': ItemData[19], 'album': ItemData[21], 'path': ItemData[22], 'albumartists': ItemData[26], 'pathandfilename': f"{ItemData[22]}{ItemData[10]}", 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     # Add genres, but delete current genres first
     def update_genres_song(self, kodi_id, genres):

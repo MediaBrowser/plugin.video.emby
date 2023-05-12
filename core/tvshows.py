@@ -190,6 +190,7 @@ class TVShows:
         item['IndexNumber'] = item.get('IndexNumber', 0)
         item['CommunityRating'] = item.get('CommunityRating', None)
         item['ParentIndexNumber'] = item.get('ParentIndexNumber', 0)
+        item['Settings'] = len(item['Librarys']) * [{}]
 
         # Remove special episode numbers when Season != 0
         if item['ParentIndexNumber']:
@@ -198,6 +199,7 @@ class TVShows:
 
         for ItemIndex in range(len(item['Librarys'])):
             if item['KodiItemIds'][ItemIndex]: # existing item
+                item['Settings'][ItemIndex] = self.video_db.get_settings(item['KodiFileIds'][ItemIndex])
                 self.remove_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Id'], item['LibraryIds'][ItemIndex])
 
             if not common.get_file_path(item, "episodes", ItemIndex):
@@ -234,6 +236,9 @@ class TVShows:
             self.video_db.add_episode(item['KodiItemIds'][ItemIndex], item['KodiFileIds'][ItemIndex], item['Name'], item['Overview'], item['RatingId'], item['Writers'], item['PremiereDate'], item['KodiArtwork']['thumb'], item['RunTimeTicks'], item['Directors'], item['ParentIndexNumber'], item['IndexNumber'], item['OriginalTitle'], item['SortParentIndexNumber'], item['SortIndexNumber'], f"{item['Path']}{item['Filename']}", item['KodiPathId'], item['Unique'], item['KodiParentIds'][ItemIndex], item['KodiSeasonId'], item['Filename'], item['DateCreated'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'])
             self.emby_db.add_reference(item['Id'], item['KodiItemIds'], item['KodiFileIds'], item['KodiPathId'], "Episode", "episode", item['KodiParentIds'], item['LibraryIds'], item['SeasonId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'], item['CreditsPositionTicks'])
             self.emby_db.add_multiversion(item, "Episode", self.EmbyServer.API, self.video_db, ItemIndex)
+
+            if item['Settings'][ItemIndex]:
+                self.video_db.add_settings(item['KodiFileIds'][ItemIndex], item['Settings'][ItemIndex])
 
             if item['UpdateItems'][ItemIndex]:
                 xbmc.log(f"EMBY.core.tvshows: UPDATE episode [{item['KodiParentIds'][ItemIndex]} / {item['KodiSeasonId']} / {item['KodiItemIds'][ItemIndex]} / {item['KodiFileIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO

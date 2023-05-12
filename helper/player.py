@@ -112,7 +112,7 @@ def PlayerCommands():
             # Native mode multiselection
             if MultiselectionDone:
                 globals()["MultiselectionDone"] = False
-                xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+                utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')  # focus videoplayer
                 xbmc.log("EMBY.hooks.player: --< [ onAVStarted ] focus videoplayer", 1) # LOGINFO
                 continue
 
@@ -259,7 +259,7 @@ def PlayerCommands():
 
             if EmbyServerPlayback and 'ItemId' in PlayingItem:
                 if playerops.PlayerId == 1:
-                    xbmc.executebuiltin('ActivateWindow(12005)')  # focus videoplayer
+                    utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')  # focus videoplayer
 
                 if not playerops.RemoteMode:
                     playerops.ItemSkipUpdate += [PlayingItem['ItemId'], PlayingItem['ItemId'], PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg) and once for Kodi database incoming msg

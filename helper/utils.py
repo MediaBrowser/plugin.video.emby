@@ -481,7 +481,7 @@ def convert_to_gmt(local_time):
     return ""
 
 # Convert the gmt datetime to local
-def convert_to_local(date, DateOnly=False):
+def convert_to_local(date, DateOnly=False, YearOnly=False):
     if not date or str(date) == "0":
         return "0"
 
@@ -511,6 +511,9 @@ def convert_to_local(date, DateOnly=False):
 
     if DateOnly:
         return timestamp.strftime('%Y-%m-%d')
+
+    if YearOnly:
+        return int(timestamp.strftime('%Y'))
 
     return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -795,7 +798,7 @@ def nodesreset():
         EmbyServer.Views.update_nodes()
 
 def SyncLiveTV(Toggle):
-    PlaylistFile = "%s%s" % (FolderEmbyTemp, 'livetv.m3u')
+    PlaylistFile = f"{FolderEmbyTemp}livetv.m3u"
 
     if synclivetv:
         playlist = "#EXTM3U\n"
