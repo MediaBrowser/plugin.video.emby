@@ -12,7 +12,7 @@ from . import utils, playerops
 
 DynamicNodeServerId = ""
 QueryCache = {}
-MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "Everything", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
+MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "MixedContent", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
 letters = ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 MappingContentKodi = {"Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "TvChannel": "videos", "BoxSet": "movies"}
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
@@ -40,20 +40,20 @@ DynamicNodes = {
         ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode")
     ],
     'mixed': [
-        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Everything"),
-        ('Everything', utils.Translate(33336), 'DefaultTVShows.png', "Everything"),
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MixedContent"),
+        ('MixedContent', utils.Translate(33336), 'DefaultTVShows.png', "MixedContent"),
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
-        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Everything"),
+        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "MixedContent"),
         ('Recentlyadded', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png', "Episode"),
         ('Recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png', "Movie"),
         ('Recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png', "MusicVideo"),
         ('Unwatched', utils.Translate(33345), 'OverlayUnwatched.png', "Series"),
         ('Unwatched', utils.Translate(33344), 'OverlayUnwatched.png', "Episode"),
-        ('Inprogress', utils.Translate(33337), 'DefaultInProgressShows.png', "Everything"),
+        ('Inprogress', utils.Translate(33337), 'DefaultInProgressShows.png', "MixedContent"),
         ('Inprogress', utils.Translate(30178), 'DefaultInProgressShows.png', "Episode"),
         ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
         ('Inprogress', utils.Translate(30257), 'DefaultInProgressShows.png', "MusicVideo"),
-        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Everything"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "MixedContent"),
         ('Random', utils.Translate(33339), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Series"),
         ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode")
     ],
@@ -76,7 +76,7 @@ DynamicNodes = {
     ],
     'boxsets': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "BoxSet"),
-        ('BoxSet', utils.Translate(30185), 'DefaultMovies.png', "Everything"),
+        ('BoxSet', utils.Translate(30185), 'DefaultMovies.png', "BoxSet"),
         ('Favorite', "Favorite boxsets", 'DefaultFavourites.png', "BoxSet"),
     ],
     'livetv': [
@@ -111,8 +111,8 @@ DynamicNodes = {
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video")
     ],
     'playlists': [
-        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Everything"),
-        ('Playlist', utils.Translate(33376), 'DefaultPlaylist.png', "Everything")
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Folder"),
+        ('Playlists', utils.Translate(33376), 'DefaultPlaylist.png', "Playlist")
     ],
     'audiobooks': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
@@ -199,7 +199,7 @@ def browse(Handle, Id, query, args, ServerId):
             add_ListItem(ListItemData, utils.Translate(33385), "library://video/emby_Favorite_musicvideos.xml", True, utils.icon, "")
             add_ListItem(ListItemData, utils.Translate(30182), f"plugin://{utils.PluginId}/?mode=favepisodes", True, utils.icon, "")
         else:
-            add_ListItem(ListItemData, "Favorites", f"plugin://{utils.PluginId}/?mode=browse&query=Favorite&server={ServerId}&arg=Everything", True, utils.icon, "")
+            add_ListItem(ListItemData, "Favorites", f"plugin://{utils.PluginId}/?mode=browse&query=Favorite&server={ServerId}&arg=MixedContent", True, utils.icon, "")
 
         globals()["PluginMenuActive"] = True
         xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
@@ -210,23 +210,23 @@ def browse(Handle, Id, query, args, ServerId):
 
     # Workaround for wrong window query
     if PluginMenuActive:
-        ReloadWindowId = 0
+        ReloadWindowId = ""
         WindowId = xbmcgui.getCurrentWindowId()
         CheckQuery = f"{args}{query}"
 
         # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml etc 10502 = music, 10025 = videos, 10002 = pictures
         if CheckQuery.find("Photo") > -1 and WindowId in (10025, 10502):
-            ReloadWindowId = 10002
+            ReloadWindowId = "pictures"
         elif (CheckQuery.find("MusicAlbum") > -1 or CheckQuery.find("MusicArtist") > -1  or CheckQuery.find("Audio") > -1) and WindowId in (10025, 10002):
-            ReloadWindowId = 10502
+            ReloadWindowId = "music"
         elif WindowId in (10502, 10002) == 10002:
-            ReloadWindowId = 10025
+            ReloadWindowId = "videos"
 
         if ReloadWindowId:
             globals()["PluginMenuActive"] = False
             xbmc.log(f"EMBY.helper.pluginmenu: Change of (browse) node content. Reload window: {CheckQuery} / {WindowId} / {ReloadWindowId}", 1) # LOGINFO
             xbmcplugin.endOfDirectory(Handle, succeeded=False, cacheToDisc=False)
-            xbmc.executebuiltin(f"ActivateWindow({ReloadWindowId},'plugin://{utils.PluginId}/?id={Id}&mode=browse&query={query}&server={ServerId}&arg={args}',return)")
+            utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "{ReloadWindowId}", "parameters": ["plugin://{utils.PluginId}/?id={Id}&mode=browse&query={query}&server={ServerId}&arg={args}", "return"]}}}}')
             return
 
     ItemsListings = []
@@ -235,6 +235,11 @@ def browse(Handle, Id, query, args, ServerId):
     Unsorted = False
     Cache = True
     QueryArgs = ()
+
+    if args[0] == "MixedContent":
+        QueryContent = ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"]
+    else:
+        QueryContent = [args[0]]
 
     if query == 'NodesMenu':
         node = []
@@ -259,9 +264,9 @@ def browse(Handle, Id, query, args, ServerId):
         Content = args[0]
     elif query == 'LetterSub':
         if args[1] == "0-9":
-            QueryArgs = (Id, [args[0]], False, True, {'NameLessThan': "A"}, False)
+            QueryArgs = (Id, QueryContent, False, True, {'NameLessThan': "A"}, False)
         else:
-            QueryArgs = (Id, [args[0]], False, True, {'NameStartsWith': args[1]}, False)
+            QueryArgs = (Id, QueryContent, False, True, {'NameStartsWith': args[1]}, False)
 
         Content = args[0]
     elif query == 'Genre':
@@ -271,7 +276,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[ServerId].API.get_genres(Id, [args[0]])
+            Items = utils.EmbyServers[ServerId].API.get_genres(Id, args[0])
 
             for Item in Items:
                 load_ListItem(Id, {'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
@@ -280,7 +285,7 @@ def browse(Handle, Id, query, args, ServerId):
 
         Content = args[0]
     elif query == 'GenreSub':
-        QueryArgs = (Id, [args[0]], False, True, {'GenreIds': args[1]}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'GenreIds': args[1]}, False)
         Content = args[0]
     elif query == 'Tags':
         CacheId = f"Tags_{ServerId}_{Id}"
@@ -289,7 +294,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[ServerId].API.get_tags(Id, [args[0]])
+            Items = utils.EmbyServers[ServerId].API.get_tags(Id, args[0])
 
             for Item in Items:
                 load_ListItem(Id, {'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
@@ -298,25 +303,24 @@ def browse(Handle, Id, query, args, ServerId):
 
         Content = args[0]
     elif query == 'TagsSub':
-        QueryArgs = (Id, [args[0]], False, True, {'TagIds': args[1]}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'TagIds': args[1]}, False)
         Content = args[0]
     elif query == 'Recentlyadded':
-        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
+        QueryArgs = (Id, QueryContent, False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
         Content = args[0]
         Unsorted = True
     elif query == 'Recentlyaddedseries':
-        QueryArgs = (Id, ['Everything'], False, True, {'Limit': utils.maxnodeitems}, False, True)
+        QueryArgs = (Id, ["Episode"], False, True, {'Limit': utils.maxnodeitems}, False, True)
         Content = args[0]
         Unsorted = True
     elif query == 'Unwatched':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsUnplayed', 'SortBy': "Random", 'Limit': utils.maxnodeitems}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsUnplayed', 'SortBy': "Random", 'Limit': utils.maxnodeitems}, False)
         Content = args[0]
-        Unsorted = True
     elif query == 'Favorite':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsFavorite'}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsFavorite'}, False)
         Content = args[0]
     elif query == 'Inprogress':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsResumable'}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsResumable'}, False)
         Content = args[0]
     elif query == 'BoxSet':
         QueryArgs = (Id, ['BoxSet'], False, True, {}, False, False, True)
@@ -335,18 +339,19 @@ def browse(Handle, Id, query, args, ServerId):
 
         Content = "TvChannel"
     elif query in ("Playlist", "Default"):
-        QueryArgs = (Id, ["Everything"], False, True, {}, False, False, False, True)
+        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False, False, False, True)
         Content = "Video"
         Unsorted = True
+    elif query == "Playlists":
+        QueryArgs = (Id, ["Folder"], False, True, {}, False, False, False, True)
+        Content = "Video"
     elif query == "Video":
         QueryArgs = (Id, ["Video"], False, True, {}, False)
         Content = "Video"
-    elif query == "Mixed":
-        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist"], False, True, {}, False)
-    elif query == "Everything":
-        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist", "Folder", "PhotoAlbum"], False, True, {}, False)
+    elif query == "MixedContent":
+        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False)
     elif query == 'Random':
-        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, False)
         Content = args[0]
         Unsorted = True
         Cache = False
@@ -357,7 +362,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[ServerId].API.get_upcoming(Id, ["Episode"]):
+            for Item in utils.EmbyServers[ServerId].API.get_upcoming(Id):
                 load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
@@ -370,7 +375,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[ServerId].API.get_NextUp(Id, ["Episode"]):
+            for Item in utils.EmbyServers[ServerId].API.get_NextUp(Id):
                 load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
@@ -378,7 +383,7 @@ def browse(Handle, Id, query, args, ServerId):
         Unsorted = True
         Content = "Episode"
     elif query == 'Resume':
-        QueryArgs = (Id, [args[0]], False, True, {}, True)
+        QueryArgs = (Id, QueryContent, False, True, {}, True)
         Content = args[0]
     elif query == 'Season':
         QueryArgs = (Id, ["Season"], False, True, {}, False)
@@ -396,7 +401,7 @@ def browse(Handle, Id, query, args, ServerId):
         QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, False)
         Content = "PhotoAlbum"
     elif query == "Folder":
-        QueryArgs = (Id, ["Everything"], False, False, {}, False, False, False, True)
+        QueryArgs = (Id, ["Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer"], False, False, {}, False, False, False, True)
     elif query == 'MusicVideo':
         QueryArgs = (Id, ["MusicVideo"], False, True, {}, False)
         Content = "MusicVideo"
@@ -455,41 +460,54 @@ def browse(Handle, Id, query, args, ServerId):
         return
 
     # Set Sorting
+    xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addSortMethod", 1) # LOGINFO
+
     if Unsorted:
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
 
-    xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addSortMethod", 1) # LOGINFO
-
-    if query in ('Photo', 'PhotoAlbum'):
+    if query in ('Genre', 'Tags', 'Letter', 'Folder', 'Playlist', 'Default', 'Favorite'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+    elif query in ('Photo', 'PhotoAlbum') or args[0] == ('Photo', 'PhotoAlbum'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-    elif query == 'Episode':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    elif query in ('Audio', 'MusicVideo') or args[0] in ('Audio', 'MusicVideo'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ALBUM_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    elif query == 'MusicAlbum' or args[0] == 'MusicAlbum':
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ALBUM_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    elif query in ('MusicArtist', 'MusicVideoArtist') or args[0] in ('MusicArtist', 'MusicVideoArtist'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+    elif query in ('Movie', 'Video', 'Series') or args[0] in ('Movie', 'Video', 'Series'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-    elif query == 'Upcoming':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+    elif query == 'Season' or args[0] == 'Season':
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+    elif query in ('Episode', 'Upcoming', 'NextUp') or args[0] in ('Episode', 'Upcoming', 'NextUp'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-    elif query == 'MusicVideo':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
     else:
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
     if Content and Content in MappingContentKodi:
         xbmcplugin.setContent(Handle, MappingContentKodi[Content])
@@ -548,12 +566,12 @@ def SyncThemes(ServerId):
 
     for ViewId in views:
         if UseVideoThemes:
-            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeVideo': "True"}):
+            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ["Movie", "Series"], True, True, {'HasThemeVideo': "True"}):
                 query = normalize_string(item['Name'])
                 items[item['Id']] = query
 
         if UseAudioThemes:
-            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeSong': "True"}):
+            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ["Movie", "Series"], True, True, {'HasThemeSong': "True"}):
                 query = normalize_string(item['Name'])
                 items[item['Id']] = query
 
@@ -598,9 +616,16 @@ def SyncThemes(ServerId):
 
         # add content sorted by audio -> video
         for theme in themes:
+            if not 'Path' in theme:
+                xbmc.log(f"EMBY.helper.pluginmenu: Theme not including Path: {theme}", 0) # LOGDEBUG
+                xbmc.log(f"EMBY.helper.pluginmenu: Theme not including Path: {theme['Id']}", 3) # LOGERROR
+                continue
+
+            Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
+
             if theme['Type'] == 'Audio':
                 if DownloadThemes:
-                    ThemeFile = f"{nfo_path}audio.{theme['MediaSources'][0]['Container']}"
+                    ThemeFile = f"{nfo_path}{Filename}"
                     paths.append(ThemeFile)
 
                     if not utils.checkFileExists(ThemeFile):
@@ -610,18 +635,17 @@ def SyncThemes(ServerId):
                             utils.mkDir(nfo_path)
                             utils.writeFileBinary(ThemeFile, BinaryData)
                         else:
-                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['MediaSources'][0]['Path']}", 2) # LOGWARNING
+                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['Path']}", 2) # LOGWARNING
                             paths.remove(ThemeFile)
                             continue
                 else: # remote links
                     if utils.useDirectPaths:
-                        paths.append(theme['MediaSources'][0]['Path'])
+                        paths.append(theme['Path'])
                     else:
-                        Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
-                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/A-{theme['Id']}-{theme['MediaSources'][0]['Id']}-{Filename}")
+                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/A-{theme['Id']}--{Filename}")
             else:
                 if DownloadThemes:
-                    ThemeFile = f"{nfo_path}video.{theme['MediaSources'][0]['Container']}"
+                    ThemeFile = f"{nfo_path}{Filename}"
                     paths.append(ThemeFile)
 
                     if not utils.checkFileExists(ThemeFile):
@@ -631,15 +655,14 @@ def SyncThemes(ServerId):
                             utils.mkDir(nfo_path)
                             utils.writeFileBinary(ThemeFile, BinaryData)
                         else:
-                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['MediaSources'][0]['Path']}", 2) # LOGWARNING
+                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['Path']}", 2) # LOGWARNING
                             paths.remove(ThemeFile)
                             continue
                 else: # remote links
                     if utils.useDirectPaths:
-                        paths.append(theme['MediaSources'][0]['Path'])
+                        paths.append(theme['Path'])
                     else:
-                        Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
-                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/V-{theme['Id']}-{theme['MediaSources'][0]['Id']}-{Filename}")
+                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/V-{theme['Id']}--{Filename}")
 
         Index += 1
 
@@ -762,7 +785,14 @@ def load_ListItem(Id, Item, ServerId, ItemsListings):
 #Menu structure nodes
 def add_ListItem(ListItemData, label, path, isFolder, artwork, HelpText):
     li = xbmcgui.ListItem(label, path=path, offscreen=True)
-    li.setInfo('video', {'title': label, 'plotoutline': HelpText})
+
+    if utils.KodiMajorVersion == "19":
+        li.setInfo('video', {'title': label, 'plotoutline': HelpText})
+    else:
+        InfoTags = li.getVideoInfoTag()
+        InfoTags.setPlotOutline(HelpText)
+        InfoTags.setTitle(label)
+
     li.setProperties({'IsFolder': 'true', 'IsPlayable': 'false'})
     li.setArt({"thumb": artwork, "fanart": "special://home/addons/plugin.video.emby-next-gen/resources/fanart.jpg", "landscape": artwork or "special://home/addons/plugin.video.emby-next-gen/resources/fanart.jpg", "banner": "special://home/addons/plugin.video.emby-next-gen/resources/banner.png", "clearlogo": "special://home/addons/plugin.video.emby-next-gen/resources/clearlogo.png", "icon": artwork})
     ListItemData.append((path, li, isFolder))

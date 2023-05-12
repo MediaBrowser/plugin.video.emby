@@ -304,7 +304,7 @@ class Library:
             ItemArrayIndex = 0
             self.EmbyServer.API.ProcessProgress["worker_update"] = 0
 
-            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items_Ids(UpdateItems, ["Everything"], False, False, "worker_update"), 1):
+            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items_Ids(UpdateItems, ["Folder", "Episode", "Movie", "Trailer", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video"], False, False, "worker_update"), 1):
                 if ItemArrayIndex >= 10000:
                     self.EmbyServer.API.ProcessProgress["worker_update"] = ItemIndex
                     Continue, index, embydb = self.worker_update_items(embydb, Items, UpdateItems, RecordsPercent, WorkerName, index)
@@ -481,6 +481,7 @@ class Library:
 
         if not SyncItems:
             globals()["WorkerInProgress"] = False
+            xbmc.log("EMBY.database.library: --<[ worker library empty ]", 1) # LOGINFO
             return
 
         utils.progress_open(f"{utils.Translate(33238)}")
@@ -510,6 +511,7 @@ class Library:
 
                 if not Continue:
                     self.EmbyServer.API.ProcessProgress["worker_library"] = -1
+                    xbmc.log("EMBY.database.library: --<[ worker library interrupt ]", 1) # LOGINFO
                     return
 
             dbio.DBCloseRW(SyncItem[4], WorkerName)

@@ -6,20 +6,19 @@ from helper import utils
 from database import dbio
 from . import listitem
 
-EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "everything": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 1000, "livetv": 100}
+EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 1000, "livetv": 100, "trailer": 200}
 EmbyFields = {
     "musicartist": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "musicalbum": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "Studios", "PremiereDate", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "audio": ("Genres", "SortName", "ProductionYear", "DateCreated", "MediaStreams", "ProviderIds", "Overview", "Path", "ParentId", "PresentationUniqueKey", "PremiereDate", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "movie": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "Tags", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "trailer": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "ProviderIds", "ParentId", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "Chapters", "Tags"),
-    "boxset": ("Overview", "PresentationUniqueKey", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
+    "boxset": ("Overview", "PresentationUniqueKey", "SortName", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "series": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProviderIds", "ParentId", "Status", "PresentationUniqueKey", "OriginalTitle", "Tags", "LocalTrailerCount", "RemoteTrailers", "UserDataPlayCount", "UserDataLastPlayedDate"),
-    "season": ("PresentationUniqueKey", "Tags", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
+    "season": ("PresentationUniqueKey", "SortName", "Tags", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "episode": ("SpecialEpisodeNumbers", "Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "Tags", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "musicvideo": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "Tags", "ProviderIds", "ParentId", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "Chapters", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "video": ("Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "ProviderIds", "ParentId", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "Chapters", "Tags", "UserDataPlayCount", "UserDataLastPlayedDate"),
-    "everything": ("SpecialEpisodeNumbers", "Path", "Genres", "SortName", "Studios", "Writer", "Taglines", "LocalTrailerCount", "Video3DFormat", "OfficialRating", "PremiereDate", "ProductionYear", "DateCreated", "People", "Overview", "CommunityRating", "CriticRating", "ShortOverview", "ProductionLocations", "Tags", "ProviderIds", "ParentId", "RemoteTrailers", "MediaSources", "PresentationUniqueKey", "OriginalTitle", "AlternateMediaSources", "PartCount", "SpecialFeatureCount", "Chapters", "MediaStreams", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "photo": ("Path", "SortName", "ProductionYear", "ParentId", "PremiereDate", "Width", "Height", "Tags", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "photoalbum": ("Path", "SortName", "Taglines", "DateCreated", "ShortOverview", "ProductionLocations", "Tags", "ParentId", "OriginalTitle", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "tvchannel": ("Genres", "SortName", "Taglines", "DateCreated", "Overview", "MediaSources", "Tags", "MediaStreams", "UserDataPlayCount", "UserDataLastPlayedDate"),
@@ -69,7 +68,7 @@ class API:
         MediasourceID = PlaybackInfoData['MediaSources'][0]['Id']
         OpenData = self.EmbyServer.http.request({'data': json.dumps({'UserId': self.EmbyServer.ServerData['UserId'], 'playsessionid': PlaySessionId, 'itemid': EmbyID, 'AutoOpenLiveStream': 'true', 'OpenToken': OpenToken}), 'type': "POST", 'handler': "LiveStreams/Open"}, True, False)
 
-        if not OpenData:
+        if not OpenData or 'MediaSource' not in OpenData or 'Container' not in OpenData['MediaSource'] or 'LiveStreamId' not in OpenData['MediaSource']:
             return "FAIL", "", ""
 
         return MediasourceID, OpenData['MediaSource']['LiveStreamId'], OpenData['MediaSource']['Container']
@@ -80,113 +79,130 @@ class API:
 
     def get_Items_dynamic(self, ParentId, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False, UseAncestors=False):
         CustomLimit = False
-        Limit = get_Limit(MediaTypes)
-        IncludeItemTypes, _ = self.get_MediaData(MediaTypes, Basic, True)
-        Params = {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit}
 
-        if Extra:
-            Params.update(Extra)
+        for MediaType in MediaTypes:
+            Limit = get_Limit(MediaType)
+            Params = {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit}
 
-            if "Limit" in Extra:
-                Limit = Extra["Limit"]
-                CustomLimit = True
+            if Extra:
+                Params.update(Extra)
 
-        if Resume:
-            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
-        elif Latest:
-            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
-        else:
-            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
+                if "Limit" in Extra:
+                    Limit = Extra["Limit"]
+                    CustomLimit = True
 
-        ItemsFullQuery = 10000 * [None] # pre allocate memory
-        embydb = None
-        videodb = None
-        musicdb = None
-
-        for ItemIndex, BasicItem in enumerate(self.get_Items_Custom(Request, Params, Limit, not Recursive or CustomLimit)):
-            KodiItem = (False, )
-
-            if SkipLocalDB or BasicItem['Type'] in ("Photo", "PhotoAlbum", "BoxSet"):
-                if ItemIndex % 10000 == 0: # modulo 10000
-                    ItemsFullQuery += 10000 * [None] # pre allocate memory
-
-                ItemsFullQuery[ItemIndex] = BasicItem['Id']
-                continue
-
-            if not embydb:
-                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
-                videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
-                musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
-
-            KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], ParentId) # Requested video is synced to KodiDB.zz
-
-            if not KodiId and UseAncestors and BasicItem['Type'] in ("Movie", "Series", "Season", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"):
-                Ancestors = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "GET", 'handler': f"Items/{BasicItem['Id']}/Ancestors"}, False, False)
-
-                for Ancestor in Ancestors:
-                    KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], Ancestor['Id']) # Requested video is synced to KodiDB.zz
-
-                    if KodiId:
-                        break
-
-            if KodiId:
-                if BasicItem['Type'] == "Movie":
-                    KodiItem = ((videodb.get_movie_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "Series":
-                    KodiItem = ((videodb.get_tvshows_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "Season":
-                    KodiItem = ((videodb.get_season_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "Episode":
-                    KodiItem = ((videodb.get_episode_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "BoxSet":
-                    KodiItem = ((videodb.get_boxset_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "MusicVideo":
-                    KodiItem = ((videodb.get_musicvideos_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "MusicArtist":
-                    KodiItem = ((musicdb.get_artist_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "MusicAlbum":
-                    KodiItem = ((musicdb.get_album_metadata_for_listitem(KodiId), BasicItem['Type']))
-                elif BasicItem['Type'] == "Audio":
-                    KodiItem = ((musicdb.get_song_metadata_for_listitem(KodiId), BasicItem['Type']))
+            if Resume:
+                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
+            elif Latest:
+                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
             else:
-                ItemsFullQuery += (BasicItem['Id'],)
+                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
 
-                if ItemIndex % 10000 == 0: # modulo 10000
-                    ItemsFullQuery += 10000 * [None] # pre allocate memory
+            ItemsFullQuery = 10000 * [None] # pre allocate memory
+            embydb = None
+            videodb = None
+            musicdb = None
 
-                ItemsFullQuery[ItemIndex] = BasicItem['Id']
+            for ItemIndex, BasicItem in enumerate(self.get_Items_Custom(Request, Params, Limit, not Recursive or CustomLimit)):
+                KodiItem = (False, )
 
-            if KodiItem[0]:
-                isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem[0])
+                if SkipLocalDB or BasicItem['Type'] in ("Photo", "PhotoAlbum", "BoxSet"):
+                    if ItemIndex % 10000 == 0: # modulo 10000
+                        ItemsFullQuery += 10000 * [None] # pre allocate memory
 
-                if 'pathandfilename' in KodiItem[0]:
-                    yield {"ListItem": ListItem, "Path": KodiItem[0]['pathandfilename'], "isFolder": isFolder, "Type": KodiItem[1]}
+                    ItemsFullQuery[ItemIndex] = BasicItem['Id']
+                    continue
+
+                if not embydb:
+                    embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
+                    videodb = dbio.DBOpenRO("video", "get_Items_dynamic")
+                    musicdb = dbio.DBOpenRO("music", "get_Items_dynamic")
+
+                KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], ParentId) # Requested video is synced to KodiDB.zz
+
+                if not KodiId and UseAncestors and BasicItem['Type'] in ("Movie", "Series", "Season", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"):
+                    Ancestors = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "GET", 'handler': f"Items/{BasicItem['Id']}/Ancestors"}, False, False)
+
+                    for Ancestor in Ancestors:
+                        KodiId, _ = embydb.get_KodiId_KodiType_by_EmbyId_EmbyLibraryId(BasicItem['Id'], Ancestor['Id']) # Requested video is synced to KodiDB.zz
+
+                        if KodiId:
+                            break
+
+                if KodiId:
+                    if BasicItem['Type'] in ("Movie", "Video"):
+                        KodiItem = ((videodb.get_movie_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "Series":
+                        KodiItem = ((videodb.get_tvshows_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "Season":
+                        KodiItem = ((videodb.get_season_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "Episode":
+                        KodiItem = ((videodb.get_episode_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "BoxSet":
+                        KodiItem = ((videodb.get_boxset_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "MusicVideo":
+                        KodiItem = ((videodb.get_musicvideos_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "MusicArtist":
+                        KodiItem = ((musicdb.get_artist_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "MusicAlbum":
+                        KodiItem = ((musicdb.get_album_metadata_for_listitem(KodiId), BasicItem['Type']))
+                    elif BasicItem['Type'] == "Audio":
+                        KodiItem = ((musicdb.get_song_metadata_for_listitem(KodiId), BasicItem['Type']))
                 else:
-                    yield {"ListItem": ListItem, "Path": KodiItem[0]['path'], "isFolder": isFolder, "Type": KodiItem[1]}
+                    if ItemIndex % 10000 == 0: # modulo 10000
+                        ItemsFullQuery += 10000 * [None] # pre allocate memory
 
-        if embydb:
-            dbio.DBCloseRO("video", "get_Items_dynamic")
-            dbio.DBCloseRO("music", "get_Items_dynamic")
-            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
+                    ItemsFullQuery[ItemIndex] = BasicItem['Id']
 
-        ItemsFullQuery = list(dict.fromkeys(ItemsFullQuery)) # filter doubles
+                if KodiItem[0]:
+                    isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem[0])
 
-        if None in ItemsFullQuery:
-            ItemsFullQuery.remove(None)
+                    if 'pathandfilename' in KodiItem[0]:
+                        yield {"ListItem": ListItem, "Path": KodiItem[0]['pathandfilename'], "isFolder": isFolder, "Type": KodiItem[1]}
+                    else:
+                        yield {"ListItem": ListItem, "Path": KodiItem[0]['path'], "isFolder": isFolder, "Type": KodiItem[1]}
 
-        if ItemsFullQuery:
-            for Item in self.get_Items_Ids(ItemsFullQuery, ["Everything"], True, Basic):
-                yield Item
+            if embydb:
+                dbio.DBCloseRO("video", "get_Items_dynamic")
+                dbio.DBCloseRO("music", "get_Items_dynamic")
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
+
+            ItemsFullQuery = list(dict.fromkeys(ItemsFullQuery)) # filter doubles
+
+            if None in ItemsFullQuery:
+                ItemsFullQuery.remove(None)
+
+            if ItemsFullQuery:
+                for Item in self.get_Items_Ids(ItemsFullQuery, [MediaType], True, Basic):
+                    yield Item
 
     def get_Items_Ids(self, Ids, MediaTypes, Dynamic, Basic, ProcessProgressId=""):
-        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
         ItemsQueue = queue.Queue()
+        Fields = []
+
+        if not Basic:
+            for MediaType in MediaTypes:
+                Fields += EmbyFields[MediaType.lower()]
+
+            #Dynamic list query, remove fields to improve performance
+            if Dynamic:
+                if "Series" in MediaTypes or "Season" in MediaTypes:
+                    Fields += ("RecursiveItemCount", "ChildCount")
+
+                for DynamicListsRemoveField in self.DynamicListsRemoveFields:
+                    if DynamicListsRemoveField in Fields:
+                        Fields.remove(DynamicListsRemoveField)
+
+            Fields = ",".join(list(dict.fromkeys(Fields))) # remove duplicates and join into string
+        else:
+            Fields = None
+
         start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, Ids, ProcessProgressId))
 
         while True:
             Item = ItemsQueue.get()
 
-            if Item == "QUIT":
+            if Item in ("QUIT", "TERMINATE"):
                 return
 
             yield Item
@@ -242,37 +258,42 @@ class API:
         while True:
             Item = ItemsQueue.get()
 
-            if Item == "QUIT":
+            if Item in ("QUIT", "TERMINATE"):
                 return
 
             yield Item
 
     def get_Items(self, ParentId, MediaTypes, Basic, Recursive, Extra, ProcessProgressId=""):
         CustomLimit = False
-        Limit = get_Limit(MediaTypes)
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, Basic, False)
-        Params = {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit, 'Fields': Fields}
-
-        if Extra:
-            Params.update(Extra)
-
-            if "Limit" in Extra:
-                Limit = Extra["Limit"]
-                CustomLimit = True
-
         ItemsQueue = queue.Queue()
-        start_new_thread(self.async_get_Items, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, not Recursive or CustomLimit, Params, Limit, ProcessProgressId))
 
-        while True:
-            Item = ItemsQueue.get()
+        for MediaType in MediaTypes:
+            Limit = get_Limit(MediaType)
+            Fields = self.get_Fields(MediaType, Basic, False)
+            Params = {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'CollapseBoxSetItems': False, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'Recursive': Recursive, 'Limit': Limit, 'Fields': Fields}
 
-            if Item == "QUIT":
-                return
+            if Extra:
+                Params.update(Extra)
 
-            yield Item
+                if "Limit" in Extra:
+                    Limit = Extra["Limit"]
+                    CustomLimit = True
+
+            start_new_thread(self.async_get_Items, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, not Recursive or CustomLimit, Params, Limit, ProcessProgressId))
+
+            while True:
+                Item = ItemsQueue.get()
+
+                if Item == "QUIT":
+                    break
+
+                if Item == "TERMINATE":
+                    return
+
+                yield Item
 
     def get_channelprogram(self):
-        Limit = get_Limit(("livetv",))
+        Limit = get_Limit("livetv")
         Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': "Overview", 'Limit': Limit}
         ItemsQueue = queue.Queue()
         start_new_thread(self.async_get_Items, ("LiveTv/Programs", ItemsQueue, False, Params, Limit))
@@ -280,7 +301,7 @@ class API:
         while True:
             Item = ItemsQueue.get()
 
-            if Item == "QUIT":
+            if Item in ("QUIT", "TERMINATE"):
                 return
 
             yield Item
@@ -304,8 +325,12 @@ class API:
 
                 ItemCounter += len(IncomingData)
             else:
-                if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
+                if 'Items' not in IncomingData or not IncomingData['Items']:
                     ItemsQueue.put("QUIT")
+                    return
+
+                if utils.SystemShutdown:
+                    ItemsQueue.put("TERMINATE")
                     return
 
                 for Item in IncomingData['Items']:
@@ -325,16 +350,19 @@ class API:
             Index += Limit
 
     def get_Item(self, Ids, MediaTypes, Dynamic, Basic, Specials=False):
-        _, Fields = self.get_MediaData(MediaTypes, Basic, Dynamic)
+        Items = []
 
-        if Specials: # Bugfix workaround
-            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'IncludeItemTypes': 'Workaround', 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
-        else:
-            Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        for MediaType in MediaTypes:
+            Fields = self.get_Fields(MediaType, Basic, Dynamic)
 
-        if 'Items' in Data:
-            if Data['Items']:
-                return Data['Items'][0]
+            if Specials: # Bugfix workaround
+                Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'IncludeItemTypes': 'Workaround', 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+            else:
+                Data = self.EmbyServer.http.request({'params': {'Ids': Ids, 'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+
+            if 'Items' in Data:
+                if Data['Items']:
+                    return Data['Items'][0]
 
         return {}
 
@@ -352,13 +380,16 @@ class API:
         return 0
 
     def browse_MusicByArtistId(self, Artist_id, Parent_id, MediaTypes, Dynamic):
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, Dynamic)
-        Data = self.EmbyServer.http.request({'params': {'ParentId': Parent_id, 'ArtistIds': Artist_id, 'IncludeItemTypes': IncludeItemTypes, 'Recursive': True, 'Fields': Fields, 'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
+        Items = []
 
-        if 'Items' in Data:
-            return Data['Items']
+        for MediaType in MediaTypes:
+            Fields = self.get_Fields(MediaType, False, Dynamic)
+            Data = self.EmbyServer.http.request({'params': {'ParentId': Parent_id, 'ArtistIds': Artist_id, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields, 'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
 
-        return []
+            if 'Items' in Data:
+                Items += Data['Items']
+
+        return Items
 
     def get_timer(self, ProgramId):
         Data = self.EmbyServer.http.request({'params': {'programId': ProgramId}, 'type': "GET", 'handler': "LiveTv/Timers"}, False, False)
@@ -374,18 +405,18 @@ class API:
     def delete_timer(self, TimerId):
         return self.EmbyServer.http.request({'type': "POST", 'handler': f"LiveTv/Timers/{TimerId}/Delete"}, False, False)
 
-    def get_genres(self, ParentId, MediaTypes):
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Genres"}, False, False)
+    def get_genres(self, ParentId, MediaType):
+        Fields = self.get_Fields(MediaType, False, False)
+        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Genres"}, False, False)
 
         if 'Items' in Data:
             return Data['Items']
 
         return []
 
-    def get_tags(self, ParentId, MediaTypes):
-        IncludeItemTypes, Fields = self.get_MediaData(MediaTypes, False, False)
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': IncludeItemTypes, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Tags"}, False, False)
+    def get_tags(self, ParentId, MediaType):
+        Fields = self.get_Fields(MediaType, False, False)
+        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Tags"}, False, False)
 
         if 'Items' in Data:
             return Data['Items']
@@ -498,19 +529,17 @@ class API:
 
         return []
 
-    def get_specialfeatures(self, item_id, MediaTypes):
-        _, Fields = self.get_MediaData(MediaTypes, False, False)
-        return self.EmbyServer.http.request({'params': {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/SpecialFeatures"}, False, False)
+    def get_specialfeatures(self, item_id):
+        return self.EmbyServer.http.request({'params': {'Fields': "Path,MediaSources,PresentationUniqueKey", 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/SpecialFeatures"}, False, False)
 
     def get_intros(self, item_id):
         return self.EmbyServer.http.request({'params': {'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/Intros"}, False, False)
 
-    def get_additional_parts(self, item_id, MediaTypes):
-        _, Fields = self.get_MediaData(MediaTypes, False, False)
-        return self.EmbyServer.http.request({'params': {'Fields': Fields}, 'type': "GET", 'handler': f"Videos/{item_id}/AdditionalParts"}, False, False)
+    def get_additional_parts(self, item_id):
+        return self.EmbyServer.http.request({'params': {'Fields': "Path,MediaSources"}, 'type': "GET", 'handler': f"Videos/{item_id}/AdditionalParts"}, False, False)
 
     def get_local_trailers(self, item_id):
-        _, Fields = self.get_MediaData(["trailer"], False, False)
+        Fields = EmbyFields["trailer"]
         return self.EmbyServer.http.request({'params': {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/LocalTrailers"}, False, False)
 
     def get_themes(self, item_id, Songs, Videos):
@@ -578,20 +607,13 @@ class API:
     def get_Subtitle_Binary(self, EmbyID, MediasourceID, SubtitleId, SubtitleFormat):
         return self.EmbyServer.http.request({'type': "GET", 'handler': f"/videos/{EmbyID}/{MediasourceID}/Subtitles/{SubtitleId}/stream.{SubtitleFormat}"}, False, True, False)
 
-    def get_MediaData(self, MediaTypes, Basic, Dynamic):
-        IncludeItemTypes = ",".join(MediaTypes)
-        Fields = []
-
+    def get_Fields(self, MediaType, Basic, Dynamic):
         if not Basic:
-            if MediaTypes[0].lower() == "everything":
-                IncludeItemTypes = None
-
-            for MediaType in MediaTypes:
-                Fields += EmbyFields[MediaType.lower()]
+            Fields = EmbyFields[MediaType.lower()]
 
             #Dynamic list query, remove fields to improve performance
             if Dynamic:
-                if "Series" in MediaTypes or "Season" in MediaTypes:
+                if MediaType in ("Series", "Season"):
                     Fields += ("RecursiveItemCount", "ChildCount")
 
                 for DynamicListsRemoveField in self.DynamicListsRemoveFields:
@@ -602,10 +624,10 @@ class API:
         else:
             Fields = None
 
-        return IncludeItemTypes, Fields
+        return Fields
 
-    def get_upcoming(self, ParentId, MediaTypes):
-        _, Fields = self.get_MediaData(MediaTypes, False, False)
+    def get_upcoming(self, ParentId):
+        Fields = EmbyFields["episode"]
         Data = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], 'ParentId': ParentId, 'Fields': Fields, 'EnableImages': True, 'EnableUserData': True}, 'type': "GET", 'handler': "Shows/Upcoming"}, False, False)
 
         if 'Items' in Data:
@@ -613,8 +635,8 @@ class API:
 
         return []
 
-    def get_NextUp(self, ParentId, MediaTypes):
-        _, Fields = self.get_MediaData(MediaTypes, False, False)
+    def get_NextUp(self, ParentId):
+        Fields = EmbyFields["episode"]
         Data = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], 'ParentId': ParentId, 'Fields': Fields, 'EnableImages': True, 'EnableUserData': True, 'LegacyNextUp': True}, 'type': "GET", 'handler': "Shows/NextUp"}, False, False)
 
         if 'Items' in Data:
@@ -623,12 +645,5 @@ class API:
         return []
 
 def get_Limit(MediaTypes):
-    Factor = 1000000
-
-    for MediaType in MediaTypes:
-        MediaTypeLower = MediaType.lower()
-
-        if EmbyPagingFactors[MediaTypeLower] < Factor:
-            Factor = EmbyPagingFactors[MediaTypeLower]
-
+    Factor = EmbyPagingFactors[MediaTypes.lower()]
     return int(utils.limitIndex) * Factor

@@ -18,94 +18,94 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         InfoTags = ListItem.getVideoInfoTag()
         InfoTags.setDbId(int(KodiItem['dbid']))
 
-        if 'dateadded' in KodiItem:
+        if bool(KodiItem.get('dateadded')):
             InfoTags.setDateAdded(KodiItem['dateadded'])
 
-        if 'rating' in KodiItem and KodiItem['rating']:
+        if bool(KodiItem.get('rating')):
             InfoTags.setRating(float(KodiItem['rating']))
 
-        if 'userrating' in KodiItem and KodiItem['userrating']:
+        if bool(KodiItem.get('userrating')):
             InfoTags.setUserRating(int(KodiItem['userrating']))
 
-        if 'tagline' in KodiItem:
+        if bool(KodiItem.get('tagline')):
             InfoTags.setTagLine(KodiItem['tagline'])
 
-        if 'plotoutline' in KodiItem:
+        if bool(KodiItem.get('plotoutline')):
             InfoTags.setPlotOutline(KodiItem['plotoutline'])
 
-        if 'country' in KodiItem and KodiItem['country']:
+        if bool(KodiItem.get('country')):
             InfoTags.setCountries(KodiItem['country'].split("/"))
 
-        if 'mpaa' in KodiItem:
+        if bool(KodiItem.get('mpaa')):
             InfoTags.setMpaa(KodiItem['mpaa'])
 
-        if 'originaltitle' in KodiItem:
+        if bool(KodiItem.get('originaltitle')):
             InfoTags.setOriginalTitle(KodiItem['originaltitle'])
 
-        if 'plot' in KodiItem:
+        if bool(KodiItem.get('plot')):
             InfoTags.setPlot(KodiItem['plot'])
 
-        if 'sorttitle' in KodiItem:
+        if bool(KodiItem.get('sorttitle')):
             InfoTags.setSortTitle(KodiItem['sorttitle'])
 
-        if 'studio' in KodiItem and KodiItem['studio']:
+        if bool(KodiItem.get('studio')):
             InfoTags.setStudios(KodiItem['studio'].split("/"))
 
-        if 'writer' in KodiItem and KodiItem['writer']:
+        if bool(KodiItem.get('writer')):
             InfoTags.setWriters(KodiItem['writer'].split("/"))
 
-        if 'director' in KodiItem and KodiItem['director']:
+        if bool(KodiItem.get('director')):
             InfoTags.setDirectors(KodiItem['director'].split("/"))
 
-        if 'sortseason' in KodiItem and KodiItem['sortseason']:
+        if bool(KodiItem.get('sortseason')):
             InfoTags.setSortSeason(int(KodiItem['sortseason']))
 
-        if 'season' in KodiItem and KodiItem['season']:
+        if bool(KodiItem.get('season')):
             InfoTags.setSeason(int(KodiItem['season']))
 
-        if 'episode' in KodiItem:
+        if bool(KodiItem.get('episode')):
             InfoTags.setEpisode(int(KodiItem['episode']))
 
-        if 'sortepisode' in KodiItem and KodiItem['sortepisode']:
+        if bool(KodiItem.get('sortepisode')):
             InfoTags.setSortEpisode(int(KodiItem['sortepisode']))
 
-        if 'tvshowtitle' in KodiItem:
+        if bool(KodiItem.get('tvshowtitle')):
             InfoTags.setTvShowTitle(KodiItem['tvshowtitle'])
 
-        if 'imdbnumber' in KodiItem:
+        if bool(KodiItem.get('imdbnumber')):
             InfoTags.setIMDBNumber(KodiItem['imdbnumber'])
 
-        if 'premiered' in KodiItem:
+        if bool(KodiItem.get('premiered')):
             InfoTags.setPremiered(KodiItem['premiered'])
 
-        if 'resumepoint' in KodiItem and KodiItem['resumepoint']:
+        if bool(KodiItem.get('resumepoint')):
             InfoTags.setResumePoint(KodiItem['resumepoint'], KodiItem['totaltime'])
 
-        if 'trailer' in KodiItem and KodiItem['trailer']:
+        if bool(KodiItem.get('trailer')):
             InfoTags.setTrailer(KodiItem['trailer'])
 
-        if 'path' in KodiItem:
+        if bool(KodiItem.get('path')):
             InfoTags.setPath(KodiItem['path'])
 
-        if 'pathandfilename' in KodiItem:
+        if bool(KodiItem.get('pathandfilename')):
             InfoTags.setFilenameAndPath(KodiItem['pathandfilename'])
 
-        if 'track' in KodiItem and KodiItem['track']:
+        if bool(KodiItem.get('track')):
             InfoTags.setTrackNumber(int(KodiItem['track']))
 
-        if 'album' in KodiItem:
+        if bool(KodiItem.get('album')):
             InfoTags.setAlbum(KodiItem['album'])
 
-        if 'artist' in KodiItem:
+        if bool(KodiItem.get('artist')):
             InfoTags.setArtists(KodiItem['artist'])
 
-        if 'tvshowstatus' in KodiItem:
+        if bool(KodiItem.get('tvshowstatus')):
             InfoTags.setTvShowStatus(KodiItem['tvshowstatus'])
 
-        if 'firstaired' in KodiItem:
+        if bool(KodiItem.get('firstaired')):
             InfoTags.setFirstAired(KodiItem['firstaired'])
 
-        if 'people' in KodiItem:
+        if bool(KodiItem.get('people')):
             People = ()
 
             for Person in KodiItem['people']:
@@ -116,25 +116,34 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         InfoTags = ListItem.getMusicInfoTag()
         InfoTags.setDbId(int(KodiItem['dbid']), KodiItem['mediatype'])
 
-        if 'artist' in KodiItem:
+        if bool(KodiItem.get('artist')):
             InfoTags.setArtist(KodiItem['artist'])
 
-        if 'comment' in KodiItem:
+        if bool(KodiItem.get('albumartists')):
+            InfoTags.setAlbumArtist(KodiItem['albumartists'])
+
+        if bool(KodiItem.get('comment')):
             InfoTags.setComment(KodiItem['comment'])
 
-        if 'disc' in KodiItem:
+        if bool(KodiItem.get('disc')):
             InfoTags.setDisc(KodiItem['disc'])
 
-        if 'track' in KodiItem:
+        if bool(KodiItem.get('track')):
             InfoTags.setTrack(KodiItem['track'])
 
-        if 'musicbrainzartistid' in KodiItem and KodiItem['musicbrainzartistid']:
+        if bool(KodiItem.get('album')):
+            InfoTags.setAlbum(KodiItem['album'])
+
+        if bool(KodiItem.get('releasedate')):
+            InfoTags.setReleaseDate(KodiItem['releasedate'])
+
+        if bool(KodiItem.get('musicbrainzartistid')):
             InfoTags.setMusicBrainzArtistID(KodiItem['musicbrainzartistid'].split("/"))
 
-        if 'musicbrainzalbumid' in KodiItem:
+        if bool(KodiItem.get('musicbrainzalbumid')):
             InfoTags.setMusicBrainzAlbumID(KodiItem['musicbrainzalbumid'])
 
-        if 'musicbrainztrackid' in KodiItem:
+        if bool(KodiItem.get('musicbrainztrackid')):
             InfoTags.setMusicBrainzTrackID(KodiItem['musicbrainztrackid'])
 
 #        InfoTags.setMusicBrainzAlbumArtistID(item['ProviderIds']['MusicBrainzAlbumArtist'])
@@ -143,22 +152,22 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
     InfoTags.setMediaType(KodiItem['mediatype'])
     InfoTags.setTitle(KodiItem['title'])
 
-    if 'duration' in KodiItem and KodiItem['duration']:
+    if bool(KodiItem.get('duration')):
         InfoTags.setDuration(int(KodiItem['duration']))
 
     if KodiItem['artwork']:
         ListItem.setArt(KodiItem['artwork'])
 
-    if 'genre' in KodiItem and KodiItem['genre']:
+    if bool(KodiItem.get('genre')):
         InfoTags.setGenres(KodiItem['genre'].split("/"))
 
-    if 'playCount' in KodiItem and KodiItem['playCount']:
+    if bool(KodiItem.get('playCount')):
         InfoTags.setPlaycount(KodiItem['playCount'])
 
-    if 'lastplayed' in KodiItem:
+    if bool(KodiItem.get('lastplayed')):
         InfoTags.setLastPlayed(KodiItem['lastplayed'])
 
-    if 'year' in KodiItem:
+    if bool(KodiItem.get('year')):
         InfoTags.setYear(KodiItem['year'])
 
     ListItem.setProperties(KodiItem['properties'])
@@ -183,6 +192,8 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
     item['LibraryIds'] = [item['Library']['Id']]
 
     if item['Type'] == 'Folder' or item.get('NodesMenu', False):
+        InfoTags = listitem.getVideoInfoTag()
+        InfoTags.setTitle(item['Name'])
         common.set_KodiArtwork(item, ServerId, True)
         common.set_overview(item)
         Properties = {'IsFolder': 'true', 'IsPlayable': 'false'}
@@ -251,6 +262,7 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
     elif item['Type'] == "Series":
         common.set_mpaa(item)
         common.set_overview(item)
+        common.set_RunTimeTicks(item)
         common.set_trailer(item, utils.EmbyServers[ServerId])
         common.set_videocommon(item, ServerId, 0, True)
         InfoTags = listitem.getVideoInfoTag()
@@ -265,6 +277,7 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         InfoTags.setYear(item['ProductionYear'])
         InfoTags.setRating(item.get('CommunityRating', 0))
         InfoTags.setMpaa(item['OfficialRating'])
+        InfoTags.setDuration(int(item['RunTimeTicks']))
         InfoTags.setPlaycount(int(item['UserData']['PlayCount']))
         InfoTags.setLastPlayed(item['UserData']['LastPlayedDate'])
         InfoTags.setGenres(item['Genres'])
@@ -375,8 +388,13 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         HasStreams = True
         InfoTags.setMediaType("musicvideo")
         InfoTags.setTrackNumber(item['IndexNumber'])
-#        InfoTags.setArtists()
-#        InfoTags.setAlbum()
+
+        if 'Artists' in item and item['Artists']:
+            InfoTags.setArtists(item['Artists'])
+
+        if 'Album' in item and item['Album']:
+            InfoTags.setAlbum(item['Album'])
+
         InfoTags.setTitle(item['Name'])
         InfoTags.setSortTitle(item['SortName'])
         InfoTags.setOriginalTitle(item.get('OriginalTitle', ""))
@@ -453,12 +471,18 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         item['ProviderIds'] = item.get('ProviderIds', [])
         item['ProviderIds']['MusicBrainzAlbum'] = item['ProviderIds'].get('MusicBrainzAlbum', "")
         item['ProviderIds']['MusicBrainzAlbumArtist'] = tuple(item['ProviderIds'].get('MusicBrainzAlbumArtist', ()))
-        item['ProductionYear'] = item.get('ProductionYear')
+        item['ProductionYear'] = item.get('ProductionYear', 0)
         common.set_RunTimeTicks(item)
         common.set_overview(item)
         InfoTags = listitem.getMusicInfoTag()
         InfoTags.setMediaType("album")
         InfoTags.setTitle(item['Name'])
+        InfoTags.setAlbum(item['Name'])
+
+        if 'AlbumArtist' in item and item['AlbumArtist']:
+            InfoTags.setAlbumArtist(item['AlbumArtist'])
+
+        InfoTags.setArtist(" / ".join(item['Artists']))
         InfoTags.setYear(item['ProductionYear'])
         InfoTags.setDuration(int(item['RunTimeTicks']))
         InfoTags.setPlayCount(int(item['UserData']['PlayCount']))
@@ -470,7 +494,6 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}
     elif item['Type'] == "Audio":
         common.set_KodiArtwork(item, ServerId, True)
-        item['AlbumId'] = item.get('AlbumId', None)
         item['ProductionYear'] = item.get('ProductionYear', 0)
         item['Genres'] = item.get('Genres', [])
         item['ProviderIds'] = item.get('ProviderIds', [])
@@ -485,6 +508,14 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         common.set_RunTimeTicks(item)
         common.get_streams(item)
         InfoTags = listitem.getMusicInfoTag()
+        InfoTags.setArtist(" / ".join(item['Artists']))
+
+        if 'Album' in item and item['Album']:
+            InfoTags.setAlbum(item['Album'])
+
+        if 'AlbumArtist' in item and item['AlbumArtist']:
+            InfoTags.setAlbumArtist(item['AlbumArtist'])
+
         InfoTags.setMediaType("song")
         InfoTags.setTitle(item['Name'])
         InfoTags.setYear(item['ProductionYear'])
@@ -499,7 +530,10 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         InfoTags.setMusicBrainzTrackID(item['ProviderIds']['MusicBrainzTrack'])
         InfoTags.setComment(item['Overview'])
         InfoTags.setDisc(item['ParentIndexNumber'])
-        InfoTags.setTrack(item['IndexNumber'])
+
+        if item['IndexNumber']:
+            InfoTags.setTrack(item['IndexNumber'])
+
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'false', 'IsPlayable': 'true'}
     elif item['Type'] == "BoxSet":
         common.set_RunTimeTicks(item)
@@ -530,6 +564,8 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         InfoTags.setDbId(1000000000 + int(item['Id']))
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}
     elif item['Type'] == 'Playlist':
+        InfoTags = listitem.getVideoInfoTag()
+        InfoTags.setTitle(item['Name'])
         common.set_KodiArtwork(item, ServerId, True)
         common.set_overview(item)
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'false'}
@@ -552,6 +588,8 @@ def set_ListItem(item, ServerId, Path, get_shortdate):
         PictureInfoTags.setDateTimeTaken(get_shortdate(item['PremiereDate']))
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}
     else: # Letter etc
+        InfoTags = listitem.getVideoInfoTag()
+        InfoTags.setTitle(item['Name'])
         common.set_KodiArtwork(item, ServerId, True)
 
     if HasStreams:

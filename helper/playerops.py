@@ -180,16 +180,21 @@ def SeekPositionTicks_to_Jsonstring(SeekPositionTicks, TimeStamp):
     hours =  int((seektime / 3600000) % 24)
     return f'{{"jsonrpc":"2.0","method":"Player.Seek","params":{{"playerid":{PlayerId},"value":{{"time":{{"hours":{hours},"minutes":{minutes},"seconds":{seconds},"milliseconds": {milliseconds}}}}}}},"id":1}}', DeltaTime, SeekPositionTicks
 
-def Seek(SeekPositionTicks, isRemote=False, TimeStamp=0):
+def Seek(SeekPositionTicksQuery, isRemote=False, TimeStamp=0, Relative=False):
     if PlayerId != -1:
         if not wait_AVStarted():
             xbmc.log(f"EMBY.helper.playerops: Seek: avstart not set: seek={SeekPositionTicks}", 3) # LOGERROR
             return
 
         WarningLogSend = False
+        SeekPositionTicks = SeekPositionTicksQuery
 
         for _ in range(5): # try 5 times
             CurrentPositionTicks = PlayBackPosition()
+
+            if Relative:
+                SeekPositionTicks = CurrentPositionTicks + SeekPositionTicksQuery
+
             JsonString, DeltaTime, SeekPositionTicks = SeekPositionTicks_to_Jsonstring(SeekPositionTicks, TimeStamp)
             Drift = (SeekPositionTicks - CurrentPositionTicks) / 10000 # in milliseconds
 
@@ -327,7 +332,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
     if EmbyIdStart in Reference:
-        Item = EmbyServer.API.get_Item(EmbyIdStart, ['Everything'], True, False)
+        Item = EmbyServer.API.get_Item(EmbyIdStart, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], True, False)
 
         if not Item:
             return
@@ -403,7 +408,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     #load additional items after playback started
     if PlayCommand not in ("PlayInit", "PlaySingle"):
         if QueryEmbyIds:
-            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Everything"], True, False):
+            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], True, False):
                 li = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
                 path, Type = common.get_path_type_from_item(EmbyServer.ServerData['ServerId'], Item)
                 ItemsData[Reference[Item['Id']]] = (False, Item['Id'], Type, li, path)

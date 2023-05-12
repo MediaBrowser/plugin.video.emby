@@ -165,7 +165,7 @@ def get_filename(item, API, ItemIndex, MediaType):
         # Detect Multipart videos
         if 'PartCount' in item:
             if (item['PartCount']) >= 2:
-                AdditionalParts = API.get_additional_parts(item['Id'], [MediaType])
+                AdditionalParts = API.get_additional_parts(item['Id'])
                 item['Filename'] = item['FullPath']
                 item['StackTimes'] = str(item['RunTimeTicks'])
 
@@ -212,7 +212,7 @@ def get_filename(item, API, ItemIndex, MediaType):
     # Detect Multipart videos
     if 'PartCount' in item:
         if (item['PartCount']) >= 2:
-            AdditionalParts = API.get_additional_parts(item['Id'], [MediaType])
+            AdditionalParts = API.get_additional_parts(item['Id'])
             item['StackTimes'] = str(item['RunTimeTicks'])
             StackedFilename = f"{item['Path']}{item['Filename']}"
 
@@ -482,7 +482,7 @@ def set_trailer(item, EmbyServer):
         for IntroLocal in EmbyServer.API.get_local_trailers(item['Id']):
             Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
             item['Trailer'] = f"{utils.AddonModePath}dynamic/{item['ServerId']}/V-{EmbyServer.ServerData['ServerId']}-{IntroLocal['Id']}-{IntroLocal['MediaSources'][0]['Id']}-{Filename}"
-            break
+            return
 
     if 'RemoteTrailers' in item and item['RemoteTrailers']:
         try:
@@ -734,7 +734,7 @@ def set_MusicVideoTracks(item):
         Track = Temp[0].strip()
 
         if Track.isnumeric():
-            item['IndexNumber'] = str(int(Track))  # remove leading zero e.g. 01
+            item['IndexNumber'] = int(Track)  # remove leading zero e.g. 01
 
 def delete_ContentItemReferences(EmbyItemId, KodiItemId, KodiFileId, video_db, emby_db, MediaType):
     video_db.delete_links_actors(KodiItemId, MediaType)
