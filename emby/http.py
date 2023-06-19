@@ -16,44 +16,26 @@ class HTTP:
 
     def async_commands(self):
         xbmc.log("EMBY.emby.http: THREAD: --->[ async queue ]", 1) # LOGINFO
-        CommandRetry = ()
-        CommandRetryCounter = 0
 
         while True:
-            if CommandRetry:
-                Command = CommandRetry
-                CommandRetry = ()
-            else:
-                Command = self.AsyncCommandQueue.get()
+            Command = self.AsyncCommandQueue.get()
 
             try:
                 self.wait_for_priority_request()
 
                 if Command[0] == "POST":
-                    Command[1]['timeout'] = (1, 0.5)
+                    Command[1]['timeout'] = (5, 2)
                     r = self.session.post(**Command[1])
                     r.close()
                 elif Command[0] == "DELETE":
-                    Command[1]['timeout'] = (1, 0.5)
+                    Command[1]['timeout'] = (5, 2)
                     r = self.session.delete(**Command[1])
                     r.close()
                 elif Command[0] == "QUIT":
                     xbmc.log("EMBY.emby.http: Queue closed", 1) # LOGINFO
                     break
-
-                CommandRetryCounter = 0
             except Exception as error:
-                if utils.sleep(5):
-                    return
-
-                if CommandRetryCounter < 5:
-                    CommandRetryCounter += 1
-                    CommandRetry = Command
-                    xbmc.log(f"EMBY.emby.http: Async_commands retry: {CommandRetryCounter} / error: {error}", 2) # LOGWARNING
-                else:
-                    CommandRetryCounter = 0
-                    CommandRetry = ()
-                    xbmc.log(f"EMBY.emby.http: Async_commands error: {error}", 2) # LOGWARNING
+                xbmc.log(f"EMBY.emby.http: Async_commands Emby server did not respond: error: {error}", 2) # LOGWARNING
 
         xbmc.log("EMBY.emby.http: THREAD: ---<[ async queue ]", 1) # LOGINFO
 
@@ -214,8 +196,7 @@ class HTTP:
                 return self.noData(Binary, GetHeaders)
 
         if ServerUnreachable:
-            self.stop_session()
-            self.EmbyServer.ServerUnreachable()
+            self.EmbyServer.ServerReconnect()
 
         return self.noData(Binary, GetHeaders)
 

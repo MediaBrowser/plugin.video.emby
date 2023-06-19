@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: Dag Wieers <dag@wieers.com>, 2019\n"
-"Language-Team: Dutch (https://www.transifex.com/emby-for-kodi/teams/91090/nl/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: nl\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -2041,19 +2041,19 @@ msgstr ""
 
 msgctxt "#33470"
 msgid "Transcode video"
-msgstr ""
+msgstr "Video transcoderen"
 
 msgctxt "#33471"
 msgid "Transcode audio"
-msgstr ""
+msgstr "Audio transcoderen"
 
 msgctxt "#33472"
 msgid "Transcode bandwidth limit"
-msgstr ""
+msgstr "bandbreedtelimiet transcoderen"
 
 msgctxt "#33473"
 msgid "Transcode output format"
-msgstr ""
+msgstr "Uitvoerformaat transcoderen"
 
 msgctxt "#33474"
 msgid "EAC3"
@@ -2081,7 +2081,7 @@ msgstr ""
 
 msgctxt "#33480"
 msgid "Transcode livetv"
-msgstr ""
+msgstr "Livetv transcoderen"
 
 msgctxt "#33481"
 msgid "Audio"
@@ -2089,160 +2089,276 @@ msgstr ""
 
 msgctxt "#33482"
 msgid "Video"
-msgstr ""
+msgstr "video"
 
 msgctxt "#33483"
 msgid "Select audiostream"
-msgstr ""
+msgstr "Selecteer audiostream"
 
 msgctxt "#33484"
 msgid "Select subtitle"
-msgstr ""
+msgstr "Selecteer ondertitel"
 
 msgctxt "#33485"
 msgid "Specials"
-msgstr ""
+msgstr "Speciale aanbiedingen"
 
 msgctxt "#33486"
 msgid "Use path substitution"
-msgstr ""
+msgstr "Gebruik padvervanging"
 
 msgctxt "#33487"
 msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
-msgstr ""
+msgstr "Path-vervanging ondersteunt hoofdstukafbeeldingen in add-on-modus. "
 
 msgctxt "#33488"
 msgid "Assign unique actors for each emby library"
-msgstr ""
+msgstr "Wijs unieke acteurs toe aan elke emby-bibliotheek"
 
 msgctxt "#33489"
 msgid "Episodes"
-msgstr ""
+msgstr "Afleveringen"
 
 msgctxt "#33490"
 msgid "Emby Record"
-msgstr ""
+msgstr "Emby-record"
 
 msgctxt "#33491"
 msgid "Watch together canceled"
-msgstr ""
+msgstr "Samen kijken geannuleerd"
 
 msgctxt "#33492"
 msgid "Waiting for participants"
-msgstr ""
+msgstr "Wachten op deelnemers"
 
 msgctxt "#33493"
 msgid "Starting..."
-msgstr ""
+msgstr "Beginnen..."
 
 msgctxt "#33494"
 msgid "Select users"
-msgstr ""
+msgstr "Selecteer gebruikers"
 
 msgctxt "#33495"
 msgid "Remote clients / Watch together"
-msgstr ""
+msgstr "Klanten op afstand / Samen kijken"
 
 msgctxt "#33496"
 msgid "Delete timer"
-msgstr ""
+msgstr "Timer wissen"
 
 msgctxt "#33497"
 msgid "Add timer"
-msgstr ""
+msgstr "Timer toevoegen"
 
 msgctxt "#33498"
 msgid "Force clients"
-msgstr ""
+msgstr "Forceer klanten"
 
 msgctxt "#33499"
 msgid "Clients not supporting watch together natively, will be force to participate"
-msgstr ""
+msgstr "Klanten die Watch Together niet standaard ondersteunen, zullen gedwongen worden om mee te doen"
 
 msgctxt "#33500"
 msgid "Client control"
-msgstr ""
+msgstr "Clientcontrole"
 
 msgctxt "#33501"
 msgid "Clients can control each other"
-msgstr ""
+msgstr "Klanten kunnen elkaar controleren"
 
 msgctxt "#33502"
 msgid "Sync clients to master"
-msgstr ""
+msgstr "Synchroniseer clients met master"
 
 msgctxt "#33503"
 msgid "Master controls play, pause, seek"
-msgstr ""
+msgstr "Master bestuurt afspelen, pauzeren, zoeken"
 
 msgctxt "#33504"
 msgid "Wait for participates"
-msgstr ""
+msgstr "Wacht op deelnames"
 
 msgctxt "#33505"
 msgid "Wait for participates in seconds"
-msgstr ""
+msgstr "Wacht op deelnames in seconden"
 
 msgctxt "#33506"
 msgid "Delay playback"
-msgstr ""
+msgstr "Vertraagde weergave"
 
 msgctxt "#33507"
 msgid "Delay playback start, give clients time to sync"
-msgstr ""
+msgstr "Vertraag de start van het afspelen, geef klanten de tijd om te synchroniseren"
 
 msgctxt "#33508"
 msgid "Maximum drift on pause"
-msgstr ""
+msgstr "Maximale drift bij pauze"
 
 msgctxt "#33509"
 msgid "Allowed async in milliseconds on pause"
-msgstr ""
+msgstr "Toegestane async in milliseconden bij pauze"
 
 msgctxt "#33510"
 msgid "Auto ack"
-msgstr ""
+msgstr "Automatische bevestiging"
 
 msgctxt "#33511"
 msgid "Auto acknowledge incoming remote client request"
-msgstr ""
+msgstr "Automatische bevestiging van inkomend extern clientverzoek"
 
 msgctxt "#33512"
 msgid "Delay"
-msgstr ""
+msgstr "Vertraging"
 
 msgctxt "#33513"
 msgid "Triggers a seek command after X seconds"
-msgstr ""
+msgstr "Activeert een zoekcommando na X seconden"
 
 msgctxt "#33514"
 msgid "Resync unsupported clients"
-msgstr ""
+msgstr "Niet-ondersteunde clients opnieuw synchroniseren"
 
 msgctxt "#33515"
 msgid "Keep connection"
-msgstr ""
+msgstr "Houd verbinding"
 
 msgctxt "#33516"
 msgid "Establish connection on start (by device id)"
-msgstr ""
+msgstr "Verbinding tot stand brengen bij opstarten (op apparaat-ID)"
 
 msgctxt "#33517"
 msgid "Watch together"
-msgstr ""
+msgstr "Kijk samen"
 
 msgctxt "#33518"
 msgid "Remove client"
-msgstr ""
+msgstr "Klant verwijderen"
 
 msgctxt "#33519"
 msgid "Add client"
-msgstr ""
+msgstr "Klant toevoegen"
 
 msgctxt "#33520"
 msgid "Enable remote mode"
-msgstr ""
+msgstr "Schakel externe modus in"
 
 msgctxt "#33521"
 msgid "Disable remote mode"
+msgstr "Schakel externe modus uit"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Inschakelen"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primair"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Spandoek"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Schijf"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Duim"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Achtergrond"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Hoofdstuk"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Compressie"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximale resolutie"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Beperkt de beeldresolutie met een factor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Selecteer audiostream transcoderen"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Inschakelen"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primair"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Spandoek"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Schijf"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Duim"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Achtergrond"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Hoofdstuk"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Compressie"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximale resolutie"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Beperkt de beeldresolutie met een factor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Selecteer audiostream transcoderen"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

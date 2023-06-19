@@ -1,6 +1,7 @@
 from _thread import start_new_thread
 import queue
 import xbmc
+import xbmcgui
 from helper import utils
 from database import dbio
 from emby import listitem
@@ -183,7 +184,7 @@ def SeekPositionTicks_to_Jsonstring(SeekPositionTicks, TimeStamp):
 def Seek(SeekPositionTicksQuery, isRemote=False, TimeStamp=0, Relative=False):
     if PlayerId != -1:
         if not wait_AVStarted():
-            xbmc.log(f"EMBY.helper.playerops: Seek: avstart not set: seek={SeekPositionTicks}", 3) # LOGERROR
+            xbmc.log(f"EMBY.helper.playerops: Seek: avstart not set: seek={SeekPositionTicksQuery}", 3) # LOGERROR
             return
 
         WarningLogSend = False
@@ -301,6 +302,10 @@ def PlayBackDuration():
     return 0
 
 def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, TimeStamp):
+    if not ItemIds:
+        xbmc.log("EMBY.helper.playerops: PlayEmby, no ItemIds received", 2) # LOGWARNING
+        return
+
     if utils.remotecontrol_client_control:
         globals().update({"RemoteMode": False, "WatchTogether": False, "RemotePlaybackInit": True, "RemoteControl": True})
     else:
@@ -332,7 +337,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
     if EmbyIdStart in Reference:
-        Item = EmbyServer.API.get_Item(EmbyIdStart, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], True, False)
+        Item = EmbyServer.API.get_Item(EmbyIdStart, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False)
 
         if not Item:
             return
@@ -343,15 +348,22 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
 
     ItemData = ItemsData[StartIndex]
     globals()["EmbyIdPlaying"] = int(ItemData[1])
+    WindowId = xbmcgui.getCurrentWindowId()
 
     if ItemData[2] in ("song", "a"):
         PlayerIdPlaylistId = 0
         globals()['PlayerId'] = 0
+
+        if WindowId != 12006:
+            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "visualisation"}}')
     elif ItemData[2] == "p":
         PlayerIdPlaylistId = 2
     else:
         PlayerIdPlaylistId = 1
         globals()['PlayerId'] = 1
+
+        if WindowId != 12005:
+            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')
 
     if PlayCommand in ("PlayNow", "PlayNext"):
         PlaylistPos = (GetPlayerPosition(0), GetPlayerPosition(1))
@@ -378,13 +390,13 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
             utils.Playlists[PlayerIdPlaylistId].add(ItemData[4], ItemData[3], index=KodiPlaylistIndexStartitem)
     else:
         globals()["Pictures"].append((path, li))
+        utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{path}"}}}}}}')
 
     if PlayerIdPlaylistId == 2: # picture
         globals()["Pictures"][KodiPlaylistIndexStartitem][1].select(True)
         xbmc.executebuiltin('Action(Stop)')
         xbmc.executebuiltin('Action(Back)')
         ClearPlaylist(2)
-        xbmc.executebuiltin("ReplaceWindow(10002,'plugin://{utils.PluginId}/?mode=remotepictures&position={KodiPlaylistIndexStartitem}')")
     else:
         globals()['RemoteCommandActive'][4] += 1
         globals().update({"AVStarted": False, "PlayerPause": False})
@@ -408,7 +420,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     #load additional items after playback started
     if PlayCommand not in ("PlayInit", "PlaySingle"):
         if QueryEmbyIds:
-            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], True, False):
+            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False):
                 li = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
                 path, Type = common.get_path_type_from_item(EmbyServer.ServerData['ServerId'], Item)
                 ItemsData[Reference[Item['Id']]] = (False, Item['Id'], Type, li, path)
@@ -425,7 +437,14 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
                 else:
                     utils.Playlists[PlayerIdPlaylistId].add(ItemData[4], ItemData[3], index=InsertPosition)
             else:
-                Pictures.append((path, li))
+                Pictures.append((ItemData[4], ItemData[3]))
+
+    if PlayerIdPlaylistId == 2: # picture
+        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "pictures", "parameters": ["plugin://{utils.PluginId}/?mode=remotepictures&position={KodiPlaylistIndexStartitem}", "return"]}}}}')
+
+    for Index, Picture in enumerate(Pictures):
+        if Index != 0:
+            utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Picture[0]}"}}}}}}')
 
 def add_RemoteClient(ServerId, SessionId, DeviceName, UserName):
     if SessionId not in RemoteClientData[ServerId]["SessionIds"]:

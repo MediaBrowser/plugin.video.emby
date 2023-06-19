@@ -145,7 +145,7 @@ class Views:
             view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'MediaType': Data[1], "Icon": Data[2], 'FileName': CleanName}
             self.window_nodes(view, True)  # dynamic Nodes
 
-            if library_id in list(self.EmbyServer.library.Whitelist.keys()):  # synced nodes
+            if f"'{view['LibraryId']}'" in str(self.EmbyServer.library.Whitelist):  # synced nodes
                 if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
                     view['Tag'] = f"{library_id}-{view['Tag']}"
 

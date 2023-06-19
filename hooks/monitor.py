@@ -260,10 +260,10 @@ def Playlist_Add():
         UpdateItemsPlaylist[data['playlistid']] += ((data['position'], data['item']['id'], data['item']['type']),)
 
     for ServerId in utils.EmbyServers:
-        embydb = dbio.DBOpenRO(ServerId, "Playlist_Add")
-
         if len(PlaylistItemsNew[0]) == len(UpdateItemsPlaylist[0]) and len(PlaylistItemsNew[1]) == len(UpdateItemsPlaylist[1]): # All items already loaded, no need to check additional Emby servers
             break
+
+        embydb = dbio.DBOpenRO(ServerId, "Playlist_Add")
 
         for PlaylistIndex in range(2):
             for UpdateItemPlaylist in UpdateItemsPlaylist[PlaylistIndex]:
@@ -336,6 +336,7 @@ def VideoLibrary_OnUpdate():
         EmbyId = ""
 
         for UpdateItem in UpdateItems:
+            xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate process item: {UpdateItem}", 1) # LOGINFO
             data = json.loads(UpdateItem)
 
             # Update dynamic item
@@ -383,7 +384,7 @@ def VideoLibrary_OnUpdate():
             UpdateItemsFiltered = []
 
             for item in items:
-                if int(item[0]) in playerops.ItemSkipUpdate:
+                if f"KODI{item[0]}" in playerops.ItemSkipUpdate:
                     UpdateItemsFiltered.append(item)
                     break
 
@@ -399,7 +400,7 @@ def VideoLibrary_OnUpdate():
                         xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {media} / {UpdateItemFiltered[0]} ]", 1) # LOGINFO
                         continue
 
-                    if int(UpdateItemFiltered[0]) not in playerops.ItemSkipUpdate:  # Check EmbyID
+                    if f"KODI{UpdateItemFiltered[0]}" not in playerops.ItemSkipUpdate:  # Check EmbyID
                         xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate update playcount {UpdateItemFiltered[0]} ]", 1) # LOGINFO
 
                         if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
@@ -411,7 +412,7 @@ def VideoLibrary_OnUpdate():
                         xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {UpdateItemFiltered[0]} ]", 1) # LOGINFO
                 else:
                     if 'item' not in data:
-                        if int(UpdateItemFiltered[0]) not in playerops.ItemSkipUpdate and int(UpdateItemFiltered[0]):  # Check EmbyID
+                        if f"KODI{UpdateItemFiltered[0]}" not in playerops.ItemSkipUpdate and int(UpdateItemFiltered[0]):  # Check EmbyID
                             if not f"{{'item':{UpdateItem}}}" in UpdateItems:
                                 xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate reset progress {UpdateItemFiltered[0]} ]", 1) # LOGINFO
 
@@ -426,7 +427,7 @@ def VideoLibrary_OnUpdate():
                             xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) {UpdateItemFiltered[0]}", 1) # LOGINFO
 
         for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
-            playerops.ItemSkipUpdate.append(int(EmbyItemId))
+            playerops.ItemSkipUpdate.append(f"KODI{EmbyItemId}")
 
             if 'Progress' in EmbyUpdateItem:
                 if 'PlayCount' in EmbyUpdateItem:
@@ -447,8 +448,10 @@ def VideoLibrary_OnUpdate():
             dbio.DBCloseRO(server_id, "VideoLibrary_OnUpdate")
 
     for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
-        if ItemSkipUpdateRemove in playerops.ItemSkipUpdate:
-            playerops.ItemSkipUpdate.remove(ItemSkipUpdateRemove)
+        ItemSkipUpdateRemoveCompare = f"KODI{ItemSkipUpdateRemove}"
+
+        if ItemSkipUpdateRemoveCompare in playerops.ItemSkipUpdate:
+            playerops.ItemSkipUpdate.remove(ItemSkipUpdateRemoveCompare)
 
     xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate ItemSkipUpdate: {playerops.ItemSkipUpdate}", 1) # LOGINFO
     xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ VideoLibrary_OnUpdate ]", 1) # LOGINFO
@@ -554,7 +557,7 @@ def settingschanged():  # threaded by caller
     enableCoverArtPreviousValue = utils.enableCoverArt
     maxnodeitemsPreviousValue = utils.maxnodeitems
     AddonModePathPreviousValue = utils.AddonModePath
-    synclivetvPreviousValue = utils.synclivetv
+    websocketenabledPreviousValue = utils.websocketenabled
     utils.InitSettings()
 
     # Http2 mode changed, rebuild advanced settings -> restart Kodi
@@ -586,6 +589,11 @@ def settingschanged():  # threaded by caller
     # Toggle node items limit
     if maxnodeitemsPreviousValue != utils.maxnodeitems:
         utils.nodesreset()
+
+    # Toggle websocket connection
+    if websocketenabledPreviousValue != utils.websocketenabled:
+        for EmbyServer in list(utils.EmbyServers.values()):
+            EmbyServer.toggle_websocket(utils.websocketenabled)
 
     # Restart Kodi
     if RestartKodi:
@@ -623,10 +631,6 @@ def settingschanged():  # threaded by caller
                     for Filename in files:
                         utils.delFile(f"{playlistfolder}{Filename}")
 
-    # Toggle live tv
-    if synclivetvPreviousValue != utils.synclivetv:
-        utils.SyncLiveTV(True)
-
     xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ]", 1) # LOGINFO
 
 def System_OnQuit():
@@ -663,7 +667,7 @@ def ServersConnect():
         xbmc.executebuiltin('ReloadSkin()')
         xbmc.log("EMBY.hooks.webservice: Reload skin on connection established", xbmc.LOGINFO)
     else:
-        xbmc.log("EMBY.hooks.webservice: widget refresh: connection established", xbmc.LOGINFO)
+        xbmc.log("EMBY.hooks.webservice: widget refresh: connection established", xbmc.LOGINFO) # reload artwork/images
         utils.refresh_widgets()
 
     utils.PluginStarted = True

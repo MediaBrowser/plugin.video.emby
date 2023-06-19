@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: Peter Lucas <peterlucas2804@gmail.com>, 2019\n"
-"Language-Team: French (https://www.transifex.com/emby-for-kodi/teams/91090/fr/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -2041,19 +2041,19 @@ msgstr ""
 
 msgctxt "#33470"
 msgid "Transcode video"
-msgstr ""
+msgstr "Transcoder la vidéo"
 
 msgctxt "#33471"
 msgid "Transcode audio"
-msgstr ""
+msgstr "Transcoder l'audio"
 
 msgctxt "#33472"
 msgid "Transcode bandwidth limit"
-msgstr ""
+msgstr "limite de bande passante de transcodage"
 
 msgctxt "#33473"
 msgid "Transcode output format"
-msgstr ""
+msgstr "Transcoder le format de sortie"
 
 msgctxt "#33474"
 msgid "EAC3"
@@ -2081,7 +2081,7 @@ msgstr ""
 
 msgctxt "#33480"
 msgid "Transcode livetv"
-msgstr ""
+msgstr "Transcoder la télévision en direct"
 
 msgctxt "#33481"
 msgid "Audio"
@@ -2089,160 +2089,276 @@ msgstr ""
 
 msgctxt "#33482"
 msgid "Video"
-msgstr ""
+msgstr "Vidéo"
 
 msgctxt "#33483"
 msgid "Select audiostream"
-msgstr ""
+msgstr "Sélectionner le flux audio"
 
 msgctxt "#33484"
 msgid "Select subtitle"
-msgstr ""
+msgstr "Sélectionner le sous-titre"
 
 msgctxt "#33485"
 msgid "Specials"
-msgstr ""
+msgstr "Promotions"
 
 msgctxt "#33486"
 msgid "Use path substitution"
-msgstr ""
+msgstr "Utiliser la substitution de chemin"
 
 msgctxt "#33487"
 msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
-msgstr ""
+msgstr "La substitution de chemin prend en charge les images de chapitre en mode addon. "
 
 msgctxt "#33488"
 msgid "Assign unique actors for each emby library"
-msgstr ""
+msgstr "Attribuer des acteurs uniques pour chaque bibliothèque emby"
 
 msgctxt "#33489"
 msgid "Episodes"
-msgstr ""
+msgstr "Épisodes"
 
 msgctxt "#33490"
 msgid "Emby Record"
-msgstr ""
+msgstr "Enregistrement Emby"
 
 msgctxt "#33491"
 msgid "Watch together canceled"
-msgstr ""
+msgstr "Regarder ensemble annulé"
 
 msgctxt "#33492"
 msgid "Waiting for participants"
-msgstr ""
+msgstr "Attente des participants"
 
 msgctxt "#33493"
 msgid "Starting..."
-msgstr ""
+msgstr "Démarrage..."
 
 msgctxt "#33494"
 msgid "Select users"
-msgstr ""
+msgstr "Sélectionner les utilisateurs"
 
 msgctxt "#33495"
 msgid "Remote clients / Watch together"
-msgstr ""
+msgstr "Clients distants / Regarder ensemble"
 
 msgctxt "#33496"
 msgid "Delete timer"
-msgstr ""
+msgstr "Supprimer la minuterie"
 
 msgctxt "#33497"
 msgid "Add timer"
-msgstr ""
+msgstr "Ajouter une minuterie"
 
 msgctxt "#33498"
 msgid "Force clients"
-msgstr ""
+msgstr "Forcer les clients"
 
 msgctxt "#33499"
 msgid "Clients not supporting watch together natively, will be force to participate"
-msgstr ""
+msgstr "Les clients qui ne prennent pas en charge Watch Together de manière native seront obligés de participer"
 
 msgctxt "#33500"
 msgid "Client control"
-msgstr ""
+msgstr "Contrôle client"
 
 msgctxt "#33501"
 msgid "Clients can control each other"
-msgstr ""
+msgstr "Les clients peuvent se contrôler"
 
 msgctxt "#33502"
 msgid "Sync clients to master"
-msgstr ""
+msgstr "Synchroniser les clients avec le maître"
 
 msgctxt "#33503"
 msgid "Master controls play, pause, seek"
-msgstr ""
+msgstr "les commandes principales jouent, mettent en pause, recherchent"
 
 msgctxt "#33504"
 msgid "Wait for participates"
-msgstr ""
+msgstr "Attendre les participations"
 
 msgctxt "#33505"
 msgid "Wait for participates in seconds"
-msgstr ""
+msgstr "Attendre les participations en secondes"
 
 msgctxt "#33506"
 msgid "Delay playback"
-msgstr ""
+msgstr "Retarder la lecture"
 
 msgctxt "#33507"
 msgid "Delay playback start, give clients time to sync"
-msgstr ""
+msgstr "Différer le démarrage de la lecture, donner aux clients le temps de se synchroniser"
 
 msgctxt "#33508"
 msgid "Maximum drift on pause"
-msgstr ""
+msgstr "Dérive maximale en pause"
 
 msgctxt "#33509"
 msgid "Allowed async in milliseconds on pause"
-msgstr ""
+msgstr "Asynchrone autorisé en millisecondes en pause"
 
 msgctxt "#33510"
 msgid "Auto ack"
-msgstr ""
+msgstr "Acquittement automatique"
 
 msgctxt "#33511"
 msgid "Auto acknowledge incoming remote client request"
-msgstr ""
+msgstr "Reconnaître automatiquement la demande entrante du client distant"
 
 msgctxt "#33512"
 msgid "Delay"
-msgstr ""
+msgstr "Retard"
 
 msgctxt "#33513"
 msgid "Triggers a seek command after X seconds"
-msgstr ""
+msgstr "Déclenche une commande de recherche après X secondes"
 
 msgctxt "#33514"
 msgid "Resync unsupported clients"
-msgstr ""
+msgstr "Resynchroniser les clients non pris en charge"
 
 msgctxt "#33515"
 msgid "Keep connection"
-msgstr ""
+msgstr "Garder la connexion"
 
 msgctxt "#33516"
 msgid "Establish connection on start (by device id)"
-msgstr ""
+msgstr "Établir la connexion au démarrage (par l'ID de l'appareil)"
 
 msgctxt "#33517"
 msgid "Watch together"
-msgstr ""
+msgstr "Regardez ensemble"
 
 msgctxt "#33518"
 msgid "Remove client"
-msgstr ""
+msgstr "Supprimer le client"
 
 msgctxt "#33519"
 msgid "Add client"
-msgstr ""
+msgstr "Ajouter un client"
 
 msgctxt "#33520"
 msgid "Enable remote mode"
-msgstr ""
+msgstr "Activer le mode à distance"
 
 msgctxt "#33521"
 msgid "Disable remote mode"
+msgstr "Désactiver le mode à distance"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Activer"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primaire"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Bannière"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disque"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Pouce"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Toile de fond"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Chapitre"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr ""
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Résolution maximale"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Limite la résolution de l'image d'un facteur. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Sélectionner le flux audio de transcodage"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Activer"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primaire"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Bannière"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disque"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Pouce"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Toile de fond"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Chapitre"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr ""
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Résolution maximale"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Limite la résolution de l'image d'un facteur. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Sélectionner le flux audio de transcodage"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

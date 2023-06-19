@@ -1,10 +1,8 @@
 import struct
 from urllib.parse import urlencode, unquote
-import unicodedata
 import xbmc
 import xbmcgui
 import xbmcplugin
-import xbmcaddon
 from database import dbio
 from emby import listitem
 from core import common
@@ -111,7 +109,7 @@ DynamicNodes = {
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video")
     ],
     'playlists': [
-        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Folder"),
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Playlists"),
         ('Playlists', utils.Translate(33376), 'DefaultPlaylist.png', "Playlist")
     ],
     'audiobooks': [
@@ -236,8 +234,11 @@ def browse(Handle, Id, query, args, ServerId):
     Cache = True
     QueryArgs = ()
 
+    # Staggered: Map content types (customized queries -> not an Emby Type)
     if args[0] == "MixedContent":
         QueryContent = ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"]
+    elif args[0] == "Playlists":
+        QueryContent = ["Playlist"]
     else:
         QueryContent = [args[0]]
 
@@ -338,12 +339,12 @@ def browse(Handle, Id, query, args, ServerId):
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = "TvChannel"
-    elif query in ("Playlist", "Default"):
-        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False, False, False, True)
+    elif query == "Playlist":
+        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False)
         Content = "Video"
         Unsorted = True
     elif query == "Playlists":
-        QueryArgs = (Id, ["Folder"], False, True, {}, False, False, False, True)
+        QueryArgs = (Id, ["Playlist"], False, True, {}, False, False, False, True)
         Content = "Video"
     elif query == "Video":
         QueryArgs = (Id, ["Video"], False, True, {}, False)
@@ -524,7 +525,6 @@ def remotepictures(Handle, playposition):
 
     for Pictures in playerops.Pictures:
         list_li.append((Pictures[0], Pictures[1], False))
-        utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Pictures[0]}"}}}}}}')
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.setContent(Handle, "images")
@@ -532,153 +532,6 @@ def remotepictures(Handle, playposition):
 
     if playposition != "-1":
         utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Player.Open","params":{{"item":{{"playlistid":2,"position":{playposition}}}}}}}')
-
-def SyncThemes(ServerId):
-    views = []
-    DownloadThemes = False
-
-    if xbmc.getCondVisibility('System.HasAddon(service.tvtunes)'):
-        try:
-            tvtunes = xbmcaddon.Addon(id="service.tvtunes")
-            tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', utils.FolderAddonUserdataLibrary)
-            xbmc.log("EMBY.helper.pluginmenu: TV Tunes custom path is enabled and set", 1) # LOGINFO
-        except:
-            utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
-            return
-    else:
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
-        return
-
-    if not utils.useDirectPaths:
-        DownloadThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Download themes (YES) or link themes (NO)?")
-
-    UseAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Audio")
-    UseVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Video")
-    xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    utils.progress_open(utils.Translate(33451))
-
-    for LibraryID, LibraryInfo in list(utils.EmbyServers[ServerId].Views.ViewItems.items()):
-        if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
-            views.append(LibraryID)
-
-    items = {}
-
-    for ViewId in views:
-        if UseVideoThemes:
-            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ["Movie", "Series"], True, True, {'HasThemeVideo': "True"}):
-                query = normalize_string(item['Name'])
-                items[item['Id']] = query
-
-        if UseAudioThemes:
-            for item in utils.EmbyServers[ServerId].API.get_Items(ViewId, ["Movie", "Series"], True, True, {'HasThemeSong': "True"}):
-                query = normalize_string(item['Name'])
-                items[item['Id']] = query
-
-    Index = 1
-    TotalItems = len(items) / 100
-
-    for ItemId, name in list(items.items()):
-        utils.progress_update(int(Index / TotalItems), utils.Translate(33451), name)
-        nfo_path = f"{utils.FolderAddonUserdataLibrary}{name}/"
-        nfo_file = f"{nfo_path}tvtunes.nfo"
-
-        paths = []
-        themes = []
-
-        if UseAudioThemes and not UseVideoThemes:
-            ThemeItems = utils.EmbyServers[ServerId].API.get_themes(ItemId, True, False)
-
-            if 'ThemeSongsResult' in ThemeItems:
-                themes += ThemeItems['ThemeSongsResult']['Items']
-        elif UseVideoThemes and not UseAudioThemes:
-            ThemeItems = utils.EmbyServers[ServerId].API.get_themes(ItemId, False, True)
-
-            if 'ThemeVideosResult' in ThemeItems:
-                themes += ThemeItems['ThemeVideosResult']['Items']
-        elif UseVideoThemes and UseAudioThemes:
-            ThemeItems = utils.EmbyServers[ServerId].API.get_themes(ItemId, True, True)
-
-            if 'ThemeSongsResult' in ThemeItems:
-                themes += ThemeItems['ThemeSongsResult']['Items']
-
-            if 'ThemeVideosResult' in ThemeItems:
-                themes += ThemeItems['ThemeVideosResult']['Items']
-
-        if DownloadThemes and utils.getFreeSpace(utils.FolderAddonUserdataLibrary) < 2097152: # check if free space below 2GB
-            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
-            xbmc.log("EMBY.helper.pluginmenu: Themes download: running out of space", 2) # LOGWARNING
-            break
-
-        if utils.SystemShutdown:
-            utils.progress_close()
-            return
-
-        # add content sorted by audio -> video
-        for theme in themes:
-            if not 'Path' in theme:
-                xbmc.log(f"EMBY.helper.pluginmenu: Theme not including Path: {theme}", 0) # LOGDEBUG
-                xbmc.log(f"EMBY.helper.pluginmenu: Theme not including Path: {theme['Id']}", 3) # LOGERROR
-                continue
-
-            Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
-
-            if theme['Type'] == 'Audio':
-                if DownloadThemes:
-                    ThemeFile = f"{nfo_path}{Filename}"
-                    paths.append(ThemeFile)
-
-                    if not utils.checkFileExists(ThemeFile):
-                        BinaryData = utils.EmbyServers[ServerId].API.get_Item_Binary(theme['Id'])
-
-                        if BinaryData:
-                            utils.mkDir(nfo_path)
-                            utils.writeFileBinary(ThemeFile, BinaryData)
-                        else:
-                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['Path']}", 2) # LOGWARNING
-                            paths.remove(ThemeFile)
-                            continue
-                else: # remote links
-                    if utils.useDirectPaths:
-                        paths.append(theme['Path'])
-                    else:
-                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/A-{theme['Id']}--{Filename}")
-            else:
-                if DownloadThemes:
-                    ThemeFile = f"{nfo_path}{Filename}"
-                    paths.append(ThemeFile)
-
-                    if not utils.checkFileExists(ThemeFile):
-                        BinaryData = utils.EmbyServers[ServerId].API.get_Item_Binary(theme['Id'])
-
-                        if BinaryData:
-                            utils.mkDir(nfo_path)
-                            utils.writeFileBinary(ThemeFile, BinaryData)
-                        else:
-                            xbmc.log(f"EMBY.helper.pluginmenu: Themes: Download failed {theme['Path']}", 2) # LOGWARNING
-                            paths.remove(ThemeFile)
-                            continue
-                else: # remote links
-                    if utils.useDirectPaths:
-                        paths.append(theme['Path'])
-                    else:
-                        paths.append(f"{utils.AddonModePath}dynamic/{ServerId}/V-{theme['Id']}--{Filename}")
-
-        Index += 1
-
-        if paths:
-            utils.mkDir(nfo_path)
-            Data = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<tvtunes>\n'
-
-            for path in paths:
-                Data += f"    <file>{path}</file>\n".encode("utf-8")
-
-            Data += b'</tvtunes>'
-            utils.delFile(nfo_file)
-            utils.writeFileBinary(nfo_file, Data)
-
-    utils.progress_close()
-    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
 
 # Add or remove users from the default server session
 def AddUser(EmbyServer):
@@ -740,22 +593,6 @@ def AddUser(EmbyServer):
         UserData = RemoveUserChoices[resp]
         EmbyServer.remove_AdditionalUser(UserData['UserId'])
         utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33066)} {UserData['UserName']}", icon=utils.icon, time=1000, sound=False)
-
-# For theme media, do not modify unless modified in TV Tunes.
-# Remove dots from the last character as windows can not have directories with dots at the end
-def normalize_string(text):
-    text = text.replace(":", "")
-    text = text.replace("/", "-")
-    text = text.replace("\\", "-")
-    text = text.replace("<", "")
-    text = text.replace(">", "")
-    text = text.replace("*", "")
-    text = text.replace("?", "")
-    text = text.replace('|', "")
-    text = text.strip()
-    text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', text)
-    return text
 
 def load_ListItem(Id, Item, ServerId, ItemsListings):
     # Item was fetched from internal database
@@ -841,7 +678,7 @@ def manage_servers(ServerConnect):  # threaded by caller
             AddUser(utils.EmbyServers[ServerIds[Selection]])
 
 def manage_libraries(ServerSelection):  # threaded by caller
-    MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060)]
+    MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33234), utils.Translate(33060)]
     Selection = utils.Dialog.select(utils.Translate(33194), MenuItems) # Manage libraries
     ServerIds = list(utils.EmbyServers)
     EmbyServerId = ServerIds[ServerSelection]
@@ -857,7 +694,9 @@ def manage_libraries(ServerSelection):  # threaded by caller
     elif Selection == 4:
         utils.EmbyServers[EmbyServerId].library.select_libraries("UpdateLibrarySelection")
     elif Selection == 5:
-        SyncThemes(EmbyServerId)
+        utils.EmbyServers[EmbyServerId].library.SyncLiveTV()
+    elif Selection == 6:
+        utils.EmbyServers[EmbyServerId].library.SyncThemes()
 
 def favepisodes(Handle):
     Handle = int(Handle)
@@ -1156,10 +995,10 @@ def get_next_episodes(Handle, libraryname):
         xbmc.log(f"EMBY.helper.pluginmenu: Rebuid QueryCache: {CacheId}", 1) # LOGINFO
         ListItems = ()
 
-        for EmbyServer in list(utils.EmbyServers.values()):
+        for ServerId in utils.EmbyServers:
             DelayQuery = 0
 
-            while not EmbyServer.library.DatabaseInit:
+            while utils.SyncPause.get(f'database_init_{ServerId}', False):
                 if utils.sleep(1) :
                     return
 

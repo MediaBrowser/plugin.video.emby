@@ -25,15 +25,15 @@ class EmbyServer:
         self.library = library.Library(self)
         xbmc.log("EMBY.emby.emby: ---[ INIT EMBYCLIENT: ]---", 1) # LOGINFO
 
-    def ServerUnreachable(self):
-        if not self.ServerReconnecting:
-            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33146))
-            start_new_thread(self.ServerReconnect, ())
-
     def ServerReconnect(self):
+        if not self.ServerReconnecting:
+            start_new_thread(self.worker_ServerReconnect, ())
+
+    def worker_ServerReconnect(self):
         xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
 
         if not self.ServerReconnecting:
+            utils.SyncPause.update({f"server_reconnecting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
             self.ServerReconnecting = True
             self.stop()
 
@@ -43,24 +43,24 @@ class EmbyServer:
 
                 xbmc.log(f"EMBY.emby.emby: Reconnect try again: {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
 
-                if self.ServerConnect():
+                if self.ServerConnect(True):
                     self.start()
                     break
 
+            utils.SyncPause[f"server_reconnecting_{self.ServerData['ServerId']}"] = False
             self.ServerReconnecting = False
 
         xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
 
     def start(self):
         xbmc.log(f"EMBY.emby.emby: ---[ START EMBYCLIENT: {self.ServerData['ServerName']} / {self.ServerData['ServerId']} / {self.ServerData['LastConnectionMode']}]---", 1) # LOGINFO
+        utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = True
         utils.EmbyServers[self.ServerData['ServerId']] = self
         playerops.add_RemoteClientSelf(self.ServerData['ServerId'], self.EmbySession[0]['Id'], self.EmbySession[0]['DeviceName'], self.EmbySession[0]['UserName'])
         self.Views.update_views()
         self.library.load_settings()
         self.Views.update_nodes()
-        self.Websocket = websocket.WSClient(self)
-        self.Websocket.start()
-        utils.SyncPause[self.ServerData['ServerId']] = False
+        self.toggle_websocket(True)
         start_new_thread(self.library.KodiStartSync, (self.Firstrun,))  # start initial sync
         start_new_thread(self.Ping, ())
         self.Firstrun = False
@@ -68,19 +68,16 @@ class EmbyServer:
         if utils.connectMsg:
             utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33000)} {self.ServerData['UserName']}", icon=self.ServerData['UserImageUrl'], time=1500, sound=False)
 
+        utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = False
         xbmc.log("EMBY.emby.emby: [ Server Online ]", 1) # LOGINFO
 
     def stop(self):
         if self.EmbySession and not self.ShutdownInProgress:
             self.ShutdownInProgress = True
             xbmc.log(f"EMBY.emby.emby: ---[ STOP EMBYCLIENT: {self.ServerData['ServerId']} ]---", 1) # LOGINFO
-            utils.SyncPause[self.ServerData['ServerId']] = True
+            utils.SyncPause.update({f"server_starting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
             playerops.delete_RemoteClient(self.ServerData['ServerId'], [self.EmbySession[0]['Id']], True, True)
-
-            if self.Websocket:
-                self.Websocket.close()
-                self.Websocket = None
-
+            self.toggle_websocket(False)
             self.http.stop_session()
             self.EmbySession = []
             self.ShutdownInProgress = False
@@ -213,13 +210,13 @@ class EmbyServer:
         utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
         del utils.EmbyServers[self.ServerData['ServerId']]
 
-    def ServerConnect(self):
+    def ServerConnect(self, Reconnect=False):
         # Connect to server verification
         if self.ServerData["AccessToken"]:
             if self._try_connect(self.ServerData["ServerUrl"]):
                 return True
 
-            if self.connect_to_server():
+            if not Reconnect and self.connect_to_server():
                 return True
 
         return False
@@ -493,6 +490,16 @@ class EmbyServer:
                     return
 
             self.API.ping()
+
+    def toggle_websocket(self, Enable):
+        if Enable:
+            if utils.websocketenabled and not self.Websocket:
+                self.Websocket = websocket.WSClient(self)
+                self.Websocket.start()
+        else:
+            if self.Websocket:
+                self.Websocket.close()
+                self.Websocket = None
 
 def normalize_address(address):
     # Attempt to correct bad input

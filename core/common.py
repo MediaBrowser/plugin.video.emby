@@ -88,16 +88,16 @@ def library_check(item, EmbyServer, emby_db, EmbyType=""):
             item['UpdateItems'].append(False)
             item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
         else: # realtime or startup sync -> detect "LibraryId_Name" by query item-id for each library on Emby server (Realtime content updates sends no library information)
-            for LibraryIdWhitelist, _ in list(EmbyServer.library.Whitelist.items()):
-                if EmbyServer.API.verify_whitelisted(item['Id'], LibraryIdWhitelist, item['Type']):
-                    LibraryName = Check_LibraryIsSynced(LibraryIdWhitelist, EmbyServer.library.Whitelist)
+            for WhitelistLibraryId, WhitelistLibraryName in EmbyServer.library.WhitelistUnique:
+                if EmbyServer.API.verify_whitelisted(item['Id'], WhitelistLibraryId, item['Type']): # check if ItemId is content of a whitelisted Library
                     item['KodiItemIds'].append(None)
                     item['KodiParentIds'].append(None)
                     item['KodiFileIds'].append(None)
                     item['UpdateItems'].append(False)
-                    item['Librarys'].append({'Id': LibraryIdWhitelist, 'Name': LibraryName, 'LibraryId_Name': f"{LibraryIdWhitelist}-{LibraryName}"})
+                    item['Librarys'].append({'Id': WhitelistLibraryId, 'Name': WhitelistLibraryName, 'LibraryId_Name': f"{WhitelistLibraryId}-{WhitelistLibraryName}"})
 
     if not item['Librarys']:
+        xbmc.log(f"EMBY.core.common: library_check, unsynced content {item['Id']} ]", 1) # LOGINFO
         return False
 
     item['LibraryIds'] = []
@@ -106,20 +106,6 @@ def library_check(item, EmbyServer, emby_db, EmbyType=""):
         item['LibraryIds'].append(Library['Id'])
 
     return True
-
-def Check_LibraryIsSynced(library_id, Whitelist):
-    Library_Name = ""
-
-    for LibraryId, Value in list(Whitelist.items()):
-        if library_id == LibraryId:
-            Library_Name = Value[1]
-            break
-
-    if not Library_Name:
-        xbmc.log(f"EMBY.core.common: Library {library_id} is not synced. Skip update", 1) # LOGINFO
-        return False
-
-    return Library_Name
 
 def get_Bitrate_Codec(item, StreamType):
     Bitrate = 0
@@ -481,7 +467,7 @@ def set_trailer(item, EmbyServer):
     if 'LocalTrailerCount' in item and item['LocalTrailerCount']:
         for IntroLocal in EmbyServer.API.get_local_trailers(item['Id']):
             Filename = utils.PathToFilenameReplaceSpecialCharecters(IntroLocal['Path'])
-            item['Trailer'] = f"{utils.AddonModePath}dynamic/{item['ServerId']}/V-{EmbyServer.ServerData['ServerId']}-{IntroLocal['Id']}-{IntroLocal['MediaSources'][0]['Id']}-{Filename}"
+            item['Trailer'] = f"{utils.AddonModePath}dynamic/{item['ServerId']}/V-{IntroLocal['Id']}-{IntroLocal['MediaSources'][0]['Id']}-{Filename}"
             return
 
     if 'RemoteTrailers' in item and item['RemoteTrailers']:
@@ -673,10 +659,10 @@ def set_KodiArtwork(item, ServerId, DynamicNode):
                     EmbyArtworkTag = ""
             elif ImageTagsMapping[0] == "AlbumArtists" and "AlbumArtists" in item and item["AlbumArtists"] and item["AlbumArtists"] != "None":
                 EmbyArtworkId = item["AlbumArtists"][0]['Id']
-                EmbyArtworkTag = 0
+                EmbyArtworkTag = ""
             elif ImageTagsMapping[0] == "ArtistItems" and "ArtistItems" in item and item["ArtistItems"] and item["ArtistItems"] != "None":
                 EmbyArtworkId = item["ArtistItems"][0]['Id']
-                EmbyArtworkTag = 0
+                EmbyArtworkTag = ""
             elif f"{ImageTagsMapping[0]}ImageTags" in item:
                 BackDropsKey = f"{ImageTagsMapping[0]}ImageTags"
 

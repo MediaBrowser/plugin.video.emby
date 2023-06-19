@@ -16,11 +16,11 @@ class EmbyDatabase:
             self.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, DisplayTitle TEXT COLLATE NOCASE, Codec TEXT COLLATE NOCASE, BitRate INTEGER, UNIQUE(EmbyId, MediaIndex, StreamIndex))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS Subtitles (EmbyId INTEGER, MediaIndex INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, Language TEXT COLLATE NOCASE, DisplayTitle TEXT COLLATE NOCASE, External BOOL, UNIQUE(EmbyId, MediaIndex, StreamIndex))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS RemoveItems (EmbyId INTEGER, EmbyLibraryId TEXT COLLATE NOCASE, UNIQUE(EmbyId, EmbyLibraryId))")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS UpdateItems (EmbyId INTEGER PRIMARY KEY) WITHOUT ROWID")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS UpdateItems (EmbyId INTEGER PRIMARY KEY, EmbyType TEXT COLLATE NOCASE) WITHOUT ROWID")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS UserdataItems (Data TEXT COLLATE NOCASE)")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS Whitelist (EmbyLibraryId TEXT COLLATE NOCASE, EmbyLibraryType TEXT COLLATE NOCASE, EmbyLibraryName TEXT COLLATE NOCASE, UNIQUE(EmbyLibraryId, EmbyLibraryType))")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS Whitelist (EmbyLibraryId TEXT COLLATE NOCASE, EmbyLibraryName TEXT COLLATE NOCASE, EmbyType TEXT COLLATE NOCASE, UNIQUE(EmbyLibraryId, EmbyLibraryName, EmbyType))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS LastIncrementalSync (Date TEXT)")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS PendingSync (EmbyLibraryId TEXT COLLATE NOCASE, EmbyLibraryName TEXT COLLATE NOCASE, EmbyLibraryType TEXT COLLATE NOCASE, EmbyType TEXT COLLATE NOCASE, KodiCategory TEXT COLLATE NOCASE)")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS PendingSync (EmbyLibraryId TEXT COLLATE NOCASE, EmbyLibraryName TEXT COLLATE NOCASE, EmbyType TEXT COLLATE NOCASE, KodiCategory TEXT COLLATE NOCASE)")
 
             # Index
             self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MediaSources_EmbyId on MediaSources (EmbyId)")
@@ -46,21 +46,10 @@ class EmbyDatabase:
     # Whitelist
     def get_Whitelist(self):
         self.cursor.execute("SELECT * FROM Whitelist")
+        return self.cursor.fetchall()
 
-        Libs = self.cursor.fetchall()
-
-        if Libs:
-            SyncedLibs = {}
-
-            for Lib in Libs:
-                SyncedLibs[Lib[0]] = (Lib[1], Lib[2])
-
-            return SyncedLibs, Libs
-
-        return {}, []
-
-    def add_Whitelist(self, EmbyLibraryId, EmbyLibraryType, EmbyLibraryName):
-        self.cursor.execute("INSERT OR REPLACE INTO Whitelist (EmbyLibraryId, EmbyLibraryType, EmbyLibraryName) VALUES (?, ?, ?)", (EmbyLibraryId, EmbyLibraryType, EmbyLibraryName))
+    def add_Whitelist(self, EmbyLibraryId, EmbyLibraryName, EmbyType):
+        self.cursor.execute("INSERT OR IGNORE INTO Whitelist (EmbyLibraryId, EmbyLibraryName, EmbyType) VALUES (?, ?, ?)", (EmbyLibraryId, EmbyLibraryName, EmbyType))
 
     def remove_Whitelist(self, EmbyLibraryId):
         self.cursor.execute("DELETE FROM Whitelist WHERE EmbyLibraryId = ?", (EmbyLibraryId,))
@@ -91,29 +80,42 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM UserdataItems WHERE Data = ?", (Data,))
 
     # PendingSync
-    def add_PendingSync(self, EmbyLibraryId, EmbyLibraryName, EmbyLibraryType, EmbyType, KodiCategory):
-        self.cursor.execute("INSERT INTO PendingSync (EmbyLibraryId, EmbyLibraryName, EmbyLibraryType, EmbyType, KodiCategory) VALUES (?, ?, ?, ?, ?)", (EmbyLibraryId, EmbyLibraryName, EmbyLibraryType, EmbyType, KodiCategory))
+    def add_PendingSync(self, EmbyLibraryId, EmbyLibraryName, EmbyType, KodiCategory):
+        self.cursor.execute("INSERT INTO PendingSync (EmbyLibraryId, EmbyLibraryName, EmbyType, KodiCategory) VALUES (?, ?, ?, ?)", (EmbyLibraryId, EmbyLibraryName, EmbyType, KodiCategory))
 
     def get_PendingSync(self):
         self.cursor.execute("SELECT * FROM PendingSync")
         return self.cursor.fetchall()
 
-    def remove_PendingSync(self, EmbyLibraryId, EmbyLibraryName, EmbyLibraryType, EmbyType, KodiCategory):
-        self.cursor.execute("DELETE FROM PendingSync WHERE EmbyLibraryId = ? AND EmbyLibraryName = ? AND EmbyLibraryType = ? AND EmbyType = ? AND KodiCategory = ?", (EmbyLibraryId, EmbyLibraryName, EmbyLibraryType, EmbyType, KodiCategory))
+    def remove_PendingSync(self, EmbyLibraryId, EmbyLibraryName, EmbyType, KodiCategory):
+        self.cursor.execute("DELETE FROM PendingSync WHERE EmbyLibraryId = ? AND EmbyLibraryName = ? AND EmbyType = ? AND KodiCategory = ?", (EmbyLibraryId, EmbyLibraryName, EmbyType, KodiCategory))
 
     # UpdateItems
-    def add_UpdateItem(self, EmbyId):
-        self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (EmbyId) VALUES (?)", (EmbyId,))
+    def add_UpdateItem(self, EmbyId, EmbyType):
+        self.cursor.execute("INSERT OR REPLACE INTO UpdateItems (EmbyId, EmbyType) VALUES (?, ?)", (EmbyId, EmbyType))
 
     def get_UpdateItem(self):
         self.cursor.execute("SELECT * FROM UpdateItems")
         Items = self.cursor.fetchall()
-        Ids = len(Items) * [""]
+        ItemsCount = len(Items)
+
+        if not ItemsCount:
+            return {}, 0
+
+        Ids = ItemsCount * [None]
+        Data = {"MusicVideo": Ids.copy(), "Folder": Ids.copy(), "Movie": Ids.copy(), "Video": Ids.copy(), "Series": Ids.copy(), "Season": Ids.copy(), "Episode": Ids.copy(), "MusicArtist": Ids.copy(), "MusicAlbum": Ids.copy(), "Audio": Ids.copy(), "BoxSet": Ids.copy(), "unknown": Ids.copy()}
+        Counter = {"MusicVideo": 0, "Folder": 0, "Movie": 0, "Video": 0, "Series": 0, "Season": 0, "Episode": 0, "MusicArtist": 0, "MusicAlbum": 0, "Audio": 0, "BoxSet": 0, "unknown": 0}
+        del Ids
 
         for Index, Item in enumerate(Items):
-            Ids[Index] = str(Item[0])
+            Data[Item[1]][Index] = str(Item[0])
 
-        return Ids
+        for Item in Items:
+            Data[Item[1]][Counter[Item[1]]] = str(Item[0])
+            Counter[Item[1]] += 1
+
+        Data = {"MusicVideo": Data["MusicVideo"][:Counter["MusicVideo"]], "Folder": Data["Folder"][:Counter["Folder"]], "Movie": Data["Movie"][:Counter["Movie"]], "Video": Data["Video"][:Counter["Video"]], "Series": Data["Series"][:Counter["Series"]], "Season": Data["Season"][:Counter["Season"]], "Episode": Data["Episode"][:Counter["Episode"]], "MusicArtist": Data["MusicArtist"][:Counter["MusicArtist"]], "MusicAlbum": Data["MusicAlbum"][:Counter["MusicAlbum"]], "Audio": Data["Audio"][:Counter["Audio"]], "BoxSet": Data["BoxSet"][:Counter["BoxSet"]], "unknown": Data["unknown"][:Counter["unknown"]]} # Filter None
+        return Data, ItemsCount
 
     def delete_UpdateItem(self, EmbyId):
         self.cursor.execute("DELETE FROM UpdateItems WHERE EmbyId = ?", (EmbyId,))

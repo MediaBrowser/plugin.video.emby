@@ -2,7 +2,7 @@ import sqlite3
 from _thread import get_ident
 import xbmc
 from helper import utils
-from . import emby_db, video_db, music_db, texture_db
+from . import emby_db, video_db, music_db, texture_db, common_db
 
 DBConnectionsRW = {}
 DBConnectionsRO = {}
@@ -70,6 +70,9 @@ def DBOpenRO(DBID, TaskId):
     if DBID == 'texture':
         return texture_db.TextureDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
+    if DBID in ('epg', 'tv'):
+        return common_db.CommonDatabase(DBConnectionsRO[DBIDThreadID].cursor())
+
     return emby_db.EmbyDatabase(DBConnectionsRO[DBIDThreadID].cursor())
 
 def DBCloseRO(DBID, TaskId):
@@ -105,6 +108,9 @@ def DBOpenRW(DBID, TaskId):
 
     if DBID == 'texture':
         return texture_db.TextureDatabase(DBConnectionsRW[DBID][0].cursor())
+
+    if DBID in ('epg', 'tv'):
+        return common_db.CommonDatabase(DBConnectionsRW[DBID][0].cursor())
 
     return emby_db.EmbyDatabase(DBConnectionsRW[DBID][0].cursor())
 
