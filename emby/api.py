@@ -6,7 +6,7 @@ from helper import utils
 from database import dbio
 from . import listitem
 
-EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 1000, "livetv": 100, "trailer": 200}
+EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 100, "livetv": 100, "trailer": 200}
 EmbyFields = {
     "musicartist": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "musicalbum": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "Studios", "PremiereDate", "UserDataPlayCount", "UserDataLastPlayedDate"),
@@ -22,9 +22,9 @@ EmbyFields = {
     "photo": ("Path", "SortName", "ProductionYear", "ParentId", "PremiereDate", "Width", "Height", "Tags", "DateCreated", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "photoalbum": ("Path", "SortName", "Taglines", "DateCreated", "ShortOverview", "ProductionLocations", "Tags", "ParentId", "OriginalTitle", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "tvchannel": ("Genres", "SortName", "Taglines", "DateCreated", "Overview", "MediaSources", "Tags", "MediaStreams", "UserDataPlayCount", "UserDataLastPlayedDate"),
-    "folder": ("Path", )
+    "folder": ("Path", ),
+    "playlist": ("SortName", "Overview", "Path"),
 }
-LiveStreamEmbyID = 0
 
 
 class API:
@@ -59,26 +59,28 @@ class API:
             self.DynamicListsRemoveFields += ("People",)
 
     def open_livestream(self, EmbyID, PlaySessionId):
-        if EmbyID == LiveStreamEmbyID: # skip identical queries
-            return "", "", ""
+        for HTTPQueryDoubleFilter in utils.HTTPQueryDoublesFilter.values():
+            if self.EmbyServer.ServerData['ServerId'] == HTTPQueryDoubleFilter['ServerId'] and HTTPQueryDoubleFilter['LiveStreamId']:
+                self.close_livestream(HTTPQueryDoubleFilter['LiveStreamId'])
+                break
 
-        globals()["LiveStreamEmbyID"] = EmbyID
-        PlaybackInfoData = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId']}, 'type': "POST", 'handler': f"Items/{EmbyID}/PlaybackInfo"}, True, False)
-        OpenToken = PlaybackInfoData['MediaSources'][0]['OpenToken']
-        MediasourceID = PlaybackInfoData['MediaSources'][0]['Id']
-        OpenData = self.EmbyServer.http.request({'data': json.dumps({'UserId': self.EmbyServer.ServerData['UserId'], 'playsessionid': PlaySessionId, 'itemid': EmbyID, 'AutoOpenLiveStream': 'true', 'OpenToken': OpenToken}), 'type': "POST", 'handler': "LiveStreams/Open"}, True, False)
-
-        if not OpenData or 'MediaSource' not in OpenData or 'Container' not in OpenData['MediaSource'] or 'LiveStreamId' not in OpenData['MediaSource']:
-            return "FAIL", "", ""
-
-        return MediasourceID, OpenData['MediaSource']['LiveStreamId'], OpenData['MediaSource']['Container']
+        PlaybackInfoData = self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], "IsPlayback": "true", "AutoOpenLiveStream": "true", "PlaySessionId": PlaySessionId}, 'type': "POST", 'handler': f"Items/{EmbyID}/PlaybackInfo"}, True, False)
+        xbmc.log(f"EMBY.emby.api: Open LiveStreamId {PlaybackInfoData['MediaSources'][0]['LiveStreamId']}", 1) # LOGINFO
+        return PlaybackInfoData['MediaSources'][0]['Id'], PlaybackInfoData['MediaSources'][0]['LiveStreamId'], PlaybackInfoData['MediaSources'][0].get('Container', "")
 
     def close_livestream(self, LiveStreamId):
-        globals()["LiveStreamEmbyID"] = 0
+        xbmc.log(f"EMBY.emby.api: Close LiveStreamId {LiveStreamId}", 1) # LOGINFO
         self.EmbyServer.http.request({'data': json.dumps({'LiveStreamId': LiveStreamId}), 'type': "POST", 'handler': "LiveStreams/Close"}, False, False)
 
     def get_Items_dynamic(self, ParentId, MediaTypes, Basic, Recursive, Extra, Resume, Latest=False, SkipLocalDB=False, UseAncestors=False):
         CustomLimit = False
+
+        if Resume:
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
+        elif Latest:
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
+        else:
+            Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
 
         for MediaType in MediaTypes:
             Limit = get_Limit(MediaType)
@@ -90,13 +92,6 @@ class API:
                 if "Limit" in Extra:
                     Limit = Extra["Limit"]
                     CustomLimit = True
-
-            if Resume:
-                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Resume"
-            elif Latest:
-                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items/Latest"
-            else:
-                Request = f"Users/{self.EmbyServer.ServerData['UserId']}/Items"
 
             ItemsFullQuery = 10000 * [None] # pre allocate memory
             embydb = None
@@ -197,7 +192,7 @@ class API:
         else:
             Fields = None
 
-        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, Ids, ProcessProgressId))
+        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': ",".join(MediaTypes)}, Ids, ProcessProgressId))
 
         while True:
             Item = ItemsQueue.get()
@@ -211,14 +206,13 @@ class API:
         Index = 0
 
         while Ids:
-            # Limit URI lenght
-            URILenght = 1500
+            MaxURILenght = 1500 # Uri lenght limitation
             IdsIndex = 100
 
-            while len(",".join(Ids[:IdsIndex])) < URILenght and IdsIndex < len(Ids):
+            while len(",".join(Ids[:IdsIndex])) < MaxURILenght and IdsIndex < len(Ids):
                 IdsIndex += 5
 
-            Params['Ids'] = ",".join(Ids[:IdsIndex])  # Chunks of 100 -> due to URI lenght limitation, more tah 100 Ids not possible to request (HTTP error 414)
+            Params['Ids'] = ",".join(Ids[:IdsIndex])  # Chunks of 100+X -> due to URI lenght limitation, more than 100+X Ids not possible to request (HTTP error 414)
             Ids = Ids[IdsIndex:]
             IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
 
@@ -350,8 +344,6 @@ class API:
             Index += Limit
 
     def get_Item(self, Ids, MediaTypes, Dynamic, Basic, Specials=False):
-        Items = []
-
         for MediaType in MediaTypes:
             Fields = self.get_Fields(MediaType, Basic, Dynamic)
 
@@ -446,20 +438,51 @@ class API:
         return Data
 
     def get_Image_Binary(self, Id, ImageType, ImageIndex, ImageTag, UserImage=False):
-        Params = {}
-
-        if utils.enableCoverArt:
-            Params["EnableImageEnhancers"]: True
-        else:
-            Params["EnableImageEnhancers"]: False
+        Params = {"EnableImageEnhancers": utils.enableCoverArt}
 
         if utils.compressArt:
-            Params["Quality"]: 70
+            Params["Quality"] = utils.compressArtLevel
+
+        if utils.ArtworkLimitations:
+            Width = 100
+            Height = 100
+
+            if ImageType == "Primary":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationPrimary) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationPrimary) / 100
+            elif ImageType == "Art":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationArt) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationArt) / 100
+            elif ImageType == "Banner":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationBanner) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationBanner) / 100
+            elif ImageType == "Disc":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationDisc) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationDisc) / 100
+            elif ImageType == "Logo":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationLogo) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationLogo) / 100
+            elif ImageType == "Thumb":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationThumb) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationThumb) / 100
+            elif ImageType == "Backdrop":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationBackdrop) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationBackdrop) / 100
+            elif ImageType == "Chapter":
+                Width = utils.ScreenResolution[0] * int(utils.ArtworkLimitationChapter) / 100
+                Height = utils.ScreenResolution[1] * int(utils.ArtworkLimitationChapter) / 100
+
+            Params["MaxWidth"] = int(Width)
+            Params["MaxHeight"] = int(Height)
 
         if UserImage:
-            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Users/{Id}/Images/{ImageType}?Format=original"}, False, True, True)
+            Params["Format"] = "original"
+            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Users/{Id}/Images/{ImageType}"}, False, True, True)
         else:
-            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Items/{Id}/Images/{ImageType}/{ImageIndex}?{ImageTag}"}, False, True, True)
+            if ImageTag:
+                Params["tag"] = ImageTag
+
+            BinaryData, Headers = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': f"Items/{Id}/Images/{ImageType}/{ImageIndex}"}, False, True, True)
 
         if 'Content-Type' in Headers:
             ContentType = Headers['Content-Type']
@@ -543,7 +566,7 @@ class API:
         return self.EmbyServer.http.request({'params': {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items/{item_id}/LocalTrailers"}, False, False)
 
     def get_themes(self, item_id, Songs, Videos):
-        return self.EmbyServer.http.request({'params': {'UserId': self.EmbyServer.ServerData['UserId'], 'InheritFromParent': True, 'EnableThemeSongs': Songs, 'EnableThemeVideos': Videos, 'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Items/{item_id}/ThemeMedia"}, False, False)
+        return self.EmbyServer.http.request({'params': {'Fields': "Path", 'UserId': self.EmbyServer.ServerData['UserId'], 'InheritFromParent': True, 'EnableThemeSongs': Songs, 'EnableThemeVideos': Videos, 'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Items/{item_id}/ThemeMedia"}, False, False)
 
     def get_plugins(self):
         return self.EmbyServer.http.request({'type': "GET", 'handler': "Plugins"}, False, False)

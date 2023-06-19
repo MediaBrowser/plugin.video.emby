@@ -550,7 +550,7 @@ class WSClient:
                 UpdateItemIds = (len(IncomingData['Data']['ItemsUpdated']) + len(IncomingData['Data']['ItemsAdded'])) * [None] # preallocate memory
 
                 for Index, ItemMod in enumerate(IncomingData['Data']['ItemsUpdated'] + IncomingData['Data']['ItemsAdded']):
-                    UpdateItemIds[Index] = ItemMod
+                    UpdateItemIds[Index] = (ItemMod, "unknown")
 
                 UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter doplicates
                 self.EmbyServer.library.updated(UpdateItemIds)
@@ -597,7 +597,7 @@ class WSClient:
 
     def EmbyServerSyncCheck(self):
         xbmc.log("Emby.hooks.websocket: THREAD: --->[ Emby server is busy, sync in progress ]", 1) # LOGINFO
-        utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = True
+        utils.SyncPause[f"server_busy_{self.EmbyServer.ServerData['ServerId']}"] = True
 
         if utils.busyMsg:
             utils.progress_open(utils.Translate(33411))
@@ -612,7 +612,7 @@ class WSClient:
             utils.progress_close()
 
         self.SyncInProgress = False
-        utils.SyncPause[self.EmbyServer.ServerData['ServerId']] = False
+        utils.SyncPause[f"server_busy_{self.EmbyServer.ServerData['ServerId']}"] = False
         self.EmbyServer.library.RunJobs()
         xbmc.log("Emby.hooks.websocket: THREAD: ---<[ Emby server is busy, sync in progress ]", 1) # LOGINFO
 

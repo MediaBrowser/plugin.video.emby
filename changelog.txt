@@ -1,3 +1,77 @@
+8.2.8
+=============
+fix tvtunes
+add option to disable websocket communication
+improve server reconnects
+minor livetv improvements
+minor progress sync updates
+workaround for Emby server issues (http unresponsiveness)
+
+
+8.2.7
+=============
+even more fixes for livetv streamclose issue (for single tuner devices)
+improve channel sorting
+
+
+8.2.6
+=============
+additional fixes for livetv streamclose issue
+
+
+8.2.5
+=============
+fix livetv streamclose issue
+
+
+8.2.4
+=============
+fix crash when invalid remotecontent requested to play
+keep using same connection on Emby server reboot
+minor changes in livetv stream init
+fix livetv stream init issue
+fix local trailers
+
+
+8.2.3
+=============
+fix hls-streams when using (Kodi's) path substitution
+faster hls-streams init
+redefine modi in plugins config menu. Basic and standard mode only shows essential functions (user frendlyness)
+skip intro default enabled
+add option to limit artwork size
+add option to define the artwork compression level
+fix remote playback photos
+fix database close issue
+improve sync pause
+fix remote playback focus screens
+improve incremental sync performance
+add translations    
+
+
+8.2.2
+=============
+fix progress reset issue
+fix artwork compession issue
+fix minor artwork query issue
+
+
+8.2.1
+=============
+improve live tv sync
+fix BoxSet startup sync issue
+
+
+8.2.0
+=============
+support livetv channel numbers
+improve Emby server queries
+improve playlist nodes
+several minor fixes
+fix disable image enhancers
+some performance improvements
+
+
 8.1.4
 =============
 several fixes for dynamic/hybrid nodes

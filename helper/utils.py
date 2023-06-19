@@ -32,7 +32,7 @@ addon_name = Addon.getAddonInfo('name')
 icon = ""
 CustomDialogParameters = (Addon.getAddonInfo('path'), "default", "1080i")
 EmbyServers = {}
-MinimumVersion = "8.1.0"
+MinimumVersion = "8.2.0"
 refreshskin = False
 device_name = "Kodi"
 xspplaylists = False
@@ -121,8 +121,8 @@ uniquepeoplemovies = False
 uniquepeopletvshows = False
 uniquepeopleepisodes = False
 uniquepeoplemusicvideos = True
-synclivetv = False
 busyMsg = True
+websocketenabled = True
 remotecontrol_force_clients = True
 remotecontrol_client_control = True
 remotecontrol_sync_clients = True
@@ -133,6 +133,16 @@ remotecontrol_resync_clients = False
 remotecontrol_resync_time = 10
 remotecontrol_keep_clients = False
 watchtogeter_start_delay = 20
+compressArtLevel = 100
+ArtworkLimitations = False
+ArtworkLimitationPrimary = 50
+ArtworkLimitationArt = 50
+ArtworkLimitationBanner = 30
+ArtworkLimitationDisc = 30
+ArtworkLimitationLogo = 30
+ArtworkLimitationThumb = 40
+ArtworkLimitationBackdrop = 100
+ArtworkLimitationChapter = 20
 FolderAddonUserdata = f"special://profile/addon_data/{PluginId}/"
 FolderEmbyTemp = f"special://profile/addon_data/{PluginId}/temp/"
 FolderAddonUserdataLibrary = f"special://profile/addon_data/{PluginId}/library/"
@@ -150,6 +160,8 @@ ProgressBar = [xbmcgui.DialogProgressBG(), 0, False, False] # obj, Counter, Open
 AddonModePath = "http://127.0.0.1:57342/"
 TranslationsCached = {}
 Playlists = (xbmc.PlayList(0), xbmc.PlayList(1))
+ScreenResolution = (1920, 1080)
+HTTPQueryDoublesFilter = {}
 
 def refresh_widgets():
     xbmc.log("EMBY.helper.utils: Refresh widgets initialized", 1) # LOGINFO
@@ -636,6 +648,16 @@ def InitSettings():
     load_settings('watchtogeter_start_delay')
     load_settings('remotecontrol_drift')
     load_settings('remotecontrol_resync_time')
+    load_settings('compressArtLevel')
+    load_settings('ArtworkLimitationPrimary')
+    load_settings('ArtworkLimitationArt')
+    load_settings('ArtworkLimitationBanner')
+    load_settings('ArtworkLimitationDisc')
+    load_settings('ArtworkLimitationLogo')
+    load_settings('ArtworkLimitationThumb')
+    load_settings('ArtworkLimitationBackdrop')
+    load_settings('ArtworkLimitationChapter')
+    load_settings_bool('ArtworkLimitations')
     load_settings_bool('sslverify')
     load_settings_bool('syncduringplayback')
     load_settings_bool('usekodiworkarounds')
@@ -708,17 +730,17 @@ def InitSettings():
     load_settings_bool('uniquepeopletvshows')
     load_settings_bool('uniquepeopleepisodes')
     load_settings_bool('uniquepeoplemusicvideos')
-    load_settings_bool('synclivetv')
     load_settings_bool('remotecontrol_force_clients')
     load_settings_bool('remotecontrol_client_control')
     load_settings_bool('remotecontrol_sync_clients')
     load_settings_bool('remotecontrol_auto_ack')
     load_settings_bool('remotecontrol_resync_clients')
     load_settings_bool('remotecontrol_keep_clients')
+    load_settings_bool('websocketenabled')
 
-    if synclivetv:
-        if not xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)'):
-            set_settings_bool('synclivetv', False)
+    if ArtworkLimitations:
+        globals()["ScreenResolution"] = (int(xbmc.getInfoLabel('System.ScreenWidth')), int(xbmc.getInfoLabel('System.ScreenHeight')))
+        xbmc.log(f"EMBY.helper.utils: Screen resolution: {ScreenResolution}", 1) # LOGINFO
 
     if usepathsubstitution:
         globals()["AddonModePath"] = "/emby_addon_mode/"
@@ -797,128 +819,13 @@ def nodesreset():
     for EmbyServer in list(EmbyServers.values()):
         EmbyServer.Views.update_nodes()
 
-def SyncLiveTV(Toggle):
-    PlaylistFile = f"{FolderEmbyTemp}livetv.m3u"
-
-    if synclivetv:
-        playlist = "#EXTM3U\n"
-
-        for ServerId, EmbyServer in list(EmbyServers.items()):
-            Channels = EmbyServer.API.get_channels()
-
-            for item in Channels:
-                if item['TagItems']:
-                    Tag = item['TagItems'][0]['Name']
-                else:
-                    Tag = "--No Info--"
-
-                ImageUrl = ""
-
-                if item['ImageTags']:
-                    if 'Primary' in item['ImageTags']:
-                        ImageUrl = f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}"
-
-                StreamUrl = f"http://127.0.0.1:57342/dynamic/{ServerId}/t-{item['Id']}-livetv"
-
-                if item['Name'].lower().find("radio") != -1 or item['MediaType'] != "Video":
-                    playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" radio="true" group-title="{Tag}",{item["Name"]}\n'
-                else:
-                    playlist += f'#EXTINF:-1 tvg-id="{item["Id"]}" tvg-name="{item["Name"]}" tvg-logo="{ImageUrl}" group-title="{Tag}",{item["Name"]}\n'
-
-                playlist += f"{StreamUrl}\n"
-
-        writeFileString(PlaylistFile, playlist)
-
-        if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)'):
-            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
-            iptvsimple = xbmcaddon.Addon(id="pvr.iptvsimple")
-
-            if iptvsimple.getAddonInfo('version').startswith("20"):
-                ConfigChanged = False
-                iptvsimpleConfigFile = "special://profile/addon_data/pvr.iptvsimple/instance-settings-1.xml"
-                iptvsimpleConfig = readFileString(iptvsimpleConfigFile)
-
-                if iptvsimpleConfig:
-                    PosStart = iptvsimpleConfig.find('<setting id="kodi_addon_instance_name">')
-
-                    if PosStart != -1:
-                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
-                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-
-                        if CurrentValue != '<setting id="kodi_addon_instance_name">Emby for Kodi next gen</setting>':
-                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="kodi_addon_instance_name">Emby for Kodi next gen</setting>')
-                            ConfigChanged = True
-
-                    PosStart = iptvsimpleConfig.find('<setting id="m3uPathType"')
-
-                    if PosStart != -1:
-                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
-                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-
-                        if CurrentValue != '<setting id="m3uPathType" default="true">0</setting>':
-                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="m3uPathType" default="true">0</setting>')
-                            ConfigChanged = True
-
-                    PosStart = iptvsimpleConfig.find('<setting id="m3uPath"')
-
-                    if PosStart != -1:
-                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
-                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-
-                        if CurrentValue != '<setting id="m3uPath">special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u</setting>':
-                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="m3uPath">special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u</setting>')
-                            ConfigChanged = True
-
-                    PosStart = iptvsimpleConfig.find('<setting id="epgPathType"')
-
-                    if PosStart != -1:
-                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
-                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-
-                        if CurrentValue != '<setting id="epgPathType" default="true">1</setting>':
-                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="epgPathType" default="true">1</setting>')
-                            ConfigChanged = True
-
-                    PosStart = iptvsimpleConfig.find('<setting id="epgUrl"')
-
-                    if PosStart != -1:
-                        PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
-                        CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-
-                        if CurrentValue != '<setting id="epgUrl">http://127.0.0.1:57342/livetv/epg</setting>':
-                            iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, '<setting id="epgUrl">http://127.0.0.1:57342/livetv/epg</setting>')
-                            ConfigChanged = True
-
-                if ConfigChanged:
-                    xbmc.log("EMBY.database.library: Modify iptv simple configuration", 1) # LOGINFO
-                    writeFileString(iptvsimpleConfigFile, iptvsimpleConfig)
-            else:
-                iptvsimple.setSetting('m3uPathType', "0") # refresh -> the parameter (settings) modification triggers a refresh
-
-                if iptvsimple.getSetting('m3uPath')  != "special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u":
-                    iptvsimple.setSetting('m3uPath', "special://profile/addon_data/plugin.video.emby-next-gen/temp/livetv.m3u")
-
-                if iptvsimple.getSetting('epgPathType') != "1":
-                    iptvsimple.setSetting('epgPathType', "1")
-
-                if iptvsimple.getSetting('epgUrl') != "http://127.0.0.1:57342/livetv/epg":
-                    iptvsimple.setSetting('epgUrl', "http://127.0.0.1:57342/livetv/epg")
-
-        if Toggle:
-            sleep(1)
-            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":false}}')
-            sleep(1)
-            SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
-    else:
-        delFile(PlaylistFile)
-
 mkDir(FolderAddonUserdata)
 mkDir(FolderEmbyTemp)
 mkDir(FolderUserdataThumbnails)
 mkDir(FolderAddonUserdataLibrary)
 InitSettings()
 get_device_id(False)
-DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0}
+DatabaseFiles = {'texture': "", 'texture-version': 0, 'music': "", 'music-version': 0, 'video': "", 'video-version': 0, 'epg': "", 'epg-version': 0, 'tv': "", 'tv-version': 0}
 _, FolderDatabasefiles = listDir("special://profile/Database/")
 FontPath = translatePath("special://home/addons/plugin.video.emby-next-gen/resources/font/LiberationSans-Bold.ttf")
 noimagejpg = readFileBinary("special://home/addons/plugin.video.emby-next-gen/resources/noimage.jpg")
@@ -943,3 +850,18 @@ for FolderDatabaseFilename in FolderDatabasefiles:
             if Version > DatabaseFiles['video-version']:
                 DatabaseFiles['video'] = translatePath(f"special://profile/Database/{FolderDatabaseFilename}")
                 DatabaseFiles['video-version'] = Version
+        elif FolderDatabaseFilename.startswith('Epg'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['epg-version']:
+                DatabaseFiles['epg'] = translatePath(f"special://profile/Database/{FolderDatabaseFilename}")
+                DatabaseFiles['epg-version'] = Version
+        elif FolderDatabaseFilename.startswith('TV'):
+            Version = int(''.join(i for i in FolderDatabaseFilename if i.isdigit()))
+
+            if Version > DatabaseFiles['tv-version']:
+                DatabaseFiles['tv'] = translatePath(f"special://profile/Database/{FolderDatabaseFilename}")
+                DatabaseFiles['tv-version'] = Version
+
+if not artworkcacheenable: # reset if Kodi crashed during artwork cache
+    set_settings_bool('artworkcacheenable', True)

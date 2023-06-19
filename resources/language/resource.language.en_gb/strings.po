@@ -1,14 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: en\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -2244,4 +2245,120 @@ msgstr ""
 
 msgctxt "#33521"
 msgid "Disable remote mode"
+msgstr ""
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr ""
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr ""
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr ""
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr ""
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr ""
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr ""
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr ""
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr ""
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr ""
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr ""
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr ""
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr ""
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr ""
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr ""
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr ""
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr ""
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr ""
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr ""
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr ""
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr ""
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

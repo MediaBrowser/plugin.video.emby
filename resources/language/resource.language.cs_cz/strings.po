@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: DJ Sweder <djsweder@gmail.com>, 2019\n"
-"Language-Team: Czech (https://www.transifex.com/emby-for-kodi/teams/91090/cs/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: cs\n"
-"Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -2042,19 +2042,19 @@ msgstr ""
 
 msgctxt "#33470"
 msgid "Transcode video"
-msgstr ""
+msgstr "Překódujte video"
 
 msgctxt "#33471"
 msgid "Transcode audio"
-msgstr ""
+msgstr "Překódujte zvuk"
 
 msgctxt "#33472"
 msgid "Transcode bandwidth limit"
-msgstr ""
+msgstr "Limit šířky pásma překódování"
 
 msgctxt "#33473"
 msgid "Transcode output format"
-msgstr ""
+msgstr "Výstupní formát překódování"
 
 msgctxt "#33474"
 msgid "EAC3"
@@ -2094,31 +2094,31 @@ msgstr ""
 
 msgctxt "#33483"
 msgid "Select audiostream"
-msgstr ""
+msgstr "Vyberte audiostream"
 
 msgctxt "#33484"
 msgid "Select subtitle"
-msgstr ""
+msgstr "Vyberte titulky"
 
 msgctxt "#33485"
 msgid "Specials"
-msgstr ""
+msgstr "Speciální"
 
 msgctxt "#33486"
 msgid "Use path substitution"
-msgstr ""
+msgstr "Použít náhradu cesty"
 
 msgctxt "#33487"
 msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
-msgstr ""
+msgstr "Path substituce podporuje obrázky kapitol v režimu addon. "
 
 msgctxt "#33488"
 msgid "Assign unique actors for each emby library"
-msgstr ""
+msgstr "Přiřaďte jedinečné herce pro každou knihovnu Emby"
 
 msgctxt "#33489"
 msgid "Episodes"
-msgstr ""
+msgstr "Epizody"
 
 msgctxt "#33490"
 msgid "Emby Record"
@@ -2126,124 +2126,240 @@ msgstr ""
 
 msgctxt "#33491"
 msgid "Watch together canceled"
-msgstr ""
+msgstr "Sledování společně zrušeno"
 
 msgctxt "#33492"
 msgid "Waiting for participants"
-msgstr ""
+msgstr "Čekání na účastníky"
 
 msgctxt "#33493"
 msgid "Starting..."
-msgstr ""
+msgstr "Začíná..."
 
 msgctxt "#33494"
 msgid "Select users"
-msgstr ""
+msgstr "Vyberte uživatele"
 
 msgctxt "#33495"
 msgid "Remote clients / Watch together"
-msgstr ""
+msgstr "Vzdálení klienti / Sledujte společně"
 
 msgctxt "#33496"
 msgid "Delete timer"
-msgstr ""
+msgstr "Vymažte časovač"
 
 msgctxt "#33497"
 msgid "Add timer"
-msgstr ""
+msgstr "Přidat časovač"
 
 msgctxt "#33498"
 msgid "Force clients"
-msgstr ""
+msgstr "Vynutit si klienty"
 
 msgctxt "#33499"
 msgid "Clients not supporting watch together natively, will be force to participate"
-msgstr ""
+msgstr "Klienti, kteří nepodporují sledování společně nativně, budou nuceni se zúčastnit"
 
 msgctxt "#33500"
 msgid "Client control"
-msgstr ""
+msgstr "Klientská kontrola"
 
 msgctxt "#33501"
 msgid "Clients can control each other"
-msgstr ""
+msgstr "Klienti se mohou navzájem ovládat"
 
 msgctxt "#33502"
 msgid "Sync clients to master"
-msgstr ""
+msgstr "Synchronizujte klienty do master"
 
 msgctxt "#33503"
 msgid "Master controls play, pause, seek"
-msgstr ""
+msgstr "Master ovládá přehrávání, pauzu, vyhledávání"
 
 msgctxt "#33504"
 msgid "Wait for participates"
-msgstr ""
+msgstr "Počkejte na účastníky"
 
 msgctxt "#33505"
 msgid "Wait for participates in seconds"
-msgstr ""
+msgstr "Počkejte na účastníky v sekundách"
 
 msgctxt "#33506"
 msgid "Delay playback"
-msgstr ""
+msgstr "Zpoždění přehrávání"
 
 msgctxt "#33507"
 msgid "Delay playback start, give clients time to sync"
-msgstr ""
+msgstr "Odložte začátek přehrávání, dejte klientům čas na synchronizaci"
 
 msgctxt "#33508"
 msgid "Maximum drift on pause"
-msgstr ""
+msgstr "Maximální drift při pauze"
 
 msgctxt "#33509"
 msgid "Allowed async in milliseconds on pause"
-msgstr ""
+msgstr "Povolena asynchronní synchronizace v milisekundách při pauze"
 
 msgctxt "#33510"
 msgid "Auto ack"
-msgstr ""
+msgstr "Automatické potvrzení"
 
 msgctxt "#33511"
 msgid "Auto acknowledge incoming remote client request"
-msgstr ""
+msgstr "Automatické potvrzení příchozího požadavku vzdáleného klienta"
 
 msgctxt "#33512"
 msgid "Delay"
-msgstr ""
+msgstr "Zpoždění"
 
 msgctxt "#33513"
 msgid "Triggers a seek command after X seconds"
-msgstr ""
+msgstr "Spustí vyhledávací příkaz po X sekundách"
 
 msgctxt "#33514"
 msgid "Resync unsupported clients"
-msgstr ""
+msgstr "Znovu synchronizujte nepodporované klienty"
 
 msgctxt "#33515"
 msgid "Keep connection"
-msgstr ""
+msgstr "Udržujte spojení"
 
 msgctxt "#33516"
 msgid "Establish connection on start (by device id)"
-msgstr ""
+msgstr "Nastavit připojení při spuštění (podle ID zařízení)"
 
 msgctxt "#33517"
 msgid "Watch together"
-msgstr ""
+msgstr "Sledujte společně"
 
 msgctxt "#33518"
 msgid "Remove client"
-msgstr ""
+msgstr "Odstranění klienta"
 
 msgctxt "#33519"
 msgid "Add client"
-msgstr ""
+msgstr "Přidat klienta"
 
 msgctxt "#33520"
 msgid "Enable remote mode"
-msgstr ""
+msgstr "Povolte vzdálený režim"
 
 msgctxt "#33521"
 msgid "Disable remote mode"
+msgstr "Zakažte režim dálkového ovládání"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Povolit"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primární"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "Čl"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Prapor"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disk"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Palec"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Pozadí"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitola"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Komprese"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximální rozlišení"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Omezuje rozlišení obrazu faktorem. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Vyberte transencode audiostream"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Povolit"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primární"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "Čl"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Prapor"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disk"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Palec"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Pozadí"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitola"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Komprese"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximální rozlišení"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Omezuje rozlišení obrazu faktorem. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Vyberte transencode audiostream"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""
