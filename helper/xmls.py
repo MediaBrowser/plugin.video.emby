@@ -10,7 +10,7 @@ def sources():
     xmlData = utils.readFileString(Filepath)
 
     # skip if kodi.emby.media already added
-    if 'http://kodi.emby.media' in xmlData:
+    if 'kodi.emby.media' in xmlData and 'emby-for-kodi-next-gen-addon-video-path-substitution' in xmlData and 'emby-for-kodi-next-gen-addon-video' in xmlData and 'emby-for-kodi-next-gen-addon-music-path-substitution' in xmlData and 'emby-for-kodi-next-gen-addon-music' in xmlData and 'emby-for-kodi-next-gen-addon-pictures-path-substitution' in xmlData and 'emby-for-kodi-next-gen-addon-pictures' in xmlData:
         xbmc.log("EMBY.helper.xmls: Source http://kodi.emby.media exists, no change", 1) # LOGINFO
         return
 
@@ -19,6 +19,7 @@ def sources():
     else:
         xmlData = xml.etree.ElementTree.Element('sources')
 
+    # Files sources
     files = xmlData.find('files')
 
     if not files:
@@ -28,6 +29,54 @@ def sources():
     xml.etree.ElementTree.SubElement(source, 'name').text = "kodi.emby.media"
     xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "http://kodi.emby.media"
     xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+
+    # Video sources
+    video = xmlData.find('video')
+
+    if not video:
+        video = xml.etree.ElementTree.SubElement(xmlData, 'video')
+
+    source = xml.etree.ElementTree.SubElement(video, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-video-path-substitution"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "/emby_addon_mode/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+    source = xml.etree.ElementTree.SubElement(video, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-video"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "http://127.0.0.1:57342/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+
+
+    # Music sources
+    music = xmlData.find('music')
+
+    if not music:
+        music = xml.etree.ElementTree.SubElement(xmlData, 'music')
+
+    source = xml.etree.ElementTree.SubElement(music, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-music-path-substitution"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "/emby_addon_mode/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+    source = xml.etree.ElementTree.SubElement(music, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-music"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "http://127.0.0.1:57342/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+
+    # Pictures sources
+    pictures = xmlData.find('pictures')
+
+    if not pictures:
+        pictures = xml.etree.ElementTree.SubElement(xmlData, 'pictures')
+
+    source = xml.etree.ElementTree.SubElement(pictures, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-pictures-path-substitution"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "/emby_addon_mode/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+    source = xml.etree.ElementTree.SubElement(pictures, 'source')
+    xml.etree.ElementTree.SubElement(source, 'name').text = "emby-for-kodi-next-gen-addon-pictures"
+    xml.etree.ElementTree.SubElement(source, 'path', attrib={'pathversion': "1"}).text = "http://127.0.0.1:57342/"
+    xml.etree.ElementTree.SubElement(source, 'allowsharing').text = "true"
+
+    # Write xml
     WriteXmlFile(Filepath, xmlData)
 
 # Settings table for audio and subtitle tracks.
@@ -61,8 +110,13 @@ def advanced_settings():
     Filepath = 'special://profile/advancedsettings.xml'
     FileData = utils.readFileString(Filepath)
 
+    if utils.enablehttp2:
+        disablehttp2 = "false"
+    else:
+        disablehttp2 = "true"
+
     if FileData:
-        if "<from>/emby_addon_mode/</from>" in FileData and "<curllowspeedtime>120</curllowspeedtime>" in FileData and "<curlclienttimeout>120</curlclienttimeout>" in FileData and f"<disablehttp2>{utils.disablehttp2}</disablehttp2>" in FileData:
+        if "<from>/emby_addon_mode/</from>" in FileData and "<curllowspeedtime>120</curllowspeedtime>" in FileData and "<curlclienttimeout>120</curlclienttimeout>" in FileData and f"<disablehttp2>{disablehttp2}</disablehttp2>" in FileData:
             xbmc.log("EMBY.helper.xmls: advancedsettings.xml valid, no change", 1) # LOGINFO
             return False
 
@@ -143,20 +197,20 @@ def advanced_settings():
             curldisablehttp2 = Network.find('disablehttp2')
 
             if curldisablehttp2 is not None:
-                if curldisablehttp2.text != utils.disablehttp2:
+                if curldisablehttp2.text != disablehttp2:
                     xbmc.log("EMBY.helper.xmls: advancedsettings.xml set disablehttp2", 2) # LOGWARNING
                     Network.remove(curldisablehttp2)
-                    xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+                    xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
                     WriteData = True
             else:
-                xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+                xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
                 WriteData = True
         else:
             xbmc.log("EMBY.helper.xmls: advancedsettings.xml set network", 2) # LOGWARNING
             Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
             xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
             xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
-            xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+            xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
             WriteData = True
     else:
         xbmc.log("EMBY.helper.xmls: advancedsettings.xml set data", 2) # LOGWARNING
@@ -164,7 +218,7 @@ def advanced_settings():
         Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
         xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
         xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
-        xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = utils.disablehttp2
+        xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
         pathsubstitution = xml.etree.ElementTree.SubElement(xmlData, 'pathsubstitution')
         substitute = xml.etree.ElementTree.SubElement(pathsubstitution, 'substitute')
         xml.etree.ElementTree.SubElement(substitute, 'from').text = "/emby_addon_mode/"

@@ -532,3 +532,102 @@ class VideoDatabase:
             self.cursor.execute("INSERT INTO path(idPath, strPath, strContent, strScraper, noUpdate, idParentPath) VALUES (?, ?, ?, ?, ?, ?)", (path_id, Path, MediaType, None, 1, LinkId))
 
         return path_id
+
+    # Kodi workarounds for episode bookmark bugs
+    # Subqueries are not possible to fix, e.g. browse by tag, genre, year, actor, etc. This would require a permutation (would exponetially grow database records)
+    def add_episode_bookmark(self, KodiItemId, KodiSeasonId, KodiShowId, ChapterInfo, RunTimeTicks, DateCreated, PlayCount, LastPlayedDate): # workaround due to Kodi episode bookmark bug
+        idPath = self.get_add_path("videodb://recentlyaddedepisodes/", None, None)
+        FileId = self.create_entry_file()
+        self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate)
+        self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
+        self.cursor.execute("SELECT season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            SeasonNumber = Data[0]
+            Path = f"videodb://tvshows/titles/{KodiShowId}/{SeasonNumber}/"
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate)
+                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
+
+            Path = f"videodb://tvshows/titles/{KodiShowId}/-2/" # -2 if this is the only season for the TV Show
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate)
+                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
+
+            Path = f"videodb://inprogresstvshows/{KodiShowId}/{SeasonNumber}/"
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate)
+                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
+
+            Path = f"videodb://inprogresstvshows/{KodiShowId}/-2/" # -2 if this is the only season for the TV Show
+            self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+            Data = self.cursor.fetchone()
+
+            if Data:
+                idPath = Data[0]
+                FileId = self.create_entry_file()
+                self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate)
+                self.add_bookmark_chapter(FileId, RunTimeTicks, ChapterInfo)
+
+    def add_season_bookmark(self, KodiShowId, SeasonNumber): # workaround due to Kodi episode bookmark bug
+        Path = f"videodb://tvshows/titles/{KodiShowId}/{SeasonNumber}/"
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
+
+        Path = f"videodb://tvshows/titles/{KodiShowId}/-2/" # -2 if this is the only season for the TV Show
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
+
+        Path = f"videodb://inprogresstvshows/{KodiShowId}/{SeasonNumber}/"
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
+
+        Path = f"videodb://inprogresstvshows/{KodiShowId}/-2/" # -2 if this is the only season for the TV Show
+        self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))
+        Data = self.cursor.fetchone()
+
+        if not Data:
+            self.cursor.execute("INSERT INTO path(strPath, noUpdate) VALUES (?, ?)", (Path, "1"))
+
+    def delete_season_bookmark(self, KodiSeasonId): # workaround due to Kodi episode bookmark bug
+        self.cursor.execute("SELECT idShow, season FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            Path = f"videodb://tvshows/titles/{Data[0]}/{Data[1]}/"
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = f"videodb://tvshows/titles/{Data[0]}/-2/" # -2 if this is the only season for the TV Show
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = f"videodb://inprogresstvshows/{Data[0]}/{Data[1]}/"
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+            Path = f"videodb://inprogresstvshows/{Data[0]}/-2/" # -2 if this is the only season for the TV Show
+            self.cursor.execute("DELETE FROM path WHERE strPath = ?", (Path,))
+
+    def delete_episode_bookmark(self, KodiItemId, KodiFileId): # workaround due to Kodi episode bookmark bug
+        self.cursor.execute("DELETE FROM path WHERE strPath = ?", (f"videodb://recentlyaddedepisodes/{KodiItemId}/",))
+        self.cursor.execute("DELETE FROM files WHERE strFilename = ?", (KodiFileId,))
