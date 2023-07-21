@@ -72,38 +72,29 @@ def library_check(item, EmbyServer, emby_db, EmbyType=""):
         item['KodiPathId'] = ExistingItem[2]
 
         # New item (by different library id)
-        if item['Library']: # Init sync
+        if 'Library' in item:
             if not item['Library']['Id'] in LibraryIds:
                 item['KodiItemIds'].append(None)
                 item['KodiParentIds'].append(None)
                 item['KodiFileIds'].append(None)
                 item['UpdateItems'].append(False)
                 item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
+
+        item['LibraryIds'] = []
+
+        for Library in item['Librarys']:
+            item['LibraryIds'].append(Library['Id'])
     else:
         # New item
-        if item['Library']: # Init sync
-            item['KodiItemIds'].append(None)
-            item['KodiParentIds'].append(None)
-            item['KodiFileIds'].append(None)
-            item['UpdateItems'].append(False)
-            item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
-        else: # realtime or startup sync -> detect "LibraryId_Name" by query item-id for each library on Emby server (Realtime content updates sends no library information)
-            for WhitelistLibraryId, WhitelistLibraryName in EmbyServer.library.WhitelistUnique:
-                if EmbyServer.API.verify_whitelisted(item['Id'], WhitelistLibraryId, item['Type']): # check if ItemId is content of a whitelisted Library
-                    item['KodiItemIds'].append(None)
-                    item['KodiParentIds'].append(None)
-                    item['KodiFileIds'].append(None)
-                    item['UpdateItems'].append(False)
-                    item['Librarys'].append({'Id': WhitelistLibraryId, 'Name': WhitelistLibraryName, 'LibraryId_Name': f"{WhitelistLibraryId}-{WhitelistLibraryName}"})
+        if 'Library' not in item:
+            return False
 
-    if not item['Librarys']:
-        xbmc.log(f"EMBY.core.common: library_check, unsynced content {item['Id']} ]", 1) # LOGINFO
-        return False
-
-    item['LibraryIds'] = []
-
-    for Library in item['Librarys']:
-        item['LibraryIds'].append(Library['Id'])
+        item['KodiItemIds'].append(None)
+        item['KodiParentIds'].append(None)
+        item['KodiFileIds'].append(None)
+        item['UpdateItems'].append(False)
+        item['Librarys'].append({'Id': item['Library']['Id'], 'Name': item['Library']['Name'], 'LibraryId_Name': f"{item['Library']['Id']}-{item['Library']['Name']}"})
+        item['LibraryIds'] = [item['Library']['Id']]
 
     return True
 
@@ -383,6 +374,14 @@ def get_streams(item):
 
             if Codec:
                 Codec = Codec.lower().replace("-", "")
+
+            if Codec == "dts":
+                Profile = Stream.get('Profile', "").lower()
+
+                if Profile == "dts-hd ma":
+                    Codec = "dtshd_ma"
+                elif Profile == "dts-hd hra":
+                    Codec = "dtshd_hra"
 
             if Stream['Type'] == "Audio" or Stream['Type'] == "Default":
                 item['Streams'][IndexMediaSources]['Audio'].append({'SampleRate': Stream.get('SampleRate', 0), 'BitRate': Stream.get('BitRate', 0), 'codec': Codec, 'channels': Stream.get('Channels', 0), 'language': Stream.get('Language', ""), 'Index': Index, 'DisplayTitle': Stream.get('DisplayTitle', "unknown")})

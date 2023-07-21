@@ -159,8 +159,6 @@ class Movies:
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     def userdata(self, Item):
-        Item['Library'] = {}
-
         if not common.library_check(Item, self.EmbyServer, self.emby_db):
             return
 

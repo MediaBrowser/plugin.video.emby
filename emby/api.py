@@ -168,10 +168,10 @@ class API:
                 ItemsFullQuery.remove(None)
 
             if ItemsFullQuery:
-                for Item in self.get_Items_Ids(ItemsFullQuery, [MediaType], True, Basic):
+                for Item in self.get_Items_Ids(ItemsFullQuery, [MediaType], True, Basic, False, ""):
                     yield Item
 
-    def get_Items_Ids(self, Ids, MediaTypes, Dynamic, Basic, ProcessProgressId=""):
+    def get_Items_Ids(self, Ids, MediaTypes, Dynamic, Basic, BySyncedLibrarys, ProcessProgressId):
         ItemsQueue = queue.Queue()
         Fields = []
 
@@ -192,7 +192,7 @@ class API:
         else:
             Fields = None
 
-        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': ",".join(MediaTypes)}, Ids, ProcessProgressId))
+        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': ",".join(MediaTypes)}, Ids, BySyncedLibrarys, ProcessProgressId))
 
         while True:
             Item = ItemsQueue.get()
@@ -202,7 +202,7 @@ class API:
 
             yield Item
 
-    def async_get_Items_Ids(self, Request, ItemsQueue, Params, Ids, ProcessProgressId=""):
+    def async_get_Items_Ids(self, Request, ItemsQueue, Params, Ids, BySyncedLibrarys, ProcessProgressId):
         Index = 0
 
         while Ids:
@@ -214,17 +214,37 @@ class API:
 
             Params['Ids'] = ",".join(Ids[:IdsIndex])  # Chunks of 100+X -> due to URI lenght limitation, more than 100+X Ids not possible to request (HTTP error 414)
             Ids = Ids[IdsIndex:]
-            IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
 
-            if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
-                ItemsQueue.put("QUIT")
-                del IncomingData  # release memory
-                return
+            if BySyncedLibrarys:
+                Found = False
 
-            for Item in IncomingData['Items']:
-                ItemsQueue.put(Item)
+                for WhitelistLibraryId, WhitelistLibraryName in self.EmbyServer.library.WhitelistUnique:
+                    Params.update({'Recursive': True, 'ParentId': WhitelistLibraryId})
+                    IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
 
-            Index += len(IncomingData['Items'])
+                    for Item in IncomingData['Items']:
+                        Found = True
+                        Item['Library'] = {'Id': WhitelistLibraryId, 'Name': WhitelistLibraryName}
+                        ItemsQueue.put(Item)
+                        Index += 1
+
+                if not Found or utils.SystemShutdown:
+                    ItemsQueue.put("QUIT")
+                    del IncomingData  # release memory
+                    return
+            else:
+                IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
+
+                if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
+                    ItemsQueue.put("QUIT")
+                    del IncomingData  # release memory
+                    return
+
+                for Item in IncomingData['Items']:
+                    ItemsQueue.put(Item)
+
+                Index += len(IncomingData['Items'])
+
             del IncomingData  # release memory
 
             if not self.async_throttle_queries(Index, 10000, ProcessProgressId):
@@ -508,14 +528,6 @@ class API:
             ContentType = "ukn"
 
         return BinaryData, ContentType, FileExtension
-
-    def verify_whitelisted(self, Id, ParentId, Type):
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'Ids': Id, 'Recursive': True, 'IncludeItemTypes': Type, 'Limit': 1, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline"}, 'type': "GET", 'handler': f"Users/{self.EmbyServer.ServerData['UserId']}/Items"}, False, False)
-
-        if 'Items' in Data and Data['Items']:
-            return True
-
-        return False
 
     def get_device(self):
         return self.EmbyServer.http.request({'params': {'DeviceId': utils.device_id}, 'type': "GET", 'handler': "Sessions"}, False, False)

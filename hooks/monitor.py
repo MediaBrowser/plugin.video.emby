@@ -552,7 +552,7 @@ def settingschanged():  # threaded by caller
     RestartKodi = False
     syncdatePrevious = utils.syncdate
     synctimePrevious = utils.synctime
-    disablehttp2Previous = utils.disablehttp2
+    enablehttp2Previous = utils.enablehttp2
     xspplaylistsPreviousValue = utils.xspplaylists
     enableCoverArtPreviousValue = utils.enableCoverArt
     maxnodeitemsPreviousValue = utils.maxnodeitems
@@ -561,7 +561,7 @@ def settingschanged():  # threaded by caller
     utils.InitSettings()
 
     # Http2 mode changed, rebuild advanced settings -> restart Kodi
-    if disablehttp2Previous != utils.disablehttp2:
+    if enablehttp2Previous != utils.enablehttp2:
         if xmls.advanced_settings():
             RestartKodi = True
 

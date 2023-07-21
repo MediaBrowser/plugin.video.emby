@@ -119,11 +119,7 @@ class WSClient:
 
     def establish_connection(self):
         self.close(False)
-
         url = f"{self.EmbyServerSocketUrl}/embywebsocket?api_key={self.EmbyServer.ServerData['AccessToken']}&device_id={utils.device_id}"
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         # Parse URL
         scheme, url = url.split(":", 1)
@@ -142,6 +138,11 @@ class WSClient:
                 port = 80
             else:
                 port = 443
+
+        address_family = socket.getaddrinfo(hostname, None)[0][0]
+        self.sock = socket.socket(address_family, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         # Connect
         try:

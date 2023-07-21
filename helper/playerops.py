@@ -420,7 +420,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
     #load additional items after playback started
     if PlayCommand not in ("PlayInit", "PlaySingle"):
         if QueryEmbyIds:
-            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False):
+            for Item in EmbyServer.API.get_Items_Ids(QueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False, False, ""):
                 li = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
                 path, Type = common.get_path_type_from_item(EmbyServer.ServerData['ServerId'], Item)
                 ItemsData[Reference[Item['Id']]] = (False, Item['Id'], Type, li, path)

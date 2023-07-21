@@ -239,16 +239,7 @@ def worker_Query(client):  # thread by caller
         PictureQuery = True
 
     if 'extrafanart' in PayloadLower or 'extrathumbs' in PayloadLower or 'extras/' in PayloadLower or PayloadLower.endswith('.edl') or PayloadLower.endswith('.txt') or PayloadLower.endswith('.vprj') or PayloadLower.endswith('.xml') or PayloadLower.endswith('/') or PayloadLower.endswith('.nfo') or (not PictureQuery and (PayloadLower.endswith('.jpg') or PayloadLower.endswith('.ico') or PayloadLower.endswith('.png'))):
-
-
-
-
         client.send(sendNoContent)
-
-
-
-
-
     elif IncomingData[0] == "GET":
         http_Query(client, IncomingData[1])
     elif IncomingData[0] == "HEAD":
@@ -336,7 +327,7 @@ def http_Query(client, Payload):
         return
 
     # Workaround for invalid Kodi GET requests when played via widget
-    if utils.usekodiworkarounds:
+    if utils.usekodiworkaroundswidget:
         if not Payload.startswith('/picture/'):
             if Payload != PayloadHeadRequest:
                 xbmc.log(f"Invalid GET request filtered: {Payload}", 2) # LOGWARNING

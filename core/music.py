@@ -241,8 +241,6 @@ class Music:
         return not item['UpdateItems'][ItemIndex]
 
     def userdata(self, Item):
-        Item['Library'] = {}
-
         if not common.library_check(Item, self.EmbyServer, self.emby_db):
             return
 

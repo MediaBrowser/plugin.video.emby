@@ -1,3 +1,13 @@
+8.2.9
+=============
+add emby sources to sources.xml (fixes Kodi's masterlock issue)
+(re)add Kodi workaround for episode bookmarks (default on)
+disable http2 by default
+fix minor sync issue and improve incremental performance
+fix IPV6 websocket connection -> https://github.com/MediaBrowser/plugin.video.emby/issues/471
+fix media flags (codec infos)
+
+
 8.2.8
 =============
 fix tvtunes
