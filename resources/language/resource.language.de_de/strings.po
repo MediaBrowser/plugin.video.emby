@@ -1,16 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2021-01-31 14:20+0100\n"
-"Last-Translator: Markus Maurer <admin@ryuum3gum1n.de>, 2020\n"
-"Language-Team: German (https://www.transifex.com/emby-for-kodi/teams/91090/de/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: de\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.2\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -1974,4 +1973,388 @@ msgstr "Medienquelle auswählen"
 
 msgctxt "#33454"
 msgid "Use Kodi bugs workaround"
+msgstr ""
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4v3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Video transkodieren"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Audio transkodieren"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Bandbreitenbegrenzung für Transkodierung"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Ausgabeformat transkodieren"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "Livetv transkodieren"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Audiostream auswählen"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Untertitel auswählen"
+
+msgctxt "#33485"
+msgid "Specials"
+msgstr "Sonderangebote"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Pfadersetzung verwenden"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Pfad-Ersetzung unterstützt Kapitelbilder im Add-on-Modus. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Weisen Sie jeder Emby-Bibliothek eindeutige Akteure zu"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Episoden"
+
+msgctxt "#33490"
+msgid "Emby Record"
+msgstr ""
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Gemeinsam ansehen abgesagt"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Warten auf Teilnehmer"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Beginnt..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Benutzer auswählen"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Remote-Clients / Gemeinsam ansehen"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Timer löschen"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Timer hinzufügen"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Clients erzwingen"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Kunden, die Watch Together nicht nativ unterstützen, werden zur Teilnahme gezwungen"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Client-Steuerung"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Clients können sich gegenseitig kontrollieren"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Clients mit Master synchronisieren"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Master steuert Wiedergabe, Pause, Suche"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Warten Sie auf die Teilnahme"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Warten auf Teilnahme in Sekunden"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Wiedergabe verzögern"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Wiedergabestart verzögern, Clients Zeit zum Synchronisieren geben"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maximale Drift bei Pause"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Zulässige Asynchronität in Millisekunden bei Pause"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Automatische Bestätigung"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Eingehende Remote-Client-Anfrage automatisch bestätigen"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Verzögerung"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Löst nach X Sekunden einen Suchbefehl aus"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Nicht unterstützte Clients erneut synchronisieren"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Verbindung aufrechterhalten"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Verbindung beim Start herstellen (nach Geräte-ID)"
+
+msgctxt "#33517"
+msgid "Watch together"
+msgstr "Gemeinsam ansehen"
+
+msgctxt "#33518"
+msgid "Remove client"
+msgstr "Client entfernen"
+
+msgctxt "#33519"
+msgid "Add client"
+msgstr "Client hinzufügen"
+
+msgctxt "#33520"
+msgid "Enable remote mode"
+msgstr "Remote-Modus aktivieren"
+
+msgctxt "#33521"
+msgid "Disable remote mode"
+msgstr "Remote-Modus deaktivieren"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primär"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr ""
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Daumen"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Hintergrund"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Komprimierung"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximale Auflösung"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Begrenzt die Bildauflösung um einen Faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Transkodieren Sie den Audiostream"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primär"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr ""
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Daumen"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Hintergrund"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Komprimierung"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximale Auflösung"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Begrenzt die Bildauflösung um einen Faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Transkodieren Sie den Audiostream"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

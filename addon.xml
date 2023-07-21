@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="7.13.7" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="8.2.8" provider-name="quickmic, angelblue05, sualfred">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0" />
@@ -13,7 +13,15 @@
         <menu id="kodi.core.main">
             <item library="events.py" args="contextmenu">
                 <label>30401</label>
-                <visible>[!String.IsEmpty(ListItem.DBID) + !String.IsEqual(ListItem.DBID,-1) | !String.IsEmpty(ListItem.Property(embyid))]</visible>
+                <visible>[!String.Contains(ListItem.Path,"pvr://guide/")]</visible>
+            </item>
+            <item library="events.py" args="record">
+                <label>33490</label>
+                <visible>[String.Contains(ListItem.Path,"pvr://guide/")]</visible>
+            </item>
+            <item library="events.py" args="specials">
+                <label>33485</label>
+                <visible>[String.Contains(ListItem.FileName,"-s-")]</visible>
             </item>
         </menu>
     </extension>
@@ -30,6 +38,30 @@ Emby for Kodi is the absolute best way to enjoy the incredible Kodi playback eng
         <description lang="es">Bienvenido a Emby para Kodi una forma completamente nueva de gestionar y ver su biblioteca multimedia. El complemento Emby para Kodi combina lo mejor de Kodi - navegación ultra suave, interfaces hermosas de usuario y la reproducción de cualquier archivo bajo el sol, y Emby - el indexador y servidor de metadatos multimedia multicliente de código abierto más potente.
 
 Emby para Kodi es la mejor manera de disfrutar del increíble motor de reproducción de Kodi combinado con el poder de la base de datos centralizada de Emby. Características: Integración directa con la biblioteca de Kodi para una velocidad nativa de sincronización instantánea con el soporte completo del Servidor Emby para colecciones de películas, programas de TV y música. Emby Server soporta transcodificación y transmisión en directo - ¡Usa Kodi cuando estés fuera de casa!</description>
+    <description lang="cz">Vítejte v Emby pro Kodi Zcela nový způsob správy a zobrazení vaší knihovny médií. Doplněk Emby pro Kodi kombinuje to nejlepší z Kodi – ultra plynulou navigaci, krásná uživatelská rozhraní a přehrávání jakéhokoli souboru pod sluncem a Emby – nejvýkonnější plně open source multiklientský indexátor metadat médií a server.
+
+Emby for Kodi je absolutně nejlepší způsob, jak si užít neuvěřitelný přehrávací engine Kodi v kombinaci s výkonem centralizované databáze Emby. Vlastnosti: Přímá integrace s knihovnou Kodi pro nativní rychlost Kodi Okamžitá synchronizace se serverem Emby Plná podpora sbírek filmů, TV a hudby Emby Server přímý stream a podpora překódování – používejte Kodi, když jste mimo domov!</description>
+    <description lang="de">Willkommen bei Emby für Kodi. Eine völlig neue Möglichkeit, Ihre Medienbibliothek zu verwalten und anzuzeigen. Das Emby-Add-on für Kodi kombiniert das Beste von Kodi – extrem reibungslose Navigation, schöne Benutzeroberflächen und Wiedergabe jeder Datei unter der Sonne – und Emby – den leistungsstärksten, vollständig Open-Source-Multi-Client-Medienmetadaten-Indexer und -Server.
+
+Emby für Kodi ist die absolut beste Möglichkeit, die unglaubliche Kodi-Wiedergabe-Engine kombiniert mit der Leistungsfähigkeit der zentralisierten Datenbank von Emby zu genießen. Funktionen: Direkte Integration mit der Kodi-Bibliothek für native Kodi-Geschwindigkeit. Sofortige Synchronisierung mit dem Emby-Server. Volle Unterstützung für Film-, Fernseh- und Musiksammlungen. Emby Server-Direktstream- und Transkodierungsunterstützung – verwenden Sie Kodi, wenn Sie nicht zu Hause sind.</description>
+    <description lang="fr">Bienvenue dans Emby pour Kodi Une toute nouvelle façon de gérer et d'afficher votre bibliothèque multimédia. L'addon Emby pour Kodi combine le meilleur de Kodi - une navigation ultra fluide, de belles interfaces utilisateur et la lecture de n'importe quel fichier sous le soleil, et Emby - l'indexeur et le serveur de métadonnées multimédia multi-client entièrement open source le plus puissant.
+
+Emby pour Kodi est le meilleur moyen absolu de profiter de l'incroyable moteur de lecture Kodi combiné à la puissance de la base de données centralisée d'Emby. Caractéristiques : Intégration directe avec la bibliothèque Kodi pour une vitesse Kodi native Synchronisation instantanée avec le serveur Emby Prise en charge complète des collections de films, de télévision et de musique Prise en charge directe du flux et du transcodage du serveur Emby - utilisez Kodi lorsque vous n'êtes pas chez vous !</description>
+    <description lang="it">Benvenuto in Emby per Kodi Un modo completamente nuovo per gestire e visualizzare la tua libreria multimediale. L'addon Emby per Kodi combina il meglio di Kodi: navigazione ultra fluida, bellissime interfacce utente e riproduzione di qualsiasi file sotto il sole, ed Emby, il più potente indicizzatore e server di metadati multimediali multi-client completamente open source.
+
+Emby per Kodi è il modo migliore in assoluto per godersi l'incredibile motore di riproduzione di Kodi combinato con la potenza del database centralizzato di Emby. Caratteristiche: Integrazione diretta con la libreria Kodi per la velocità nativa di Kodi Sincronizzazione istantanea con il server Emby Supporto completo per raccolte di film, TV e musica Emby Server streaming diretto e supporto per la transcodifica: usa Kodi quando sei lontano da casa!</description>
+    <description lang="nl">Welkom bij Emby voor Kodi Een geheel nieuwe manier om uw mediabibliotheek te beheren en te bekijken. De Emby-add-on voor Kodi combineert het beste van Kodi - ultrasoepele navigatie, prachtige gebruikersinterfaces en het afspelen van elk bestand onder de zon, en Emby - de krachtigste volledig open source multi-client mediametadata-indexer en -server.
+
+Emby voor Kodi is absoluut de beste manier om te genieten van de ongelooflijke Kodi-afspeelengine in combinatie met de kracht van Emby's gecentraliseerde database. Kenmerken: Directe integratie met de Kodi-bibliotheek voor native Kodi-snelheid Onmiddellijke synchronisatie met de Emby-server Volledige ondersteuning voor film-, tv- en muziekcollecties Ondersteuning voor directe stream en transcodering van Emby Server - gebruik Kodi wanneer u niet thuis bent!</description>
+    <description lang="pl">Witamy w Emby dla Kodi Zupełnie nowy sposób zarządzania biblioteką multimediów i przeglądania jej. Dodatek Emby dla Kodi łączy w sobie to, co najlepsze w Kodi – ultra płynną nawigację, piękne interfejsy użytkownika i odtwarzanie dowolnego pliku pod słońcem oraz Emby – najpotężniejszy w pełni open source indeksator metadanych multimediów dla wielu klientów i serwer.
+
+Emby dla Kodi to absolutnie najlepszy sposób, aby cieszyć się niesamowitym silnikiem odtwarzania Kodi w połączeniu z mocą scentralizowanej bazy danych Emby. Funkcje: Bezpośrednia integracja z biblioteką Kodi dla natywnej szybkości Kodi Natychmiastowa synchronizacja z serwerem Emby Pełna obsługa kolekcji filmów, programów telewizyjnych i muzyki Serwer Emby obsługuje bezpośrednią transmisję strumieniową i transkodowanie — korzystaj z Kodi, gdy jesteś poza domem!</description>
+    <description lang="sv">Välkommen till Emby för Kodi Ett helt nytt sätt att hantera och visa ditt mediebibliotek. Emby-tillägget för Kodi kombinerar det bästa från Kodi - ultrasmidig navigering, vackra användargränssnitt och uppspelning av alla filer under solen, och Emby - den mest kraftfulla helt öppen källkod för multiklient-metadataindexerare och -server.
+
+Emby for Kodi är det absolut bästa sättet att njuta av den otroliga Kodi-uppspelningsmotorn i kombination med kraften i Embys centraliserade databas. Funktioner: Direkt integration med Kodi-biblioteket för inbyggd Kodi-hastighet Omedelbar synkronisering med Emby-servern Fullständigt stöd för film-, TV- och musiksamlingar Emby Server direktströmning och omkodningsstöd - använd Kodi när du är borta från hemmet!</description>
+    <description lang="zh">欢迎使用 Emby for Kodi 一种管理和查看媒体库的全新方式。 Kodi 的 Emby 插件结合了 Kodi 的优点 - 超流畅的导航、漂亮的用户界面和在阳光下播放任何文件，以及 Emby - 最强大的完全开源多客户端媒体元数据索引器和服务器。
+
+Emby for Kodi 是享受令人难以置信的 Kodi 播放引擎与 Emby 集中式数据库的强大功能的绝对最佳方式。 特点： 直接与 Kodi 库集成，实现原生 Kodi 速度 与 Emby 服务器即时同步 完全支持电影、电视和音乐收藏 Emby 服务器直接流媒体和转码支持 - 出门在外时使用 Kodi！</description>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>

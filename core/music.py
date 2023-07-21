@@ -1,7 +1,6 @@
-from helper import utils, loghandler
+import xbmc
+from helper import utils
 from . import common
-
-LOG = loghandler.LOG('EMBY.core.music')
 
 
 class Music:
@@ -11,15 +10,15 @@ class Music:
         self.music_db = musicdb
 
     def artist(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "MusicArtist"):
+            xbmc.log(f"EMBY.core.music artist, general error: Process item: {item}", 3) # LOGERROR
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not 'Name' in item:
+            xbmc.log(f"EMBY.core.music artist, no name: Process item: {item}", 3) # LOGERROR
             return False
 
+        xbmc.log(f"EMBY.core.music: Process item: {item['Name']}", 1) # LOGINFO
         ItemIndex = 0
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
@@ -34,27 +33,27 @@ class Music:
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "artist")
                 self.music_db.update_artist(item['KodiItemIds'][ItemIndex], item['Name'], item['ProviderIds']['MusicBrainzArtist'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], item['LastScraped'], item['SortName'], item['DateCreated'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                LOG.info("UPDATE existing artist [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
+                xbmc.log(f"EMBY.core.music: UPDATE existing artist [{item['KodiItemIds'][ItemIndex]}] {item['Name']}: {item['Id']}", 1) # LOGINFO
             else:
                 item['KodiItemIds'][ItemIndex] = self.music_db.create_entry_artist()
                 self.music_db.add_artist(item['KodiItemIds'][ItemIndex], item['Name'], item['ProviderIds']['MusicBrainzArtist'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], item['LastScraped'], item['SortName'], item['DateCreated'], item['Librarys'][ItemIndex]['LibraryId_Name'])
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], None, "MusicArtist", "artist", [], item['LibraryIds'], None, item['PresentationUniqueKey'], item['UserData']['IsFavorite'], None, None, None, None)
-                LOG.info("ADD artist [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
+                xbmc.log(f"EMBY.core.music: ADD artist [{item['KodiItemIds'][ItemIndex]}] {item['Name']}: {item['Id']}", 1) # LOGINFO
 
             self.music_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], "artist")
 
         return not item['UpdateItems'][ItemIndex]
 
     def album(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "MusicAlbum"):
+            xbmc.log(f"EMBY.core.music album, general error: Process item: {item}", 3) # LOGERROR
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not 'Name' in item:
+            xbmc.log(f"EMBY.core.music album, no name: Process item: {item}", 3) # LOGERROR
             return False
 
+        xbmc.log(f"EMBY.core.music: Process item: {item['Name']}", 1) # LOGINFO
         ItemIndex = 0
         item['LastScraped'] = utils.currenttime_kodi_format()
         item['DateCreated'] = utils.convert_to_local(item['DateCreated'])
@@ -80,7 +79,7 @@ class Music:
         for ItemIndex in range(len(item['Librarys'])):
             if not item['UpdateItems'][ItemIndex]:
                 item['KodiItemIds'][ItemIndex] = self.music_db.create_entry_album()
-                LOG.debug("AlbumId %s not found" % item['Id'])
+                xbmc.log(f"EMBY.core.music: AlbumId {item['Id']} not found", 0) # LOGDEBUG
 
             self.get_ArtistInfos(item, "ArtistItems", ItemIndex)
             self.get_ArtistInfos(item, "AlbumArtists", ItemIndex)
@@ -90,7 +89,7 @@ class Music:
 
             if item['AlbumArtistsName'].lower() in ("various artists", "various", "various items", "sountrack"):
                 Compilation = 1
-                LOG.info("Compilation detected: %s" % item['Name'])
+                xbmc.log(f"EMBY.core.music: Compilation detected: {item['Name']}", 1) # LOGINFO
 
             if item['UpdateItems'][ItemIndex]:
                 # Update all existing Kodi Albums
@@ -98,7 +97,7 @@ class Music:
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "album")
                 self.music_db.update_album(item['KodiItemIds'][ItemIndex], item['Name'], AlbumType, item['AlbumArtistsName'], item['ProductionYear'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], 0, item['LastScraped'], item['DateCreated'], item['ProviderIds']['MusicBrainzAlbum'], item['ProviderIds']['MusicBrainzReleaseGroup'], Compilation, item['Studio'], item['RunTimeTicks'], item['AlbumArtistsSortName'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                LOG.info("UPDATE existing album [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
+                xbmc.log(f"EMBY.core.music: UPDATE existing album [{item['KodiItemIds'][ItemIndex]}] {item['Name']}: {item['Id']}", 1) # LOGINFO
             else:
                 self.music_db.add_album(item['KodiItemIds'][ItemIndex], item['Name'], AlbumType, item['AlbumArtistsName'], item['ProductionYear'], item['Genre'], item['Overview'], item['KodiArtwork']['thumb'], 0, item['LastScraped'], item['DateCreated'], item['ProviderIds']['MusicBrainzAlbum'], item['ProviderIds']['MusicBrainzReleaseGroup'], Compilation, item['Studio'], item['RunTimeTicks'], item['AlbumArtistsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
                 item['KodiParentIds'][ItemIndex] = item['ArtistItemsKodiId']
@@ -107,22 +106,22 @@ class Music:
                 for index, AlbumArtist in enumerate(item["AlbumArtists"]):
                     self.music_db.link_album_artist(AlbumArtist['KodiId'], item['KodiItemIds'][ItemIndex], AlbumArtist['Name'], index)
 
-                LOG.info("ADD album [%s] %s: %s" % (item['KodiItemIds'][ItemIndex], item['Name'], item['Id']))
+                xbmc.log(f"EMBY.core.music: ADD album [{item['KodiItemIds'][ItemIndex]}] {item['Name']}: {item['Id']}", 1) # LOGINFO
 
             self.music_db.common.add_artwork(item['KodiArtwork'], item['KodiItemIds'][ItemIndex], AlbumType)
 
         return not item['UpdateItems'][ItemIndex]
 
     def song(self, item):
-        if not common.library_check(item, self.EmbyServer, self.emby_db):
+        if not common.library_check(item, self.EmbyServer, self.emby_db, "Audio"):
+            xbmc.log(f"EMBY.core.music song, general error: Process item: {item}", 3) # LOGERROR
             return False
 
-        if 'Name' in item:
-            LOG.info("Process item: %s" % item['Name'])
-        else:
-            LOG.error("No name assinged: %s" % item)
+        if not 'Name' in item:
+            xbmc.log(f"EMBY.core.music song, no name: Process item: {item}", 3) # LOGERROR
             return False
 
+        xbmc.log(f"EMBY.core.music: Process item: {item['Name']}", 1) # LOGINFO
         ItemIndex = 0
         item['AlbumId'] = item.get('AlbumId', None)
         common.set_RunTimeTicks(item)
@@ -138,7 +137,7 @@ class Music:
         common.set_overview(item)
         common.set_KodiArtwork(item, self.EmbyServer.ServerData['ServerId'], False)
         common.get_streams(item)
-        common.set_playstate(item)
+        common.set_playstate(item['UserData'])
 
         # Track and disc number
         if item['IndexNumber']:
@@ -158,7 +157,7 @@ class Music:
 
             if not item['UpdateItems'][ItemIndex]:
                 item['KodiItemIds'][ItemIndex] = self.music_db.create_entry_song()
-                LOG.debug("SongId %s not found" % item['Id'])
+                xbmc.log(f"EMBY.core.music: SongId {item['Id']} not found", 0) # LOGDEBUG
 
             item['KodiPathId'] = self.music_db.get_add_path(item['Path'])
             self.get_ArtistInfos(item, "Composers", ItemIndex)
@@ -181,11 +180,11 @@ class Music:
                 item['KodiParentIds'][ItemIndex] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(item['AlbumId'], item['LibraryIds'][ItemIndex])
 
                 if not item['KodiParentIds'][ItemIndex]:
-                    LOG.warning("Load album: %s" % item['AlbumId'])
+                    xbmc.log(f"EMBY.core.music: Load album: {item['AlbumId']}", 2) # LOGWARNING
                     AlbumItem = self.EmbyServer.API.get_Item(item['AlbumId'], ['MusicAlbum'], False, False)
 
                     if not AlbumItem:
-                        LOG.error("Album not found: %s" % item['AlbumId'])
+                        xbmc.log(f"EMBY.core.music: Album not found: {item['AlbumId']}", 3) # LOGERROR
                         return False
 
                     AlbumItem['Library'] = {'Id': item['Librarys'][ItemIndex]['Id'], 'Name': item['Librarys'][ItemIndex]['Name'], 'LibraryId_Name': item['Librarys'][ItemIndex]['LibraryId_Name']}
@@ -196,9 +195,9 @@ class Music:
                 SingleAlbumItem = item.copy()
 
                 if item['AlbumArtists']:
-                    SingleAlbumItem['Id'] = "999999999%s" % item["AlbumArtists"][0]['Id']
+                    SingleAlbumItem['Id'] = f"999999999{item['AlbumArtists'][0]['Id']}"
                 else:
-                    SingleAlbumItem['Id'] = "999999999%s" % item["ArtistItems"][0]['Id']
+                    SingleAlbumItem['Id'] = f"999999999{item['ArtistItems'][0]['Id']}"
                     SingleAlbumItem['AlbumArtist'] = item["ArtistItems"][0]['Name']
                     SingleAlbumItem['AlbumArtists'] = [{'Name': item["ArtistItems"][0]['Name'], 'Id': item["ArtistItems"][0]['Id']}]
 
@@ -208,18 +207,27 @@ class Music:
                 self.album(SingleAlbumItem)
                 item['KodiParentIds'][ItemIndex] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(item['AlbumId'], item['LibraryIds'][ItemIndex])
 
-            common.get_filename(item, "a", self.EmbyServer.API, ItemIndex)
+            common.get_filename(item, self.EmbyServer.API, ItemIndex, "audio")
+
+            if 'Streams' in item and item['Streams'] and 'Audio' in item['Streams'][0] and item['Streams'][0]['Audio']:
+                Channels = item['Streams'][0]['Audio'][0]["channels"]
+                SampleRate = item['Streams'][0]['Audio'][0]["SampleRate"]
+                BitRate = item['Streams'][0]['Audio'][0]["BitRate"]
+            else:
+                Channels = None
+                SampleRate = None
+                BitRate = None
 
             if item['UpdateItems'][ItemIndex]:
                 self.music_db.common.delete_artwork(item['KodiItemIds'][ItemIndex], "song")
                 self.music_db.delete_link_song_artist(item['KodiItemIds'][ItemIndex])
-                self.music_db.update_song(item['KodiItemIds'][ItemIndex], item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], item['Streams'][0]['Audio'][0]["BitRate"], item['Streams'][0]['Audio'][0]["SampleRate"], item['Streams'][0]['Audio'][0]["channels"], item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
+                self.music_db.update_song(item['KodiItemIds'][ItemIndex], item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], BitRate, SampleRate, Channels, item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
                 self.emby_db.update_favourite(item['UserData']['IsFavorite'], item['Id'])
-                LOG.info("UPDATE song [%s/%s] %s: %s" % (item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+                xbmc.log(f"EMBY.core.music: UPDATE song [{item['KodiParentIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
             else:
-                self.music_db.add_song(item['KodiItemIds'][ItemIndex], item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], item['Streams'][0]['Audio'][0]["BitRate"], item['Streams'][0]['Audio'][0]["SampleRate"], item['Streams'][0]['Audio'][0]["channels"], item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
+                self.music_db.add_song(item['KodiItemIds'][ItemIndex], item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['ArtistItemsName'], item['Genre'], item['Name'], item['IndexNumber'], item['RunTimeTicks'], item['PremiereDate'], item['ProductionYear'], item['Filename'], item['UserData']['PlayCount'], item['UserData']['LastPlayedDate'], 0, item['Overview'], item['DateCreated'], BitRate, SampleRate, Channels, item['ProviderIds']['MusicBrainzTrack'], item['ArtistItemsSortName'], item['Librarys'][ItemIndex]['LibraryId_Name'])
                 self.emby_db.add_reference(item['Id'], item['KodiItemIds'], [], item['KodiPathId'], "Audio", "song", item['KodiParentIds'], item['LibraryIds'], item['ParentId'], item['PresentationUniqueKey'], item['UserData']['IsFavorite'], item['EmbyPath'], None, None, None)
-                LOG.info("ADD song [%s/%s/%s] %s: %s" % (item['KodiPathId'], item['KodiParentIds'][ItemIndex], item['KodiItemIds'][ItemIndex], item['Id'], item['Name']))
+                xbmc.log(f"EMBY.core.music: ADD song [{item['KodiPathId']} / {item['KodiParentIds'][ItemIndex]} / {item['KodiItemIds'][ItemIndex]}] {item['Id']}: {item['Name']}", 1) # LOGINFO
 
             for index, ArtistItem in enumerate(item['ArtistItems']):
                 self.music_db.link_song_artist(ArtistItem['KodiId'], item['KodiItemIds'][ItemIndex], 1, index, ArtistItem['Name'])
@@ -240,43 +248,43 @@ class Music:
 
         for ItemIndex in range(len(Item['Librarys'])):
             if Item['Type'] == 'Audio':
-                common.set_userdata_update_data(Item)
+                common.set_playstate(Item)
                 self.music_db.rate_song(Item['PlayCount'], Item['LastPlayedDate'], 0, Item['KodiItemIds'][ItemIndex])
 
             self.emby_db.update_favourite(Item['Id'], Item['IsFavorite'])
-            LOG.info("USERDATA %s [%s] %s" % (Item['Type'], Item['KodiItemIds'][ItemIndex], Item['Id']))
+            xbmc.log(f"EMBY.core.music: USERDATA {Item['Type']} [{Item['KodiItemIds'][ItemIndex]}] {Item['Id']}", 1) # LOGINFO
 
     def remove(self, Item):
         if Item['DeleteByLibraryId']:
             if Item['Type'] == 'Audio':
                 self.music_db.delete_song(Item['KodiItemId'])
-                LOG.info("DELETE song [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE song [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
             elif Item['Type'] == 'MusicAlbum':
                 self.music_db.delete_album(Item['KodiItemId'])
-                LOG.info("DELETE album [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE album [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
             elif Item['Type'] == 'MusicArtist':
                 self.music_db.delete_artist(Item['KodiItemId'])
-                LOG.info("DELETE artist [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE artist [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         else:
             if Item['Type'] == 'Audio':
                 DeleteEmbyItems = self.music_db.delete_song_stacked(Item['KodiItemId'])
 
                 for DeleteEmbyItem in DeleteEmbyItems:
-                    LOG.warning("Clean music: %s / %s" % (DeleteEmbyItem[0], DeleteEmbyItem[1]))
+                    xbmc.log(f"EMBY.core.music: Clean music: {DeleteEmbyItem[0]} / {DeleteEmbyItem[1]}", 2) # LOGWARNING
                     self.emby_db.remove_item_music_by_kodiid(DeleteEmbyItem[0], DeleteEmbyItem[1])
 
-                LOG.info("DELETE song [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE song [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
             elif Item['Type'] == 'MusicAlbum':
                 DeleteEmbyItems = self.music_db.delete_album_stacked(Item['KodiItemId'])
 
                 for DeleteEmbyItem in DeleteEmbyItems:
-                    LOG.warning("Clean music: %s / %s" % (DeleteEmbyItem[0], DeleteEmbyItem[1]))
+                    xbmc.log(f"EMBY.core.music: Clean music: {DeleteEmbyItem[0]} / {DeleteEmbyItem[1]}", 2) # LOGWARNING
                     self.emby_db.remove_item_music_by_kodiid(DeleteEmbyItem[0], DeleteEmbyItem[1])
 
-                LOG.info("DELETE album [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE album [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
             elif Item['Type'] == 'MusicArtist':
                 self.music_db.delete_artist(Item['KodiItemId'])
-                LOG.info("DELETE artist [%s] %s" % (Item['KodiItemId'], Item['Id']))
+                xbmc.log(f"EMBY.core.music: DELETE artist [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
 
         self.emby_db.remove_item(Item['Id'], Item['Library']['Id'])
 
@@ -292,14 +300,14 @@ class Music:
                 ArtistItem['KodiId'] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(ArtistItem['Id'], Item['LibraryIds'][ItemIndex])
 
                 if not ArtistItem['KodiId']:
-                    LOG.warning("Load artist: %s" % ArtistItem['Id'])
+                    xbmc.log(f"EMBY.core.music: Load artist: {ArtistItem['Id']}", 2) # LOGWARNING
                     ArtistEmbyItem = self.EmbyServer.API.get_Item(ArtistItem['Id'], ['MusicArtist'], False, False)
 
                     if not ArtistEmbyItem:
-                        LOG.error("Artist not found: %s" % ArtistItem['Id'])
+                        xbmc.log(f"EMBY.core.music: Artist not found: {ArtistItem['Id']}", 3) # LOGERROR
                         continue
 
-                    LOG.warning("Artist added: %s" % ArtistEmbyItem['Id'])
+                    xbmc.log(f"EMBY.core.music: Artist added: {ArtistEmbyItem['Id']}", 2) # LOGWARNING
                     ArtistEmbyItem['Library'] = {'Id': Item['Librarys'][ItemIndex]['Id'], 'Name': Item['Librarys'][ItemIndex]['Name'], 'LibraryId_Name': Item['Librarys'][ItemIndex]['LibraryId_Name']}
                     self.artist(ArtistEmbyItem)
                     ArtistItem['KodiId'] = self.emby_db.get_KodiId_by_EmbyId_EmbyLibraryId(ArtistItem['Id'], Item['LibraryIds'][ItemIndex])
@@ -307,6 +315,6 @@ class Music:
                 SortNames.append(self.music_db.get_ArtistSortname(ArtistItem['KodiId']))
                 KodiIds.append(str(ArtistItem['KodiId']))
 
-        Item["%sSortName" % Id] = " / ".join(SortNames)
-        Item['%sName' % Id] = " / ".join(Artists)
-        Item['%sKodiId' % Id] = ",".join(KodiIds)
+        Item[f"{Id}SortName"] = " / ".join(SortNames)
+        Item[f"{Id}Name"] = " / ".join(Artists)
+        Item[f"{Id}KodiId"] = ",".join(KodiIds)

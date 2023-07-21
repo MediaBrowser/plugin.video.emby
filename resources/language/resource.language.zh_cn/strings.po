@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: 無情天 X <kofzhanganguo@126.com>, 2019\n"
-"Language-Team: Chinese (China) (https://www.transifex.com/emby-for-kodi/teams/91090/zh_CN/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: zh_CN\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -1977,4 +1977,388 @@ msgstr "选择媒体源"
 
 msgctxt "#33454"
 msgid "Use Kodi bugs workaround"
+msgstr ""
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4v3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "转码视频"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "转码音频"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "转码带宽限制"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "转码输出格式"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr "PCM穆拉夫"
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr "沃尔比斯"
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "直播转码"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "音频"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "视频"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "选择音频流"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "选择字幕"
+
+msgctxt "#33485"
+msgid "Specials"
+msgstr "特价"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "使用路径替换"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "路径替换支持插件模式下的章节图像。"
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "为每个emby库分配独特的演员"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "剧集"
+
+msgctxt "#33490"
+msgid "Emby Record"
+msgstr "安比唱片"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "取消一起看"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "等待参与者"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "开始..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "选择用户"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "远程客户端/一起看"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "删除定时器"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "添加定时器"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "强制客户"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "客户端不支持原生一起看，强制参与"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "客户端控制"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "客户端可以互相控制"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "同步客户端到master"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "总控播放、暂停、查找"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "等待参与"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "等待秒参与"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "延迟播放"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "延迟播放开始，给客户端时间同步"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "暂停时的最大漂移"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "暂停时允许异步（以毫秒为单位）"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "自动确认"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "自动确认传入的远程客户端请求"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "延迟"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "在 X 秒后触发搜索命令"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "重新同步不支持的客户端"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "保持连接"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "启动时建立连接（通过设备 ID）"
+
+msgctxt "#33517"
+msgid "Watch together"
+msgstr "一起看"
+
+msgctxt "#33518"
+msgid "Remove client"
+msgstr "删除客户端"
+
+msgctxt "#33519"
+msgid "Add client"
+msgstr "添加客户端"
+
+msgctxt "#33520"
+msgid "Enable remote mode"
+msgstr "启用远程模式"
+
+msgctxt "#33521"
+msgid "Disable remote mode"
+msgstr "禁用远程模式"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "启用"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "初级"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "艺术"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "旗帜"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "光盘"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "标志"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "拇指"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "背景"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "章节"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "压缩"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "最大分辨率"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "通过一个因素限制图像分辨率。"
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "选择转码音频流"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "启用"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "初级"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "艺术"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "旗帜"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "光盘"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "标志"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "拇指"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "背景"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "章节"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "压缩"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "最大分辨率"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "通过一个因素限制图像分辨率。"
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "选择转码音频流"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

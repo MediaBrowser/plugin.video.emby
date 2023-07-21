@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Emby for Kodi\n"
+"Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2018-09-07 20:10+0000\n"
-"Last-Translator: lokis l <loke@invalidoz.com>, 2019\n"
-"Language-Team: Swedish (https://www.transifex.com/emby-for-kodi/teams/91090/sv/)\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
 "Language: sv\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
@@ -1977,4 +1977,388 @@ msgstr "Välj Mediakälla"
 
 msgctxt "#33454"
 msgid "Use Kodi bugs workaround"
+msgstr ""
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4v3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Omkoda video"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Omkoda ljud"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Omkodningsgräns för bandbredd"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Omkoda utdataformat"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Ljud"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Välj ljudström"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Välj undertext"
+
+msgctxt "#33485"
+msgid "Specials"
+msgstr "Specialerbjudanden"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Använd sökvägsersättning"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Sökvägsersättning stöder kapitelbilder i tilläggsläge. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Tilldela unika skådespelare för varje emby-bibliotek"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Avsnitt"
+
+msgctxt "#33490"
+msgid "Emby Record"
+msgstr ""
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Titta tillsammans inställd"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Väntar på deltagare"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Börjar..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Välj användare"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Fjärrklienter / Titta tillsammans"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Radera timer"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Lägg till timer"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Tvinga klienter"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Kunder som inte stöder titta tillsammans inbyggt, kommer att tvingas delta"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Klientkontroll"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Kunder kan kontrollera varandra"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Synkronisera klienter till master"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Master styr uppspelning, paus, sökning"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Vänta på deltagare"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Vänta på deltar på sekunder"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Fördröjd uppspelning"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Fördröj uppspelningsstart, ge klienterna tid att synkronisera"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maximal drift vid paus"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Tillåten asynkronisering i millisekunder vid paus"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Autoack"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Automatisk kvittering av inkommande fjärrklientbegäran"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Försening"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Utlöser ett sökkommando efter X sekunder"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Synkronisera om klienter som inte stöds"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Behåll kontakten"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Etablera anslutning vid start (med enhets-id)"
+
+msgctxt "#33517"
+msgid "Watch together"
+msgstr "Se tillsammans"
+
+msgctxt "#33518"
+msgid "Remove client"
+msgstr "Ta bort klient"
+
+msgctxt "#33519"
+msgid "Add client"
+msgstr "Lägg till klient"
+
+msgctxt "#33520"
+msgid "Enable remote mode"
+msgstr "Aktivera fjärrläge"
+
+msgctxt "#33521"
+msgid "Disable remote mode"
+msgstr "Inaktivera fjärrläge"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktivera"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primär"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Skiva"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "Logotyp"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Tummen"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Bakgrund"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Kompression"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximal upplösning"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Begränsar bildupplösningen med en faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Välj transencode audiostream"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktivera"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primär"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Skiva"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "Logotyp"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Tummen"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Bakgrund"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Kompression"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximal upplösning"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Begränsar bildupplösningen med en faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Välj transencode audiostream"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr ""
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr ""
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
 msgstr ""

@@ -1,24 +1,21 @@
 import struct
 from urllib.parse import urlencode, unquote
-import unicodedata
 import xbmc
 import xbmcgui
 import xbmcplugin
-import xbmcaddon
 from database import dbio
 from emby import listitem
 from core import common
-from . import utils, loghandler, playerops
+from . import utils, playerops
 
-LOG = loghandler.LOG('EMBY.helper.pluginmenu')
 DynamicNodeServerId = ""
 QueryCache = {}
-MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "Everything", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
-letters = ["0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+MappingStaggered = {"MusicArtist": "MusicAlbum", "MusicAlbum": "Audio", "Series": "Season", "Season": "Episode", "BoxSet": "MixedContent", "PhotoAlbum": "Photo", "Letter": "LetterSub", "Tags": "TagsSub", "Genre": "GenreSub"}
+letters = ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 MappingContentKodi = {"Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "TvChannel": "videos", "BoxSet": "movies"}
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 PluginMenuActive = False
-DYNNODES = {
+DynamicNodes = {
     'tvshows': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Series"),
         ('Series', utils.Translate(33349), 'DefaultTVShows.png', "Series"),
@@ -41,20 +38,20 @@ DYNNODES = {
         ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode")
     ],
     'mixed': [
-        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Everything"),
-        ('Everything', utils.Translate(33336), 'DefaultTVShows.png', "Everything"),
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MixedContent"),
+        ('MixedContent', utils.Translate(33336), 'DefaultTVShows.png', "MixedContent"),
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
-        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Everything"),
+        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "MixedContent"),
         ('Recentlyadded', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png', "Episode"),
         ('Recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png', "Movie"),
         ('Recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png', "MusicVideo"),
         ('Unwatched', utils.Translate(33345), 'OverlayUnwatched.png', "Series"),
         ('Unwatched', utils.Translate(33344), 'OverlayUnwatched.png', "Episode"),
-        ('Inprogress', utils.Translate(33337), 'DefaultInProgressShows.png', "Everything"),
+        ('Inprogress', utils.Translate(33337), 'DefaultInProgressShows.png', "MixedContent"),
         ('Inprogress', utils.Translate(30178), 'DefaultInProgressShows.png', "Episode"),
         ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
         ('Inprogress', utils.Translate(30257), 'DefaultInProgressShows.png', "MusicVideo"),
-        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Everything"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "MixedContent"),
         ('Random', utils.Translate(33339), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Series"),
         ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode")
     ],
@@ -77,7 +74,8 @@ DYNNODES = {
     ],
     'boxsets': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "BoxSet"),
-        ('BoxSet', utils.Translate(30185), 'DefaultMovies.png', "Everything")
+        ('BoxSet', utils.Translate(30185), 'DefaultMovies.png', "BoxSet"),
+        ('Favorite', "Favorite boxsets", 'DefaultFavourites.png', "BoxSet"),
     ],
     'livetv': [
         ('TvChannel', "LiveTV", 'DefaultMovies.png', None)
@@ -111,8 +109,8 @@ DYNNODES = {
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video")
     ],
     'playlists': [
-        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Everything"),
-        ('Playlist', utils.Translate(33376), 'DefaultPlaylist.png', "Everything")
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Playlists"),
+        ('Playlists', utils.Translate(33376), 'DefaultPlaylist.png', "Playlist")
     ],
     'audiobooks': [
         ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
@@ -156,24 +154,19 @@ def listing(Handle):
     ListItemData = []
     Handle = int(Handle)
 
-    for server_id, EmbyServer in list(utils.EmbyServers.items()):
-        add_ListItem(ListItemData, "%s (%s)" % (utils.Translate(33386), EmbyServer.ServerData['ServerName']), "plugin://%s/?mode=browse&query=NodesSynced&server=%s" % (utils.PluginId, server_id), True, utils.icon, utils.Translate(33383))
-        add_ListItem(ListItemData, "%s (%s)" % (utils.Translate(33387), EmbyServer.ServerData['ServerName']), "plugin://%s/?mode=browse&query=NodesDynamic&server=%s" % (utils.PluginId, server_id), True, utils.icon, utils.Translate(33384))
+    for ServerId, EmbyServer in list(utils.EmbyServers.items()):
+        add_ListItem(ListItemData, f"{utils.Translate(33386)} ({EmbyServer.ServerData['ServerName']})", f"plugin://{utils.PluginId}/?mode=browse&query=NodesSynced&server={ServerId}", True, utils.icon, utils.Translate(33383))
+        add_ListItem(ListItemData, f"{utils.Translate(33387)} ({EmbyServer.ServerData['ServerName']})", f"plugin://{utils.PluginId}/?mode=browse&query=NodesDynamic&server={ServerId}", True, utils.icon, utils.Translate(33384))
 
     # Common Items
-    add_ListItem(ListItemData, utils.Translate(30180), "library://video/emby_Favorite_movies.xml", True, utils.icon, "")
-    add_ListItem(ListItemData, utils.Translate(30181), "library://video/emby_Favorite_tvshows.xml", True, utils.icon, "")
-    add_ListItem(ListItemData, utils.Translate(33385), "library://video/emby_Favorite_musicvideos.xml", True, utils.icon, "")
-    add_ListItem(ListItemData, utils.Translate(30182), "plugin://%s/?mode=favepisodes" % utils.PluginId, True, utils.icon, "")
-
     if utils.menuOptions:
-        add_ListItem(ListItemData, utils.Translate(33194), "plugin://%s/?mode=managelibsselection" % utils.PluginId, False, utils.icon, utils.Translate(33309))
-        add_ListItem(ListItemData, utils.Translate(33059), "plugin://%s/?mode=texturecache" % utils.PluginId, False, utils.icon, utils.Translate(33310))
-        add_ListItem(ListItemData, utils.Translate(5), "plugin://%s/?mode=settings" % utils.PluginId, False, utils.icon, utils.Translate(33398))
-        add_ListItem(ListItemData, utils.Translate(33058), "plugin://%s/?mode=databasereset" % utils.PluginId, False, utils.icon, utils.Translate(33313))
-        add_ListItem(ListItemData, utils.Translate(33340), "plugin://%s/?mode=factoryreset" % utils.PluginId, False, utils.icon, utils.Translate(33400))
-        add_ListItem(ListItemData, utils.Translate(33341), "plugin://%s/?mode=nodesreset" % utils.PluginId, False, utils.icon, utils.Translate(33401))
-        add_ListItem(ListItemData, utils.Translate(33409), "plugin://%s/?mode=skinreload" % utils.PluginId, False, utils.icon, "")
+        add_ListItem(ListItemData, utils.Translate(33194), f"plugin://{utils.PluginId}/?mode=managelibsselection", False, utils.icon, utils.Translate(33309))
+        add_ListItem(ListItemData, utils.Translate(33059), f"plugin://{utils.PluginId}/?mode=texturecache", False, utils.icon, utils.Translate(33310))
+        add_ListItem(ListItemData, utils.Translate(5), f"plugin://{utils.PluginId}/?mode=settings", False, utils.icon, utils.Translate(33398))
+        add_ListItem(ListItemData, utils.Translate(33058), f"plugin://{utils.PluginId}/?mode=databasereset", False, utils.icon, utils.Translate(33313))
+        add_ListItem(ListItemData, utils.Translate(33340), f"plugin://{utils.PluginId}/?mode=factoryreset", False, utils.icon, utils.Translate(33400))
+        add_ListItem(ListItemData, utils.Translate(33341), f"plugin://{utils.PluginId}/?mode=nodesreset", False, utils.icon, utils.Translate(33401))
+        add_ListItem(ListItemData, utils.Translate(33409), f"plugin://{utils.PluginId}/?mode=skinreload", False, utils.icon, "")
 
     xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -181,22 +174,30 @@ def listing(Handle):
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 # Browse dynamically content
-def browse(Handle, Id, query, args, server_id):
-    LOG.info("Pluginmenu query: %s/%s/%s" % (Id, query, args))
+def browse(Handle, Id, query, args, ServerId):
+    xbmc.log(f"EMBY.helper.pluginmenu: Pluginmenu query: {Id} / {query} / {args}", 1) # LOGINFO
     Handle = int(Handle)
 
-    if server_id not in utils.EmbyServers:
-        LOG.error("Pluginmenu invalid server id: %s" % server_id)
+    if ServerId not in utils.EmbyServers:
+        xbmc.log(f"EMBY.helper.pluginmenu: Pluginmenu invalid server id: {ServerId}", 3) # LOGERROR
         return
 
     if query in ('NodesDynamic', 'NodesSynced'):
         ListItemData = []
 
-        for Node in utils.EmbyServers[server_id].Views.Nodes[query]:
+        for Node in utils.EmbyServers[ServerId].Views.Nodes[query]:
             label = Node['title']
             node = Node['type']
-            LOG.debug("--[ Nodes/%s/%s ] %s" % (node, label, Node['path']))
+            xbmc.log(f"EMBY.helper.pluginmenu: --[ Nodes / {node} / {label} ] {Node['path']}", 0) # LOGDEBUG
             add_ListItem(ListItemData, label, Node['path'], True, Node['icon'], "")
+
+        if query == 'NodesSynced':
+            add_ListItem(ListItemData, utils.Translate(30180), "library://video/emby_Favorite_movies.xml", True, utils.icon, "")
+            add_ListItem(ListItemData, utils.Translate(30181), "library://video/emby_Favorite_tvshows.xml", True, utils.icon, "")
+            add_ListItem(ListItemData, utils.Translate(33385), "library://video/emby_Favorite_musicvideos.xml", True, utils.icon, "")
+            add_ListItem(ListItemData, utils.Translate(30182), f"plugin://{utils.PluginId}/?mode=favepisodes", True, utils.icon, "")
+        else:
+            add_ListItem(ListItemData, "Favorites", f"plugin://{utils.PluginId}/?mode=browse&query=Favorite&server={ServerId}&arg=MixedContent", True, utils.icon, "")
 
         globals()["PluginMenuActive"] = True
         xbmcplugin.addDirectoryItems(Handle, ListItemData, len(ListItemData))
@@ -207,23 +208,23 @@ def browse(Handle, Id, query, args, server_id):
 
     # Workaround for wrong window query
     if PluginMenuActive:
-        ReloadWindowId = 0
+        ReloadWindowId = ""
         WindowId = xbmcgui.getCurrentWindowId()
-        CheckQuery = "%s%s" % (args, query)
+        CheckQuery = f"{args}{query}"
 
         # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml etc 10502 = music, 10025 = videos, 10002 = pictures
         if CheckQuery.find("Photo") > -1 and WindowId in (10025, 10502):
-            ReloadWindowId = 10002
+            ReloadWindowId = "pictures"
         elif (CheckQuery.find("MusicAlbum") > -1 or CheckQuery.find("MusicArtist") > -1  or CheckQuery.find("Audio") > -1) and WindowId in (10025, 10002):
-            ReloadWindowId = 10502
+            ReloadWindowId = "music"
         elif WindowId in (10502, 10002) == 10002:
-            ReloadWindowId = 10025
+            ReloadWindowId = "videos"
 
         if ReloadWindowId:
             globals()["PluginMenuActive"] = False
-            LOG.info("Change of (browse) node content. Reload window: %s/%s/%s" % (CheckQuery, WindowId, ReloadWindowId))
+            xbmc.log(f"EMBY.helper.pluginmenu: Change of (browse) node content. Reload window: {CheckQuery} / {WindowId} / {ReloadWindowId}", 1) # LOGINFO
             xbmcplugin.endOfDirectory(Handle, succeeded=False, cacheToDisc=False)
-            xbmc.executebuiltin('ActivateWindow(%s,"plugin://%s/?id=%s&mode=browse&query=%s&server=%s&arg=%s",return)' % (ReloadWindowId, utils.PluginId, Id, query, server_id, args))
+            utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "{ReloadWindowId}", "parameters": ["plugin://{utils.PluginId}/?id={Id}&mode=browse&query={query}&server={ServerId}&arg={args}", "return"]}}}}')
             return
 
     ItemsListings = []
@@ -233,149 +234,157 @@ def browse(Handle, Id, query, args, server_id):
     Cache = True
     QueryArgs = ()
 
+    # Staggered: Map content types (customized queries -> not an Emby Type)
+    if args[0] == "MixedContent":
+        QueryContent = ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"]
+    elif args[0] == "Playlists":
+        QueryContent = ["Playlist"]
+    else:
+        QueryContent = [args[0]]
+
     if query == 'NodesMenu':
         node = []
         globals()["PluginMenuActive"] = True
 
-        for node in DYNNODES[args[0]]:
-            load_ListItem(Id, {'Id': Id, 'Type': node[0], 'Overview': utils.Translate(33387), 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]}, server_id, ItemsListings)
+        for node in DynamicNodes[args[0]]:
+            load_ListItem(Id, {'Id': Id, 'Type': node[0], 'Overview': utils.Translate(33387), 'NodesMenu': True, 'IsFolder': True, 'Name': node[1], 'artwork': node[2], 'args': node[3]}, ServerId, ItemsListings)
 
         Content = node[3]
     elif query == 'Letter':
-        CacheId = "Letter_%s_%s" % (server_id, Id)
+        CacheId = f"Letter_{ServerId}_{Id}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
             for node in letters:
-                load_ListItem(Id, {'Id': Id, 'Type': "Letter", 'Overview': utils.Translate(33387), 'IsFolder': True, 'Name': node, 'artwork': "", 'args': "%s_%s" % (args[0], node)}, server_id, ItemsListings)
+                load_ListItem(Id, {'Id': Id, 'Type': "Letter", 'Overview': utils.Translate(33387), 'IsFolder': True, 'Name': node, 'artwork': "", 'args': f"{args[0]}_{node}"}, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'LetterSub':
         if args[1] == "0-9":
-            QueryArgs = (Id, [args[0]], False, True, {'NameLessThan': "A"}, False)
+            QueryArgs = (Id, QueryContent, False, True, {'NameLessThan': "A"}, False)
         else:
-            QueryArgs = (Id, [args[0]], False, True, {'NameStartsWith': args[1]}, False)
+            QueryArgs = (Id, QueryContent, False, True, {'NameStartsWith': args[1]}, False)
 
         Content = args[0]
     elif query == 'Genre':
-        CacheId = "Genre_%s_%s" % (server_id, Id)
+        CacheId = f"Genre_{ServerId}_{Id}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[server_id].API.get_genres(Id, [args[0]])
+            Items = utils.EmbyServers[ServerId].API.get_genres(Id, args[0])
 
             for Item in Items:
-                load_ListItem(Id, {'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])}, server_id, ItemsListings)
+                load_ListItem(Id, {'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'GenreSub':
-        QueryArgs = (Id, [args[0]], False, True, {'GenreIds': args[1]}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'GenreIds': args[1]}, False)
         Content = args[0]
     elif query == 'Tags':
-        CacheId = "Tags_%s_%s" % (server_id, Id)
+        CacheId = f"Tags_{ServerId}_{Id}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[server_id].API.get_tags(Id, [args[0]])
+            Items = utils.EmbyServers[ServerId].API.get_tags(Id, args[0])
 
             for Item in Items:
-                load_ListItem(Id, {'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': "%s_%s" % (args[0], Item['Id'])}, server_id, ItemsListings)
+                load_ListItem(Id, {'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = args[0]
     elif query == 'TagsSub':
-        QueryArgs = (Id, [args[0]], False, True, {'TagIds': args[1]}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'TagIds': args[1]}, False)
         Content = args[0]
     elif query == 'Recentlyadded':
-        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
+        QueryArgs = (Id, QueryContent, False, True, {'Limit': utils.maxnodeitems, "GroupItems": "False"}, False, True)
         Content = args[0]
         Unsorted = True
     elif query == 'Recentlyaddedseries':
-        QueryArgs = (Id, ['Everything'], False, True, {'Limit': utils.maxnodeitems}, False, True)
+        QueryArgs = (Id, ["Episode"], False, True, {'Limit': utils.maxnodeitems}, False, True)
         Content = args[0]
         Unsorted = True
     elif query == 'Unwatched':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsUnplayed', 'SortBy': "Random", 'Limit': utils.maxnodeitems}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsUnplayed', 'SortBy': "Random", 'Limit': utils.maxnodeitems}, False)
         Content = args[0]
-        Unsorted = True
     elif query == 'Favorite':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsFavorite'}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsFavorite'}, False)
         Content = args[0]
     elif query == 'Inprogress':
-        QueryArgs = (Id, [args[0]], False, True, {'filters': 'IsResumable'}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsResumable'}, False)
         Content = args[0]
     elif query == 'BoxSet':
         QueryArgs = (Id, ['BoxSet'], False, True, {}, False, False, True)
         Content = "BoxSet"
     elif query == 'TvChannel':
-        CacheId = "TvChannel_%s" % server_id
+        CacheId = f"TvChannel_{ServerId}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[server_id].API.get_channels():
-                load_ListItem(Id, Item, server_id, ItemsListings)
+            for Item in utils.EmbyServers[ServerId].API.get_channels():
+                load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = "TvChannel"
-    elif query in ("Playlist", "Default"):
-        QueryArgs = (Id, ["Everything"], False, True, {}, False, False, False, True)
+    elif query == "Playlist":
+        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False)
         Content = "Video"
         Unsorted = True
+    elif query == "Playlists":
+        QueryArgs = (Id, ["Playlist"], False, True, {}, False, False, False, True)
+        Content = "Video"
     elif query == "Video":
         QueryArgs = (Id, ["Video"], False, True, {}, False)
         Content = "Video"
-    elif query == "Mixed":
-        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist"], False, True, {}, False)
-    elif query == "Everything":
-        QueryArgs = (Id, ["Movie", "Series", "MusicVideo", "Video", "MusicArtist", "Folder", "PhotoAlbum"], False, True, {}, False)
+    elif query == "MixedContent":
+        QueryArgs = (Id, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, False)
     elif query == 'Random':
-        QueryArgs = (Id, [args[0]], False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, False)
+        QueryArgs = (Id, QueryContent, False, True, {'Limit': utils.maxnodeitems, 'SortBy': "Random"}, False)
         Content = args[0]
         Unsorted = True
         Cache = False
     elif query == 'Upcoming':
-        CacheId = "Upcoming_%s" % "Upcoming"
+        CacheId = "Upcoming_Upcoming"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[server_id].API.get_upcoming(Id, ["Episode"]):
-                load_ListItem(Id, Item, server_id, ItemsListings)
+            for Item in utils.EmbyServers[ServerId].API.get_upcoming(Id):
+                load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Content = "Episode"
     elif query == 'NextUp':
-        CacheId = "NextUp_%s_%s" % (server_id, Id)
+        CacheId = f"NextUp_{ServerId}_{Id}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[server_id].API.get_NextUp(Id, ["Episode"]):
-                load_ListItem(Id, Item, server_id, ItemsListings)
+            for Item in utils.EmbyServers[ServerId].API.get_NextUp(Id):
+                load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
         Unsorted = True
         Content = "Episode"
     elif query == 'Resume':
-        QueryArgs = (Id, [args[0]], False, True, {}, True)
+        QueryArgs = (Id, QueryContent, False, True, {}, True)
         Content = args[0]
     elif query == 'Season':
         QueryArgs = (Id, ["Season"], False, True, {}, False)
@@ -393,7 +402,7 @@ def browse(Handle, Id, query, args, server_id):
         QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, False)
         Content = "PhotoAlbum"
     elif query == "Folder":
-        QueryArgs = (Id, ["Everything"], False, False, {}, False, False, False, True)
+        QueryArgs = (Id, ["Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer"], False, False, {}, False, False, False, True)
     elif query == 'MusicVideo':
         QueryArgs = (Id, ["MusicVideo"], False, True, {}, False)
         Content = "MusicVideo"
@@ -410,21 +419,21 @@ def browse(Handle, Id, query, args, server_id):
         QueryArgs = (Id, ["Audio"], False, True, {}, False)
         Content = "Audio"
     elif query == 'MusicAlbum':
-        CacheId = "MusicAlbum_%s_%s_%s" % (server_id, Id, args[0])
+        CacheId = f"MusicAlbum_{ServerId}_{Id}_{args[0]}"
 
         if CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["MusicAlbum"], True):
-                load_ListItem(Id, Item, server_id, ItemsListings)
+            for Item in utils.EmbyServers[ServerId].API.browse_MusicByArtistId(Id, args[0], ["MusicAlbum"], True):
+                load_ListItem(Id, Item, ServerId, ItemsListings)
 
             Content = "MusicAlbum"
 
             # Append audio with no album information
-            for Item in utils.EmbyServers[server_id].API.browse_MusicByArtistId(Id, args[0], ["Audio", "MusicVideo"], True):
+            for Item in utils.EmbyServers[ServerId].API.browse_MusicByArtistId(Id, args[0], ["Audio", "MusicVideo"], True):
                 if not 'AlbumId' in Item:
-                    load_ListItem(Id, Item, server_id, ItemsListings)
+                    load_ListItem(Id, Item, ServerId, ItemsListings)
 
             globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
@@ -432,61 +441,74 @@ def browse(Handle, Id, query, args, server_id):
         CacheId = str(QueryArgs)
 
         if Cache and CacheId in QueryCache and QueryCache[CacheId][0]:
-            LOG.info("Using QueryCache: %s" % CacheId)
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            for Item in utils.EmbyServers[server_id].API.get_Items_dynamic(*QueryArgs):
+            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*QueryArgs):
                 if utils.SystemShutdown:
                     return
 
-                load_ListItem(Id, Item, server_id, ItemsListings)
+                load_ListItem(Id, Item, ServerId, ItemsListings)
 
             if Cache:
                 globals()["QueryCache"][CacheId] = [True, ItemsListings]
 
-    LOG.info("Dynamic nodes: addDirectoryItems")
+    xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addDirectoryItems", 1) # LOGINFO
 
     if not xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings)):
-        LOG.error("Dynamic nodes: addDirectoryItems FAIL")
+        xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addDirectoryItems FAIL", 3) # LOGERROR
         xbmc.executebuiltin('ReloadSkin()')
         return
 
     # Set Sorting
+    xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addSortMethod", 1) # LOGINFO
+
     if Unsorted:
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
 
-    LOG.info("Dynamic nodes: addSortMethod")
-
-    if query in ('Photo', 'PhotoAlbum'):
+    if query in ('Genre', 'Tags', 'Letter', 'Folder', 'Playlist', 'Default', 'Favorite'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+    elif query in ('Photo', 'PhotoAlbum') or args[0] == ('Photo', 'PhotoAlbum'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-    elif query == 'Episode':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    elif query in ('Audio', 'MusicVideo') or args[0] in ('Audio', 'MusicVideo'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ALBUM_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    elif query == 'MusicAlbum' or args[0] == 'MusicAlbum':
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ALBUM_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    elif query in ('MusicArtist', 'MusicVideoArtist') or args[0] in ('MusicArtist', 'MusicVideoArtist'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST_IGNORE_THE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+    elif query in ('Movie', 'Video', 'Series') or args[0] in ('Movie', 'Video', 'Series'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-    elif query == 'Upcoming':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+    elif query == 'Season' or args[0] == 'Season':
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
+    elif query in ('Episode', 'Upcoming', 'NextUp') or args[0] in ('Episode', 'Upcoming', 'NextUp'):
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_EPISODE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-    elif query == 'MusicVideo':
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_ARTIST)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_GENRE)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
     else:
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_DATE)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RATING)
-        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+        xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
     if Content and Content in MappingContentKodi:
         xbmcplugin.setContent(Handle, MappingContentKodi[Content])
@@ -494,7 +516,7 @@ def browse(Handle, Id, query, args, server_id):
         if ItemsListings and ItemsListings[0][3] in MappingContentKodi:
             xbmcplugin.setContent(Handle, MappingContentKodi[ItemsListings[0][3]])
 
-    LOG.info("Dynamic nodes: endOfDirectory")
+    xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: endOfDirectory", 1) # LOGINFO
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 def remotepictures(Handle, playposition):
@@ -503,250 +525,13 @@ def remotepictures(Handle, playposition):
 
     for Pictures in playerops.Pictures:
         list_li.append((Pictures[0], Pictures[1], False))
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{"playlistid":2,"item":{"file":"%s"}}}' % Pictures[0])
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.setContent(Handle, "images")
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
     if playposition != "-1":
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Player.Open","params":{"item":{"playlistid":2,"position":%s}}}' % playposition)
-
-def SyncThemes(server_id):
-    views = []
-    DownloadThemes = False
-
-    if xbmc.getCondVisibility('System.HasAddon(service.tvtunes)'):
-        try:
-            tvtunes = xbmcaddon.Addon(id="service.tvtunes")
-            tvtunes.setSetting('custom_path_enable', "true")
-            tvtunes.setSetting('custom_path', utils.FolderAddonUserdataLibrary)
-            LOG.info("TV Tunes custom path is enabled and set.")
-        except:
-            utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
-            return
-    else:
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33152))
-        return
-
-    if not utils.useDirectPaths:
-        DownloadThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Download themes (YES) or link themes (NO)?")
-
-    UseAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Audio")
-    UseVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message="Video")
-    xbmc.executebuiltin('Dialog.Close(addoninformation)')
-    utils.progress_open(utils.Translate(33451))
-
-    for LibraryID, LibraryInfo in list(utils.EmbyServers[server_id].Views.ViewItems.items()):
-        if LibraryInfo[1] in ('movies', 'tvshows', 'mixed'):
-            views.append(LibraryID)
-
-    items = {}
-
-    for ViewId in views:
-        if UseVideoThemes:
-            for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeVideo': "True"}):
-                query = normalize_string(item['Name'])
-                items[item['Id']] = query
-
-        if UseAudioThemes:
-            for item in utils.EmbyServers[server_id].API.get_Items(ViewId, ['Everything'], True, True, {'HasThemeSong': "True"}):
-                query = normalize_string(item['Name'])
-                items[item['Id']] = query
-
-    Index = 1
-    TotalItems = len(items) / 100
-
-    for ItemId, name in list(items.items()):
-        utils.progress_update(int(Index / TotalItems), utils.Translate(33451), name)
-        nfo_path = "%s%s/" % (utils.FolderAddonUserdataLibrary, name)
-        nfo_file = "%s%s" % (nfo_path, "tvtunes.nfo")
-
-        paths = []
-        themes = []
-
-        if UseAudioThemes and not UseVideoThemes:
-            ThemeItems = utils.EmbyServers[server_id].API.get_themes(ItemId, True, False)
-
-            if 'ThemeSongsResult' in ThemeItems:
-                themes += ThemeItems['ThemeSongsResult']['Items']
-        elif UseVideoThemes and not UseAudioThemes:
-            ThemeItems = utils.EmbyServers[server_id].API.get_themes(ItemId, False, True)
-
-            if 'ThemeVideosResult' in ThemeItems:
-                themes += ThemeItems['ThemeVideosResult']['Items']
-        elif UseVideoThemes and UseAudioThemes:
-            ThemeItems = utils.EmbyServers[server_id].API.get_themes(ItemId, True, True)
-
-            if 'ThemeSongsResult' in ThemeItems:
-                themes += ThemeItems['ThemeSongsResult']['Items']
-
-            if 'ThemeVideosResult' in ThemeItems:
-                themes += ThemeItems['ThemeVideosResult']['Items']
-
-        if DownloadThemes and utils.getFreeSpace(utils.FolderAddonUserdataLibrary) < 2097152: # check if free space below 2GB
-            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
-            LOG.warning("Themes download: running out of space")
-            break
-
-        if utils.SystemShutdown:
-            utils.progress_close()
-            return
-
-        # add content sorted by audio -> video
-        for theme in themes:
-            if theme['Type'] == 'Audio':
-                if DownloadThemes:
-                    ThemeFile = "%saudio.%s" % (nfo_path, theme['MediaSources'][0]['Container'])
-                    paths.append(ThemeFile)
-
-                    if not utils.checkFileExists(ThemeFile):
-                        BinaryData = utils.EmbyServers[server_id].API.get_Item_Binary(theme['Id'])
-
-                        if BinaryData:
-                            utils.mkDir(nfo_path)
-                            utils.writeFileBinary(ThemeFile, BinaryData)
-                        else:
-                            LOG.warning("Themes: Download failed %s " % theme['MediaSources'][0]['Path'])
-                            paths.remove(ThemeFile)
-                            continue
-                else: # remote links
-                    if utils.useDirectPaths:
-                        paths.append(theme['MediaSources'][0]['Path'])
-                    else:
-                        Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
-                        paths.append("http://127.0.0.1:57342/A-%s-%s-%s-%s" % (server_id, theme['Id'], theme['MediaSources'][0]['Id'], Filename))
-            else:
-                if DownloadThemes:
-                    ThemeFile = "%svideo.%s" % (nfo_path, theme['MediaSources'][0]['Container'])
-                    paths.append(ThemeFile)
-
-                    if not utils.checkFileExists(ThemeFile):
-                        BinaryData = utils.EmbyServers[server_id].API.get_Item_Binary(theme['Id'])
-
-                        if BinaryData:
-                            utils.mkDir(nfo_path)
-                            utils.writeFileBinary(ThemeFile, BinaryData)
-                        else:
-                            LOG.warning("Themes: Download failed %s " % theme['MediaSources'][0]['Path'])
-                            paths.remove(ThemeFile)
-                            continue
-                else: # remote links
-                    if utils.useDirectPaths:
-                        paths.append(theme['MediaSources'][0]['Path'])
-                    else:
-                        Filename = utils.PathToFilenameReplaceSpecialCharecters(theme['Path'])
-                        paths.append("http://127.0.0.1:57342/V-%s-%s-%s-%s" % (server_id, theme['Id'], theme['MediaSources'][0]['Id'], Filename))
-
-        Index += 1
-
-        if paths:
-            utils.mkDir(nfo_path)
-            Data = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<tvtunes>\n'
-
-            for path in paths:
-                Data += ("    <file>%s</file>\n" % path).encode("utf-8")
-
-            Data += b'</tvtunes>'
-            utils.delFile(nfo_file)
-            utils.writeFileBinary(nfo_file, Data)
-
-    utils.progress_close()
-    utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
-
-def SyncLiveTV(server_id):
-    if xbmc.getCondVisibility('System.HasAddon(pvr.iptvsimple)') and xbmc.getCondVisibility('System.AddonIsEnabled(pvr.iptvsimple)'):
-        xbmc.executebuiltin('Dialog.Close(addoninformation)')
-        ChannelNames = {}
-
-        # build m3u playlist
-        utils.progress_open(utils.Translate(33449))
-        channels = utils.EmbyServers[server_id].API.get_channels()
-
-        if channels:
-            ProgressBarTotal = len(channels) / 100
-            playlist = "#EXTM3U\n"
-
-            for ProgressBarIndex, item in enumerate(channels):
-                utils.progress_update(int(ProgressBarIndex / ProgressBarTotal), utils.Translate(33449), item['Name'])
-                ChannelNames[item['Id']] = item['Name']
-
-                if item['TagItems']:
-                    Tag = item['TagItems'][0]['Name']
-                else:
-                    Tag = "--No Info--"
-
-                ImageUrl = ""
-
-                if item['ImageTags']:
-                    if 'Primary' in item['ImageTags']:
-                        ImageUrl = "http://127.0.0.1:57342/p-%s-%s-0-p-%s" % (server_id, item['Id'], item['ImageTags']['Primary'])
-
-                StreamUrl = "http://127.0.0.1:57342/t-%s-%s-stream.ts" % (server_id, item['Id'])
-                playlist += '#KODIPROP:mimetype=video/mp2t\n'
-
-                if item['Name'].find("(radio)") != -1 or item['MediaType'] != "Video":
-                    playlist += '#EXTINF:-1 tvg-id="%s" tvg-name="%s" tvg-logo="%s" radio="true" group-title="%s",%s\n' % (item['Id'], item['Name'], ImageUrl, Tag, item['Name'])
-                else:
-                    playlist += '#EXTINF:-1 tvg-id="%s" tvg-name="%s" tvg-logo="%s" group-title="%s",%s\n' % (item['Id'], item['Name'], ImageUrl, Tag, item['Name'])
-
-                playlist += "%s\n" % StreamUrl
-
-            PlaylistFile = "%s%s" % (utils.FolderEmbyTemp, 'livetv.m3u')
-            utils.writeFileString(PlaylistFile, playlist)
-            iptvsimple = xbmcaddon.Addon(id="pvr.iptvsimple")
-            iptvsimple.setSetting('m3uPathType', "0")
-            iptvsimple.setSetting('m3uPath', PlaylistFile)
-
-            # build epg
-            utils.progress_update(0, utils.Translate(33450), "")
-            epgdata = utils.EmbyServers[server_id].API.get_channelprogram()
-
-            if epgdata:
-                ProgressBarTotal = len(epgdata['Items']) / 100
-                EPGFile = "%s%s" % (utils.FolderEmbyTemp, 'livetv.epg')
-                epg = '<?xml version="1.0" encoding="utf-8" ?>\n'
-                epg += '<tv>\n'
-
-                for ProgressBarIndex, item in enumerate(epgdata['Items']):
-                    utils.progress_update(int(ProgressBarIndex / ProgressBarTotal), utils.Translate(33450), ChannelNames[item['ChannelId']])
-                    temp = item['StartDate'].split("T")
-                    timestampStart = temp[0].replace("-", "")
-                    temp2 = temp[1].split(".")
-                    timestampStart += temp2[0].replace(":", "")[:6]
-                    temp2 = temp2[1].split("+")
-
-                    if len(temp2) > 1:
-                        timestampStart += " +" + temp2[1].replace(":", "")
-
-                    temp = item['EndDate'].split("T")
-                    timestampEnd = temp[0].replace("-", "")
-                    temp2 = temp[1].split(".")
-                    timestampEnd += temp2[0].replace(":", "")[:6]
-                    temp2 = temp2[1].split("+")
-
-                    if len(temp2) > 1:
-                        timestampEnd += " +" + temp2[1].replace(":", "")
-
-                    epg += '  <channel id="%s">\n' % item['ChannelId']
-                    epg += '  <display-name lang="en">%s</display-name>\n' % ChannelNames[item['ChannelId']]
-                    epg += '  </channel>\n'
-                    epg += '  <programme start="%s" stop="%s" channel="%s">\n' % (timestampStart, timestampEnd, item['ChannelId'])
-                    epg += '    <title lang="en">%s</title>\n' % item['Name']
-
-                    if 'Overview' in item:
-                        epg += '    <desc lang="en">%s</desc>\n' % item['Overview']
-
-                    epg += '  </programme>\n'
-                epg += '</tv>'
-
-                utils.writeFileString(EPGFile, epg)
-                iptvsimple.setSetting('epgPathType', "0")
-                iptvsimple.setSetting('epgPath', EPGFile)
-
-        utils.progress_close()
-    else:
-        utils.Dialog.ok(heading=utils.addon_name, message=utils.Translate(33233))
+        utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Player.Open","params":{{"item":{{"playlistid":2,"position":{playposition}}}}}}}')
 
 # Add or remove users from the default server session
 def AddUser(EmbyServer):
@@ -793,7 +578,7 @@ def AddUser(EmbyServer):
 
         UserData = AddUserChoices[resp]
         EmbyServer.add_AdditionalUser(UserData['UserId'], UserData['UserName'])
-        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33067), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33067)} {UserData['UserName']}", icon=utils.icon, time=1000, sound=False)
     else:  # Remove user
         RemoveNameArray = []
 
@@ -807,32 +592,16 @@ def AddUser(EmbyServer):
 
         UserData = RemoveUserChoices[resp]
         EmbyServer.remove_AdditionalUser(UserData['UserId'])
-        utils.Dialog.notification(heading=utils.addon_name, message="%s %s" % (utils.Translate(33066), UserData['UserName']), icon=utils.icon, time=1000, sound=False)
+        utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33066)} {UserData['UserName']}", icon=utils.icon, time=1000, sound=False)
 
-# For theme media, do not modify unless modified in TV Tunes.
-# Remove dots from the last character as windows can not have directories with dots at the end
-def normalize_string(text):
-    text = text.replace(":", "")
-    text = text.replace("/", "-")
-    text = text.replace("\\", "-")
-    text = text.replace("<", "")
-    text = text.replace(">", "")
-    text = text.replace("*", "")
-    text = text.replace("?", "")
-    text = text.replace('|', "")
-    text = text.strip()
-    text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', text)
-    return text
-
-def load_ListItem(Id, Item, server_id, ItemsListings):
+def load_ListItem(Id, Item, ServerId, ItemsListings):
     # Item was fetched from internal database
     if "ListItem" in Item:
         ItemsListings.append((Item["Path"], Item["ListItem"], Item["isFolder"], Item["Type"]))
         return
 
     # Create Kodi listitem for dynamic loaded item
-    li = listitem.set_ListItem(Item, server_id)
+    li = listitem.set_ListItem(Item, ServerId)
 
     if not Item.get('NodesMenu', False):
         if Item['Type'] in MappingStaggered:
@@ -840,20 +609,27 @@ def load_ListItem(Id, Item, server_id, ItemsListings):
             Item['IsFolder'] = True
 
     if Item.get('IsFolder', False):
-        params = {'id': Item['Id'], 'mode': "browse", 'query': Item['Type'], 'server': server_id, 'arg': Item.get('args', Id)}
-        path = "plugin://%s/?%s" % (utils.PluginId, urlencode(params))
+        params = {'id': Item['Id'], 'mode': "browse", 'query': Item['Type'], 'server': ServerId, 'arg': Item.get('args', Id)}
+        path = f"plugin://{utils.PluginId}/?{urlencode(params)}"
         ItemsListings.append((path, li, True, Item["Type"]))
     else:
-        path, _ = utils.get_path_type_from_item(server_id, Item)
+        path, _ = common.get_path_type_from_item(ServerId, Item)
         ItemsListings.append((path, li, False, Item["Type"]))
 
         if Item['Type'] in ("Movie", "Episode", "MusicVideo", "Video", "Audio"):
-            globals()["DynamicNodeServerId"] = server_id
+            globals()["DynamicNodeServerId"] = ServerId
 
 #Menu structure nodes
 def add_ListItem(ListItemData, label, path, isFolder, artwork, HelpText):
     li = xbmcgui.ListItem(label, path=path, offscreen=True)
-    li.setInfo('video', {'title': label, 'plotoutline': HelpText})
+
+    if utils.KodiMajorVersion == "19":
+        li.setInfo('video', {'title': label, 'plotoutline': HelpText})
+    else:
+        InfoTags = li.getVideoInfoTag()
+        InfoTags.setPlotOutline(HelpText)
+        InfoTags.setTitle(label)
+
     li.setProperties({'IsFolder': 'true', 'IsPlayable': 'false'})
     li.setArt({"thumb": artwork, "fanart": "special://home/addons/plugin.video.emby-next-gen/resources/fanart.jpg", "landscape": artwork or "special://home/addons/plugin.video.emby-next-gen/resources/fanart.jpg", "banner": "special://home/addons/plugin.video.emby-next-gen/resources/banner.png", "clearlogo": "special://home/addons/plugin.video.emby-next-gen/resources/clearlogo.png", "icon": artwork})
     ListItemData.append((path, li, isFolder))
@@ -862,8 +638,8 @@ def get_EmbyServerList():
     ServerIds = []
     ServerItems = []
 
-    for server_id, EmbyServer in list(utils.EmbyServers.items()):
-        ServerIds.append(server_id)
+    for ServerId, EmbyServer in list(utils.EmbyServers.items()):
+        ServerIds.append(ServerId)
         ServerItems.append(EmbyServer.ServerData['ServerName'])
 
     return len(utils.EmbyServers), ServerIds, ServerItems
@@ -891,7 +667,7 @@ def manage_servers(ServerConnect):  # threaded by caller
         Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
 
         if Selection > -1:
-            utils.Dialog.notification(heading=utils.addon_name, message="%s: %s" % (utils.Translate(33448), utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName']), icon=utils.icon, time=1500, sound=False)
+            utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33448)}: {utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName']}", icon=utils.icon, time=1500, sound=False)
             utils.EmbyServers[ServerIds[Selection]].ServerDisconnect()
             del utils.EmbyServers[ServerIds[Selection]]
     elif Selection == 2:
@@ -902,7 +678,7 @@ def manage_servers(ServerConnect):  # threaded by caller
             AddUser(utils.EmbyServers[ServerIds[Selection]])
 
 def manage_libraries(ServerSelection):  # threaded by caller
-    MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33060), utils.Translate(33234)]
+    MenuItems = [utils.Translate(33098), utils.Translate(33154), utils.Translate(33140), utils.Translate(33184), utils.Translate(33139), utils.Translate(33234), utils.Translate(33060)]
     Selection = utils.Dialog.select(utils.Translate(33194), MenuItems) # Manage libraries
     ServerIds = list(utils.EmbyServers)
     EmbyServerId = ServerIds[ServerSelection]
@@ -918,26 +694,26 @@ def manage_libraries(ServerSelection):  # threaded by caller
     elif Selection == 4:
         utils.EmbyServers[EmbyServerId].library.select_libraries("UpdateLibrarySelection")
     elif Selection == 5:
-        SyncThemes(EmbyServerId)
+        utils.EmbyServers[EmbyServerId].library.SyncLiveTV()
     elif Selection == 6:
-        SyncLiveTV(EmbyServerId)
+        utils.EmbyServers[EmbyServerId].library.SyncThemes()
 
 def favepisodes(Handle):
     Handle = int(Handle)
     CacheId = "favepisodes"
 
     if CacheId in QueryCache and QueryCache[CacheId][0]:
-        LOG.info("Using QueryCache: %s" % CacheId)
+        xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
         ListItems = QueryCache[CacheId][1]
     else:
-        LOG.info("Rebuid QueryCache: %s" % CacheId)
+        xbmc.log(f"EMBY.helper.pluginmenu: Rebuid QueryCache: {CacheId}", 1) # LOGINFO
         ListItems = ()
-        episodes_kodiId = ()
+        episodes_kodiId = []
 
-        for server_id in utils.EmbyServers:
-            embydb = dbio.DBOpenRO(server_id, "favepisodes")
+        for ServerId in utils.EmbyServers:
+            embydb = dbio.DBOpenRO(ServerId, "favepisodes")
             episodes_kodiId += embydb.get_episode_fav()
-            dbio.DBCloseRO(server_id, "favepisodes")
+            dbio.DBCloseRO(ServerId, "favepisodes")
 
         KodiItems = ()
         videodb = dbio.DBOpenRO("video", "favepisodes")
@@ -960,7 +736,7 @@ def favepisodes(Handle):
 
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
-    LOG.info("<[ cache textures ]")
+    xbmc.log("EMBY.helper.pluginmenu: <[ cache textures ]", 1) # LOGINFO
     DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044))
 
     # Select content to be cached
@@ -978,26 +754,26 @@ def cache_textures():
     Urls = []
 
     if 0 in selection or 17 in selection or 18 in selection:
-        for server_id, EmbyServer in list(utils.EmbyServers.items()):
+        for ServerId, EmbyServer in list(utils.EmbyServers.items()):
             if 0 in selection or 17 in selection: # PhotoAlbum
-                TotalRecords = EmbyServer.API.get_TotalRecordsRegular(None, "PhotoAlbum", {})
+                TotalRecords = EmbyServer.API.get_TotalRecords(None, "PhotoAlbum", {})
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
                 for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}):
-                    path, _ = utils.get_path_type_from_item(server_id, Item)
+                    path, _ = common.get_path_type_from_item(ServerId, Item)
                     TempUrls[ItemCounter] = (path,)
                     ItemCounter += 1
 
                 Urls += TempUrls
 
             if 0 in selection or 18 in selection: # Photo
-                TotalRecords = EmbyServer.API.get_TotalRecordsRegular(None, "Photo", {})
+                TotalRecords = EmbyServer.API.get_TotalRecords(None, "Photo", {})
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
                 for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}):
-                    path, _ = utils.get_path_type_from_item(server_id, Item)
+                    path, _ = common.get_path_type_from_item(ServerId, Item)
                     TempUrls[ItemCounter] = (path,)
                     ItemCounter += 1
 
@@ -1080,7 +856,7 @@ def get_image_metadata(ImageBinaryData, Hash):
     ImageBinaryDataSize = len(ImageBinaryData)
 
     if ImageBinaryDataSize < 10:
-        LOG.warning("Artwork cache: invalid image size: %s / %s" % (Hash, ImageBinaryDataSize))
+        xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: invalid image size: {Hash} / {ImageBinaryDataSize}", 2) # LOGWARNING
         return width, height, imageformat
 
     # JPG
@@ -1093,7 +869,7 @@ def get_image_metadata(ImageBinaryData, Hash):
             i += BlockLength
 
             if i >= ImageBinaryDataSize or ImageBinaryData[i] != 0xFF:
-                LOG.warning("Artwork cache: invalid jpg: %s" % Hash)
+                xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: invalid jpg: {Hash}", 2) # LOGWARNING
                 break
 
             if ImageBinaryData[i + 1] >> 4 == 12: # 0xCX
@@ -1107,28 +883,27 @@ def get_image_metadata(ImageBinaryData, Hash):
         imageformat = "png"
         width, height = struct.unpack('>ii', ImageBinaryData[16:24])
     else: # Not supported format
-        LOG.warning("Artwork cache: invalid image format: %s" % Hash)
+        xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: invalid image format: {Hash}", 2) # LOGWARNING
 
-    LOG.debug("Artwork cache image data: %s / %s / %s" % (width, height, Hash))
+    xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache image data: {width} / {height} / {Hash}", 0) # LOGDEBUG
     return width, height, imageformat
 
 # Cache all entries
 def CacheAllEntries(urls):
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     total = len(urls)
-    KodiTime, UnixTime = utils.currenttime_kodi_format_and_unixtime()
     ArtworkCacheItems = 1000 * [{}]
     ArtworkCacheIndex = 0
 
     for IndexUrl, url in enumerate(urls):
         if IndexUrl % 1000 == 0:
-            add_textures(ArtworkCacheItems, KodiTime)
+            add_textures(ArtworkCacheItems)
             ArtworkCacheItems = 1000 * [{}]
             ArtworkCacheIndex = 0
 
             if utils.getFreeSpace(utils.FolderUserdataThumbnails) < 2097152: # check if free space below 2GB
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
-                LOG.warning("Artwork cache: running out of space")
+                xbmc.log("EMBY.helper.pluginmenu: Artwork cache: running out of space", 2) # LOGWARNING
                 break
         else:
             ArtworkCacheIndex += 1
@@ -1136,22 +911,23 @@ def CacheAllEntries(urls):
         if not url[0]:
             continue
 
-        Data = url[0].replace("http://127.0.0.1:57342/", "").split("-")
+        Folder = url[0].split("/")
+        Data = url[0][url[0].rfind("/") + 1:].split("-")
 
-        if len(Data) < 5:
-            LOG.warning("Artwork cache: Invalid item found %s" % url)
+        if len(Data) < 4 or len(Folder) < 5:
+            xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: Invalid item found {url}", 2) # LOGWARNING
             continue
 
-        ServerId = Data[1]
-        EmbyID = Data[2]
-        ImageIndex = Data[3]
-        ImageTag = Data[5]
+        ServerId = Folder[4]
+        EmbyID = Data[1]
+        ImageIndex = Data[2]
+        ImageTag = Data[4]
 
-        if Data[4] not in EmbyArtworkIDs:
-            LOG.warning("Artwork cache: Invalid (EmbyArtworkIDs) item found %s" % url)
+        if Data[3] not in EmbyArtworkIDs:
+            xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: Invalid (EmbyArtworkIDs) item found {url}", 2) # LOGWARNING
             continue
 
-        ImageType = EmbyArtworkIDs[Data[4]]
+        ImageType = EmbyArtworkIDs[Data[3]]
 
         # Calculate hash -> crc32mpeg2
         crc = 0xffffffff
@@ -1168,60 +944,61 @@ def CacheAllEntries(urls):
             utils.progress_close()
             return
 
-        TempPath = "%s%s/%s" % (utils.FolderUserdataThumbnails, Hash[0], Hash)
+        TempPath = f"{utils.FolderUserdataThumbnails}{Hash[0]}/{Hash}"
 
-        if not utils.checkFileExists("%s.jpg" % TempPath) and not utils.checkFileExists("%s.png" % TempPath):
-            if len(Data) > 6 and ImageType == "Chapter":
-                OverlayText = unquote("-".join(Data[6:]))
+        if not utils.checkFileExists(f"{TempPath}.jpg") and not utils.checkFileExists(f"{TempPath}.png"):
+            if len(Data) > 5 and ImageType == "Chapter":
+                OverlayText = unquote("-".join(Data[5:]))
                 ImageBinary = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText)
             else:
                 ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag)
 
             Width, Height, ImageFormat = get_image_metadata(ImageBinary, Hash)
-            cachedUrl = "%s/%s.%s" % (Hash[0], Hash, ImageFormat)
-            utils.mkDir("%s%s" % (utils.FolderUserdataThumbnails, Hash[0]))
-            Path = "%s%s" % (utils.FolderUserdataThumbnails, cachedUrl)
+            cachedUrl = f"{Hash[0]}/{Hash}.{ImageFormat}"
+            utils.mkDir(f"{utils.FolderUserdataThumbnails}{Hash[0]}")
+            Path = f"{utils.FolderUserdataThumbnails}{cachedUrl}"
 
             if Width == 0:
-                LOG.warning("Artwork cache: image not detected: %s" % url[0])
+                xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: image not detected: {url[0]}", 2) # LOGWARNING
             else:
                 utils.writeFileBinary(Path, ImageBinary)
                 Size = len(ImageBinary)
-                ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': "d%ss%s" % (UnixTime, Size), 'Path': Path, 'cachedUrl': cachedUrl}
+                ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': f"d0s{Size}", 'Path': Path, 'cachedUrl': cachedUrl}
 
         Value = int((IndexUrl + 1) / total * 100)
-        utils.progress_update(Value, "Emby", "%s: %s / %s" % (utils.Translate(33045), EmbyID, IndexUrl))
+        utils.progress_update(Value, "Emby", f"{utils.Translate(33045)}: {EmbyID} / {IndexUrl}")
 
-    add_textures(ArtworkCacheItems, KodiTime)
+    add_textures(ArtworkCacheItems)
 
-def add_textures(ArtworkCacheItems, KodiTime):
+def add_textures(ArtworkCacheItems):
     texturedb = dbio.DBOpenRW("texture", "artwork_cache")
 
     for ArtworkCacheItem in ArtworkCacheItems:
         if ArtworkCacheItem:
-            texturedb.add_texture(ArtworkCacheItem["Url"], ArtworkCacheItem["cachedUrl"], ArtworkCacheItem["ImageHash"], "1", ArtworkCacheItem["Width"], ArtworkCacheItem["Height"], KodiTime, )
+            texturedb.add_texture(ArtworkCacheItem["Url"], ArtworkCacheItem["cachedUrl"], ArtworkCacheItem["ImageHash"], "1", ArtworkCacheItem["Width"], ArtworkCacheItem["Height"], "")
 
     dbio.DBCloseRW("texture", "artwork_cache")
 
 def reset_querycache():
-    for CacheList in list(QueryCache.values()):
-        CacheList[0] = False
+    if not playerops.RemoteMode: # keep cache in remote client mode -> don't overload Emby server
+        for CacheList in list(QueryCache.values()):
+            CacheList[0] = False
 
 def get_next_episodes(Handle, libraryname):
     Handle = int(Handle)
-    CacheId = "next_episodes_%s" % libraryname
+    CacheId = f"next_episodes_{libraryname}"
 
     if CacheId in QueryCache and QueryCache[CacheId][0]:
-        LOG.info("Using QueryCache: %s" % CacheId)
+        xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
         ListItems = QueryCache[CacheId][1]
     else:
-        LOG.info("Rebuid QueryCache: %s" % CacheId)
+        xbmc.log(f"EMBY.helper.pluginmenu: Rebuid QueryCache: {CacheId}", 1) # LOGINFO
         ListItems = ()
 
-        for EmbyServer in list(utils.EmbyServers.values()):
+        for ServerId in utils.EmbyServers:
             DelayQuery = 0
 
-            while not EmbyServer.library.DatabaseInit:
+            while utils.SyncPause.get(f'database_init_{ServerId}', False):
                 if utils.sleep(1) :
                     return
 
@@ -1253,10 +1030,9 @@ def get_next_episodes(Handle, libraryname):
 
 # Factory reset. wipes all db records etc.
 def factoryreset():
-    LOG.warning("[ factory reset ]")
+    xbmc.log("EMBY.helper.pluginmenu: [ factory reset ]", 2) # LOGWARNING
     utils.SyncPause = {}
     utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
-    DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
 
     for ServerId, EmbyServer in list(utils.EmbyServers.items()):
@@ -1272,11 +1048,8 @@ def factoryreset():
     delete_database('emby')
     delete_database('MyMusic')
     delete_database('MyVideos')
-
-    if DelArtwork:
-        DeleteThumbnails()
-
-    LOG.info("[ complete reset ]")
+    DeleteThumbnails()
+    xbmc.log("EMBY.helper.pluginmenu: [ complete reset ]", 1) # LOGINFO
     utils.restart_kodi()
 
 def delete_database(Database):
@@ -1284,14 +1057,14 @@ def delete_database(Database):
 
     for Filename in files:
         if Filename.startswith(Database):
-            utils.delFile("special://profile/Database/%s" % Filename)
+            utils.delFile(f"special://profile/Database/{Filename}")
 
 # Reset both the emby database and the kodi database.
 def databasereset():
     if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
         return
 
-    LOG.info("[ database reset ]")
+    xbmc.log("EMBY.helper.pluginmenu: [ database reset ]", 1) # LOGINFO
     utils.SyncPause = {}
     DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33086))
     DeleteSettings = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33087))
@@ -1307,7 +1080,7 @@ def databasereset():
         DeleteThumbnails()
 
     if DeleteSettings:
-        LOG.info("[ reset settings ]")
+        xbmc.log("EMBY.helper.pluginmenu: [ reset settings ]", 1) # LOGINFO
         utils.set_settings("MinimumSetup", "")
         utils.delFolder(utils.FolderAddonUserdata)
     else:
@@ -1315,14 +1088,14 @@ def databasereset():
 
         for Filename in files:
             if Filename.startswith('sync_'):
-                utils.delFile("%s%s" % (utils.FolderAddonUserdata, Filename))
+                utils.delFile(f"{utils.FolderAddonUserdata}{Filename}")
 
     # Delete Kodi's emby database(s)
     _, files = utils.listDir("special://profile/Database/")
 
     for Filename in files:
         if Filename.startswith('emby'):
-            utils.delFile("%s%s" % ("special://profile/Database/", Filename))
+            utils.delFile(f"special://profile/Database/{Filename}")
 
     utils.delete_playlists()
     utils.delete_nodes()
@@ -1336,24 +1109,24 @@ def reset_device_id():
     utils.restart_kodi()
 
 def DeleteThumbnails():
-    LOG.info("-->[ reset artwork ]")
+    xbmc.log("EMBY.helper.pluginmenu: -->[ reset artwork ]", 1) # LOGINFO
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     utils.progress_open(utils.Translate(33412))
     Folders, _ = utils.listDir('special://thumbnails/')
     TotalFolders = len(Folders)
 
     for CounterFolder, Folder in enumerate(Folders, 1):
-        utils.progress_update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), "%s: %s" % (utils.Translate(33412), Folder))
-        _, Files = utils.listDir('special://thumbnails/%s' % Folder)
+        utils.progress_update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), f"{utils.Translate(33412)}: {Folder}")
+        _, Files = utils.listDir(f"special://thumbnails/{Folder}")
         TotalFiles = len(Files)
 
         for CounterFile, File in enumerate(Files, 1):
-            utils.progress_update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), "%s: %s%s" % (utils.Translate(33412), Folder, File))
-            LOG.debug("DELETE thumbnail %s" % File)
-            utils.delFile('special://thumbnails/%s%s' % (Folder, File))
+            utils.progress_update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), f"{utils.Translate(33412)}: {Folder}{File}")
+            xbmc.log(f"EMBY.helper.pluginmenu: DELETE thumbnail {File}", 0) # LOGDEBUG
+            utils.delFile(f"special://thumbnails/{Folder}{File}")
 
     texturedb = dbio.DBOpenRW("texture", "cache_textures")
     texturedb.common.delete_tables("Texture")
     dbio.DBCloseRW("texture", "cache_textures")
     utils.progress_close()
-    LOG.info("--<[ reset artwork ]")
+    xbmc.log("EMBY.helper.pluginmenu: --<[ reset artwork ]", 1) # LOGINFO
