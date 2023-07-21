@@ -176,6 +176,10 @@ add support for Favorites combined in one node
 add remote control support
 Watch-together E4K implementation
 
+7.13.7
+=============
+fix ivalid people issue
+
 
 7.13.6
 =============
