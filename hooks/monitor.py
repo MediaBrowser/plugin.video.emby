@@ -95,7 +95,7 @@ class monitor(xbmc.Monitor):
         globals()["KodiScanCount"] = 0
 
         if utils.WidgetRefresh:
-            if library == "video":
+            if utils.WidgetRefreshAudio and library == "video":
                 xbmc.log(f"EMBY.hooks.monitor: [ kodi scan / {library} ] Trigger music scan", 1) # LOGINFO
                 utils.SendJson('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
                 return

@@ -192,7 +192,12 @@ class API:
         else:
             Fields = None
 
-        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': ",".join(MediaTypes)}, Ids, BySyncedLibrarys, ProcessProgressId))
+        if len(MediaTypes) == 1:
+            MediaType = MediaTypes[0]
+        else:
+            MediaType = None
+
+        start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': MediaType}, Ids, BySyncedLibrarys, ProcessProgressId))
 
         while True:
             Item = ItemsQueue.get()
@@ -222,11 +227,12 @@ class API:
                     Params.update({'Recursive': True, 'ParentId': WhitelistLibraryId})
                     IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': Request}, False, False)
 
-                    for Item in IncomingData['Items']:
-                        Found = True
-                        Item['Library'] = {'Id': WhitelistLibraryId, 'Name': WhitelistLibraryName}
-                        ItemsQueue.put(Item)
-                        Index += 1
+                    if 'Items' in IncomingData:
+                        for Item in IncomingData['Items']:
+                            Found = True
+                            Item['Library'] = {'Id': WhitelistLibraryId, 'Name': WhitelistLibraryName}
+                            ItemsQueue.put(Item)
+                            Index += 1
 
                 if not Found or utils.SystemShutdown:
                     ItemsQueue.put("QUIT")

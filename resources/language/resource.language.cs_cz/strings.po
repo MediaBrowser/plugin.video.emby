@@ -2383,3 +2383,11 @@ msgstr ""
 msgctxt "#33542"
 msgid "Kodi has issues playing content via with http/2 protocol (default off)"
 msgstr ""
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr ""
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr ""
