@@ -117,6 +117,7 @@ def PlayerCommands():
 
             globals().update({"MediaType": "", "LibraryId": ""})
             EmbyId = None
+            KodiId = None
             playerops.PlayerId = EventData['player']['playerid']
             FullPath = playerops.GetFilenameandpath()
 
@@ -166,6 +167,10 @@ def PlayerCommands():
             # native mode
             if FullPath and not FullPath.startswith("http") and not FullPath.startswith("/emby_addon_mode/"):
                 MediasourceID = ""
+
+                if not KodiId:
+                    xbmc.log("EMBY.hooks.player: Kodi Id not found", 1) # LOGINFO
+                    continue
 
                 for server_id, EmbyServer in list(utils.EmbyServers.items()):
                     globals()["EmbyServerPlayback"] = EmbyServer

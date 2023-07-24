@@ -151,6 +151,7 @@ FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
 WidgetRefresh = False
+WidgetRefreshAudio = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()  # Init Player
 WizardCompleted = True
@@ -739,6 +740,7 @@ def InitSettings():
     load_settings_bool('remotecontrol_resync_clients')
     load_settings_bool('remotecontrol_keep_clients')
     load_settings_bool('websocketenabled')
+    load_settings_bool('WidgetRefreshAudio')
 
     if ArtworkLimitations:
         globals()["ScreenResolution"] = (int(xbmc.getInfoLabel('System.ScreenWidth')), int(xbmc.getInfoLabel('System.ScreenHeight')))
