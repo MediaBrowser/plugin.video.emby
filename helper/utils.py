@@ -47,7 +47,7 @@ newvideotime = 1
 newmusictime = 1
 startupDelay = 0
 backupPath = ""
-disablehttp2 = "true"
+enablehttp2 = False
 MinimumSetup = ""
 limitIndex = 5
 autoclose = 5
@@ -115,7 +115,8 @@ device_id = ""
 syncdate = ""
 synctime = ""
 syncduringplayback = False
-usekodiworkarounds = False
+usekodiworkaroundswidget = False
+usekodiworkaroundsepisodebookmarks = True
 usepathsubstitution = False
 uniquepeoplemovies = False
 uniquepeopletvshows = False
@@ -150,6 +151,7 @@ FolderUserdataThumbnails = "special://profile/Thumbnails/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
 WidgetRefresh = False
+WidgetRefreshAudio = False
 Dialog = xbmcgui.Dialog()
 XbmcPlayer = xbmc.Player()  # Init Player
 WizardCompleted = True
@@ -660,10 +662,11 @@ def InitSettings():
     load_settings_bool('ArtworkLimitations')
     load_settings_bool('sslverify')
     load_settings_bool('syncduringplayback')
-    load_settings_bool('usekodiworkarounds')
+    load_settings_bool('usekodiworkaroundswidget')
+    load_settings_bool('usekodiworkaroundsepisodebookmarks')
     load_settings_bool('refreshskin')
     load_settings_bool('animateicon')
-    load_settings_bool('disablehttp2')
+    load_settings_bool('enablehttp2')
     load_settings_bool('menuOptions')
     load_settings_bool('xspplaylists')
     load_settings_bool('newContent')
@@ -737,6 +740,7 @@ def InitSettings():
     load_settings_bool('remotecontrol_resync_clients')
     load_settings_bool('remotecontrol_keep_clients')
     load_settings_bool('websocketenabled')
+    load_settings_bool('WidgetRefreshAudio')
 
     if ArtworkLimitations:
         globals()["ScreenResolution"] = (int(xbmc.getInfoLabel('System.ScreenWidth')), int(xbmc.getInfoLabel('System.ScreenHeight')))
@@ -756,11 +760,6 @@ def InitSettings():
         globals()["device_name"] = "Kodi"
     else:
         globals()["device_name"] = quote(device_name) # url encode
-
-    if disablehttp2:
-        globals()["disablehttp2"] = "true"
-    else:
-        globals()["disablehttp2"] = "false"
 
     ToggleIcon = []
 

@@ -1976,7 +1976,7 @@ msgid "Select Media Source"
 msgstr "Wybierz źródło multimediów"
 
 msgctxt "#33454"
-msgid "Use Kodi bugs workaround"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
 msgstr ""
 
 msgctxt "#33455"
@@ -2361,4 +2361,32 @@ msgstr ""
 
 msgctxt "#33537"
 msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr ""
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr ""
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr ""
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr ""
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr ""
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr ""
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr ""
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
 msgstr ""

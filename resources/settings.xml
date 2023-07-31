@@ -1020,6 +1020,11 @@
                 </setting>
             </group>
             <group id="8" label="33410">
+                <setting label="33543" id="WidgetRefreshAudio" type="boolean" help="33544">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting label="33333" id="animateicon" type="boolean" help="">
                     <level>0</level>
                     <default>false</default>
@@ -1105,14 +1110,19 @@
                         <popup>false</popup>
                     </control>
                 </setting>
-                <setting label="33267" id="disablehttp2" type="boolean" help="">
+                <setting label="33541" id="enablehttp2" type="boolean" help="33542">
                     <level>3</level>
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
-                <setting label="33454" id="usekodiworkarounds" type="boolean" help="">
+                <setting label="33454" id="usekodiworkaroundswidget" type="boolean" help="33540">
                     <level>3</level>
                     <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33538" id="usekodiworkaroundsepisodebookmarks" type="boolean" help="33539">
+                    <level>3</level>
+                    <default>true</default>
                     <control type="toggle"/>
                 </setting>
                 <setting label="30500" id="sslverify" type="boolean" help="">

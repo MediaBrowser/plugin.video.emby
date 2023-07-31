@@ -1,3 +1,21 @@
+8.2.10
+=============
+Widget refresh improvement
+fix progress updates, playing native (Kodi) files in combination of Emby content
+fix check artwork update -> https://emby.media/community/index.php?/topic/116208-embyforkodi-next-gen-8xx-support/&do=findComment&comment=1268202
+fix minor sync issue
+
+
+8.2.9
+=============
+add emby sources to sources.xml (fixes Kodi's masterlock issue)
+(re)add Kodi workaround for episode bookmarks (default on)
+disable http2 by default
+fix minor sync issue and improve incremental performance
+fix IPV6 websocket connection -> https://github.com/MediaBrowser/plugin.video.emby/issues/471
+fix media flags (codec infos)
+
+
 8.2.8
 =============
 fix tvtunes

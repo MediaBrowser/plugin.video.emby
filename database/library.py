@@ -299,7 +299,7 @@ class Library:
             ItemArrayIndex = 0
             self.EmbyServer.API.ProcessProgress["worker_update"] = 0
 
-            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items_Ids(UpdateItemsIds, ContentType, False, False, "worker_update"), 1):
+            for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items_Ids(UpdateItemsIds, ContentType, False, False, True, "worker_update"), 1):
                 if ItemArrayIndex >= 100:
                     self.EmbyServer.API.ProcessProgress["worker_update"] = ItemIndex
                     Continue, index, embydb = self.worker_update_items(embydb, Items, UpdateItemsIds, RecordsPercent, WorkerName, index)
@@ -345,9 +345,11 @@ class Library:
                     self.ContentObject = None
 
                     for Item in ProcessItems:
-                        Item['Library'] = {}   #LibraryInfos[Item['Id']]
                         embydb.delete_UpdateItem(Item['Id'])
-                        UpdateItemsIds.remove(Item['Id'])
+
+                        if Item['Id'] in UpdateItemsIds:
+                            UpdateItemsIds.remove(Item['Id'])
+
                         Continue, embydb, kodidb = self.ItemOps(int(index / RecordsPercent), index, Item, embydb, kodidb, ContentType, WorkerName)
                         index += 1
 
