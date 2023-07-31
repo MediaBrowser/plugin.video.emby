@@ -189,7 +189,6 @@ def System_OnWake():
     xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
     globals()["SleepMode"] = False
     EmbyServer_ReconnectAll()
-    webservice.start()
     utils.SyncPause['kodi_sleep'] = False
 
 def System_OnSleep():
@@ -197,10 +196,19 @@ def System_OnSleep():
         xbmc.log("EMBY.hooks.monitor: System.OnSleep in progress, skip System.OnSleep", 2) # LOGWARNING
         return
 
+    globals()["SleepMode"] = True
     xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
     utils.SyncPause['kodi_sleep'] = True
-    webservice.close()
-    globals()["SleepMode"] = True
+
+    if not player.PlayBackEnded and player.EmbyServerPlayback:
+        player.PlayerEvents.put(("stop", '{"end":"sleep"}'))
+
+        while not player.PlayerEvents.empty():
+            utils.sleep(0.5)
+
+        player.EmbyServerPlayback = None
+
+    EmbyServer_DisconnectAll()
 
 # Remove Items
 def VideoLibrary_OnRemove(): # Cache queries to minimize database openings

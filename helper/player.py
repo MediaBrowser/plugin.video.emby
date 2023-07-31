@@ -119,6 +119,10 @@ def PlayerCommands():
             EmbyId = None
             KodiId = None
             playerops.PlayerId = EventData['player']['playerid']
+
+            if playerops.PlayerId == -1: # workaround for Kodi bug after wake from sleep
+                playerops.PlayerId = 1
+
             FullPath = playerops.GetFilenameandpath()
 
             if not 'id' in EventData['item']:
@@ -345,11 +349,14 @@ def PlayerCommands():
 
             if EmbyPlayerSessionOpen:
                 globals()['EmbyPlayerSessionOpen'] = False
+                globals()['PlaySessionId'] = str(uuid.uuid4()).replace("-", "")
                 xbmc.log("EMBY.hooks.player: Emby playsession closed", 1) # LOGINFO
                 EmbyServerPlayback.API.session_stop(PlayingItem)
-                globals()['PlaySessionId'] = str(uuid.uuid4()).replace("-", "")
 
-            if EventData['end']:
+            if EventData['end'] == "sleep":
+                stop_playback(False, True)
+                globals()['EmbyServerPlayback'] = None
+            elif EventData['end']:
                 stop_playback(True, False)
             else:
                 stop_playback(True, True)
