@@ -347,6 +347,16 @@ def http_Query(client, Payload):
         client.send(sendNoContent)
         return
 
+    # Waiting for Emby connection:
+    while not utils.EmbyServers[QueryData['ServerId']].EmbySession:
+        xbmc.log(f"EMBY.hooks.webservice: Waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
+
+        if utils.sleep(1):
+            xbmc.log(f"EMBY.hooks.webservice: Kodi shutdown while waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
+            client.send(sendNoContent)
+            client.close()
+            return
+
     if Data[0] == "p":  # Image/picture
         QueryData.update({'ImageIndex': Data[2], 'ImageType': EmbyArtworkIDs[Data[3]], 'ImageTag': Data[4]})
 
