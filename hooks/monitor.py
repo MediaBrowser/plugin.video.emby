@@ -566,10 +566,11 @@ def settingschanged():  # threaded by caller
     maxnodeitemsPreviousValue = utils.maxnodeitems
     AddonModePathPreviousValue = utils.AddonModePath
     websocketenabledPreviousValue = utils.websocketenabled
+    curltimeoutsPreviousValue = utils.curltimeouts
     utils.InitSettings()
 
-    # Http2 mode changed, rebuild advanced settings -> restart Kodi
-    if enablehttp2Previous != utils.enablehttp2:
+    # Http2 mode or curltimeouts changed, rebuild advanced settings -> restart Kodi
+    if enablehttp2Previous != utils.enablehttp2 or curltimeoutsPreviousValue != utils.curltimeouts:
         if xmls.advanced_settings():
             RestartKodi = True
 

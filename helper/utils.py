@@ -144,6 +144,7 @@ ArtworkLimitationLogo = 30
 ArtworkLimitationThumb = 40
 ArtworkLimitationBackdrop = 100
 ArtworkLimitationChapter = 20
+curltimeouts = 120
 FolderAddonUserdata = f"special://profile/addon_data/{PluginId}/"
 FolderEmbyTemp = f"special://profile/addon_data/{PluginId}/temp/"
 FolderAddonUserdataLibrary = f"special://profile/addon_data/{PluginId}/library/"
@@ -659,6 +660,7 @@ def InitSettings():
     load_settings('ArtworkLimitationThumb')
     load_settings('ArtworkLimitationBackdrop')
     load_settings('ArtworkLimitationChapter')
+    load_settings('curltimeouts')
     load_settings_bool('ArtworkLimitations')
     load_settings_bool('sslverify')
     load_settings_bool('syncduringplayback')

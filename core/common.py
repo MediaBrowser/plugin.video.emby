@@ -72,7 +72,7 @@ def library_check(item, EmbyServer, emby_db, EmbyType=""):
         item['KodiPathId'] = ExistingItem[2]
 
         # New item (by different library id)
-        if 'Library' in item:
+        if 'Library' in item and 'Id' in item['Library']:
             if not item['Library']['Id'] in LibraryIds:
                 item['KodiItemIds'].append(None)
                 item['KodiParentIds'].append(None)

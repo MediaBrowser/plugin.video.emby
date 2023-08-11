@@ -132,18 +132,13 @@ class Library:
         if self.LastSyncTime:
             xbmc.log(f"EMBY.database.library: Retrieve changes, last synced: {self.LastSyncTime}", 1) # LOGINFO
             utils.progress_open(utils.Translate(33445))
+            xbmc.log("EMBY.database.library: -->[ Kodi companion ]", 1) # LOGINFO
+            result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
 
-            for plugin in self.EmbyServer.API.get_plugins():
-                if plugin['Name'] in ("Emby.Kodi Sync Queue", "Kodi companion"):
-                    xbmc.log("EMBY.database.library: -->[ Kodi companion ]", 1) # LOGINFO
-                    result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
+            if 'ItemsRemoved' in result:
+                self.removed(result['ItemsRemoved'])
 
-                    if 'ItemsRemoved' in result:
-                        self.removed(result['ItemsRemoved'])
-
-                    xbmc.log("EMBY.database.library: --<[ Kodi companion ]", 1) # LOGINFO
-                    break
-
+            xbmc.log("EMBY.database.library: --<[ Kodi companion ]", 1) # LOGINFO
             ProgressBarTotal = len(self.Whitelist) / 100
             ProgressBarIndex = 0
 
@@ -773,7 +768,7 @@ class Library:
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
 
         for WhitelistLibraryId, WhitelistLibraryName, WhitelistLibraryType in self.Whitelist:
-            if WhitelistLibraryType == "Movie":
+            if WhitelistLibraryType == "BoxSet":
                 items = embydb.get_item_by_emby_folder_wild_and_EmbyType(WhitelistLibraryId, "BoxSet")
 
                 for item in items:

@@ -745,10 +745,12 @@ def cache_textures():
     if not selection:
         return
 
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    utils.progress_open(utils.Translate(33045))
+
     if DelArtwork:
         DeleteThumbnails()
 
-    utils.progress_open(utils.Translate(33045))
     utils.set_settings_bool('artworkcacheenable', False)
     Urls = []
 
@@ -889,7 +891,6 @@ def get_image_metadata(ImageBinaryData, Hash):
 
 # Cache all entries
 def CacheAllEntries(urls):
-    xbmc.executebuiltin('Dialog.Close(addoninformation)')
     total = len(urls)
     ArtworkCacheItems = 1000 * [{}]
     ArtworkCacheIndex = 0
@@ -903,7 +904,7 @@ def CacheAllEntries(urls):
             if utils.getFreeSpace(utils.FolderUserdataThumbnails) < 2097152: # check if free space below 2GB
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
                 xbmc.log("EMBY.helper.pluginmenu: Artwork cache: running out of space", 2) # LOGWARNING
-                break
+                return
         else:
             ArtworkCacheIndex += 1
 
