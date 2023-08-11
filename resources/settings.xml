@@ -1125,6 +1125,18 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="curltimeouts" type="integer" label="33545" help="33546">
+                    <level>2</level>
+                    <default>120</default>
+                    <constraints>
+                        <minimum>30</minimum>
+                        <step>5</step>
+                        <maximum>720</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
                 <setting label="30500" id="sslverify" type="boolean" help="">
                     <level>3</level>
                     <default>true</default>

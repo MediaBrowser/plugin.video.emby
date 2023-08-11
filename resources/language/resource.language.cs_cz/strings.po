@@ -2391,3 +2391,11 @@ msgstr ""
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
 msgstr ""
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr ""
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr ""

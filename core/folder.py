@@ -27,5 +27,4 @@ class Folder:
 
     def userdata(self, Item):
         xbmc.log(f"EMBY.core.folder: USERDATA FOLDER {Item}", 1) # LOGINFO
-        Item['Library'] = {}
         self.folder(Item)

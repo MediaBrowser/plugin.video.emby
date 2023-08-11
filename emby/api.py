@@ -6,7 +6,7 @@ from helper import utils
 from database import dbio
 from . import listitem
 
-EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 100, "livetv": 100, "trailer": 200}
+EmbyPagingFactors = {"musicartist": 100, "musicalbum": 100, "audio": 200, "movie": 50, "boxset": 50, "series": 50, "season": 50, "episode": 50, "musicvideo": 50, "video": 50, "photo": 50, "photoalbum": 50, "playlist": 50, "channels": 50, "folder": 100, "livetv": 10000, "trailer": 200}
 EmbyFields = {
     "musicartist": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "UserDataPlayCount", "UserDataLastPlayedDate"),
     "musicalbum": ("Genres", "SortName", "ProductionYear", "DateCreated", "ProviderIds", "Overview", "Path", "PresentationUniqueKey", "Studios", "PremiereDate", "UserDataPlayCount", "UserDataLastPlayedDate"),
@@ -314,7 +314,7 @@ class API:
 
     def get_channelprogram(self):
         Limit = get_Limit("livetv")
-        Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': "Overview", 'Limit': Limit}
+        Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': "Overview", 'EnableTotalRecordCount': False, 'Limit': Limit}
         ItemsQueue = queue.Queue()
         start_new_thread(self.async_get_Items, ("LiveTv/Programs", ItemsQueue, False, Params, Limit))
 
@@ -585,9 +585,6 @@ class API:
 
     def get_themes(self, item_id, Songs, Videos):
         return self.EmbyServer.http.request({'params': {'Fields': "Path", 'UserId': self.EmbyServer.ServerData['UserId'], 'InheritFromParent': True, 'EnableThemeSongs': Songs, 'EnableThemeVideos': Videos, 'EnableTotalRecordCount': False}, 'type': "GET", 'handler': f"Items/{item_id}/ThemeMedia"}, False, False)
-
-    def get_plugins(self):
-        return self.EmbyServer.http.request({'type': "GET", 'handler': "Plugins"}, False, False)
 
     def get_sync_queue(self, date):
         return self.EmbyServer.http.request({'params': {'LastUpdateDT': date}, 'type': "GET", 'handler': f"Emby.Kodi.SyncQueue/{self.EmbyServer.ServerData['UserId']}/GetItems"}, False, False)
