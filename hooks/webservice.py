@@ -309,7 +309,7 @@ def send_redirect(client, QueryData, Data, Filename):
     client.send(SendData)
 
 def http_Query(client, Payload):
-    for HTTPQueryDoubleFilter in utils.HTTPQueryDoublesFilter.values():
+    for HTTPQueryDoubleFilter in list(utils.HTTPQueryDoublesFilter.values()):
         if Payload == HTTPQueryDoubleFilter['Payload']:
             TimeStamp = HTTPQueryDoubleFilter.get('TimeStamp', 0)
 

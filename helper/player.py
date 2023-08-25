@@ -270,7 +270,7 @@ def PlayerCommands():
                     utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')  # focus videoplayer
 
                 if not playerops.RemoteMode:
-                    playerops.ItemSkipUpdate += [f"KODI{PlayingItem['ItemId']}", PlayingItem['ItemId'], PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg -> userdata changed) and once for Kodi database incoming msg -> VideoLibrary_OnUpdate; "KODI" prefix makes sure, VideoLibrary_OnUpdate is skipped even if more userdata requests from Emby server were received
+                    playerops.ItemSkipUpdate += [f"KODI{PlayingItem['ItemId']}", PlayingItem['ItemId']] # triple add -> for Emby (2 times incoming msg -> userdata changed) and once for Kodi database incoming msg -> VideoLibrary_OnUpdate; "KODI" prefix makes sure, VideoLibrary_OnUpdate is skipped even if more userdata requests from Emby server were received
 
                 xbmc.log(f"EMBY.hooks.player: PlayingItem: {PlayingItem}", 1) # LOGINFO
                 PlaylistPosition = playerops.GetPlayerPosition(playerops.PlayerId)
@@ -545,6 +545,9 @@ def close_SkipCreditsDialog():
 
 def queuePlayingItem(EmbyID, MediasourceID, IntroStartPosTicks, IntroEndPosTicks, CreditsPosTicks, LiveStreamId=""):  # loaded directly from webservice.py for addon content, or via "onAVStarted" for native content
     xbmc.log("EMBY.hooks.player: [ Queue playing item ]", 1) # LOGINFO
+
+    if not playerops.RemoteMode:
+        playerops.ItemSkipUpdate += [int(EmbyID)] # triple add -> for Emby (2 times incoming msg -> userdata changed) and once for Kodi database incoming msg -> VideoLibrary_OnUpdate; "KODI" prefix makes sure, VideoLibrary_OnUpdate is skipped even if more userdata requests from Emby server were received
 
     if not utils.syncduringplayback:
         utils.SyncPause['playing'] = True

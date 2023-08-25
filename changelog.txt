@@ -1,3 +1,13 @@
+8.2.14
+=============
+(realtime) progress progress updates even if Emby server is busy
+(another) fix dynamic nodes (genre and tags) for mixed content
+fix webdav issue
+add recommendations for dynamic nodes
+fix library updates when "use path substitution" is enabled (plugin) and "extract video information from files" is enabled (Kodi). Actually "extract video information from files" should always be disabled.
+fix remote client selection when Emby server doesn't report a Username
+
+
 8.2.13
 =============
 fix sync issue (changed userdata reported for a folder by Emby server)
