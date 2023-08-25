@@ -63,6 +63,7 @@ DynamicNodes = {
         ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
         ('Unwatched', utils.Translate(30189), 'OverlayUnwatched.png', "Movie"),
         ('BoxSet', utils.Translate(20434), 'DefaultSets.png', "BoxSet"),
+        ('Recommendations', "Recommendations", 'DefaultInProgressShows.png', "Movie"),
         ('Tags', utils.Translate(33356), 'DefaultTags.png', "Movie"),
         ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "Movie"),
         ('Genre', utils.Translate(135), 'DefaultGenre.png', "Movie"),
@@ -277,7 +278,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[ServerId].API.get_genres(Id, args[0])
+            Items = utils.EmbyServers[ServerId].API.get_genres(Id, QueryContent)
 
             for Item in Items:
                 load_ListItem(Id, {'Id': Id, 'Type': "Genre", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
@@ -295,7 +296,7 @@ def browse(Handle, Id, query, args, ServerId):
             xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
             ItemsListings = QueryCache[CacheId][1]
         else:
-            Items = utils.EmbyServers[ServerId].API.get_tags(Id, args[0])
+            Items = utils.EmbyServers[ServerId].API.get_tags(Id, QueryContent)
 
             for Item in Items:
                 load_ListItem(Id, {'Id': Id, 'Type': "Tags", 'IsFolder': True, 'Name': Item['Name'], 'artwork': None, 'args': f"{args[0]}_{Item['Id']}"}, ServerId, ItemsListings)
@@ -323,6 +324,19 @@ def browse(Handle, Id, query, args, ServerId):
     elif query == 'Inprogress':
         QueryArgs = (Id, QueryContent, False, True, {'filters': 'IsResumable'}, False)
         Content = args[0]
+    elif query == 'Recommendations':
+        CacheId = f"Recommendations_{ServerId}_{Id}"
+
+        if CacheId in QueryCache and QueryCache[CacheId][0]:
+            xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
+            ItemsListings = QueryCache[CacheId][1]
+        else:
+            Items = utils.EmbyServers[ServerId].API.get_recommendations(Id)
+
+            for Item in Items:
+                load_ListItem(Id, Item, ServerId, ItemsListings)
+
+            globals()["QueryCache"][CacheId] = [True, ItemsListings]
     elif query == 'BoxSet':
         QueryArgs = (Id, ['BoxSet'], False, True, {}, False, False, True)
         Content = "BoxSet"

@@ -497,14 +497,16 @@ class WSClient:
                 if utils.busyMsg:
                     utils.progress_update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
             elif IncomingData['MessageType'] == 'UserDataChanged':
+                xbmc.log(f"Emby.hooks.websocket: [ UserDataChanged ] {IncomingData['Data']['UserDataList']}", 1) # LOGINFO
+
+                if IncomingData['Data']['UserId'] != self.EmbyServer.ServerData['UserId']:
+                    xbmc.log(f"Emby.hooks.websocket: UserDataChanged skip by wrong UserId: {IncomingData['Data']['UserId']}", 1) # LOGINFO
+                    continue
+
                 if playerops.RemoteMode:
                     xbmc.log("Emby.hooks.websocket: UserDataChanged skip by RemoteMode", 1) # LOGINFO
                     continue
 
-                if IncomingData['Data']['UserId'] != self.EmbyServer.ServerData['UserId']:
-                    continue
-
-                xbmc.log(f"Emby.hooks.websocket: [ UserDataChanged ] {IncomingData['Data']['UserDataList']}", 1) # LOGINFO
                 UpdateData = ()
                 DynamicNodesRefresh = False
                 embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "UserDataChanged")
@@ -542,18 +544,32 @@ class WSClient:
                 if UpdateData:
                     self.EmbyServer.library.userdata(UpdateData)
             elif IncomingData['MessageType'] == 'LibraryChanged':
+                xbmc.log(f"Emby.hooks.websocket: [ LibraryChanged ] {IncomingData['Data']}", 1) # LOGINFO
+
                 if playerops.RemoteMode:
                     xbmc.log("Emby.hooks.websocket: LibraryChanged skip by RemoteMode", 1) # LOGINFO
                     continue
 
-                xbmc.log(f"Emby.hooks.websocket: [ LibraryChanged ] {IncomingData['Data']}", 1) # LOGINFO
                 self.EmbyServer.library.removed(IncomingData['Data']['ItemsRemoved'])
-                UpdateItemIds = (len(IncomingData['Data']['ItemsUpdated']) + len(IncomingData['Data']['ItemsAdded'])) * [None] # preallocate memory
+                ItemsUpdated = []
 
-                for Index, ItemMod in enumerate(IncomingData['Data']['ItemsUpdated'] + IncomingData['Data']['ItemsAdded']):
-                    UpdateItemIds[Index] = (ItemMod, "unknown")
+                if utils.usepathsubstitution:
+                    for ItemId in IncomingData['Data']['ItemsUpdated']: # Filter updates when "use path substitution" is enabled (plugin) and "extract video information from files" is enabled (Kodi)
+                        if int(ItemId) in playerops.ItemSkipUpdate:
+                            xbmc.log(f"Emby.hooks.websocket: LibraryChanged skip by ItemSkipUpdate / Id: {ItemId} / ItemSkipUpdate: {playerops.ItemSkipUpdate}", 1) # LOGINFO
+                            playerops.ItemSkipUpdate.remove(int(ItemId))
+                            continue
 
-                UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter doplicates
+                        ItemsUpdated.append(ItemId)
+                else:
+                    ItemsUpdated = IncomingData['Data']['ItemsUpdated']
+
+                UpdateItemIds = (len(ItemsUpdated) + len(IncomingData['Data']['ItemsAdded'])) * [None] # preallocate memory
+
+                for Index, ItemId in enumerate(ItemsUpdated + IncomingData['Data']['ItemsAdded']):
+                    UpdateItemIds[Index] = (ItemId, "unknown")
+
+                UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter duplicates
                 self.EmbyServer.library.updated(UpdateItemIds)
 
                 if self.SyncInProgress:
