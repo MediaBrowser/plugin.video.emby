@@ -402,7 +402,7 @@ def browse(Handle, Id, query, args, ServerId):
         QueryArgs = (Id, ["PhotoAlbum"], False, True, {}, False)
         Content = "PhotoAlbum"
     elif query == "Folder":
-        QueryArgs = (Id, ["Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer"], False, False, {}, False, False, False, True)
+        QueryArgs = (Id, ["Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer", "Photo", "PhotoAlbum"], False, False, {}, False, False, False, True)
     elif query == 'MusicVideo':
         QueryArgs = (Id, ["MusicVideo"], False, True, {}, False)
         Content = "MusicVideo"
@@ -669,7 +669,6 @@ def manage_servers(ServerConnect):  # threaded by caller
         if Selection > -1:
             utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33448)}: {utils.EmbyServers[ServerIds[Selection]].ServerData['ServerName']}", icon=utils.icon, time=1500, sound=False)
             utils.EmbyServers[ServerIds[Selection]].ServerDisconnect()
-            del utils.EmbyServers[ServerIds[Selection]]
     elif Selection == 2:
         _, ServerIds, ServerItems = get_EmbyServerList()
         Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
@@ -746,10 +745,12 @@ def cache_textures():
     if not selection:
         return
 
+    xbmc.executebuiltin('Dialog.Close(addoninformation)')
+    utils.progress_open(utils.Translate(33045))
+
     if DelArtwork:
         DeleteThumbnails()
 
-    utils.progress_open(utils.Translate(33045))
     utils.set_settings_bool('artworkcacheenable', False)
     Urls = []
 
@@ -890,7 +891,6 @@ def get_image_metadata(ImageBinaryData, Hash):
 
 # Cache all entries
 def CacheAllEntries(urls):
-    xbmc.executebuiltin('Dialog.Close(addoninformation)')
     total = len(urls)
     ArtworkCacheItems = 1000 * [{}]
     ArtworkCacheIndex = 0
@@ -904,7 +904,7 @@ def CacheAllEntries(urls):
             if utils.getFreeSpace(utils.FolderUserdataThumbnails) < 2097152: # check if free space below 2GB
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=5000, sound=True)
                 xbmc.log("EMBY.helper.pluginmenu: Artwork cache: running out of space", 2) # LOGWARNING
-                break
+                return
         else:
             ArtworkCacheIndex += 1
 

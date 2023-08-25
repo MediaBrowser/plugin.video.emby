@@ -311,6 +311,18 @@ def send_redirect(client, QueryData, Data, Filename):
 def http_Query(client, Payload):
     for HTTPQueryDoubleFilter in utils.HTTPQueryDoublesFilter.values():
         if Payload == HTTPQueryDoubleFilter['Payload']:
+            TimeStamp = HTTPQueryDoubleFilter.get('TimeStamp', 0)
+
+            if TimeStamp:
+                CurrentTime = utils.unixtimeInMicroseconds()
+
+                if CurrentTime < TimeStamp + 1200000000000: # min 300 seconds delta (for EPG queries)
+                    xbmc.log(f"EMBY.hooks.webservice: Double query by deltatime: {Payload} / {CurrentTime} / {TimeStamp}", 1) # LOGINFO
+                    client.send(HTTPQueryDoubleFilter['SendData'])
+                    return
+
+                break
+
             client.send(HTTPQueryDoubleFilter['SendData'])
             xbmc.log(f"EMBY.hooks.webservice: Double query: {Payload}", 1) # LOGINFO
             return
@@ -346,6 +358,20 @@ def http_Query(client, Payload):
         xbmc.log(f"EMBY.hooks.webservice: Incoming data (error) {Payload}", 0) # LOGDEBUG
         client.send(sendNoContent)
         return
+
+    # Waiting for Emby connection:
+    if QueryData['ServerId'] not in utils.EmbyServers:
+        xbmc.log(f"EMBY.hooks.webservice: Emby ServerId not found {QueryData['ServerId']}", 2) # LOGWARNING
+        client.send(sendNoContent)
+        return
+
+    while not utils.EmbyServers[QueryData['ServerId']].EmbySession:
+        xbmc.log(f"EMBY.hooks.webservice: Waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
+
+        if utils.sleep(1):
+            xbmc.log(f"EMBY.hooks.webservice: Kodi shutdown while waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
+            client.send(sendNoContent)
+            return
 
     if Data[0] == "p":  # Image/picture
         QueryData.update({'ImageIndex': Data[2], 'ImageType': EmbyArtworkIDs[Data[3]], 'ImageTag': Data[4]})
@@ -442,7 +468,9 @@ def http_Query(client, Payload):
 
         epg += '</tv>'
         epg = epg.encode()
-        client.send(f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(epg)}\r\nContent-Type: text/plain\r\n\r\n".encode() + epg)
+        SendData = f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(epg)}\r\nContent-Type: text/plain\r\n\r\n".encode() + epg
+        utils.HTTPQueryDoublesFilter[QueryData['EmbyID']] = {'TimeStamp': utils.unixtimeInMicroseconds(),'ServerId': QueryData['ServerId'],'Payload': QueryData['Payload'], 'LiveStreamId': QueryData.get('LiveStreamId', ""), 'SendData': SendData}
+        client.send(SendData)
         xbmc.log("EMBY.hooks.webservice: --<[ load EPG ]", 1) # LOGINFO
         return
 

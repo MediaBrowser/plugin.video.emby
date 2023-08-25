@@ -116,7 +116,7 @@ def advanced_settings():
         disablehttp2 = "true"
 
     if FileData:
-        if "<from>/emby_addon_mode/</from>" in FileData and "<curllowspeedtime>120</curllowspeedtime>" in FileData and "<curlclienttimeout>120</curlclienttimeout>" in FileData and f"<disablehttp2>{disablehttp2}</disablehttp2>" in FileData:
+        if "<from>/emby_addon_mode/</from>" in FileData and f"<curllowspeedtime>{utils.curltimeouts}</curllowspeedtime>" in FileData and f"<curlclienttimeout>{utils.curltimeouts}</curlclienttimeout>" in FileData and f"<disablehttp2>{disablehttp2}</disablehttp2>" in FileData:
             xbmc.log("EMBY.helper.xmls: advancedsettings.xml valid, no change", 1) # LOGINFO
             return False
 
@@ -172,25 +172,25 @@ def advanced_settings():
             curlclienttimeout = Network.find('curlclienttimeout')
 
             if curlclienttimeout is not None:
-                if curlclienttimeout.text != "120":
+                if curlclienttimeout.text != utils.curltimeouts:
                     xbmc.log("EMBY.helper.xmls: advancedsettings.xml set curlclienttimeout", 2) # LOGWARNING
                     Network.remove(curlclienttimeout)
-                    xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+                    xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = utils.curltimeouts
                     WriteData = True
             else:
-                xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+                xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = utils.curltimeouts
                 WriteData = True
 
             curllowspeedtime = Network.find('curllowspeedtime')
 
             if curllowspeedtime is not None:
-                if curllowspeedtime.text != "120":
+                if curllowspeedtime.text != utils.curltimeouts:
                     xbmc.log("EMBY.helper.xmls: advancedsettings.xml set curllowspeedtime", 2) # LOGWARNING
                     Network.remove(curllowspeedtime)
-                    xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
+                    xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = utils.curltimeouts
                     WriteData = True
             else:
-                xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
+                xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = utils.curltimeouts
                 WriteData = True
 
             # set HTTP2 support
@@ -208,16 +208,16 @@ def advanced_settings():
         else:
             xbmc.log("EMBY.helper.xmls: advancedsettings.xml set network", 2) # LOGWARNING
             Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
-            xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
-            xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+            xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = utils.curltimeouts
+            xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = utils.curltimeouts
             xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
             WriteData = True
     else:
         xbmc.log("EMBY.helper.xmls: advancedsettings.xml set data", 2) # LOGWARNING
         xmlData = xml.etree.ElementTree.Element('advancedsettings')
         Network = xml.etree.ElementTree.SubElement(xmlData, 'network')
-        xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = "120"
-        xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = "120"
+        xml.etree.ElementTree.SubElement(Network, 'curllowspeedtime').text = utils.curltimeouts
+        xml.etree.ElementTree.SubElement(Network, 'curlclienttimeout').text = utils.curltimeouts
         xml.etree.ElementTree.SubElement(Network, 'disablehttp2').text = disablehttp2
         pathsubstitution = xml.etree.ElementTree.SubElement(xmlData, 'pathsubstitution')
         substitute = xml.etree.ElementTree.SubElement(pathsubstitution, 'substitute')

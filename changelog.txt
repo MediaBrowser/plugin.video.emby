@@ -1,3 +1,25 @@
+8.2.13
+=============
+fix sync issue (changed userdata reported for a folder by Emby server)
+fix minor webservice issue
+fix live tv epg issues
+fix boxset/collection issue
+add option to adjust curl timeouts
+fix dynamic nodes (genre and tags) for mixed content
+fix kodi companion query without admin account
+
+
+8.2.12
+=============
+fix folder view for pictures
+
+
+8.2.11
+=============
+fix minor issue when disconnecting from Emby server
+fix hibernate issue when playing content
+
+
 8.2.10
 =============
 Widget refresh improvement
