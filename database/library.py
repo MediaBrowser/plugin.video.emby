@@ -21,16 +21,17 @@ class Library:
         self.KodiStartSyncRunning = False
 
     def open_Worker(self, WorkerName):
-        while utils.SyncPause.get(f"database_init_{self.EmbyServer.ServerData['ServerId']}", False):
-            xbmc.log(f"EMBY.database.library: [ worker {WorkerName} wait for database init ]", 1) # LOGINFO
+        if WorkerName != "worker_userdata":
+            while utils.SyncPause.get(f"database_init_{self.EmbyServer.ServerData['ServerId']}", False):
+                xbmc.log(f"EMBY.database.library: [ worker {WorkerName} wait for database init ]", 1) # LOGINFO
 
-            if utils.sleep(1):
-                return False
+                if utils.sleep(1):
+                    return False
 
         if utils.SystemShutdown:
             return False
 
-        if Worker_is_paused():
+        if Worker_is_paused(WorkerName):
             xbmc.log(f"EMBY.database.library: [ worker {WorkerName} sync paused ]", 1) # LOGINFO
             return False
 
@@ -197,6 +198,10 @@ class Library:
     def worker_userdata(self):
         WorkerName = "worker_userdata"
         ContinueJobs = self.open_Worker(WorkerName)
+
+
+
+
 
         if ContinueJobs:
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
@@ -577,13 +582,13 @@ class Library:
             self.ContentObject.userdata(Item)
 
         # Check if Kodi db or emby is about to open -> close db, wait, reopen db
-        if Worker_is_paused():
+        if Worker_is_paused(WorkerName):
             xbmc.log(f"EMBY.database.library: -->[ worker delay {utils.SyncPause}]", 1) # LOGINFO
             dbio.DBCloseRW(ContentCategory, WorkerName)
             dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerName)
             self.EmbyDBOpen = False
 
-            while Worker_is_paused():
+            while Worker_is_paused(WorkerName):
                 if utils.sleep(1):
                     utils.progress_close()
                     xbmc.log("EMBY.database.library: [ worker exit (shutdown) ]", 1) # LOGINFO
@@ -924,7 +929,6 @@ class Library:
         utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=5000, sound=False)
 
     def SyncLiveTV(self):
-        iptvsimpleVersion = ""
         iptvsimpleData = utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.GetAddonDetails","params":{"addonid":"pvr.iptvsimple", "properties": ["version"]}}', True)
 
         if iptvsimpleData:
@@ -1127,7 +1131,7 @@ class Library:
 
 def ItemsSort(Items, Reverse):
     # preallocate memory
-    ItemsArray = len(Items) * [None]
+    ItemsArray = len(Items) * [{}]
     ItemsAudio = ItemsArray.copy()
     ItemsAudioCounter = 0
     ItemsMovie = ItemsArray.copy()
@@ -1233,10 +1237,13 @@ def StringToDict(Data):
     Data = Data.replace("True", "true")
     return json.loads(Data)
 
-def Worker_is_paused():
-    for Busy in list(utils.SyncPause.values()):
+def Worker_is_paused(WorkerName):
+    for Key, Busy in list(utils.SyncPause.items()):
         if Busy:
-            xbmc.log(f"EMBY.database.library: Worker_is_paused: {utils.SyncPause}", 1) # LOGINFO
+            if WorkerName == "worker_userdata" and Key.startswith("server_busy_"): # Continue on progress updates, even emby server is busy
+                continue
+
+            xbmc.log(f"EMBY.database.library: Worker_is_paused: {WorkerName} / {utils.SyncPause}", 1) # LOGINFO
             return True
 
     return False

@@ -218,8 +218,9 @@ def add_remoteclients(ServerId):
     for ActiveSession in ActiveSessions:
         if ActiveSession['SupportsRemoteControl'] and ActiveSession['Id'] != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
             if ActiveSession['Id'] not in playerops.RemoteClientData[ServerId]["SessionIds"]:
-                SelectionLabels.append(f"{ActiveSession['DeviceName']}, {ActiveSession['UserName']}")
-                ClientData.append((ActiveSession['Id'], ActiveSession['DeviceName'], ActiveSession['UserName']))
+                UserName = ActiveSession.get('UserName', "unknown")
+                SelectionLabels.append(f"{ActiveSession['DeviceName']}, {UserName}")
+                ClientData.append((ActiveSession['Id'], ActiveSession['DeviceName'], UserName))
 
     Selections = utils.Dialog.multiselect(utils.Translate(33494), SelectionLabels)
 

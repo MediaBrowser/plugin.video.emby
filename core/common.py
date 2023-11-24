@@ -123,18 +123,21 @@ def get_filename(item, API, ItemIndex, MediaType):
     MediaID = MediaTypeMapping[MediaType]
     Temp = item['FullPath'].lower()
 
-    if Temp.startswith("plugin://"):
+    if Temp.startswith("plugin://"): # Kodi bug workaround
         item['Filename'] = item['FullPath']
         return
 
     Container = item.get('Container', "")
 
-    if Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
+    if Temp.startswith("http://") or Temp.startswith("dav://") or Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
         ForceNativeMode = True
 
     # Native
     if utils.useDirectPaths or ForceNativeMode:
-        item['Filename'] = item['FullPath'].rsplit('\\', 1)[1] if '\\' in item['FullPath'] else item['FullPath'].rsplit('/', 1)[1]
+        if '\\' in item['FullPath']:
+            item['Filename'] = item['FullPath'].rsplit('\\', 1)[1]
+        else:
+            item['Filename'] = item['FullPath'].rsplit('/', 1)[1]
 
         if MediaID == "a":
             return
@@ -272,15 +275,21 @@ def get_file_path(item, MediaID, ItemIndex):
     item['Path'] = ""
     Container = item.get('Container', "")
 
-    if Temp.startswith("plugin://") or Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
-        ForceNativeMode = True
-    elif Temp.startswith("http"):
+    if Temp.startswith("http://") or Temp.startswith("dav://"):
         UrlData = urlparse(item['FullPath'])
         UrlPath = quote(UrlData[2])
         item['FullPath'] = f"{UrlData[0]}://{UrlData[1]}{UrlPath}"
+        ForceNativeMode = True
+
+    if Temp.startswith("plugin://") or Temp.endswith(".bdmv") or Temp.endswith(".iso") or Container in ('dvd', 'bluray'):
+        ForceNativeMode = True
 
     if utils.useDirectPaths or ForceNativeMode:
-        Temp2 = item['FullPath'].rsplit('\\', 1)[1] if '\\' in item['FullPath'] else item['FullPath'].rsplit('/', 1)[1]
+        if '\\' in item['FullPath']:
+            Temp2 = item['FullPath'].rsplit('\\', 1)[1]
+        else:
+            Temp2 = item['FullPath'].rsplit('/', 1)[1]
+
         item['Path'] = item['FullPath'].replace(Temp2, "")
         PathChar = item['Path'][-1]
 

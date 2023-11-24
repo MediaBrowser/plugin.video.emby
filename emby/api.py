@@ -59,7 +59,7 @@ class API:
             self.DynamicListsRemoveFields += ("People",)
 
     def open_livestream(self, EmbyID, PlaySessionId):
-        for HTTPQueryDoubleFilter in utils.HTTPQueryDoublesFilter.values():
+        for HTTPQueryDoubleFilter in list(utils.HTTPQueryDoublesFilter.values()):
             if self.EmbyServer.ServerData['ServerId'] == HTTPQueryDoubleFilter['ServerId'] and HTTPQueryDoubleFilter['LiveStreamId']:
                 self.close_livestream(HTTPQueryDoubleFilter['LiveStreamId'])
                 break
@@ -99,7 +99,7 @@ class API:
             musicdb = None
 
             for ItemIndex, BasicItem in enumerate(self.get_Items_Custom(Request, Params, Limit, not Recursive or CustomLimit)):
-                KodiItem = (False, )
+                KodiItem = ({}, "")
 
                 if SkipLocalDB or BasicItem['Type'] in ("Photo", "PhotoAlbum", "BoxSet"):
                     if ItemIndex % 10000 == 0: # modulo 10000
@@ -126,23 +126,23 @@ class API:
 
                 if KodiId:
                     if BasicItem['Type'] in ("Movie", "Video"):
-                        KodiItem = ((videodb.get_movie_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_movie_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "Series":
-                        KodiItem = ((videodb.get_tvshows_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_tvshows_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "Season":
-                        KodiItem = ((videodb.get_season_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_season_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "Episode":
-                        KodiItem = ((videodb.get_episode_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_episode_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "BoxSet":
-                        KodiItem = ((videodb.get_boxset_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_boxset_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "MusicVideo":
-                        KodiItem = ((videodb.get_musicvideos_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (videodb.get_musicvideos_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "MusicArtist":
-                        KodiItem = ((musicdb.get_artist_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (musicdb.get_artist_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "MusicAlbum":
-                        KodiItem = ((musicdb.get_album_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (musicdb.get_album_metadata_for_listitem(KodiId), BasicItem['Type'])
                     elif BasicItem['Type'] == "Audio":
-                        KodiItem = ((musicdb.get_song_metadata_for_listitem(KodiId), BasicItem['Type']))
+                        KodiItem = (musicdb.get_song_metadata_for_listitem(KodiId), BasicItem['Type'])
                 else:
                     if ItemIndex % 10000 == 0: # modulo 10000
                         ItemsFullQuery += 10000 * [None] # pre allocate memory
@@ -326,6 +326,18 @@ class API:
 
             yield Item
 
+    def get_recommendations(self, ParentId):
+        Fields = self.get_Fields("movie", False, True)
+        Params = {'ParentId': ParentId, 'UserId': self.EmbyServer.ServerData['UserId'], 'Fields': Fields, 'EnableTotalRecordCount': False, 'Recursive': True}
+        IncomingData = self.EmbyServer.http.request({'params': Params, 'type': "GET", 'handler': "Movies/Recommendations"}, False, False)
+        Items = []
+
+        for Data in IncomingData:
+            if 'Items' in Data:
+                Items += Data['Items']
+
+        return Items
+
     def async_get_Items(self, Request, ItemsQueue, CustomLimit, Params, Limit, ProcessProgressId=""):
         Index = 0
         ItemCounter = 0
@@ -423,23 +435,29 @@ class API:
     def delete_timer(self, TimerId):
         return self.EmbyServer.http.request({'type': "POST", 'handler': f"LiveTv/Timers/{TimerId}/Delete"}, False, False)
 
-    def get_genres(self, ParentId, MediaType):
-        Fields = self.get_Fields(MediaType, False, False)
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Genres"}, False, False)
+    def get_genres(self, ParentId, MediaTypes):
+        Items = []
 
-        if 'Items' in Data:
-            return Data['Items']
+        for MediaType in MediaTypes:
+            Fields = self.get_Fields(MediaType, False, False)
+            Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Genres"}, False, False)
 
-        return []
+            if 'Items' in Data:
+                Items += Data['Items']
 
-    def get_tags(self, ParentId, MediaType):
-        Fields = self.get_Fields(MediaType, False, False)
-        Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Tags"}, False, False)
+        return Items
 
-        if 'Items' in Data:
-            return Data['Items']
+    def get_tags(self, ParentId, MediaTypes):
+        Items = []
 
-        return []
+        for MediaType in MediaTypes:
+            Fields = self.get_Fields(MediaType, False, False)
+            Data = self.EmbyServer.http.request({'params': {'ParentId': ParentId, 'IncludeItemTypes': MediaType, 'Recursive': True, 'Fields': Fields}, 'type': "GET", 'handler': "Tags"}, False, False)
+
+            if 'Items' in Data:
+                Items += Data['Items']
+
+        return Items
 
     def get_users(self, disabled, hidden):
         return self.EmbyServer.http.request({'params': {'IsDisabled': disabled, 'IsHidden': hidden}, 'type': "GET", 'handler': "Users"}, False, False)
