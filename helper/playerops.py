@@ -1,8 +1,7 @@
 from _thread import start_new_thread
-import queue
 import xbmc
 import xbmcgui
-from helper import utils
+from helper import utils, queue
 from database import dbio
 from emby import listitem
 from core import common
@@ -494,7 +493,7 @@ def delete_RemoteClient(ServerId, SessionIds, Force=False, LastWill=False):
         del globals()['RemoteClientData'][ServerId]["Devicenames"][SessionId]
 
         if SessionId in RemoteCommandQueue:
-            globals()['RemoteCommandQueue'][SessionId].put(("QUIT",))
+            globals()['RemoteCommandQueue'][SessionId].put("QUIT")
 
     send_RemoteClients(ServerId, ClientExtendedSupportAck, Force, LastWill)
 
@@ -512,7 +511,7 @@ def update_Remoteclients(ServerId, Data):
 
     # Stop old threads
     for RemoteQueue in list(RemoteCommandQueue.values()):
-        RemoteQueue.put(("QUIT",))
+        RemoteQueue.put((("QUIT",),))
 
     # Stop new threads
     for SessionId in SessionIds:
@@ -585,31 +584,31 @@ def RemoteCommand(ServerId, selfSessionId, Command, EmbyId=-1):
                 globals().update({'WatchTogether': False, 'RemoteMode': False, 'RemoteControl': False})
         else:
             globals()['RemoteCommandActive'][3] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, "stop", -1)
+            queue_RemoteCommand(ServerId, selfSessionId, "stop")
     elif Command == "pause":
         if RemoteCommandActive[0] > 0:
             RemoteCommandActive[0] -= 1
         else:
             globals()['RemoteCommandActive'][0] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, "pause", -1)
+            queue_RemoteCommand(ServerId, selfSessionId, "pause")
     elif Command == "unpause":
         if RemoteCommandActive[1] > 0:
             RemoteCommandActive[1] -= 1
         else:
             globals()['RemoteCommandActive'][1] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, "unpause", -1)
+            queue_RemoteCommand(ServerId, selfSessionId, "unpause")
     elif Command == "seek":
         if RemoteCommandActive[2] > 0:
             RemoteCommandActive[2] -= 1
         else:
             globals()['RemoteCommandActive'][2] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, "seek", -1)
+            queue_RemoteCommand(ServerId, selfSessionId, "seek")
     elif Command == "play":
         if RemoteCommandActive[4] > 0:
             RemoteCommandActive[4] -= 1
         else:
             globals()['RemoteCommandActive'][4] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, "play", EmbyId)
+            queue_RemoteCommand(ServerId, selfSessionId, (("play", EmbyId),))
 
     xbmc.log(f"EMBY.helper.playerops: --< [ remotecommand received: {Command} / {RemoteCommandActive} ]", 1) # LOGINFO
 
@@ -626,10 +625,10 @@ def RemoteClientResync(ServerId, SessionId, LocalEmbyIdPlaying):
     else:
         xbmc.log(f"EMBY.helper.playerops: resync skipped {SessionId}", 2) # LOGWARNING
 
-def queue_RemoteCommand(ServerId, selfSessionId, Command, EmbyId):
+def queue_RemoteCommand(ServerId, selfSessionId, Command):
     for SessionId in RemoteClientData[ServerId]["SessionIds"]:
         if SessionId != selfSessionId:
-            globals()['RemoteCommandQueue'][SessionId].put((Command, EmbyId))
+            globals()['RemoteCommandQueue'][SessionId].put(Command)
 
 def thread_RemoteCommands(ServerId, SessionId):
     xbmc.log(f"EMBY.helper.playerops: Remote command queue opened {SessionId}", 1) # LOGINFO
@@ -639,7 +638,7 @@ def thread_RemoteCommands(ServerId, SessionId):
         Command = globals()['RemoteCommandQueue'][SessionId].get()
         xbmc.log(f"EMBY.helper.playerops: Remote command: {Command} {SessionId}", 1) # LOGINFO
 
-        if Command[0] == "QUIT":
+        if Command == "QUIT":
             xbmc.log(f"EMBY.helper.playerops: Remote command queue closed {SessionId}", 1) # LOGINFO
             break
 
@@ -651,11 +650,11 @@ def thread_RemoteCommands(ServerId, SessionId):
             xbmc.log(f"EMBY.helper.playerops: Remote command skip by playback init: {Command} {SessionId}", 1) # LOGINFO
             continue
 
-        if Command[0] == "stop":
+        if Command == "stop":
             if not utils.SystemShutdown:
                 API.send_stop(SessionId, True)
                 xbmc.log(f"EMBY.helper.playerops: remotecommand send: stop {SessionId}", 1) # LOGINFO
-        elif Command[0] == "pause":
+        elif Command == "pause":
             PositionTicks = PlayBackPosition()
             Timestamp = utils.unixtimeInMicroseconds()
 
@@ -663,13 +662,13 @@ def thread_RemoteCommands(ServerId, SessionId):
                 API.send_text_msg(SessionId, "remotecommand", f"pause|{PositionTicks}|{Timestamp}", True)
             else:
                 API.send_pause(SessionId, True)
-                globals()['RemoteCommandQueue'][SessionId].put(("seek",))
+                globals()['RemoteCommandQueue'][SessionId].put("seek")
 
             xbmc.log(f"EMBY.helper.playerops: remotecommand send: pause {SessionId}", 1) # LOGINFO
-        elif Command[0] == "unpause":
+        elif Command == "unpause":
             API.send_unpause(SessionId, True)
             xbmc.log(f"EMBY.helper.playerops: remotecommand send: unpause {SessionId}", 1) # LOGINFO
-        elif Command[0] == "seek":
+        elif Command == "seek":
             if not wait_AVChanged():
                 xbmc.log(f"EMBY.helper.playerops: Seek: AVchange not set {SessionId}", 3) # LOGERROR
                 continue

@@ -1,9 +1,9 @@
-import socket
 from _thread import start_new_thread, get_ident
+import _socket
 import xbmc
 ModulesLoaded = False
 DefaultVideoSettings = {}
-MediaIdMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel", "E": "epg"} # T=trailer, i=iso
+MediaIdMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "A": "specialaudio", "V": "specialvideo", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 sendNoContent = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
@@ -27,11 +27,11 @@ Running = False
 Socket = None
 
 def start():
-    globals()['Socket'] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    globals()['Socket'].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    globals()['Socket'].setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    globals()['Socket'].bind(('127.0.0.1', 57342))
-    globals()['Socket'].settimeout(None)
+    globals()['Socket'] = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+    Socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+    Socket.setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
+    Socket.bind(('127.0.0.1', 57342))
+    Socket.settimeout(None)
     xbmc.log("EMBY.hooks.webservice: Start", 1) # LOGINFO
     globals()["Running"] = True
     start_new_thread(Listen, ())
@@ -42,7 +42,7 @@ def close():
 
         try:
             try:
-                Socket.shutdown(socket.SHUT_RDWR)
+                Socket.shutdown(_socket.SHUT_RDWR)
             except Exception as Error:
                 xbmc.log(f"EMBY.hooks.webservice: Socket shutdown (error) {Error}", 3) # LOGERROR
 
@@ -50,7 +50,6 @@ def close():
             xbmc.log("EMBY.hooks.webservice: Socket shutdown", 3) # LOGERROR
         except Exception as Error:
             xbmc.log(f"EMBY.hooks.webservice: Socket close (error) {Error}", 3) # LOGERROR
-
 
         xbmc.log("Shutdown weservice", 1) # LOGINFO
 
@@ -60,18 +59,20 @@ def Listen():
 
     while True:
         try:
-            client, _ = Socket.accept()
-            start_new_thread(worker_Query, (client,))
+            fd, _ = Socket._accept()
+            start_new_thread(worker_Query, (fd,))
         except Exception as Error:
             xbmc.log(f"EMBY.hooks.webservice: Socket shutdown (error) {Error}", 3) # LOGERROR
             break
 
     xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 1) # LOGINFO
 
-def worker_Query(client):  # thread by caller
+def worker_Query(fd):  # thread by caller
     xbmc.log("EMBY.hooks.webservice: THREAD: --->[ worker_Query ]", 0) # LOGDEBUG
+    client = _socket.socket(fileno=fd)
     client.settimeout(None)
     data = client.recv(1024).decode()
+    xbmc.log(f"EMBY.hooks.webservice: Incoming Data: {data}", 0) # LOGDEBUG
     DelayQuery = 0
 
     # Waiting for socket init
@@ -311,18 +312,6 @@ def send_redirect(client, QueryData, Data, Filename):
 def http_Query(client, Payload):
     for HTTPQueryDoubleFilter in list(utils.HTTPQueryDoublesFilter.values()):
         if Payload == HTTPQueryDoubleFilter['Payload']:
-            TimeStamp = HTTPQueryDoubleFilter.get('TimeStamp', 0)
-
-            if TimeStamp:
-                CurrentTime = utils.unixtimeInMicroseconds()
-
-                if CurrentTime < TimeStamp + 1200000000000: # min 300 seconds delta (for EPG queries)
-                    xbmc.log(f"EMBY.hooks.webservice: Double query by deltatime: {Payload} / {CurrentTime} / {TimeStamp}", 1) # LOGINFO
-                    client.send(HTTPQueryDoubleFilter['SendData'])
-                    return
-
-                break
-
             client.send(HTTPQueryDoubleFilter['SendData'])
             xbmc.log(f"EMBY.hooks.webservice: Double query: {Payload}", 1) # LOGINFO
             return
@@ -397,8 +386,6 @@ def http_Query(client, Payload):
     elif Data[0] == "c":  # e.g. channel
         playerops.PlayerId = 1
         QueryData.update({'MediasourceID': Data[2], 'Filename': Data[3]})
-    elif Data[0] == "E":  # epg
-        QueryData.update({'Filename': Data[1]})
     else:
         QueryData.update({'MediasourceID': Data[2], 'Filename': Data[3]})
 
@@ -433,45 +420,6 @@ def http_Query(client, Payload):
             xbmc.log(f"EMBY.hooks.webservice: Load artwork data from cache: {Payload}", 0) # LOGDEBUG
 
         client.send(ArtworkCache[1][Payload][0] + ArtworkCache[1][Payload][1])
-        return
-
-    if QueryData['Type'] == 'epg':
-        xbmc.log("EMBY.hooks.webservice: -->[ load EPG ]", 1) # LOGINFO
-        epg = '<?xml version="1.0" encoding="utf-8" ?><tv>'
-
-        for item in utils.EmbyServers[QueryData['ServerId']].API.get_channelprogram():
-            temp = item['StartDate'].split("T")
-            timestampStart = temp[0].replace("-", "")
-            temp2 = temp[1].split(".")
-            timestampStart += temp2[0].replace(":", "")[:6]
-            temp2 = temp2[1].split("+")
-
-            if len(temp2) > 1:
-                timestampStart += f"+{temp2[1].replace(':', '')}"
-
-            temp = item['EndDate'].split("T")
-            timestampEnd = temp[0].replace("-", "")
-            temp2 = temp[1].split(".")
-            timestampEnd += temp2[0].replace(":", "")[:6]
-            temp2 = temp2[1].split("+")
-
-            if len(temp2) > 1:
-                timestampEnd += f"+{temp2[1].replace(':', '')}"
-
-            epg += f'<channel id="{item["ChannelId"]}"><display-name lang="en">{item["ChannelId"]}</display-name></channel><programme start="{timestampStart}" stop="{timestampEnd}" channel="{item["ChannelId"]}"><title lang="en">{item["Name"]}</title>'
-
-            if 'Overview' in item:
-                item["Overview"] = item["Overview"].replace("<", "(").replace(">", ")")
-                epg += f'<desc lang="en">{item["Overview"]}</desc>'
-
-            epg += f'<icon src="{QueryData["ServerId"]}Z{item["Id"]}"/></programme>' # rape icon -> assign serverId and programId
-
-        epg += '</tv>'
-        epg = epg.encode()
-        SendData = f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(epg)}\r\nContent-Type: text/plain\r\n\r\n".encode() + epg
-        utils.HTTPQueryDoublesFilter[QueryData['EmbyID']] = {'TimeStamp': utils.unixtimeInMicroseconds(),'ServerId': QueryData['ServerId'],'Payload': QueryData['Payload'], 'LiveStreamId': QueryData.get('LiveStreamId', ""), 'SendData': SendData}
-        client.send(SendData)
-        xbmc.log("EMBY.hooks.webservice: --<[ load EPG ]", 1) # LOGINFO
         return
 
     if not utils.syncduringplayback or playerops.WatchTogether:

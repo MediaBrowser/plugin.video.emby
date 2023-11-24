@@ -1,8 +1,7 @@
 from _thread import start_new_thread
-import queue
 import requests
 import xbmc
-from helper import utils
+from helper import utils, queue
 
 
 class HTTP:
@@ -19,8 +18,12 @@ class HTTP:
 
         while True:
             Command = self.AsyncCommandQueue.get()
-
             try:
+                if Command == "QUIT":
+                    xbmc.log("EMBY.emby.http: Queue closed", 1) # LOGINFO
+                    self.AsyncCommandQueue.clear()
+                    break
+
                 self.wait_for_priority_request()
 
                 if Command[0] == "POST":
@@ -31,9 +34,6 @@ class HTTP:
                     Command[1]['timeout'] = (5, 2)
                     r = self.session.delete(**Command[1])
                     r.close()
-                elif Command[0] == "QUIT":
-                    xbmc.log("EMBY.emby.http: Queue closed", 1) # LOGINFO
-                    break
             except Exception as error:
                 xbmc.log(f"EMBY.emby.http: Async_commands Emby server did not respond: error: {error}", 2) # LOGWARNING
 
@@ -59,7 +59,7 @@ class HTTP:
 
         LocalSession = self.session  # Use local var -> self.session must be set to "none" instantly -> self var is also used to detect open sessions
         self.session = None
-        self.AsyncCommandQueue.put(("QUIT",))
+        self.AsyncCommandQueue.put("QUIT")
 
         try:
             LocalSession.close()
@@ -166,9 +166,9 @@ class HTTP:
 
                         return r.json()
 
-                    self.AsyncCommandQueue.put(("POST", data))
+                    self.AsyncCommandQueue.put((("POST", data),))
                 elif RequestType == "DELETE":
-                    self.AsyncCommandQueue.put(("DELETE", data))
+                    self.AsyncCommandQueue.put((("DELETE", data),))
 
                 return self.noData(Binary, GetHeaders)
             except requests.exceptions.SSLError:
