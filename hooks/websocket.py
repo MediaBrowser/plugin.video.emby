@@ -5,13 +5,12 @@ import array
 import struct
 import uuid
 import base64
-import socket
 import hashlib
 import ssl
 from _thread import start_new_thread
-import queue
+import _socket
 import xbmc
-from helper import utils, playerops, pluginmenu
+from helper import utils, playerops, pluginmenu, queue
 from database import dbio
 
 
@@ -39,6 +38,7 @@ class WSClient:
         self.TasksRunning = ()
         self.SyncInProgress = False
         self.SyncRefresh = False
+        self.EPGRefresh = False
         self.AsyncMessageQueue = queue.Queue()
         xbmc.log("Emby.hooks.websocket: WSClient initializing...", 0) # LOGDEBUG
 
@@ -47,7 +47,7 @@ class WSClient:
         start_new_thread(self.on_message, ())
 
     def close(self, Terminate=True):
-        xbmc.log(f"Emby.hooks.websocket: Close wesocket connection {self.EmbyServer.ServerData['ServerId']} / {self.EmbyServer.ServerData['ServerName']}", 1) # LOGINFO
+        xbmc.log(f"Emby.hooks.websocket: Close connection {self.EmbyServer.ServerData['ServerId']} / {self.EmbyServer.ServerData['ServerName']}", 1) # LOGINFO
 
         if Terminate:
             self.stop = True
@@ -58,7 +58,7 @@ class WSClient:
             self.sendCommands(struct.pack('!H', 1000), 0x8)
 
             try:
-                self.sock.shutdown(socket.SHUT_RDWR)
+                self.sock.shutdown(_socket.SHUT_RDWR)
             except Exception as error:
                 xbmc.log(f"Emby.hooks.websocket: {error}", 3) # LOGERROR
 
@@ -88,9 +88,10 @@ class WSClient:
                 break
 
             if data:
-                self.AsyncMessageQueue.put(data)
+                self.AsyncMessageQueue.put(data[1])
 
             if data is None:  # re-connect
+                xbmc.log("Emby.hooks.websocket: No data received, reconnecting", 1) # LOGINFO
                 self.connect()
 
         xbmc.log("Emby.hooks.websocket: THREAD: ---<[ websocket ]", 1) # LOGINFO
@@ -139,10 +140,10 @@ class WSClient:
             else:
                 port = 443
 
-        address_family = socket.getaddrinfo(hostname, None)[0][0]
-        self.sock = socket.socket(address_family, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        address_family = _socket.getaddrinfo(hostname, None)[0][0]
+        self.sock = _socket.socket(address_family, _socket.SOCK_STREAM)
+        self.sock.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
 
         # Connect
         try:
@@ -376,7 +377,7 @@ class WSClient:
                 break
 
             try:
-                IncomingData = IncomingData[1].decode('utf-8')
+                IncomingData = IncomingData.decode('utf-8')
                 xbmc.log(f"Emby.hooks.websocket: Incoming data: {IncomingData}", 0) # LOGDEBUG
                 IncomingData = json.loads(IncomingData)
             except: # connection interrupted and data corrupted
@@ -468,6 +469,9 @@ class WSClient:
                     xbmc.executebuiltin('Action(VolumeDown)')
             elif IncomingData['MessageType'] == 'ScheduledTasksInfo':
                 for Task in IncomingData['Data']:
+                    if Task.get("Key", "") == "RefreshGuide" and Task["State"] == "Running":
+                        self.EPGRefresh = True
+
                     if Task["State"] == "Running":
                         if not Task["Name"] in self.TasksRunning:
                             self.TasksRunning += (Task["Name"],)
@@ -631,6 +635,11 @@ class WSClient:
         self.SyncInProgress = False
         utils.SyncPause[f"server_busy_{self.EmbyServer.ServerData['ServerId']}"] = False
         self.EmbyServer.library.RunJobs()
+
+        if self.EPGRefresh:
+            self.EmbyServer.library.SyncLiveTVEPG()
+            self.EPGRefresh = False
+
         xbmc.log("Emby.hooks.websocket: THREAD: ---<[ Emby server is busy, sync in progress ]", 1) # LOGINFO
 
     def confirm_remote(self, SessionId, Timeout): # threaded

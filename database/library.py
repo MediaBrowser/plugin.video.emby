@@ -123,6 +123,8 @@ class Library:
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
         xbmc.log("EMBY.database.library: THREAD: --->[ retrieve changes ]", 1) # LOGINFO
         self.KodiStartSyncRunning = True
+        NewSyncData = utils.currenttime()
+        UpdateSyncData = False
 
         if Firstrun:
             self.select_libraries("AddLibrarySelection")
@@ -137,6 +139,7 @@ class Library:
             result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
 
             if 'ItemsRemoved' in result:
+                UpdateSyncData = True
                 self.removed(result['ItemsRemoved'])
 
             xbmc.log("EMBY.database.library: --<[ Kodi companion ]", 1) # LOGINFO
@@ -178,12 +181,8 @@ class Library:
 
             utils.progress_close()
 
-        # Update sync update timestamp
-        self.set_syncdate(utils.currenttime())
-
         # Run jobs
         xbmc.log("EMBY.database.library: THREAD: ---<[ retrieve changes ]", 1) # LOGINFO
-        pluginmenu.reset_querycache()
 
         if UpdateData:
             UpdateData = list(dict.fromkeys(UpdateData)) # filter doubles
@@ -191,17 +190,21 @@ class Library:
             if () in UpdateData:  # Remove empty
                 UpdateData.remove(())
 
+            UpdateSyncData = True
             self.updated(UpdateData)
 
+        # Update sync update timestamp
+        if UpdateSyncData:
+            xbmc.log("EMBY.database.library: Start sync, updates found", 1) # LOGINFO
+            pluginmenu.reset_querycache()
+            self.set_syncdate(NewSyncData)
+
+        self.SyncLiveTVEPG()
         self.KodiStartSyncRunning = False
 
     def worker_userdata(self):
         WorkerName = "worker_userdata"
         ContinueJobs = self.open_Worker(WorkerName)
-
-
-
-
 
         if ContinueJobs:
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
@@ -1003,17 +1006,25 @@ class Library:
             playlist += f"http://127.0.0.1:57342/dynamic/{self.EmbyServer.ServerData['ServerId']}/t-{ChannelSorted['Id']}-livetv\n"
 
         utils.writeFileString(PlaylistFile, playlist)
+        EPGFile = self.SyncLiveTVEPG()
         xbmc.log("EMBY.database.library: -->[ iptv simple config change ]", 1) # LOGINFO
 
-        if iptvsimpleVersion.startswith("20"):
+        if int(iptvsimpleVersion[:1]) > 1:
             utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":false}}')
             ConfigChanged = False
             iptvsimpleConfigFile = f"special://profile/addon_data/pvr.iptvsimple/instance-settings-{str(int(self.EmbyServer.ServerData['ServerId'], 16))[:4]}.xml"
+            RebuildConfig = False
 
             if utils.checkFileExists(iptvsimpleConfigFile):
                 iptvsimpleConfig = utils.readFileString(iptvsimpleConfigFile)
+
+                if iptvsimpleConfig.find('<setting id="epgPath"') == -1:
+                    RebuildConfig = True
             else: # use iptvsimple config(xml) template
-                iptvsimpleConfig = '<settings version="2">\n    <setting id="kodi_addon_instance_name"></setting>\n    <setting id="m3uPathType" default="true"></setting>\n    <setting id="m3uPath"></setting>\n    <setting id="epgPathType" default="true"></setting>\n    <setting id="epgUrl"></setting>\n    <setting id="m3uRefreshMode">2</setting>\n    <setting id="m3uRefreshHour">12</setting>\n</settings>'
+                RebuildConfig = True
+
+            if RebuildConfig:
+                iptvsimpleConfig = '<settings version="2">\n    <setting id="kodi_addon_instance_name"></setting>\n    <setting id="m3uPathType" default="true"></setting>\n    <setting id="m3uPath"></setting>\n    <setting id="epgPathType" default="true"></setting>\n    <setting id="epgPath"></setting>\n    <setting id="m3uRefreshMode">2</setting>\n    <setting id="m3uRefreshHour">12</setting>\n</settings>'
 
             PosStart = iptvsimpleConfig.find('<setting id="kodi_addon_instance_name">')
 
@@ -1053,18 +1064,18 @@ class Library:
             if PosStart != -1:
                 PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
                 CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-                NewValue = '<setting id="epgPathType" default="true">1</setting>'
+                NewValue = '<setting id="epgPathType" default="true">0</setting>'
 
                 if CurrentValue != NewValue:
                     iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, NewValue)
                     ConfigChanged = True
 
-            PosStart = iptvsimpleConfig.find('<setting id="epgUrl"')
+            PosStart = iptvsimpleConfig.find('<setting id="epgPath"')
 
             if PosStart != -1:
                 PosEnd = iptvsimpleConfig.find('</setting>', PosStart)
                 CurrentValue = iptvsimpleConfig[PosStart:PosEnd + 10]
-                NewValue = f'<setting id="epgUrl">http://127.0.0.1:57342/epg/{self.EmbyServer.ServerData["ServerId"]}/E-data.epg</setting>'
+                NewValue = f'<setting id="epgPath">{EPGFile}</setting>'
 
                 if CurrentValue != NewValue:
                     iptvsimpleConfig = iptvsimpleConfig.replace(CurrentValue, NewValue)
@@ -1082,19 +1093,55 @@ class Library:
             if iptvsimple.getSetting('m3uPath') != PlaylistFile:
                 iptvsimple.setSetting('m3uPath', PlaylistFile)
 
-            if iptvsimple.getSetting('epgPathType') != "1":
-                iptvsimple.setSetting('epgPathType', "1")
+            if iptvsimple.getSetting('epgPathType') != "0":
+                iptvsimple.setSetting('epgPathType', "0")
 
-            NewValue = f'http://127.0.0.1:57342/epg/{self.EmbyServer.ServerData["ServerId"]}/E-data.epg'
-
-            if iptvsimple.getSetting('epgUrl') != NewValue:
-                iptvsimple.setSetting('epgUrl', NewValue)
+            if iptvsimple.getSetting('epgPath') != EPGFile:
+                iptvsimple.setSetting('epgPath', EPGFile)
 
             utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":false}}')
 
         utils.sleep(3)
         utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')
         xbmc.log("EMBY.database.library: --<[ iptv simple config change ]", 1) # LOGINFO
+
+    def SyncLiveTVEPG(self):
+        xbmc.log("EMBY.database.library: -->[ load EPG ]", 1) # LOGINFO
+        epg = '<?xml version="1.0" encoding="utf-8" ?><tv>'
+
+        for item in self.EmbyServer.API.get_channelprogram():
+            temp = item['StartDate'].split("T")
+            timestampStart = temp[0].replace("-", "")
+            temp2 = temp[1].split(".")
+            timestampStart += temp2[0].replace(":", "")[:6]
+            temp2 = temp2[1].split("+")
+
+            if len(temp2) > 1:
+                timestampStart += f"+{temp2[1].replace(':', '')}"
+
+            temp = item['EndDate'].split("T")
+            timestampEnd = temp[0].replace("-", "")
+            temp2 = temp[1].split(".")
+            timestampEnd += temp2[0].replace(":", "")[:6]
+            temp2 = temp2[1].split("+")
+
+            if len(temp2) > 1:
+                timestampEnd += f"+{temp2[1].replace(':', '')}"
+
+            epg += f'<channel id="{item["ChannelId"]}"><display-name lang="en">{item["ChannelId"]}</display-name></channel><programme start="{timestampStart}" stop="{timestampEnd}" channel="{item["ChannelId"]}"><title lang="en">{item["Name"]}</title>'
+
+            if 'Overview' in item:
+                item["Overview"] = item["Overview"].replace("<", "(").replace(">", ")")
+                epg += f'<desc lang="en">{item["Overview"]}</desc>'
+
+            epg += f'<icon src="{self.EmbyServer.ServerData["ServerId"]}Z{item["Id"]}"/></programme>' # rape icon -> assign serverId and programId
+
+        epg += '</tv>'
+        EPGFile = f"{utils.FolderEmbyTemp}{self.EmbyServer.ServerData['ServerId']}-livetvepg.xml"
+        utils.delFile(EPGFile)
+        utils.writeFileString(EPGFile, epg)
+        xbmc.log("EMBY.database.library: --<[ load EPG ]", 1) # LOGINFO
+        return EPGFile
 
     # Add item_id to userdata queue
     def userdata(self, ItemIds):  # threaded by caller -> websocket via monitor

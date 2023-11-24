@@ -1,6 +1,6 @@
-import socket
 import json
 from _thread import start_new_thread
+import _socket
 import xbmc
 from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, servermanual
 from helper import utils, playerops
@@ -62,7 +62,6 @@ class EmbyServer:
         self.Views.update_nodes()
         self.toggle_websocket(True)
         start_new_thread(self.library.KodiStartSync, (self.Firstrun,))  # start initial sync
-        start_new_thread(self.Ping, ())
         self.Firstrun = False
 
         if utils.connectMsg:
@@ -385,9 +384,9 @@ class EmbyServer:
         xbmc.log("EMBY.emby.emby: Begin getAvailableServers", 0) # LOGDEBUG
         MULTI_GROUP = ("<broadcast>", 7359)
         MESSAGE = b"who is EmbyServer?"
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM)
         sock.settimeout(1.0)  # This controls the socket.timeout exception
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.setsockopt(_socket.SOL_SOCKET, _socket.SO_BROADCAST, 1)
         xbmc.log(f"EMBY.emby.emby: MultiGroup: {MULTI_GROUP}", 0) # LOGDEBUG
         xbmc.log(f"EMBY.emby.emby: Sending UDP Data: {MESSAGE}", 0) # LOGDEBUG
         found_servers = []
@@ -402,7 +401,7 @@ class EmbyServer:
 
                     if IncommingData not in found_servers:
                         found_servers.append(IncommingData)
-                except socket.timeout:
+                except _socket.timeout:
                     xbmc.log(f"EMBY.emby.emby: Found Servers: {found_servers}", 1) # LOGINFO
                     break
                 except Exception as Error:
@@ -478,18 +477,6 @@ class EmbyServer:
             return True
 
         return False
-
-    # Ping server -> keep http session open
-    def Ping(self):
-        xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Ping {self.ServerData['ServerId']} ]", 1) # LOGINFO
-
-        while True:
-            for _ in range(30):
-                if utils.sleep(1) or not self.EmbySession:
-                    xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Ping {self.ServerData['ServerId']} ]", 1) # LOGINFO
-                    return
-
-            self.API.ping()
 
     def toggle_websocket(self, Enable):
         if Enable:

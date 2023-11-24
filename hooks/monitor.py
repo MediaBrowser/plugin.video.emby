@@ -38,21 +38,21 @@ class monitor(xbmc.Monitor):
             player.NowPlayingQueue = [[], []]
             player.PlaylistKodiItems = [[], []]
         elif method == "Player.OnPlay":
-            player.PlayerEvents.put(("play",))
+            player.PlayerEvents.put("play")
         elif method == "Player.OnStop":
-            player.PlayerEvents.put(("stop", data))
+            player.PlayerEvents.put((("stop", data),))
         elif method == 'Player.OnSeek':
-            player.PlayerEvents.put(("seek", data))
+            player.PlayerEvents.put((("seek", data),))
         elif method == "Player.OnAVChange":
-            player.PlayerEvents.put(("avchange",))
+            player.PlayerEvents.put((("avchange",),))
         elif method == "Player.OnAVStart":
-            player.PlayerEvents.put(("avstart", data))
+            player.PlayerEvents.put((("avstart", data),))
         elif method == "Player.OnPause":
-            player.PlayerEvents.put(("pause",))
+            player.PlayerEvents.put("pause")
         elif method == "Player.OnResume":
-            player.PlayerEvents.put(("resume",))
+            player.PlayerEvents.put("resume")
         elif method == 'Application.OnVolumeChanged':
-            player.PlayerEvents.put(("volume", data))
+            player.PlayerEvents.put((("volume", data),))
         elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual', 'Other.manageserver'):
             start_new_thread(Notification, (method, data))
         elif method == 'VideoLibrary.OnUpdate' and not playerops.RemoteMode:  # Buffer updated items -> not overloading threads
@@ -201,9 +201,9 @@ def System_OnSleep():
     utils.SyncPause['kodi_sleep'] = True
 
     if not player.PlayBackEnded and player.EmbyServerPlayback:
-        player.PlayerEvents.put(("stop", '{"end":"sleep"}'))
+        player.PlayerEvents.put((("stop", '{"end":"sleep"}'),))
 
-        while not player.PlayerEvents.empty():
+        while not player.PlayerEvents.isEmpty():
             utils.sleep(0.5)
 
         player.EmbyServerPlayback = None
@@ -303,7 +303,7 @@ def Playlist_Add():
             player.PlaylistKodiItems[PlaylistIndex].insert(Position, EmbyId)
 
     player.build_NowPlayingQueue()
-    player.PlayerEvents.put(("playlistupdate",))
+    player.PlayerEvents.put("playlistupdate")
     xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Add ]", 1) # LOGINFO
 
 def Playlist_Remove():
@@ -324,7 +324,7 @@ def Playlist_Remove():
             del player.PlaylistKodiItems[PlaylistIndex][RemovedItemPlaylist]
 
     player.build_NowPlayingQueue()
-    player.PlayerEvents.put(("playlistupdate",))
+    player.PlayerEvents.put("playlistupdate")
     xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Remove ]", 1) # LOGINFO
 
 # Mark as watched/unwatched updates
@@ -674,9 +674,9 @@ def ServersConnect():
 
     if utils.refreshskin:
         xbmc.executebuiltin('ReloadSkin()')
-        xbmc.log("EMBY.hooks.webservice: Reload skin on connection established", xbmc.LOGINFO)
+        xbmc.log("EMBY.hooks.monitor: Reload skin on connection established", xbmc.LOGINFO)
     else:
-        xbmc.log("EMBY.hooks.webservice: widget refresh: connection established", xbmc.LOGINFO) # reload artwork/images
+        xbmc.log("EMBY.hooks.monitor: widget refresh: connection established", xbmc.LOGINFO) # reload artwork/images
         utils.refresh_widgets()
 
     utils.PluginStarted = True
@@ -799,13 +799,13 @@ def StartUp():
         player.stop_playback(False, False)
 
         for RemoteCommandQueue in list(playerops.RemoteCommandQueue.values()):
-            RemoteCommandQueue.put(("QUIT",))
+            RemoteCommandQueue.put("QUIT")
 
         utils.SyncPause = {}
         webservice.close()
         EmbyServer_DisconnectAll()
         xbmc.log("EMBY.hooks.monitor: [ Shutdown Emby-next-gen ]", 2) # LOGWARNING
 
-    player.PlayerEvents.put(("QUIT",))
+    player.PlayerEvents.put("QUIT")
     utils.XbmcPlayer = None
     utils.SystemShutdown = True

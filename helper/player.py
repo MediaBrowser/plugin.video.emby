@@ -1,12 +1,11 @@
 from _thread import start_new_thread
-import queue
 import uuid
 from urllib.parse import unquote_plus
 import json
 import xbmc
 from database import dbio
 from emby import listitem
-from helper import utils, pluginmenu, playerops
+from helper import utils, pluginmenu, playerops, queue
 from dialogs import skipintrocredits
 
 PlaylistRemoveItem = -1
@@ -46,7 +45,7 @@ def PlayerCommands():
         Commands = PlayerEvents.get()
         xbmc.log(f"EMBY.hooks.player: playercommand received: {Commands}", 1) # LOGINFO
 
-        if Commands[0] == "QUIT":
+        if Commands == "QUIT":
             return
 
         if Commands[0] == "seek":
@@ -290,14 +289,14 @@ def PlayerCommands():
                     start_new_thread(PositionTracker, ())
 
             xbmc.log("EMBY.hooks.player: --< [ onAVStarted ]", 1) # LOGINFO
-        elif Commands[0] == "playlistupdate":
+        elif Commands == "playlistupdate":
             if not EmbyServerPlayback or 'ItemId' not in PlayingItem or playerops.PlayerId == -1:
                 continue
 
             PlaylistPosition = playerops.GetPlayerPosition(playerops.PlayerId)
             globals()["PlayingItem"].update({"NowPlayingQueue": NowPlayingQueue[playerops.PlayerId], "PlaylistLength": len(NowPlayingQueue[playerops.PlayerId]), "PlaylistIndex": PlaylistPosition})
             EmbyServerPlayback.API.session_progress(PlayingItem)
-        elif Commands[0] == "play":
+        elif Commands == "play":
             globals()["PlaybackStarted"] = False
 
             if not PlayBackEnded:
@@ -308,7 +307,7 @@ def PlayerCommands():
 
             if not utils.syncduringplayback:
                 utils.SyncPause['playing'] = True
-        elif Commands[0] == "pause":
+        elif Commands == "pause":
             xbmc.log("EMBY.hooks.player: [ onPlayBackPaused ]", 1) # LOGINFO
             playerops.PlayerPause = True
 
@@ -321,7 +320,7 @@ def PlayerCommands():
             playerops.RemoteCommand(EmbyServerPlayback.ServerData['ServerId'], EmbyServerPlayback.EmbySession[0]['Id'], "pause")
             EmbyServerPlayback.API.session_progress(PlayingItem)
             xbmc.log("EMBY.hooks.player: -->[ paused ]", 0) # LOGDEBUG
-        elif Commands[0] == "resume":
+        elif Commands == "resume":
             xbmc.log("EMBY.hooks.player: [ onPlayBackResumed ]", 1) # LOGINFO
             playerops.PlayerPause = False
 

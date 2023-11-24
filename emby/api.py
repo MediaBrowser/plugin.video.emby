@@ -1,8 +1,7 @@
 from _thread import start_new_thread
-import queue
 import json
 import xbmc
-from helper import utils
+from helper import utils, queue
 from database import dbio
 from . import listitem
 
@@ -168,8 +167,7 @@ class API:
                 ItemsFullQuery.remove(None)
 
             if ItemsFullQuery:
-                for Item in self.get_Items_Ids(ItemsFullQuery, [MediaType], True, Basic, False, ""):
-                    yield Item
+                yield from self.get_Items_Ids(ItemsFullQuery, [MediaType], True, Basic, False, "")
 
     def get_Items_Ids(self, Ids, MediaTypes, Dynamic, Basic, BySyncedLibrarys, ProcessProgressId):
         ItemsQueue = queue.Queue()
@@ -200,12 +198,13 @@ class API:
         start_new_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': MediaType}, Ids, BySyncedLibrarys, ProcessProgressId))
 
         while True:
-            Item = ItemsQueue.get()
+            Items = ItemsQueue.getall()
 
-            if Item in ("QUIT", "TERMINATE"):
+            if Items[-1] == "QUIT":
+                yield from Items[:-1]
                 return
 
-            yield Item
+            yield from Items
 
     def async_get_Items_Ids(self, Request, ItemsQueue, Params, Ids, BySyncedLibrarys, ProcessProgressId):
         Index = 0
@@ -246,9 +245,7 @@ class API:
                     del IncomingData  # release memory
                     return
 
-                for Item in IncomingData['Items']:
-                    ItemsQueue.put(Item)
-
+                ItemsQueue.put(IncomingData['Items'])
                 Index += len(IncomingData['Items'])
 
             del IncomingData  # release memory
@@ -276,12 +273,13 @@ class API:
         start_new_thread(self.async_get_Items, (Request, ItemsQueue, CustomLimit, Params, Limit))
 
         while True:
-            Item = ItemsQueue.get()
+            Items = ItemsQueue.getall()
 
-            if Item in ("QUIT", "TERMINATE"):
+            if Items[-1] == "QUIT":
+                yield from Items[:-1]
                 return
 
-            yield Item
+            yield from Items
 
     def get_Items(self, ParentId, MediaTypes, Basic, Recursive, Extra, ProcessProgressId=""):
         CustomLimit = False
@@ -302,15 +300,16 @@ class API:
             start_new_thread(self.async_get_Items, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, not Recursive or CustomLimit, Params, Limit, ProcessProgressId))
 
             while True:
-                Item = ItemsQueue.get()
+                Items = ItemsQueue.getall()
 
-                if Item == "QUIT":
-                    break
-
-                if Item == "TERMINATE":
+                if utils.SystemShutdown:
                     return
 
-                yield Item
+                if Items[-1] == "QUIT":
+                    yield from Items[:-1]
+                    return
+
+                yield from Items
 
     def get_channelprogram(self):
         Limit = get_Limit("livetv")
@@ -319,12 +318,13 @@ class API:
         start_new_thread(self.async_get_Items, ("LiveTv/Programs", ItemsQueue, False, Params, Limit))
 
         while True:
-            Item = ItemsQueue.get()
+            Items = ItemsQueue.getall()
 
-            if Item in ("QUIT", "TERMINATE"):
+            if Items[-1] == "QUIT":
+                yield from Items[:-1]
                 return
 
-            yield Item
+            yield from Items
 
     def get_recommendations(self, ParentId):
         Fields = self.get_Fields("movie", False, True)
@@ -352,22 +352,14 @@ class API:
                     ItemsQueue.put("QUIT")
                     return
 
-                for Item in IncomingData:
-                    ItemsQueue.put(Item)
-
+                ItemsQueue.put(IncomingData)
                 ItemCounter += len(IncomingData)
             else:
-                if 'Items' not in IncomingData or not IncomingData['Items']:
+                if 'Items' not in IncomingData or not IncomingData['Items'] or utils.SystemShutdown:
                     ItemsQueue.put("QUIT")
                     return
 
-                if utils.SystemShutdown:
-                    ItemsQueue.put("TERMINATE")
-                    return
-
-                for Item in IncomingData['Items']:
-                    ItemsQueue.put(Item)
-
+                ItemsQueue.put(IncomingData['Items'])
                 ItemCounter += len(IncomingData['Items'])
 
             del IncomingData  # release memory
@@ -567,9 +559,6 @@ class API:
 
     def send_pause(self, SessionId, Priority=False):
         self.EmbyServer.http.request({'type': "POST", 'handler': f"Sessions/{SessionId}/Playing/Pause"}, Priority, False, True, False, Priority)
-
-    def ping(self):
-        self.EmbyServer.http.request({'type': "POST", 'handler': "System/Ping"}, False, False)
 
     def send_unpause(self, SessionId, Priority=False):
         self.EmbyServer.http.request({'type': "POST", 'handler': f"Sessions/{SessionId}/Playing/Unpause"}, Priority, False, True, False, Priority)
