@@ -204,12 +204,12 @@ msgid "Settings"
 msgstr "Inställningar"
 
 msgctxt "#30409"
-msgid "Delete from Emby"
-msgstr "Ta bort från Emby"
+msgid "EMBY: Delete item"
+msgstr ""
 
 msgctxt "#30410"
-msgid "Refresh this item"
-msgstr "Uppdatera det här objektet"
+msgid "EMBY: Refresh item"
+msgstr ""
 
 msgctxt "#30412"
 msgid "Transcode"
@@ -378,10 +378,6 @@ msgstr "Vänligen logga in"
 msgctxt "#30613"
 msgid "Change Emby Connect user"
 msgstr "Ändra Emby Connect-användare"
-
-msgctxt "#30614"
-msgid "Connect to server"
-msgstr "Anslut till server"
 
 msgctxt "#30615"
 msgid "Host"
@@ -754,10 +750,6 @@ msgstr "Ta bort server"
 msgctxt "#33142"
 msgid "Something went wrong. Try again later."
 msgstr "Något gick fel. "
-
-msgctxt "#33143"
-msgid "Enable the option to delete"
-msgstr "Aktivera alternativet att ta bort"
 
 msgctxt "#33144"
 msgid "Removing library"
@@ -1583,10 +1575,6 @@ msgctxt "#33354"
 msgid "Episode tags"
 msgstr "Avsnittstaggar"
 
-msgctxt "#33355"
-msgid "Resume episodes"
-msgstr "Återuppta avsnitt"
-
 msgctxt "#33356"
 msgid "Movie tags"
 msgstr "Filmtaggar"
@@ -2100,8 +2088,8 @@ msgid "Select subtitle"
 msgstr "Välj undertext"
 
 msgctxt "#33485"
-msgid "Specials"
-msgstr "Specialerbjudanden"
+msgid "EMBY: Specials"
+msgstr "EMBY: Specialerbjudanden"
 
 msgctxt "#33486"
 msgid "Use path substitution"
@@ -2120,7 +2108,7 @@ msgid "Episodes"
 msgstr "Avsnitt"
 
 msgctxt "#33490"
-msgid "Emby Record"
+msgid "EMBY: Record"
 msgstr ""
 
 msgctxt "#33491"
@@ -2228,76 +2216,24 @@ msgid "Establish connection on start (by device id)"
 msgstr "Etablera anslutning vid start (med enhets-id)"
 
 msgctxt "#33517"
-msgid "Watch together"
-msgstr "Se tillsammans"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Se tillsammans"
 
 msgctxt "#33518"
-msgid "Remove client"
-msgstr "Ta bort klient"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Ta bort klient"
 
 msgctxt "#33519"
-msgid "Add client"
-msgstr "Lägg till klient"
+msgid "EMBY: Add client"
+msgstr "EMBY: Lägg till klient"
 
 msgctxt "#33520"
-msgid "Enable remote mode"
-msgstr "Aktivera fjärrläge"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Aktivera fjärrläge"
 
 msgctxt "#33521"
-msgid "Disable remote mode"
-msgstr "Inaktivera fjärrläge"
-
-msgctxt "#33522"
-msgid "Enable"
-msgstr "Aktivera"
-
-msgctxt "#33523"
-msgid "Primary"
-msgstr "Primär"
-
-msgctxt "#33524"
-msgid "Art"
-msgstr ""
-
-msgctxt "#33525"
-msgid "Banner"
-msgstr ""
-
-msgctxt "#33526"
-msgid "Disc"
-msgstr "Skiva"
-
-msgctxt "#33527"
-msgid "Logo"
-msgstr "Logotyp"
-
-msgctxt "#33528"
-msgid "Thumb"
-msgstr "Tummen"
-
-msgctxt "#33529"
-msgid "Backdrop"
-msgstr "Bakgrund"
-
-msgctxt "#33530"
-msgid "Chapter"
-msgstr "Kapitel"
-
-msgctxt "#33531"
-msgid "Compression"
-msgstr "Kompression"
-
-msgctxt "#33532"
-msgid "Maximum resolution"
-msgstr "Maximal upplösning"
-
-msgctxt "#33533"
-msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
-msgstr "Begränsar bildupplösningen med en faktor. "
-
-msgctxt "#33534"
-msgid "Select transencode audiostream"
-msgstr "Välj transencode audiostream"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Inaktivera fjärrläge"
 
 msgctxt "#33522"
 msgid "Enable"
@@ -2353,48 +2289,308 @@ msgstr "Välj transencode audiostream"
 
 msgctxt "#33535"
 msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
-msgstr ""
+msgstr "Sökvägsersättning stöder kapitelbilder (extraktion) i tilläggsläge. "
 
 msgctxt "#33536"
 msgid "Enable websocket connection"
-msgstr ""
+msgstr "Aktivera websocket-anslutning"
 
 msgctxt "#33537"
 msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
-msgstr ""
+msgstr "Om inaktiverat: Inga realtidsuppdateringar, inga meddelanden tas emot och fjärrkommandon fungerar inte."
 
 msgctxt "#33538"
 msgid "Use workarounds for Kodi's episode bookmark issues"
-msgstr ""
+msgstr "Använd lösningar för problem med Kodis avsnittsbokmärken"
 
 msgctxt "#33539"
 msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
-msgstr ""
+msgstr "Kodi har en bugg med avsnittsbokmärken när du väljer ett avsnitt via listvyer. "
 
 msgctxt "#33540"
 msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
-msgstr ""
+msgstr "Kodi har problem med dynamiska widgets. "
 
 msgctxt "#33541"
 msgid "Enable HTTP/2 support"
-msgstr ""
+msgstr "Aktivera HTTP/2-stöd"
 
 msgctxt "#33542"
 msgid "Kodi has issues playing content via with http/2 protocol (default off)"
-msgstr ""
+msgstr "Kodi har problem med att spela innehåll via med http/2-protokoll (standard av)"
 
 msgctxt "#33543"
 msgid "Extra audio widget refresh"
-msgstr ""
+msgstr "Extra ljudwidgetuppdatering"
 
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
-msgstr ""
+msgstr "Utlöser en ytterligare (falsk) Kodi-ljudskanning efter att Emby rapporterar framstegsuppdateringar. "
 
 msgctxt "#33545"
 msgid "Network timeouts"
-msgstr ""
+msgstr "Nätverkstimeout"
 
 msgctxt "#33546"
 msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Det här alternativet påverkar tidsgränserna för val av EPG och multiversionsinnehåll. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Favoriter"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Titta tillsammans"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Hantera fjärrklienter"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Förena metadata efter bibliotek"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "MusikArtist"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Musikgenre"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Ateljén"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Tagg"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Samlingsfilmer"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Samling tv-program"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Samling musikvideor"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Favoriter"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Varaktighet för nytt innehållsmeddelande"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Lådor som taggar"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Tilldela boxset till taggar"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Nätverkstimeout"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Justerar nätverkets timeout i sekunder. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Synkronisera Emby-favoriter till Kodi-favoriter"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml kommer att ändras"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Nyligen tillagda fotoalbum"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Fortsätt titta"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Synkronisera livetv-kanaler på evenemang"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Livetv-kanaler synkroniseras om vid Kodi-start och EPG-ändringar"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Nedladdningsplats"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Ladda ner"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Ta bort nedladdning"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Ta bort alla nedladdade filer"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Är du säker på att du vill ta bort allt offlineinnehåll?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Allt nedladdat innehåll kommer att raderas"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby-server offline"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Favoritsäsonger"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr ""
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr ""
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr ""
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr ""
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr ""
+
+msgctxt "#33584"
+msgid "Series"
+msgstr ""
+
+msgctxt "#33585"
+msgid "Season"
+msgstr ""
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr ""
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr ""
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr ""
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr ""
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr ""
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr ""
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr ""
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr ""
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr ""
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr ""
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr ""
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr ""
+
+msgctxt "#33604"
+msgid "Favourite add/rempve"
+msgstr ""
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr ""
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr ""
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr ""
+
+msgctxt "#33143"
+msgid "Delete item"
 msgstr ""

@@ -204,12 +204,12 @@ msgid "Settings"
 msgstr "Ajustes"
 
 msgctxt "#30409"
-msgid "Delete from Emby"
-msgstr "Eliminar de Emby"
+msgid "EMBY: Delete item"
+msgstr ""
 
 msgctxt "#30410"
-msgid "Refresh this item"
-msgstr "Actualizar este elemento"
+msgid "EMBY: Refresh item"
+msgstr ""
 
 msgctxt "#30412"
 msgid "Transcode"
@@ -378,10 +378,6 @@ msgstr "Por favor, inicie sesión"
 msgctxt "#30613"
 msgid "Change Emby Connect user"
 msgstr "Cambiar usuario Emby Connect"
-
-msgctxt "#30614"
-msgid "Connect to server"
-msgstr "Conectar a servidor"
 
 msgctxt "#30615"
 msgid "Host"
@@ -754,10 +750,6 @@ msgstr "Eliminar servidor"
 msgctxt "#33142"
 msgid "Something went wrong. Try again later."
 msgstr "Algo salió mal. Inténtelo de nuevo."
-
-msgctxt "#33143"
-msgid "Enable the option to delete"
-msgstr "Activar la opción para eliminar"
 
 msgctxt "#33144"
 msgid "Removing library"
@@ -1583,10 +1575,6 @@ msgctxt "#33354"
 msgid "Episode tags"
 msgstr "Etiquetas de episodios"
 
-msgctxt "#33355"
-msgid "Resume episodes"
-msgstr "Reanudar episodios"
-
 msgctxt "#33356"
 msgid "Movie tags"
 msgstr "Etiquetas de películas"
@@ -2099,8 +2087,8 @@ msgid "Select subtitle"
 msgstr "Seleccionar subtítulo"
 
 msgctxt "#33485"
-msgid "Specials"
-msgstr "Especiales"
+msgid "EMBY: Specials"
+msgstr "EMBY: Especiales"
 
 msgctxt "#33486"
 msgid "Use path substitution"
@@ -2119,8 +2107,8 @@ msgid "Episodes"
 msgstr "Episodios"
 
 msgctxt "#33490"
-msgid "Emby Record"
-msgstr "Emby registro"
+msgid "EMBY: Record"
+msgstr "EMBY: registro"
 
 msgctxt "#33491"
 msgid "Watch together canceled"
@@ -2227,23 +2215,23 @@ msgid "Establish connection on start (by device id)"
 msgstr "Establecer conexión al inicio (por ID de dispositivo)"
 
 msgctxt "#33517"
-msgid "Watch together"
-msgstr "Ver juntos"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Ver juntos"
 
 msgctxt "#33518"
-msgid "Remove client"
-msgstr "Eliminar cliente"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Eliminar cliente"
 
 msgctxt "#33519"
-msgid "Add client"
-msgstr "Agregar cliente"
+msgid "EMBY: Add client"
+msgstr "EMBY: Agregar cliente"
 
 msgctxt "#33520"
-msgid "Enable remote mode"
+msgid "EMBY: Enable remote mode"
 msgstr "Activar modo remoto"
 
 msgctxt "#33521"
-msgid "Disable remote mode"
+msgid "EMBY: Disable remote mode"
 msgstr "Desactivar modo remoto"
 
 msgctxt "#33522"
@@ -2252,7 +2240,7 @@ msgstr "Habilitar"
 
 msgctxt "#33523"
 msgid "Primary"
-msgstr "Primario"
+msgstr "Primaria"
 
 msgctxt "#33524"
 msgid "Art"
@@ -2260,7 +2248,7 @@ msgstr "Arte"
 
 msgctxt "#33525"
 msgid "Banner"
-msgstr "Bandera"
+msgstr "Pancartas"
 
 msgctxt "#33526"
 msgid "Disc"
@@ -2272,11 +2260,11 @@ msgstr "Logotipo"
 
 msgctxt "#33528"
 msgid "Thumb"
-msgstr "pulgar"
+msgstr "Pulgar"
 
 msgctxt "#33529"
 msgid "Backdrop"
-msgstr "Fondo"
+msgstr "Telón de fondo"
 
 msgctxt "#33530"
 msgid "Chapter"
@@ -2288,112 +2276,320 @@ msgstr "Compresión"
 
 msgctxt "#33532"
 msgid "Maximum resolution"
-msgstr "Resolución máxima"
+msgstr "resolución máxima"
 
 msgctxt "#33533"
 msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
-msgstr "Limita la resolución de la imagen por un factor. "
+msgstr "Limita la resolución de la imagen en un factor. "
 
 msgctxt "#33534"
 msgid "Select transencode audiostream"
-msgstr "Seleccione flujo de audio transcodificado"
-
-msgctxt "#33522"
-msgid "Enable"
-msgstr "Habilitar"
-
-msgctxt "#33523"
-msgid "Primary"
-msgstr "Primario"
-
-msgctxt "#33524"
-msgid "Art"
-msgstr "Arte"
-
-msgctxt "#33525"
-msgid "Banner"
-msgstr "Bandera"
-
-msgctxt "#33526"
-msgid "Disc"
-msgstr "Disco"
-
-msgctxt "#33527"
-msgid "Logo"
-msgstr "Logotipo"
-
-msgctxt "#33528"
-msgid "Thumb"
-msgstr "pulgar"
-
-msgctxt "#33529"
-msgid "Backdrop"
-msgstr "Fondo"
-
-msgctxt "#33530"
-msgid "Chapter"
-msgstr "Capítulo"
-
-msgctxt "#33531"
-msgid "Compression"
-msgstr "Compresión"
-
-msgctxt "#33532"
-msgid "Maximum resolution"
-msgstr "Resolución máxima"
-
-msgctxt "#33533"
-msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
-msgstr "Limita la resolución de la imagen por un factor. "
-
-msgctxt "#33534"
-msgid "Select transencode audiostream"
-msgstr "Seleccione flujo de audio transcodificado"
+msgstr "Seleccione transcodificación de flujo de audio"
 
 msgctxt "#33535"
 msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
-msgstr ""
+msgstr "La sustitución de ruta admite imágenes de capítulos (extracción) en modo adicional. "
 
 msgctxt "#33536"
 msgid "Enable websocket connection"
-msgstr ""
+msgstr "Habilitar conexión websocket"
 
 msgctxt "#33537"
 msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
-msgstr ""
+msgstr "Si está deshabilitado: no habrá actualizaciones en tiempo real, no se recibirán notificaciones y los comandos remotos no funcionarán."
 
 msgctxt "#33538"
 msgid "Use workarounds for Kodi's episode bookmark issues"
-msgstr ""
+msgstr "Utilice soluciones alternativas para los problemas de marcadores de episodios de Kodi"
 
 msgctxt "#33539"
 msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
-msgstr ""
+msgstr "Kodi tiene un error con los marcadores de episodios al seleccionar un episodio mediante vistas de lista. "
 
 msgctxt "#33540"
 msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
-msgstr ""
+msgstr "Kodi tiene un problema con los widgets dinámicos. "
 
 msgctxt "#33541"
 msgid "Enable HTTP/2 support"
-msgstr ""
+msgstr "Habilitar soporte HTTP/2"
 
 msgctxt "#33542"
 msgid "Kodi has issues playing content via with http/2 protocol (default off)"
-msgstr ""
+msgstr "Kodi tiene problemas para reproducir contenido mediante el protocolo http/2 (desactivado por defecto)"
 
 msgctxt "#33543"
 msgid "Extra audio widget refresh"
-msgstr ""
+msgstr "Actualización adicional del widget de audio"
 
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
-msgstr ""
+msgstr "Activa un escaneo de audio Kodi adicional (falso) después de que Emby informa las actualizaciones de progreso. "
 
 msgctxt "#33545"
 msgid "Network timeouts"
-msgstr ""
+msgstr "Tiempos de espera de red"
 
 msgctxt "#33546"
 msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Esta opción afecta los tiempos de espera de selección de contenido de EPG y de múltiples versiones. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Favoritos"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Mirar juntos"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Administrar clientes remotos"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Unificar metadatos por biblioteca"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Artista musical"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Género musical"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "género"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Estudiar"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Etiquetas"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Películas de colección"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Colección programas de televisión"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Colección de vídeos musicales"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Favoritos"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Duración del mensaje de contenido nuevo"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "conjuntos de cajas como etiquetas"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Asignar conjuntos de cajas a etiquetas"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "tiempo de espera de la red"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Ajustar los tiempos de espera de la red en segundos. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Sincronizar los favoritos de Emby con los favoritos de Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favoritos.xml será modificado"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "álbumes de fotos agregados recientemente"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "seguir viendo"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Sincronizar canales de TV en vivo en eventos"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Canales de Livetv resincronizados al inicio de Kodi y cambios de EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Descargar ubicación"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Descargar"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Eliminar descarga"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "eliminar todos los archivos descargados"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "¿Estás seguro de que deseas eliminar todo el contenido sin conexión?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Todo el contenido descargado será eliminado"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "servidor Emby fuera de línea"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Estaciones favoritas"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr ""
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr ""
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr ""
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr ""
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr ""
+
+msgctxt "#33584"
+msgid "Series"
+msgstr ""
+
+msgctxt "#33585"
+msgid "Season"
+msgstr ""
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr ""
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr ""
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr ""
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr ""
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr ""
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr ""
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr ""
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr ""
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr ""
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr ""
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr ""
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr ""
+
+msgctxt "#33604"
+msgid "Favourite add/rempve"
+msgstr ""
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr ""
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr ""
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr ""
+
+msgctxt "#33143"
+msgid "Delete item"
 msgstr ""
