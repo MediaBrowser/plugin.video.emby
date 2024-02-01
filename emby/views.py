@@ -1,7 +1,6 @@
-import xml.etree.ElementTree
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 import xbmc
-from helper import utils, xmls
+from helper import utils
 from database import dbio
 
 SyncNodes = {
@@ -18,6 +17,8 @@ SyncNodes = {
         ('years', utils.Translate(33218), 'DefaultYear.png'),
         ('actors', utils.Translate(33219), 'DefaultActor.png'),
         ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('collections', "Collections", 'DefaultTags.png'),
+        ('favortites', "Favorites", 'DefaultTags.png'),
         ('unwatched', utils.Translate(33345), 'OverlayUnwatched.png'),
         ('unwatchedepisodes', utils.Translate(33344), 'OverlayUnwatched.png'),
         ('studios', utils.Translate(33249), 'DefaultStudios.png'),
@@ -38,6 +39,8 @@ SyncNodes = {
         ('years', utils.Translate(33218), 'DefaultYear.png'),
         ('actors', utils.Translate(33219), 'DefaultActor.png'),
         ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('collections', "Collections", 'DefaultSets.png'),
+        ('favortites', "Favorites", 'DefaultTags.png'),
         ('studios', utils.Translate(33249), 'DefaultStudios.png'),
         ('recentlyplayed', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('directors', utils.Translate(33352), 'DefaultDirector.png'),
@@ -57,6 +60,9 @@ SyncNodes = {
         ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
         ('artists', utils.Translate(33343), 'DefaultMusicArtists.png'),
         ('albums', utils.Translate(33362), 'DefaultMusicAlbums.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('collections', "Collections", 'DefaultSets.png'),
+        ('favortites', "Favorites", 'DefaultTags.png'),
         ('recentlyplayed', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('resolutionhd', utils.Translate(33359), 'DefaultIconInfo.png'),
         ('resolutionsd', utils.Translate(33360), 'DefaultIconInfo.png'),
@@ -71,6 +77,9 @@ SyncNodes = {
         ('inprogress', utils.Translate(30257), 'DefaultInProgressShows.png'),
         ('random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
         ('unwatched', utils.Translate(30258), 'OverlayUnwatched.png'),
+        ('tags', utils.Translate(33220), 'DefaultTags.png'),
+        ('collections', "Collections", 'DefaultSets.png'),
+        ('favortites', "Favorites", 'DefaultTags.png'),
         ('recentlyplayed', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('resolutionhd', utils.Translate(33359), 'DefaultIconInfo.png'),
         ('resolutionsd', utils.Translate(33360), 'DefaultIconInfo.png'),
@@ -86,10 +95,10 @@ SyncNodes = {
         ('composers', utils.Translate(33426), 'DefaultMusicArtists.png'),
         ('albums', utils.Translate(33362), 'DefaultMusicAlbums.png'),
         ('recentlyaddedalbums', utils.Translate(33388), 'DefaultMusicRecentlyAdded.png'),
-        ('recentlyaddedsongs', utils.Translate(33390), 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyadded', utils.Translate(33390), 'DefaultMusicRecentlyAdded.png'),
         ('recentlyplayedmusic', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('randomalbums', utils.Translate(33391), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('randomsongs', utils.Translate(33392), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
+        ('random', utils.Translate(33392), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
     ],
     'audiobooks': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
@@ -99,10 +108,10 @@ SyncNodes = {
         ('artists', utils.Translate(33343), 'DefaultMusicArtists.png'),
         ('albums', utils.Translate(33362), 'DefaultMusicAlbums.png'),
         ('recentlyaddedalbums', utils.Translate(33388), 'DefaultMusicRecentlyAdded.png'),
-        ('recentlyaddedsongs', utils.Translate(33389), 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyadded', utils.Translate(33389), 'DefaultMusicRecentlyAdded.png'),
         ('recentlyplayedmusic', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('randomalbums', utils.Translate(33391), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('randomsongs', utils.Translate(33393), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+        ('random', utils.Translate(33393), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
     ],
     'podcasts': [
         ('letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png'),
@@ -112,79 +121,244 @@ SyncNodes = {
         ('artists', utils.Translate(33343), 'DefaultMusicArtists.png'),
         ('albums', utils.Translate(33362), 'DefaultMusicAlbums.png'),
         ('recentlyaddedalbums', utils.Translate(33388), 'DefaultMusicRecentlyAdded.png'),
-        ('recentlyaddedsongs', utils.Translate(33395), 'DefaultMusicRecentlyAdded.png'),
+        ('recentlyadded', utils.Translate(33395), 'DefaultMusicRecentlyAdded.png'),
         ('recentlyplayedmusic', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png'),
         ('randomalbums', utils.Translate(33391), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png'),
-        ('randomsongs', utils.Translate(33394), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+        ('random', utils.Translate(33394), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png')
+    ],
+    'playlists': [],
+    'root': [
+        ('inprogressmixed', "In progress (Mixed content)", 'DefaultInProgressShows.png'),
+        ('continuewatching', "Continue watching (Mixed content)", 'DefaultInProgressShows.png'),
+        ('favortitemovies', utils.Translate(30180), 'DefaultFavourites.png'),
+        ('favortiteseries', utils.Translate(30181), 'DefaultFavourites.png'),
+        ('favortiteepisodes', utils.Translate(30182), 'DefaultFavourites.png'),
+        ('favortiteseasons', utils.Translate(33576), 'DefaultFavourites.png'),
+        ('favortitemusicvideos', utils.Translate(33385), 'DefaultFavourites.png'),
+        ('collectionmovies', utils.Translate(33555), 'DefaultTags.png'),
+        ('collectionseries', utils.Translate(33556), 'DefaultTags.png'),
+        ('collectionmmusicvideos', utils.Translate(33557), 'DefaultTags.png'),
+        ('downloadedmovies', "Downloaded movies", 'DefaultMovies.png'),
+        ('downloadedepisodes', "Downloaded episodes", 'DefaultAddonVideo.png'),
+        ('downloadedmusicvideos', "Downloaded musicvideos", 'DefaultMusicVideos.png')
     ]
 }
+DynamicNodes = {
+    'tvshows': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Series"),
+        ('Series', utils.Translate(33349), 'DefaultTVShows.png', "Series"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Recentlyadded', utils.Translate(30170), 'DefaultRecentlyAddedEpisodes.png', "Series"),
+        ('Recentlyadded', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png', "Episode"),
+        ('Unwatched', utils.Translate(33345), 'OverlayUnwatched.png', "Series"),
+        ('Unwatched', utils.Translate(33344), 'OverlayUnwatched.png', "Episode"),
+        ('Favorite', "Favorites", 'DefaultFavourites.png', "tvshows"),
+        ('Favorite', utils.Translate(33346), 'DefaultFavourites.png', "Series"),
+        ('Favorite', utils.Translate(30182), 'DefaultFavourites.png', "Episode"),
+        ('Tag', utils.Translate(33353), 'DefaultTags.png', "tvshows"),
+        ('Inprogress', utils.Translate(30178), 'DefaultInProgressShows.png', "Episode"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Series"),
+        ('BoxSet', utils.Translate(30185), 'DefaultSets.png', "tvshows"),
+        ('Upcoming', utils.Translate(33348), 'DefaultSets.png', "Episode"),
+        ('NextUp', utils.Translate(30179), 'DefaultSets.png', "Episode"),
+        ('Resume', utils.Translate(33355), 'DefaultInProgressShows.png', "Episode"),
+        ('Random', utils.Translate(33339), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Series"),
+        ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode")
+    ],
+    'mixed': [
+        ('Letter', "A-Z movies", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Movie"),
+        ('Letter', "A-Z series", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Series"),
+        ('Letter', "A-Z videos", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Video"),
+        ('Letter', "A-Z musicvideoartists", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "VideoMusicArtist"),
+        ('Letter', "A-Z musicartists", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
+        ('Movie', utils.Translate(30302), 'DefaultMovies.png', "Movie"),
+        ('Video', utils.Translate(33367), 'DefaultAddonVideo.png', "Video"),
+        ('Series', utils.Translate(33349), 'DefaultTVShows.png', "Series"),
+        ('MusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "MusicArtist"),
+        ('Audio', utils.Translate(33377), 'DefaultMusicSongs.png', "Audio"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Recentlyadded', utils.Translate(30175), 'DefaultRecentlyAddedEpisodes.png', "Episode"),
+        ('Recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png', "Movie"),
+        ('Recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png', "MusicVideo"),
+        ('Unwatched', utils.Translate(33345), 'OverlayUnwatched.png', "Series"),
+        ('Unwatched', utils.Translate(33344), 'OverlayUnwatched.png', "Episode"),
+        ('Inprogress', utils.Translate(30178), 'DefaultInProgressShows.png', "Episode"),
+        ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
+        ('Inprogress', utils.Translate(30257), 'DefaultInProgressShows.png', "MusicVideo"),
+        ('MusicGenre', utils.Translate(135), 'DefaultGenre.png', "Audio"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "All"),
+        ('Random', utils.Translate(33339), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Series"),
+        ('Random', utils.Translate(33338), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Episode"),
+        ('Random', utils.Translate(33380), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Audio")
+    ],
+    'movies': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Movie"),
+        ('Movie', utils.Translate(30302), 'DefaultMovies.png', "Movie"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Recentlyadded', utils.Translate(30174), 'DefaultRecentlyAddedMovies.png', "Movie"),
+        ('Inprogress', utils.Translate(30177), 'DefaultInProgressShows.png', "Movie"),
+        ('Unwatched', utils.Translate(30189), 'OverlayUnwatched.png', "Movie"),
+        ('BoxSet', utils.Translate(20434), 'DefaultSets.png', "movies"),
+        ('Recommendations', "Recommendations", 'DefaultInProgressShows.png', "Movie"),
+        ('Tag', utils.Translate(33356), 'DefaultTags.png', "movies"),
+        ('Favorite', "Favorites", 'DefaultFavourites.png', "movies"),
+        ('Favorite', "Favorite movies", 'DefaultFavourites.png', "Movie"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Movie"),
+        ('Random', utils.Translate(30229), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Movie")
+    ],
+    'channels': [
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder")
+    ],
+    'boxsets': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "BoxSet"),
+        ('BoxSet', utils.Translate(30185), 'DefaultSets.png', "BoxSet"),
+        ('Favorite', "Favorite boxsets", 'DefaultFavourites.png', "BoxSet"),
+    ],
+    'livetv': [
+        ('TvChannel', "LiveTV", 'DefaultAddonPVRClient.png', 'TvChannel')
+    ],
+    'musicvideos': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "VideoMusicArtist"),
+        ('MusicVideo', utils.Translate(33363), 'DefaultMusicVideos.png', "MusicVideo"),
+        ('VideoMusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "VideoMusicArtist"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Recentlyadded', utils.Translate(30256), 'DefaultRecentlyAddedMusicVideos.png', "MusicVideo"),
+        ('Inprogress', utils.Translate(30257), 'DefaultInProgressShows.png', "MusicVideo"),
+        ('Unwatched', utils.Translate(30258), 'OverlayUnwatched.png', "MusicVideo"),
+        ('Tag', utils.Translate(33364), 'DefaultTags.png', "musicvideos"),
+        ('BoxSet', utils.Translate(30185), 'DefaultSets.png', "musicvideos"),
+        ('Random', utils.Translate(33365), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "MusicVideo"),
+        ('Favorite', "Favorite musicvideos", 'DefaultFavourites.png', "MusicVideo"),
+        ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "musicvideos"),
+        ('MusicGenre', utils.Translate(135), 'DefaultGenre.png', "MusicVideo")
+    ],
+    'homevideos': [
+        ('Letter', "A-Z photoalbum", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "PhotoAlbum"),
+        ('Letter', "A-Z videos", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Video"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Video', utils.Translate(33367), 'DefaultAddonVideo.png', "Video"),
+        ('Photo', utils.Translate(33368), 'DefaultPicture.png', "Photo"),
+        ('PhotoAlbum', utils.Translate(33369), 'DefaultAddonPicture.png', "PhotoAlbum"),
+        ('Tag', utils.Translate(33370), 'DefaultTags.png', "PhotoAlbum"),
+        ('Tag', utils.Translate(33371), 'DefaultTags.png', "Photo"),
+        ('Tag', utils.Translate(33372), 'DefaultTags.png', "Video"),
+        ('BoxSet', utils.Translate(30185), 'DefaultSets.png', "BoxSet"),
+        ('Recentlyadded', utils.Translate(33373), 'DefaultRecentlyAddedMovies.png', "Photo"),
+        ('Recentlyadded', utils.Translate(33566), 'DefaultRecentlyAddedMovies.png', "PhotoAlbum"),
+        ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video")
+    ],
+    'playlists': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "Playlist"),
+        ('Playlists', utils.Translate(33376), 'DefaultPlaylist.png', "Playlist")
+    ],
+    'audiobooks': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
+        ('MusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "MusicArtist"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Audio', utils.Translate(33377), 'DefaultFolder.png', "Audio"),
+        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Audio"),
+        ('Inprogress', utils.Translate(33169), 'DefaultInProgressShows.png', "Audio"),
+        ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "Audio"),
+        ('Random', utils.Translate(33378), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Audio"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Audio"),
+        ('Unwatched', utils.Translate(33379), 'OverlayUnwatched.png', "Audio")
+    ],
+    'podcasts': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
+        ('MusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "MusicArtist"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Audio', utils.Translate(33382), 'DefaultFolder.png', "Audio"),
+        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Audio"),
+        ('Inprogress', utils.Translate(33169), 'DefaultInProgressShows.png', "Audio"),
+        ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "Audio"),
+        ('Random', utils.Translate(33381), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Audio"),
+        ('Genre', utils.Translate(135), 'DefaultGenre.png', "Audio"),
+        ('Unwatched', utils.Translate(33379), 'OverlayUnwatched.png', "Audio")
+    ],
+    'music': [
+        ('Letter', "A-Z", 'special://home/addons/plugin.video.emby-next-gen/resources/letter.png', "MusicArtist"),
+        ('MusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "MusicArtist"),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder"),
+        ('Random', utils.Translate(33380), 'special://home/addons/plugin.video.emby-next-gen/resources/random.png', "Audio"),
+        ('MusicGenre', utils.Translate(135), 'DefaultMusicGenres.png', "Audio"),
+        ('Unwatched', utils.Translate(33379), 'OverlayUnwatched.png', "Audio"),
+        ('Favorite', "Favorite songs", 'DefaultFavourites.png', "Audio"),
+        ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "music"),
+        ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Audio")
+    ],
+    'root': [
+        ('Favorite', "Favorite actors", 'DefaultFavourites.png', "Person"),
+        ('Favorite', "Favorite videos", 'DefaultFavourites.png', "videos"),
+        ('Favorite', "Favorite audio", 'DefaultFavourites.png', "music"),
+        ('Search', "Search", 'DefaultAddonsSearch.png', "All"),
+    ]
+}
+EmbyContentTypeMapping = {"movies": "Movie", "tvshows": "Series", "musicvideos": "MusicVideo", "homevideos": "", "music": "Audio", "audiobooks": "Audio", "podcasts": "Audio", "playlists": "All", "boxsets": "All", "channels": "", "livetv": "", "mixed": ""}
 
 
 class Views:
     def __init__(self, Embyserver):
         self.EmbyServer = Embyserver
         self.ViewItems = {}
-        self.LibraryOptions = {}
         self.Nodes = {"NodesDynamic": [], "NodesSynced": []}
 
     def update_nodes(self):
         self.Nodes = {"NodesDynamic": [], "NodesSynced": []}
 
         for library_id, Data in list(self.ViewItems.items()):
-            # remove forbidden charecter for file/folder names
-            CleanName = Data[0].replace(" ", "_")
-            CleanName = CleanName.replace("/", "_")
-            CleanName = CleanName.replace("\\", "_")
-            CleanName = CleanName.replace("<", "_")
-            CleanName = CleanName.replace(">", "_")
-            CleanName = CleanName.replace(":", "_")
-            CleanName = CleanName.replace('"', "_")
-            CleanName = CleanName.replace("|", "_")
-            CleanName = CleanName.replace("?", "_")
-            CleanName = CleanName.replace("*", "_")
-            view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'MediaType': Data[1], "Icon": Data[2], 'FileName': CleanName}
-            self.window_nodes(view, True)  # dynamic Nodes
+            CleanName = utils.PathToFilenameReplaceSpecialCharecters(Data[0])
+            view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'ContentType': Data[1], "Icon": Data[2], 'FilteredName': CleanName, 'KodiMediaType': "", "ServerId": self.EmbyServer.ServerData["ServerId"]}
 
-            if f"'{view['LibraryId']}'" in str(self.EmbyServer.library.Whitelist):  # synced nodes
-                if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                    view['Tag'] = f"{library_id}-{view['Tag']}"
+            for Dynamic in (True, False):
+                if Dynamic or f"'{view['LibraryId']}'" in str(self.EmbyServer.library.Whitelist):
+                    if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
+                        view['Tag'] = f"EmbyLibraryId-{library_id}"
+                        view['KodiMediaType'] = "song"
 
-                if view['MediaType'] == 'mixed':
-                    ViewName = view['Name']
+                    if not Dynamic and view['ContentType'] == 'mixed':
+                        ViewName = view['Name']
 
-                    for media in ('movies', 'tvshows', 'music'):
-                        view['MediaType'] = media
+                        for media in ('movies', 'tvshows', 'music'):
+                            view['ContentType'] = media
+                            view['KodiMediaType'] = media[:-1]
 
-                        if media == 'music':
-                            view['Tag'] = f"{library_id}-{view['Tag']}"
+                            if media == 'music':
+                                view['Tag'] = f"EmbyLibraryId-{library_id}"
 
-                        node_path, playlist_path = get_node_playlist_path(view['MediaType'])
-                        view['Name'] = f"{ViewName} / {view['MediaType']}"
+                            node_path, playlist_path = get_node_playlist_path(view['ContentType'])
+                            view['Name'] = f"{ViewName} / {view['ContentType']}"
+                            add_playlist(playlist_path, view)
+                            add_nodes(node_path, view, Dynamic)
+                            self.window_nodes(view, Dynamic)
+                    elif not Dynamic and view['ContentType'] == 'homevideos':
+                        view['ContentType'] = "movies"
+                        view['KodiMediaType'] = "movie"
+                        node_path, playlist_path = get_node_playlist_path(view['ContentType'])
                         add_playlist(playlist_path, view)
-                        add_nodes(node_path, view)
-                        self.window_nodes(view, False)
-                elif view['MediaType'] == 'homevideos':
-                    view['MediaType'] = "movies"
-                    node_path, playlist_path = get_node_playlist_path(view['MediaType'])
-                    add_playlist(playlist_path, view)
-                    add_nodes(node_path, view)
-                    self.window_nodes(view, False)
-                else:
-                    node_path, playlist_path = get_node_playlist_path(view['MediaType'])
-                    add_playlist(playlist_path, view)
-                    add_nodes(node_path, view)
-                    self.window_nodes(view, False)
+                        add_nodes(node_path, view, Dynamic)
+                        self.window_nodes(view, Dynamic)
+                    else:
+                        if not view['KodiMediaType']:
+                            view['KodiMediaType'] = view['ContentType'][:-1]
+
+                        node_path, playlist_path = get_node_playlist_path(view['ContentType'])
+                        add_playlist(playlist_path, view)
+                        add_nodes(node_path, view, Dynamic)
+                        self.window_nodes(view, Dynamic)
+
+        for Dynamic in (True, False):
+            self.add_nodes_root(Dynamic)
 
     # Dynamic nodes
     def window_nodes(self, view, Dynamic):
         if not view['Icon']:
-            if view['MediaType'] == 'tvshows':
+            if view['ContentType'] == 'tvshows':
                 view['Icon'] = 'DefaultTVShows.png'
-            elif view['MediaType'] in ('movies', 'homevideos'):
+            elif view['ContentType'] in ('movies', 'homevideos'):
                 view['Icon'] = 'DefaultMovies.png'
-            elif view['MediaType'] == 'musicvideos':
+            elif view['ContentType'] == 'musicvideos':
                 view['Icon'] = 'DefaultMusicVideos.png'
-            elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
+            elif view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                 view['Icon'] = 'DefaultMusicVideos.png'
             else:
                 view['Icon'] = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
@@ -192,24 +366,18 @@ class Views:
         NodeData = {}
 
         if Dynamic:
-            params = {
-                'mode': "browse",
-                'id': view['LibraryId'],
-                'arg': view['MediaType'],
-                'server': self.EmbyServer.ServerData['ServerId'],
-                'query': "NodesMenu"
-            }
-            path = f"plugin://{utils.PluginId}/?{urlencode(params)}"
-        else:
-            if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                path = f"library://music/emby_{view['MediaType']}_{view['FileName']}/"
+            if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
+                path = f"library://music/emby_dynamic_{view['ContentType']}_{view['FilteredName']}/"
             else:
-                path = f"library://video/emby_{view['MediaType']}_{view['FileName']}/"
+                path = f"library://video/emby_dynamic_{view['ContentType']}_{view['FilteredName']}/"
+        else:
+            if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
+                path = f"library://music/emby_{view['ContentType']}_{view['FilteredName']}/"
+            else:
+                path = f"library://video/emby_{view['ContentType']}_{view['FilteredName']}/"
 
         NodeData['title'] = view['Name']
         NodeData['path'] = path
-        NodeData['id'] = view['LibraryId']
-        NodeData['type'] = view['MediaType']
         NodeData['icon'] = view['Icon']
 
         if Dynamic:
@@ -229,11 +397,11 @@ class Views:
             iconpath = ""
 
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
-                library['MediaType'] = "podcasts"
+                library['ContentType'] = "podcasts"
             elif library['Type'] == 'Channel':
-                library['MediaType'] = "channels"
+                library['ContentType'] = "channels"
             else:
-                library['MediaType'] = library.get('CollectionType', "mixed")
+                library['ContentType'] = library.get('CollectionType', "mixed")
 
             if "Primary" in library["ImageTags"]:
                 # Cache artwork
@@ -245,7 +413,7 @@ class Views:
                     utils.delFile(iconpath)
                     utils.writeFileBinary(iconpath, BinaryData)
 
-            self.ViewItems[library['Id']] = [library['Name'], library['MediaType'], iconpath]
+            self.ViewItems[library['Id']] = [library['Name'], library['ContentType'], iconpath]
 
     # Remove playlist based on LibraryId
     def delete_playlist_by_id(self, LibraryId):
@@ -260,29 +428,277 @@ class Views:
         else:
             xbmc.log(f"EMBY.emby.views: Delete playlist, library not found: {LibraryId}", 1) # LOGINFO
 
-    def delete_node_by_id(self, LibraryId):
+    def delete_node_by_id(self, LibraryId, RemoveServer=False):
         if LibraryId in self.ViewItems:
-            mediatypes = []
+            ContentTypes = []
 
-            if self.ViewItems[LibraryId][1].find('Mixed:') != -1:
-                mediatypes.append('movies')
-                mediatypes.append('tvshows')
+            if self.ViewItems[LibraryId][1] == "mixed":
+                ContentTypes.append('movies')
+                ContentTypes.append('tvshows')
+                ContentTypes.append('music')
+                ContentTypes.append('mixed')
             else:
-                mediatypes.append(self.ViewItems[LibraryId][1])
+                ContentTypes.append(self.ViewItems[LibraryId][1])
 
-            for mediatype in mediatypes:
-                if mediatype in ('music', 'audiobooks', 'podcasts'):
+            ContentTypes.append('podcasts')
+            ContentTypes.append('channels')
+            ContentTypes.append('movies')
+
+            for ContentType in ContentTypes:
+                if ContentType in ('music', 'audiobooks', 'podcasts'):
                     path = "special://profile/library/music/"
                 else:
                     path = "special://profile/library/video/"
 
-                NodePath = f"{path}emby_{mediatype}_{self.ViewItems[LibraryId][0].replace(' ', '_')}/"
+                NodePath = f"{path}emby_{ContentType}_{utils.PathToFilenameReplaceSpecialCharecters(self.ViewItems[LibraryId][0])}/"
                 utils.delFolder(NodePath)
+
+                if RemoveServer:
+                    NodePath = f"{path}emby_dynamic_{ContentType}_{utils.PathToFilenameReplaceSpecialCharecters(self.ViewItems[LibraryId][0])}/"
+                    utils.delFolder(NodePath)
         else:
             xbmc.log(f"EMBY.emby.views: Delete node, library not found: {LibraryId}", 1) # LOGINFO
 
-def get_node_playlist_path(MediaType):
-    if MediaType in ('music', 'audiobooks', 'podcasts'):
+    # Create or update the video node file
+    def add_nodes_root(self, Dynamic):
+        if Dynamic:
+            for NodeIndex, node in enumerate(DynamicNodes["root"], 1):
+                NodePath = f"library://video/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
+                FilePath = f"special://profile/library/video/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="folder">\n'
+                    Data += f'    <label>EMBY DYNAMIC: {node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+
+                    if node[0] == "Search":
+                        Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=search&amp;server={self.EmbyServer.ServerData["ServerId"]}</path>\n'
+                    else:
+                        Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=browse&amp;id=0&amp;parentid=0&amp;libraryid=0&amp;content={node[3]}&amp;server={self.EmbyServer.ServerData["ServerId"]}&amp;query={node[0]}</path>\n'
+
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                self.Nodes['NodesDynamic'].append({'title': node[1], 'path': NodePath, 'icon': node[2]})
+        else:
+            for NodeIndex, node in enumerate(SyncNodes["root"], 1):
+                NodeAdd = True
+
+                if node[0] == "inprogressmixed":
+                    FilePath = "special://profile/library/video/emby_inprogress_mixed.xml"
+                    NodePath = "library://video/emby_inprogress_mixed.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="folder">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <path>plugin://plugin.video.emby-next-gen/?mode=inprogressmixed;</path>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "continuewatching":
+                    FilePath = "special://profile/library/video/emby_continuewatching_mixed.xml"
+                    NodePath = "library://video/emby_continuewatching_mixed.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="folder">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <path>plugin://plugin.video.emby-next-gen/?mode=continuewatching;</path>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "favortitemovies":
+                    FilePath = "special://profile/library/video/emby_Favorite_movies.xml"
+                    NodePath = "library://video/emby_Favorite_movies.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        utils.mkDir("special://profile/library/video/")
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>movies</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="tag" operator="is">\n'
+                        Data += '        <value>Movies (Favorites)</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "favortiteseries":
+                    FilePath = "special://profile/library/video/emby_Favorite_tvshows.xml"
+                    NodePath = "library://video/emby_Favorite_tvshows.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        utils.mkDir("special://profile/library/video/")
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>tvshows</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="tag" operator="is">\n'
+                        Data += '        <value>TVShows (Favorites)</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "favortiteepisodes":
+                    FilePath = "special://profile/library/video/emby_Favorite_episodes.xml"
+                    NodePath = "library://video/emby_Favorite_episodes.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        utils.mkDir("special://profile/library/video/")
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="folder">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += f'    <path>plugin://plugin.video.emby-next-gen/?{urlencode({"mode": "favepisodes"})}</path>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "favortiteseasons":
+                    FilePath = "special://profile/library/video/emby_Favorite_seasons.xml"
+                    NodePath = "library://video/emby_Favorite_seasons.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        utils.mkDir("special://profile/library/video/")
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="folder">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += f'    <path>plugin://plugin.video.emby-next-gen/?{urlencode({"mode": "favseasons"})}</path>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "favortitemusicvideos":
+                    FilePath = "special://profile/library/video/emby_Favorite_musicvideos.xml"
+                    NodePath = "library://video/emby_Favorite_musicvideos.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        utils.mkDir("special://profile/library/video/")
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>musicvideos</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="tag" operator="is">\n'
+                        Data += '        <value>Musicvideos (Favorites)</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "collectionmovies":
+                    FilePath = "special://profile/library/video/emby_Collection_movies.xml"
+                    NodePath = "library://video/emby_Collection_movies.xml"
+
+                    if utils.BoxSetsToTags:
+                        if not utils.checkFileExists(FilePath):
+                            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                            Data += f'<node order="{NodeIndex}" type="folder">\n'
+                            Data += f'    <icon>{node[2]}</icon>\n'
+                            Data += f'    <label>EMBY: {node[1]}</label>\n'
+                            Data += '    <path>plugin://plugin.video.emby-next-gen/?mode=collections&amp;mediatype=movie</path>\n'
+                            Data += '</node>'
+                            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                    else:
+                        NodeAdd = False
+
+                        if utils.checkFileExists(FilePath):
+                            utils.delFile(FilePath)
+                elif node[0] == "collectionseries":
+                    FilePath = "special://profile/library/video/emby_Collection_tvshows.xml"
+                    NodePath = "library://video/emby_Collection_tvshows.xml"
+
+                    if utils.BoxSetsToTags:
+                        if not utils.checkFileExists(FilePath):
+                            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                            Data += f'<node order="{NodeIndex}" type="folder">\n'
+                            Data += f'    <icon>{node[2]}</icon>\n'
+                            Data += f'    <label>EMBY: {node[1]}</label>\n'
+                            Data += '    <path>plugin://plugin.video.emby-next-gen/?mode=collections&amp;mediatype=tvshow</path>\n'
+                            Data += '</node>'
+                            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                    else:
+                        NodeAdd = False
+
+                        if utils.checkFileExists(FilePath):
+                            utils.delFile(FilePath)
+                elif node[0] == "collectionmmusicvideos":
+                    FilePath = "special://profile/library/video/emby_Collection_musicvideos.xml"
+                    NodePath = "library://video/emby_Collection_musicvideos.xml"
+
+                    if utils.BoxSetsToTags:
+                        if not utils.checkFileExists(FilePath):
+                            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                            Data += f'<node order="{NodeIndex}" type="folder">\n'
+                            Data += f'    <icon>{node[2]}</icon>\n'
+                            Data += f'    <label>EMBY: {node[1]}</label>\n'
+                            Data += '    <path>plugin://plugin.video.emby-next-gen/?mode=collections&amp;mediatype=musicvideo</path>\n'
+                            Data += '</node>'
+                            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                    else:
+                        NodeAdd = False
+
+                        if utils.checkFileExists(FilePath):
+                            utils.delFile(FilePath)
+                elif node[0] == "downloadedmovies":
+                    FilePath = "special://profile/library/video/emby_Download_movies.xml"
+                    NodePath = "library://video/emby_Download_movies.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>movies</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="path" operator="contains">\n'
+                        Data += '        <value>EMBY-offline-content</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "downloadedepisodes":
+                    FilePath = "special://profile/library/video/emby_Download_episodes.xml"
+                    NodePath = "library://video/emby_Download_episodes.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>episodes</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="path" operator="contains">\n'
+                        Data += '        <value>EMBY-offline-content</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                elif node[0] == "downloadedmusicvideos":
+                    FilePath = "special://profile/library/video/emby_Download_musicvideos.xml"
+                    NodePath = "library://video/emby_Download_musicvideos.xml"
+
+                    if not utils.checkFileExists(FilePath):
+                        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                        Data += f'<node order="{NodeIndex}" type="filter">\n'
+                        Data += f'    <icon>{node[2]}</icon>\n'
+                        Data += f'    <label>EMBY: {node[1]}</label>\n'
+                        Data += '    <content>musicvideos</content>\n'
+                        Data += '    <match>all</match>\n'
+                        Data += '    <rule field="path" operator="contains">\n'
+                        Data += '        <value>EMBY-offline-content</value>\n'
+                        Data += '    </rule>\n'
+                        Data += '</node>'
+                        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                NodeData = {'title': node[1], 'path': NodePath, 'icon': node[2]}
+
+                if NodeAdd:
+                    self.Nodes['NodesSynced'].append(NodeData)
+                else:
+                    if NodeData in self.Nodes['NodesSynced']:
+                        del self.Nodes['NodesSynced'][self.Nodes['NodesSynced'].index(NodeData)]
+
+def get_node_playlist_path(ContentType):
+    if ContentType in ('music', 'audiobooks', 'podcasts'):
         node_path = "special://profile/library/music/"
         playlist_path = 'special://profile/playlists/music/'
     else:
@@ -297,406 +713,946 @@ def add_playlist(path, view):
         return
 
     utils.mkDir(path)
-    filepath = f"{path}emby_{view['MediaType']}_{view['FileName']}.xsp"
-    xmlData = utils.readFileString(filepath)
+    FilePath = f"{path}emby_{view['ContentType']}_{view['FilteredName']}.xsp"
 
-    if xmlData:
-        xmlData = xml.etree.ElementTree.fromstring(xmlData)
-    else:
-        xmlData = xml.etree.ElementTree.Element('smartplaylist', {'type': view['MediaType']})
-        xml.etree.ElementTree.SubElement(xmlData, 'name')
-        xml.etree.ElementTree.SubElement(xmlData, 'match')
-
-    name = xmlData.find('name')
-    name.text = view['Name']
-    match = xmlData.find('match')
-    match.text = "all"
-
-    for rule in xmlData.findall('.//value'):
-        if rule.text == view['Tag']:
-            break
-    else:
-        rule = xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "tag", 'operator': "is"})
-        xml.etree.ElementTree.SubElement(rule, 'value').text = view['Tag']
-
-    xmls.WriteXmlFile(filepath, xmlData)
+    if not utils.checkFileExists(FilePath):
+        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+        Data += f'<smartplaylist type="{view["ContentType"]}">\n'
+        Data += f'    <name>{view["Name"]}</name>\n'
+        Data += '    <match>all</match>\n'
+        Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+        Data += '</smartplaylist>'
+        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
 # Create or update the video node file
-def add_nodes(path, view):
-    folder = f"{path}emby_{view['MediaType']}_{view['FileName']}/"
-    utils.mkDir(folder)
-    filepath = f"{folder}index.xml"
+def add_nodes(path, view, Dynamic):
+    if view['ContentType'] == 'tvshows':
+        DefaultIcon = 'DefaultTVShows.png'
+        ContentCategory = "TVShows"
+    elif view['ContentType'] == 'movies':
+        DefaultIcon = 'DefaultMovies.png'
+        ContentCategory = "Movies"
+    elif view['ContentType'] == 'musicvideos':
+        DefaultIcon = 'DefaultMusicVideos.png'
+        ContentCategory = "MusicVideos"
+    else: # podcasts, audiobooks, music
+        DefaultIcon = 'DefaultMusicVideos.png'
+        ContentCategory = "Music"
 
-    if not utils.checkFileExists(filepath):
-        if view['MediaType'] == 'movies':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
-        elif view['MediaType'] == 'tvshows':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
-        elif view['MediaType'] == 'musicvideos':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
-        else:
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
+    if Dynamic:
+        folder = f"{path}emby_dynamic_{view['ContentType']}_{view['FilteredName']}/"
+        utils.mkDir(folder)
+        FilePath = f"{folder}index.xml"
 
-        xml.etree.ElementTree.SubElement(xmlData, 'label').text = f"EMBY: {view['Name']} ({view['MediaType']})"
-
-        if view['Icon']:
-            Icon = view['Icon']
-        else:
-            if view['MediaType'] == 'tvshows':
-                Icon = 'DefaultTVShows.png'
-            elif view['MediaType'] == 'movies':
-                Icon = 'DefaultMovies.png'
-            elif view['MediaType'] == 'musicvideos':
-                Icon = 'DefaultMusicVideos.png'
-            elif view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                Icon = 'DefaultMusicVideos.png'
+        # Dynamic nodes
+        if not utils.checkFileExists(FilePath):
+            if view['Icon']:
+                Icon = view['Icon']
             else:
-                Icon = "special://home/addons/plugin.video.emby-next-gen/resources/icon.png"
+                Icon = DefaultIcon
 
-        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = Icon
-        xmls.WriteXmlFile(filepath, xmlData)
+            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+            Data += '<node order="0">\n'
+            Data += f'    <label>EMBY DYNAMIC: {view["Name"]} ({view["ContentType"]})</label>\n'
+            Data += f'    <icon>{Icon}</icon>\n'
+            Data += '</node>'
+            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-    # specific nodes
-    for node in SyncNodes[view['MediaType']]:
-        if node[1]:
-            xml_label = node[1]  # Specific
-        else:
-            xml_label = view['Name']  # All
+        for NodeIndex, node in enumerate(DynamicNodes[view['ContentType']], 1):
+            if node[0] == "Letter":
+                FolderPath = f"{folder}letter_{node[3].lower()}/"
+                utils.mkDir(FolderPath)
 
-        if node[0] == "letter":
-            node_letter(view, folder, node)
-        elif node[0] == "songsbygenres":
-            node_songsbygenres(view, folder, node)
-        else:
-            filepath = f"{folder}{node[0]}.xml"
+                # index.xml
+                FilePath = f"{FolderPath}index.xml"
 
-            if not utils.checkFileExists(filepath):
-                if node[0] == 'nextepisodes':
-                    NodeType = 'folder'
-                else:
-                    NodeType = 'filter'
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += '<node order="0">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-                xmlData = xml.etree.ElementTree.Element('node', {'order': str(SyncNodes[view['MediaType']].index(node)), 'type': NodeType})
-                xml.etree.ElementTree.SubElement(xmlData, 'label').text = xml_label
-                xml.etree.ElementTree.SubElement(xmlData, 'match').text = "all"
-                xml.etree.ElementTree.SubElement(xmlData, 'icon').text = node[2]
-                content = xml.etree.ElementTree.SubElement(xmlData, 'content')
+                # 0-9.xml
+                FilePath = f"{FolderPath}0-9.xml"
 
-                if view['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-                    if node[0] in ("years", "recentlyaddedalbums", "randomalbums", "albums"):
-                        content.text = "albums"
-                        operator = "is"
-                        field = "type"
-                    elif node[0] in ("artists", "composers"):
-                        content.text = "artists"
-                        operator = "is"
-                        field = "disambiguation"
-                    else:
-                        content.text = "songs"
-                        operator = "endswith"
-                        field = "comment"
-                else:
-                    if "episodes" in node[0]:
-                        content.text = "episodes"
-                    else:
-                        content.text = view['MediaType']
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="folder">\n'
+                    Data += '    <label>0-9</label>\n'
+                    Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=browse&amp;id=0-9&amp;parentid={view["LibraryId"]}&amp;libraryid={view["LibraryId"]}&amp;content={node[3]}&amp;server={view["ServerId"]}&amp;query=Letter</path>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-                    field = "tag"
-                    operator = "is"
+                    # Alphabetically
+                    FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-                xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': field, 'operator': operator}).text = view['Tag']
+                    for Index, FileName in enumerate(FileNames, 2):
+                        FilePath = f"{FolderPath}{FileName}.xml"
 
-                if node[0] == 'nextepisodes':
-                    node_nextepisodes(xmlData, view['Name'])
-                else:
-                    globals()['node_' + node[0]](xmlData)  # get node function based on node type
+                        if not utils.checkFileExists(FilePath):
+                            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                            Data += f'<node order="{NodeIndex}" type="folder">\n'
+                            Data += f'    <label>{FileName}</label>\n'
+                            Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=browse&amp;id={FileName}&amp;parentid={view["LibraryId"]}&amp;libraryid={view["LibraryId"]}&amp;content={node[3]}&amp;server={view["ServerId"]}&amp;query=Letter</path>\n'
+                            Data += '</node>'
+                            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-                xmls.WriteXmlFile(filepath, xmlData)
+                continue
 
-# Nodes
-def node_songsbygenres(View, folder, node):
-    FolderPath = f"{folder}genres/"
-    utils.delFolder(FolderPath)
-    utils.mkDir(FolderPath)
-
-    # index.xml
-    FileName = f"{FolderPath}index.xml"
-    xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
-    xmlData.set('type', "folder")
-    xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-    xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2]).decode('utf-8')
-    xmls.WriteXmlFile(FileName, xmlData)
-
-    # create genre nodes.xml
-    musicdb = dbio.DBOpenRO("music", "node_songsbygenres")
-    Genres = musicdb.get_genre(View['Tag'])
-    dbio.DBCloseRO("music", "node_songsbygenres")
-
-    for Index, Genre in enumerate(Genres, 1):
-        FileName = f"{FolderPath}{Index}.xml"
-        xmlData = xml.etree.ElementTree.Element('node')
-        xmlData.set('order', str(Index))
-        xmlData.set('type', "filter")
-        xml.etree.ElementTree.SubElement(xmlData, "label").text = Genre
-        xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
-        xml.etree.ElementTree.SubElement(xmlData, "content").text = "songs"
-        xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "comment", 'operator': "endswith"}).text = View['Tag']
-        xml.etree.ElementTree.SubElement(xmlData, 'rule', {'field': "genre", 'operator': "is"}).text = Genre
-        xml.etree.ElementTree.SubElement(xmlData, 'order').text = "random"
-        xml.etree.ElementTree.SubElement(xmlData, 'limit').text = str(int(utils.maxnodeitems) * 10)
-        xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': 'descending'}).text = "title"
-        xmls.WriteXmlFile(FileName, xmlData)
-
-def node_letter(View, folder, node):
-    Index = 1
-    FolderPath = f"{folder}letter/"
-    utils.mkDir(FolderPath)
-
-    # index.xml
-    FileName = f"{FolderPath}index.xml"
-
-    if not utils.checkFileExists(FileName):
-        if View['MediaType'] == 'movies':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Movies)"})
-        elif View['MediaType'] == 'tvshows':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(TVShows)"})
-        elif View['MediaType'] == 'musicvideos':
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(MusicVideos)"})
-        else:
-            xmlData = xml.etree.ElementTree.Element('node', {'order': "0", 'visible': "Library.HasContent(Music)"})
-
-        xmlData.set('type', "folder")
-        xml.etree.ElementTree.SubElement(xmlData, "label").text = node[1]
-        xml.etree.ElementTree.SubElement(xmlData, 'icon').text = utils.translatePath(node[2]).decode('utf-8')
-        xmls.WriteXmlFile(FileName, xmlData)
-
-    # 0-9.xml
-    FileName = f"{FolderPath}0-9.xml"
-
-    if not utils.checkFileExists(FileName):
-        xmlData, xmlRule = set_letter_common("0-9", Index, View)
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "0"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "1"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "2"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "3"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "4"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "5"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "6"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "7"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "8"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "9"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "&"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "Ä"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "Ö"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "Ü"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "!"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "("
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = ")"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "@"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "#"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "$"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "^"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "*"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "-"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "="
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "+"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "{"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "}"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "["
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "]"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "?"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = ":"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = ";"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "'"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = ","
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "."
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "<"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = ">"
-        xml.etree.ElementTree.SubElement(xmlRule, "value").text = "~"
-        xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
-        xmls.WriteXmlFile(FileName, xmlData)
-
-        # Alphabetically
-        FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-
-        for FileName in FileNames:
-            Index += 1
-            FilePath = f"{FolderPath}{FileName}.xml"
+            FilePath = f"{folder}{node[0].lower()}_{node[3].lower()}.xml"
 
             if not utils.checkFileExists(FilePath):
-                xmlData, xmlRule = set_letter_common(FileName, Index, View)
-                xmlRule.text = FileName
-                xmls.WriteXmlFile(FilePath, xmlData)
+                Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                Data += f'<node order="{NodeIndex}" type="folder">\n'
+                Data += f'    <label>{node[1]}</label>\n'
+                Data += f'    <icon>{node[2]}</icon>\n'
+                Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=browse&amp;id={view["LibraryId"]}&amp;parentid={view["LibraryId"]}&amp;libraryid={view["LibraryId"]}&amp;content={node[3]}&amp;server={view["ServerId"]}&amp;query={node[0]}</path>\n'
+                Data += '</node>'
+                utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+    else: # Synced nodes
+        folder = f"{path}emby_{view['ContentType']}_{view['FilteredName']}/"
+        utils.mkDir(folder)
+        FilePath = f"{folder}index.xml"
 
-def set_letter_common(Label, Index, View):
-    xmlData = xml.etree.ElementTree.Element('node')
-    xmlData.set('order', str(Index))
-    xmlData.set('type', "filter")
-    xml.etree.ElementTree.SubElement(xmlData, "label").text = Label
-    xml.etree.ElementTree.SubElement(xmlData, "match").text = "all"
+        # synced nodes
+        if not utils.checkFileExists(FilePath):
+            if view['Icon']:
+                Icon = view['Icon']
+            else:
+                Icon = DefaultIcon
 
-    if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-        xml.etree.ElementTree.SubElement(xmlData, "content").text = "artists"
-    elif View['MediaType'] == 'musicvideos':
-        xml.etree.ElementTree.SubElement(xmlData, "content").text = "musicvideos"
-    else:
-        xml.etree.ElementTree.SubElement(xmlData, "content").text = View['MediaType']
+            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+            Data += f'<node order="0" visible="Library.HasContent({ContentCategory})">\n'
+            Data += f'    <label>EMBY: {view["Name"]} ({view["ContentType"]})</label>\n'
+            Data += f'    <icon>{Icon}</icon>\n'
+            Data += '</node>'
+            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-    xml.etree.ElementTree.SubElement(xmlData, 'order', {'direction': "ascending"}).text = "sorttitle"
+        for NodeIndex, node in enumerate(SyncNodes[view['ContentType']], 1):
+            if node[0] == "collections":
+                FilePath = f"{folder}collection.xml"
 
-    if View['MediaType'] == 'musicvideos':
-        xml.etree.ElementTree.SubElement(xmlData, 'group', {}).text = "artists"
+                if not utils.checkFileExists(FilePath):
+                    NodeLink = quote(f'{view["Name"]} (Library)')
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="folder">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <path>plugin://plugin.video.emby-next-gen/?mode=collections&amp;mediatype={view["KodiMediaType"]}&amp;librarytag={NodeLink}</path>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-    xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
-    xmlRule.text = View['Tag']
+                continue
 
-    if View['MediaType'] in ('music', 'audiobooks', 'podcasts'):
-        xmlRule.set('field', "disambiguation")
-        xmlRule.set('operator', "is")
-    else:
-        xmlRule.set('field', "tag")
-        xmlRule.set('operator', "is")
+            # Library content
+            if node[0] == "all":
+                FilePath = f"{folder}all.xml"
 
-    xmlRule = xml.etree.ElementTree.SubElement(xmlData, "rule")
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                        Operator = "is"
+                        Filter = "tag"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                        Operator = "is"
+                        Filter = "tag"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "artists"
+                        Operator = "is"
+                        Filter = "tag"
+                    else: # Music
+                        Content = "artists"
+                        Operator = "is"
+                        Filter = "disambiguation"
 
-    if View['MediaType'] in ('music', 'audiobooks', 'podcasts', 'musicvideos'):
-        xmlRule.set('field', "artist")
-    else:
-        xmlRule.set('field', "sorttitle")
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{view["Name"]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-    xmlRule.set('operator', "startswith")
-    return xmlData, xmlRule
+                continue
 
-def node_all(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'ascending'}).text = "sorttitle"
+            # specific nodes
+            if node[0] == "artists":
+                FilePath = f"{folder}artists.xml"
 
-def node_directors(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "directors"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "directors"
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
+                        Filter = "tag"
+                        Operator = "is"
+                        Extras = '    <group>artists</group>\n'
+                    else: # Music
+                        Content = "artists"
+                        Filter = "disambiguation"
+                        Operator = "is"
+                        Extras = '    <rule field="role" operator="is">artist</rule>\n'
 
-def node_countries(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "countries"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "countries"
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
+                    Data += Extras
+                    Data += '    <order direction="descending">artists</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_nextepisodes(root, LibraryName):
-    xml.etree.ElementTree.SubElement(root, 'path').text = f"plugin://{utils.PluginId}/?{urlencode({'libraryname': LibraryName, 'mode': 'nextepisodes'})}"
+                continue
 
-def node_years(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "title"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "years"
+            if node[0] == "composers":
+                FilePath = f"{folder}composers.xml"
 
-def node_actors(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "title"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "actors"
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>artists</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="role" operator="is">composer</rule>\n'
+                    Data += '    <order direction="descending">artists</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_artists(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "artists"
+                continue
 
-def node_composers(root):
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "role", 'operator': "is"}).text = "composer"
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "artists"
+            if node[0] == "genres":
+                FilePath = f"{folder}genres.xml"
 
-def node_albums(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "albums"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "albums"
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
+                        Filter = "tag"
+                        Operator = "is"
+                    else: # Music
+                        Content = "artists"
+                        Filter = "disambiguation"
+                        Operator = "is"
 
-def node_studios(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "title"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "studios"
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
+                    Data += '    <group>genres</group>\n'
+                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_resolutionsd(root):
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "lessthan"}).text = "1080"
+                continue
 
-def node_resolutionhd(root):
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "is"}).text = "1080"
+            if node[0] == "randomalbums":
+                FilePath = f"{folder}randomalbums.xml"
 
-def node_resolution4k(root):
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "videoresolution", 'operator': "greaterthan"}).text = "1080"
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>albums</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="type" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <order>random</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_tags(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "title"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "tags"
+                continue
 
-def node_recentlyadded(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+            if node[0] == "recentlyaddedalbums":
+                FilePath = f"{folder}recentlyaddedalbums.xml"
 
-def node_genres(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'ascending'}).text = "sorttitle"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "genres"
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>albums</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="type" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <order direction="descending">dateadded</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_sets(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'ascending'}).text = "sorttitle"
-    xml.etree.ElementTree.SubElement(root, 'group').text = "sets"
+                continue
 
-def node_random(root):
-    xml.etree.ElementTree.SubElement(root, 'order').text = "random"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+            if node[0] == "recentlyplayedmusic":
+                FilePath = f"{folder}recentlyplayedmusic.xml"
 
-def node_recommended(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "rating"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "rating", 'operator': "greaterthan"}).text = "7"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>songs</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="comment" operator="endswith">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="playcount" operator="greaterthan">0</rule>\n'
+                    Data += '    <order direction="descending">lastplayed</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_unwatched(root):
-    xml.etree.ElementTree.SubElement(root, 'order').text = "random"
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                continue
 
-def node_unwatchedepisodes(root):
-    xml.etree.ElementTree.SubElement(root, 'order').text = "random"
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+            if node[0] == "years":
+                FilePath = f"{folder}years.xml"
 
-def node_inprogress(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "lastplayed"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                        Filter = "tag"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                        Filter = "tag"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "artists"
+                        Filter = "tag"
+                    else: # Music
+                        Content = "albums"
+                        Filter = "type"
 
-def node_inprogressepisodes(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "lastplayed"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "true"})
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <group>years</group>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_recentlyplayed(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "lastplayed"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "greaterthan"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                continue
 
-def node_recentlyplayedmusic(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "lastplayed"
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "greaterthan"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+            if node[0] == "actors":
+                FilePath = f"{folder}actors.xml"
 
-def node_recentlyplayedepisodes(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "lastplayed"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "inprogress", 'operator': "false"})
-    xml.etree.ElementTree.SubElement(root, "rule", {'field': "playcount", 'operator': "greaterthan"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "artists"
 
-def node_recentlyaddedepisodes(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'rule', {'field': "playcount", 'operator': "is"}).text = "0"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <group>actors</group>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
-def node_randomalbums(root):
-    xml.etree.ElementTree.SubElement(root, 'order').text = "random"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                continue
 
-def node_randomsongs(root):
-    xml.etree.ElementTree.SubElement(root, 'order').text = "random"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+            if node[0] == "favortites":
+                FilePath = f"{folder}favortites.xml"
 
-def node_recentlyaddedsongs(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "episodes"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
 
-def node_recentlyaddedalbums(root):
-    xml.etree.ElementTree.SubElement(root, 'order', {'direction': 'descending'}).text = "dateadded"
-    xml.etree.ElementTree.SubElement(root, 'limit').text = utils.maxnodeitems
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += '    <rule field="tag" operator="endswith">(Favorites)</rule>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "inprogress":
+                FilePath = f"{folder}inprogress.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="true"/>\n'
+                    Data += '    <order direction="descending">lastplayed</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "inprogressepisodes":
+                FilePath = f"{folder}inprogressepisodes.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>episodes</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="true"/>\n'
+                    Data += '    <order direction="descending">lastplayed</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "nextepisodes":
+                FilePath = f"{folder}nextepisodes.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="folder">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <path>plugin://plugin.video.emby-next-gen/?libraryname=TV+Shows&mode=nextepisodes</path>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "random":
+                FilePath = f"{folder}random.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
+                        Filter = "tag"
+                        Operator = "is"
+                    else:
+                        Content = "songs"
+                        Filter = "comment"
+                        Operator = "endswith"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
+                    Data += '    <order>random</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "recentlyadded":
+                FilePath = f"{folder}recentlyadded.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                        Filter = "tag"
+                        Operator = "is"
+                    elif ContentCategory == "MusicVideos":
+                        Content = "musicvideos"
+                        Filter = "tag"
+                        Operator = "is"
+                    else:
+                        Content = "songs"
+                        Filter = "comment"
+                        Operator = "endswith"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="playcount" operator="is">0</rule>\n'
+                    Data += '    <order direction="descending">dateadded</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "recentlyaddedepisodes":
+                FilePath = f"{folder}recentlyaddedepisodes.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>episodes</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="playcount" operator="is">0</rule>\n'
+                    Data += '    <order direction="descending">dateadded</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "recentlyplayed":
+                FilePath = f"{folder}recentlyplayed.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="false"/>\n'
+                    Data += '    <rule field="playcount" operator="greaterthan">0</rule>\n'
+                    Data += '    <order direction="descending">dateadded</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "recentlyplayedepisodes":
+                FilePath = f"{folder}recentlyplayedepisodes.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>episodes</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="false"/>\n'
+                    Data += '    <rule field="playcount" operator="greaterthan">0</rule>\n'
+                    Data += '    <order direction="descending">dateadded</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "recommended":
+                FilePath = f"{folder}recommended.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>episodes</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="false"/>\n'
+                    Data += '    <rule field="playcount" operator="is">0</rule>\n'
+                    Data += '    <rule field="rating" operator="greaterthan">7</rule>\n'
+                    Data += '    <order direction="descending">rating</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "studios":
+                FilePath = f"{folder}studios.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <group>studios</group>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "tags":
+                FilePath = f"{folder}tags.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <group>tags</group>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "unwatched":
+                FilePath = f"{folder}unwatched.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="false"/>\n'
+                    Data += '    <rule field="playcount" operator="is">0</rule>\n'
+                    Data += '    <order>random</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "unwatchedepisodes":
+                FilePath = f"{folder}unwatchedepisodes.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>episodes</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="inprogress" operator="false"/>\n'
+                    Data += '    <rule field="playcount" operator="is">0</rule>\n'
+                    Data += '    <order>random</order>\n'
+                    Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "sets":
+                FilePath = f"{folder}sets.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '    <content>movies</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <group>sets</group>\n'
+                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "resolution4k":
+                FilePath = f"{folder}resolution4k.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="videoresolution" operator="greaterthan">1080</rule>\n'
+                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "resolutionhd":
+                FilePath = f"{folder}resolutionhd.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="videoresolution" operator="is">1080</rule>\n'
+                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "resolutionsd":
+                FilePath = f"{folder}resolutionsd.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{NodeIndex}" type="filter">\n'
+                    Data += f'    <label>{node[1]}</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                    Data += '    <rule field="videoresolution" operator="lessthan">1080</rule>\n'
+                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "songsbygenres":
+                FolderPath = f"{folder}genres/"
+                utils.delFolder(FolderPath)
+                utils.mkDir(FolderPath)
+
+                # index.xml
+                FilePath = f"{FolderPath}index.xml"
+                Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                Data += '<node order="0" visible="Library.HasContent(Music)">\n'
+                Data += f'    <label>{node[1]}</label>\n'
+                Data += '</node>'
+                utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                # create genre nodes.xml
+                musicdb = dbio.DBOpenRO("music", "node_songsbygenres")
+                Genres = musicdb.get_genre(view['LibraryId'])
+                dbio.DBCloseRO("music", "node_songsbygenres")
+
+                for Index, Genre in enumerate(Genres, 1):
+                    Genre = utils.encode_XML(Genre)
+                    FilePath = f"{FolderPath}{Index}.xml"
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="{Index}" type="filter">\n'
+                    Data += f'    <label>{Genre}</label>\n'
+                    Data += '    <content>songs</content>\n'
+                    Data += '    <match>all</match>\n'
+                    Data += f'    <rule field="comment" operator="endswith">{view["Tag"]}</rule>\n'
+                    Data += f'    <rule field="genre" operator="is">{Genre}</rule>\n'
+                    Data += '    <order direction="descending">title</order>\n'
+                    Data += f'    <limit>{int(utils.maxnodeitems) * 10}</limit>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                continue
+
+            if node[0] == "letter":
+                FolderPath = f"{folder}letter/"
+                utils.mkDir(FolderPath)
+                Extras = ""
+
+                if ContentCategory == "TVShows":
+                    Content = "tvshows"
+                elif ContentCategory == "Movies":
+                    Content = "movies"
+                elif ContentCategory == "MusicVideos":
+                    Content = "musicvideos"
+                    Extras = '    <group>artists</group>\n'
+                else: # Music
+                    Content = "artists"
+
+                # index.xml
+                FilePath = f"{FolderPath}index.xml"
+
+                if not utils.checkFileExists(FilePath):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += f'<node order="0" visible="Library.HasContent({ContentCategory})">\n'
+                    Data += '    <label>A-Z</label>\n'
+                    Data += f'    <icon>{node[2]}</icon>\n'
+                    Data += '</node>'
+                    utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+
+                # 0-9.xml
+                FileName = f"{FolderPath}0-9.xml"
+
+                if not utils.checkFileExists(FileName):
+                    Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                    Data += '<node order="1" type="filter">\n'
+                    Data += '    <label>0-9</label>\n'
+                    Data += f'    <content>{Content}</content>\n'
+                    Data += '    <match>all</match>\n'
+
+                    if ContentCategory == "Music":
+                        Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
+                        Data += '    <rule field="artist" operator="startswith">\n'
+                        Data += '    <order direction="descending">artist</order>\n'
+                    elif ContentCategory == "MusicVideos":
+                        Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                        Data += '    <rule field="artist" operator="startswith">\n'
+                        Data += '    <order direction="descending">artist</order>\n'
+                    else:
+                        Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                        Data += '    <rule field="sorttitle" operator="startswith">\n'
+                        Data += '    <order direction="descending">sorttitle</order>\n'
+
+                    Data += '        <value>0</value>\n'
+                    Data += '        <value>1</value>\n'
+                    Data += '        <value>2</value>\n'
+                    Data += '        <value>3</value>\n'
+                    Data += '        <value>4</value>\n'
+                    Data += '        <value>5</value>\n'
+                    Data += '        <value>6</value>\n'
+                    Data += '        <value>7</value>\n'
+                    Data += '        <value>8</value>\n'
+                    Data += '        <value>9</value>\n'
+                    Data += '        <value>&amp;</value>\n'
+                    Data += '        <value>Ä</value>\n'
+                    Data += '        <value>Ö</value>\n'
+                    Data += '        <value>Ü</value>\n'
+                    Data += '        <value>!</value>\n'
+                    Data += '        <value>(</value>\n'
+                    Data += '        <value>)</value>\n'
+                    Data += '        <value>@</value>\n'
+                    Data += '        <value>#</value>\n'
+                    Data += '        <value>$</value>\n'
+                    Data += '        <value>^</value>\n'
+                    Data += '        <value>*</value>\n'
+                    Data += '        <value>-</value>\n'
+                    Data += '        <value>=</value>\n'
+                    Data += '        <value>+</value>\n'
+                    Data += '        <value>{</value>\n'
+                    Data += '        <value>}</value>\n'
+                    Data += '        <value>[</value>\n'
+                    Data += '        <value>]</value>\n'
+                    Data += '        <value>?</value>\n'
+                    Data += '        <value>:</value>\n'
+                    Data += '        <value>;</value>\n'
+                    Data += '        <value>,</value>\n'
+                    Data += '        <value>.</value>\n'
+                    Data += '        <value>&lt;</value>\n'
+                    Data += '        <value>&gt;</value>\n'
+                    Data += '        <value>~</value>\n'
+                    Data += '        <value>&quot;</value>\n'
+                    Data += '        <value>&apos;</value>\n'
+                    Data += '    </rule>\n'
+                    Data += Extras
+                    Data += '</node>'
+                    utils.writeFileBinary(FileName, Data.encode("utf-8"))
+
+                    # Alphabetically
+                    FileNames = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
+                    for Index, FileName in enumerate(FileNames, 2):
+                        FilePath = f"{FolderPath}{FileName}.xml"
+
+                        if not utils.checkFileExists(FilePath):
+                            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
+                            Data += f'<node order="{Index}" type="filter">\n'
+                            Data += f'    <label>{FileName}</label>\n'
+                            Data += f'    <content>{Content}</content>\n'
+                            Data += '    <match>all</match>\n'
+
+                            if ContentCategory == "Music":
+                                Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
+                                Data += f'    <rule field="artist" operator="startswith">{FileName}</rule>\n'
+                                Data += '    <order direction="descending">artist</order>\n'
+                            elif ContentCategory == "MusicVideos":
+                                Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                                Data += f'    <rule field="artist" operator="startswith">{FileName}</rule>\n'
+                                Data += '    <order direction="descending">artist</order>\n'
+                            else:
+                                Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
+                                Data += f'    <rule field="sorttitle" operator="startswith">{FileName}</rule>\n'
+                                Data += '    <order direction="descending">sorttitle</order>\n'
+
+                            Data += Extras
+                            Data += '</node>'
+                            utils.writeFileBinary(FilePath, Data.encode("utf-8"))

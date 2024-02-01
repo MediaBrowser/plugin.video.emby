@@ -1,3 +1,4 @@
+import uuid
 import json
 from _thread import start_new_thread
 import _socket
@@ -17,7 +18,7 @@ class EmbyServer:
         self.Found_Servers = []
         self.ServerSettings = ServerSettings
         self.Firstrun = not bool(self.ServerSettings)
-        self.ServerData = {'AccessToken': "", 'UserId': "", 'UserName': "", 'UserImageUrl': "", 'ServerName': "", 'ServerId': "", 'ServerUrl': "", 'EmbyConnectExchangeToken': "", 'EmbyConnectUserId': "", 'EmbyConnectUserName': "", 'EmbyConnectAccessToken': "", 'LastConnectionMode': "", 'ManualAddress': "", 'RemoteAddress': "", 'LocalAddress': "" ,'EmbyConnectRemoteAddress': "", 'EmbyConnectLocalAddress': "", 'AdditionalUsers': {}}
+        self.ServerData = {'AccessToken': "", 'UserId': "", 'UserName': "", 'UserImageUrl': "", 'ServerName': "", 'ServerId': "", 'ServerUrl': "", 'EmbyConnectExchangeToken': "", 'EmbyConnectUserId': "", 'EmbyConnectUserName': "", 'EmbyConnectAccessToken': "", 'LastConnectionMode': "", 'ManualAddress': "", 'RemoteAddress': "", 'LocalAddress': "" ,'EmbyConnectRemoteAddress': "", 'EmbyConnectLocalAddress': "", 'AdditionalUsers': {}, "DeviceId": "", "Online": False}
         self.ServerReconnecting = False
         self.http = http.HTTP(self)
         self.API = api.API(self)
@@ -30,7 +31,8 @@ class EmbyServer:
             start_new_thread(self.worker_ServerReconnect, ())
 
     def worker_ServerReconnect(self):
-        xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
+        xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 0) # LOGDEBUG
+        utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33575), time=5000, sound=True)
 
         if not self.ServerReconnecting:
             utils.SyncPause.update({f"server_reconnecting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
@@ -39,6 +41,7 @@ class EmbyServer:
 
             while True:
                 if utils.sleep(1):
+                    self.http.stop_session()
                     break
 
                 xbmc.log(f"EMBY.emby.emby: Reconnect try again: {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
@@ -50,18 +53,19 @@ class EmbyServer:
             utils.SyncPause[f"server_reconnecting_{self.ServerData['ServerId']}"] = False
             self.ServerReconnecting = False
 
-        xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGINFO
+        xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 0) # LOGDEBUG
 
     def start(self):
         xbmc.log(f"EMBY.emby.emby: ---[ START EMBYCLIENT: {self.ServerData['ServerName']} / {self.ServerData['ServerId']} / {self.ServerData['LastConnectionMode']}]---", 1) # LOGINFO
         utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = True
-        utils.EmbyServers[self.ServerData['ServerId']] = self
-        playerops.add_RemoteClientSelf(self.ServerData['ServerId'], self.EmbySession[0]['Id'], self.EmbySession[0]['DeviceName'], self.EmbySession[0]['UserName'])
-        self.Views.update_views()
+        self.ServerData['Online'] = True
         self.library.load_settings()
+        playerops.init_RemoteClient(self.ServerData['ServerId'])
+        self.Views.update_views()
         self.Views.update_nodes()
         self.toggle_websocket(True)
         start_new_thread(self.library.KodiStartSync, (self.Firstrun,))  # start initial sync
+        start_new_thread(self.Ping, ())
         self.Firstrun = False
 
         if utils.connectMsg:
@@ -79,6 +83,7 @@ class EmbyServer:
             self.toggle_websocket(False)
             self.http.stop_session()
             self.EmbySession = []
+            self.ServerData['Online'] = False
             self.ShutdownInProgress = False
         else:
             xbmc.log("EMBY.emby.emby: Emby client already closed", 1) # LOGINFO
@@ -111,6 +116,8 @@ class EmbyServer:
                     self.ServerData = LoadedServerSettings
 
             utils.DatabaseFiles[self.ServerData['ServerId']] = utils.translatePath(f"special://profile/Database/emby_{self.ServerData['ServerId']}.db")
+        else:
+            self.ServerData["DeviceId"] = str(uuid.uuid4())
 
         # Refresh EmbyConnect Emby server addresses (dynamic IP)
         if self.ServerData["LastConnectionMode"] in ("EmbyConnectLocalAddress", "EmbyConnectRemoteAddress"):
@@ -182,19 +189,21 @@ class EmbyServer:
 
             if SignedIn:
                 self.save_credentials()
+                utils.EmbyServers[self.ServerData['ServerId']] = self
                 self.start()
                 return
 
         # re-establish connection
+        utils.EmbyServers[self.ServerData['ServerId']] = self
         start_new_thread(self.establish_existing_connection, ())
 
     def establish_existing_connection(self):
-        xbmc.log("EMBY.emby.emby: THREAD: --->[ establish_existing_connection ]", 1) # LOGINFO
+        xbmc.log("EMBY.emby.emby: THREAD: --->[ establish_existing_connection ]", 0) # LOGDEBUG
 
         if self.ServerConnect():
             self.start()
 
-        xbmc.log("EMBY.emby.emby: THREAD: ---<[ establish_existing_connection ]", 1) # LOGINFO
+        xbmc.log("EMBY.emby.emby: THREAD: ---<[ establish_existing_connection ]", 0) # LOGDEBUG
 
     def save_credentials(self):
         if not self.ServerSettings:
@@ -207,7 +216,8 @@ class EmbyServer:
         utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
         utils.EmbyServers[self.ServerData['ServerId']].stop()
         utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
-        del utils.EmbyServers[self.ServerData['ServerId']]
+        self.EmbySession = []
+        self.ServerData['Online'] = False
 
     def ServerConnect(self, Reconnect=False):
         # Connect to server verification
@@ -363,7 +373,7 @@ class EmbyServer:
 
             # Emby Connect
             if self.ServerData['EmbyConnectExchangeToken'] and self.ServerData['EmbyConnectUserId']:
-                auth = self.request_url({'url': f"{ConnectUrl}/emby/Connect/Exchange", 'type': "GET", 'params': {'ConnectUserId': self.ServerData['EmbyConnectUserId']}, 'headers': {'X-Emby-Token': self.ServerData['EmbyConnectExchangeToken'], 'Authorization': f"Emby Client={utils.addon_name},Device={utils.device_name},DeviceId={utils.device_id},Version={utils.addon_version}"}})
+                auth = self.request_url({'url': f"{ConnectUrl}/emby/Connect/Exchange", 'type': "GET", 'params': {'ConnectUserId': self.ServerData['EmbyConnectUserId']}, 'headers': {'X-Emby-Token': self.ServerData['EmbyConnectExchangeToken'], 'Authorization': f"Emby Client={utils.addon_name},Device={utils.device_name},DeviceId={self.ServerData['DeviceId']},Version={utils.addon_version}"}})
 
                 if auth:
                     self.ServerData.update({'UserId': auth['LocalUserId'], 'AccessToken': auth['AccessToken']})
@@ -451,6 +461,7 @@ class EmbyServer:
 
             if not self.EmbySession:
                 xbmc.log(f"EMBY.emby.emby: ---[ SESSION ERROR EMBYCLIENT: {self.ServerData['ServerId']} ] {self.EmbySession} ---", 3) # LOGERROR
+                self.http.stop_session()
                 return False
 
             if not self.ServerData['UserName']:
@@ -477,6 +488,18 @@ class EmbyServer:
             return True
 
         return False
+
+    # Ping server -> keep http session open
+    def Ping(self):
+        xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Ping {self.ServerData['ServerId']} ]", 0) # LOGDEBUG
+
+        while True:
+            for _ in range(30):
+                if utils.sleep(1) or not self.ServerData['Online']:
+                    xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Ping {self.ServerData['ServerId']} ]", 0) # LOGDEBUG
+                    return
+
+            self.API.ping()
 
     def toggle_websocket(self, Enable):
         if Enable:

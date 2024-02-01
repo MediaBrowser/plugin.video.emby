@@ -1,8 +1,8 @@
-from urllib.parse import urlencode
 import json
 from _thread import start_new_thread
 import xbmc
-from helper import pluginmenu, utils, playerops, xmls, player
+import xbmcvfs
+from helper import pluginmenu, utils, playerops, xmls, player, queue
 from database import dbio
 from emby import emby
 from . import webservice
@@ -15,30 +15,14 @@ QueueItemsStatusupdate = ()
 QueryItemStatusThread = False
 QueueItemsRemove = ()
 QueryItemRemoveThread = False
-SettingsChangedThread = False
-KodiScanCount = 0
-SleepMode = False
-
+FavoriteUpdatedByEmby = False
+utils.FavoriteQueue = queue.Queue()
+EventQueue = queue.Queue()
 
 class monitor(xbmc.Monitor):
     def onNotification(self, sender, method, data):
-        if method == "Playlist.OnAdd":
-            globals()["PlaylistItemsAdd"] += (data,)
-
-            if not PlaylistItemAddThread:
-                globals()["PlaylistItemAddThread"] = True
-                start_new_thread(Playlist_Add, ())
-        elif method == "Playlist.OnRemove":
-            globals()["PlaylistItemsRemove"] += (data,)
-
-            if not PlaylistItemRemoveThread:
-                globals()["PlaylistItemRemoveThread"] = True
-                start_new_thread(Playlist_Remove, ())
-        elif method == "Playlist.OnClear":
-            player.NowPlayingQueue = [[], []]
-            player.PlaylistKodiItems = [[], []]
-        elif method == "Player.OnPlay":
-            player.PlayerEvents.put("play")
+        if method == "Player.OnPlay":
+            player.PlayerEvents.put((("play", data),))
         elif method == "Player.OnStop":
             player.PlayerEvents.put((("stop", data),))
         elif method == 'Player.OnSeek':
@@ -53,14 +37,49 @@ class monitor(xbmc.Monitor):
             player.PlayerEvents.put("resume")
         elif method == 'Application.OnVolumeChanged':
             player.PlayerEvents.put((("volume", data),))
-        elif method in ('Other.managelibsselection', 'Other.settings', 'Other.backup', 'Other.restore', 'Other.reset_device_id', 'Other.factoryreset', 'Other.databasereset', 'Other.nodesreset', 'Other.texturecache', 'System.OnWake', 'System.OnSleep', 'System.OnQuit', 'Other.play', 'Other.skinreload', 'Other.databasevacuummanual', 'Other.manageserver'):
-            start_new_thread(Notification, (method, data))
+        elif method == "Playlist.OnAdd":
+            EventQueue.put((("playlistadd", data),))
+        elif method == "Playlist.OnRemove":
+            EventQueue.put((("playlistremove", data),))
+        elif method == "Playlist.OnClear":
+            EventQueue.put((("playlistclear",),))
+        elif method == 'System.OnSleep':
+            EventQueue.put((("sleep",),))
+        elif method == 'System.OnWake':
+            EventQueue.put((("wake",),))
+        elif method == 'System.OnQuit':
+            EventQueue.put((("quit",),))
+        elif method == 'Other.managelibsselection':
+            EventQueue.put((("managelibsselection",),))
+        elif method == 'Other.settings':
+            EventQueue.put((("opensettings",),))
+        elif method == 'Other.backup':
+            EventQueue.put((("backup",),))
+        elif method == 'Other.restore':
+            EventQueue.put((("restore",),))
+        elif method == 'Other.skinreload':
+            EventQueue.put((("skinreload",),))
+        elif method == 'Other.manageserver':
+            EventQueue.put((("manageserver",),))
+        elif method == 'Other.databasereset':
+            EventQueue.put((("databasereset",),))
+        elif method == 'Other.nodesreset':
+            EventQueue.put((("nodesreset",),))
+        elif method == 'Other.databasevacuummanual':
+            EventQueue.put((("databasevacuummanual",),))
+        elif method == 'Other.factoryreset':
+            EventQueue.put((("factoryreset",),))
+        elif method == 'Other.downloadreset':
+            EventQueue.put((("downloadreset",),))
+        elif method == 'Other.texturecache':
+            EventQueue.put((("texturecache",),))
+        elif method == 'Other.play':
+            EventQueue.put((("play", data),))
         elif method == 'VideoLibrary.OnUpdate' and not playerops.RemoteMode:  # Buffer updated items -> not overloading threads
             globals()["QueueItemsStatusupdate"] += (data,)
 
             if not QueryItemStatusThread:
                 globals()["QueryItemStatusThread"] = True
-                pluginmenu.reset_querycache() # Clear Cache
                 start_new_thread(VideoLibrary_OnUpdate, ())
         elif method == 'VideoLibrary.OnRemove' and not playerops.RemoteMode:  # Buffer updated items -> not overloading threads
             if utils.enableDeleteByKodiEvent:
@@ -71,188 +90,589 @@ class monitor(xbmc.Monitor):
                     start_new_thread(VideoLibrary_OnRemove, ())
 
     def onScanStarted(self, library):
-        if playerops.RemoteMode:
-            xbmc.log(f"EMBY.hooks.monitor: kodi scan skipped due to remote mode / {library}", 1) # LOGINFO
-            return
-
-        utils.SyncPause['kodi_rw'] = True
-        globals()["KodiScanCount"] += 1
-        xbmc.log(f"EMBY.hooks.monitor: -->[ kodi scan / {library} / {utils.WidgetRefresh} ]", 1) # LOGINFO
+        xbmc.log(f"EMBY.hooks.monitor: -->[ kodi scan / {library} ]", 1) # LOGINFO
+        EventQueue.put((("scanstart", library),))
 
     def onScanFinished(self, library):
-        if playerops.RemoteMode:
-            xbmc.log(f"EMBY.hooks.monitor: kodi scan skipped due to remote mode / {library} ", 1) # LOGINFO
-            utils.SyncPause['kodi_rw'] = False
-            globals()["KodiScanCount"] = 0
-            return
-
-        xbmc.log(f"EMBY.hooks.monitor: --<[ kodi scan / {library} / {utils.WidgetRefresh} ]", 1) # LOGINFO
-        globals()["KodiScanCount"] -= 1
-
-        if KodiScanCount > 0: # use > 0 in case the start event was not detected
-            return
-
-        globals()["KodiScanCount"] = 0
-
-        if utils.WidgetRefresh:
-            if utils.WidgetRefreshAudio and library == "video":
-                xbmc.log(f"EMBY.hooks.monitor: [ kodi scan / {library} ] Trigger music scan", 1) # LOGINFO
-                utils.SendJson('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
-                return
-
-            utils.WidgetRefresh = False
-
-        utils.SyncPause['kodi_rw'] = False
-        start_new_thread(syncEmby, ())
+        xbmc.log(f"EMBY.hooks.monitor: --<[ kodi scan / {library} ]", 1) # LOGINFO
+        EventQueue.put((("scanstop", library),))
 
     def onCleanStarted(self, library):
-        if playerops.RemoteMode:
-            xbmc.log(f"EMBY.hooks.monitor: kodi scan skipped due to remote mode / {library} ", 1) # LOGINFO
-            return
-
-        utils.SyncPause['kodi_rw'] = True
-        globals()["KodiScanCount"] += 1
         xbmc.log(f"EMBY.hooks.monitor: -->[ kodi clean / {library} ]", 1) # LOGINFO
+        EventQueue.put((("cleanstart", library),))
 
     def onCleanFinished(self, library):
-        if playerops.RemoteMode:
-            xbmc.log(f"EMBY.hooks.monitor: kodi scan skipped due to remote mode / {library} ", 1) # LOGINFO
-            return
-
-        globals()["KodiScanCount"] -= 1
-
-        if KodiScanCount > 0: # use > 0 in case the start event was not detected
-            return
-
-        globals()["KodiScanCount"] = 0
-        utils.SyncPause['kodi_rw'] = False
         xbmc.log(f"EMBY.hooks.monitor: --<[ kodi clean / {library} ]", 1) # LOGINFO
+        EventQueue.put((("cleanstop", library),))
 
     def onSettingsChanged(self):
-        # delay settings changed updated
-        if not SettingsChangedThread:
-            globals()["SettingsChangedThread"] = True
-            start_new_thread(settingschanged, ())
-        else:
-            xbmc.log("EMBY.hooks.monitor: [ Reload settings skip ]", 1) # LOGINFO
+        xbmc.log("EMBY.hooks.monitor: Seetings changed", 1) # LOGINFO
+        EventQueue.put((("settingschanged",),))
 
-def Notification(method, data):  # threaded by caller
-    xbmc.log(f"EMBY.hooks.monitor: THREAD: --->[ notification ] {method}", 0) # LOGDEBUG
+def monitor_EventQueue(): # Threaded / queued
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Kodi events ]", 0) # LOGDEBUG
+    SleepMode = False
 
-    if method == 'Other.managelibsselection':
-        pluginmenu.select_managelibs()
-    elif method == 'Other.settings':
-        xbmc.executebuiltin(f'Addon.OpenSettings({utils.PluginId})')
-    elif method == 'Other.backup':
-        Backup()
-    elif method == 'Other.restore':
-        BackupRestore()
-    elif method == 'Other.skinreload':
-        pluginmenu.reset_querycache() # Clear Cache
-        xbmc.executebuiltin('ReloadSkin()')
-        xbmc.log("EMBY.hooks.monitor: Reload skin by notification", 1) # LOGINFO
-    elif method == 'Other.reset_device_id':
-        pluginmenu.reset_device_id()
-    elif method == 'Other.manageserver':
-        pluginmenu.manage_servers(ServerConnect)
-    elif method == 'Other.databasereset':
-        pluginmenu.databasereset()
-    elif method == 'Other.nodesreset':
-        utils.nodesreset()
-    elif method == 'Other.factoryreset':
-        if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33074)):
-            pluginmenu.factoryreset()
-    elif method == 'Other.texturecache':
-        if not utils.artworkcacheenable:
-            utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False)
-        else:
-            pluginmenu.cache_textures()
-    elif method == 'System.OnWake':
-        System_OnWake()
-    elif method == 'System.OnSleep':
-        System_OnSleep()
-    elif method == 'System.OnQuit':
-        System_OnQuit()
-    elif method == 'Other.play':
-        data = data.replace('[', "").replace(']', "").replace('"', "").replace('"', "").split(",")
-        playerops.PlayEmby((data[1],), "PlayNow", 0, -1, utils.EmbyServers[data[0]], 0)
-    elif method == 'Other.databasevacuummanual':
-        dbio.DBVacuum()
+    while True:
+        Events = EventQueue.getall()
+        xbmc.log(f"EMBY.hooks.monitor: Event: {Events}", 0) # LOGDEBUG
 
-    xbmc.log(f"EMBY.hooks.monitor: THREAD: ---<[ notification ] {method}", 0) # LOGDEBUG
+        for Event in Events:
+            if Event == "QUIT":
+                xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Kodi events ]", 0) # LOGDEBUG
+                return
 
-def System_OnWake():
-    if not SleepMode:
-        xbmc.log("EMBY.hooks.monitor: System.OnSleep was never called, skip System.OnWake", 2) # LOGWARNING
-        return
+            if Event[0] in ("scanstart", "cleanstart", "scanstop", "cleanstop") and playerops.RemoteMode:
+                xbmc.log("EMBY.hooks.monitor: kodi scan skipped due to remote mode", 1) # LOGINFO
+                continue
 
-    xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
-    globals()["SleepMode"] = False
-    EmbyServer_ReconnectAll()
-    utils.SyncPause['kodi_sleep'] = False
+            if Event[0] in ("scanstart", "cleanstart"):
+                utils.SyncPause['kodi_rw'] = True
+            elif Event[0] in ("scanstop", "cleanstop"):
+                if Event[0] == "scanstop" and utils.WidgetRefresh[Event[1]]:
+                    utils.WidgetRefresh[Event[1]] = False
 
-def System_OnSleep():
-    if SleepMode:
-        xbmc.log("EMBY.hooks.monitor: System.OnSleep in progress, skip System.OnSleep", 2) # LOGWARNING
-        return
+                if not utils.WidgetRefresh['music'] and not utils.WidgetRefresh['video']:
+                    utils.SyncPause['kodi_rw'] = False
+                    start_new_thread(syncEmby, ())
+            elif Event[0] == "sleep":
+                if SleepMode:
+                    xbmc.log("EMBY.hooks.monitor: System.OnSleep in progress, skip System.OnSleep", 2) # LOGWARNING
+                    continue
 
-    globals()["SleepMode"] = True
-    xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
-    utils.SyncPause['kodi_sleep'] = True
+                SleepMode = True
+                xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
+                utils.SyncPause['kodi_sleep'] = True
 
-    if not player.PlayBackEnded and player.EmbyServerPlayback:
-        player.PlayerEvents.put((("stop", '{"end":"sleep"}'),))
+                if not player.PlayBackEnded and player.PlayingItem[4]:
+                    player.PlayerEvents.put((("stop", '{"end":"sleep"}'),))
 
-        while not player.PlayerEvents.isEmpty():
-            utils.sleep(0.5)
+                    while not player.PlayerEvents.isEmpty():
+                        utils.sleep(0.5)
 
-        player.EmbyServerPlayback = None
+                EmbyServer_DisconnectAll()
+            elif Event[0] == "wake":
+                if not SleepMode:
+                    xbmc.log("EMBY.hooks.monitor: System.OnSleep was never called, skip System.OnWake", 2) # LOGWARNING
+                    continue
 
-    EmbyServer_DisconnectAll()
+                xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
+                SleepMode = False
+                EmbyServer_ReconnectAll()
+                utils.SyncPause['kodi_sleep'] = False
+            elif Event[0] == "managelibsselection":
+                start_new_thread(pluginmenu.select_managelibs, ())
+            elif Event[0] == "opensettings":
+                xbmc.executebuiltin('Addon.OpenSettings(plugin.video.emby-next-gen)')
+            elif Event[0] == "backup":
+                start_new_thread(Backup, ())
+            elif Event[0] == "restore":
+                start_new_thread(BackupRestore, ())
+            elif Event[0] == "skinreload":
+                start_new_thread(pluginmenu.reset_querycache, (None,)) # Clear Cache
+                xbmc.executebuiltin('ReloadSkin()')
+                xbmc.log("EMBY.hooks.monitor: Reload skin by notification", 1) # LOGINFO
+            elif Event[0] == "manageserver":
+                start_new_thread(pluginmenu.manage_servers, (ServerConnect,))
+            elif Event[0] == "databasereset":
+                start_new_thread(pluginmenu.databasereset, ())
+            elif Event[0] == "nodesreset":
+                start_new_thread(utils.nodesreset, ())
+            elif Event[0] == "databasevacuummanual":
+                start_new_thread(dbio.DBVacuum, ())
+            elif Event[0] == "factoryreset":
+                start_new_thread(pluginmenu.factoryreset, ())
+            elif Event[0] == "downloadreset":
+                start_new_thread(pluginmenu.downloadreset, ())
+            elif Event[0] == "texturecache":
+                if not utils.artworkcacheenable:
+                    utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False)
+                else:
+                    start_new_thread(pluginmenu.cache_textures, ())
+            elif Event[0] == "settingschanged":
+                start_new_thread(settingschanged, ())
+            elif Event[0] == "playlistclear":
+                player.NowPlayingQueue = [[], []]
+                player.PlaylistKodiItems = [[], []]
+            elif Event[0] == "playlistremove":
+                globals()["PlaylistItemsRemove"] += (Event[1],)
+
+                if not PlaylistItemRemoveThread:
+                    globals()["PlaylistItemRemoveThread"] = True
+                    start_new_thread(Playlist_Remove, ())
+            elif Event[0] == "playlistadd":
+                globals()["PlaylistItemsAdd"] += (Event[1],)
+
+                if not PlaylistItemAddThread:
+                    globals()["PlaylistItemAddThread"] = True
+                    start_new_thread(Playlist_Add, ())
+            elif Event[0] == "quit":
+                xbmc.log("EMBY.hooks.monitor: System_OnQuit", 1) # LOGINFO
+                utils.SystemShutdown = True
+                utils.SyncPause = {}
+                webservice.close()
+                EmbyServer_DisconnectAll()
+                xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Kodi events ]", 0) # LOGDEBUG
+                return
+
+def syncEmby():
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ syncEmby ]", 0) # LOGDEBUG
+
+    for EmbyServer in list(utils.EmbyServers.values()):
+        EmbyServer.library.RunJobs()
+
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ syncEmby ]", 0) # LOGDEBUG
+
+def get_Favorites():
+    Result = utils.SendJson('{"jsonrpc":"2.0", "method":"Favourites.GetFavourites", "params":{"properties":["windowparameter", "path", "thumbnail", "window"]}, "id": 1}').get("result", {})
+
+    if Result:
+        Favorites = Result.get("favourites", [])
+
+        if not Favorites: # Favorites can be "None"
+            return []
+
+        return Favorites
+
+    return []
+
+def monitor_KodiFavorites():
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Kodi favorites ]", 0) # LOGDEBUG
+    globals()['FavoriteUpdatedByEmby'] = False
+    ItemsReadOutPrev = get_Favorites()
+    FavoriteTimestamp = 0
+
+    while True:
+        if utils.sleep(0.5):
+            xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Kodi favorites ]", 0) # LOGDEBUG
+            return
+
+        Stats = xbmcvfs.Stat(utils.KodiFavFile)
+        TimestampReadOut = Stats.st_mtime()
+
+        if FavoriteUpdatedByEmby:
+            globals()['FavoriteUpdatedByEmby'] = False
+            ItemsReadOutPrev = get_Favorites()
+            continue
+
+        if FavoriteTimestamp < TimestampReadOut:
+            Trigger = bool(FavoriteTimestamp)
+            FavoriteTimestamp = TimestampReadOut
+            ItemsReadOut = get_Favorites()
+
+            if Trigger:
+                DeltaFavRemoved = []
+                DeltaFavAdded = []
+
+                for ItemReadOutPrev in ItemsReadOutPrev:
+                    if ItemReadOutPrev not in ItemsReadOut:
+                        DeltaFavRemoved.append(ItemReadOutPrev)
+
+                for ItemReadOut in ItemsReadOut:
+                    if ItemReadOut not in ItemsReadOutPrev:
+                        DeltaFavAdded.append(ItemReadOut)
+
+                # filter fav doubles
+                ItemsReadOutPathes = []
+
+                for ItemReadOut in ItemsReadOut:
+                    if 'path' in ItemReadOut:
+                        ItemsReadOutPathes.append(ItemReadOut['path'])
+                    elif 'windowparameter' in ItemReadOut:
+                        ItemsReadOutPathes.append(ItemReadOut['windowparameter'])
+                    else:
+                        ItemsReadOutPathes.append("")
+
+                DoubleDetected = False
+
+                for Index, ItemReadOut in enumerate(ItemsReadOut):
+                    if 'path' in ItemReadOut:
+                        CompareValue = ItemReadOut["path"]
+                    elif 'windowparameter' in ItemReadOut:
+                        CompareValue = ItemReadOut["windowparameter"]
+                    else:
+                        continue
+
+                    if Index != len(ItemsReadOut):
+                        if CompareValue in ItemsReadOutPathes[Index + 1:]:
+                            globals()['FavoriteUpdatedByEmby'] = True
+
+                            if 'path' in ItemReadOut:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemReadOut["type"]}", "title":"{ItemReadOut["title"]}", "thumbnail":"{ItemReadOut["thumbnail"]}", "path":"{ItemReadOut["path"]}"}}, "id": 1}}')
+                            else:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemReadOut["type"]}", "title":"{ItemReadOut["title"]}", "thumbnail":"{ItemReadOut["thumbnail"]}", "windowparameter":"{ItemReadOut["windowparameter"]}", "window":"{ItemReadOut["window"]}"}}, "id": 1}}')
+
+                            DoubleDetected = True
+                            break
+
+                if DoubleDetected:
+                    ItemsReadOutPrev = get_Favorites()
+                    continue
+
+                xbmc.log("EMBY.hooks.monitor: Kodi favorites changed", 1) # LOGINFO
+                ItemsReadOutStr = str(ItemsReadOut)
+
+                for Item in DeltaFavRemoved:
+                    Link = ""
+
+                    if 'path' in Item:
+                        Link = Item['path']
+                        mod_MediaFav(Link, False)
+                    elif 'windowparameter' in Item:
+                        Link = Item['windowparameter']
+
+                        if Link.startswith("videodb://movies/genres/") or Link.startswith("videodb://tvshows/genres/") or Link.startswith("videodb://musicvideos/genres/"):
+                            Temp = Link.split("/")
+                            ItemMod = Item.copy()
+                            ItemMod.update({'windowparameter': f"videodb://movies/genres/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Movies)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://tvshows/genres/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (TVShows)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://musicvideos/genres/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Musicvideos)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/tags/") or Link.startswith("videodb://tvshows/tags/") or Link.startswith("videodb://musicvideos/tags/"):
+                            Temp = Link.split("/")
+                            ItemMod = Item.copy()
+                            ItemMod.update({'windowparameter': f"videodb://movies/tags/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Movies)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://tvshows/tags/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (TVShows)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://musicvideos/tags/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Musicvideos)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/actors/") or Link.startswith("videodb://tvshows/actors/") or Link.startswith("videodb://musicvideos/actors/"):
+                            Temp = Link.split("/")
+                            ItemMod = Item.copy()
+                            ItemMod.update({'windowparameter': f"videodb://movies/actors/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Movies)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://tvshows/actors/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (TVShows)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://musicvideos/actors/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Musicvideos)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/studios/") or Link.startswith("videodb://tvshows/studios/") or Link.startswith("videodb://musicvideos/studios/"):
+                            Temp = Link.split("/")
+                            ItemMod = Item.copy()
+                            ItemMod.update({'windowparameter': f"videodb://movies/studios/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Movies)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://tvshows/studios/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (TVShows)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                            ItemMod.update({'windowparameter': f"videodb://musicvideos/studios/{Temp[4]}/", 'title': f"{ItemMod['title'][:ItemMod['title'].find(' (')]} (Musicvideos)"})
+
+                            if ItemMod in ItemsReadOut:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{ItemMod["type"]}", "title":"{ItemMod["title"]}", "thumbnail":"{ItemMod["thumbnail"]}", "windowparameter":"{ItemMod["windowparameter"]}", "window":"{ItemMod["window"]}"}}, "id": 1}}')
+
+                    if Link:
+                        set_Favorite_Emby(Link, False)
+
+                for Item in DeltaFavAdded:
+                    if 'path' in Item:
+                        Link = Item['path']
+                        mod_MediaFav(Link, True)
+                    elif 'windowparameter' in Item:
+                        Link = Item['windowparameter']
+                        NewLink = ""
+                        Pos = Link.find("/?")
+
+                        if Pos != -1:
+                            globals()['FavoriteUpdatedByEmby'] = True
+                            utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                            NewLink = f"{Link[:Pos]}/"
+
+                        if Link.startswith("videodb://inprogresstvshows/"):
+                            if not NewLink:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                                NewLink = Link.replace("videodb://inprogresstvshows/", "videodb://tvshows/titles/")
+                            else:
+                                NewLink = NewLink.replace("videodb://inprogresstvshows/", "videodb://tvshows/titles/")
+
+                        if Link.startswith("videodb://movies/genres/") or Link.startswith("videodb://tvshows/genres/") or Link.startswith("videodb://musicvideos/genres/"):
+                            globals()['FavoriteUpdatedByEmby'] = True
+                            utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                            Temp = Link.split("/")
+                            video_db = dbio.DBOpenRO("video", "Favorites_genres")
+                            Itemname, hasMusicVideos, hasMovies, hasTVShows = video_db.get_Genre_Name(Temp[4])
+                            dbio.DBCloseRO("video", "Favorites_genres")
+
+                            if hasMovies:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Movies)", "windowparameter":"videodb://movies/genres/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasMusicVideos:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Musicvideos)", "windowparameter":"videodb://musicvideos/genres/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasTVShows:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (TVShows)", "windowparameter":"videodb://tvshows/genres/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/tags/") or Link.startswith("videodb://tvshows/tags/") or Link.startswith("videodb://musicvideos/tags/"):
+                            globals()['FavoriteUpdatedByEmby'] = True
+                            utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                            Temp = Link.split("/")
+                            video_db = dbio.DBOpenRO("video", "Favorites_tags")
+                            Itemname, hasMusicVideos, hasMovies, hasTVShows = video_db.get_Tag_Name(Temp[4])
+                            dbio.DBCloseRO("video", "Favorites_tags")
+
+                            if hasMovies:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Movies)", "windowparameter":"videodb://movies/tags/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasMusicVideos:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Musicvideos)", "windowparameter":"videodb://musicvideos/tags/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasTVShows:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (TVShows)", "windowparameter":"videodb://tvshows/tags/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/actors/") or Link.startswith("videodb://tvshows/actors/") or Link.startswith("videodb://musicvideos/actors/"):
+                            globals()['FavoriteUpdatedByEmby'] = True
+                            utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                            Temp = Link.split("/")
+                            video_db = dbio.DBOpenRO("video", "Favorites_actors")
+                            Itemname, ImageUrl, hasMusicVideos, hasMovies, hasTVShows = video_db.get_People(Temp[4])
+                            dbio.DBCloseRO("video", "Favorites_actors")
+
+                            if hasMovies:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Movies)", "thumbnail":"{ImageUrl}", "windowparameter":"videodb://movies/actors/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasMusicVideos:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Musicvideos)", "thumbnail":"{ImageUrl}", "windowparameter":"videodb://musicvideos/actors/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasTVShows:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (TVShows)", "thumbnail":"{ImageUrl}", "windowparameter":"videodb://tvshows/actors/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                        if Link.startswith("videodb://movies/studios/") or Link.startswith("videodb://tvshows/studios/") or Link.startswith("videodb://musicvideos/studios/"):
+                            globals()['FavoriteUpdatedByEmby'] = True
+                            utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{Item["windowparameter"]}", "window":"{Item["window"]}"}}, "id": 1}}')
+                            Temp = Link.split("/")
+                            video_db = dbio.DBOpenRO("video", "Favorites_studios")
+                            Itemname, hasMusicVideos, hasMovies, hasTVShows = video_db.get_Studio_Name(Temp[4])
+                            dbio.DBCloseRO("video", "Favorites_studios")
+
+                            if hasMovies:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Movies)", "windowparameter":"videodb://movies/studios/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasMusicVideos:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (Musicvideos)", "windowparameter":"videodb://musicvideos/studios/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                            if hasTVShows:
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"window", "title":"{Itemname} (TVShows)", "windowparameter":"videodb://tvshows/studios/{Temp[4]}/", "window":"10025"}}, "id": 1}}')
+
+                        if NewLink:
+                            # Check for doubles
+                            if f"'{NewLink}'" not in ItemsReadOutStr:
+                                globals()['FavoriteUpdatedByEmby'] = True
+                                utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Item["type"]}", "title":"{Item["title"]}", "thumbnail":"{Item["thumbnail"]}", "windowparameter":"{NewLink}", "window":"{Item["window"]}"}}, "id": 1}}')
+                                set_Favorite_Emby(NewLink, True)
+                        else:
+                            set_Favorite_Emby(Link, True)
+
+            ItemsReadOutPrev = get_Favorites()
+
+def mod_MediaFav(Path, isFavorite):
+    if Path.startswith("http://127.0.0.1:57342/") or Path.startswith("/emby_addon_mode/"):
+        Path = Path.replace("http://127.0.0.1:57342/", "").replace("/emby_addon_mode/", "")
+        ServerId = Path.split("/")[1]
+        EmbyId = Path[Path.rfind("/"):].split("-")[1]
+        utils.ItemSkipUpdate += [int(EmbyId)]
+        xbmc.log(f"EMBY.hooks.monitor: ItemSkipUpdate: {utils.ItemSkipUpdate}", 1) # LOGDEBUG
+        utils.EmbyServers[ServerId].API.favorite(EmbyId, isFavorite)
+
+def set_Favorite_Emby(Path, isFavorite):
+    EmbyType = ""
+    KodiId = -1
+    SeasonNumber = -1
+
+    if Path.startswith("videodb://tvshows/titles/"):
+        Temp = Path.split("/")
+
+        if Temp[5]:
+            KodiId = Temp[4]
+            SeasonNumber = Temp[5]
+            EmbyType = "Season"
+        else: # TVShow
+            KodiId = Temp[4]
+            EmbyType = "Series"
+    elif Path.startswith("videodb://movies/sets/"):
+        Temp = Path.split("/")
+        KodiId = Temp[4]
+        EmbyType = "BoxSet"
+    elif Path.startswith("videodb://movies/genres/") or Path.startswith("videodb://tvshows/genres/") or Path.startswith("videodb://musicvideos/genres/"):
+        Temp = Path.split("/")
+        KodiId = Temp[4]
+        EmbyType = "Genre"
+    elif Path.startswith("videodb://movies/tags/") or Path.startswith("videodb://tvshows/tags/") or Path.startswith("videodb://musicvideos/tags/"):
+        Temp = Path.split("/")
+        KodiId = Temp[4]
+        EmbyType = "Tag"
+    elif Path.startswith("videodb://movies/actors/") or Path.startswith("videodb://tvshows/actors/") or Path.startswith("videodb://musicvideos/actors/"):
+        Temp = Path.split("/")
+        KodiId = Temp[4]
+        EmbyType = "Person"
+    elif Path.startswith("videodb://movies/studios/") or Path.startswith("videodb://tvshows/studios/") or Path.startswith("videodb://musicvideos/studios/"):
+        Temp = Path.split("/")
+        KodiId = Temp[4]
+        EmbyType = "Studio"
+    elif Path.startswith("special://profile/playlists/mixed/"):
+        Temp = Path.split("/")
+        KodiId = Temp[5][:-4]
+        EmbyType = "Playlist"
+    elif Path.startswith("musicdb://genres/"):
+        Temp = Path.split("/")
+        KodiId = Temp[3]
+        EmbyType = "MusicGenre"
+
+    if SeasonNumber != -1:
+        videodb = dbio.DBOpenRO("video", "Favorites")
+        KodiId = videodb.get_seasonid_by_showid_number(KodiId, SeasonNumber)
+        dbio.DBCloseRO("video", "Favorites")
+
+    if KodiId != -1:
+        for ServerId, EmbyServer in list(utils.EmbyServers.items()):
+            SQLs = dbio.DBOpenRW(ServerId, "Favorites", {})
+            EmbyId = SQLs['emby'].get_item_by_KodiId_EmbyType(KodiId, EmbyType)
+            SQLs["emby"].update_favourite(isFavorite, EmbyId, EmbyType)
+            dbio.DBCloseRW(ServerId, "Favorites", {})
+
+            if EmbyId:
+                if str(EmbyId).startswith("999999993"): # fake collection tag
+                    EmbyId = str(EmbyId).replace("999999993", "")
+
+                utils.ItemSkipUpdate += [int(EmbyId)]
+                xbmc.log(f"EMBY.hooks.monitor: ItemSkipUpdate favorite update: {utils.ItemSkipUpdate}", 0) # LOGDEBUG
+                EmbyServer.API.favorite(EmbyId, isFavorite)
+                break
+
+def mod_Favorite(): # Threaded / queued
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Kodi favorites mods ]", 0) # LOGDEBUG
+
+    while True:
+        Favorites = utils.FavoriteQueue.getall()
+
+        if Favorites == ("QUIT",):
+            xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Kodi favorites mods ]", 0) # LOGDEBUG
+            return
+
+        if not utils.SyncFavorites:
+            continue
+
+        KodiFavsContent = get_Favorites()
+        ItemsReadOutPathes = []
+
+        for KodiFavContent in KodiFavsContent:
+            if 'path' in KodiFavContent:
+                ItemsReadOutPathes.append(KodiFavContent['path'])
+            elif 'windowparameter' in KodiFavContent:
+                ItemsReadOutPathes.append(KodiFavContent['windowparameter'])
+            else:
+                ItemsReadOutPathes.append("")
+
+        for Favorite in Favorites:
+            if Favorite[2] in ItemsReadOutPathes:
+                Position = ItemsReadOutPathes.index(Favorite[2])
+            else:
+                Position = -1
+
+            if Favorite[1] and Position == -1:
+                globals()['FavoriteUpdatedByEmby'] = True
+                Label = Favorite[3].replace('"', "'")
+                xbmc.log(f"EMBY.helper.monitor: Add Kodi favorites {Label} / {Favorite[1]} / {Position}", 1) # LOGINFO
+
+                if Favorite[4] == "window":
+                    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Favorite[4]}", "title":"{Label}", "thumbnail":"{Favorite[0]}", "windowparameter":"{Favorite[2]}", "window":"{Favorite[5]}"}}, "id": 1}}')
+                else:
+                    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{Favorite[4]}", "title":"{Label}", "thumbnail":"{Favorite[0]}", "path":"{Favorite[2]}"}}, "id": 1}}')
+            if not Favorite[1] and Position != -1:
+                globals()['FavoriteUpdatedByEmby'] = True
+                xbmc.log(f"EMBY.helper.monitor: Remove Kodi favorites {Favorite[3]} / {Favorite[1]} / {Position}", 1) # LOGINFO
+
+                if Favorite[4] == "window":
+                    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{KodiFavsContent[Position]["type"]}", "title":"{KodiFavsContent[Position]["title"]}", "windowparameter":"{KodiFavsContent[Position]["windowparameter"]}", "window":"{KodiFavsContent[Position]["window"]}"}}, "id": 1}}')
+                else:
+                    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Favourites.AddFavourite", "params":{{"type":"{KodiFavsContent[Position]["type"]}", "title":"{KodiFavsContent[Position]["title"]}", "path":"{KodiFavsContent[Position]["path"]}"}}, "id": 1}}')
 
 # Remove Items
 def VideoLibrary_OnRemove(): # Cache queries to minimize database openings
     if utils.sleep(0.5):
         return
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ VideoLibrary_OnRemove ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ VideoLibrary_OnRemove ]", 0) # LOGDEBUG
     RemoveItems = QueueItemsRemove
     globals().update({"QueueItemsRemove": (), "QueryItemRemoveThread": False})
 
     if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33264)):
-        for server_id, EmbyServer in list(utils.EmbyServers.items()):
-            embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnRemove")
+        for ServerId, EmbyServer in list(utils.EmbyServers.items()):
+            embydb = dbio.DBOpenRO(ServerId, "VideoLibrary_OnRemove")
 
             for RemoveItem in RemoveItems:
                 data = json.loads(RemoveItem)
 
                 if 'item' in data:
-                    kodi_id = data['item']['id']
-                    media = data['item']['type']
+                    KodiId = data['item']['id']
+                    KodiType = data['item']['type']
                 else:
-                    kodi_id = data['id']
-                    media = data['type']
+                    KodiId = data['id']
+                    KodiType = data['type']
 
-                if media in ("tvshow", "season"):
+                if KodiType in ("tvshow", "season") or not KodiType or not KodiId:
                     continue
 
-                items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
+                EmbyId = embydb.get_EmbyId_by_KodiId_KodiType(KodiId, KodiType)
 
-                if not items:
+                if not EmbyId:
                     continue
 
-                for item in items:
-                    EmbyServer.API.delete_item(item[0])
+                EmbyServer.API.delete_item(EmbyId)
 
-            dbio.DBCloseRO(server_id, "VideoLibrary_OnRemove")
+            dbio.DBCloseRO(ServerId, "VideoLibrary_OnRemove")
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ VideoLibrary_OnRemove ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ VideoLibrary_OnRemove ]", 0) # LOGDEBUG
 
 def Playlist_Add():
     if utils.sleep(0.5): # Cache queries to minimize database openings and redeuce threads
         return
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Playlist_Add ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Playlist_Add ]", 0) # LOGDEBUG
     UpdateItems = PlaylistItemsAdd
     globals().update({"PlaylistItemsAdd": (), "PlaylistItemAddThread": False})
     UpdateItemsPlaylist = [(), (), ()]
@@ -285,13 +705,11 @@ def Playlist_Add():
                 if UpdateItemPlaylist[1] > 1000000000: # Update dynamic item
                     EmbyId = UpdateItemPlaylist[1] - 1000000000
                 else:
-                    Item = embydb.get_item_by_KodiId_KodiType(UpdateItemPlaylist[1], UpdateItemPlaylist[2])
+                    EmbyId = embydb.get_EmbyId_by_KodiId_KodiType(UpdateItemPlaylist[1], UpdateItemPlaylist[2])
 
-                    if not Item:
+                    if not EmbyId:
                         PlaylistItemsNew[PlaylistIndex][UpdateItemPlaylist[0]] = 0 # No Emby server Item
                         continue
-
-                    EmbyId = Item[0][0]
 
                 PlaylistItemsNew[PlaylistIndex][UpdateItemPlaylist[0]] = EmbyId
 
@@ -304,13 +722,13 @@ def Playlist_Add():
 
     player.build_NowPlayingQueue()
     player.PlayerEvents.put("playlistupdate")
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Add ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Add ]", 0) # LOGDEBUG
 
 def Playlist_Remove():
     if utils.sleep(0.5): # Cache queries
         return
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Playlist_Remove ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ Playlist_Remove ]", 0) # LOGDEBUG
     UpdateItems = PlaylistItemsRemove
     globals().update({"PlaylistItemsRemove": (), "PlaylistItemRemoveThread": False})
     RemovedItemsPlaylist = [[], []]
@@ -325,18 +743,17 @@ def Playlist_Remove():
 
     player.build_NowPlayingQueue()
     player.PlayerEvents.put("playlistupdate")
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Remove ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ Playlist_Remove ]", 0) # LOGDEBUG
 
 # Mark as watched/unwatched updates
 def VideoLibrary_OnUpdate():
     if utils.sleep(0.5): # Cache queries to minimize database openings and redeuce threads
         return
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ VideoLibrary_OnUpdate ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ VideoLibrary_OnUpdate ]", 0) # LOGDEBUG
     UpdateItems = QueueItemsStatusupdate
     globals().update({"QueueItemsStatusupdate": (), "QueryItemStatusThread": False})
     ItemsSkipUpdateRemove = []
-    items = ()
 
     for server_id, EmbyServer in list(utils.EmbyServers.items()):
         EmbyUpdateItems = {}
@@ -349,93 +766,78 @@ def VideoLibrary_OnUpdate():
 
             # Update dynamic item
             EmbyId = ""
-            media = ""
+            KodiType = ""
 
             if 'item' in data:
                 ItemId = int(data['item']['id'])
 
                 if ItemId > 1000000000:
                     EmbyId = ItemId - 1000000000
-                    media = data['item']['type']
+                    KodiType = data['item']['type']
             else:
                 ItemId = int(data['id'])
 
                 if ItemId > 1000000000:
                     EmbyId = ItemId - 1000000000
-                    media = data['type']
+                    KodiType = data['type']
 
             if EmbyId:
                 xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate dynamic item detected: {EmbyId}", 1) # LOGINFO
-                items = ((EmbyId,),)
-
-                if pluginmenu.DynamicNodeServerId != server_id:
-                    continue
-
-            # Update synced item
-            if not EmbyId:
+            else: # Update synced item
                 if 'item' in data:
                     kodi_id = data['item']['id']
-                    media = data['item']['type']
+                    KodiType = data['item']['type']
                 else:
                     kodi_id = data['id']
-                    media = data['type']
+                    KodiType = data['type']
 
                 if not embydb:
                     embydb = dbio.DBOpenRO(server_id, "VideoLibrary_OnUpdate")
 
-                items = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
+                EmbyId = embydb.get_EmbyId_by_KodiId_KodiType(kodi_id, KodiType)
 
-            if not items:
+            if not EmbyId:
                 continue
 
-            # detect multiversion EmbyId
-            UpdateItemsFiltered = []
+            if int(EmbyId) not in ItemsSkipUpdateRemove:
+                ItemsSkipUpdateRemove.append(int(EmbyId))
 
-            for item in items:
-                if f"KODI{item[0]}" in playerops.ItemSkipUpdate:
-                    UpdateItemsFiltered.append(item)
-                    break
+            if KodiType in utils.KodiTypeMapping:
+                pluginmenu.reset_querycache(utils.KodiTypeMapping[KodiType])
 
-            if not UpdateItemsFiltered:
-                UpdateItemsFiltered = items
+            if 'item' in data and 'playcount' in data:
+                if KodiType in ("tvshow", "season"):
+                    xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {KodiType} / {EmbyId} ]", 1) # LOGINFO
+                    continue
 
-            for UpdateItemFiltered in UpdateItemsFiltered:
-                if int(UpdateItemFiltered[0]) not in ItemsSkipUpdateRemove:
-                    ItemsSkipUpdateRemove.append(int(UpdateItemFiltered[0]))
+                if f"KODI{EmbyId}" not in utils.ItemSkipUpdate:  # Check EmbyID
+                    xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate update playcount {EmbyId} ]", 1) # LOGINFO
 
-                if 'item' in data and 'playcount' in data:
-                    if media in ("tvshow", "season"):
-                        xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {media} / {UpdateItemFiltered[0]} ]", 1) # LOGINFO
-                        continue
-
-                    if f"KODI{UpdateItemFiltered[0]}" not in playerops.ItemSkipUpdate:  # Check EmbyID
-                        xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate update playcount {UpdateItemFiltered[0]} ]", 1) # LOGINFO
-
-                        if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
-                            EmbyUpdateItems[int(UpdateItemFiltered[0])]['PlayCount'] = data['playcount']
-                            EmbyUpdateItems[int(UpdateItemFiltered[0])]['EmbyItem'] = UpdateItemFiltered
-                        else:
-                            EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'PlayCount': data['playcount'], 'EmbyItem': UpdateItemFiltered}
+                    if int(EmbyId) in EmbyUpdateItems:
+                        EmbyUpdateItems[int(EmbyId)]['PlayCount'] = data['playcount']
+                        EmbyUpdateItems[int(EmbyId)]['EmbyItem'] = EmbyId
                     else:
-                        xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {UpdateItemFiltered[0]} ]", 1) # LOGINFO
+                        EmbyUpdateItems[int(EmbyId)] = {'PlayCount': data['playcount'], 'EmbyItem': EmbyId}
                 else:
-                    if 'item' not in data:
-                        if f"KODI{UpdateItemFiltered[0]}" not in playerops.ItemSkipUpdate and int(UpdateItemFiltered[0]):  # Check EmbyID
-                            if not f"{{'item':{UpdateItem}}}" in UpdateItems:
-                                xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate reset progress {UpdateItemFiltered[0]} ]", 1) # LOGINFO
+                    xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate skip playcount {EmbyId} ]", 1) # LOGINFO
+            else:
+                if 'item' not in data:
+                    if f"KODI{EmbyId}" not in utils.ItemSkipUpdate and int(EmbyId):  # Check EmbyID
+                        if not f"{{'item':{UpdateItem}}}" in UpdateItems:
+                            xbmc.log(f"EMBY.hooks.monitor: [ VideoLibrary_OnUpdate reset progress {EmbyId} ]", 1) # LOGINFO
 
-                                if int(UpdateItemFiltered[0]) in EmbyUpdateItems:
-                                    EmbyUpdateItems[int(UpdateItemFiltered[0])]['Progress'] = 0
-                                    EmbyUpdateItems[int(UpdateItemFiltered[0])]['EmbyItem'] = UpdateItemFiltered
-                                else:
-                                    EmbyUpdateItems[int(UpdateItemFiltered[0])] = {'Progress': 0, 'EmbyItem': UpdateItemFiltered}
+                            if int(EmbyId) in EmbyUpdateItems:
+                                EmbyUpdateItems[int(EmbyId)]['Progress'] = 0
+                                EmbyUpdateItems[int(EmbyId)]['EmbyItem'] = EmbyId
                             else:
-                                xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate skip reset progress (UpdateItems) {UpdateItemFiltered[0]}", 1) # LOGINFO
+                                EmbyUpdateItems[int(EmbyId)] = {'Progress': 0, 'EmbyItem': EmbyId}
                         else:
-                            xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) {UpdateItemFiltered[0]}", 1) # LOGINFO
+                            xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate skip reset progress (UpdateItems) {EmbyId}", 1) # LOGINFO
+                    else:
+                        xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate skip reset progress (ItemSkipUpdate) {EmbyId}", 1) # LOGINFO
 
         for EmbyItemId, EmbyUpdateItem in list(EmbyUpdateItems.items()):
-            playerops.ItemSkipUpdate.append(f"KODI{EmbyItemId}")
+            utils.ItemSkipUpdate.append(int(EmbyItemId))
 
             if 'Progress' in EmbyUpdateItem:
                 if 'PlayCount' in EmbyUpdateItem:
@@ -458,11 +860,11 @@ def VideoLibrary_OnUpdate():
     for ItemSkipUpdateRemove in ItemsSkipUpdateRemove:
         ItemSkipUpdateRemoveCompare = f"KODI{ItemSkipUpdateRemove}"
 
-        if ItemSkipUpdateRemoveCompare in playerops.ItemSkipUpdate:
-            playerops.ItemSkipUpdate.remove(ItemSkipUpdateRemoveCompare)
+        if ItemSkipUpdateRemoveCompare in utils.ItemSkipUpdate:
+            utils.ItemSkipUpdate.remove(ItemSkipUpdateRemoveCompare)
 
-    xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate ItemSkipUpdate: {playerops.ItemSkipUpdate}", 1) # LOGINFO
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ VideoLibrary_OnUpdate ]", 1) # LOGINFO
+    xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate ItemSkipUpdate: {utils.ItemSkipUpdate}", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ VideoLibrary_OnUpdate ]", 0) # LOGDEBUG
 
 def BackupRestore():
     RestoreFolder = utils.Dialog.browseSingle(type=0, heading='Select Backup', shares='files', defaultt=utils.backupPath)
@@ -492,7 +894,7 @@ def BackupRestore():
 
     utils.delete_playlists()
     utils.delete_nodes()
-    RestoreFolderAddonData = f"{RestoreFolder}/addon_data/{utils.PluginId}/"
+    RestoreFolderAddonData = f"{RestoreFolder}/addon_data/plugin.video.emby-next-gen/"
     utils.copytree(RestoreFolderAddonData, utils.FolderAddonUserdata)
     RestoreFolderDatabase = f"{RestoreFolder}/Database/"
     utils.copytree(RestoreFolderDatabase, "special://profile/Database/")
@@ -505,7 +907,7 @@ def Backup():
         return None
 
     path = utils.backupPath
-    folder_name = f"Kodi{xbmc.getInfoLabel('System.BuildVersion')[:2]} - {xbmc.getInfoLabel('System.Date(yyyy-mm-dd)')}-{xbmc.getInfoLabel('System.Time(hh:mm:ss xx)')}"
+    folder_name = f"Kodi{xbmc.getInfoLabel('System.BuildVersion')[:2]} - {xbmc.getInfoLabel('System.Date(yyyy-mm-dd)')} {xbmc.getInfoLabel('System.Time(hh:mm:ss xx)').replace(':', '-')}"
     folder_name = utils.Dialog.input(heading=utils.Translate(33089), defaultt=folder_name)
 
     if not folder_name:
@@ -519,7 +921,7 @@ def Backup():
 
         utils.delFolder(backup)
 
-    destination_data = f"{backup}addon_data/{utils.PluginId}/"
+    destination_data = f"{backup}addon_data/plugin.video.emby-next-gen/"
     destination_databases = f"{backup}Database/"
     utils.mkDir(backup)
     utils.mkDir(f"{backup}addon_data/")
@@ -554,8 +956,7 @@ def settingschanged():  # threaded by caller
     if utils.sleep(0.5):
         return
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ reload settings ]", 1) # LOGINFO
-    globals()["SettingsChangedThread"] = False
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ reload settings ]", 0) # LOGDEBUG
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     RestartKodi = False
     syncdatePrevious = utils.syncdate
@@ -567,6 +968,8 @@ def settingschanged():  # threaded by caller
     AddonModePathPreviousValue = utils.AddonModePath
     websocketenabledPreviousValue = utils.websocketenabled
     curltimeoutsPreviousValue = utils.curltimeouts
+    curlBoxSetsToTagsPreviousValue = utils.BoxSetsToTags
+    DownloadPathPreviousValue = utils.DownloadPath
     utils.InitSettings()
 
     # Http2 mode or curltimeouts changed, rebuild advanced settings -> restart Kodi
@@ -576,13 +979,14 @@ def settingschanged():  # threaded by caller
 
     # path(substitution) changed, update database pathes
     if AddonModePathPreviousValue != utils.AddonModePath:
-        videodb = dbio.DBOpenRW("video", "settingschanged")
-        videodb.toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
-        dbio.DBCloseRW("video", "settingschanged")
-        musicdb = dbio.DBOpenRW("music", "settingschanged")
-        musicdb.toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
-        dbio.DBCloseRW("music", "settingschanged")
-        utils.refresh_widgets()
+        SQLs = dbio.DBOpenRW("video", "settingschanged", {})
+        SQLs["video"].toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
+        dbio.DBCloseRW("video", "settingschanged", {})
+        SQLs = dbio.DBOpenRW("music", "settingschanged", {})
+        SQLs["music"].toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
+        dbio.DBCloseRW("music", "settingschanged", {})
+        utils.refresh_widgets(True)
+        utils.refresh_widgets(False)
 
     # Toggle coverart setting
     if enableCoverArtPreviousValue != utils.enableCoverArt:
@@ -594,7 +998,6 @@ def settingschanged():  # threaded by caller
         else:
             utils.set_settings_bool("enableCoverArt", enableCoverArtPreviousValue)
 
-
     # Toggle node items limit
     if maxnodeitemsPreviousValue != utils.maxnodeitems:
         utils.nodesreset()
@@ -604,13 +1007,19 @@ def settingschanged():  # threaded by caller
         for EmbyServer in list(utils.EmbyServers.values()):
             EmbyServer.toggle_websocket(utils.websocketenabled)
 
+    # Toggle collection tags
+    if curlBoxSetsToTagsPreviousValue != utils.BoxSetsToTags:
+        for EmbyServer in list(utils.EmbyServers.values()):
+            EmbyServer.Views.add_nodes_root(False)
+            EmbyServer.library.refresh_boxsets()
+
     # Restart Kodi
     if RestartKodi:
         utils.SyncPause = {}
         webservice.close()
         EmbyServer_DisconnectAll()
         utils.restart_kodi()
-        xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ] restart", 1) # LOGINFO
+        xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ] restart", 0) # LOGDEBUG
         return
 
     # Manual adjusted sync time/date
@@ -640,22 +1049,19 @@ def settingschanged():  # threaded by caller
                     for Filename in files:
                         utils.delFile(f"{playlistfolder}{Filename}")
 
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ]", 1) # LOGINFO
+    # Chnage download path
+    if DownloadPathPreviousValue != utils.DownloadPath:
+        pluginmenu.downloadreset(DownloadPathPreviousValue)
 
-def System_OnQuit():
-    xbmc.log("EMBY.hooks.monitor: System_OnQuit", 1) # LOGINFO
-    utils.SystemShutdown = True
-    utils.SyncPause = {}
-    webservice.close()
-    EmbyServer_DisconnectAll()
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ reload settings ]", 0) # LOGDEBUG
 
 def ServersConnect():
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ ServersConnect ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ ServersConnect ]", 0) # LOGDEBUG
 
     if utils.startupDelay:
         if utils.sleep(utils.startupDelay):
             utils.SyncPause = {}
-            xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ ServersConnect ] shutdown", 1) # LOGINFO
+            xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ ServersConnect ] shutdown", 0) # LOGDEBUG
             return
 
     _, files = utils.listDir(utils.FolderAddonUserdata)
@@ -675,71 +1081,15 @@ def ServersConnect():
     if utils.refreshskin:
         xbmc.executebuiltin('ReloadSkin()')
         xbmc.log("EMBY.hooks.monitor: Reload skin on connection established", xbmc.LOGINFO)
-    else:
-        xbmc.log("EMBY.hooks.monitor: widget refresh: connection established", xbmc.LOGINFO) # reload artwork/images
-        utils.refresh_widgets()
 
-    utils.PluginStarted = True
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ ServersConnect ]", 1) # LOGINFO
-
-def syncEmby():
-    xbmc.log("EMBY.hooks.monitor: THREAD: --->[ syncEmby ]", 1) # LOGINFO
-
-    for EmbyServer in list(utils.EmbyServers.values()):
-        EmbyServer.library.RunJobs()
-
-    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ syncEmby ]", 1) # LOGINFO
+    xbmc.log("EMBY.hooks.monitor: THREAD: ---<[ ServersConnect ]", 0) # LOGDEBUG
 
 def setup():
-    # Detect corupted setting file
-    if not xmls.verify_settings_file():
-        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33427))
-        utils.delFile(f"{utils.FolderAddonUserdata}settings.xml")
-
-        if utils.sleep(5):
-            return False
-
-        return False
-
     # copy default nodes
     utils.mkDir("special://profile/library/video/")
     utils.mkDir("special://profile/library/music/")
     utils.copytree("special://xbmc/system/library/video/", "special://profile/library/video/")
     utils.copytree("special://xbmc/system/library/music/", "special://profile/library/music/")
-
-    # add favorite emby nodes
-    index = 0
-
-    for FavNode in [{'Name': utils.Translate(30180), 'Tag': "Favorite movies", 'MediaType': "movies"}, {'Name': utils.Translate(30181), 'Tag': "Favorite tvshows", 'MediaType': "tvshows"}, {'Name': utils.Translate(30182), 'Tag': "Favorite episodes", 'MediaType': "episodes"}, {'Name': "Favorite musicvideos", 'Tag': "Favorite musicvideos", 'MediaType': "musicvideos"}]:
-        index += 1
-        filepath = f"special://profile/library/video/emby_{FavNode['Tag'].replace(' ', '_')}.xml"
-
-        if not utils.checkFileExists(filepath):
-            utils.mkDir("special://profile/library/video/")
-            Data = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-
-            if FavNode['MediaType'] == 'episodes':
-                Data += f'<node order="{index}" type="folder">\n'.encode("utf-8")
-            else:
-                Data += f'<node order="{index}" type="filter">\n'.encode("utf-8")
-
-            Data += b'    <icon>DefaultFavourites.png</icon>\n'
-            Data += f'    <label>EMBY: {FavNode["Name"]}</label>\n'.encode("utf-8")
-            Data += f'    <content>{FavNode["MediaType"]}</content>\n'.encode("utf-8")
-
-            if FavNode['MediaType'] == 'episodes':
-                params = {'mode': "favepisodes"}
-                Data += f'    <path>plugin://{utils.PluginId}/?{urlencode(params)}"</path>\n'.encode("utf-8")
-            else:
-                Data += b'    <match>all</match>\n'
-                Data += b'    <rule field="tag" operator="is">\n'
-                Data += f'        <value>{FavNode["Tag"]}</value>\n'.encode("utf-8")
-                Data += b'    </rule>\n'
-
-            Data += b'</node>'
-            utils.writeFileBinary(filepath, Data)
-        else:
-            xbmc.log(f"EMBY.hooks.monitor: Favorite node exists, skip: {filepath}", 1) # LOGINFO
 
     # verify sources.xml
     xmls.sources()
@@ -764,6 +1114,7 @@ def setup():
         else:
             utils.set_settings_bool('useDirectPaths', False)
 
+        utils.update_mode_settings()
         xbmc.log(f"EMBY.hooks.monitor: Add-on playback: {utils.useDirectPaths == '0'}", 1) # LOGINFO
         utils.set_settings('MinimumSetup', utils.MinimumVersion)
         return True
@@ -788,15 +1139,23 @@ def StartUp():
         webservice.close()
         utils.restart_kodi()
     else:  # Regular start
+        start_new_thread(mod_Favorite, ())
+        start_new_thread(monitor_EventQueue, ())
         start_new_thread(ServersConnect, ())
 
         # Waiting/blocking function till Kodi stops
         xbmc.log("EMBY.hooks.monitor: Monitor listening", 1) # LOGINFO
         XbmcMonitor = monitor()  # Init Monitor
+        start_new_thread(monitor_KodiFavorites, ())
         XbmcMonitor.waitForAbort(0)
 
         # Shutdown
-        player.stop_playback(False, False)
+        utils.FavoriteQueue.put("QUIT")
+        EventQueue.put("QUIT")
+
+        if player.PlayingItem[4]:
+            player.stop_playback(False, False)
+            xbmc.sleep(2000)
 
         for RemoteCommandQueue in list(playerops.RemoteCommandQueue.values()):
             RemoteCommandQueue.put("QUIT")

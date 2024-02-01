@@ -1,60 +1,152 @@
 import xbmc
 import xbmcgui
 from database import dbio
-from dialogs import context
 from emby import listitem
 from core import common
-from . import utils, pluginmenu, playerops
+from . import utils, playerops, artworkcache
 
-ContextMenu = context.ContextMenu("script-emby-context.xml", *utils.CustomDialogParameters)
-SelectOptions = {'Refresh': utils.Translate(30410), 'Delete': utils.Translate(30409), 'Addon': utils.Translate(30408), 'AddFav': utils.Translate(30405), 'RemoveFav': utils.Translate(30406), 'SpecialFeatures': utils.Translate(33231), "Watch together": utils.Translate(33517), "Remove client control": utils.Translate(33518), "Add client control": utils.Translate(33519), "Enable remote mode": utils.Translate(33520), "Disable remote mode": utils.Translate(33521)}
+xbmcgui.Window(10000).setProperty('EmbyRemoteclient', 'False')
 
-def load_item():
-    item = None
+
+def load_item(KodiId=None, KodiType=None):
     ServerId = xbmc.getInfoLabel('ListItem.Property(embyserverid)')
-    emby_id = xbmc.getInfoLabel('ListItem.Property(embyid)')
+    ListItemEmbyId = xbmc.getInfoLabel('ListItem.Property(embyid)')
 
     if not ServerId:
-        for ServerId in utils.EmbyServers:
-            kodi_id = xbmc.getInfoLabel('ListItem.DBID')
-            media = xbmc.getInfoLabel('ListItem.DBTYPE')
-            embydb = dbio.DBOpenRO(ServerId, "load_item")
-            item = embydb.get_item_by_KodiId_KodiType(kodi_id, media)
-            dbio.DBCloseRO(ServerId, "load_item")
+        if not KodiId:
+            KodiId = xbmc.getInfoLabel('ListItem.DBID')
 
-            if item:
-                item = item[0]
+        if not KodiType:
+            KodiType = xbmc.getInfoLabel('ListItem.DBTYPE')
+
+        EmbyFavourite = None
+        EmbyId = None
+
+        for ServerId in utils.EmbyServers:
+            embydb = dbio.DBOpenRO(ServerId, "contextmenu_item")
+            EmbyId, EmbyFavourite = embydb.get_EmbyId_EmbyFavourite_by_KodiId_KodiType(KodiId, KodiType)
+            dbio.DBCloseRO(ServerId, "contextmenu_item")
+
+            if EmbyId:
                 break
 
-        return item, ServerId
+        return EmbyId, ServerId, EmbyFavourite
 
-    pluginmenu.reset_querycache() # Clear Cache
-    return (emby_id,), ServerId
+    return ListItemEmbyId, ServerId, None
 
-def delete_item(LoadItem, item=None, ServerId=""):  # threaded by caller
-    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33015)):
-        if LoadItem:
-            item, ServerId = load_item()
+def update_Artwork(KodiId, KodiType, SQLs, Add):
+    Artworks = ()
+    ArtworksData = SQLs['video'].get_artworks(KodiId, KodiType)
 
-        if item:
-            utils.EmbyServers[ServerId].API.delete_item(item[0])
-            utils.EmbyServers[ServerId].library.removed([item[0]])
-            xbmc.executebuiltin("Container.Refresh()")
+    for ArtworkData in ArtworksData:
+        if ArtworkData[3] in ("poster", "thumb", "landscape"):
+            UrlMod = ArtworkData[4].split("|")
+
+            if Add:
+                UrlMod = f"{UrlMod[0].replace('-download', '')}-download|redirect-limit=1000"
+            else:
+                UrlMod = ArtworkData[4].replace("-download", "")
+
+            SQLs['video'].update_artwork(ArtworkData[0], UrlMod)
+            Artworks += ((UrlMod,),)
+
+    return Artworks
+
+def deletedownload():
+    KodiTypeListItem = xbmc.getInfoLabel('ListItem.DBTYPE')
+    KodiIdListItem = xbmc.getInfoLabel('ListItem.DBID')
+
+    if KodiTypeListItem in ("season", "tvshow"):
+        KodiType = "episode"
+        videodb = dbio.DBOpenRO("video", f"deletedownload_get_{KodiTypeListItem}")
+        DeleteItems = videodb.get_KodiId_FileName_by_SubcontentId(KodiIdListItem, KodiTypeListItem)
+        dbio.DBCloseRO("video", f"deletedownload_get_{KodiTypeListItem}")
+    else:
+        KodiType = KodiTypeListItem
+        DeleteItems = ((KodiIdListItem, xbmc.getInfoLabel('ListItem.FileName'), KodiType),)
+
+    Artworks = ()
+    SQLs = dbio.DBOpenRW("video", "deletedownload_item_replace", {})
+
+    for DeleteItem in DeleteItems:
+        EmbyId, ServerId, _ = load_item(DeleteItem[0], KodiType)
+
+        if not EmbyId:
+            continue
+
+        SQLs = dbio.DBOpenRW(ServerId, "deletedownload_item", SQLs)
+        KodiPathIdBeforeDownload, KodiFileId, KodiId = SQLs['emby'].get_DownloadItem_PathId_FileId(EmbyId)
+        SQLs['emby'].delete_DownloadItem(EmbyId)
+        SQLs['video'].update_Name(DeleteItem[0], DeleteItem[2], False)
+
+        if KodiPathIdBeforeDownload:
+            SQLs['video'].replace_PathId(KodiFileId, KodiPathIdBeforeDownload)
+            Artworks += update_Artwork(DeleteItem[0], KodiType, SQLs, False)
+            FilePath = utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-offline-content")
+            FilePath = utils.PathAddTrailing(f"{FilePath}{KodiType}")
+            SQLs['video'].replace_Path_ContentItem(KodiId, KodiType, utils.AddonModePath, utils.translatePath(FilePath).decode('utf-8'))
+            FilePath = f"{FilePath}{DeleteItem[1]}"
+            utils.delFile(FilePath)
+
+        SQLs = dbio.DBCloseRW(ServerId, "deletedownload_item", SQLs)
+
+        if KodiType == "episode":
+            Artworks += SQLs['video'].set_Subcontent_download_tags(KodiId, False)
+
+    dbio.DBCloseRW("video", "deletedownload_item_replace", SQLs)
+    Artworks = list(dict.fromkeys(Artworks)) # filter doubles
+    artworkcache.CacheAllEntries(Artworks, None)
+    utils.refresh_widgets(True)
+
+def download():
+    KodiTypeListItem = xbmc.getInfoLabel('ListItem.DBTYPE')
+    KodiIdListItem = xbmc.getInfoLabel('ListItem.DBID')
+    videodb = dbio.DBOpenRO("video", "download_item")
+
+    if KodiTypeListItem in ("season", "tvshow"):
+        KodiType = "episode"
+        DownloadItems = videodb.get_Fileinfo_by_SubcontentId(KodiIdListItem, KodiTypeListItem)
+    else:
+        KodiType = KodiTypeListItem
+        DownloadItems = videodb.get_Fileinfo(KodiIdListItem, KodiType)
+
+    dbio.DBCloseRO("video", "download_item")
+
+    for DownloadItem in DownloadItems: # KodiId, ParentPath, KodiPathIdBeforeDownload, KodiFileId, Filename, Name
+        EmbyId, ServerId, _ = load_item(DownloadItem[0], KodiType)
+
+        if not EmbyId:
+            continue
+
+        Path = utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-offline-content")
+        utils.mkDir(Path)
+        Path = utils.PathAddTrailing(f"{Path}{KodiType}")
+        utils.mkDir(Path)
+        Path = utils.translatePath(Path).decode('utf-8')
+        FilePath = f"{Path}{DownloadItem[4]}"
+        embydb = dbio.DBOpenRO(ServerId, "download_item")
+        FileSize = embydb.get_FileSize(EmbyId, 0)
+        dbio.DBCloseRO(ServerId, "download_item")
+
+        if FileSize:
+            utils.EmbyServers[ServerId].API.download_file({"Id": EmbyId, "ParentPath": DownloadItem[1], "Path": Path, "FilePath": FilePath, "FileSize": FileSize, "Name": DownloadItem[5], "KodiType": KodiType, "KodiPathIdBeforeDownload": DownloadItem[2], "KodiFileId": DownloadItem[3], "KodiId": DownloadItem[0]})
 
 def specials():
     SpecialFeaturesSelections = []
-    item, ServerId = load_item()
+    EmbyId, ServerId, _ = load_item()
 
-    if not item:
+    if not EmbyId:
         return
 
     # Load SpecialFeatures
     embydb = dbio.DBOpenRO(ServerId, "specials")
-    SpecialFeaturesIds = embydb.get_special_features(item[0])
+    SpecialFeaturesIds = embydb.get_special_features(EmbyId)
 
     for SpecialFeaturesId in SpecialFeaturesIds:
         SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
-        SpecialFeaturesSelections.append({"Name": SpecialFeaturesMediasources[0][4], "Id": SpecialFeaturesId[0]})
+
+        if SpecialFeaturesMediasources:
+            SpecialFeaturesSelections.append({"Name": SpecialFeaturesMediasources[0][4], "Id": SpecialFeaturesId[0]})
 
     dbio.DBCloseRO(ServerId, "specials")
     MenuData = []
@@ -78,139 +170,122 @@ def specials():
         utils.Playlists[1].add(path, li, index=Pos)
         playerops.PlayPlaylistItem(1, Pos)
 
-def select_menu():
-    item, ServerId = load_item()
+def favorites():
+    EmbyId, ServerId, EmbyFavourite = load_item()
 
-    if not item:
+    if not EmbyId:
         return
 
-    while True:
-        options = []
+    if EmbyFavourite:
+        utils.EmbyServers[ServerId].API.favorite(EmbyId, False)
+        utils.Dialog.notification(heading="Emby favorites", message="Removed", icon=utils.icon, time=int(utils.displayMessage) * 1000)
+    else:
+        utils.EmbyServers[ServerId].API.favorite(EmbyId, True)
+        utils.Dialog.notification(heading="Emby favorites", message="Added", icon=utils.icon, time=int(utils.displayMessage) * 1000)
 
-        if len(item) > 9:
-            if item[10]:
-                options.append(SelectOptions['RemoveFav'])
-            else:
-                options.append(SelectOptions['AddFav'])
+def refreshitem():
+    EmbyId, ServerId, _ = load_item()
 
-        options.append(SelectOptions['Refresh'])
+    if not EmbyId:
+        return
 
-        if utils.enableContextDelete:
-            options.append(SelectOptions['Delete'])
+    utils.EmbyServers[ServerId].API.refresh_item(EmbyId)
 
-        options.append(SelectOptions['Add client control'])
+def deleteitem():
+    EmbyId, ServerId, _ = load_item()
 
-        if len(playerops.RemoteClientData[ServerId]["SessionIds"]) > 1:
-            options.append(SelectOptions['Remove client control'])
+    if not EmbyId:
+        return
 
-            if playerops.RemoteMode:
-                options.append(SelectOptions['Disable remote mode'])
-            else:
-                options.append(SelectOptions['Enable remote mode'])
+    if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33015)):
+        utils.EmbyServers[ServerId].API.delete_item(EmbyId)
+        utils.EmbyServers[ServerId].library.removed([EmbyId])
+        xbmc.executebuiltin("Container.Refresh()")
 
-        if item[2] in ('Episode', 'Movie', 'MusicVideo', 'Audio'):
-            options.append(SelectOptions['Watch together'])
+def watchtogether():
+    EmbyId, ServerId, _ = load_item()
 
-        options.append(SelectOptions['Addon'])
-        ContextMenu.PassVar(options)
-        ContextMenu.doModal()
+    if not EmbyId:
+        return
 
-        if ContextMenu.is_selected():
-            selected_option = ContextMenu.get_selected()
+    playerops.disable_RemoteClients(ServerId)
+    playerops.WatchTogether = False
+    playerops.RemoteControl = False
+    playerops.RemoteMode = False
 
-            if selected_option == SelectOptions['Refresh']:
-                utils.EmbyServers[ServerId].API.refresh_item(item[0])
-                break
+    if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
+        add_remoteclients(ServerId)
 
-            if selected_option == SelectOptions['Addon']:
-                xbmc.executebuiltin(f"Addon.OpenSettings({utils.PluginId})")
-                break
+        if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
+            return
 
-            if selected_option == SelectOptions['Delete']:
-                delete_item(False, item, ServerId)
-                break
+    playerops.PlayEmby([EmbyId], "PlayInit", 0, 0, utils.EmbyServers[ServerId], 0)
 
-            if selected_option == SelectOptions['Watch together']:
-                playerops.WatchTogether = False
-                playerops.RemoteControl = False
-                playerops.RemoteMode = False
+    for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
+        if SessionId in playerops.RemoteClientData[ServerId]["ExtendedSupportAck"] and SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
+            utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", f"playinit|{EmbyId}|0|0", True)
+        elif SessionId not in playerops.RemoteClientData[ServerId]["ExtendedSupport"]:
+            utils.EmbyServers[ServerId].API.send_play(SessionId, EmbyId, "PlayNow", 0, True)
+            utils.EmbyServers[ServerId].API.send_pause(SessionId, True)
 
-                if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
-                    if not add_remoteclients(ServerId):
-                        continue
+     # give time to prepare streams for all client devices
+    ProgressBar = xbmcgui.DialogProgress()
+    ProgressBar.create(utils.Translate(33493))
+    ProgressBar.update(0, utils.Translate(33493))
 
-                playerops.PlayEmby([item[0]], "PlayInit", 0, 0, utils.EmbyServers[ServerId], 0)
+    # Delay playback
+    WaitFactor = int(int(utils.watchtogeter_start_delay) / 10)
 
-                for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
-                    if SessionId in playerops.RemoteClientData[ServerId]["ExtendedSupportAck"] and SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
-                        utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", f"playinit|{item[0]}|0|0", True)
-                    elif SessionId not in playerops.RemoteClientData[ServerId]["ExtendedSupport"]:
-                        utils.EmbyServers[ServerId].API.send_play(SessionId, item[0], "PlayNow", 0, True)
-                        utils.EmbyServers[ServerId].API.send_pause(SessionId, True)
+    for Index in range(1, WaitFactor * 100):
+        ProgressBar.update(int(Index / WaitFactor), utils.Translate(33493))
 
-                 # give time to prepare streams for all client devices
-                ProgressBar = xbmcgui.DialogProgress()
-                ProgressBar.create(utils.Translate(33493))
-                ProgressBar.update(0, utils.Translate(33493))
+        if Index % 10 == 0: # modulo 20 -> every 2 seconds resend to unspported client the start
+            for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
+                if SessionId not in playerops.RemoteClientData[ServerId]["ExtendedSupport"]:
+                    utils.EmbyServers[ServerId].API.send_pause(SessionId, True)
+                    utils.EmbyServers[ServerId].API.send_seek(SessionId, 0, True)
 
-                # Delay playback
-                WaitFactor = int(int(utils.watchtogeter_start_delay) / 10)
+        if check_ProgressBar(ProgressBar):
+            return
 
-                for Index in range(1, WaitFactor * 100):
-                    ProgressBar.update(int(Index / WaitFactor), utils.Translate(33493))
+    ProgressBar.close()
+    playerops.WatchTogether = True
+    playerops.enable_remotemode(ServerId)
+    playerops.Unpause()
 
-                    if Index % 10 == 0: # modulo 20 -> every 2 seconds resend to unspported client the start
-                        for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
-                            if SessionId not in playerops.RemoteClientData[ServerId]["ExtendedSupport"]:
-                                utils.EmbyServers[ServerId].API.send_pause(SessionId, True)
-                                utils.EmbyServers[ServerId].API.send_seek(SessionId, 0, True)
+def delete_remoteclients():
+    _, ServerId, _ = load_item()
 
-                    if check_ProgressBar(ProgressBar):
-                        return
+    if not ServerId:
+        return
 
-                ProgressBar.close()
-                playerops.WatchTogether = True
-                playerops.RemoteControl = True
-                playerops.RemoteMode = True
-                playerops.Unpause()
-                playerops.send_RemoteClients(ServerId, [], True, False)
-                break
+    SelectionLabels = []
+    SessionIds = []
 
-            if selected_option == SelectOptions['AddFav']:
-                utils.EmbyServers[ServerId].API.favorite(item[0], True)
-            elif selected_option == SelectOptions['RemoveFav']:
-                utils.EmbyServers[ServerId].API.favorite(item[0], False)
-            elif selected_option == SelectOptions['Add client control']:
-                add_remoteclients(ServerId)
-            elif selected_option == SelectOptions['Remove client control']:
-                SelectionLabels = []
-                SessionIds = []
+    for RemoteClientSessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
+        if RemoteClientSessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
+            SelectionLabels.append(f"{playerops.RemoteClientData[ServerId]['Devicenames'][RemoteClientSessionId]}, {playerops.RemoteClientData[ServerId]['Usernames'][RemoteClientSessionId]}")
+            SessionIds.append(RemoteClientSessionId)
 
-                for RemoteClientSessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
-                    if RemoteClientSessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
-                        SelectionLabels.append(f"{playerops.RemoteClientData[ServerId]['Devicenames'][RemoteClientSessionId]}, {playerops.RemoteClientData[ServerId]['Usernames'][RemoteClientSessionId]}")
-                        SessionIds.append(RemoteClientSessionId)
+    Selections = utils.Dialog.multiselect(utils.Translate(33494), SelectionLabels)
 
-                Selections = utils.Dialog.multiselect(utils.Translate(33494), SelectionLabels)
+    if Selections:
+        RemoveSessionIds = []
 
-                if Selections:
-                    RemoveSessionIds = []
+        for Selection in Selections:
+            RemoveSessionIds.append(SessionIds[Selection])
 
-                    for Selection in Selections:
-                        RemoveSessionIds.append(SessionIds[Selection])
+        playerops.delete_RemoteClient(ServerId, RemoveSessionIds)
 
-                    playerops.delete_RemoteClient(ServerId, RemoveSessionIds)
-            elif selected_option == SelectOptions['Enable remote mode']:
-                playerops.RemoteControl = True
-                playerops.RemoteMode = True
-                playerops.send_RemoteClients(ServerId, [], True, False)
-            elif selected_option == SelectOptions['Disable remote mode']:
-                playerops.disable_RemoteClients(ServerId)
-                playerops.unlink_RemoteClients(ServerId)
-        else:
-            break
+    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
 
-def add_remoteclients(ServerId):
+def add_remoteclients(ServerId=None):
+    if not ServerId:
+        _, ServerId, _ = load_item()
+
+        if not ServerId:
+            return
+
     ActiveSessions = utils.EmbyServers[ServerId].API.get_active_sessions()
     SelectionLabels = []
     ClientData = []
@@ -225,7 +300,7 @@ def add_remoteclients(ServerId):
     Selections = utils.Dialog.multiselect(utils.Translate(33494), SelectionLabels)
 
     if not Selections:
-        return False
+        return
 
     for Selection in Selections:
         utils.EmbyServers[ServerId].API.send_text_msg(ClientData[Selection][0], "remotecommand", f"connect|{utils.EmbyServers[ServerId].EmbySession[0]['Id']}|60", True)
@@ -239,7 +314,7 @@ def add_remoteclients(ServerId):
         ProgressBar.update(int(Index * WaitFactor), utils.Translate(33492))
 
         if check_ProgressBar(ProgressBar):
-            return False
+            return
 
         if len(Selections) + 1 == len(playerops.RemoteClientData[ServerId]["SessionIds"]):
             break
@@ -251,10 +326,8 @@ def add_remoteclients(ServerId):
         if ClientData[Selection][0] not in playerops.RemoteClientData[ServerId]["ExtendedSupport"]:
             playerops.add_RemoteClient(ServerId, ClientData[Selection][0], ClientData[Selection][1], ClientData[Selection][2])
 
-    if playerops.RemoteMode:
-        playerops.send_RemoteClients(ServerId, [], True, False)
-
-    return True
+    playerops.enable_remotemode(ServerId)
+    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
 
 def check_ProgressBar(ProgressBar):
     if utils.sleep(0.1):

@@ -4,7 +4,7 @@ from . import common_db
 class TextureDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
-        self.common = common_db.CommonDatabase(cursor)
+        self.common_db = common_db.CommonDatabase(cursor)
 
     def add_Index(self):
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")

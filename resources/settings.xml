@@ -40,11 +40,6 @@
                         <heading>30016</heading>
                     </control>
                 </setting>
-                <setting id="reset_device_id" label="30535" type="action" help="33306">
-                    <data>NotifyAll(plugin.video.emby-next-gen,reset_device_id)</data>
-                    <level>3</level>
-                    <control type="button" format="action"/>
-                </setting>
             </group>
         </category>
         <category id="sync" label="30506" help="">
@@ -93,6 +88,21 @@
                 </setting>
                 <setting id="usepathsubstitution" label="33486" type="boolean" help="33535">
                     <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="BoxSetsToTags" label="33560" type="boolean" help="33561">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="SyncFavorites" label="33564" type="boolean" help="33565">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="SyncLiveTvOnEvents" label="33567" type="boolean" help="33568">
+                    <level>2</level>
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
@@ -111,6 +121,22 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="DownloadPath" type="path" label="33569" help="33574">
+                    <level>2</level>
+                    <default>special://profile/addon_data/plugin.video.emby-next-gen/</default>
+                    <constraints>
+                        <writable>true</writable>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="button" format="path">
+                        <heading>33569</heading>
+                    </control>
+                </setting>
+                <setting id="DownloadReset" label="33572" type="action" help="">
+                    <data>NotifyAll(plugin.video.emby-next-gen,downloadreset)</data>
+                    <level>2</level>
+                    <control type="button" format="action"/>
+                </setting>
                 <setting id="nodesreset" label="33341" type="action" help="33401">
                     <data>NotifyAll(plugin.video.emby-next-gen,nodesreset)</data>
                     <level>3</level>
@@ -123,7 +149,7 @@
                 </setting>
                 <setting label="33259" id="syncdate" type="date" help="33305">
                     <level>3</level>
-                    <default>"2021-01-01"</default>
+                    <default>2024-01-01</default>
                     <control type="button" format="date">
                         <heading>33259</heading>
                     </control>
@@ -135,39 +161,283 @@
                         <heading>33260</heading>
                     </control>
                 </setting>
-                <setting id="limitIndex" type="integer" label="30515" help="33175">
+            </group>
+            <group id="2" label="33577">
+                <setting id="MusicartistPaging" type="integer" label="33578" help="33175">
                     <level>3</level>
-                    <default>70</default>
+                    <default>10000</default>
                     <constraints>
-                        <minimum>1</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
                     </constraints>
                     <control type="slider" format="integer">
                         <popup>false</popup>
                     </control>
                 </setting>
-            </group>
-            <group id="2" label="33488">
-                <setting label="30302" id="uniquepeoplemovies" type="boolean" help="">
+                <setting id="MusicalbumPaging" type="integer" label="33579" help="33175">
                     <level>3</level>
-                    <default>false</default>
-                    <control type="toggle"/>
+                    <default>1000</default>
+                    <constraints>
+                        <minimum>100</minimum>
+                        <step>100</step>
+                        <maximum>5000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
-                <setting label="30305" id="uniquepeopletvshows" type="boolean" help="">
+                <setting id="AudioPaging" type="integer" label="33581" help="33175">
                     <level>3</level>
-                    <default>false</default>
-                    <control type="toggle"/>
+                    <default>20000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
-                <setting label="33489" id="uniquepeopleepisodes" type="boolean" help="">
+                <setting id="MoviePaging" type="integer" label="33582" help="33175">
                     <level>3</level>
-                    <default>false</default>
-                    <control type="toggle"/>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
-                <setting label="33363" id="uniquepeoplemusicvideos" type="boolean" help="">
+                <setting id="MusicvideoPaging" type="integer" label="33583" help="33175">
                     <level>3</level>
-                    <default>true</default>
-                    <control type="toggle"/>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="SeriesPaging" type="integer" label="33584" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="SeasonPaging" type="integer" label="33585" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="EpisodePaging" type="integer" label="33586" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="VideoPaging" type="integer" label="33587" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="GenrePaging" type="integer" label="33589" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="PhotoalbumPaging" type="integer" label="33588" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="PhotoPaging" type="integer" label="33590" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="MusicgenrePaging" type="integer" label="33580" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="PlaylistPaging" type="integer" label="33591" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="ChannelsPaging" type="integer" label="33592" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="LiveTVPaging" type="integer" label="33593" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="TrailerPaging" type="integer" label="33594" help="33175">
+                    <level>3</level>
+                    <default>20000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="BoxsetPaging" type="integer" label="33596" help="33175">
+                    <level>3</level>
+                    <default>20000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="TagPaging" type="integer" label="33598" help="33175">
+                    <level>3</level>
+                    <default>20000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="StudioPaging" type="integer" label="33599" help="33175">
+                    <level>3</level>
+                    <default>20000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="AllPaging" type="integer" label="33600" help="33175">
+                    <level>3</level>
+                    <default>5000</default>
+                    <constraints>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
+                        <maximum>50000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="FolderPaging" type="integer" label="33595" help="33175">
+                    <level>3</level>
+                    <default>100000</default>
+                    <constraints>
+                        <minimum>10000</minimum>
+                        <step>1000</step>
+                        <maximum>500000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
+                <setting id="PersonPaging" type="integer" label="33597" help="33175">
+                    <level>3</level>
+                    <default>100000</default>
+                    <constraints>
+                        <minimum>10000</minimum>
+                        <step>1000</step>
+                        <maximum>500000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
                 </setting>
             </group>
         </category>
@@ -902,26 +1172,48 @@
                     </dependencies>
                 </setting>
             </group>
-            <group id="4" label="33300">
-                <setting label="33246" id="menuOptions" type="boolean" help="33323">
-                    <level>2</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting label="33105" id="enableContext" type="boolean" help="33324">
-                    <level>2</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                </setting>
+            <group id="4" label="33603">
                 <setting label="33143" id="enableContextDelete" type="boolean" help="33304">
                     <level>2</level>
                     <default>false</default>
                     <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <condition operator="is" setting="enableContext">true</condition>
-                        </dependency>
-                    </dependencies>
+                </setting>
+                <setting label="33601" id="enableContextRemoteOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33602" id="enableContextDownloadOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33604" id="enableContextFavouriteOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33605" id="enableContextSpecialsOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33606" id="enableContextRecordingOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33607" id="enableContextRefreshOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="5" label="33300">
+                <setting label="33246" id="menuOptions" type="boolean" help="33323">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
                 </setting>
                 <setting label="33266" id="enableDeleteByKodiEvent" type="boolean" help="33265">
                     <level>3</level>
@@ -929,7 +1221,7 @@
                     <control type="toggle"/>
                 </setting>
             </group>
-            <group id="5" label="33404">
+            <group id="6" label="33404">
                 <setting id="maxnodeitems" type="integer" label="33402" help="33403">
                     <level>3</level>
                     <default>25</default>
@@ -943,7 +1235,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="6" label="33108">
+            <group id="7" label="33108">
                 <setting label="30249" id="connectMsg" type="boolean" help="">
                     <level>2</level>
                     <default>true</default>
@@ -984,24 +1276,7 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
-                <setting id="newvideotime" type="integer" label="30532" help="">
-                    <level>2</level>
-                    <default>5</default>
-                    <constraints>
-                        <minimum>1</minimum>
-                        <step>1</step>
-                        <maximum>30</maximum>
-                    </constraints>
-                    <control type="slider" format="integer">
-                        <popup>false</popup>
-                    </control>
-                    <dependencies>
-                        <dependency type="enable">
-                            <condition operator="is" setting="newContent">true</condition>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting id="newmusictime" type="integer" label="30533" help="">
+                <setting id="newContentTime" type="integer" label="33558" help="">
                     <level>2</level>
                     <default>5</default>
                     <constraints>
@@ -1020,11 +1295,6 @@
                 </setting>
             </group>
             <group id="8" label="33410">
-                <setting label="33543" id="WidgetRefreshAudio" type="boolean" help="33544">
-                    <level>3</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
                 <setting label="33333" id="animateicon" type="boolean" help="">
                     <level>0</level>
                     <default>false</default>
@@ -1120,18 +1390,13 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
-                <setting label="33538" id="usekodiworkaroundsepisodebookmarks" type="boolean" help="33539">
-                    <level>3</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting id="curltimeouts" type="integer" label="33545" help="33546">
+                <setting label="33562" id="curltimeouts" type="integer" help="33563">
                     <level>2</level>
-                    <default>120</default>
+                    <default>2</default>
                     <constraints>
-                        <minimum>30</minimum>
-                        <step>5</step>
-                        <maximum>720</maximum>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>60</maximum>
                     </constraints>
                     <control type="slider" format="integer">
                         <popup>false</popup>
