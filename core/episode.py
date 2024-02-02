@@ -27,7 +27,10 @@ class Episode:
             return False
 
         xbmc.log(f"EMBY.core.episode: Process item: {item['Name']}", 0) # DEBUG
-        common.load_ExistingItem(item, self.EmbyServer, self.SQLs["emby"], "Episode")
+
+        if not common.load_ExistingItem(item, self.EmbyServer, self.SQLs["emby"], "Episode"):
+            return False
+
         common.set_ItemsDependencies(item, self.SQLs, self.SeriesObject, self.EmbyServer, "Series")
         common.set_ItemsDependencies(item, self.SQLs, self.SeasonObject, self.EmbyServer, "Season")
         common.set_RunTimeTicks(item)

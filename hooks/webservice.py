@@ -11,7 +11,6 @@ sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nConte
 sendNoContent = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
 BlankWAV = b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x10\x00\x00\x00\x01\x00\x01\x00\x44\xac\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00\x64\x61\x74\x61\x74\x00\x00\x00\x00' # native blank wave file
 sendBlankWAV = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 45\r\nContent-type: audio/wav\r\n\r\n'.encode() + BlankWAV # used to "stop" playback by sending a WAV file with silence. File is valid, so Kodi will not raise an error message
-SkipItemVideo = ""
 TrailerInitItem = ["", None] # payload/listitem of the trailer initiated content item
 Cancel = False
 embydb = {}
@@ -409,11 +408,6 @@ def http_Query(client, Payload):
             xbmc.log(f"EMBY.hooks.webservice: Double query: {Payload}", 1) # LOGINFO
             return
 
-    if SkipItemVideo == Payload:  # 3D, iso (playlist modification)
-        send_BlankWAV(client, ThreadId)
-        globals()["SkipItemVideo"] = ""
-        return
-
     if Cancel:
         globals()["Cancel"] = False
         send_BlankWAV(client, ThreadId)
@@ -757,7 +751,17 @@ def LoadData(MediaIndex, QueryData, client, ThreadId):
             close_embydb(QueryData['ServerId'], ThreadId)
             return
 
-        QueryData.update({'KodiId': str(embydb[ThreadId].get_KodiId_by_EmbyId_EmbyType(QueryData['EmbyID'], QueryData['EmbyType'])), 'VideoBitrate': int(VideoStreams[0][4]), 'VideoCodec': VideoStreams[0][3], 'AudioCodec': AudioStreams[0][4], 'AudioBitrate': int(AudioStreams[0][5])})
+        if VideoStreams[0][4]:
+            VideoBitrate = VideoStreams[0][4]
+        else:
+            VideoBitrate = 0
+
+        if AudioStreams[0][5]:
+            AudioBitrate = AudioStreams[0][5]
+        else:
+            AudioBitrate = 0
+
+        QueryData.update({'KodiId': str(embydb[ThreadId].get_KodiId_by_EmbyId_EmbyType(QueryData['EmbyID'], QueryData['EmbyType'])), 'VideoBitrate': int(VideoBitrate), 'VideoCodec': VideoStreams[0][3], 'AudioCodec': AudioStreams[0][4], 'AudioBitrate': int(AudioBitrate)})
         Transcoding = IsTranscoding(QueryData)
 
     if Transcoding:
@@ -887,8 +891,8 @@ def IsTranscoding(QueryData):
     return bool('TranscodeReasons' in QueryData)
 
 def add_playlist_item(client, ListItem, QueryData, Path, ThreadId):
-    player.replace_playlist_listitem(ListItem, QueryData, Path)
-    globals()["SkipItemVideo"] = QueryData['Payload']
+    set_QueuedPlayingItem(QueryData, None)
+    player.replace_playlist_listitem(ListItem, Path)
     send_BlankWAV(client, ThreadId)
 
 def send_delayed_content(client, DelayedContentId):

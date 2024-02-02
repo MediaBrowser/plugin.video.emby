@@ -19,7 +19,10 @@ class MusicVideo:
             return False
 
         xbmc.log(f"EMBY.core.musicvideo: Process item: {item['Name']}", 0) # DEBUG
-        common.load_ExistingItem(item, self.EmbyServer, self.SQLs["emby"], "MusicVideo")
+
+        if not common.load_ExistingItem(item, self.EmbyServer, self.SQLs["emby"], "MusicVideo"):
+            return False
+
         common.SwopMediaSources(item)  # 3D
         common.set_MusicVideoTracks(item)
         common.set_RunTimeTicks(item)
