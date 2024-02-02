@@ -27,6 +27,17 @@ ImageTagsMappings = {
 
 def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
     ExistingItem = emby_db.get_item_by_id(Item['Id'], EmbyType)
+    ForceNew = False
+
+    if ExistingItem and EmbyType in ("Movie", "Video", "MusicVideo", "Episode"):
+        if not ExistingItem[1]: # no KodiItemId assined but Item exists (this means it's a multi version content item (grouped))
+            if len(Item['MediaSources']) == 1: # multi version content item (grouped) was released
+                emby_db.remove_item(Item['Id'], EmbyType, Item['LibraryId'])
+                xbmc.log(f"EMBY.core.common: load_ExistingItem, release grouped content: {Item['Name']}", 1) # LOGINFO
+                ForceNew = True
+            else:
+                xbmc.log(f"EMBY.core.common: load_ExistingItem, skip grouped content: {Item['Name']}", 1) # LOGINFO
+                return False
 
     if EmbyType in ("Genre", "Person", "Tag", "Studio", "Playlist"):
         if ExistingItem:
@@ -34,7 +45,7 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemId': "", 'UpdateItem': False})
 
-        return
+        return True
 
     if EmbyType == "BoxSet":
         if ExistingItem:
@@ -42,15 +53,15 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "KodiParentId": None})
 
-        return
+        return True
 
     if EmbyType == "Episode":
-        if ExistingItem:
+        if not ForceNew and ExistingItem:
             Item.update({'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "KodiFileId": ExistingItem[3], "KodiParentId": ExistingItem[4], "EmbyPresentationKey": ExistingItem[5], "EmbyFolder": ExistingItem[6], "KodiPathId": ExistingItem[7], "IntroStart": ExistingItem[8], "IntroEnd": ExistingItem[9]})
         else:
             Item.update({'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "KodiParentId": None, "EmbyPresentationKey": None, "EmbyFolder": None, "KodiFileId": None, "KodiPathId": None, "IntroStart": None, "IntroEnd": None})
 
-        return
+        return True
 
     if EmbyType == "Season":
         if ExistingItem:
@@ -58,17 +69,17 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "KodiParentId": None, "EmbyPresentationKey": None})
 
-        return
+        return True
 
     LibraryName, _ = EmbyServer.library.WhitelistUnique[Item['LibraryId']]
 
     if EmbyType in ("Movie", "Video", "MusicVideo"):
-        if ExistingItem:
+        if not ForceNew and ExistingItem:
             Item.update({"LibraryName": LibraryName, 'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "KodiFileId": ExistingItem[3], "EmbyPresentationKey": ExistingItem[4], "EmbyFolder": ExistingItem[5], "KodiPathId": ExistingItem[6]})
         else:
             Item.update({"LibraryName": LibraryName, 'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyPresentationKey": None, "EmbyFolder": None, "KodiFileId": None, "KodiPathId": None})
 
-        return
+        return True
 
     if EmbyType == "Series":
         if ExistingItem:
@@ -76,7 +87,7 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({"LibraryName": LibraryName, 'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyPresentationKey": None, "KodiPathId": None})
 
-        return
+        return True
 
     if EmbyType in ("MusicArtist", "MusicGenre"):
         if ExistingItem:
@@ -84,7 +95,7 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemIds': "", 'UpdateItem': False, "LibraryIds": ""})
 
-        return
+        return True
 
     if EmbyType == "MusicAlbum":
         if ExistingItem:
@@ -92,7 +103,7 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemIds': "", 'UpdateItem': False, "EmbyFavourite": None, "LibraryIds": ""})
 
-        return
+        return True
 
     if EmbyType == "Audio":
         if ExistingItem:
@@ -100,7 +111,10 @@ def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
         else:
             Item.update({'KodiItemIds': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyFolder": None, "KodiPathId": None, "LibraryIds": ""})
 
-        return
+        return True
+
+    xbmc.log(f"EMBY.core.common: EmbyType invalid: {EmbyType}", 3) # LOGERROR
+    return False
 
 def get_Bitrate_Codec(Item, StreamType):
     Bitrate = 0

@@ -937,6 +937,8 @@ class EmbyDatabase:
         self.cursor.execute("DELETE FROM Subtitles WHERE EmbyId = ?", (EmbyId,))
 
     def add_streamdata(self, EmbyId, Streams):
+        self.remove_item_streaminfos(EmbyId)
+
         for Stream in Streams:
             self.cursor.execute("INSERT OR REPLACE INTO MediaSources (EmbyId, MediaIndex, MediaSourceId, Path, Name, Size) VALUES (?, ?, ?, ?, ?, ?)", (EmbyId, Stream['Index'], Stream['Id'], Stream['Path'], Stream['Name'], Stream['Size']))
 
@@ -961,34 +963,33 @@ class EmbyDatabase:
                     continue
 
                 if item['Id'] != ItemReferenced['Id']:
-                    ExistingItem = self.get_item_by_id(ItemReferenced['Id'], None)
+                    KodiIds = self.get_item_by_id(ItemReferenced['Id'], None)
 
-                    if ExistingItem:
-                        ExistingItem = {"KodiFileId": ExistingItem[3], "KodiItemId": ExistingItem[1]}
+                    if KodiIds:
+                        ItemReferenced.update({"KodiFileId": KodiIds[3], "KodiItemId": KodiIds[1], 'LibraryId': None})
 
                         # Remove old Kodi video-db references
-                        if str(item['KodiItemId']) != str(ExistingItem['KodiItemId']) and str(item['KodiFileId']) != str(ExistingItem['KodiFileId']):
-                            common.delete_ContentItemReferences(ExistingItem, SQLs, utils.EmbyTypeMapping[EmbyType])
+                        if str(item['KodiItemId']) != str(ItemReferenced['KodiItemId']) and str(item['KodiFileId']) != str(ItemReferenced['KodiFileId']):
+                            common.delete_ContentItem(ItemReferenced, SQLs, utils.EmbyTypeMapping[EmbyType], EmbyType)
 
                             if SQLs['video']: # video else specials
                                 if EmbyType == "Episode":
-                                    SQLs['video'].delete_episode(ExistingItem['KodiItemId'], ExistingItem['KodiFileId'])
+                                    SQLs['video'].delete_episode(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'])
                                 elif EmbyType in ("Movie", "Video"):
-                                    SQLs['video'].delete_movie(ExistingItem['KodiItemId'], ExistingItem['KodiFileId'])
+                                    SQLs['video'].delete_movie(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'])
                                 elif EmbyType == "MusicVideo":
-                                    SQLs['video'].delete_musicvideos(ExistingItem['KodiItemId'], ExistingItem['KodiFileId'])
+                                    SQLs['video'].delete_musicvideos(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'])
 
                     # Add references
                     if not "ParentId" in item:
                         item['ParentId'] = None
 
                     if EmbyType == "Episode":
-                        self.add_reference_episode(ItemReferenced['Id'], item['LibraryId'], item['KodiItemId'], item['UserData']['IsFavorite'], item['KodiFileId'], item['KodiParentId'], item['PresentationUniqueKey'], item['Path'], item['KodiPathId'], item['IntroStartPositionTicks'], item['IntroEndPositionTicks'])
+                        self.add_reference_episode(ItemReferenced['Id'], item['LibraryId'], None, ItemReferenced['UserData']['IsFavorite'], None, None, ItemReferenced['PresentationUniqueKey'], ItemReferenced['Path'], None, item['IntroStartPositionTicks'], item['IntroEndPositionTicks'])
                     elif EmbyType in ("Movie", "MusicVideo"):
-                        self.add_reference_movie_musicvideo(ItemReferenced['Id'], item['LibraryId'], item['Type'], item['KodiItemId'], item['UserData']['IsFavorite'], item['KodiFileId'], item['PresentationUniqueKey'], item['Path'], item['KodiPathId'])
+                        self.add_reference_movie_musicvideo(ItemReferenced['Id'], item['LibraryId'], ItemReferenced['Type'], None, ItemReferenced['UserData']['IsFavorite'], None, ItemReferenced['PresentationUniqueKey'], ItemReferenced['Path'], None)
                     elif EmbyType == "Video":
-                        self.add_reference_video(ItemReferenced['Id'], item['LibraryId'], item['KodiItemId'], item['UserData']['IsFavorite'], item['KodiFileId'], item['ParentId'], item['PresentationUniqueKey'], item['Path'], item['KodiPathId'])
-
+                        self.add_reference_video(ItemReferenced['Id'], item['LibraryId'], None, ItemReferenced['UserData']['IsFavorite'], None, ItemReferenced['ParentId'], ItemReferenced['PresentationUniqueKey'], ItemReferenced['Path'], None)
                     self.add_streamdata(ItemReferenced['Id'], item['Streams'])
 
 def join_Ids(Ids):

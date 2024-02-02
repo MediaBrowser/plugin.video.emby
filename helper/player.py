@@ -64,7 +64,7 @@ def PlayerCommands():
 
             playerops.AVChange = False
 
-            if PlayingItem[4].EmbySession:
+            if PlayingItem[4] and PlayingItem[4].EmbySession:
                 playerops.RemoteCommand(PlayingItem[4].ServerData['ServerId'], PlayingItem[4].EmbySession[0]['Id'], "seek")
         elif Commands[0] == "avchange":
             xbmc.log("EMBY.hooks.player: [ onAVChange ]", 1) # LOGINFO
@@ -366,7 +366,7 @@ def PlayerCommands():
 
             globals()["PlayingItem"][0].update({'PositionTicks': PositionTicks, 'IsPaused': True})
 
-            if PlayingItem[4].EmbySession:
+            if PlayingItem[4] and PlayingItem[4].EmbySession:
                 playerops.RemoteCommand(PlayingItem[4].ServerData['ServerId'], PlayingItem[4].EmbySession[0]['Id'], "pause")
 
             PlayingItem[4].API.session_progress(PlayingItem[0])
@@ -379,7 +379,7 @@ def PlayerCommands():
                 playerops.RemoteCommandActive[1] -= 1
                 continue
 
-            if PlayingItem[4].EmbySession:
+            if PlayingItem[4] and PlayingItem[4].EmbySession:
                 playerops.RemoteCommand(PlayingItem[4].ServerData['ServerId'], PlayingItem[4].EmbySession[0]['Id'], "unpause")
 
             globals()["PlayingItem"][0]['IsPaused'] = False
@@ -399,7 +399,7 @@ def PlayerCommands():
             if not PlayingItem[0]:
                 continue
 
-            if PlayingItem[4].EmbySession:
+            if PlayingItem[4] and PlayingItem[4].EmbySession:
                 playerops.RemoteCommand(PlayingItem[4].ServerData['ServerId'], PlayingItem[4].EmbySession[0]['Id'], "stop")
 
             if EventData['end'] == "sleep":
@@ -601,7 +601,7 @@ def load_queuePlayingItem():
     playerops.AVStarted = False
     playerops.EmbyIdPlaying = int(QueuedPlayingItem[0]['ItemId'])
 
-    if QueuedPlayingItem[4].EmbySession:
+    if QueuedPlayingItem[4] and QueuedPlayingItem[4].EmbySession:
         playerops.RemoteCommand(QueuedPlayingItem[4].ServerData['ServerId'], QueuedPlayingItem[4].EmbySession[0]['Id'], "play", QueuedPlayingItem[0]['ItemId'])
 
 # Build NowPlayingQueue
@@ -636,10 +636,9 @@ def load_KodiItem(TaskId, KodiItemId, Type, Path):
 
     return None
 
-def replace_playlist_listitem(ListItem, QueryData, Path):
+def replace_playlist_listitem(ListItem, Path):
     globals()["PlaylistRemoveItem"] = playerops.GetPlayerPosition(1) # old listitem will be removed after play next
     utils.Playlists[1].add(Path, ListItem, PlaylistRemoveItem + 1)
-    globals()["QueuedPlayingItem"] = [{'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False, 'ItemId': int(QueryData['EmbyID']), 'MediaSourceId': QueryData['MediasourceID'], 'PlaySessionId': str(uuid.uuid4()).replace("-", ""), 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': Volume, 'IsMuted': Muted}, QueryData['IntroStartPositionTicks'], QueryData['IntroEndPositionTicks'], QueryData['CreditsPositionTicks'], None]
     load_queuePlayingItem()
 
 # Sync jobs

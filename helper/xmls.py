@@ -209,12 +209,15 @@ def advanced_settings():
         SectionMain += '\n    </pathsubstitution>'
         Changed = True
     else:
-        if '<from>/emby_addon_mode/</from>' not in SectionData or '<to>http://127.0.0.1:57342/|redirect-limit=1000</to>' not in SectionData:
+        if '<from>/emby_addon_mode/</from>' not in SectionData:
             SectionData += '\n        <substitute>'
             SectionData += '\n            <from>/emby_addon_mode/</from>'
             SectionData += '\n            <to>http://127.0.0.1:57342/|redirect-limit=1000</to>'
             SectionData += '\n        </substitute>'
             SectionMain = replace_Section("pathsubstitution", SectionData, SectionMain)
+            Changed = True
+        elif '<to>http://127.0.0.1:57342/|redirect-limit=1000</to>' not in SectionData:
+            SectionMain = SectionMain.replace("<to>http://127.0.0.1:57342/</to>", "<to>http://127.0.0.1:57342/|redirect-limit=1000</to>")
             Changed = True
 
     if Changed:

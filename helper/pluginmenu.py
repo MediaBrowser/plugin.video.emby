@@ -953,6 +953,8 @@ def factoryreset():
         utils.SyncPause = {}
         utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33223), icon=utils.icon, time=960000, sound=True)
         xbmc.executebuiltin('Dialog.Close(addoninformation)')
+        xmls.sources() # verify sources.xml
+        xmls.advanced_settings() # verify advancedsettings.xml
 
         for EmbyServer in list(utils.EmbyServers.values()):
             EmbyServer.ServerDisconnect()
@@ -978,7 +980,6 @@ def factoryreset():
         if utils.checkFileExists(Filepath):
             utils.delFile(Filepath)
 
-        xmls.advanced_settings()
         xbmc.log("EMBY.helper.pluginmenu: [ complete reset ]", 1) # LOGINFO
         utils.restart_kodi()
 

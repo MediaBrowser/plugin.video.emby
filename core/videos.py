@@ -18,7 +18,10 @@ class Videos:
             return False
 
         xbmc.log(f"EMBY.core.videos: Process Item: {Item['Name']}", 0) # DEBUG
-        common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Video")
+
+        if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Video"):
+            return False
+
         common.SwopMediaSources(Item)  # 3D
         common.set_trailer(Item, self.EmbyServer)
         common.set_RunTimeTicks(Item)

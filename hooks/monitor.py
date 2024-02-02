@@ -1091,13 +1091,6 @@ def setup():
     utils.copytree("special://xbmc/system/library/video/", "special://profile/library/video/")
     utils.copytree("special://xbmc/system/library/music/", "special://profile/library/music/")
 
-    # verify sources.xml
-    xmls.sources()
-
-    # verify advancedsettings.xml
-    if xmls.advanced_settings():
-        return False
-
     if utils.MinimumSetup == utils.MinimumVersion:
         return True
 
