@@ -1,3 +1,12 @@
+9.4.5
+=============
+fix initial xmls configuration
+remove overlay from photos
+add bookmark workarounds for episode widgets
+fix cinemamode via widget playback
+fix native mode widget playback
+
+
 9.4.4
 =============
 fix multiversion

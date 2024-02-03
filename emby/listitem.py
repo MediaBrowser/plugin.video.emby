@@ -147,7 +147,7 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
     IsFolder = bool(KodiItem['properties']['IsFolder'] == "true")
     return IsFolder, ListItem
 
-def set_ListItem(item, ServerId, Path=None):
+def set_ListItem(item, ServerId, Path=None, KodiId=None):
     if Path:
         listitem = xbmcgui.ListItem(label=item['Name'], offscreen=True, path=Path)
     else:
@@ -181,7 +181,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_ResumePoint(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         Properties = {'IsFolder': 'false', 'IsPlayable': 'true'}
@@ -216,7 +218,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         set_ResumePoint(item, InfoTags)
@@ -259,7 +263,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'TotalEpisodes': item.get('RecursiveItemCount', 0), 'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']), 'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'], 'IsFolder': 'true', 'IsPlayable': 'true'}
@@ -290,7 +296,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'NumEpisodes': item.get('RecursiveItemCount', 0), 'WatchedEpisodes': int(item.get('RecursiveItemCount', 0)) - int(item['UserData']['UnplayedItemCount']), 'UnWatchedEpisodes': item['UserData']['UnplayedItemCount'], 'IsFolder': 'true', 'IsPlayable': 'true'}
@@ -330,7 +338,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         set_ResumePoint(item, InfoTags)
@@ -377,7 +387,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         set_ResumePoint(item, InfoTags)
@@ -407,7 +419,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_Writers(item, InfoTags)
         set_Directors(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         set_ResumePoint(item, InfoTags)
@@ -497,7 +511,9 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
 
-        if 'Id' in item:
+        if KodiId:
+            InfoTags.setDbId(int(KodiId))
+        elif 'Id' in item:
             InfoTags.setDbId(1000000000 + int(item['Id']))
 
         Properties = {'embyserverid': str(ServerId), 'embyid': str(item['Id']), 'IsFolder': 'true', 'IsPlayable': 'true'}

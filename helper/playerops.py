@@ -86,11 +86,13 @@ def GetFilenameandpath():
     Result = None
 
     if PlayerId != -1:
-        Result = utils.SendJson('{"jsonrpc": "2.0", "method": "xbmc.GetInfoLabels", "params":{"labels": ["player.Filenameandpath"]}, "id": 1}').get("result", {})
+        Result = utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.GetItem", "params":{{"properties": ["file"], "playerid": {PlayerId}}}, "id": 1}}').get("result", {})
 
         if Result:
             xbmc.log("EMBY.helper.playerops: [ GetFilenameandpath ]", 1) # LOGINFO
-            return Result.get("player.Filenameandpath", "")
+
+            if 'item' in Result:
+                return Result['item'].get("file", "")
 
     xbmc.log(f"EMBY.helper.playerops: GetFilenameandpath failed: PlayerId={PlayerId} / Result={Result}", 3) # LOGERROR
     return ""

@@ -341,17 +341,17 @@ class HTTP:
         self.Intros = []
 
         if utils.localTrailers:
-            IntrosLocal = self.EmbyServer.API.get_local_trailers(EmbyId)
+            LocalTrailers = self.EmbyServer.API.get_local_trailers(EmbyId)
 
-            for IntroLocal in IntrosLocal:
-                ReceivedIntros.append(IntroLocal)
+            for LocalTrailer in LocalTrailers:
+                ReceivedIntros.append(LocalTrailer)
 
         if utils.Trailers:
-            IntrosExternal = self.EmbyServer.API.get_intros(EmbyId)
+            Intros = self.EmbyServer.API.get_intros(EmbyId)
 
-            if 'Items' in IntrosExternal:
-                for IntroExternal in IntrosExternal['Items']:
-                    ReceivedIntros.append(IntroExternal)
+            if 'Items' in Intros:
+                for Intro in Intros['Items']:
+                    ReceivedIntros.append(Intro)
 
         if ReceivedIntros:
             Index = 0
@@ -368,6 +368,7 @@ class HTTP:
 
         if Intro['Path'].find("http") == -1: # Local Trailer
             Intro['Path'], _ = common.get_path_type_from_item(self.EmbyServer.ServerData['ServerId'], Intro, False, True)
+            self.Intros.append(Intro)
             return True
 
         status_code = self.EmbyServer.API.get_stream_statuscode(Intro['Id'], Intro['MediaSources'][0]['Id'])
