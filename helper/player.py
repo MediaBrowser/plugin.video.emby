@@ -80,7 +80,13 @@ def PlayerCommands():
             if EventData['player']['playerid'] != -1:
                 playerops.PlayerId = EventData['player']['playerid']
 
-            FullPath = playerops.GetFilenameandpath()
+            FullPath = ""
+
+            try:
+                FullPath = utils.XbmcPlayer.getPlayingFile()
+            except Exception as Error:
+                xbmc.log(f"EMBY.helper.player: getPlayingFile issue {Error}", 3) # LOGERROR
+
             xbmc.log(f"EMBY.hooks.player: FullPath: {FullPath}", 0) # LOGDEBUG
 
             if not FullPath:

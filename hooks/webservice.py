@@ -630,11 +630,6 @@ def http_Query(client, Payload):
 
         # Multiversion
         globals()['DelayedContent'][ThreadId] = ["", None]
-
-
-
-
-
         client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: http://127.0.0.1:57342/delayed_content/{ThreadId}\r\nContent-length: 0\r\n\r\n".encode())
         client.close()
         client = None

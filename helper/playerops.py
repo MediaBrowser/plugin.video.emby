@@ -82,21 +82,6 @@ def PlayPlaylistItem(PlaylistId, Index):
     utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": true}}   }},"id":1}}')
     globals()['PlayerId'] = PlaylistId
 
-def GetFilenameandpath():
-    Result = None
-
-    if PlayerId != -1:
-        Result = utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.GetItem", "params":{{"properties": ["file"], "playerid": {PlayerId}}}, "id": 1}}').get("result", {})
-
-        if Result:
-            xbmc.log("EMBY.helper.playerops: [ GetFilenameandpath ]", 1) # LOGINFO
-
-            if 'item' in Result:
-                return Result['item'].get("file", "")
-
-    xbmc.log(f"EMBY.helper.playerops: GetFilenameandpath failed: PlayerId={PlayerId} / Result={Result}", 3) # LOGERROR
-    return ""
-
 def AddSubtitle(Path):
     utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.AddSubtitle", "params":{{"playerid": 1, "subtitle":"{Path}"}}, "id": 1}}')
 
