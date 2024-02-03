@@ -1110,6 +1110,11 @@ def setup():
         utils.update_mode_settings()
         xbmc.log(f"EMBY.hooks.monitor: Add-on playback: {utils.useDirectPaths == '0'}", 1) # LOGINFO
         utils.set_settings('MinimumSetup', utils.MinimumVersion)
+        xmls.sources() # verify sources.xml
+
+        if xmls.advanced_settings(): # verify advancedsettings.xml
+            return False
+
         return True
 
     if not utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)): # final warning

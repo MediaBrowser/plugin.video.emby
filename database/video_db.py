@@ -429,6 +429,10 @@ class VideoDatabase:
 
         # Kodi workarounds for episode bookmark bugs
         # Subqueries are not possible to fix, e.g. browse by tag, genre, year, actor, etc. This would require a permutation (would exponetially grow database records)
+        KodiPathId = self.get_add_path("videodb://tvshows/titles/-1/-1/", None, None)
+        FileId = self.create_entry_file()
+        self.add_file(KodiPathId, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate, None)
+        self.add_bookmarks(FileId, RunTimeTicks, ChapterInfo, None)
         idPath = self.get_add_path("videodb://recentlyaddedepisodes/", None, None)
         FileId = self.create_entry_file()
         self.add_file(idPath, KodiItemId, DateCreated, FileId, PlayCount, LastPlayedDate, None)

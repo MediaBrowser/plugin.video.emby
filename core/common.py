@@ -823,7 +823,7 @@ def get_path_type_from_item(ServerId, item, isSpecial=False, isTrailer=False):
 
     if (item['Type'] == 'Photo' and 'Primary' in item['ImageTags']) or (item['Type'] == 'PhotoAlbum' and 'Primary' in item['ImageTags']):
         if 'Path' in item:
-            return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}-{utils.PathToFilenameReplaceSpecialCharecters(item['Path'])}|redirect-limit=1000", "p"
+            return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}--{utils.PathToFilenameReplaceSpecialCharecters(item['Path'])}|redirect-limit=1000", "p"
 
         return f"http://127.0.0.1:57342/picture/{ServerId}/p-{item['Id']}-0-p-{item['ImageTags']['Primary']}|redirect-limit=1000", "p"
 

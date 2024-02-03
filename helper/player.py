@@ -81,6 +81,7 @@ def PlayerCommands():
                 playerops.PlayerId = EventData['player']['playerid']
 
             FullPath = playerops.GetFilenameandpath()
+            xbmc.log(f"EMBY.hooks.player: FullPath: {FullPath}", 0) # LOGDEBUG
 
             if not FullPath:
                 xbmc.log("EMBY.helper.player: XbmcPlayer no FullPath", 3) # LOGERROR
@@ -114,9 +115,6 @@ def PlayerCommands():
             EmbyId = None
             KodiId = None
             KodiType = None
-
-            if playerops.PlayerId == -1: # workaround for Kodi bug after wake from sleep
-                playerops.PlayerId = 1
 
             # Unsynced content: Update player info for dynamic/downloaded content (played via widget or themes or themes downloaded)
             if not 'id' in EventData['item']:
