@@ -835,7 +835,7 @@ def add_nodes(path, view, Dynamic):
                 FilePath = f"{folder}collection.xml"
 
                 if not utils.checkFileExists(FilePath):
-                    NodeLink = quote(f'{view["Name"]} (Library)')
+                    NodeLink = quote(view["Name"])
                     Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
                     Data += f'<node order="{NodeIndex}" type="folder">\n'
                     Data += f'    <label>{node[1]}</label>\n'
@@ -855,18 +855,22 @@ def add_nodes(path, view, Dynamic):
                         Content = "tvshows"
                         Operator = "is"
                         Filter = "tag"
+                        SortOrder = "sorttitle"
                     elif ContentCategory == "Movies":
                         Content = "movies"
                         Operator = "is"
                         Filter = "tag"
+                        SortOrder = "sorttitle"
                     elif ContentCategory == "MusicVideos":
-                        Content = "artists"
+                        Content = "musicvideos"
                         Operator = "is"
                         Filter = "tag"
+                        SortOrder = "artist"
                     else: # Music
                         Content = "artists"
                         Operator = "is"
                         Filter = "disambiguation"
+                        SortOrder = "sorttitle"
 
                     Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
                     Data += f'<node order="{NodeIndex}" type="filter">\n'
@@ -875,7 +879,7 @@ def add_nodes(path, view, Dynamic):
                     Data += f'    <content>{Content}</content>\n'
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
-                    Data += '    <order direction="ascending">sorttitle</order>\n'
+                    Data += f'    <order direction="ascending">{SortOrder}</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -905,7 +909,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
                     Data += Extras
-                    Data += '    <order direction="descending">artists</order>\n'
+                    Data += '    <order direction="ascending">artists</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -923,7 +927,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <rule field="role" operator="is">composer</rule>\n'
-                    Data += '    <order direction="descending">artists</order>\n'
+                    Data += '    <order direction="ascending">artists</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -958,7 +962,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="{Filter}" operator="{Operator}">{view["Tag"]}</rule>\n'
                     Data += '    <group>genres</group>\n'
-                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1043,7 +1047,7 @@ def add_nodes(path, view, Dynamic):
                     Data += f'    <content>{Content}</content>\n'
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="{Filter}" operator="is">{view["Tag"]}</rule>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="descending">year</order>\n'
                     Data += '    <group>years</group>\n'
                     Data += f'    <limit>{utils.maxnodeitems}</limit>\n'
                     Data += '</node>'
@@ -1070,7 +1074,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <group>actors</group>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="ascending">title</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1094,7 +1098,7 @@ def add_nodes(path, view, Dynamic):
                     Data += f'    <content>{Content}</content>\n'
                     Data += '    <match>all</match>\n'
                     Data += '    <rule field="tag" operator="endswith">(Favorites)</rule>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="ascending">title</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1298,11 +1302,18 @@ def add_nodes(path, view, Dynamic):
                 FilePath = f"{folder}recommended.xml"
 
                 if not utils.checkFileExists(FilePath):
+                    if ContentCategory == "TVShows":
+                        Content = "tvshows"
+                    elif ContentCategory == "Movies":
+                        Content = "movies"
+                    else: # "MusicVideos":
+                        Content = "musicvideos"
+
                     Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
                     Data += f'<node order="{NodeIndex}" type="filter">\n'
                     Data += f'    <label>{node[1]}</label>\n'
                     Data += f'    <icon>{node[2]}</icon>\n'
-                    Data += '    <content>episodes</content>\n'
+                    Data += f'    <content>{Content}</content>\n'
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <rule field="inprogress" operator="false"/>\n'
@@ -1334,7 +1345,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <group>studios</group>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="ascending">title</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1359,7 +1370,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <group>tags</group>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="ascending">title</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1424,7 +1435,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <group>sets</group>\n'
-                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1447,7 +1458,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <rule field="videoresolution" operator="greaterthan">1080</rule>\n'
-                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1470,7 +1481,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <rule field="videoresolution" operator="is">1080</rule>\n'
-                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1493,7 +1504,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                     Data += '    <rule field="videoresolution" operator="lessthan">1080</rule>\n'
-                    Data += '    <order direction="descending">sorttitle</order>\n'
+                    Data += '    <order direction="ascending">sorttitle</order>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
@@ -1527,7 +1538,7 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
                     Data += f'    <rule field="comment" operator="endswith">{view["Tag"]}</rule>\n'
                     Data += f'    <rule field="genre" operator="is">{Genre}</rule>\n'
-                    Data += '    <order direction="descending">title</order>\n'
+                    Data += '    <order direction="ascending">title</order>\n'
                     Data += f'    <limit>{int(utils.maxnodeitems) * 10}</limit>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
@@ -1571,17 +1582,17 @@ def add_nodes(path, view, Dynamic):
                     Data += '    <match>all</match>\n'
 
                     if ContentCategory == "Music":
+                        Data += '    <order direction="ascending">artist</order>\n'
                         Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
                         Data += '    <rule field="artist" operator="startswith">\n'
-                        Data += '    <order direction="descending">artist</order>\n'
                     elif ContentCategory == "MusicVideos":
+                        Data += '    <order direction="ascending">artist</order>\n'
                         Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                         Data += '    <rule field="artist" operator="startswith">\n'
-                        Data += '    <order direction="descending">artist</order>\n'
                     else:
+                        Data += '    <order direction="ascending">sorttitle</order>\n'
                         Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                         Data += '    <rule field="sorttitle" operator="startswith">\n'
-                        Data += '    <order direction="descending">sorttitle</order>\n'
 
                     Data += '        <value>0</value>\n'
                     Data += '        <value>1</value>\n'
@@ -1641,17 +1652,17 @@ def add_nodes(path, view, Dynamic):
                             Data += '    <match>all</match>\n'
 
                             if ContentCategory == "Music":
+                                Data += '    <order direction="ascending">artist</order>\n'
                                 Data += f'    <rule field="disambiguation" operator="is">{view["Tag"]}</rule>\n'
                                 Data += f'    <rule field="artist" operator="startswith">{FileName}</rule>\n'
-                                Data += '    <order direction="descending">artist</order>\n'
                             elif ContentCategory == "MusicVideos":
+                                Data += '    <order direction="ascending">artist</order>\n'
                                 Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                                 Data += f'    <rule field="artist" operator="startswith">{FileName}</rule>\n'
-                                Data += '    <order direction="descending">artist</order>\n'
                             else:
+                                Data += '    <order direction="ascending">sorttitle</order>\n'
                                 Data += f'    <rule field="tag" operator="is">{view["Tag"]}</rule>\n'
                                 Data += f'    <rule field="sorttitle" operator="startswith">{FileName}</rule>\n'
-                                Data += '    <order direction="descending">sorttitle</order>\n'
 
                             Data += Extras
                             Data += '</node>'
