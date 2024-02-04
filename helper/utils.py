@@ -189,12 +189,12 @@ def refresh_widgets(isVideo):
     if isVideo and not WidgetRefresh['video']:
         xbmc.log("EMBY.helper.utils: Refresh widgets video started", 1) # LOGINFO
         globals()["WidgetRefresh"]['video'] = True
-        SendJson('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
+        SendJson('{"jsonrpc":"2.0","method":"VideoLibrary.Scan","params":{"showdialogs":false,"directory":"EMBY_widget_refresh_trigger"},"id":1}')
 
     if not isVideo and not WidgetRefresh['music']:
         xbmc.log("EMBY.helper.utils: Refresh widgets music started", 1) # LOGINFO
         globals()["WidgetRefresh"]['music'] = True
-        SendJson('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":"widget_refresh_trigger"},"id":1}')
+        SendJson('{"jsonrpc":"2.0","method":"AudioLibrary.Scan","params":{"showdialogs":false,"directory":"EMBY_widget_refresh_trigger"},"id":1}')
 
 def SendJson(JsonString, ForceBreak=False):
     LogSend = False

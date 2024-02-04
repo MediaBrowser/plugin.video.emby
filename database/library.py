@@ -243,11 +243,12 @@ class Library:
         if ContinueJobs:
             SQLs = {"emby": dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)}
             UserDataItems = SQLs["emby"].get_Userdata()
-            xbmc.log(f"EMBY.database.library: -->[ worker userdata started ] queue size: {len(UserDataItems)}", 1) # LOGINFO
+            xbmc.log(f"EMBY.database.library: -->[ worker userdata started ] queue size: {len(UserDataItems)}", 0) # LOGDEBUG
 
             if not UserDataItems:
                 dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
                 globals()["WorkerInProgress"] = False
+                xbmc.log("EMBY.database.library: --<[ worker userdata empty ]", 0) # LOGDEBUG
                 return ContinueJobs
         else:
             return False
@@ -317,10 +318,11 @@ class Library:
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
             UpdateItems, UpdateItemsCount = embydb.get_UpdateItem()
             dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-            xbmc.log(f"EMBY.database.library: -->[ worker update started ] queue size: {UpdateItemsCount}", 1) # LOGINFO
+            xbmc.log(f"EMBY.database.library: -->[ worker update started ] queue size: {UpdateItemsCount}", 0) # LOGDEBUG
 
             if not UpdateItemsCount:
                 globals()["WorkerInProgress"] = False
+                xbmc.log("EMBY.database.library: --<[ worker update empty ]", 0) # LOGDEBUG
                 return ContinueJobs
         else:
             return False
@@ -403,10 +405,11 @@ class Library:
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
             RemoveItems = embydb.get_RemoveItem()
             dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-            xbmc.log(f"EMBY.database.library: -->[ worker remove started ] queue size: {len(RemoveItems)}", 1) # LOGINFO
+            xbmc.log(f"EMBY.database.library: -->[ worker remove started ] queue size: {len(RemoveItems)}", 0) # LOGDEBUG
 
             if not RemoveItems:
                 globals()["WorkerInProgress"] = False
+                xbmc.log("EMBY.database.library: --<[ worker remove empty ]", 0) # LOGDEBUG
                 return ContinueJobs
         else:
             return False
@@ -492,11 +495,11 @@ class Library:
             embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
             SyncItems = embydb.get_PendingSync()
             dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-            xbmc.log(f"EMBY.database.library: -->[ worker library started ] queue size: {len(SyncItems)}", 1) # LOGINFO
+            xbmc.log(f"EMBY.database.library: -->[ worker library started ] queue size: {len(SyncItems)}", 0) # LOGDEBUG
 
             if not SyncItems:
                 globals()["WorkerInProgress"] = False
-                xbmc.log("EMBY.database.library: --<[ worker library empty ]", 1) # LOGINFO
+                xbmc.log("EMBY.database.library: --<[ worker library empty ]", 0) # LOGDEBUG
                 return
         else:
             return
