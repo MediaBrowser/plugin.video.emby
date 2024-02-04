@@ -313,6 +313,11 @@ def PlayerCommands():
 
                 if EmbyId:
                     globals()["QueuedPlayingItem"] = [{'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False, 'ItemId': int(EmbyId), 'MediaSourceId': MediasourceID, 'PlaySessionId': str(uuid.uuid4()).replace("-", ""), 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': Volume, 'IsMuted': Muted}, IntroStartPosTicks, IntroEndPosTicks, None, EmbyServer]
+                else:
+                    continue
+
+            if not QueuedPlayingItem:
+                continue
 
             # Load playback data
             load_queuePlayingItem()
