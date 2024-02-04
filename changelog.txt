@@ -1,3 +1,8 @@
+9.4.8
+=============
+fix player crash when content was playerd from an external source (not Emby)
+
+
 9.4.7
 =============
 fix nodes
