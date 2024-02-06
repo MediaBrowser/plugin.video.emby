@@ -1,3 +1,9 @@
+9.4.9
+=============
+fix dynamic nodes folder selection, when folder has multiple content types included (e.g. pictures)
+fix delete after played option
+
+
 9.4.8
 =============
 fix player crash when content was playerd from an external source (not Emby)
