@@ -463,7 +463,7 @@ def stop_playback(delete, Stopped):
     globals()["TrailerStatus"] = "READY"
     PlayingItemLocal[4].http.Intros = []
 
-    if not PlayingItem[0]:
+    if not PlayingItemLocal[0]:
         return
 
     utils.HTTPQueryDoublesFilter.pop(str(PlayingItemLocal[0]['ItemId']), None) # delete dict key if exists

@@ -280,8 +280,8 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId):
 
         TypeCounter = 0
 
-        for Values in list(SortItems.values()):
-            if Values:
+        for SortItemContent, SortedItems in list(SortItems.items()):
+            if SortedItems and SortItemContent != "Folder":
                 TypeCounter += 1
 
                 if TypeCounter == 2: # multiple content types detected
