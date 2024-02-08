@@ -959,7 +959,7 @@ def set_ItemsDependencies(Item, SQLs, WorkerObject, EmbyServer, EmbyType):
 
             if Pos != -1:
                 SearchPresentationUniqueKey = Item['PresentationUniqueKey'][:Pos]
-                Item[SubItemId] = SQLs["emby"].get_EmbyId_by_EmbyPresentationKey(SearchPresentationUniqueKey)
+                Item[SubItemId] = SQLs["emby"].get_EmbyId_by_EmbyPresentationKey(SearchPresentationUniqueKey, EmbyType)
                 xbmc.log(f"EMBY.core.common: Detect by PresentationUniqueKey: {Item['PresentationUniqueKey']} / {Item[SubItemId]}", 1) # LOGINFO
 
         if not Item[SubItemId]:
