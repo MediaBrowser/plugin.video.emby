@@ -1,3 +1,13 @@
+9.4.11
+=============
+fix dynamic node
+
+
+9.4.10
+=============
+fix minor sync issue
+
+
 9.4.9
 =============
 fix dynamic nodes folder selection, when folder has multiple content types included (e.g. pictures)
