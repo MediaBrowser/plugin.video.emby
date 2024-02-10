@@ -54,7 +54,7 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         set_Writers(KodiItem, InfoTags)
         set_Directors(KodiItem, InfoTags)
         set_SortSeason(KodiItem, InfoTags)
-        set_Season(KodiItem, InfoTags)
+        set_Season(KodiItem, InfoTags, 'ParentIndexNumber')
         set_Episode(KodiItem, InfoTags)
         set_SortEpisode(KodiItem, InfoTags)
         set_TvShowTitle(KodiItem, InfoTags)
@@ -291,7 +291,7 @@ def set_ListItem(item, ServerId, Path=None, KodiId=None):
         set_Studios(item, InfoTags)
         set_Writers(item, InfoTags)
         set_Directors(item, InfoTags)
-        InfoTags.setSeason(item.get('IndexNumber', 0))
+        set_Season(item, InfoTags, 'IndexNumber')
         set_IMDBNumber(item, InfoTags)
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
@@ -330,7 +330,7 @@ def set_ListItem(item, ServerId, Path=None, KodiId=None):
         set_Writers(item, InfoTags)
         set_Directors(item, InfoTags)
         set_SortSeason(item, InfoTags)
-        set_Season(item, InfoTags)
+        set_Season(item, InfoTags, 'ParentIndexNumber')
         set_Episode(item, InfoTags)
         set_SortEpisode(item, InfoTags)
         set_TvShowTitle(item, InfoTags)
@@ -621,9 +621,9 @@ def set_SortSeason(Item, InfoTags):
     if 'SortParentIndexNumber' in Item and Item['SortParentIndexNumber']:
         InfoTags.setSortSeason(int(Item['SortParentIndexNumber']))
 
-def set_Season(Item, InfoTags):
-    if 'ParentIndexNumber' in Item and Item['ParentIndexNumber']:
-        InfoTags.setSeason(int(Item['ParentIndexNumber']))
+def set_Season(Item, InfoTags, IndexNumber):
+    if IndexNumber in Item and Item[IndexNumber]:
+        InfoTags.setSeason(int(Item[IndexNumber]))
 
 def set_Episode(Item, InfoTags):
     if 'IndexNumber' in Item and Item['IndexNumber']:
