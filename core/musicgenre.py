@@ -105,7 +105,6 @@ class MusicGenre:
                 if not LibraryIds[Index]:
                     self.set_favorite(False, KodiDBs[Index], KodiItemIds[Index])
                     self.SQLs[KodiDBs[Index]].delete_musicgenre_by_Id(KodiItemIds[Index])
-                else:
                     KodiItemIds[Index] = ""
 
             LibraryIds[1] = ",".join(LibraryIds[1])

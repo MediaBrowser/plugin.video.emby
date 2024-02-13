@@ -49,11 +49,11 @@ class Tag:
     def set_favorite(self, isFavorite, KodiItemId, ImageUrl):
         Name, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Tag_Name(KodiItemId)
 
-        if hasMovies:
+        if hasMovies or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://movies/tags/{KodiItemId}/", f"{Name} (Movies)", "window", 10025),))
 
-        if hasTVShows:
+        if hasTVShows or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://tvshows/tags/{KodiItemId}/", f"{Name} (TVShows)", "window", 10025),))
 
-        if hasMusicVideos:
+        if hasMusicVideos or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://musicvideos/tags/{KodiItemId}/", f"{Name} (Musicvideos)", "window", 10025),))

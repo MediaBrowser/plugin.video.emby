@@ -747,7 +747,7 @@ def set_Directors(Item, InfoTags):
 
 def set_ListItem_StreamInfo(Content, InfoTags, Duration, StreamInfo):
     if Content == "video":
-        if StreamInfo['width'] and StreamInfo['height']:
+        if StreamInfo['width'] and StreamInfo['height'] and StreamInfo['aspect']:
             if StreamInfo['language']:
                 Language = StreamInfo['language']
             else:

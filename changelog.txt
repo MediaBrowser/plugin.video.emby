@@ -1,3 +1,11 @@
+9.4.12
+=============
+fix database option set
+fix favorites remove
+fix content date
+fix musicgenre removal
+
+
 9.4.11
 =============
 fix dynamic node
