@@ -44,11 +44,11 @@ class Person:
     def set_favorite(self, KodiItemId, isFavorite):
         Name, ImageUrl, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_People(KodiItemId)
 
-        if hasMovies:
+        if hasMovies or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://movies/actors/{KodiItemId}/", f"{Name} (Movies)", "window", 10025),))
 
-        if hasTVShows:
+        if hasTVShows or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://tvshows/actors/{KodiItemId}/", f"{Name} (TVShows)", "window", 10025),))
 
-        if hasMusicVideos:
+        if hasMusicVideos or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://musicvideos/actors/{KodiItemId}/", f"{Name} (Musicvideos)", "window", 10025),))

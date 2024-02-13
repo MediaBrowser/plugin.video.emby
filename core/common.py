@@ -357,7 +357,6 @@ def get_streams(Item):
                 Item['Streams'][IndexMediaSources]['Audio'].append({'SampleRate': Stream.get('SampleRate', None), 'BitRate': Stream.get('BitRate', None), 'codec': Codec, 'channels': Stream.get('Channels', None), 'language': Stream.get('Language', None), 'Index': Index, 'DisplayTitle': Stream.get('DisplayTitle', "unknown")})
             elif Stream['Type'] == "Video":
                 StreamData = {'language': Stream.get('Language', None),'hdrtype': None, 'codec': Codec, 'height': Stream.get('Height', None), 'width': Stream.get('Width', None), '3d': Stream.get('Video3DFormat', None), 'BitRate': Stream.get('BitRate', None), 'Index': Index, 'aspect': None}
-
                 CodecTag = Stream.get('CodecTag', "")
 
                 if CodecTag == "dvhe":
@@ -374,12 +373,13 @@ def get_streams(Item):
 
                     if len(AspectRatio) == 2 and utils.is_number(AspectRatio[0]) and utils.is_number(AspectRatio[1]) and float(AspectRatio[1]) > 0:
                         StreamData['aspect'] = round(float(AspectRatio[0]) / float(AspectRatio[1]), 6)
-                    else:
-                        xbmc.log(f"EMBY.core.common: AspectRatio not detected: {Item['Id']} / {Item['Name']}", 2) # LOGWARNING
 
-                        if Stream['Height'] and Stream['Width']:
-                            StreamData['aspect'] = round(float(Stream['Width']) / float(Stream['Height']), 6)
-                            xbmc.log(f"EMBY.core.common: AspectRatio calculated based on width/height ratio: {Stream['Height']} / {Stream['Height']} / {StreamData['aspect']}", 1) # LOGINFO
+                if not StreamData['aspect']:
+                    xbmc.log(f"EMBY.core.common: AspectRatio not detected: {Item['Id']} / {Item['Name']}", 2) # LOGWARNING
+
+                    if Stream['Height'] and Stream['Width']:
+                        StreamData['aspect'] = round(float(Stream['Width']) / float(Stream['Height']), 6)
+                        xbmc.log(f"EMBY.core.common: AspectRatio calculated based on width/height ratio: {Stream['Height']} / {Stream['Height']} / {StreamData['aspect']}", 1) # LOGINFO
 
                 Item['Streams'][IndexMediaSources]['Video'].append(StreamData)
             elif Stream['Type'] == "Subtitle":
@@ -596,10 +596,10 @@ def set_Dates(Item):
         Item['KodiPremiereDate'] = None
 
     if not Item['KodiPremiereDate'] and Item['KodiProductionYear']:
-        Item['KodiProductionYear'] = Item['KodiPremiereDate']
+        Item['KodiPremiereDate'] = Item['KodiProductionYear']
 
     if not Item['KodiProductionYear'] and Item['KodiPremiereDate']:
-        Item['KodiPremiereDate'] = Item['KodiProductionYear']
+        Item['KodiProductionYear'] = Item['KodiPremiereDate']
 
     if Item['KodiProductionYear']:
         Item['KodiProductionYear'] = Item['KodiProductionYear'][:4]

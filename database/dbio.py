@@ -50,10 +50,6 @@ def DBOpenRO(DBID, TaskId):
     DBIDThreadID = f"{DBID}{TaskId}{get_ident()}"
     xbmc.log(f"EMBY.database.dbio: ---> DBRO: {DBIDThreadID}", 0) # LOGDEBUG
     globals()["DBConnectionsRO"][DBIDThreadID] = [sqlite3.connect(f"file:{utils.DatabaseFiles[DBID].decode('utf-8')}?mode=ro", uri=True, timeout=999999, check_same_thread=False), None]
-    DBConnectionsRO[DBIDThreadID][0].execute("PRAGMA journal_mode=WAL")
-    DBConnectionsRO[DBIDThreadID][0].execute("PRAGMA secure_delete=false")
-    DBConnectionsRO[DBIDThreadID][0].execute("PRAGMA synchronous=normal")
-    DBConnectionsRO[DBIDThreadID][0].execute("PRAGMA temp_store=memory")
     DBConnectionsRO[DBIDThreadID][1] = DBConnectionsRO[DBIDThreadID][0].cursor()
 
     if DBID == 'video':

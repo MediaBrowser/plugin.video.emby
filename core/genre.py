@@ -49,11 +49,11 @@ class Genre:
     def set_favorite(self, isFavorite, KodiItemId, ImageUrl):
         Name, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Genre_Name(KodiItemId)
 
-        if hasMovies:
+        if hasMovies or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://movies/genres/{KodiItemId}/", f"{Name} (Movies)", "window", 10025),))
 
-        if hasTVShows:
+        if hasTVShows or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://tvshows/genres/{KodiItemId}/", f"{Name} (TVShows)", "window", 10025),))
 
-        if hasMusicVideos:
+        if hasMusicVideos or not isFavorite:
             utils.FavoriteQueue.put(((ImageUrl, isFavorite, f"videodb://musicvideos/genres/{KodiItemId}/", f"{Name} (Musicvideos)", "window", 10025),))
