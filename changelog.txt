@@ -1,3 +1,230 @@
+9.4.12
+=============
+fix database option set
+fix favorites remove
+fix content date
+fix musicgenre removal
+
+
+9.4.11
+=============
+fix dynamic node
+
+
+9.4.10
+=============
+fix minor sync issue
+
+
+9.4.9
+=============
+fix dynamic nodes folder selection, when folder has multiple content types included (e.g. pictures)
+fix delete after played option
+
+
+9.4.8
+=============
+fix player crash when content was playerd from an external source (not Emby)
+
+
+9.4.7
+=============
+fix nodes
+
+
+9.4.6
+=============
+fix player issues
+
+
+9.4.5
+=============
+fix initial xmls configuration
+remove overlay from photos
+add bookmark workarounds for episode widgets
+fix cinemamode via widget playback
+fix native mode widget playback
+
+
+9.4.4
+=============
+fix multiversion
+fix player issues
+fix upgrade issue from 8.X version
+
+
+9.4.3
+=============
+fix boxset update issue
+fix favourites update
+fix artwork cache
+fix player issues
+
+
+9.4.2
+=============
+fix minor player issue
+unified player code
+fix sources.xml
+fix artwork cache/remove
+fix player timing issues (stability)
+fix Boxsets synced via Emby server stable version
+fix livetv issues
+
+
+9.4.1
+=============
+fix database vacuum
+fix MusicGenre updates
+fix playlists
+
+
+9.4.0
+=============
+keep advancedsettings.xml on factory reset
+add options to adjust the context menu
+fix watched status
+fix context menu options
+remove (library) label extension from tags
+fix server busy notification when server is shutdown or restarting
+fix favorites issue
+added additional database consitency checks
+fix multipart content
+
+
+9.3.0
+=============
+fix artwork caching
+fix delete downloaded content
+change downloaded content label from downloaded to download
+fix database I/O issue
+fix queue issue/hibernate issue
+support subscontent donwload (via season, tvshow)
+add support for season favorites
+fix favourites "remove" action via Kodi's default favourite view
+add translations
+fix numeric check (e.g. aspect ratio value was not detected)
+fix dynamic node subcontent issue (e.g. movies -> genre)
+make paging factors adjustable by content
+fix dynamic nodes content reports to Emby server
+fix native mode Windows path issue
+fix queue timing issue
+new tvtunes integration
+remove emby server -> clean content settings and nodes
+fix several minor issues
+unify code
+lower MusicAlbum paging value (Emby server > 4.8.0.58 (beta) has performacne issues with subcontent queries)
+fix Kodi nightly database issue
+fix file delete issue
+fix virtual content issue e.g. for upcoming episodes
+fix database reset for Windows
+
+
+9.2.3
+=============
+Fix search cache issue
+Fix minor musicvideo issue
+Fix minor sync issue
+Block .tbn file queries in addon mode, if not a picture query
+Block invalid queries in addon mode
+Add Download option
+Fix player issues
+Fix remote mode issues
+
+
+9.2.2
+=============
+Add additional caching for mixed content in dynamic mode 
+Add search option in dynamic nodes
+Fix dynamic nodes issue
+
+
+9.2.1
+=============
+add additional image fallbacks for landscape
+fix minor sync issue for BoxSet updates
+fix smb pathes (native mode)
+autoupdate Kodi settings for addon mode (myvideos.extractflags=disabled, myvideos.extractthumb=disabled, myvideos.usetags=disabled, musicfiles.findremotethumbs=disabled, musicfiles.usetags=disabled, myvideos.extractchapterthumbs=enabled (if path subsitution is enabled, otherwise myvideos.extractchapterthumbs=false)
+fix picture load issue
+fix realtime (library) update issue for edge case
+
+
+9.2.0
+=============
+fix favorites content playback
+use helper folder for dynacmic nodes including mixed content
+fix sync issue for mixed content libraries
+fix dynamic node for audio content
+fix music sync issue
+option to sync livetv channels on Kodi start
+
+
+9.1.3
+=============
+fix delete option via context menu
+fix sort order for dynamic nodes
+fix sync issue for Videos
+
+
+9.1.2
+=============
+fix kodi source -> http://kodi.emby.tv
+fix Kodi shutdown when Emby server connection was down
+fix dynamic node sort options
+code unification
+fix homevideo/photos dynamic node
+fix init sync crash
+option to disable favorites sync
+
+
+9.1.1
+=============
+clean code
+fix crash on Kodi exit
+fix remote playback issues
+
+
+9.1.0
+=============
+improve plugin startup
+fix BoxSet updates on Kodi startup
+add support for realtime updates of boxsets
+fix/support sync issue for virtual content like BoxSets, MusicAlbum, MusicArtist, Tags, Persons, Genres, MusicGenres etc.
+change Kodi events to a more reliable threading/queueing system
+fix issue with different actors but similar names
+support playlist sync
+added sync tag nodes for collections
+fix sync node issues
+support favorites for all sorts of Emby content
+support MusicGenres for Musicvideos
+less ram usage while sync in progress
+clean and restructure (code) modules
+Subcontent unification changed (Genre, MusicGenre, Tags, MusicArtist, Studios, MusicAlbum)
+Boxsets (Collections) to Tags as Option
+Fix Artwork issue for MusicAlbum 
+xml python api plugin replaced by code. Plugin is a source of issues and not very stable.
+Some livetv sync fixes
+fix/improve cache for dynamic content updates
+fix timeouts (CCurlFile::Stat)
+new combined in progress node
+Patching requests python lib to disable Nagle
+add dynamic node links as xml
+fix release date information
+add continue watching node
+change default sort option for Episodes
+fix folder playback
+
+
+8.2.15
+=============
+use low level API for socket object (performance)
+use low level API for custom queue object (performance)
+optimize/fix init sync
+optimize session commands
+change epg refresh method
+fix livetv for Kodi 21
+
+
 8.2.14
 =============
 (realtime) progress progress updates even if Emby server is busy

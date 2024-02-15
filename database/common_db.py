@@ -1,4 +1,6 @@
+import xbmcgui
 from helper import utils
+
 
 class CommonDatabase:
     def __init__(self, cursor):
@@ -6,7 +8,8 @@ class CommonDatabase:
 
     # reset
     def delete_tables(self, DatabaseName):
-        utils.progress_open(f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}")
+        ProgressBar = xbmcgui.DialogProgressBG()
+        ProgressBar.create(utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}")
 
         # Temporay remove triggers
         self.cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='trigger'")
@@ -15,25 +18,37 @@ class CommonDatabase:
         for Trigger in Triggers:
             self.cursor.execute(f"DROP TRIGGER {Trigger[0]}")
 
+        # Temporay remove Indices
+        self.cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='index'")
+        Indexs = self.cursor.fetchall()
+
+        for Index in Indexs:
+            if not Index[0].startswith("sqlite_autoindex"):
+                self.cursor.execute(f"DROP INDEX {Index[0]}")
+
         # Delete tables
         self.cursor.execute("SELECT tbl_name FROM sqlite_master WHERE type='table'")
-        tables = self.cursor.fetchall()
+        Tables = self.cursor.fetchall()
         Counter = 0
-        Increment = 100.0 / (len(tables) - 1)
+        Increment = 100.0 / (len(Tables) - 1)
 
-        for table in tables:
-            name = table[0]
-
-            if name not in ('version', 'versiontagscan'):
+        for Table in Tables:
+            if Table[0] not in ('version', 'versiontagscan', 'videoversiontype'):
                 Counter += 1
-                utils.progress_update(int(Counter * Increment), utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}: {name}")
-                self.cursor.execute(f"DELETE FROM {name}")
+                ProgressBar.update(int(Counter * Increment), utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}: {Table[0]}")
+                self.cursor.execute(f"DELETE FROM {Table[0]}")
 
         # readding triggers
         for Trigger in Triggers:
             self.cursor.execute(Trigger[1])
 
-        utils.progress_close()
+        # readding index
+        for Index in Indexs:
+            if not Index[0].startswith("sqlite_autoindex"):
+                self.cursor.execute(Index[1])
+
+        ProgressBar.close()
+        del ProgressBar
 
     # artwork
     def delete_artwork(self, KodiId, KodiMediaType):

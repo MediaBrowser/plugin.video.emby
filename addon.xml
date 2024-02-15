@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="8.2.14" provider-name="quickmic, angelblue05, sualfred">
+<addon id="plugin.video.emby-next-gen" name="Emby for Kodi Next Gen" version="9.4.12" provider-name="quickmic, angelblue05, sualfred">
     <requires>
-        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="xbmc.python" version="3.0.1"/>
         <import addon="script.module.requests" version="2.22.0" />
         <import addon="script.module.dateutil" version="2.8.1" />
     </requires>
@@ -11,17 +11,45 @@
     <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
-            <item library="events.py" args="contextmenu">
-                <label>30401</label>
-                <visible>[!String.Contains(ListItem.Path,"pvr://guide/")]</visible>
-            </item>
             <item library="events.py" args="record">
                 <label>33490</label>
-                <visible>[String.Contains(ListItem.Path,"pvr://guide/")]</visible>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyRecording),True) + String.StartsWith(ListItem.Path,"pvr://guide/") + !String.IsEmpty(ListItem.EPGEventIcon)]</visible>
             </item>
             <item library="events.py" args="specials">
                 <label>33485</label>
-                <visible>[String.Contains(ListItem.FileName,"-s-")]</visible>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySpecials),True) + String.Contains(ListItem.FileName,"-s-")]</visible>
+            </item>
+            <item library="events.py" args="download">
+                <label>33570</label>
+                <visible>String.IsEqual(Window(10000).Property(EmbyDownload),True) + [[String.StartsWith(ListItem.FileName,"e-") | String.StartsWith(ListItem.FileName,"m-") | String.StartsWith(ListItem.FileName,"M-") | [[[String.IsEqual(ListItem.DBTYPE,"tvshow") | String.IsEqual(ListItem.DBTYPE,"season")] + !String.EndsWith(ListItem.Label," (download)")] + [String.Contains(ListItem.Path,"/emby_addon_mode/") | String.Contains(ListItem.Path,"http://127.0.0.1:57342/")]]] + !String.Contains(ListItem.Path,"/EMBY-offline-content/") + !String.Contains(ListItem.Path,"/dynamic/") + !String.IsEmpty(ListItem.DBID)]</visible>
+            </item>
+            <item library="events.py" args="deletedownload">
+                <label>33571</label>
+                <visible>String.IsEqual(Window(10000).Property(EmbyDownload),True) + [String.Contains(ListItem.Path,"/EMBY-offline-content/") | [[String.IsEqual(ListItem.DBTYPE,"tvshow") | String.IsEqual(ListItem.DBTYPE,"season")] + String.EndsWith(ListItem.Label," (download)")]]</visible>
+            </item>
+            <item library="events.py" args="favorites">
+                <label>33547</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyFavourite),True) + String.IsEqual(Window(10000).Property(EmbyFavourite),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://") + !String.StartsWith(ListItem.FolderPath,"favourites:") + !String.StartsWith(ListItem.Path,"pvr://")]</visible>
+            </item>
+            <item library="events.py" args="watchtogether">
+                <label>33548</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyRemote),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"favourites:") + !String.IsEmpty(ListItem.Filename) + !String.IsEqual(ListItem.FileExtension,"m3u") + !String.StartsWith(ListItem.Path,"pvr://")]</visible>
+            </item>
+            <item library="events.py" args="addremoteclient">
+                <label>33519</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyRemote),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://")]</visible>
+            </item>
+            <item library="events.py" args="removeremoteclient">
+                <label>33518</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyRemote),True) + String.IsEqual(Window(10000).Property(EmbyRemoteclient),True)]</visible>
+            </item>
+            <item library="events.py" args="refreshitem">
+                <label>30410</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyRefresh),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://") + !String.StartsWith(ListItem.FolderPath,"favourites:") + !String.IsEmpty(ListItem.Filename) + !String.IsEqual(ListItem.FileExtension,"m3u") + !String.StartsWith(ListItem.Path,"pvr://")]</visible>
+            </item>
+            <item library="events.py" args="deleteitem">
+                <label>30409</label>
+                <visible>[!String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://") + String.IsEqual(Window(10000).Property(EmbyDelete),True)]</visible>
             </item>
         </menu>
     </extension>
