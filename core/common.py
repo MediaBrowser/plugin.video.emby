@@ -377,7 +377,7 @@ def get_streams(Item):
                 if not StreamData['aspect']:
                     xbmc.log(f"EMBY.core.common: AspectRatio not detected: {Item['Id']} / {Item['Name']}", 2) # LOGWARNING
 
-                    if Stream['Height'] and Stream['Width']:
+                    if 'Height' in Stream and Stream['Height'] and 'Width' in Stream and Stream['Width']:
                         StreamData['aspect'] = round(float(Stream['Width']) / float(Stream['Height']), 6)
                         xbmc.log(f"EMBY.core.common: AspectRatio calculated based on width/height ratio: {Stream['Height']} / {Stream['Height']} / {StreamData['aspect']}", 1) # LOGINFO
 
