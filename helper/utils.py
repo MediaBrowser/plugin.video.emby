@@ -515,18 +515,18 @@ def convert_to_local(date, DateOnly=False, YearOnly=False):
     if not date or str(date) == "0":
         return "0"
 
-    if isinstance(date, int):
-        date = str(date)
-
-    if isinstance(date, str):
-        date = parser.parse(date.encode('utf-8'))
-
-        if not date.tzname():
-            date = date.replace(tzinfo=tz.tzutc())
-
-    timestamp = (date - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
-
     try:
+        if isinstance(date, int):
+            date = str(date)
+
+        if isinstance(date, str):
+            date = parser.parse(date.encode('utf-8'))
+
+            if not date.tzname():
+                date = date.replace(tzinfo=tz.tzutc())
+
+        timestamp = (date - datetime(1970, 1, 1, tzinfo=tz.tzutc())).total_seconds()
+
         if timestamp >= 0:
             timestamp = datetime.fromtimestamp(timestamp)
         else:
