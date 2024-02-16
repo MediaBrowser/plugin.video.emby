@@ -1,3 +1,8 @@
+9.4.13
+=============
+fix invalid year values sync issue
+
+
 9.4.12
 =============
 fix database option set
