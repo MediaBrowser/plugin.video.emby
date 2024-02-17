@@ -310,6 +310,9 @@ class Views:
             view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'ContentType': Data[1], "Icon": Data[2], 'FilteredName': CleanName, 'KodiMediaType': "", "ServerId": self.EmbyServer.ServerData["ServerId"]}
 
             for Dynamic in (True, False):
+                if view['ContentType'] in ("books", "games"):
+                    continue
+
                 if Dynamic or f"'{view['LibraryId']}'" in str(self.EmbyServer.library.Whitelist):
                     if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                         view['Tag'] = f"EmbyLibraryId-{library_id}"
