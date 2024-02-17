@@ -31,8 +31,6 @@ class Episode:
         if not common.load_ExistingItem(item, self.EmbyServer, self.SQLs["emby"], "Episode"):
             return False
 
-        common.set_ItemsDependencies(item, self.SQLs, self.SeriesObject, self.EmbyServer, "Series")
-        common.set_ItemsDependencies(item, self.SQLs, self.SeasonObject, self.EmbyServer, "Season")
         common.set_RunTimeTicks(item)
         common.get_streams(item)
         common.set_chapters(item, self.EmbyServer.ServerData['ServerId'])
@@ -42,6 +40,8 @@ class Episode:
         self.SQLs["emby"].add_streamdata(item['Id'], item['Streams'])
         common.set_people(item, self.SQLs, self.PersonObject, self.EmbyServer)
         common.set_common(item, self.EmbyServer.ServerData['ServerId'], False)
+        common.set_ItemsDependencies(item, self.SQLs, self.SeriesObject, self.EmbyServer, "Series")
+        common.set_ItemsDependencies(item, self.SQLs, self.SeasonObject, self.EmbyServer, "Season")
         common.SwopMediaSources(item)  # 3D
         item['KodiParentId'] = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(item['SeriesId'], "Series")
         KodiSeasonId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(item['SeasonId'], "Season")

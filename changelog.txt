@@ -1,3 +1,8 @@
+9.4.16
+=============
+fix SesaonId detection by PresentationUniqueKey -> compatibility with 4.9.X Emby server
+
+
 9.4.15
 =============
 fix books and games library issue
