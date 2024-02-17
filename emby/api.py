@@ -69,7 +69,7 @@ class API:
 
         if 'MediaSources' in PlaybackInfoData and PlaybackInfoData['MediaSources']:
             MediaSourceId = PlaybackInfoData['MediaSources'][0]['Id']
-            LiveStreamId = PlaybackInfoData['MediaSources'][0]['LiveStreamId']
+            LiveStreamId = PlaybackInfoData['MediaSources'][0].get('LiveStreamId', None)
             Container = PlaybackInfoData['MediaSources'][0].get('Container', "")
         else:
             MediaSourceId = None
