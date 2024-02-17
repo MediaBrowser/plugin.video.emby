@@ -1,3 +1,8 @@
+9.4.15
+=============
+fix books and games library issue
+
+
 9.4.14
 =============
 fix stream sync issue
