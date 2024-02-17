@@ -419,7 +419,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
 
             if PlayerIdPlaylistId != 2:
                 if PlaylistItem[2]: # synced item
-                    InsertPlaylist(PlayerIdPlaylistId, InsertPosition, PlaylistItems[2], PlaylistItems[3])
+                    InsertPlaylist(PlayerIdPlaylistId, InsertPosition, PlaylistItem[2], PlaylistItem[3])
                 else:
                     utils.Playlists[PlayerIdPlaylistId].add(PlaylistItem[5], PlaylistItem[4], index=InsertPosition) # Path, ListItem, Index
             else:
