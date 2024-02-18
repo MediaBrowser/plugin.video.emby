@@ -1158,7 +1158,7 @@ def add_nodes(path, view, Dynamic):
                     Data += f'<node order="{NodeIndex}" type="folder">\n'
                     Data += f'    <label>{node[1]}</label>\n'
                     Data += f'    <icon>{node[2]}</icon>\n'
-                    Data += '    <path>plugin://plugin.video.emby-next-gen/?libraryname=TV+Shows&mode=nextepisodes</path>\n'
+                    Data += f'    <path>plugin://plugin.video.emby-next-gen/?libraryname={quote(view.get("Name", "unknown"))}&mode=nextepisodes</path>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
