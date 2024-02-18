@@ -36,12 +36,12 @@ class Episode:
         common.set_chapters(item, self.EmbyServer.ServerData['ServerId'])
         common.set_MetaItems(item, self.SQLs, self.GenreObject, self.EmbyServer, "Genre", "GenreItems")
         common.set_MetaItems(item, self.SQLs, self.StudioObject, self.EmbyServer, "Studio", "Studios")
-        common.get_path(item, self.EmbyServer.ServerData['ServerId'])
         self.SQLs["emby"].add_streamdata(item['Id'], item['Streams'])
         common.set_people(item, self.SQLs, self.PersonObject, self.EmbyServer)
         common.set_common(item, self.EmbyServer.ServerData['ServerId'], False)
         common.set_ItemsDependencies(item, self.SQLs, self.SeriesObject, self.EmbyServer, "Series")
         common.set_ItemsDependencies(item, self.SQLs, self.SeasonObject, self.EmbyServer, "Season")
+        common.get_path(item, self.EmbyServer.ServerData['ServerId'])
         common.SwopMediaSources(item)  # 3D
         item['KodiParentId'] = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(item['SeriesId'], "Series")
         KodiSeasonId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(item['SeasonId'], "Season")
