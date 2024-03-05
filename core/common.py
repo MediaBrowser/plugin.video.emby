@@ -168,11 +168,11 @@ def get_path(Item, ServerId):
     KodiPathLower = Item['KodiPath'].lower()
     Container = Item.get('Container', "")
 
-    if Container == 'dvd' or KodiPathLower.endswith(".ifo"):
-        Item['KodiPath'] += "/VIDEO_TS/VIDEO_TS.IFO"
+    if Container == 'dvd':
+        Item['KodiPath'] += "/VIDEO_TS/"
         ForceNativeMode = True
-    elif Container == 'bluray' or KodiPathLower.endswith(".bdmv"):
-        Item['KodiPath'] += "/BDMV/index.bdmv"
+    elif Container == 'bluray':
+        Item['KodiPath'] += "/BDMV/"
         ForceNativeMode = True
     elif Container == 'iso' or KodiPathLower.endswith(".iso"):
         ForceNativeMode = True
@@ -218,13 +218,20 @@ def get_filename(Item, API):
 
     # Native mode: (KodiFilename was set in "get_file_path" function for native files)
     if Item['NativeMode']:
-        if 'MediaSources' in Item:
-            Path = Item['MediaSources'][0]['Path']
-        else:
-            Path = Item['Path']
+        Container = Item.get('Container', "")
 
-        PathSeperator = utils.get_Path_Seperator(Path)
-        Item['KodiFilename'] = Path.rsplit(PathSeperator, 1)[1]
+        if Container == 'dvd':
+            Item['KodiFilename'] = "VIDEO_TS.IFO"
+        elif Container == 'bluray':
+            Item['KodiFilename'] = "index.bdmv"
+        else:
+            if 'MediaSources' in Item:
+                Path = Item['MediaSources'][0]['Path']
+            else:
+                Path = Item['Path']
+
+            PathSeperator = utils.get_Path_Seperator(Path)
+            Item['KodiFilename'] = Path.rsplit(PathSeperator, 1)[1]
 
         if Item['Type'] == "Audio":
             return
@@ -942,7 +949,12 @@ def set_ItemsDependencies(Item, SQLs, WorkerObject, EmbyServer, EmbyType):
     if SubItemId not in Item or not Item[SubItemId]:
         AddSubItem = True
     else:
-        if not SQLs["emby"].get_item_exists_by_id(Item[SubItemId], EmbyType):
+        if EmbyType == "MusicAlbum":
+            Exists = SQLs["emby"].get_item_exists_multi_library(Item[SubItemId], EmbyType, Item['LibraryId'])
+        else:
+            Exists = SQLs["emby"].get_item_exists_by_id(Item[SubItemId], EmbyType)
+
+        if not Exists:
             EmbyItem = EmbyServer.API.get_Item(Item[SubItemId], [EmbyType], False, False, False)
 
             if EmbyItem:
@@ -954,13 +966,16 @@ def set_ItemsDependencies(Item, SQLs, WorkerObject, EmbyServer, EmbyType):
     if AddSubItem:
         Item[SubItemId] = None
 
-        if Item['PresentationUniqueKey']:
-            Pos = Item['PresentationUniqueKey'].rfind("_")
+        if Item['PresentationUniqueKey'] and EmbyType != "MusicAlbum":
+            PresentationData = Item['PresentationUniqueKey'].split("_")
 
-            if Pos != -1:
-                SearchPresentationUniqueKey = Item['PresentationUniqueKey'][:Pos]
-                Item[SubItemId] = SQLs["emby"].get_EmbyId_by_EmbyPresentationKey(SearchPresentationUniqueKey, EmbyType)
-                xbmc.log(f"EMBY.core.common: Detect by PresentationUniqueKey: {Item['PresentationUniqueKey']} / {Item[SubItemId]}", 1) # LOGINFO
+            if Item['Type'] == "Episode" and len(PresentationData) >= 4: # multiepisode:
+                SearchPresentationUniqueKey = "_".join(PresentationData[:2])
+            else:
+                SearchPresentationUniqueKey = "_".join(PresentationData[:-1])
+
+            Item[SubItemId] = SQLs["emby"].get_EmbyId_by_EmbyPresentationKey(SearchPresentationUniqueKey, EmbyType)
+            xbmc.log(f"EMBY.core.common: Detect by PresentationUniqueKey: {Item[SubItemId]} / {Item['PresentationUniqueKey']} / {SearchPresentationUniqueKey}", 1) # LOGINFO
 
         if not Item[SubItemId]:
             Item[SubItemId] = MappingIds[EmbyType]

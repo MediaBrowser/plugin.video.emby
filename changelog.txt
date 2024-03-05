@@ -1,3 +1,11 @@
+9.4.19
+=============
+fix Studio sync issue
+fix BoxSet sync issue
+backport MusicAlbum bugfix from 10.X
+fix extracted bluray and dvd playback
+
+
 9.4.18
 =============
 fix sync issue for invalid episodes metadata

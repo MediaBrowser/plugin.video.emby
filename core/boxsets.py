@@ -50,12 +50,12 @@ class BoxSets:
             ContentItemKodiId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(ContentAssignedToBoxset['Id'], ContentAssignedToBoxset['Type'])
 
             if ContentAssignedToBoxset['Type'] in ("Movie", "Video") and ContentItemKodiId:
-                if ContentItemKodiId in CurrentBoxSetContent:
-                    CurrentBoxSetContent.remove(ContentItemKodiId)
+                if str(ContentItemKodiId) in CurrentBoxSetContent:
+                    CurrentBoxSetContent.remove(str(ContentItemKodiId))
 
                 xbmc.log(f"EMBY.core.boxsets: ADD to Kodi set [{item['KodiItemId']}] {ContentAssignedToBoxset['Name']}: {ContentAssignedToBoxset['Id']}", 1) # LOGINFO
                 self.SQLs["video"].set_boxset(item['KodiItemId'], ContentItemKodiId) # assign boxset to movie
-                BoxSetKodiParentIds += (ContentAssignedToBoxset['Id'],)
+                BoxSetKodiParentIds += (str(ContentItemKodiId),)
 
             # Assign content to collection tag
             if utils.BoxSetsToTags and ContentItemKodiId:
