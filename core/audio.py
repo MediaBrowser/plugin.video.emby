@@ -19,7 +19,6 @@ class Audio:
         xbmc.log(f"EMBY.core.audio: Process item: {Item['Name']}", 0) # DEBUG
         common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Audio")
         common.set_RunTimeTicks(Item)
-        common.set_MetaItems(Item, self.SQLs, self.MusicGenreObject, self.EmbyServer, "MusicGenre", 'GenreItems', None, 1)
         common.get_streams(Item)
         common.set_common(Item, self.EmbyServer.ServerData['ServerId'], False)
         Item["MusicAlbum"] = Item.get('Album', None)
@@ -29,6 +28,7 @@ class Audio:
         if Item['IndexNumber'] and Item['ParentIndexNumber']:
             Item['IndexNumber'] = Item['ParentIndexNumber'] * 65536 + Item['IndexNumber']
 
+        common.set_MetaItems(Item, self.SQLs, self.MusicGenreObject, self.EmbyServer, "MusicGenre", 'GenreItems', None, 1)
         common.set_MetaItems(Item, self.SQLs, self.MusicArtistObject, self.EmbyServer, "MusicArtist", "Composers", Item['LibraryId'], 1)
         common.set_MetaItems(Item, self.SQLs, self.MusicArtistObject, self.EmbyServer, "MusicArtist", "ArtistItems", Item['LibraryId'], 1)
         common.set_ItemsDependencies(Item, self.SQLs, self.MusicAlbumObject, self.EmbyServer, "MusicAlbum")
