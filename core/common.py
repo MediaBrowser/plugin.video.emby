@@ -26,6 +26,10 @@ ImageTagsMappings = {
 }
 
 def load_ExistingItem(Item, EmbyServer, emby_db, EmbyType):
+    if Item['LibraryId'] not in EmbyServer.library.WhitelistUnique:
+        xbmc.log(f"EMBY.core.common: Libray not synced: {Item['LibraryId']}", 3) # LOGERROR
+        return False
+
     ExistingItem = emby_db.get_item_by_id(Item['Id'], EmbyType)
     ForceNew = False
 
