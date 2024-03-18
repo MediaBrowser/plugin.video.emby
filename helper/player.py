@@ -192,14 +192,14 @@ def PlayerCommands():
 
                                 pluginmenu.QueryCache["Video"]["Theme"] = [True, ((FullPath, ListItem, False), )]
 
-                        if isTheme:
-                            globals()["QueuedPlayingItem"] = [{'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False, 'ItemId': int(EmbyId), 'MediaSourceId': None, 'PlaySessionId': str(uuid.uuid4()).replace("-", ""), 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': Volume, 'IsMuted': Muted}, None, None, None, utils.EmbyServers[ServerId]]
+                            if utils.XbmcPlayer.isPlaying():
+                                utils.XbmcPlayer.updateInfoTag(ListItem)
+                            else:
+                                xbmc.log("EMBY.helper.player: XbmcPlayer not playing 2", 3) # LOGERROR
+                                continue
 
-                        if utils.XbmcPlayer.isPlaying():
-                            utils.XbmcPlayer.updateInfoTag(ListItem)
-                        else:
-                            xbmc.log("EMBY.helper.player: XbmcPlayer not playing 2", 3) # LOGERROR
-                            continue
+                            if isTheme:
+                                globals()["QueuedPlayingItem"] = [{'CanSeek': True, 'QueueableMediaTypes': "Video,Audio", 'IsPaused': False, 'ItemId': int(EmbyId), 'MediaSourceId': None, 'PlaySessionId': str(uuid.uuid4()).replace("-", ""), 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': Volume, 'IsMuted': Muted}, None, None, None, utils.EmbyServers[ServerId]]
             else:
                 KodiId = EventData['item']['id']
                 KodiType = EventData['item']['type']
@@ -509,7 +509,7 @@ def PositionTracker():
 
     while PlayingItem[0] and not utils.SystemShutdown:
         if not utils.sleep(1):
-            if PlayBackEnded:
+            if PlayBackEnded or not PlayingItem[0]:
                 break
 
             Position = int(playerops.PlayBackPosition())

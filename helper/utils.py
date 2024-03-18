@@ -247,21 +247,21 @@ def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText
     img = Image.open(io.BytesIO(BinaryData))
     ImageWidth, ImageHeight = img.size
     draw = ImageDraw.Draw(img, "RGBA")
-    BoxY = int(ImageHeight * 0.9)
-    BorderSize = int(ImageHeight * 0.01)
-    fontsize = 1
+    BorderSize = int(ImageHeight * 0.01)  # 1% of image height is box border size
+    BoxTop = int(ImageHeight * 0.75)  # Box top position is 75% of image height
+    BoxHeight = int(ImageHeight * 0.15)  # 15% of image height is box height
+    BoxWidth = int(ImageWidth - 2 * BorderSize)
+    fontsize = 5
     font = ImageFont.truetype(FontPath, 1)
+    _, _, FontWidth, FontHeight = font.getbbox("Title Seauence")
 
-    #Use longest possible text to determine font width
-    ImageWidthMod = ImageHeight / 3 * 4
-
-    while font.getsize("Title Sequence")[0] < 0.80 * ImageWidthMod and font.getsize("Title Sequence")[1] < 0.80 * BoxY:
+    while FontHeight < BoxHeight - BorderSize * 2 and FontWidth < BoxWidth - BorderSize * 2:
         fontsize += 1
         font = ImageFont.truetype(FontPath, fontsize)
+        _, _, FontWidth, FontHeight = font.getbbox("Title Seauence")
 
-    FontSizeY = font.getsize(OverlayText)[1]
-    draw.rectangle((-BorderSize, BoxY - FontSizeY, ImageWidth + BorderSize, BoxY), fill=(0, 0, 0, 127), outline="white",  width=BorderSize)
-    draw.text(xy=(ImageWidth / 2, BoxY - FontSizeY / 2), text=OverlayText, fill="#FFFFFF", font=font, anchor="mm", align="center")
+    draw.rectangle((-BorderSize, BoxTop - BorderSize, BoxWidth + BorderSize * 2, BoxTop + BoxHeight + BorderSize * 2), fill=(0, 0, 0, 127), outline="white",  width=BorderSize)
+    draw.text(xy=(ImageWidth / 2, BoxTop + BorderSize * 2 + FontHeight / 2), text=OverlayText, fill="#FFFFFF", font=font, anchor="mm", align="center")
     imgByteArr = io.BytesIO()
     img.save(imgByteArr, format=img.format)
     return imgByteArr.getvalue(), "image/jpeg"
