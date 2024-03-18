@@ -557,9 +557,15 @@ def http_Query(client, Payload):
             else:
                 TranscodingAudioCodec = "copy"
 
-            send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}&LiveStreamId={LiveStreamId}", "stream.ts", ThreadId)
+            if LiveStreamId:
+                send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}&LiveStreamId={LiveStreamId}", "stream.ts", ThreadId)
+            else:
+                send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}", "stream.ts", ThreadId)
         else:
-            send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream?static=true&LiveStreamId={LiveStreamId}", f"stream.{Container}", ThreadId)
+            if LiveStreamId:
+                send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream?static=true&LiveStreamId={LiveStreamId}", f"stream.{Container}", ThreadId)
+            else:
+                send_redirect(client, QueryData, f"videos/{QueryData['EmbyID']}/stream?static=true", f"stream.{Container}", ThreadId)
 
         return
 

@@ -776,6 +776,19 @@ class EmbyDatabase:
         self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {EmbyType} WHERE EmbyId = ?)", (EmbyId, ))
         return self.cursor.fetchone()[0]
 
+    def get_item_exists_multi_library(self, EmbyId, EmbyType, LibraryId):
+        if LibraryId:
+            self.cursor.execute(f"SELECT LibraryIds FROM {EmbyType} WHERE EmbyId = ?", (EmbyId,))
+            LibraryIds = self.cursor.fetchone()
+
+            if LibraryIds:
+                Temp = LibraryIds[0].split(",")
+
+                if str(LibraryId) in Temp:
+                    return True
+
+        return False
+
     def get_item_exists_multi_db(self, EmbyId, EmbyType, LibraryId, Index):
         if LibraryId:
             self.cursor.execute(f"SELECT LibraryIds FROM {EmbyType} WHERE EmbyId = ?", (EmbyId,))

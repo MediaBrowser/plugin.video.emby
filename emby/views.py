@@ -310,7 +310,7 @@ class Views:
             view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'ContentType': Data[1], "Icon": Data[2], 'FilteredName': CleanName, 'KodiMediaType': "", "ServerId": self.EmbyServer.ServerData["ServerId"]}
 
             for Dynamic in (True, False):
-                if view['ContentType'] in ("books", "games"):
+                if view['ContentType'] in ("books", "games", "photos"):
                     continue
 
                 if Dynamic or f"'{view['LibraryId']}'" in str(self.EmbyServer.library.Whitelist):
@@ -1158,7 +1158,7 @@ def add_nodes(path, view, Dynamic):
                     Data += f'<node order="{NodeIndex}" type="folder">\n'
                     Data += f'    <label>{node[1]}</label>\n'
                     Data += f'    <icon>{node[2]}</icon>\n'
-                    Data += '    <path>plugin://plugin.video.emby-next-gen/?libraryname=TV+Shows&mode=nextepisodes</path>\n'
+                    Data += f'    <path>plugin://plugin.video.emby-next-gen/?libraryname={quote(view.get("Name", "unknown"))}&mode=nextepisodes</path>\n'
                     Data += '</node>'
                     utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 

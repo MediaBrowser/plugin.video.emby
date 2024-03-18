@@ -69,7 +69,7 @@ class API:
 
         if 'MediaSources' in PlaybackInfoData and PlaybackInfoData['MediaSources']:
             MediaSourceId = PlaybackInfoData['MediaSources'][0]['Id']
-            LiveStreamId = PlaybackInfoData['MediaSources'][0]['LiveStreamId']
+            LiveStreamId = PlaybackInfoData['MediaSources'][0].get('LiveStreamId', None)
             Container = PlaybackInfoData['MediaSources'][0].get('Container', "")
         else:
             MediaSourceId = None
@@ -242,7 +242,7 @@ class API:
             if not Dynamic and LibraryId and LibraryId != "unknown": # Kodi start updates
                 Found = False
 
-                if Params['IncludeItemTypes'] in ("BoxSet", "MusicArtist", "MusicAlbum", "Genre", "MusicGenre", "Tag", "Person"): # workaround for Emby 4.X version
+                if Params['IncludeItemTypes'] in ("BoxSet", "MusicArtist", "MusicAlbum", "Genre", "MusicGenre", "Tag", "Person", "Studio"): # workaround for Emby 4.X version
                     Params.update({'Recursive': False})
                 elif Params['IncludeItemTypes'] == "Playlist": # workaround for Emby 4.7.X version
                     Params.update({'Recursive': True})

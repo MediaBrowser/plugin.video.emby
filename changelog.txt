@@ -1,3 +1,28 @@
+9.4.19
+=============
+fix Studio sync issue
+fix BoxSet sync issue
+backport MusicAlbum bugfix from 10.X
+fix extracted bluray and dvd playback
+
+
+9.4.18
+=============
+fix sync issue for invalid episodes metadata
+fix nextepisodes synced node
+
+
+9.4.17
+=============
+exclude photos
+fix virtual tv
+
+
+9.4.16
+=============
+fix SesaonId detection by PresentationUniqueKey -> compatibility with 4.9.X Emby server
+
+
 9.4.15
 =============
 fix books and games library issue
