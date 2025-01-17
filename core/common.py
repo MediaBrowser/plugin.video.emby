@@ -946,6 +946,10 @@ def delete_ContentItem(Item, SQLs, KodiType, EmbyType, isSpecial=False):
     return False
 
 def verify_content(Item, MediaType):
+    if 'Name' not in Item:
+        xbmc.log(f"EMBY.core.common: Name not found in Item {Item}", 3) # LOGERROR
+        return False
+
     if 'Path' not in Item:
         xbmc.log(f"EMBY.core.common: Path not found in Item {Item['Id']}", 3) # LOGERROR
         return False

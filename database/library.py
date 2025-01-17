@@ -188,9 +188,12 @@ class Library:
                 xbmc.log("EMBY.database.library: -->[ Kodi companion ]", 1) # LOGINFO
                 result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
 
-                if 'ItemsRemoved' in result and result['ItemsRemoved']:
-                    UpdateSyncData = True
-                    self.removed(result['ItemsRemoved'], True)
+                if 'ItemsRemoved' in result:
+                    if result['ItemsRemoved']:
+                        UpdateSyncData = True
+                        self.removed(result['ItemsRemoved'], True)
+                else:
+                    utils.Dialog.ok(utils.addon_name, utils.Translate(33716))
 
                 xbmc.log("EMBY.database.library: --<[ Kodi companion ]", 1) # LOGINFO
                 ProgressBarTotal = len(self.LibrarySynced) / 100

@@ -423,14 +423,16 @@ class HTTP:
             if ParamsString:
                 ParamsString = f"?{ParamsString[:-1]}"
 
-            StatusCodeSocket, _ = self.socket_io(f"{Method} {self.Connection[ConnectionId]['SubUrl']}{Handler}{ParamsString} HTTP/1.1\r\n{HeaderString}Content-Length: 0\r\n\r\n".encode("utf-8"), ConnectionId, TimeoutSend)
+            Request = f"{Method} {self.Connection[ConnectionId]['SubUrl']}{Handler}{ParamsString} HTTP/1.1\r\n{HeaderString}Content-Length: 0\r\n\r\n"
+            StatusCodeSocket, _ = self.socket_io(Request.encode("utf-8"), ConnectionId, TimeoutSend)
         else:
             if Params:
                 ParamsString = json.dumps(Params)
             else:
                 ParamsString = ""
 
-            StatusCodeSocket, _ = self.socket_io(f"{Method} {self.Connection[ConnectionId]['SubUrl']}{Handler} HTTP/1.1\r\n{HeaderString}Content-Length: {len(ParamsString)}\r\n\r\n{ParamsString}".encode("utf-8"), ConnectionId, TimeoutSend)
+            Request = f"{Method} {self.Connection[ConnectionId]['SubUrl']}{Handler} HTTP/1.1\r\n{HeaderString}Content-Length: {len(ParamsString)}\r\n\r\n{ParamsString}"
+            StatusCodeSocket, _ = self.socket_io(Request.encode("utf-8"), ConnectionId, TimeoutSend)
 
         if StatusCodeSocket:
             return StatusCodeSocket, {}, ""
@@ -459,12 +461,15 @@ class HTTP:
                 continue
 
             IncomingData = IncomingData.split(b'\r\n\r\n', 1) # Split header/payload
-            IncomingMetaData = IncomingData[0].decode("utf-8").split("\r\n")
 
             try:
+                IncomingMetaData = IncomingData[0].decode("utf-8").split("\r\n")
                 StatusCode = int(IncomingMetaData[0].split(" ")[1])
             except Exception as error: # Can happen on Emby server hard reboot
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Undefined error {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Undefined error: {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Binary: {Binary}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Request: {Request}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: IncomingData: {IncomingData}", 3) # LOGERROR
                 return 612, {}, ""
 
             IncomingDataHeaderArray = IncomingMetaData[1:]

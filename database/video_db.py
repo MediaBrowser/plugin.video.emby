@@ -1244,12 +1244,10 @@ class VideoDatabase:
         self.cursor.execute("SELECT playCount FROM files WHERE idFile = ?", (KodiFileId,))
         Data = self.cursor.fetchone()
         CurrentPlayCount = Data[0]
+        self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", (playcount, date_played, KodiFileId))
 
-        if CurrentPlayCount != playcount:
-            self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", (playcount, date_played, KodiFileId))
-
-            if (CurrentPlayCount and playcount and playcount -1 != CurrentPlayCount) or (not playcount and CurrentPlayCount) or (not CurrentPlayCount and playcount):
-                Update = True
+        if (CurrentPlayCount != playcount) and ((CurrentPlayCount and playcount and playcount -1 != CurrentPlayCount) or (not playcount and CurrentPlayCount) or (not CurrentPlayCount and playcount)):
+            Update = True
 
         return Update
 

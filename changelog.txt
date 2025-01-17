@@ -1,3 +1,14 @@
+11.1.21
+=============
+fix shuffle playback session info
+fix lastplayed date updates when playcount was not modified
+update Chinese langague file
+fix sync when a content item has no name (invalid item reported by Emby server)
+fix edge case http communication issue when Emby server connection was inerrupted
+add warning message when Kodi companion addon is not installed on Emby server
+
+
+
 11.1.20
 =============
 fix sync folder removal issue in native mode

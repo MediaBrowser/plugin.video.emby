@@ -3014,3 +3014,7 @@ msgstr "Segui il timeout http"
 msgctxt "#33715"
 msgid "Set local content as default"
 msgstr ""
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr ""
