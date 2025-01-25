@@ -51,6 +51,7 @@ class Studio:
         utils.reset_querycache("Studio")
         xbmc.log(f"EMBY.core.sudio: USERDATA studio [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "studio"}, True)
+        return False
 
     def set_favorite(self, isFavorite, KodiItemId, ImageUrl, EmbyItemId):
         Name, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Studio_Name(KodiItemId)

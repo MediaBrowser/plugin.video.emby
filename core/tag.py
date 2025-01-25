@@ -51,6 +51,7 @@ class Tag:
         utils.reset_querycache("Tag")
         xbmc.log(f"EMBY.core.tag: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "tag"}, True)
+        return False
 
     def set_favorite(self, isFavorite, KodiItemId, ImageUrl, EmbyItemId):
         Name, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Tag_Name(KodiItemId)

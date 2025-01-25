@@ -81,6 +81,8 @@ def CacheAllEntries(urls, ProgressBar):
                 Size = len(ImageBinary)
                 ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': f"d0s{Size}", 'Path': Path, 'cachedUrl': cachedUrl}
 
+            del ImageBinary
+
         Value = int((IndexUrl + 1) / total * 100)
 
         if ProgressBar:

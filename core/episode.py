@@ -31,6 +31,7 @@ class Episode:
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Episode"):
             return False
 
+        common.swap_mediasources(Item)
         common.set_RunTimeTicks(Item)
         common.set_streams(Item)
         common.set_chapters(Item, self.EmbyServer.ServerData['ServerId'])
@@ -99,12 +100,13 @@ class Episode:
     def userdata(self, Item):
         common.set_playstate(Item)
         common.set_RunTimeTicks(Item)
-        self.SQLs["video"].update_bookmark_playstate(Item['KodiFileId'], Item['KodiPlayCount'], Item['KodiLastPlayedDate'], Item['KodiPlaybackPositionTicks'], Item['KodiRunTimeTicks'])
+        Update = self.SQLs["video"].update_bookmark_playstate(Item['KodiFileId'], Item['KodiPlayCount'], Item['KodiLastPlayedDate'], Item['KodiPlaybackPositionTicks'], Item['KodiRunTimeTicks'])
         self.set_favorite(Item['IsFavorite'], Item['KodiFileId'], Item['KodiItemId'], Item['Id'])
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Episode")
         utils.reset_querycache("Episode")
         xbmc.log(f"EMBY.core.episode: USERDATA [{Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "episode"}, True)
+        return Update
 
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons

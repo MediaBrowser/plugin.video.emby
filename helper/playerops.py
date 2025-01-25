@@ -97,7 +97,7 @@ def GetActivePlayer():
     return False
 
 def PlayPlaylistItem(PlaylistId, Index):
-    utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": true}}   }},"id":1}}')
+    utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": false}}   }},"id":1}}')
     globals()['PlayerId'] = PlaylistId
 
 def AddSubtitle(Path):
@@ -197,10 +197,10 @@ def TicksToTimestamp(Ticks, TimeStamp):
     Ticks = float(Ticks)
 
     if TimeStamp:
-        DeltaTime = (utils.get_unixtime_emby_format() - float(TimeStamp)) * 10000
+        DeltaTime = (utils.get_unixtime_emby_format() - float(TimeStamp))
+        xbmc.log(f"EMBY.helper.playerops: DeltaTime: {DeltaTime}ms", 1) # LOGINFO
         Ticks += DeltaTime
 
-    xbmc.log(f"EMBY.helper.playerops: Seek DeltaTime: {DeltaTime}", 1) # LOGINFO
     return int((Ticks / 36000000000) % 24), int((Ticks / 600000000) % 60), int((Ticks / 10000000) % 60), int((Ticks / 10000) % 1000), round(Ticks)  # Hours / Minutes / Seconds / Milliseconds / Ticks
 
 def Seek(SeekPositionTicksQuery, isRemote=False, TimeStamp=0, Relative=False):
@@ -261,8 +261,10 @@ def PlayBackPositionExact():
             if PlaybackPositionCompare == PlaybackPosition:
                 return PlaybackPosition
         else:
-            if PlaybackPosition - 7000000 < PlaybackPositionCompare and PlaybackPosition != PlaybackPositionCompare: # Allow 500ms delta
-                xbmc.log("EMBY.helper.playerops: Exact playback position found", 2) # LOGWARNING
+            Delta = PlaybackPosition - PlaybackPositionCompare
+
+            if PlaybackPosition and -7000000 < Delta < 7000000: # Allow 500ms delta
+                xbmc.log("EMBY.helper.playerops: Exact playback position found", 0) # LOGDEBUG
                 return PlaybackPosition
 
         if utils.sleep(0.2):

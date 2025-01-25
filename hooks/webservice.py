@@ -16,13 +16,12 @@ BlankWAV = b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x1
 sendBlankWAV = ('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 45\r\nContent-type: audio/wav\r\n\r\n'.encode(), BlankWAV) # used to "stop" playback by sending a WAV file with silence. File is valid, so Kodi will not raise an error message
 TrailerInitItem = ["", None] # payload/listitem of the trailer initiated content item
 Cancel = False
-ArtworkCache = [0, {}] # total cached size / {HTTP parameters, [binary data, item size]}
 Running = False
 Socket = None
 KeyBoard = xbmc.Keyboard()
 DelayedContent = {}
-ArtworkCacheLock = allocate_lock()
 DelayedContentLock = allocate_lock()
+EmbyIdCurrentlyPlaying = 0
 
 def start():
     if not Running:
@@ -68,7 +67,7 @@ def Listen():
 
         utils.start_thread(worker_Query, (fd,))
 
-    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 1) # LOGDEBUG
+    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 0) # LOGDEBUG
 
 def worker_Query(fd):  # thread by caller
     xbmc.log("EMBY.hooks.webservice: THREAD: --->[ worker_Query ]", 0) # LOGDEBUG
@@ -210,8 +209,15 @@ def worker_Query(fd):  # thread by caller
             return
 
         # no delay
+        params = args[2]
+
+        if params.endswith("/&reload="):
+            params = params[:-9]
+        elif params.endswith("/"):
+            params = params[:-1]
+
         Handle = args[1]
-        params = dict(parse_qsl(args[2][1:]))
+        params = dict(parse_qsl(params[1:]))
         mode = params.get('mode', "")
         ServerId = params.get('server', "")
 
@@ -302,6 +308,8 @@ def worker_Query(fd):  # thread by caller
 
             if query:
                 pluginmenu.browse(Handle, params.get('id'), query, params.get('parentid'), params.get('content'), ServerId, params.get('libraryid'), params.get('contentsupported', ""))
+        elif mode == 'playlist':
+            pluginmenu.get_playlist(Handle, ServerId, params['mediatype'], params.get('id', ""))
         elif mode == 'nextepisodes':
             pluginmenu.get_next_episodes(Handle, params['libraryname'])
         elif mode == 'nextepisodesplayed':
@@ -336,6 +344,8 @@ def worker_Query(fd):  # thread by caller
         client.send(sendOK)
 
     client.close()
+    del client
+    del IncomingData
     xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ]", 0) # LOGDEBUG
 
 def LoadISO(QueryData, client): # native content
@@ -435,7 +445,7 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
         Data = PayloadMod[PayloadMod.rfind("/") + 1:].split("-") # MetaData
         ServerId = PayloadSplit[2]
         EmbyId = Data[1]
-        MediaSources = [[{'Id': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': bytes.fromhex(Data[3]).decode('utf-8')}, [], [], []]]
+        MediaSources = [[{'Id': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': ""}, [], [], []]]
     else:
         EmbyId = PayloadSplit[-3]
         ServerId = PayloadSplit[-6]
@@ -592,47 +602,20 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
         return
 
     if QueryData['Type'] == 'picture':
-        ArtworkCacheLock.acquire()
+        xbmc.log(f"EMBY.hooks.webservice: Load artwork data into cache: {Payload}", 0) # LOGDEBUG
 
-        if Payload not in ArtworkCache[1]:
-            ArtworkCacheLock.release()
-            xbmc.log(f"EMBY.hooks.webservice: Load artwork data into cache: {Payload}", 0) # LOGDEBUG
+        if add_DelayedContent(QueryData, client):
+            return
 
-            if add_DelayedContent(QueryData, client):
-                return
+        xbmc.log(f"EMBY.hooks.webservice: Load artwork data from Emby: {Payload}", 0) # LOGDEBUG
 
-            xbmc.log(f"EMBY.hooks.webservice: Load artwork data from Emby: {Payload}", 0) # LOGDEBUG
-
-            # Remove items from artwork cache if mem is over 100MB
-            if ArtworkCache[0] > 100000000:
-                with ArtworkCacheLock:
-                    for PayloadId, ArtworkCacheData in list(ArtworkCache[1].items()):
-                        globals()['ArtworkCache'][0] -= ArtworkCacheData[2]
-                        del globals()['ArtworkCache'][1][PayloadId]
-                        xbmc.log(f"EMBY.hooks.webservice: Remove artwork data from cache: {Payload}", 0) # LOGDEBUG
-
-                        if ArtworkCache[0] < 100000000:
-                            break
-
-            if not QueryData['Overlay']:
-                BinaryData, ContentType, _ = utils.EmbyServers[QueryData['ServerId']].API.get_Image_Binary(QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['ImageTag'])
-            else:
-                BinaryData, ContentType = utils.image_overlay(QueryData['ImageTag'], QueryData['ServerId'], QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['Overlay'])
-
-            with ArtworkCacheLock:
-                ContentSize = len(BinaryData)
-                globals()["ArtworkCache"][0] += ContentSize
-                globals()["ArtworkCache"][1][Payload] = (f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {ContentSize}\r\nContent-Type: {ContentType}\r\n\r\n".encode(), BinaryData, ContentSize)
-                del BinaryData
-
-            set_DelayedContent(QueryData['Payload'], ArtworkCache[1][Payload][0] + ArtworkCache[1][Payload][1])
-            xbmc.log(f"EMBY.hooks.webservice: Loaded Delayed Content for {Payload}", 0) # LOGDEBUG
+        if not QueryData['Overlay']:
+            BinaryData, ContentType, _ = utils.EmbyServers[QueryData['ServerId']].API.get_Image_Binary(QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['ImageTag'])
         else:
-            toSend = ArtworkCache[1][Payload][0] + ArtworkCache[1][Payload][1]
-            ArtworkCacheLock.release()
-            xbmc.log(f"EMBY.hooks.webservice: Load artwork data from cache: {Payload}", 0) # LOGDEBUG
-            client.send(toSend)
+            BinaryData, ContentType = utils.image_overlay(QueryData['ImageTag'], QueryData['ServerId'], QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['Overlay'])
 
+        set_DelayedContent(QueryData['Payload'], f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(BinaryData)}\r\nContent-Type: {ContentType}\r\n\r\n".encode() + BinaryData)
+        xbmc.log(f"EMBY.hooks.webservice: Loaded Delayed Content for {Payload}", 0) # LOGDEBUG
         return
 
     if QueryData['Type'] == 'audio':
@@ -642,6 +625,7 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
         return
 
     playerops.PlayerId = 1
+    globals()['EmbyIdCurrentlyPlaying'] = QueryData['EmbyId']
 
     if QueryData['Type'] == 'tvchannel':
         MediasourceId, LiveStreamId, PlaySessionId, Container = utils.EmbyServers[QueryData['ServerId']].API.open_livestream(QueryData['EmbyId'])
@@ -757,7 +741,9 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
         return
 
     # Autoselect mediasource by highest resolution
-    if utils.AutoSelectHighestResolution:
+    if utils.SelectDefaultVideoversion:
+        QueryData['SelectionIndexMediaSource'] = 0
+    elif utils.AutoSelectHighestResolution:
         HighestResolution = 0
         QueryData['SelectionIndexMediaSource'] = 0
 
@@ -823,10 +809,15 @@ def SubTitlesAdd(QueryData):
 
             BinaryData = utils.EmbyServers[QueryData['ServerId']].API.get_Subtitle_Binary(QueryData['EmbyId'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id'], Subtitle['Index'], Subtitle['Codec'])
 
+            if QueryData['EmbyId'] != EmbyIdCurrentlyPlaying: # check if Kodi is still playing the same file
+                del BinaryData
+                return
+
             if BinaryData:
                 SubtitleCodec = Subtitle['Codec']
                 Path = f"{utils.FolderEmbyTemp}{utils.valid_Filename(f'{CounterSubTitle}.{SubtileLanguage}.{SubtitleCodec}')}"
                 utils.writeFileBinary(Path, BinaryData)
+                del BinaryData
 
                 if DefaultVideoSettings["SubtitlesLanguage"].lower() in Subtitle['DisplayTitle'].lower():
                     DefaultSubtitlePath = Path

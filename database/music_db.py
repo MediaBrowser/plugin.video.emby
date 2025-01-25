@@ -1,4 +1,3 @@
-from urllib.parse import quote, unquote
 import xbmc
 from helper import utils
 from . import common_db
@@ -396,27 +395,6 @@ class MusicDatabase:
     # Path
     def delete_path(self, KodiPath):
         self.cursor.execute("DELETE FROM path WHERE strPath = ?", (KodiPath,))
-
-    def toggle_path(self, OldPath, NewPath):
-        PathSubstitution = NewPath.startswith("/emby_addon_mode/")
-        self.cursor.execute("SELECT idSong, strFileName FROM song")
-        FileNames = self.cursor.fetchall()
-
-        for FileName in FileNames:
-            if not PathSubstitution:
-                FileNameNew = quote(FileName[1])
-            else:
-                FileNameNew = unquote(FileName[1])
-
-            self.cursor.execute("UPDATE song SET strFileName = ? WHERE idSong = ?", (FileNameNew, FileName[0]))
-
-        self.cursor.execute("SELECT idPath, strPath FROM path")
-        Pathes = self.cursor.fetchall()
-
-        for Path in Pathes:
-            if Path[1].startswith(OldPath):
-                PathMod = Path[1].replace(OldPath, NewPath)
-                self.cursor.execute("UPDATE path SET strPath = ? WHERE idPath = ?", (PathMod, Path[0]))
 
     def get_add_path(self, strPath):
         self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (strPath,))

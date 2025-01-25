@@ -192,7 +192,9 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (KodiFileId,))
         self.cursor.execute("DELETE FROM movielinktvshow WHERE idMovie = ?", (KodiItemId,))
         self.cursor.execute("DELETE FROM videoversion WHERE idFile = ?", (KodiFileId,))
-        self.cursor.execute("DELETE FROM path WHERE idPath = ?", (KodiPathId,))
+
+#        if KodiPathId:
+#            self.cursor.execute("DELETE FROM path WHERE idPath = ?", (KodiPathId,))
 
     def get_movie_metadata_for_listitem(self, KodiItemId, PathAndFilename):
         self.cursor.execute("SELECT * FROM movie_view WHERE idMovie = ?", (KodiItemId,))
@@ -244,7 +246,9 @@ class VideoDatabase:
     def delete_musicvideos(self, KodiItemId, KodiFileId, KodiPathId):
         self.cursor.execute("DELETE FROM musicvideo WHERE idMVideo = ?", (KodiItemId,))
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (KodiFileId,))
-        self.cursor.execute("DELETE FROM path WHERE idPath = ?", (KodiPathId,))
+
+#        if KodiPathId:
+#            self.cursor.execute("DELETE FROM path WHERE idPath = ?", (KodiPathId,))
 
     def get_musicvideos_metadata_for_listitem(self, KodiItemId, PathAndFilename):
         self.cursor.execute("SELECT * FROM musicvideo_view WHERE idMVideo = ?", (KodiItemId,))
@@ -740,9 +744,13 @@ class VideoDatabase:
         self.cursor.execute("SELECT idFile FROM videoversion WHERE idMedia = ? AND media_type = ?", (KodiItemId, KodiType))
         return self.cursor.fetchall()
 
-    def delete_videoversion(self, KodiFileId):
-        self.cursor.execute("DELETE FROM videoversion WHERE idFile = ?", (KodiFileId,))
-        self.cursor.execute("DELETE FROM files WHERE idFile = ?", (KodiFileId,))
+    def delete_videoversion(self, KodiItemId, KodiType):
+        self.cursor.execute("SELECT idFile FROM videoversion WHERE idMedia = ? AND media_type = ?", (KodiItemId, KodiType))
+        KodiFileIdsRef = self.cursor.fetchall()
+        self.cursor.execute("DELETE FROM videoversion WHERE idMedia = ? AND media_type = ?", (KodiItemId, KodiType))
+
+        for KodiFileIdRef in KodiFileIdsRef:
+            self.cursor.execute("DELETE FROM files WHERE idFile = ?", (KodiFileIdRef[0],))
 
     # people
     def add_person(self, PersonName, ArtUrl):
@@ -1212,12 +1220,36 @@ class VideoDatabase:
         if PlaybackPositionTicks:
             self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?)", (KodiFileId, PlaybackPositionTicks, RunTimeTicks, "VideoPlayer", 1))
 
-    def update_bookmark_playstate(self, KodiFileId, playcount, date_played, resume, Runtime):
-        self.cursor.execute("DELETE FROM bookmark WHERE idFile = ? AND type = ?", (KodiFileId, "1"))
+    def update_bookmark_playstate(self, KodiFileId, playcount, date_played, Progress, Runtime):
+        Update = False
+
+        self.cursor.execute("SELECT timeInSeconds FROM bookmark WHERE idFile = ? AND type = ?", (KodiFileId, "1"))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            CurrentProgress = Data[0]
+
+            if Progress:
+                if CurrentProgress != Progress:
+                    self.cursor.execute("UPDATE bookmark SET timeInSeconds = ?, totalTimeInSeconds = ? WHERE idFile = ?", (Progress, Runtime, KodiFileId))
+                    Update = True
+            else:
+                self.cursor.execute("DELETE FROM bookmark WHERE idFile = ? AND type = ?", (KodiFileId, "1"))
+                Update = True
+        elif Progress:
+            Update = True
+            self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?)", (KodiFileId, Progress, Runtime, "VideoPlayer", 1))
+
+        # Update playcounter and last played date
+        self.cursor.execute("SELECT playCount FROM files WHERE idFile = ?", (KodiFileId,))
+        Data = self.cursor.fetchone()
+        CurrentPlayCount = Data[0]
         self.cursor.execute("UPDATE files SET playCount = ?, lastPlayed = ? WHERE idFile = ?", (playcount, date_played, KodiFileId))
 
-        if resume:
-            self.cursor.execute("INSERT INTO bookmark(idFile, timeInSeconds, totalTimeInSeconds, player, type) VALUES (?, ?, ?, ?, ?)", (KodiFileId, resume, Runtime, "VideoPlayer", 1))
+        if (CurrentPlayCount != playcount) and ((CurrentPlayCount and playcount and playcount -1 != CurrentPlayCount) or (not playcount and CurrentPlayCount) or (not CurrentPlayCount and playcount)):
+            Update = True
+
+        return Update
 
     # countries
     def delete_links_countries(self, Media_id, media_type):

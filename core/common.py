@@ -265,11 +265,11 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
     else:
         if Item['Type'] == "Audio": # Do NOT use different pathes for Audio content, a Kodi audio scan would take very long -> Kodi audio scan does not respect the directory paramerter -> jsonrpc AudioLibrary.Scan
             if MediaSourcesLocal and "Id" in MediaSourcesLocal[0]:
-                Item['KodiFilename'] = f"a-{Item['Id']}-{MediaSourcesLocal[0]['Id']}-{base64.b16encode(Item['KodiPath'].encode('utf-8')).decode('utf-8')}-{Item['KodiFilename']}"
+                Item['KodiFilename'] = f"a-{Item['Id']}-{MediaSourcesLocal[0]['Id']}-{base64.b16encode(Item['KodiPath'].encode('utf-8')).decode('utf-8')}-{quote(Item['KodiFilename'].replace('-', '_'))}"
             else:
-                Item['KodiFilename'] = f"a-{Item['Id']}--{base64.b16encode(Item['KodiPath'].encode('utf-8')).decode('utf-8')}-{Item['KodiFilename']}"
+                Item['KodiFilename'] = f"a-{Item['Id']}--{base64.b16encode(Item['KodiPath'].encode('utf-8')).decode('utf-8')}-{quote(Item['KodiFilename'].replace('-', '_'))}"
 
-            Item['KodiPath'] = f"{utils.AddonModePath}{Dynamic}audio/{ServerId}/{Item['LibraryId']}/0/"
+            Item['KodiPath'] = f"http://127.0.0.1:57342/{Dynamic}audio/{ServerId}/{Item['LibraryId']}/0/"
         elif Item['Type'] in EmbyTypeMappingShort:
             HasSpecials = ""
             MediaID = EmbyTypeMappingShort[Item['Type']]
@@ -377,7 +377,8 @@ def set_multipart(Item, EmbyServer):
             Item['KodiPath'] = utils.AddonModePath
 
 def set_streams(Item):
-    if 'MediaSources' not in Item:
+    if 'MediaSources' not in Item or not Item['MediaSources']:
+        xbmc.log(f"EMBY.core.common: set_streams -> Mediasources not found: {Item['Name']}", 0) # LOGDEBUG
         return
 
     # Sort mediasources -> core infos must reference first mediasource
@@ -902,7 +903,7 @@ def set_MusicVideoTracks(Item):
         if Track.isdigit():
             Item['IndexNumber'] = int(Track)  # remove leading zero e.g. 01
 
-def delete_ContentItemReferences(Item, SQLs, KodiType, isMultiversion=False):
+def delete_ContentItemReferences(Item, SQLs, KodiType, isSpecial=False):
     KodiLibraryTagIds = SQLs["emby"].get_KodiLibraryTagIds()
     SQLs["video"].delete_links_actors(Item['KodiItemId'], KodiType)
     SQLs["video"].delete_links_director(Item['KodiItemId'], KodiType)
@@ -921,8 +922,8 @@ def delete_ContentItemReferences(Item, SQLs, KodiType, isMultiversion=False):
     if KodiType == "movie":
         SQLs["video"].common_db.delete_artwork(Item['KodiFileId'], "videoversion") # delete videoversions artwork
 
-        if isMultiversion:
-            SQLs["video"].delete_videoversion(Item['KodiFileId'])
+        if isSpecial:
+            SQLs["video"].delete_videoversion(Item['KodiItemId'], KodiType)
         else:
             SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(Item['KodiItemId'], Item['KodiFileId'], KodiType) # delete videoversions
 
@@ -937,14 +938,18 @@ def set_VideoCommon(Item, SQLs, KodiType):
     if "KodiStackTimes" in Item:
         SQLs["video"].add_stacktimes(Item['KodiFileId'], Item['KodiStackTimes'])
 
-def delete_ContentItem(Item, SQLs, KodiType, EmbyType, isMultiversion=False):
+def delete_ContentItem(Item, SQLs, KodiType, EmbyType, isSpecial=False):
     if SQLs['emby'].remove_item(Item['Id'], EmbyType, Item['LibraryId']):
-        delete_ContentItemReferences(Item, SQLs, KodiType, isMultiversion)
+        delete_ContentItemReferences(Item, SQLs, KodiType, isSpecial)
         return True
 
     return False
 
 def verify_content(Item, MediaType):
+    if 'Name' not in Item:
+        xbmc.log(f"EMBY.core.common: Name not found in Item {Item}", 3) # LOGERROR
+        return False
+
     if 'Path' not in Item:
         xbmc.log(f"EMBY.core.common: Path not found in Item {Item['Id']}", 3) # LOGERROR
         return False
@@ -1263,3 +1268,22 @@ def update_downloaded_info(Item, SQLs):
         Item['KodiSortName'] = Item["SortName"]
 
     return False
+
+def swap_mediasources(Item):
+    if utils.SyncLocalOverPlugins:
+        if len(Item.get('MediaSources', [])) > 1:
+            for DefaultIndex, Mediasource in enumerate(Item['MediaSources']):
+                if Mediasource['Type'] == "Default":
+                    if Mediasource['Path'].startswith("plugin://"):
+                        if 'ItemId' not in Mediasource:
+                            return
+
+                        for Mediasource in Item['MediaSources']:
+                            if not Mediasource['Path'].startswith("plugin://"):
+                                Item['MediaSources'][DefaultIndex]['Type'] = Mediasource['Type']
+                                Mediasource['Type'] = "Default"
+                                Item['Id'] = Mediasource['ItemId']
+                                xbmc.log(f"EMBY.core.common: Swap mediasources by plugin path: {Item['Id']}", 1) # LOGINFO
+                                break
+
+                        break

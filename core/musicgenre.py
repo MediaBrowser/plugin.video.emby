@@ -142,6 +142,7 @@ class MusicGenre:
         xbmc.log(f"EMBY.core.genre: USERDATA genre [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "MusicGenre")
         utils.reset_querycache("MusicGenre")
+        return False
 
     def set_favorite(self, isFavorite, KodiDB, KodiItemId, ImageUrl, EmbyItemId):
         if KodiDB == "music":

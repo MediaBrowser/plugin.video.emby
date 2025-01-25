@@ -8,6 +8,7 @@ from helper import utils, playerops, queue
 from dialogs import skipintrocredits
 
 XbmcPlayer = xbmc.Player()  # Init Player
+TrackerPaused = False
 SkipItem = ()
 TrailerStatus = "READY"
 PlaylistRemoveItem = -1
@@ -28,7 +29,8 @@ PlayingItem = [{}, 0, 0, 0, None, 0, "", ""] # EmbySessionData (QueuedPlayingIte
 QueuedPlayingItem = []
 MultiselectionDone = False
 playlistIndex = -1
-PlayBackEnded = True
+EmbyPlaying = False
+PlaybackEndedForced = False
 SkipIntroJumpDone = False
 SkipCreditsJumpDone = False
 TasksRunning = []
@@ -44,30 +46,47 @@ def PlayerCommands():
 
     while True:
         Commands = PlayerEventsQueue.get()
-        PlayerBusy()
         xbmc.log(f"EMBY.hooks.player: playercommand received: {Commands}", 0) # LOGDEBUG
 
         if Commands == "QUIT":
             xbmc.log("EMBY.hooks.player: THREAD: ---<[ player commands ] quit", 0) # LOGDEBUG
             return
 
-        if Commands[0] == "seek":
+        PlayerBusy()
+
+        if Commands[0] == "seek": # {'item': {'id': 33874, 'type': 'episode'}, 'player': {'playerid': 1, 'seekoffset': {'hours': 0, 'milliseconds': 177, 'minutes': 41, 'seconds': 56}, 'speed': 1, 'time': {'hours': 0, 'milliseconds': 550, 'minutes': 47, 'seconds': 3}}}
+            # Seekposition might not be exact. Don't use it as critical data e.g. do not use for remote playback seek, but good enough for the progress updates
             xbmc.log("EMBY.hooks.player: [ onSeek ]", 1) # LOGINFO
             EventData = json.loads(Commands[1])
             xbmc.log(f"EMBY.hooks.player: [ onSeek ] {EventData}", 0) # LOGDEBUG
             set_PlayerId(EventData)
 
-            if not PlayingItem[0] or 'RunTimeTicks' not in PlayingItem[0]:
+            if not PlayingItem[0]:
                 playerops.RemoteCommand(None, None, "seek")
                 continue
 
             if 'player' in EventData and 'time' in EventData['player']:
-                PositionTicks = (EventData['player']['time']['hours'] * 3600000 + EventData['player']['time']['minutes'] * 60000 + EventData['player']['time']['seconds'] * 1000 + EventData['player']['time']['milliseconds']) * 10000
+                PlayingItem[0]['PositionTicks'] = (EventData['player']['time']['hours'] * 3600000 + EventData['player']['time']['minutes'] * 60000 + EventData['player']['time']['seconds'] * 1000 + EventData['player']['time']['milliseconds']) * 10000
 
-                if int(PlayingItem[0]['RunTimeTicks']) < PositionTicks:
+                # Workaround for Kodi bug seekposition higher than runtime
+                if 'RunTimeTicks' in PlayingItem[0] and int(PlayingItem[0]['RunTimeTicks']) < PlayingItem[0]['PositionTicks']:
                     PlayingItem[0]['PositionTicks'] = PlayingItem[0]['RunTimeTicks']
-                else:
-                    PlayingItem[0]['PositionTicks'] = PositionTicks
+                    PlaylistPosition = playerops.GetPlayerPosition(EventData['player']['playerid'])
+                    globals()['PlaybackEndedForced'] = True
+                    playerops.Stop(False, EventData['player']['playerid'])
+                    PlaylistSize = playerops.GetPlaylistSize(EventData['player']['playerid'])
+                    PlaylistPosition += 1
+
+                    if TrailerStatus != "PLAYING" and PlaylistPosition < PlaylistSize:
+                        playerops.PlayPlaylistItem(EventData['player']['playerid'], PlaylistPosition)
+
+                        if EventData['player']['playerid'] == 1:
+                            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')  # focus videoplayer
+
+                    continue
+
+                globals()["TrackerPaused"] = True
+                PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "TimeUpdate", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
 
             playerops.AVChange = False
 
@@ -78,12 +97,8 @@ def PlayerCommands():
             EventData = json.loads(Commands[1])
             xbmc.log(f"EMBY.hooks.player: [ onAVChange ] {EventData}", 0) # LOGDEBUG
             set_PlayerId(EventData)
-
-            if PlayingItem[0]:
-                globals()["PlayingItem"][0]['PositionTicks'] = playerops.PlayBackPosition()
-
             playerops.AVChange = True
-        elif Commands[0] == "avstart":
+        elif Commands[0] == "avstart": # ('avstart', '{"item":{"id":33874,"type":"episode"},"player":{"playerid":1,"speed":1}}')
             xbmc.log("EMBY.hooks.player: --> [ onAVStarted ]", 1) # LOGINFO
             EventData = json.loads(Commands[1])
             xbmc.log(f"EMBY.hooks.player: [ onAVStarted ] {EventData}", 0) # LOGDEBUG
@@ -250,7 +265,7 @@ def PlayerCommands():
                     VideoStreams = embydb.get_videostreams(EmbyId)
                     dbio.DBCloseRO(ServerId, "onAVStarted")
 
-                    if len(MediaSources) > 1 and not utils.RemoteMode:
+                    if len(MediaSources) > 1 and not utils.RemoteMode and not utils.SelectDefaultVideoversion:
                         if KodiType == "movie":
                             globals()["QueuedPlayingItem"][7] = "" # disable delete after watched option for multicontent
                         else:
@@ -310,7 +325,7 @@ def PlayerCommands():
 
             # Load playback data
             load_queuePlayingItem()
-            globals().update({"PlayBackEnded": False, "PlayingItem": QueuedPlayingItem, "QueuedPlayingItem": []})
+            globals().update({"EmbyPlaying": True, "PlayingItem": QueuedPlayingItem, "QueuedPlayingItem": []})
             init_EmbyPlayback(KodiType, RunTimeTicks, PositionTicks, PlaylistPosition)
             xbmc.log("EMBY.hooks.player: --< [ onAVStarted ]", 1) # LOGINFO
         elif Commands[0] == "play": # {"item":{"id":216,"type":"episode"},"player":{"playerid":1,"speed":1}}
@@ -322,7 +337,7 @@ def PlayerCommands():
             if not utils.syncduringplayback or playerops.WatchTogether:
                 utils.SyncPause['playing'] = True
 
-            if not PlayBackEnded:
+            if EmbyPlaying:
                 xbmc.log("EMBY.hooks.player: [ Playback was not stopped ]", 1) # LOGINFO
                 stop_playback(True, False)
         elif Commands[0] == "pause":
@@ -362,9 +377,10 @@ def PlayerCommands():
 
                 globals()["PlayingItem"][0]['IsPaused'] = False
                 PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "Unpause", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                globals()["TrackerPaused"] = True
 
             xbmc.log("EMBY.hooks.player: --<[ paused ]", 0) # LOGDEBUG
-        elif Commands[0] == "stop":
+        elif Commands[0] == "stop": # {'end': True, 'item': {'id': 33874, 'type': 'episode'}}
             xbmc.log("EMBY.hooks.player: [ onPlayBackStopped ]", 1) # LOGINFO
             EventData = json.loads(Commands[1])
             xbmc.log(f"EMBY.hooks.player: [ onPlayBackStopped ] {EventData}", 0) # LOGDEBUG
@@ -385,7 +401,8 @@ def PlayerCommands():
 
             if EventData['end'] == "quit":
                 stop_playback(False, False)
-            elif EventData['end']: # finished play and play next playlist item: {"end":true,"item":{"id":215,"type":"episode"}}
+            elif EventData['end'] or PlaybackEndedForced: # finished play and play next playlist item: {"end":true,"item":{"id":215,"type":"episode"}}
+                globals()['PlaybackEndedForced'] = False
                 stop_playback(True, True)
             else: # stopped in playlist: '{"end":false,"item":{"id":215,"type":"episode"}}'; play next item but playlist is at the end: '{"end":false,"item":{"type":"unknown"}}
                 stop_playback(True, False)
@@ -401,6 +418,7 @@ def PlayerCommands():
             globals()["PlayingItem"][0].update({'VolumeLevel': Volume, 'IsMuted': Muted})
 
             if PlayingItem[4]:
+                globals()["TrackerPaused"] = True
                 PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "VolumeChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "propertychanged":
             EventData = json.loads(Commands[1])
@@ -414,6 +432,7 @@ def PlayerCommands():
                     globals()["PlayingItem"][0].update({'RepeatMode': RepeatMode[playerops.PlayerId]})
 
                 if PlayingItem[4]:
+                    globals()["TrackerPaused"] = True
                     PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "RepeatModeChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
             elif "shuffled" in EventData['property']:
                 Shuffle = EventData['property']['shuffled']
@@ -424,6 +443,7 @@ def PlayerCommands():
                     globals()["PlayingItem"][0].update({'Shuffle': Shuffled[playerops.PlayerId]})
 
                 if PlayingItem[4]:
+                    globals()["TrackerPaused"] = True
                     PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "ShuffleChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "speedchanged": # {"item":{"id":215,"type":"episode"},"player":{"playerid":1,"speed":2}}
             EventData = json.loads(Commands[1])
@@ -435,18 +455,21 @@ def PlayerCommands():
                 globals()["PlayingItem"][0].update({'PlaybackRate': PlaybackRate[playerops.PlayerId]})
 
             if PlayingItem[4]:
+                globals()["TrackerPaused"] = True
                 PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "PlaybackRateChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "clear": # '{"playlistid":1}'
             EventData = json.loads(Commands[1])
             globals()['PlaylistKodi'][EventData['playlistid']] = []
 
             if PlayingItem[4]:
+                globals()["TrackerPaused"] = True
                 PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "PlaylistItemRemove", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "remove": # '{"playlistid":1,"position":0}'
             EventData = json.loads(Commands[1])
             del globals()['PlaylistKodi'][EventData['playlistid']][EventData['position']]
 
             if PlayingItem[4]:
+                globals()["TrackerPaused"] = True
                 PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "PlaylistItemRemove", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "add": # unsyncd video = '{"item":{"id":1000018721,"type":"episode"},"playlistid":1,"position":0}'; synced video = '{"item":{"id":4268,"type":"episode"},"playlistid":1,"position":2}'; unsynced music = {"item":{"id":1000073262,"type":"song"},"playlistid":0,"position":0}; unsynced music external played e.g. via favorites'{"item":{"album":"Bella stella","artist":["Highland"],"title":"Bella stella","track":1,"type":"song"},"playlistid":0,"position":0}'; synced music = '{"item":{"id":233155,"type":"song"},"playlistid":0,"position":0}')
             EventData = json.loads(Commands[1])
@@ -469,9 +492,10 @@ def parse_repeat(Data):
 
     return "RepeatNone"
 
-def stop_playback(delete, PlayTrailer):
+def stop_playback(delete, PlaybackEnded):
     xbmc.log(f"EMBY.hooks.player: [ played info ] {PlayingItem}", 0) # LOGDEBUG
     PlayingItemLocal = PlayingItem.copy()
+    globals()["TrackerPaused"] = False
     PlaybackRate[playerops.PlayerId] = 1.0
 
     if MultiselectionDone:
@@ -482,12 +506,16 @@ def stop_playback(delete, PlayTrailer):
         xbmc.log("EMBY.hooks.player: stop_playback no PlayingItemLocal", 2) # LOGWARNING
         return
 
-    globals().update({"PlayBackEnded": True, "PlayingItem": [{}, 0, 0, 0, None, 0, "", ""]})
+    globals().update({"EmbyPlaying": False, "PlayingItem": [{}, 0, 0, 0, None, 0, "", ""]})
+
+    if PlaybackEnded and PlayingItemLocal[0]['RunTimeTicks']:
+        PlayingItemLocal[0]['PositionTicks'] = PlayingItemLocal[0]['RunTimeTicks']
+
     PlaylistEmby[PlayingItem[5]] = PlayingItemLocal[4].API.session_stop(PlayingItemLocal[0], PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
     close_SkipIntroDialog()
     close_SkipCreditsDialog()
 
-    if PlayTrailer and TrailerStatus == "PLAYING":
+    if PlaybackEnded and TrailerStatus == "PLAYING":
         if not PlayingItemLocal[4].http.Intros:
             PlayingItemLocal[4].http.Intros = []
             globals()["TrailerStatus"] = "CONTENT"
@@ -550,10 +578,14 @@ def PositionTracker():
 
     while PlayingItem[0] and not utils.SystemShutdown:
         if not utils.sleep(1):
-            if PlayBackEnded or not PlayingItem[0]:
+            if not EmbyPlaying or not PlayingItem[0]:
                 break
 
             Position = int(playerops.PlayBackPosition())
+
+            if Position == 0:
+                continue
+
 
             if Position == -1:
                 break
@@ -594,9 +626,13 @@ def PositionTracker():
                     close_SkipCreditsDialog()
 
             if LoopCounter % 10 == 0 and PlayingItem[4]: # modulo 10
-                globals()["PlayingItem"][0]['PositionTicks'] = Position
-                xbmc.log(f"EMBY.hooks.player: PositionTracker: Report progress {PlayingItem[0]['PositionTicks']}", 0) # LOGDEBUG
-                PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "TimeUpdate", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                if not TrackerPaused:
+                    globals()["PlayingItem"][0]['PositionTicks'] = Position
+                    xbmc.log(f"EMBY.hooks.player: PositionTracker: Report progress {PlayingItem[0]['PositionTicks']}", 0) # LOGDEBUG
+                    PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "TimeUpdate", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                else:
+                    globals()["TrackerPaused"] = False
+
                 LoopCounter = 0
 
             LoopCounter += 1
@@ -611,6 +647,7 @@ def jump_Intro():
         playerops.Seek(PlayingItem[2])
         globals()["PlayingItem"][0]['PositionTicks'] = PlayingItem[2]
         globals()["SkipIntroJumpDone"] = True
+        globals()["TrackerPaused"] = True
         PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "TimeUpdate", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
     else:
         xbmc.log(f"EMBY.hooks.player: Skip intro jump error: {PlayingItem}", 3) # LOGERROR
@@ -849,13 +886,13 @@ def init_EmbyPlayback(KodiType, RunTimeTicks, PositionTicks, PlaylistPosition):
 
 Ret = utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "Player.GetProperties", "params": {"playerid": 0, "properties": ["repeat", "shuffled"]}}', False).get('result', {})
 RepeatMode[0] = parse_repeat(Ret.get("repeat", "off"))
-Shuffled[0] = parse_repeat(Ret.get("shuffled", False))
+Shuffled[0] = Ret.get("shuffled", False)
 Ret = utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "Player.GetProperties", "params": {"playerid": 1, "properties": ["repeat", "shuffled"]}}', False).get('result', {})
 RepeatMode[1] = parse_repeat(Ret.get("repeat", "off"))
-Shuffled[1] = parse_repeat(Ret.get("shuffled", False))
+Shuffled[1] = Ret.get("shuffled", False)
 Ret = utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "Player.GetProperties", "params": {"playerid": 2, "properties": ["repeat", "shuffled"]}}', False).get('result', {})
 RepeatMode[2] = parse_repeat(Ret.get("repeat", "off"))
-Shuffled[2] = parse_repeat(Ret.get("shuffled", False))
+Shuffled[2] = Ret.get("shuffled", False)
 SkipIntroDialog.set_JumpFunction(jump_Intro)
 SkipIntroDialogEmbuary.set_JumpFunction(jump_Intro)
 SkipCreditsDialog.set_JumpFunction(jump_Credits)

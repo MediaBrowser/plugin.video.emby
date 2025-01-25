@@ -1,3 +1,108 @@
+11.1.21
+=============
+fix shuffle playback session info
+fix lastplayed date updates when playcount was not modified
+update Chinese langague file
+fix sync when a content item has no name (invalid item reported by Emby server)
+fix edge case http communication issue when Emby server connection was inerrupted
+add warning message when Kodi companion addon is not installed on Emby server
+
+
+
+11.1.20
+=============
+fix sync folder removal issue in native mode
+
+
+
+11.1.19
+=============
+fix multiversion update issue
+
+
+
+11.1.18
+=============
+Fix movie update issue
+
+
+
+11.1.17
+=============
+fix reset cache for playlists on updates
+add option to prefer local content over "plugin" links (default is on)
+fix minor multiversion sync issues
+fix special features for multiversion content assigned to multiple libraries
+support Kodi's player default version setting for episodes, musicvideos and videos
+fix edge case endless sync loop
+
+
+
+11.1.16
+=============
+fix music nodes
+fix playlist nodes
+
+
+
+11.1.15
+=============
+disable path substituion for audio content (not necessary for audio content and improves playback performance and stability)
+improve node caching
+skip Emby userdata updates for MusicAlbum when sending = receiving device
+fix root nodes when using multiple Emby servers
+fix EPG refresh on events
+fix minor shutdown issue
+fix minor progress update issue
+fix remote playback position accuracy
+spare unnecessary skin refreshes on progress updates -> Less Kodi load when using same Emby account on multiple devices
+
+
+
+11.1.14
+=============
+fix embedded nodes in homescreen (some special nodes had issues)
+fix dynamic nodes order (e.g for playlists)
+improve hybrid nodes for playlists
+fix synced playlists nodes (avoid using Kodi's native m3u playlists due to lag of metadata, use the synced playlist node)
+fix playlist sorting
+fix audioplayback issue on some devices
+
+
+
+11.1.13
+=============
+minor http improvements
+fix server reconnect when using proxies
+fix dynamic content issue
+fix Kodi shutdown issue
+fix sync timing issue
+
+
+
+11.1.12
+=============
+faster http communication
+fix http chunked transfer encoding
+
+
+
+11.1.11
+=============
+fix song selection via dynamic nodes when same song is assigned to multiple Emby libraries
+improve playlists
+fix subcontent realtime updates
+improve sync locks
+fix egde case sync and logging issues
+improve http request locks
+fix async commands ping
+improve progress updates when playback ended or seek
+workaround for Kodi bug when seekposition is higher than runtime -> Kodi stalls for couple of seconds unless stop is pressed
+increase subtitle download timeout to 30 seconds
+fix edge case sync issue, when init sync is in progress, incoming updates might not be processed and results in a sync loop
+
+
+
 11.1.10
 =============
 fix photo nodes

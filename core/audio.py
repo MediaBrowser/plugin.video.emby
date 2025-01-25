@@ -117,6 +117,8 @@ class Audio:
             xbmc.log(f"EMBY.core.audio: USERDATA {Item['Type']} [{KodiItemId}] {Item['Id']}", 1) # LOGINFO
             utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{KodiItemId}", "KodiType": "audio"}, True)
 
+        return True
+
     def remove(self, Item, IncrementalSync):
         FullPath, ImageUrl, Itemname = self.SQLs["music"].get_favoriteData(Item['KodiItemId'], "song")
         utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Song", "Songs", Item['Id'], self.EmbyServer.ServerData['ServerId'], ImageUrl), False, FullPath, Itemname, "media", 0),))

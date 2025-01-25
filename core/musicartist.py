@@ -191,6 +191,7 @@ class MusicArtist:
 
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "MusicArtist")
         utils.reset_querycache("MusicArtist")
+        return True
 
     def set_favorite(self, KodiItemId, isFavorite, KodiDB, EmbyItemId):
         if KodiDB == "music":

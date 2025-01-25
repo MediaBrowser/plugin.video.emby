@@ -54,7 +54,7 @@ class monitor(xbmc.Monitor):
             xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
             utils.SyncPause['kodi_sleep'] = True
 
-            if not player.PlayBackEnded and player.PlayingItem[4]:
+            if player.EmbyPlaying and player.PlayingItem[4]:
                 player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
 
                 while not player.PlayerEventsQueue.isEmpty():
@@ -144,7 +144,7 @@ class monitor(xbmc.Monitor):
         utils.start_thread(settingschanged, ())
 
 def opensettings():
-    xbmc.executebuiltin('Dialog.Close(all,true)') # blocking
+    xbmc.executebuiltin('Dialog.Close(all,true)')
     xbmc.executebuiltin('Addon.OpenSettings(plugin.service.emby-next-gen)')
 
 def syncEmby():
@@ -418,9 +418,6 @@ def settingschanged():  # threaded by caller
         dbio.DBOpenRW("video", "settingschanged", SQLs)
         SQLs["video"].toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
         dbio.DBCloseRW("video", "settingschanged", SQLs)
-        dbio.DBOpenRW("music", "settingschanged", SQLs)
-        SQLs["music"].toggle_path(AddonModePathPreviousValue, utils.AddonModePath)
-        dbio.DBCloseRW("music", "settingschanged", SQLs)
         utils.refresh_widgets(True)
         utils.refresh_widgets(False)
 
@@ -546,7 +543,7 @@ def setup():
     if utils.MinimumSetup == utils.MinimumVersion:
         return True
 
-    xbmc.executebuiltin('ReplaceWindow(10000)', True)
+    xbmc.executebuiltin('ReplaceWindow(10000)')
     utils.refreshskin = False
 
     # Clean installation
@@ -595,7 +592,7 @@ def StartUp():
 
         if Ret == "OPENLIBRARY":
             ServersConnect()
-            xbmc.executebuiltin('Dialog.Close(all,true)') # blocking
+            xbmc.executebuiltin('Dialog.Close(all,true)')
             utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": 10000}}')
 
             for EmbyServer in list(utils.EmbyServers.values()):
@@ -618,7 +615,7 @@ def ShutDown():
         utils.SystemShutdown = True
         utils.FavoriteQueue.put("QUIT")
 
-        if not player.PlayBackEnded and player.PlayingItem[4]:
+        if player.EmbyPlaying and player.PlayingItem[4]:
             player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
 
             while not player.PlayerEventsQueue.isEmpty():

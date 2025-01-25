@@ -78,6 +78,7 @@ enableContextRefreshOptions = True
 enableContextGotoOptions = True
 verifyFreeSpace = True
 SyncLiveTvOnEvents = False
+SelectDefaultVideoversion = False
 transcode_h264 = False
 transcode_hevc = False
 transcode_av1 = False
@@ -148,7 +149,7 @@ remotecontrol_force_clients = True
 remotecontrol_client_control = True
 remotecontrol_sync_clients = True
 remotecontrol_wait_clients = 30
-remotecontrol_drift = 200
+remotecontrol_drift = 500
 remotecontrol_auto_ack = False
 remotecontrol_resync_clients = False
 remotecontrol_resync_time = 10
@@ -168,7 +169,8 @@ DownloadPath = "special://profile/addon_data/plugin.service.emby-next-gen/"
 FolderAddonUserdata = "special://profile/addon_data/plugin.service.emby-next-gen/"
 FolderEmbyTemp = "special://profile/addon_data/plugin.service.emby-next-gen/temp/"
 FolderUserdataThumbnails = "special://profile/Thumbnails/"
-PlaylistPath = "special://profile/playlists/mixed/"
+PlaylistPathMusic = "special://profile/playlists/music/"
+PlaylistPathVideo = "special://profile/playlists/video/"
 SystemShutdown = False
 SyncPause = {}  # keys: playing, kodi_sleep, embyserverID, , kodi_rw, priority (thread with higher priorit needs access)
 WidgetRefresh = {"video": False, "music": False}
@@ -212,6 +214,7 @@ FolderPaging = 100000
 PersonPaging = 100000
 MaxURILength = 1500
 SyncHighestResolutionAsDefault = True
+SyncLocalOverPlugins = True
 AutoSelectHighestResolution = False
 NotifyEvents = False
 followhttp = False
@@ -564,13 +567,13 @@ def get_url_info(ConnectionString):
 
 # Remove all emby playlists
 def delete_playlists():
-    SearchFolders = ['special://profile/playlists/video/', 'special://profile/playlists/music/']
+    SearchFolders = [PlaylistPathVideo, PlaylistPathMusic]
 
     for SearchFolder in SearchFolders:
         _, files = listDir(SearchFolder)
 
         for Filename in files:
-            if Filename.startswith('emby'):
+            if Filename.endswith('_(video).m3u') or Filename.endswith('_(audio).m3u'):
                 delFile(f"{SearchFolder}{Filename}")
 
 # Remove all nodes
@@ -869,6 +872,7 @@ def InitSettings():
     load_settings_bool('SyncLiveTvOnEvents')
     load_settings_bool('imdbrating')
     load_settings_bool('SyncHighestResolutionAsDefault')
+    load_settings_bool('SyncLocalOverPlugins')
     load_settings_bool('AutoSelectHighestResolution')
     load_settings_bool('NotifyEvents')
     load_settings_bool('followhttp')
@@ -1137,3 +1141,9 @@ for FolderDatabaseFilename in FolderDatabasefiles:
             if Version > DatabaseFiles['tv-version']:
                 DatabaseFiles['tv'] = translatePath(f"special://profile/Database/{FolderDatabaseFilename}")
                 DatabaseFiles['tv-version'] = Version
+
+# Load playback version selection
+Result = SendJson('{"jsonrpc":"2.0","method":"Settings.GetSettingValue","params":{"setting": "myvideos.selectdefaultversion"},"id":1}', True).get("result", {})
+
+if Result:
+    SelectDefaultVideoversion = Result.get("value", {})

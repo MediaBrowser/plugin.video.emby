@@ -109,7 +109,9 @@ class API:
             musicdb = None
             utils.start_thread(self.async_get_Items, (Request, ItemsQueue, Params, "", CustomLimit, None))
 
-            for BasicItem in ItemsQueue.getall():
+            while True:
+                BasicItem = ItemsQueue.get()
+
                 if BasicItem == "QUIT":
                     break
 
@@ -175,7 +177,7 @@ class API:
                 dbio.DBCloseRO("music", "get_Items_dynamic")
                 dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "get_Items_dynamic")
 
-        SortItems = {'Movie': (), 'Video': (), 'BoxSet': (), 'MusicVideo': (), 'Series': (), 'Episode': (), 'MusicAlbum': (), 'MusicArtist': (), 'AlbumArtist': (), 'Season': (), 'Folder': (), 'Audio': (), 'Genre': (), 'MusicGenre': (), 'Tag': (), 'Person': (), 'Studio': (), 'Playlist': (), 'Photo': (), 'PhotoAlbum': (), 'Trailer': (), 'Channel': (), 'CollectionFolder': ()}
+        SortItems = {'Movie': (), 'BoxSet': (), 'MusicVideo': (), 'Series': (), 'Season': (), 'Episode': (), 'Folder': (), 'MusicArtist': (), 'AlbumArtist': (), 'MusicAlbum': (), 'Audio': (), 'Genre': (), 'MusicGenre': (), 'Tag': (), 'Person': (), 'Studio': (), 'Playlist': (), 'Photo': (), 'PhotoAlbum': (), 'Video': (), 'Trailer': (), 'Channel': (), 'CollectionFolder': ()}
 
         for ItemFullQuery in ItemsFullQuery:
             if not ItemFullQuery:
@@ -198,34 +200,13 @@ class API:
         ItemsQueue = queue.Queue()
 
         for MediaType in MediaTypes:
-            if not Basic:
-                Fields = EmbyFields[MediaType.lower()]
-
-                #Dynamic list query, remove fields to improve performance
-                if Dynamic:
-                    if MediaType in ("Series", "Season"):
-                        Fields += ["RecursiveItemCount", "ChildCount"]
-
-                    for DynamicListsRemoveField in self.DynamicListsRemoveFields:
-                        if DynamicListsRemoveField in Fields:
-                            Fields.remove(DynamicListsRemoveField)
-
-                Fields = ",".join(list(dict.fromkeys(Fields))) # remove duplicates and join into string
-            else:
-                Fields = None
-
-            Params = {'Fields': Fields, 'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': MediaType}
-
-            if Extra:
-                Params.update(Extra)
-
-            if 'SortBy' not in Params:
-                Params['SortBy'] = "None"
-
-            utils.start_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, Params, Ids, Dynamic, ProcessProgressId, LibraryId, BusyFunction))
+            utils.start_thread(self.async_get_Items_Ids, (f"Users/{self.EmbyServer.ServerData['UserId']}/Items", ItemsQueue, Ids, Dynamic, Basic, ProcessProgressId, LibraryId, MediaType, Extra, BusyFunction))
 
             while True:
                 Items = ItemsQueue.getall()
+
+                if utils.SystemShutdown:
+                    return
 
                 if not Items:
                     break
@@ -238,11 +219,34 @@ class API:
                 yield from Items
                 del Items
 
-    def async_get_Items_Ids(self, Request, ItemsQueue, Params, Ids, Dynamic, ProcessProgressId, LibraryId, BusyFunction=None):
+    def async_get_Items_Ids(self, Request, ItemsQueue, Ids, Dynamic, Basic, ProcessProgressId, LibraryId, MediaType, Extra, BusyFunction=None):
         xbmc.log("EMBY.emby.api: THREAD: --->[ load Item by Ids ]", 0) # LOGDEBUG
-        Index = 0
+        CounterFound = 0
+        CounterQuery = 0
         Payload = ()
         IdsTotal = len(Ids)
+        Params = {'EnableTotalRecordCount': False, 'LocationTypes': "FileSystem,Remote,Offline", 'IncludeItemTypes': MediaType, 'Recursive': False}
+        SubContent = bool(MediaType in ("BoxSet", "MusicArtist", "MusicAlbum", "Genre", "MusicGenre", "Tag", "Person", "Studio", "Playlist"))
+
+        if not Basic:
+            Fields = EmbyFields[MediaType.lower()]
+
+            #Dynamic list query, remove fields to improve performance
+            if Dynamic:
+                if MediaType in ("Series", "Season"):
+                    Fields += ["RecursiveItemCount", "ChildCount"]
+
+                for DynamicListsRemoveField in self.DynamicListsRemoveFields:
+                    if DynamicListsRemoveField in Fields:
+                        Fields.remove(DynamicListsRemoveField)
+
+            Params['Fields'] = ",".join(list(dict.fromkeys(Fields))) # remove duplicates and join into string
+
+        if Extra:
+            Params.update(Extra)
+
+        if 'SortBy' not in Params:
+            Params['SortBy'] = "None"
 
         while Ids:
             # Uri length limitation
@@ -251,73 +255,71 @@ class API:
             while len(",".join(Ids[:IdsIndex])) < utils.MaxURILength and IdsIndex < len(Ids):
                 IdsIndex += 5
 
-            Params['Ids'] = ",".join(Ids[:IdsIndex])  # Chunks of 100 + IdsIndex -> due to URI length limitation, more than X Ids not possible to request (HTTP error 414)
+            QueryIds = Ids[:IdsIndex]
+            CounterQuery += len(QueryIds)
+            Params['Ids'] = ",".join(QueryIds)  # Chunks of 100 + IdsIndex -> due to URI length limitation, more than X Ids not possible to request (HTTP error 414)
             Ids = Ids[IdsIndex:]
 
             # Query content
-            if not Dynamic and LibraryId and LibraryId.lower() != "unknown": # Kodi start updates
-                Found = False
-
-                if Params['IncludeItemTypes'] in ("BoxSet", "MusicArtist", "MusicAlbum", "Genre", "MusicGenre", "Tag", "Person", "Studio"): # workaround for Emby 4.X version
-                    Params.update({'Recursive': False})
-                elif Params['IncludeItemTypes'] == "Playlist": # workaround for Emby 4.7.X version
-                    Params.update({'Recursive': True})
-                else:
-                    Params.update({'Recursive': True, 'ParentId': LibraryId})
-
-                _, _, Payload = self.EmbyServer.http.request("GET", Request, Params, {}, False, "", False, BusyFunction)
-
-                if 'Items' in Payload:
-                    for Item in Payload['Items']:
-                        Found = True
-                        Item['LibraryId'] = LibraryId
-                        ItemsQueue.put(Item)
-                        Index += 1
-
-                if not Found or utils.SystemShutdown:
-                    ItemsQueue.put("QUIT")
-                    del Payload  # release memory
-                    xbmc.log("EMBY.emby.api: THREAD: ---<[ load Item by Ids ] no items found or shutdown (regular query)", 0) # LOGDEBUG
-                    return
-            elif not Dynamic: # realtime updates via websocket
-                for LibrarySyncedId in self.EmbyServer.library.LibrarySyncedNames:
-                    Params.update({'Recursive': True, 'ParentId': LibrarySyncedId})
+            if not Dynamic:
+                if LibraryId and LibraryId.lower() != "unknown": # Kodi start updates
                     _, _, Payload = self.EmbyServer.http.request("GET", Request, Params, {}, False, "", False, BusyFunction)
 
                     if 'Items' in Payload:
                         for Item in Payload['Items']:
-                            Item['LibraryId'] = LibrarySyncedId
+                            Item['LibraryId'] = LibraryId
                             ItemsQueue.put(Item)
-                            Index += 1
+                            CounterFound += 1
+                else: # realtime updates via websocket
+                    if SubContent: # Subcontent doesn not respect ParentId queries
+                        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "Realtimesync_Subcontent")
+                        LibrarySyncedIds = embydb.get_LibraryIds_by_EmbyIds(QueryIds)
+                        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "Realtimesync_Subcontent")
+                        _, _, Payload = self.EmbyServer.http.request("GET", Request, Params, {}, False, "", False, BusyFunction)
 
-                        if len(Payload['Items']) == len(Params['Ids'].split(",")): # All data received, no need to check additional libraries
-                            break
+                        if 'Items' in Payload:
+                            for Item in Payload['Items']: # Check if content is an synced content update
+                                if Item['Id'] in LibrarySyncedIds:
+                                    for LibrarySyncedId in LibrarySyncedIds[Item['Id']]:
+                                        Item['LibraryId'] = LibrarySyncedId[0]
+                                        ItemsQueue.put(Item)
+                                        CounterFound += 1
+                    else:
+                        for LibrarySyncedId in self.EmbyServer.library.LibrarySyncedNames:
+                            CounterFoundSubItems = 0
+                            Params.update({'Recursive': True, 'ParentId': LibrarySyncedId}) # Recursive = True must be set, when query by ParentId
+                            _, _, Payload = self.EmbyServer.http.request("GET", Request, Params, {}, False, "", False, BusyFunction)
 
-                    if utils.SystemShutdown:
-                        ItemsQueue.put("QUIT")
-                        del Payload  # release memory
-                        xbmc.log("EMBY.emby.api: THREAD: ---<[ load Item by Ids ] shutdown (websocket query)", 0) # LOGDEBUG
-                        return
+                            if 'Items' in Payload:
+                                CounterFoundSubItems += len(Payload['Items'])
+
+                                for Item in Payload['Items']:
+                                    Item['LibraryId'] = LibrarySyncedId
+                                    ItemsQueue.put(Item)
+                                    CounterFound += 1
+
+                            if CounterFoundSubItems == len(QueryIds) or utils.SystemShutdown: # All data received, no need to check additional libraries
+                                break
             else: # dynamic node query
                 _, _, Payload = self.EmbyServer.http.request("GET", Request, Params, {}, False, "", False)
 
-                if utils.SystemShutdown:
-                    ItemsQueue.put("QUIT")
-                    del Payload  # release memory
-                    xbmc.log("EMBY.emby.api: THREAD: ---<[ load Item by Ids ] shutdown (dynamic)", 0) # LOGDEBUG
-                    return
-
                 if 'Items' in Payload and Payload['Items']:
-                    ItemsQueue.put(Payload['Items'])
-                    Index += len(Payload['Items'])
+                    # Restore item order as requsted -> Emby sorts by ascending Ids
+                    ItemsSorted = len(Payload['Items']) * [()] # pre allocate memory
 
-            if IdsTotal == Index: # all requested items received
+                    for Item in Payload['Items']:
+                        ItemsSorted[QueryIds.index(Item['Id'])] = Item
+
+                    # Add items into queue
+                    ItemsQueue.put(ItemsSorted)
+                    del ItemsSorted
+                    CounterFound += len(Payload['Items'])
+
+            del Payload  # release memory
+
+            if IdsTotal == CounterQuery or utils.SystemShutdown or not self.async_throttle_queries(CounterFound, ProcessProgressId): # all requested items received
                 break
 
-            if not self.async_throttle_queries(Index, ProcessProgressId):
-                break
-
-        del Payload  # release memory
         ItemsQueue.put("QUIT")
         xbmc.log("EMBY.emby.api: THREAD: ---<[ load Item by Ids ]", 0) # LOGDEBUG
 
@@ -348,7 +350,7 @@ class API:
             if MediaType != "All":
                 Params['IncludeItemTypes'] = MediaType
 
-            if str(ParentId) != "999999999" and MediaType != "Playlist": # global libraries or playlist (workaround Emby 4.7.X version)
+            if str(ParentId) != "999999999":
                 Params['ParentId'] = ParentId
 
             if Extra:
@@ -389,8 +391,8 @@ class API:
         while True:
             Items = ItemsQueue.getall()
 
-            if not Items:
-                break
+            if utils.SystemShutdown or not Items:
+                return
 
             if Items[-1] == "QUIT":
                 yield from Items[:-1]
@@ -750,7 +752,7 @@ class API:
         return StatusCode
 
     def get_Subtitle_Binary(self, Id, MediaSourceId, SubtitleIndex, SubtitleFormat):
-        _, _, Payload = self.EmbyServer.http.request("GET", f"videos/{Id}/{MediaSourceId}/Subtitles/{SubtitleIndex}/stream.{SubtitleFormat}", {}, {}, True, "", False)
+        _, _, Payload = self.EmbyServer.http.request("GET", f"videos/{Id}/{MediaSourceId}/Subtitles/{SubtitleIndex}/stream.{SubtitleFormat}", {}, {}, True, "", True)
         return Payload
 
     def get_embyconnect_authenticate(self, Username, Password):

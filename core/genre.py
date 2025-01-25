@@ -51,6 +51,7 @@ class Genre:
         utils.reset_querycache("Genre")
         xbmc.log(f"EMBY.core.genre: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "genre"}, True)
+        return False
 
     def set_favorite(self, isFavorite, KodiItemId, ImageUrl, EmbyItemId):
         Name, _, hasMovies, hasTVShows = self.SQLs["video"].get_Genre_Name_hasMusicVideos_hasMovies_hasTVShows(KodiItemId)

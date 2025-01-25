@@ -68,6 +68,7 @@ class Season:
         utils.reset_querycache("Season")
         xbmc.log(f"EMBY.core.season: USERDATA {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "season"}, True)
+        return False
 
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons

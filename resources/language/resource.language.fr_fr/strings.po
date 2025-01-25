@@ -3010,3 +3010,11 @@ msgstr "Le contenu http externe sera directement accessible et ne sera pas trans
 msgctxt "#33714"
 msgid "Follow http timeout"
 msgstr "Suivre le délai d'attente http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr ""
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr ""

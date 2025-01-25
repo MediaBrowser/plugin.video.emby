@@ -3009,3 +3009,11 @@ msgstr "Se accederá directamente al contenido http externo y no se canalizará 
 msgctxt "#33714"
 msgid "Follow http timeout"
 msgstr "Seguir el tiempo de espera de http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr ""
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr ""

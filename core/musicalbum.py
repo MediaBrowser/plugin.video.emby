@@ -84,6 +84,7 @@ class MusicAlbum:
         utils.reset_querycache("MusicAlbum")
         xbmc.log(f"EMBY.core.musicalbum: USERDATA {Item['Type']} [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "album"}, True)
+        return True
 
     def remove(self, Item, IncrementalSync):
         ImageUrl, Itemname = self.SQLs["music"].get_FavoriteSubcontent(Item['KodiItemId'], "album")

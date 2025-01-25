@@ -31,7 +31,7 @@ class EmbyDatabase:
             self.cursor.execute("CREATE TABLE IF NOT EXISTS MusicVideo (EmbyId INTEGER PRIMARY KEY, KodiId INTEGER, EmbyFavourite BOOL, KodiFileId INTEGER, EmbyPresentationKey TEXT COLLATE NOCASE, EmbyFolder TEXT COLLATE NOCASE, KodiPathId INTEGER) WITHOUT ROWID")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS MusicAlbum (EmbyId INTEGER PRIMARY KEY, KodiId TEXT COLLATE NOCASE, EmbyFavourite BOOL, LibraryIds TEXT COLLATE NOCASE) WITHOUT ROWID")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS Audio (EmbyId INTEGER PRIMARY KEY, KodiId TEXT COLLATE NOCASE, EmbyFavourite BOOL, EmbyFolder TEXT COLLATE NOCASE, KodiPathId INTEGER, LibraryIds TEXT COLLATE NOCASE, EmbyAlbumId INTEGER) WITHOUT ROWID")
-            self.cursor.execute("CREATE TABLE IF NOT EXISTS Playlist (EmbyId INTEGER PRIMARY KEY, KodiId TEXT COLLATE NOCASE, EmbyFavourite BOOL) WITHOUT ROWID")
+            self.cursor.execute("CREATE TABLE IF NOT EXISTS Playlist (EmbyId INTEGER PRIMARY KEY, KodiId TEXT COLLATE NOCASE, EmbyFavourite BOOL, EmbyArtwork TEXT COLLATE NOCASE) WITHOUT ROWID")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS MediaSources (EmbyId INTEGER, MediaSourceId TEXT COLLATE NOCASE, Path TEXT COLLATE NOCASE, Name TEXT COLLATE NOCASE, Size INTEGER, IntroStart INTEGER, IntroEnd INTEGER, CreditsStart INTEGER, PRIMARY KEY(EmbyId, MediaSourceId))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS VideoStreams (EmbyId INTEGER, StreamIndex INTEGER, Codec TEXT COLLATE NOCASE, BitRate INTEGER, Width INTEGER, PRIMARY KEY(EmbyId, StreamIndex))")
             self.cursor.execute("CREATE TABLE IF NOT EXISTS AudioStreams (EmbyId INTEGER, StreamIndex INTEGER, DisplayTitle TEXT COLLATE NOCASE, Codec TEXT COLLATE NOCASE, BitRate INTEGER, PRIMARY KEY(EmbyId, StreamIndex))")
@@ -163,7 +163,13 @@ class EmbyDatabase:
             self.cursor.execute("SELECT name FROM pragma_table_info('Playlist')")
             Cols = self.cursor.fetchall()
 
-            if Cols != [('EmbyId',), ('KodiId',), ('EmbyFavourite',)]:
+            if ('EmbyArtwork',) not in Cols:
+                xbmc.log("EMBY.database.emby_db: Appand EmbyArtwork to Playlist", 0) # LOGDEBUG
+                self.cursor.execute("ALTER TABLE Playlist ADD COLUMN EmbyArtwork 'TEXT COLLATE NOCASE'")
+                self.cursor.execute("SELECT name FROM pragma_table_info('Playlist')")
+                Cols = self.cursor.fetchall()
+
+            if Cols != [('EmbyId',), ('KodiId',), ('EmbyFavourite',), ('EmbyArtwork',)]:
                 xbmc.log(f"EMBY.database.emby_db: Playlist invalid: {Cols}", 3) # LOGERROR
                 Invalid = True
 
@@ -561,6 +567,16 @@ class EmbyDatabase:
 
         return ""
 
+    def get_id_by_albumid(self, EmbyAlbumId):
+        ReturnData = ()
+        self.cursor.execute("SELECT EmbyId FROM Audio WHERE EmbyAlbumId = ?", (EmbyAlbumId,))
+        EmbyIds = self.cursor.fetchall()
+
+        for EmbyId in EmbyIds:
+            ReturnData += (str(EmbyId[0]),)
+
+        return ReturnData
+
     def add_reference_audio(self, EmbyId, EmbyLibraryId, KodiIds, EmbyFavourite, EmbyFolder, KodiPathId, EmbyLibraryIds, EmbyAlbumId):
         self.cursor.execute("INSERT OR REPLACE INTO Audio (EmbyId, KodiId, EmbyFavourite, EmbyFolder, KodiPathId, LibraryIds, EmbyAlbumId) VALUES (?, ?, ?, ?, ?, ?, ?)", (EmbyId, ",".join(KodiIds), EmbyFavourite, EmbyFolder, KodiPathId, ",".join(EmbyLibraryIds), EmbyAlbumId))
         self.cursor.execute("INSERT OR IGNORE INTO EmbyLibraryMapping (EmbyLibraryId, EmbyId) VALUES (?, ?)", (EmbyLibraryId, EmbyId))
@@ -615,6 +631,10 @@ class EmbyDatabase:
 
     def add_reference_genre(self, EmbyId, EmbyLibraryId, KodiId, EmbyFavourite, EmbyArtwork):
         self.cursor.execute("INSERT OR REPLACE INTO Genre (EmbyId, KodiId, EmbyFavourite, EmbyArtwork) VALUES (?, ?, ?, ?)", (EmbyId, KodiId, EmbyFavourite, EmbyArtwork))
+        self.cursor.execute("INSERT OR IGNORE INTO EmbyLibraryMapping (EmbyLibraryId, EmbyId) VALUES (?, ?)", (EmbyLibraryId, EmbyId))
+
+    def add_reference_playlist(self, EmbyId, EmbyLibraryId, KodiId, EmbyFavourite, EmbyArtwork):
+        self.cursor.execute("INSERT OR REPLACE INTO Playlist (EmbyId, KodiId, EmbyFavourite, EmbyArtwork) VALUES (?, ?, ?, ?)", (EmbyId, KodiId, EmbyFavourite, EmbyArtwork))
         self.cursor.execute("INSERT OR IGNORE INTO EmbyLibraryMapping (EmbyLibraryId, EmbyId) VALUES (?, ?)", (EmbyLibraryId, EmbyId))
 
     def add_reference_studio(self, EmbyId, EmbyLibraryId, KodiId, EmbyFavourite, EmbyArtwork):
@@ -872,6 +892,18 @@ class EmbyDatabase:
 
         return None
 
+    def get_LibraryIds_by_EmbyIds(self, EmbyIds):
+        LibraryIds = {}
+
+        for EmbyId in EmbyIds:
+            self.cursor.execute("SELECT EmbyLibraryId FROM EmbyLibraryMapping WHERE EmbyId = ?", (EmbyId,))
+            Datas = self.cursor.fetchall()
+
+            if Datas:
+                LibraryIds[EmbyId] = Datas
+
+        return LibraryIds
+
     def get_EmbyIds_LibraryIds_by_KodiIds_EmbyType(self, KodiId, EmbyType):
         self.cursor.execute(f"SELECT EmbyId FROM {EmbyType} WHERE KodiId = ?", (KodiId,))
         EmbyId = self.cursor.fetchone()
@@ -1006,7 +1038,7 @@ class EmbyDatabase:
 
     # favorite infos
     def get_FavoriteInfos(self, Table):
-        if Table in ("Person", "MusicArtist", "Series", "Audio", "BoxSet", "MusicAlbum", "Playlist"):
+        if Table in ("Person", "MusicArtist", "Series", "Audio", "BoxSet", "MusicAlbum"):
             self.cursor.execute(f"SELECT EmbyFavourite, KodiId, EmbyId FROM {Table}")
         elif Table == "Season":
             self.cursor.execute("SELECT EmbyFavourite, KodiId, KodiParentId, EmbyId FROM Season")
@@ -1159,26 +1191,44 @@ class EmbyDatabase:
 
         return None
 
+    def get_Records_by_EmbyType(self, EmbyType):
+        self.cursor.execute(f"SELECT * FROM {EmbyType}")
+        return self.cursor.fetchall()
+
     def get_KodiId_by_EmbyId_and_LibraryId(self, EmbyId, EmbyType, EmbyLibraryId, EmbyServer):
         self.cursor.execute(f"SELECT KodiId, LibraryIds FROM {EmbyType} WHERE EmbyId = ?", (EmbyId,))
         Data = self.cursor.fetchone()
 
         if Data:
             if EmbyType == "MusicArtist":
-                KodiDB = EmbyServer.library.LibrarySyncedKodiDBs[f"{EmbyLibraryId}{EmbyType}"]
+                Id = f"{EmbyLibraryId}{EmbyType}"
 
-                if KodiDB == "video,music": # mixed content
-                    return None, None
+                if Id in EmbyServer.library.LibrarySyncedKodiDBs:
+                    KodiDB = EmbyServer.library.LibrarySyncedKodiDBs[Id]
 
-                KodiIds = Data[0].split(";")
+                    if KodiDB == "video,music": # mixed content
+                        return None, None
 
-                if KodiDB == "video":
-                    return KodiIds[0], "video"
+                    KodiIds = Data[0].split(";")
 
-                return KodiIds[1], "music"
+                    if KodiDB == "video":
+                        return KodiIds[0], "video"
+
+                    return KodiIds[1], "music"
+
+                return None, None
 
             if EmbyType in ("MusicAlbum", "Audio"):
-                LibraryIndex = Data[1].index(EmbyLibraryId)
+                if f"{EmbyLibraryId}Playlist" in EmbyServer.library.LibrarySyncedKodiDBs: # Request by Playlist library, accept any valid synced EmbyId
+                    KodiIds = Data[0].split(",")
+                    return KodiIds[0], "music"
+
+                LibraryIds = Data[1].split(",")
+
+                if EmbyLibraryId not in LibraryIds:
+                    return None, None
+
+                LibraryIndex = LibraryIds.index(EmbyLibraryId)
                 KodiIds = Data[0].split(",")
                 return KodiIds[LibraryIndex], "music"
 
@@ -1237,7 +1287,10 @@ class EmbyDatabase:
         else:
             MovieDefault = (False, 0, item['KodiFileId'], item['KodiPathId'], item['KodiPath'])
 
-        for MediaSource in item['MediaSources'][1:]:
+        for MediaSource in item['MediaSources']:
+            if MediaSource['Type'] == "Default":
+                continue
+
             xbmc.log(f"EMBY.database.emby_db: Multiversion video detected: {item['Id']}", 0) # LOGDEBUG
 
             # Get additional data, actually ParentId and probably PresentationUniqueKey could differ to item's core info
@@ -1252,14 +1305,12 @@ class EmbyDatabase:
             else:
                 EmbyId = MediaSource['ItemId']
 
-            ItemReferenced = item.copy()
-            ItemReferenced.update({'LibraryId': item['LibraryId'], 'KodiItemId': item['KodiItemId'], 'PresentationUniqueKey': item['PresentationUniqueKey'], 'Id': EmbyId, 'MediaSources': [MediaSource]})
-
             # Delete old multiversions
-            KodiIds = self.get_item_by_id(ItemReferenced['Id'], None)
+            KodiIds = self.get_item_by_id(EmbyId, EmbyType)
 
-            if KodiIds:
-                ItemReferenced.update({"KodiFileId": KodiIds[3], "KodiItemId": KodiIds[1], 'LibraryId': None})
+            if KodiIds: # Same content assigned to multiple libraries
+                ItemReferenced = item.copy()
+                ItemReferenced.update({'Id': EmbyId, 'MediaSources': [MediaSource], "KodiFileId": KodiIds[3], "KodiItemId": KodiIds[1], 'LibraryId': None})
 
                 # Remove old Kodi video-db references
                 if str(item['KodiItemId']) != str(ItemReferenced['KodiItemId']) and str(item['KodiFileId']) != str(ItemReferenced['KodiFileId']):
@@ -1267,13 +1318,25 @@ class EmbyDatabase:
 
                     if SQLs['video']: # video otherwise unsynced content e.g. specials
                         if EmbyType == "Episode":
-                            SQLs['video'].delete_episode(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[7]) # KodiIds[7] = KodiPathId
+                            if KodiIds[7] != item['KodiPathId']: # KodiIds[7] = KodiPathId
+                                SQLs['video'].delete_episode(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[7])
+                            else: # Do not delete path if default item path matches sub item path
+                                SQLs['video'].delete_episode(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], None)
                         elif EmbyType in ("Movie", "Video"):
-                            SQLs['video'].delete_movie(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[6]) # KodiIds[6] = KodiPathId
+                            if KodiIds[6] != item['KodiPathId']: # KodiIds[6] = KodiPathId
+                                SQLs['video'].delete_movie(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[6])
+                            else: # Do not delete path if default item path matches sub item path
+                                SQLs['video'].delete_movie(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], None)
                         elif EmbyType == "MusicVideo":
-                            SQLs['video'].delete_musicvideos(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[6]) # KodiIds[6] = KodiPathId
+                            if KodiIds[6] != item['KodiPathId']: # KodiIds[6] = KodiPathId
+                                SQLs['video'].delete_musicvideos(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], KodiIds[6])
+                            else: # Do not delete path if default item path matches sub item path
+                                SQLs['video'].delete_musicvideos(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], None)
 
             # Add references
+            ItemReferenced = item.copy()
+            ItemReferenced.update({'Id': EmbyId, 'MediaSources': [MediaSource]})
+
             if EmbyType == "Episode":
                 self.add_reference_episode(ItemReferenced['Id'], ItemReferenced['LibraryId'], None, item['UserData']['IsFavorite'], None, None, ItemReferenced['PresentationUniqueKey'], MediaSource['Path'], None)
             elif EmbyType == "MusicVideo":
@@ -1291,13 +1354,20 @@ class EmbyDatabase:
                 SQLs["video"].add_movie_version(item['KodiItemId'], ItemReferenced['KodiFileId'], ItemReferenced['KodiPathId'], ItemReferenced['KodiFilename'], ItemReferenced['KodiDateCreated'], ItemReferenced['KodiPlayCount'], ItemReferenced['KodiLastPlayedDate'], ItemReferenced['KodiStackedFilename'], MediaSource['Name'], "movie", 0)
                 self.add_reference_movie_musicvideo(ItemReferenced['Id'], item['LibraryId'], ItemReferenced['Type'], item['KodiItemId'], item['UserData']['IsFavorite'], ItemReferenced['KodiFileId'], ItemReferenced['PresentationUniqueKey'], MediaSource['Path'], ItemReferenced['KodiPathId'])
 
-                if MediaSource['KodiStreams']['Video'] and MediaSource['KodiStreams']['Video'][0]['width'] and MediaSource['KodiStreams']['Video'][0]['width'] > MovieDefault[1]:
-                    MovieDefault = (True, MediaSource['KodiStreams']['Video'][0]['width'], ItemReferenced['KodiFileId'], ItemReferenced['KodiPathId'], ItemReferenced['KodiPath'])
+                # Change default movie version to highest resolution (width)
+                if utils.SyncHighestResolutionAsDefault:
+                    if MediaSource['KodiStreams']['Video'] and MediaSource['KodiStreams']['Video'][0]['width'] and MediaSource['KodiStreams']['Video'][0]['width'] > MovieDefault[1]:
+                        MovieDefault = (True, MediaSource['KodiStreams']['Video'][0]['width'], ItemReferenced['KodiFileId'], ItemReferenced['KodiPathId'], ItemReferenced['KodiPath'])
+
+                # Change default movie version to local content
+                if utils.SyncLocalOverPlugins:
+                    if not ItemReferenced['KodiPath'].startswith("plugin://") and MovieDefault[4].startswith("plugin://"):
+                        MovieDefault = (True, 0, ItemReferenced['KodiFileId'], ItemReferenced['KodiPathId'], ItemReferenced['KodiPath'])
             elif EmbyType == "Video":
                 self.add_reference_video(ItemReferenced['Id'], item['LibraryId'], None, item['UserData']['IsFavorite'], None, ItemReferenced['ParentId'], ItemReferenced['PresentationUniqueKey'], MediaSource['Path'], None, False)
 
-        # Change default movie version to highest resolution (width)
-        if utils.SyncHighestResolutionAsDefault and MovieDefault[0]:
+        # Update video version
+        if MovieDefault[0]:
             xbmc.log(f"EMBY.database.emby_db: Update default video version {item['Id']} / {item['KodiItemId']}", 0) # LOGDEBUG
             SQLs["video"].update_default_movieversion(item['KodiItemId'], MovieDefault[2], MovieDefault[3], MovieDefault[4])
 

@@ -3006,3 +3006,11 @@ msgstr "Auf externe HTTP-Inhalte wird direkt zugegriffen und nicht über den Emb
 msgctxt "#33714"
 msgid "Follow http timeout"
 msgstr "Folge http timeouts"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr ""
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr ""

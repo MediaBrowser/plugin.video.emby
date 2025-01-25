@@ -11,7 +11,7 @@ SearchTerm = ""
 MappingStaggered = {"Series": "Season", "Season": "Episode", "PhotoAlbum": "HomeVideos", "MusicAlbum": "Audio"} # additional stagged content parameter written in the code, based on conditions
 letters = ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 MappingContentKodi = {"movies": "movies", "Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "TvChannel": "videos", "musicvideos": "musicvideos", "VideoMusicArtist": "musicvideos", "tvshows": "tvshows", "Folder": "files", "All": "files", "homevideos": "files", "Playlist": "files", "Trailer": "videos", "Person": "videos", "videos": "videos", "music": "songs"}
-Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person")}
+Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person"), "playablevideos": ("MusicVideo", "Episode", "Movie", "Video"), "PlaylistsAudio": ("Audio",), "PlaylistsVideo": ("MusicVideo", "Episode", "Movie", "Video"), "Playlists": ("Audio", "MusicVideo", "Episode", "Movie", "Video")}
 IconMapping = {"MusicArtist": "DefaultMusicArtists.png", "MusicAlbum": "DefaultMusicAlbums.png", "Audio": "DefaultMusicSongs.png", "Movie": "DefaultMovies.png", "Trailer": "DefaultAddonVideo.png", "BoxSet": "DefaultSets.png", "Series": "DefaultTVShows.png", "Season": "DefaultTVShowTitle.png", "Episode": "DefaultAddonVideo.png", "MusicVideo": "DefaultMusicVideos.png", "Video": "DefaultAddonVideo.png", "Photo": "DefaultPicture.png.png", "PhotoAlbum": "DefaultAddonPicture.png", "TvChannel": "DefaultAddonPVRClient.png", "Folder": "DefaultFolder.png", "Playlist": "DefaultPlaylist.png", "Genre": "DefaultGenre.png", "MusicGenre": "DefaultMusicGenres.png", "Person": "DefaultActor.png", "Tag": "DefaultTags.png", "Channel": "DefaultFolder.png", "CollectionFolder": "DefaultFolder.png", "Studio": "DefaultStudios.png"}
 LibraryMenu = {"LibraryAdd": utils.Translate(33154), "LibraryRemove": utils.Translate(33184), "LibraryUpdate": utils.Translate(33139), "LibraryRepair": utils.Translate(33140), "RefreshBoxsets": utils.Translate(33098), "ToggleLiveTv": "", "RefreshLiveTv": utils.Translate(33706), "ToggleThemes": "", "RefreshThemes": utils.Translate(33707)}
 
@@ -46,7 +46,7 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
     WindowId = xbmcgui.getCurrentWindowId()
     xbmc.log(f"EMBY.helper.pluginmenu: Browse: Id: {Id} / Query: {query} / ParentId: {ParentId} / LibraryId: {LibraryId} / Content: {Content} / WindowId: {WindowId} / ServerId: {ServerId} / ContentSupported: {ContentSupported}", 1) # LOGINFO
     ItemsListings = ()
-#    xbmc.executebuiltin('Dialog.Close(busydialog,true)')
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)')
 
     # Limit number of nodes for widget queries
     if WindowId not in (10502, 10025, 10002, 10035): # 10035=skinsettings, 10502=music, 10002=pictures, 10025=videos
@@ -108,9 +108,14 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
         if Content in ('VideoMusicArtist', 'MusicArtist'):
             LocalContent = 'MusicArtist'
             LocalParentId = ParentId
-        elif Content == "Playlist":
+        elif Content == "PlaylistsVideo":
             LocalParentId = None
-            LocalContent = Content
+            LocalContent = "Playlist"
+            Content = "playablevideos"
+        elif Content == "PlaylistsAudio":
+            LocalParentId = None
+            LocalContent = "Playlist"
+            Content = "Audio"
         else:
             LocalContent = Content
             LocalParentId = ParentId
@@ -168,12 +173,15 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
             ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId)
     elif query == "Playlist":
         ParentId = Id
-        Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (ParentId, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], True, Extras, False, LibraryId)
         Unsorted = True
-    elif query == "Playlists":
+
+        if Content in Subcontent:
+            EmbyContentQuery = (ParentId, Subcontent[Content], True, Extras, False, LibraryId)
+        else:
+            EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+    elif query in ("Playlists", "PlaylistsAudio", "PlaylistsVideo"):
         Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (None, ["Playlist"], True, Extras, False, LibraryId)
+        EmbyContentQuery = (ParentId, ["Playlist"], True, Extras, False, LibraryId)
     elif query == "Video":
         Extras.update({"SortBy": "SortName"})
         EmbyContentQuery = (ParentId, ["Video"], True, Extras, False, LibraryId)
@@ -352,7 +360,7 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
                     if SortItemContent in ("Folder", "PhotoAlbum"):
                         continue
 
-                    if SortItemContent not in ("Genre", "MusicGenre", "Tag"): # Skip subqueries
+                    if SortItemContent not in ("Genre", "MusicGenre", "Tag", "Playlist"): # Skip subqueries
                         Content = SortItemContent
 
                     for SortedItem in SortedItems:
@@ -675,6 +683,7 @@ def manage_libraries(ServerSelection):  # threaded by caller
 
 # Special favorite synced node
 def favepisodes(Handle):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
     Handle = int(Handle)
     CacheId = "favepisodes"
 
@@ -706,7 +715,8 @@ def favepisodes(Handle):
             if KodiItem:
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
-                utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+
+        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -715,6 +725,7 @@ def favepisodes(Handle):
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 def favseasons(Handle):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
     Handle = int(Handle)
     CacheId = "favseasons"
 
@@ -746,7 +757,8 @@ def favseasons(Handle):
             if KodiItem:
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['path'], ListItem, isFolder),)
-                utils.QueryCache["Season"][CacheId] = [True, ListItems]
+
+        utils.QueryCache["Season"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -756,6 +768,8 @@ def favseasons(Handle):
 
 # Special collection synced node
 def collections(Handle, KodiMediaType, LibraryTag):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+
     if "BoxSet" not in utils.QueryCache:
         utils.QueryCache["BoxSet"] = {}
 
@@ -894,6 +908,8 @@ def cache_textures_generator(selection):
         dbio.DBCloseRO("music", "cache_textures")
 
 def get_next_episodes(Handle, libraryname):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+
     if "Episode" not in utils.QueryCache:
         utils.QueryCache["Episode"] = {}
 
@@ -920,7 +936,8 @@ def get_next_episodes(Handle, libraryname):
             if KodiItem:
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
-                utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+
+        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -928,6 +945,8 @@ def get_next_episodes(Handle, libraryname):
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
 def get_next_episodes_played(Handle, libraryname):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+
     if "Episode" not in utils.QueryCache:
         utils.QueryCache["Episode"] = {}
 
@@ -954,14 +973,127 @@ def get_next_episodes_played(Handle, libraryname):
             if KodiItem:
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
-                utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+
+        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
     xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
 
+def get_playlist(Handle, ServerId, MediaType, Id):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+
+    if "Playlist" not in utils.QueryCache:
+        utils.QueryCache["Playlist"] = {}
+
+    Handle = int(Handle)
+    CacheId = f"get_playlist_{ServerId}_{Id}_{MediaType}"
+
+    if CacheId in utils.QueryCache["Playlist"] and utils.QueryCache["Playlist"][CacheId][0]:
+        xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
+        ListItems = utils.QueryCache["Playlist"][CacheId][1]
+    else:
+        xbmc.log(f"EMBY.helper.pluginmenu: Rebuid QueryCache: {CacheId}", 1) # LOGINFO
+        ListItems = ()
+        embydb = dbio.DBOpenRO(ServerId, "playlist")
+
+        if not Id:
+            Playlists = embydb.get_Records_by_EmbyType("Playlist")
+
+            for Playlist in Playlists:
+                KodiPlaylistIds = Playlist[1].split(";")
+                PlaylistName = ""
+                Path = ""
+
+                if MediaType == "audio":
+                    if KodiPlaylistIds[1] and KodiPlaylistIds[1].endswith("_audio"):
+                        Path = f'plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype={MediaType}&server={ServerId}&id={KodiPlaylistIds[1]}'
+                        PlaylistName = KodiPlaylistIds[1].replace("emby_", "").replace("_audio", "").replace("_", " ")
+                else:
+                    if KodiPlaylistIds[0] and KodiPlaylistIds[0].endswith("_video"):
+                        Path = f'plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype={MediaType}&server={ServerId}&id={KodiPlaylistIds[0]}'
+                        PlaylistName = KodiPlaylistIds[0].replace("emby_", "").replace("_video", "").replace("_", " ")
+
+                if not PlaylistName:
+                    continue
+
+                ListItems = add_ListItem(ListItems, PlaylistName, Path, Playlist[3], "")
+        else:
+            if MediaType == "audio":
+                PlaylistData = utils.readFileString(f"{utils.PlaylistPathMusic}{Id}.m3u")
+                musicdb = dbio.DBOpenRO("music", "playlist")
+            else:
+                PlaylistData = utils.readFileString(f"{utils.PlaylistPathVideo}{Id}.m3u")
+                videodb = dbio.DBOpenRO("video", "playlist")
+
+            # Get EmbyIds from m3u
+            KodiItems = ()
+            PlaylistRecords = PlaylistData.split("#EXTINF:")
+
+            for PlaylistRecord in PlaylistRecords[1:]:
+                if PlaylistRecord:
+                    Data = PlaylistRecord.split("/")
+
+                    if MediaType == "audio":
+                        Data = Data[len(Data) - 1]
+                        Data = Data.split("-")
+                        EmbyId = Data[1]
+                        KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "Audio")
+                        KodiItems += (musicdb.get_song_metadata_for_listitem(KodiId),)
+                    else:
+                        if len(Data) < 8:
+                            xbmc.log(f"EMBY.helper.pluginmenu: Playlist unknown content: {PlaylistRecord}", 2) # LOGWARN
+                            continue
+
+                        EmbyId = Data[7]
+                        Data = Data[len(Data) - 2]
+                        Data = Data.split("-")
+
+                        if Data[0] == "M":
+                            KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "MusicVideo")
+                            KodiItems += (videodb.get_musicvideos_metadata_for_listitem(KodiId, ""),)
+                        elif Data[0] == "m":
+                            KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "Movie")
+                            KodiItems += (videodb.get_movie_metadata_for_listitem(KodiId, ""),)
+                        elif Data[0] == "e":
+                            KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "Episode")
+                            KodiItems += (videodb.get_episode_metadata_for_listitem(KodiId, ""),)
+                        elif Data[0] == "v":
+                            KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "Video")
+                            KodiItems += (videodb.get_movie_metadata_for_listitem(KodiId, ""),)
+
+            if MediaType == "audio":
+                dbio.DBCloseRO("music", "playlist")
+            else:
+                dbio.DBCloseRO("video", "playlist")
+
+            for KodiItem in KodiItems:
+                if KodiItem:
+                    isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
+                    ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
+
+        dbio.DBCloseRO(ServerId, "playlist")
+        utils.QueryCache["Playlist"][CacheId] = [True, ListItems]
+
+    if ListItems:
+        xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
+
+        if Id:
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
+        else:
+            xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_LABEL)
+
+        if MediaType == "audio":
+            xbmcplugin.setContent(Handle, 'songs')
+        else:
+            xbmcplugin.setContent(Handle, 'videos')
+
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+
 def get_inprogress_mixed(Handle):
+    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+
     if "Episode_Movie_MusicVideo" not in utils.QueryCache:
         utils.QueryCache["Episode_Movie_MusicVideo"] = {}
 
@@ -995,7 +1127,8 @@ def get_inprogress_mixed(Handle):
             if KodiItem:
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
-                utils.QueryCache["Episode_Movie_MusicVideo"][CacheId] = [True, ListItems]
+
+        utils.QueryCache["Episode_Movie_MusicVideo"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
@@ -1056,8 +1189,12 @@ def factoryreset(KeepServerConfig, favoritesObj):
                 EmbyServer.stop()
 
             utils.delFolder(utils.FolderAddonUserdata, "")
-            utils.delete_playlists()
-            utils.delete_nodes()
+
+        # remove nodes
+        utils.delete_nodes()
+
+        # remove playlists
+        utils.delete_playlists()
 
         # remove favorites
         favoritesObj.set_Favorites(False)

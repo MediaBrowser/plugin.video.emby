@@ -114,6 +114,7 @@ class BoxSets:
         utils.reset_querycache("BoxSet")
         xbmc.log(f"EMBY.core.boxsets: USERDATA {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "set"}, True)
+        return False
 
     def remove(self, Item, IncrementalSync):
         KodiParentIds = self.SQLs["emby"].get_KodiParentIds(Item['Id'], "BoxSet")

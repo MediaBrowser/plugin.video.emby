@@ -3010,3 +3010,11 @@ msgstr "Externe http-inhoud wordt rechtstreeks benaderd en niet via de Emby-serv
 msgctxt "#33714"
 msgid "Follow http timeout"
 msgstr "Volg http-time-out"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr ""
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr ""

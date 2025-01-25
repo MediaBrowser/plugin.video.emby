@@ -47,6 +47,7 @@ class Person:
         utils.reset_querycache("Person")
         xbmc.log(f"EMBY.core.person: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
         utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "actor"}, True)
+        return False
 
     def set_favorite(self, KodiItemId, isFavorite, EmbyItemId):
         Name, ImageUrl, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_People(KodiItemId)

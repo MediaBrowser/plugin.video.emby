@@ -3,7 +3,7 @@ import xbmc
 from helper import utils
 from database import dbio
 
-# filename, label, icon, content, [(rule1, Filter, Operator)], [direction, order], useLimit, group, Subfolder
+# filename, label, icon, content, [(rule1, Filter, Operator),...], [direction, order], useLimit, group, Subfolder
 SyncNodes = {
     'tvshows': [
         ('letter', utils.Translate(33611), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "tvshows", (("tag", "is", "LIBRARYTAG"), ("sorttitle", "startswith")), ("ascending", "sorttitle"), False, False, ("letter", "LETTER")),
@@ -106,7 +106,7 @@ SyncNodes = {
         ('recentlyplayedmusic', utils.Translate(33350), 'DefaultMusicRecentlyPlayed.png', "songs", (("comment", "endswith", "LIBRARYTAG"), ("playcount", "greaterthan", "0")), ("descending", "lastplayed"), True, False),
         ('randomalbums', utils.Translate(33391), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "albums", (("type", "is", "LIBRARYTAG"),), ("random",), True, False),
         ('randomsingles', utils.Translate(33701), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "songs", (("type", "is", "LIBRARYTAG"),), ("random",), True, "singles"),
-        ('random', utils.Translate(33392), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "songs", (("comment", "endswith", "LIBRARYTAG"),), ("random",), True, False),
+        ('random', utils.Translate(33392), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "songs", (("comment", "endswith", "LIBRARYTAG"),), ("random",), True, False)
     ],
     'audiobooks': [
         ('letter', utils.Translate(33611), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "artists", (("disambiguation", "is", "LIBRARYTAG"), ("artist", "startswith")), ("ascending", "artist"), False, False, ("letter", "LETTER")),
@@ -134,7 +134,12 @@ SyncNodes = {
         ('randomalbums', utils.Translate(33391), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "albums", (("type", "is", "LIBRARYTAG"),), ("random",), True, False),
         ('random', utils.Translate(33394), 'special://home/addons/plugin.service.emby-next-gen/resources/random.png', "songs", (("comment", "endswith", "LIBRARYTAG"),), ("random",), True, False)
     ],
-    'root': [
+    'rootaudio': [
+        ('emby_playlists',  f"EMBY: {utils.Translate(33376)}", 'DefaultMusicPlaylists.png', "audio", (("PLUGIN", "playlist", "audio"),), (), False, True),
+        ('emby_inprogressmixed', f"EMBY: {utils.Translate(33628)}", 'DefaultInProgressShows.png', "mixed", (("PLUGIN", "inprogressmixed", "mixed"),))
+    ],
+    'rootvideo': [
+        ('emby_playlists', f"EMBY: {utils.Translate(33376)}", 'DefaultMusicPlaylists.png', "video", (("PLUGIN", "playlist", "video"),), (), False, True),
         ('emby_inprogressmixed', f"EMBY: {utils.Translate(33628)}", 'DefaultInProgressShows.png', "mixed", (("PLUGIN", "inprogressmixed", "mixed"),)),
         ('emby_nextepisodes', f"EMBY: {utils.Translate(33665)}", 'DefaultInProgressShows.png', "tvshows", (("PLUGIN", "nextepisodes", "episode"),)),
         ('emby_nextepisodesplayed', f"EMBY: {utils.Translate(33666)}", 'DefaultInProgressShows.png', "tvshows", (("PLUGIN", "nextepisodesplayed", "episode"),)),
@@ -260,10 +265,6 @@ DynamicNodes = {
         ('Recentlyadded', utils.Translate(33566), 'DefaultRecentlyAddedMovies.png', "PhotoAlbum", False),
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video", False)
     ],
-    'playlists': [
-        ('Letter', utils.Translate(33611), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "Playlist", False),
-        ('Playlists', utils.Translate(33376), 'DefaultPlaylist.png', "Playlist", True)
-    ],
     'audiobooks': [
         ('Letter', utils.Translate(33611), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "MusicArtist", False),
         ('MusicArtist', utils.Translate(33343), 'DefaultMusicArtists.png', "MusicArtist", False),
@@ -299,14 +300,18 @@ DynamicNodes = {
         ('Favorite', utils.Translate(33168), 'DefaultFavourites.png', "music", False),
         ('Recentlyadded', utils.Translate(33167), 'DefaultRecentlyAddedMovies.png', "Audio", False)
     ],
-    'root': [
+    'rootaudio': [
+        ('Playlists', utils.Translate(33376), 'DefaultMusicPlaylists.png', "PlaylistsAudio", True),
+        ('Favorite', utils.Translate(33625), 'DefaultFavourites.png', "music", False),
+        ('Search', utils.Translate(33626), 'DefaultAddonsSearch.png', "All", False)
+    ],
+    'rootvideo': [
+        ('Playlists', utils.Translate(33376), 'DefaultVideoPlaylists.png', "PlaylistsVideo", True),
         ('Favorite', utils.Translate(33624), 'DefaultFavourites.png', "Person", False),
         ('Favorite', utils.Translate(33608), 'DefaultFavourites.png', "videos", False),
-        ('Favorite', utils.Translate(33625), 'DefaultFavourites.png', "music", False),
-        ('Search', utils.Translate(33626), 'DefaultAddonsSearch.png', "All", False),
+        ('Search', utils.Translate(33626), 'DefaultAddonsSearch.png', "All", False)
     ]
 }
-
 
 class Views:
     def __init__(self, Embyserver):
@@ -324,21 +329,22 @@ class Views:
             view = {'LibraryId': library_id, 'Name': Data[0], 'Tag': Data[0], 'ContentType': Data[1], "Icon": Data[2], 'FilteredName': utils.valid_Filename(Data[0]), "ServerId": self.EmbyServer.ServerData["ServerId"]}
 
             for Dynamic in (True, False):
-                if view['ContentType'] in ("books", "games", "photos"):
+                if view['ContentType'] in ("books", "games", "photos", "playlists"):
                     continue
 
                 if Dynamic or f"'{view['LibraryId']}'" in str(self.EmbyServer.library.LibrarySynced):
                     if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                         view['Tag'] = f"EmbyLibraryId-{library_id}"
-
-                    if view['ContentType'] == 'mixed':
+                        add_xpsplaylist(view)
+                        self.add_nodes(view, Dynamic)
+                    elif view['ContentType'] == 'mixed':
                         if Dynamic:
                             viewMod = view.copy()
                             viewMod['ContentType'] = 'music'
-                            add_playlist(viewMod)
+                            add_xpsplaylist(viewMod)
                             self.add_nodes(viewMod, Dynamic)
                             viewMod['ContentType'] = 'mixedvideo'
-                            add_playlist(viewMod)
+                            add_xpsplaylist(viewMod)
                             self.add_nodes(viewMod, Dynamic)
                         else:
                             viewMod = view.copy()
@@ -354,19 +360,21 @@ class Views:
                                 if media == 'music':
                                     viewMod['Tag'] = f"EmbyLibraryId-{library_id}"
 
-                                add_playlist(viewMod)
+                                add_xpsplaylist(viewMod)
                                 self.add_nodes(viewMod, Dynamic)
                     elif not Dynamic and view['ContentType'] == 'homevideos':
                         viewMod = view.copy()
                         viewMod['ContentType'] = "movies"
-                        add_playlist(viewMod)
+                        add_xpsplaylist(viewMod)
                         self.add_nodes(viewMod, Dynamic)
                     else:
-                        add_playlist(view)
+                        add_xpsplaylist(view)
                         self.add_nodes(view, Dynamic)
 
-        self.add_nodes({'ContentType': "root"}, False)
-        self.add_nodes({'ContentType': "root"}, True)
+        self.add_nodes({'ContentType': "rootaudio"}, False)
+        self.add_nodes({'ContentType': "rootvideo"}, False)
+        self.add_nodes({'ContentType': "rootaudio"}, True)
+        self.add_nodes({'ContentType': "rootvideo"}, True)
 
     def update_views(self):
         Data = self.EmbyServer.API.get_views()
@@ -444,9 +452,6 @@ class Views:
 
     # Create or update the video node file
     def add_nodes(self, view, Dynamic):
-        if not Dynamic and view['ContentType'] == "playlists":
-            return
-
         if 'Icon' not in view or not view['Icon']:
             if view['ContentType'] == 'tvshows':
                 view['Icon'] = 'DefaultTVShows.png'
@@ -459,7 +464,7 @@ class Views:
             else:
                 view['Icon'] = "special://home/addons/plugin.service.emby-next-gen/resources/icon.png"
 
-        if view['ContentType'] != "root":
+        if view['ContentType'] not in ("rootaudio", "rootvideo"):
             if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                 if Dynamic:
                     folder = f"special://profile/library/music/emby_dynamic_{view['ContentType']}_{view['FilteredName']}/"
@@ -486,13 +491,16 @@ class Views:
                 Data += f'    <icon>{utils.encode_XML(view["Icon"])}</icon>\n'
                 Data += '</node>'
                 utils.writeFileBinary(FilePath, Data.encode("utf-8"))
-        else:
+        elif view['ContentType'] == "rootvideo":
             folder = "special://profile/library/video/"
+            utils.mkDir(folder)
+        elif view['ContentType'] == "rootaudio":
+            folder = "special://profile/library/music/"
             utils.mkDir(folder)
 
         # Dynamic nodes
         if Dynamic:
-            if view['ContentType'] != "root":
+            if view['ContentType'] not in ("rootaudio", "rootvideo"):
                 if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                     self.Nodes['NodesDynamic'].append({'title': view['Name'], 'path': f"library://music/emby_dynamic_{view['ContentType']}_{view['FilteredName']}/", 'icon': view['Icon']})
                 elif view['ContentType'] == "homevideos":
@@ -562,10 +570,17 @@ class Views:
 
                         Data += '</node>'
                         utils.writeFileBinary(FilePath, Data.encode("utf-8"))
-            else:
-                for NodeIndex, node in enumerate(DynamicNodes["root"], 1):
-                    NodePath = f"library://video/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
-                    FilePath = f"special://profile/library/video/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
+            else: # Dynamic root nodes
+                for NodeIndex, node in enumerate(DynamicNodes[view['ContentType']], 1):
+                    if view['ContentType'] == "rootvideo":
+                        NodePath = f"library://video/emby_dynamic_{node[0].lower()}_{node[3].lower()}_{self.EmbyServer.ServerData['ServerId']}.xml"
+                        FilePath = f"special://profile/library/video/emby_dynamic_{node[0].lower()}_{node[3].lower()}_{self.EmbyServer.ServerData['ServerId']}.xml"
+                    elif view['ContentType'] == "rootaudio":
+                        NodePath = f"library://music/emby_dynamic_{node[0].lower()}_{node[3].lower()}_{self.EmbyServer.ServerData['ServerId']}.xml"
+                        FilePath = f"special://profile/library/music/emby_dynamic_{node[0].lower()}_{node[3].lower()}_{self.EmbyServer.ServerData['ServerId']}.xml"
+                    else:
+                        NodePath = f"library://music/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
+                        FilePath = f"special://profile/library/music/emby_dynamic_{node[0].lower()}_{node[3].lower()}.xml"
 
                     if not utils.checkFileExists(FilePath) and self.EmbyServer.ServerData["ServerId"]:
                         Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
@@ -578,12 +593,15 @@ class Views:
                         else:
                             Data += f'    <path>plugin://plugin.service.emby-next-gen/?mode=browse&amp;id=0&amp;parentid=0&amp;libraryid=0&amp;content={node[3]}&amp;server={self.EmbyServer.ServerData["ServerId"]}&amp;query={node[0]}</path>\n'
 
+                        if node[4]:
+                            Data += '    <group/>\n'
+
                         Data += '</node>'
                         utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
                     self.Nodes['NodesDynamic'].append({'title': node[1], 'path': NodePath, 'icon': node[2]})
         else: # Synced nodes
-            if view['ContentType'] != "root":
+            if view['ContentType'] not in ("rootaudio", "rootvideo"):
                 if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                     self.Nodes['NodesSynced'].append({'title': view['Name'], 'path': f"library://music/emby_{view['ContentType']}_{view['FilteredName']}/", 'icon': view['Icon']})
                 else:
@@ -595,8 +613,15 @@ class Views:
                 # Node: [filename, label, icon, content, [[rule1, Filter, Operator], [rule1, Filter, Operator], ...], [direction, order], useLimit, group, Subfolder]
                 NodeIndex += 1
 
-                if view['ContentType'] == "root":
-                    NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://video/{node[0]}.xml", 'icon': node[2]}
+                if view['ContentType'] in ("rootaudio", "rootvideo"):
+                    if not self.EmbyServer.ServerData['ServerId']:
+                        continue
+
+                    if view['ContentType'] == "rootvideo":
+                        NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://video/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
+                    else:
+                        NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://music/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
+
                     NodeAdd = True
 
                     if node[0] in ('emby_collections_movies', 'emby_collections_tvshows', 'emby_collections_musicvideos'):
@@ -624,7 +649,7 @@ class Views:
                             SubNode[1] = utils.encode_XML(Genre)
                             SubNode[4] = list(SubNode[4])
                             SubNode[4][1] += (Genre,)
-                            set_synced_node(FolderPath, view, SubNode, NodeIndex, 10)
+                            self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 10)
                             NodeIndex += 1
                     elif node[8][1] == "LETTER":
                         utils.mkDir(FolderPath)
@@ -640,7 +665,7 @@ class Views:
                             else:
                                 SubNode[4][1] += (Letter,)
 
-                            set_synced_node(FolderPath, view, SubNode, NodeIndex, 1)
+                            self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 1)
                             NodeIndex += 1
 
                     FilePath = f"{FolderPath}index.xml"
@@ -653,78 +678,78 @@ class Views:
                         Data += '</node>'
                         utils.writeFileBinary(FilePath, Data.encode("utf-8"))
                 else:
-                    set_synced_node(folder, view, node, NodeIndex, 1)
+                    self.set_synced_node(folder, view, node, NodeIndex, 1)
 
-def set_synced_node(Folder, view, node, NodeIndex, LimitFactor):
-    Label = node[1]
-    FilePath = f"{Folder}{node[0]}.xml"
+    def set_synced_node(self, Folder, view, node, NodeIndex, LimitFactor):
+        Label = node[1]
 
-    if Label == "LIBRARYNAME":
-        Label = utils.encode_XML(view["Name"])
-
-    if not utils.checkFileExists(FilePath):
-        Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-
-        if node[4][0][0] == "PLUGIN":
-            Data += f'<node order="{NodeIndex}" type="folder">\n'
-            Data += f'    <label>{utils.encode_XML(Label)}</label>\n'
-            Data += f'    <icon>{utils.encode_XML(node[2])}</icon>\n'
-            Data += f'    <path>plugin://plugin.service.emby-next-gen/?mode={node[4][0][1]}&amp;mediatype={node[4][0][2]}&amp;libraryname={quote(view.get("Name", "unknown"))}</path>\n'
+        if view['ContentType'].startswith("root"):
+            FilePath = f"{Folder}{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml"
         else:
-            Data += f'<node order="{NodeIndex}" type="filter">\n'
-            Data += f'    <label>{utils.encode_XML(Label)}</label>\n'
-            Data += f'    <icon>{utils.encode_XML(node[2])}</icon>\n'
-            Data += f'    <content>{node[3]}</content>\n'
+            FilePath = f"{Folder}{node[0]}.xml"
 
-            if len(node[4]) > 1:
-                Data += '    <match>all</match>\n'
+        if Label == "LIBRARYNAME":
+            Label = utils.encode_XML(view["Name"])
 
-            for Rule in node[4]:
-                if len(Rule) == 2:
-                    Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}"/>\n'
-                else:
-                    if isinstance(Rule[2], tuple):
-                        Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}">\n'
+        if not utils.checkFileExists(FilePath):
+            if not self.EmbyServer.ServerData["ServerId"]:
+                return
 
-                        for Value in Rule[2]:
-                            Data += f'        <value>{Value}</value>\n'
+            Data = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
 
-                        Data += '    </rule>\n'
+            if node[4][0][0] == "PLUGIN":
+                Data += f'<node order="{NodeIndex}" type="folder">\n'
+                Data += f'    <label>{utils.encode_XML(Label)}</label>\n'
+                Data += f'    <icon>{utils.encode_XML(node[2])}</icon>\n'
+                Data += f'    <path>plugin://plugin.service.emby-next-gen/?mode={node[4][0][1]}&amp;mediatype={node[4][0][2]}&amp;libraryname={quote(view.get("Name", "unknown"))}&amp;server={self.EmbyServer.ServerData["ServerId"]}</path>\n'
+
+                if len(node) >= 8 and node[7]:
+                    Data += '    <group/>\n'
+            else:
+                Data += f'<node order="{NodeIndex}" type="filter">\n'
+                Data += f'    <label>{utils.encode_XML(Label)}</label>\n'
+                Data += f'    <icon>{utils.encode_XML(node[2])}</icon>\n'
+                Data += f'    <content>{node[3]}</content>\n'
+
+                if len(node[4]) > 1:
+                    Data += '    <match>all</match>\n'
+
+                for Rule in node[4]:
+                    if len(Rule) == 2:
+                        Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}"/>\n'
                     else:
-                        Tag = Rule[2]
+                        if isinstance(Rule[2], tuple):
+                            Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}">\n'
 
-                        if Tag == "LIBRARYTAG":
-                            Tag = utils.encode_XML(view["Tag"])
+                            for Value in Rule[2]:
+                                Data += f'        <value>{Value}</value>\n'
 
-                        Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}">{Tag}</rule>\n'
+                            Data += '    </rule>\n'
+                        else:
+                            Tag = Rule[2]
 
-            if node[5]:
-                if len(node[5]) > 1:
-                    Data += f'    <order direction="{node[5][0]}">{node[5][1]}</order>\n'
-                else:
-                    Data += f'    <order>{node[5][0]}</order>\n'
+                            if Tag == "LIBRARYTAG":
+                                Tag = utils.encode_XML(view["Tag"])
 
-            if node[6]:
-                Data += f'    <limit>{utils.maxnodeitems * LimitFactor}</limit>\n'
+                            Data += f'    <rule field="{Rule[0]}" operator="{Rule[1]}">{Tag}</rule>\n'
 
-            if node[7]:
-                Data += f'    <group>{node[7]}</group>\n'
+                if node[5]:
+                    if len(node[5]) > 1:
+                        Data += f'    <order direction="{node[5][0]}">{node[5][1]}</order>\n'
+                    else:
+                        Data += f'    <order>{node[5][0]}</order>\n'
 
-        Data += '</node>'
-        utils.writeFileBinary(FilePath, Data.encode("utf-8"))
+                if node[6]:
+                    Data += f'    <limit>{utils.maxnodeitems * LimitFactor}</limit>\n'
 
-def get_node_playlist_path(ContentType):
-    if ContentType in ('music', 'audiobooks', 'podcasts'):
-        node_path = "special://profile/library/music/"
-        playlist_path = 'special://profile/playlists/music/'
-    else:
-        node_path = "special://profile/library/video/"
-        playlist_path = 'special://profile/playlists/video/'
+                if node[7]:
+                    Data += f'    <group>{node[7]}</group>\n'
 
-    return node_path, playlist_path
+            Data += '</node>'
+            utils.writeFileBinary(FilePath, Data.encode("utf-8"))
 
 # Create or update the xsp file
-def add_playlist(view):
+def add_xpsplaylist(view):
     if not utils.xspplaylists:
         return
 

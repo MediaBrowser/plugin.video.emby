@@ -99,10 +99,14 @@ def monitor_Favorites():
                             Temp = Path.split("/")
                             KodiItemId = Temp[4]
                             EmbyType = "Studio"
-                        elif Path.startswith("special://profile/playlists/mixed/"):
+                        elif Path.startswith("special://profile/playlists/video/"):
                             Temp = Path.split("/")
                             KodiItemId = Temp[5][:-4]
-                            EmbyType = "Playlist"
+                            EmbyType = "PlaylistVideo"
+                        elif Path.startswith("special://profile/playlists/music/"):
+                            Temp = Path.split("/")
+                            KodiItemId = Temp[5][:-4]
+                            EmbyType = "PlaylistAudio"
                         elif Path.startswith("musicdb://genres/"):
                             Temp = Path.split("/")
                             KodiItemId = Temp[3]
@@ -121,7 +125,7 @@ def monitor_Favorites():
                             EmbyType = "MusicAlbum"
 
                         if not isPath and KodiItemId == -1: # sub content need KodiItemId
-                            xbmc.log("EMBY.hooks.favorites: KodiItemId not found: {FavoriteChanged}", 2) # LOGWARNING
+                            xbmc.log(f"EMBY.hooks.favorites: KodiItemId not found: {FavoriteChanged}", 2) # LOGWARNING
                             continue
 
                         ValidImage = ""
@@ -196,7 +200,7 @@ def monitor_Favorites():
                                     if MusicGenreByMusicVideo:
                                         send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Genre", "Musicvideos", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
                                     elif MusicGenreByAudio:
-                                        send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Genre", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
+                                        send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Genre", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "music"})
 
                                     # Add additional favorites for linked subcontent
                                     if KodiItemIdFromDB:
@@ -356,11 +360,13 @@ def monitor_Favorites():
                                 elif EmbyType == "Season":
                                     send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Season", "TV Show", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
                                 elif EmbyType == "MusicArtist":
-                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Artist", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
+                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Artist", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "music"})
                                 elif EmbyType == "MusicAlbum":
-                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Album", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
-                                elif EmbyType == "Playlist":
-                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Playlist", "Playlists", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
+                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Album", "Songs", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "music"})
+                                elif EmbyType == "PlaylistVideo":
+                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Playlist", "Video", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "videos"})
+                                elif EmbyType == "PlaylistAudio":
+                                    send_favorite({"type": FavoriteChanged["type"], "title": FavoriteChanged["title"] , "thumbnail": common.set_Favorites_Artwork_Overlay("Playlist", "Audio", EmbyId, ServerId, ImageUrlUpdated), "windowparameter": FavoriteChanged["windowparameter"], "window": "music"})
                         else: # favorite removed
                             if not isPath:
                                 # remove additional existing favorite records for linked sub-content
@@ -765,7 +771,13 @@ def update_Playlist(EmbyServer):
 
     for Index, PlaylistInfo in enumerate(PlaylistInfo):
         if PlaylistInfo[0]:
-            PlaylistObject.set_favorite(PlaylistInfo[0], PlaylistInfo[1], PlaylistInfo[2])
+            KodiItemIds = PlaylistInfo[1].split(";")
+
+            if KodiItemIds[0]:
+                PlaylistObject.set_favorite(PlaylistInfo[0], KodiItemIds[0], PlaylistInfo[2] ,PlaylistInfo[3], False)
+
+            if KodiItemIds[1]:
+                PlaylistObject.set_favorite(PlaylistInfo[0], KodiItemIds[1], PlaylistInfo[2] ,PlaylistInfo[3], True)
 
         ProgressBar.update(int(Index / RecordsPercent), "Update playlist favorites", str(PlaylistInfo[1]))
 

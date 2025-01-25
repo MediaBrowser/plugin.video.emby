@@ -26,3 +26,4 @@ class Folder:
         xbmc.log(f"EMBY.core.folder: USERDATA {Item}", 1) # LOGINFO
         self.change(Item, True)
         utils.reset_querycache("Folder")
+        return False
