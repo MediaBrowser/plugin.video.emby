@@ -11,7 +11,7 @@ SearchTerm = ""
 MappingStaggered = {"Series": "Season", "Season": "Episode", "PhotoAlbum": "HomeVideos", "MusicAlbum": "Audio"} # additional stagged content parameter written in the code, based on conditions
 letters = ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 MappingContentKodi = {"movies": "movies", "Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "TvChannel": "videos", "musicvideos": "musicvideos", "VideoMusicArtist": "musicvideos", "tvshows": "tvshows", "Folder": "files", "All": "files", "homevideos": "files", "Playlist": "files", "Trailer": "videos", "Person": "videos", "videos": "videos", "music": "songs"}
-Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person"), "playablevideos": ("MusicVideo", "Episode", "Movie", "Video"), "PlaylistsAudio": ("Audio",), "PlaylistsVideo": ("MusicVideo", "Episode", "Movie", "Video"), "Playlists": ("Audio", "MusicVideo", "Episode", "Movie", "Video")}
+Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person"), "playablevideos": ("MusicVideo", "Episode", "Movie", "Video"), "PlaylistsAudio": ("Audio",), "PlaylistsVideo": ("All",), "Playlists": ("Audio", "MusicVideo", "Episode", "Movie", "Video")}
 IconMapping = {"MusicArtist": "DefaultMusicArtists.png", "MusicAlbum": "DefaultMusicAlbums.png", "Audio": "DefaultMusicSongs.png", "Movie": "DefaultMovies.png", "Trailer": "DefaultAddonVideo.png", "BoxSet": "DefaultSets.png", "Series": "DefaultTVShows.png", "Season": "DefaultTVShowTitle.png", "Episode": "DefaultAddonVideo.png", "MusicVideo": "DefaultMusicVideos.png", "Video": "DefaultAddonVideo.png", "Photo": "DefaultPicture.png.png", "PhotoAlbum": "DefaultAddonPicture.png", "TvChannel": "DefaultAddonPVRClient.png", "Folder": "DefaultFolder.png", "Playlist": "DefaultPlaylist.png", "Genre": "DefaultGenre.png", "MusicGenre": "DefaultMusicGenres.png", "Person": "DefaultActor.png", "Tag": "DefaultTags.png", "Channel": "DefaultFolder.png", "CollectionFolder": "DefaultFolder.png", "Studio": "DefaultStudios.png"}
 LibraryMenu = {"LibraryAdd": utils.Translate(33154), "LibraryRemove": utils.Translate(33184), "LibraryUpdate": utils.Translate(33139), "LibraryRepair": utils.Translate(33140), "RefreshBoxsets": utils.Translate(33098), "ToggleLiveTv": "", "RefreshLiveTv": utils.Translate(33706), "ToggleThemes": "", "RefreshThemes": utils.Translate(33707)}
 
@@ -306,72 +306,76 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
         Extras.update({'SearchTerm': SearchTerm})
         EmbyContentQuery = (ParentId, ["Person", "Genre", "MusicGenre", "Movie", "Video", "Series", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"], True, Extras, False, LibraryId)
 
-    SortItems = {"MusicArtist": (), "MusicAlbum": (), "Audio": (), "Movie": (), "Trailer": (), "BoxSet": (), "Series": (), "Season": (), "Episode": (), "MusicVideo": (), "Video": (), "Photo": (), "PhotoAlbum": (), "TvChannel": (), "Folder": (), "Playlist": (), "Genre": (), "MusicGenre": (), "Person": (), "Tag": (), "Channel": (), "CollectionFolder": (), "Studio": ()}
-
     if EmbyContentQuery:
-        Doublesfilter = set() # Emby server workaround bug -> IncludeItemTypes not respected by folders
+        if Content == "PlaylistsVideo" and EmbyContentQuery[1] != ["Playlist"]:
+            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*EmbyContentQuery):
+                if Item['Type'] in ("MusicVideo", "Episode", "Movie", "Video"):
+                    ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Item['Type'], LibraryId)
+        else:
+            Doublesfilter = set() # Emby server workaround bug -> IncludeItemTypes not respected by folders
+            SortItems = {"MusicArtist": (), "MusicAlbum": (), "Audio": (), "Movie": (), "Trailer": (), "BoxSet": (), "Series": (), "Season": (), "Episode": (), "MusicVideo": (), "Video": (), "Photo": (), "PhotoAlbum": (), "TvChannel": (), "Folder": (), "Playlist": (), "Genre": (), "MusicGenre": (), "Person": (), "Tag": (), "Channel": (), "CollectionFolder": (), "Studio": ()}
 
-        for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*EmbyContentQuery):
-            ItemId = Item.get("Id", "")
+            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*EmbyContentQuery):
+                ItemId = Item.get("Id", "")
 
-            if ItemId:
-                if ItemId not in Doublesfilter:
-                    Doublesfilter.add(ItemId)
-                else:
-                    continue
-
-            if utils.SystemShutdown:
-                return
-
-            if Item['Type'] in SortItems:
-                SortItems[Item['Type']] += (Item,)
-            else:
-                xbmc.log(f"EMBY.helper.pluginmenu: Invalid content: {Item['Type']}", 3) # LOGERROR
-
-        TypeCounter = 0
-
-        for SortItemContent, SortedItems in list(SortItems.items()):
-            if SortedItems and SortItemContent not in ("Folder", "PhotoAlbum"):
-                TypeCounter += 1
-
-                if TypeCounter == 2: # multiple content types detected
-                    break
-
-        if TypeCounter == 2:
-            for SortItemContent, SortedItems in list(SortItems.items()):
-                if not SortedItems or SortItemContent in ("Folder", "PhotoAlbum"):
-                    continue
-
-                if SortItemContent not in utils.QueryCache:
-                    utils.QueryCache[SortItemContent] = {}
-
-                ItemsListingsCached = ()
-
-                for SortedItem in SortedItems:
-                    ItemsListingsCached = load_ListItem(ParentId, SortedItem, ServerId, ItemsListingsCached, Content, LibraryId)
-
-                utils.QueryCache[SortItemContent][f"{Id}{SortItemContent}{ParentId}{ServerId}{LibraryId}"] = [True, ItemsListingsCached, Unsorted, Id, SortItemContent, ServerId, ParentId, LibraryId]
-                ItemsListings = add_ListItem(ItemsListings, f"--{SortItemContent}--", f"plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={SortItemContent}&server={ServerId}&parentid={ParentId}&content={SortItemContent}&libraryid={LibraryId}", IconMapping[SortItemContent], SortItemContent)
-
-            WindowIdCheck = False
-        else: # unique content
-            for SortItemContent, SortedItems in list(SortItems.items()):
-                if SortedItems:
-                    if SortItemContent in ("Folder", "PhotoAlbum"):
+                if ItemId:
+                    if ItemId not in Doublesfilter:
+                        Doublesfilter.add(ItemId)
+                    else:
                         continue
 
-                    if SortItemContent not in ("Genre", "MusicGenre", "Tag", "Playlist"): # Skip subqueries
-                        Content = SortItemContent
+                if utils.SystemShutdown:
+                    return
+
+                if Item['Type'] in SortItems:
+                    SortItems[Item['Type']] += (Item,)
+                else:
+                    xbmc.log(f"EMBY.helper.pluginmenu: Invalid content: {Item['Type']}", 3) # LOGERROR
+
+            TypeCounter = 0
+
+            for SortItemContent, SortedItems in list(SortItems.items()):
+                if SortedItems and SortItemContent not in ("Folder", "PhotoAlbum"):
+                    TypeCounter += 1
+
+                    if TypeCounter == 2: # multiple content types detected
+                        break
+
+            if TypeCounter == 2:
+                for SortItemContent, SortedItems in list(SortItems.items()):
+                    if not SortedItems or SortItemContent in ("Folder", "PhotoAlbum"):
+                        continue
+
+                    if SortItemContent not in utils.QueryCache:
+                        utils.QueryCache[SortItemContent] = {}
+
+                    ItemsListingsCached = ()
 
                     for SortedItem in SortedItems:
-                        ItemsListings = load_ListItem(ParentId, SortedItem, ServerId, ItemsListings, Content, LibraryId)
+                        ItemsListingsCached = load_ListItem(ParentId, SortedItem, ServerId, ItemsListingsCached, Content, LibraryId)
 
-                    break
+                    utils.QueryCache[SortItemContent][f"{Id}{SortItemContent}{ParentId}{ServerId}{LibraryId}"] = [True, ItemsListingsCached, Unsorted, Id, SortItemContent, ServerId, ParentId, LibraryId]
+                    ItemsListings = add_ListItem(ItemsListings, f"--{SortItemContent}--", f"plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={SortItemContent}&server={ServerId}&parentid={ParentId}&content={SortItemContent}&libraryid={LibraryId}", IconMapping[SortItemContent], SortItemContent)
 
-        # Always add not playable items
-        for SubFolder in ("Folder", "PhotoAlbum"):
-            for FolderItem in SortItems[SubFolder]:
-                ItemsListings = load_ListItem(ParentId, FolderItem, ServerId, ItemsListings, Content, LibraryId)
+                WindowIdCheck = False
+            else: # unique content
+                for SortItemContent, SortedItems in list(SortItems.items()):
+                    if SortedItems:
+                        if SortItemContent in ("Folder", "PhotoAlbum"):
+                            continue
+
+                        if SortItemContent not in ("Genre", "MusicGenre", "Tag", "Playlist"): # Skip subqueries
+                            Content = SortItemContent
+
+                        for SortedItem in SortedItems:
+                            ItemsListings = load_ListItem(ParentId, SortedItem, ServerId, ItemsListings, Content, LibraryId)
+
+                        break
+
+            # Always add not playable items
+            for SubFolder in ("Folder", "PhotoAlbum"):
+                for FolderItem in SortItems[SubFolder]:
+                    ItemsListings = load_ListItem(ParentId, FolderItem, ServerId, ItemsListings, Content, LibraryId)
 
     if ContentQuery not in utils.QueryCache:
         utils.QueryCache[ContentQuery] = {}

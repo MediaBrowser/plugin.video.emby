@@ -466,10 +466,10 @@ class HTTP:
                 IncomingMetaData = IncomingData[0].decode("utf-8").split("\r\n")
                 StatusCode = int(IncomingMetaData[0].split(" ")[1])
             except Exception as error: # Can happen on Emby server hard reboot
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Undefined error: {error}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Binary: {Binary}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Request: {Request}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: IncomingData: {IncomingData}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Info: {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Binary: {Binary}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Request: {Request}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: IncomingData: {IncomingData}", 3) # LOGERROR
                 return 612, {}, ""
 
             IncomingDataHeaderArray = IncomingMetaData[1:]
@@ -529,10 +529,14 @@ class HTTP:
         PayloadTotal = b''.join(PayloadTotal)
 
         # Decompress data
-        if isDeflate:
-            PayloadTotal = zlib.decompress(PayloadTotal, -zlib.MAX_WBITS)
-        elif isGzip:
-            PayloadTotal = zlib.decompress(PayloadTotal, zlib.MAX_WBITS|32)
+        try:
+            if isDeflate:
+                PayloadTotal = zlib.decompress(PayloadTotal, -zlib.MAX_WBITS)
+            elif isGzip:
+                PayloadTotal = zlib.decompress(PayloadTotal, zlib.MAX_WBITS|32)
+        except Exception as error: # could happen on server overload
+            xbmc.log(f"EMBY.emby.http: Decompress issue {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+            return 612, {}, ""
 
         if Binary:
             return StatusCode, IncomingDataHeader, PayloadTotal
@@ -542,15 +546,15 @@ class HTTP:
         if isJSON:
             try:
                 return StatusCode, IncomingDataHeader, json.loads(PayloadTotal)
-            except:
-                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader}", 0) # LOGDEBUG
-                return 601, {}, ""
+            except Exception as error:
+                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+                return 612, {}, ""
         else:
             try:
                 return StatusCode, IncomingDataHeader, PayloadTotal.decode("UTF-8")
-            except:
-                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader}", 0) # LOGDEBUG
-                return 601, {}, ""
+            except Exception as error:
+                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+                return 612, {}, ""
 
     def download_file(self):
         xbmc.log("EMBY.emby.http: THREAD: --->[ file download ]", 0) # LOGDEBUG
@@ -819,7 +823,7 @@ class HTTP:
                 self.Response[RequestId] = noData(StatusCode, {}, Binary)
                 break
 
-            if StatusCode in (600, 605, 612): # not data received, broken pipes, undefined error
+            if StatusCode in (600, 605, 612): # no data received, broken pipes, undefined error
                 xbmc.log(f"EMBY.emby.http: Request retry {StatusCode} / {ConnectionId}", 2) # LOGWARNING
                 self.socket_close(ConnectionId)
                 continue

@@ -14,7 +14,7 @@ class Playlist:
         IsFavorite = common.set_Favorite(Item)
         ImageUrl = common.set_Favorites_Artwork(Item, self.EmbyServer.ServerData['ServerId'])
         xbmc.log(f"EMBY.core.playlist: Process item: {Item['Name']}", 0) # DEBUG
-        PlaylistItems = self.EmbyServer.API.get_Items(Item['Id'], ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video"], False, True, {}, "", False, None)
+        PlaylistItems = self.EmbyServer.API.get_Items(Item['Id'], ["All"], False, True, {}, "", False, None)
         ItemFilename = utils.valid_Filename(Item['Name'])
         M3UPlaylistAudio = ""
         M3UPlaylistVideo = ""
