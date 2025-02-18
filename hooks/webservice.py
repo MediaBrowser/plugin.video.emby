@@ -761,6 +761,7 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
 
         if QueryData['SelectionIndexMediaSource'] == -1:
             set_DelayedContent(QueryData['Payload'], "blank")
+            playerops.Stop(False, 1)
             return
 
     # check if multiselection must be forced as native

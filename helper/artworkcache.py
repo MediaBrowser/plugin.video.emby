@@ -13,6 +13,9 @@ def CacheAllEntries(urls, ProgressBar):
     ArtworkCacheIndex = 0
 
     for IndexUrl, url in enumerate(urls):
+        if utils.TextureCacheCancel:
+            return
+
         if IndexUrl % 1000 == 0:
             add_textures(ArtworkCacheItems)
             ArtworkCacheItems = 1000 * [{}]

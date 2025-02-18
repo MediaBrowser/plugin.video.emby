@@ -808,7 +808,8 @@ def collections(Handle, KodiMediaType, LibraryTag):
 
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
-    xbmc.log("EMBY.helper.pluginmenu: <[ cache textures ]", 1) # LOGINFO
+    xbmc.log("EMBY.helper.pluginmenu: -->[ cache textures ]", 1) # LOGINFO
+    utils.TextureCacheCancel = False
     DelArtwork = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33044))
 
     # Select content to be cached
@@ -827,12 +828,17 @@ def cache_textures():
     utils.set_settings_bool('artworkcacheenable', False)
 
     for Urls in cache_textures_generator(selection):
+        if utils.TextureCacheCancel:
+            break
+
         Urls = list(dict.fromkeys(Urls)) # remove duplicates
         artworkcache.CacheAllEntries(Urls, ProgressBar)
 
+    utils.TextureCacheCancel = False
     utils.set_settings_bool('artworkcacheenable', True)
     ProgressBar.close()
     del ProgressBar
+    xbmc.log("EMBY.helper.pluginmenu: <--[ cache textures ]", 1) # LOGINFO
 
 def cache_textures_generator(selection):
     if 0 in selection or 12 in selection or 13 in selection:
@@ -843,6 +849,9 @@ def cache_textures_generator(selection):
                 ItemCounter = 0
 
                 for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}, "", True, None):
+                    if utils.TextureCacheCancel:
+                        return
+
                     common.set_path_filename(Item, ServerId, None, True)
                     TempUrls[ItemCounter] = (Item['KodiFullPath'],)
                     ItemCounter += 1
@@ -855,6 +864,9 @@ def cache_textures_generator(selection):
                 ItemCounter = 0
 
                 for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}, "", True, None):
+                    if utils.TextureCacheCancel:
+                        return
+
                     common.set_path_filename(Item, ServerId, None, True)
                     TempUrls[ItemCounter] = (Item['KodiFullPath'],)
                     ItemCounter += 1
