@@ -95,6 +95,8 @@ class monitor(xbmc.Monitor):
                 utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False, time=utils.displayMessage)
             else:
                 utils.start_thread(pluginmenu.cache_textures, ())
+        elif method == 'Other.texturecachecancel':
+            utils.TextureCacheCancel = True
         elif method == 'VideoLibrary.OnUpdate' and not utils.RemoteMode:  # Buffer updated items -> not overloading threads
             globals()["QueueItemsStatusupdate"] += (data,)
 

@@ -1,3 +1,10 @@
+11.1.23
+=============
+fix playback cancel on multiselection for episodes and musicvideo not respected
+add option to cancel artwork cache
+
+
+
 11.1.22
 =============
 update Chinese language file

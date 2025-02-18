@@ -92,8 +92,18 @@
                     <data>NotifyAll(plugin.service.emby-next-gen,texturecache)</data>
                     <level>0</level>
                     <dependencies>
-                        <dependency type="enable">
+                        <dependency type="visible">
                             <condition operator="is" setting="artworkcacheenable">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting id="texturecachecancel" label="33717" type="action" help="33310">
+                    <data>NotifyAll(plugin.service.emby-next-gen,texturecachecancel)</data>
+                    <level>0</level>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="artworkcacheenable">false</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action"/>

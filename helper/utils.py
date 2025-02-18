@@ -65,6 +65,7 @@ menuOptions = False
 newContent = False
 restartMsg = False
 connectMsg = False
+TextureCacheCancel = False
 enableDeleteByKodiEvent = False
 addUsersHidden = False
 enableContextDelete = False
