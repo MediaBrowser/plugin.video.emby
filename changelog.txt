@@ -1,3 +1,10 @@
+11.1.24
+=============
+fix minor http communication issue
+increase http timeouts to 20 minutes -> Emby MusicAlbum queries are very slow
+
+
+
 11.1.23
 =============
 fix playback cancel on multiselection for episodes and musicvideo not respected

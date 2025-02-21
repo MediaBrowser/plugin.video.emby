@@ -547,13 +547,13 @@ class HTTP:
             try:
                 return StatusCode, IncomingDataHeader, json.loads(PayloadTotal)
             except Exception as error:
-                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: {error} payload: {PayloadTotal}", 3) # LOGERROR
                 return 612, {}, ""
         else:
             try:
                 return StatusCode, IncomingDataHeader, PayloadTotal.decode("UTF-8")
             except Exception as error:
-                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader} error: {error} payload: {PayloadTotal}", 3) # LOGERROR
                 return 612, {}, ""
 
     def download_file(self):
@@ -652,19 +652,22 @@ class HTTP:
 
                 break
 
-    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, BusyFunction=None):
-        if CloseConnection:
-            ConnectionId = str(uuid.uuid4())
-        elif self.RequestBusy["MAIN"].locked():
-            if self.RequestBusy["MAINFALLBACK"].locked():
+    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, BusyFunction=None, ConnectionId=""):
+        if not ConnectionId:
+            if CloseConnection:
                 ConnectionId = str(uuid.uuid4())
-                CloseConnection = True
+            elif self.RequestBusy["MAIN"].locked():
+                if self.RequestBusy["MAINFALLBACK"].locked():
+                    ConnectionId = str(uuid.uuid4())
+                    CloseConnection = True
+                else:
+                    ConnectionId = "MAINFALLBACK"
+                    self.RequestBusy["MAINFALLBACK"].acquire()
             else:
-                ConnectionId = "MAINFALLBACK"
-                self.RequestBusy["MAINFALLBACK"].acquire()
+                ConnectionId = "MAIN"
+                self.RequestBusy["MAIN"].acquire()
         else:
-            ConnectionId = "MAIN"
-            self.RequestBusy["MAIN"].acquire()
+            self.RequestBusy[ConnectionId].acquire()
 
         RequestId = f"REQUEST{ConnectionId}"
 
@@ -779,7 +782,7 @@ class HTTP:
             elif "Subtitles" in Handler:
                 StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 30, ConnectionId, "", 0, "")
             else:
-                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 300, ConnectionId, "", 0, "")
+                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 1200, ConnectionId, "", 0, "")
 
             # Redirects
             if StatusCode in (301, 302, 307, 308):
@@ -1117,11 +1120,11 @@ class HTTP:
 
                 # Main connection ping
                 if Counter == 1 and not self.RequestBusy["MAIN"].locked():
-                    self.send_request("POST", "System/Ping", {}, {}, True, "", False, "MAIN", "MAINPING")
+                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAIN")
 
                 # Mainfallback connection ping
                 if Counter == 2 and not self.RequestBusy["MAINFALLBACK"].locked():
-                    self.send_request("POST", "System/Ping", {}, {}, True, "", False, "MAINFALLBACK", "MAINFALLBACKPING")
+                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAINFALLBACK")
 
                 # Async connection ping
                 if Counter == 3 and not self.RequestBusy["ASYNC"].locked():
