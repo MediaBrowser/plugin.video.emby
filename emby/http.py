@@ -115,6 +115,10 @@ class HTTP:
 
         return 0
 
+    def socket_del(self, ConnectionId):
+        if ConnectionId in self.Connection:
+            del self.Connection[ConnectionId]
+
     def socket_open(self, ConnectionString, ConnectionId, CloseConnection):
         NewHeader = False
 
@@ -138,9 +142,7 @@ class HTTP:
                 if ConnectionId == "MAIN":
                     utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33678), time=utils.displayMessage, sound=False)
 
-                if ConnectionId in self.Connection:
-                    del self.Connection[ConnectionId]
-
+                self.socket_del(ConnectionId)
                 return 611
 
             self.Connection[ConnectionId]["SSL"] = bool(Scheme == "https")
@@ -158,6 +160,7 @@ class HTTP:
             StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], False)
 
             if StatusCodeSocket:
+                self.socket_del(ConnectionId)
                 return StatusCodeSocket
 
         RetryCounter = 0
@@ -171,7 +174,7 @@ class HTTP:
                 break
             except TimeoutError:
                 if ConnectionId not in self.Connection:
-                    xbmc.log(f"EMBY.emby.http: TimeoutError: No {ConnectionId}", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.emby.http: TimeoutError: No Connection {ConnectionId}", 2) # LOGWARNING
                     return 699
 
                 RetryCounter += 1
@@ -180,16 +183,14 @@ class HTTP:
                     StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
 
                     if StatusCodeSocket:
+                        self.socket_del(ConnectionId)
                         return StatusCodeSocket
 
                 if RetryCounter <= 10:
                     continue
 
                 xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Timeout", 2) # LOGWARNING
-
-                if ConnectionId in self.Connection:
-                    del self.Connection[ConnectionId]
-
+                self.socket_del(ConnectionId)
                 return 606
             except ConnectionRefusedError:
                 if ConnectionId not in self.Connection:
@@ -202,20 +203,19 @@ class HTTP:
                     StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
 
                     if StatusCodeSocket:
+                        self.socket_del(ConnectionId)
                         return StatusCodeSocket
 
                 if RetryCounter == 1:
                     continue
 
-                if ConnectionId in self.Connection:
-                    del self.Connection[ConnectionId]
-
+                self.socket_del(ConnectionId)
                 xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionId}", 2) # LOGWARNING
                 xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionString}", 0) # LOGDEBUG
                 return 607
             except Exception as error:
                 if ConnectionId not in self.Connection:
-                    xbmc.log(f"EMBY.emby.http: No ConnectionId {ConnectionId}", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.emby.http: No Connection {ConnectionId}", 2) # LOGWARNING
                     return 699
 
                 RetryCounter += 1
@@ -224,6 +224,7 @@ class HTTP:
                     StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
 
                     if StatusCodeSocket:
+                        self.socket_del(ConnectionId)
                         return StatusCodeSocket
 
                 if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
@@ -231,19 +232,14 @@ class HTTP:
                         continue
 
                     xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Timeout", 2) # LOGWARNING
-
-                    if ConnectionId in self.Connection:
-                        del self.Connection[ConnectionId]
-
+                    self.socket_del(ConnectionId)
                     return 606
 
                 if RetryCounter == 1:
                     continue
 
                 if str(error).lower().find("errno 22") != -1 or str(error).lower().find("invalid argument") != -1: # [Errno 22] Invalid argument
-                    if ConnectionId in self.Connection:
-                        del self.Connection[ConnectionId]
-
+                    self.socket_del(ConnectionId)
                     xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Invalid argument", 2) # LOGWARNING
 
                     if ConnectionId == "MAIN":
@@ -252,10 +248,7 @@ class HTTP:
                     return 610
 
                 xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Undefined error: {error} / Type: {type(error)}", 2) # LOGWARNING
-
-                if ConnectionId in self.Connection:
-                    del self.Connection[ConnectionId]
-
+                self.socket_del(ConnectionId)
                 return 699
 
         if ConnectionId in self.Connection:
@@ -268,9 +261,7 @@ class HTTP:
                         self.Connection[ConnectionId]["Socket"].settimeout(3) # set timeout
                         break
                     except ssl.CertificateError:
-                        if ConnectionId in self.Connection:
-                            del self.Connection[ConnectionId]
-
+                        self.socket_del(ConnectionId)
                         xbmc.log("EMBY.emby.http: socket_open ssl certificate error", 3) # LOGERROR
 
                         if ConnectionId == "MAIN":
@@ -285,19 +276,15 @@ class HTTP:
                                 continue
 
                             xbmc.log(f"EMBY.emby.http: socket_open ssl {ConnectionId}: Timeout", 2) # LOGWARNING
-
-                            if ConnectionId in self.Connection:
-                                del self.Connection[ConnectionId]
-
+                            self.socket_del(ConnectionId)
                             return 606
 
-                        if ConnectionId in self.Connection:
-                            del self.Connection[ConnectionId]
-
                         xbmc.log(f"EMBY.emby.http: socket_open ssl undefined error: {error}", 2) # LOGWARNING
+                        self.socket_del(ConnectionId)
                         return 699
         else:
             xbmc.log(f"EMBY.emby.http: socket_open ssl: No ConnectionId {ConnectionId}", 2) # LOGWARNING
+            self.socket_del(ConnectionId)
             return 699
 
         xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} opened", 0) # LOGDEBUG
@@ -849,6 +836,7 @@ class HTTP:
 
             if StatusCode == 699: # Connection is closed -> usually it's a Kodi shutdown or forced server disconnect
                 xbmc.log(f"EMBY.emby.http: Connection is closed {StatusCode} / {ConnectionId} / {Handler} / {Params}", 3) # LOGERROR
+                self.socket_close(ConnectionId)
                 self.Response[RequestId] = noData(StatusCode, {}, Binary)
                 break
 

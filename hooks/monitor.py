@@ -45,6 +45,7 @@ class monitor(xbmc.Monitor):
             player.PlayerEventsQueue.put((("clear", data),))
         elif method == 'System.OnWake':
             xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
+            webservice.start()
 
             for EmbyServer in list(utils.EmbyServers.values()):
                 EmbyServer.ServerReconnect(False)
