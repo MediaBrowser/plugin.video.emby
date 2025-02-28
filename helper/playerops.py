@@ -149,11 +149,11 @@ def Stop(isRemote=False, LocalPlayerId=None):
             if isRemote:
                 globals()['RemoteCommandActive'][3] += 1
 
-            utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Stop","params":{{"playerid":{LocalPlayerId}}},"id":1}}', True)
-
             xbmc.log("EMBY.helper.playerops: [ Stop ]", 1) # LOGINFO
         else:
             xbmc.log("EMBY.helper.playerops: Stop: No active player", 1) # LOGINFO
+
+        utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Stop","params":{{"playerid":{LocalPlayerId}}},"id":1}}', True)
     else:
         xbmc.log(f"EMBY.helper.playerops: Stop failed: PlayerId={LocalPlayerId}", 3) # LOGERROR
 

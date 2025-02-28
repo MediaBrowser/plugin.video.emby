@@ -3018,3 +3018,7 @@ msgstr ""
 msgctxt "#33716"
 msgid "Kodi companion addon not installed on Emby server! Please install"
 msgstr ""
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr ""

@@ -466,10 +466,10 @@ class HTTP:
                 IncomingMetaData = IncomingData[0].decode("utf-8").split("\r\n")
                 StatusCode = int(IncomingMetaData[0].split(" ")[1])
             except Exception as error: # Can happen on Emby server hard reboot
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Undefined error: {error}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Binary: {Binary}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: Request: {Request}", 3) # LOGERROR
-                xbmc.log(f"EMBY.emby.http: StatusCode error {ConnectionId}: IncomingData: {IncomingData}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Info: {error}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Binary: {Binary}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Request: {Request}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: IncomingData: {IncomingData}", 3) # LOGERROR
                 return 612, {}, ""
 
             IncomingDataHeaderArray = IncomingMetaData[1:]
@@ -529,10 +529,14 @@ class HTTP:
         PayloadTotal = b''.join(PayloadTotal)
 
         # Decompress data
-        if isDeflate:
-            PayloadTotal = zlib.decompress(PayloadTotal, -zlib.MAX_WBITS)
-        elif isGzip:
-            PayloadTotal = zlib.decompress(PayloadTotal, zlib.MAX_WBITS|32)
+        try:
+            if isDeflate:
+                PayloadTotal = zlib.decompress(PayloadTotal, -zlib.MAX_WBITS)
+            elif isGzip:
+                PayloadTotal = zlib.decompress(PayloadTotal, zlib.MAX_WBITS|32)
+        except Exception as error: # could happen on server overload
+            xbmc.log(f"EMBY.emby.http: Decompress issue {ConnectionId}: {IncomingDataHeader} error: {error}", 3) # LOGERROR
+            return 612, {}, ""
 
         if Binary:
             return StatusCode, IncomingDataHeader, PayloadTotal
@@ -542,15 +546,15 @@ class HTTP:
         if isJSON:
             try:
                 return StatusCode, IncomingDataHeader, json.loads(PayloadTotal)
-            except:
-                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader}", 0) # LOGDEBUG
-                return 601, {}, ""
+            except Exception as error:
+                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: {error} payload: {PayloadTotal}", 3) # LOGERROR
+                return 612, {}, ""
         else:
             try:
                 return StatusCode, IncomingDataHeader, PayloadTotal.decode("UTF-8")
-            except:
-                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader}", 0) # LOGDEBUG
-                return 601, {}, ""
+            except Exception as error:
+                xbmc.log(f"EMBY.emby.http: Invalid text content {ConnectionId}: {IncomingDataHeader} error: {error} payload: {PayloadTotal}", 3) # LOGERROR
+                return 612, {}, ""
 
     def download_file(self):
         xbmc.log("EMBY.emby.http: THREAD: --->[ file download ]", 0) # LOGDEBUG
@@ -648,19 +652,22 @@ class HTTP:
 
                 break
 
-    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, BusyFunction=None):
-        if CloseConnection:
-            ConnectionId = str(uuid.uuid4())
-        elif self.RequestBusy["MAIN"].locked():
-            if self.RequestBusy["MAINFALLBACK"].locked():
+    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, BusyFunction=None, ConnectionId=""):
+        if not ConnectionId:
+            if CloseConnection:
                 ConnectionId = str(uuid.uuid4())
-                CloseConnection = True
+            elif self.RequestBusy["MAIN"].locked():
+                if self.RequestBusy["MAINFALLBACK"].locked():
+                    ConnectionId = str(uuid.uuid4())
+                    CloseConnection = True
+                else:
+                    ConnectionId = "MAINFALLBACK"
+                    self.RequestBusy["MAINFALLBACK"].acquire()
             else:
-                ConnectionId = "MAINFALLBACK"
-                self.RequestBusy["MAINFALLBACK"].acquire()
+                ConnectionId = "MAIN"
+                self.RequestBusy["MAIN"].acquire()
         else:
-            ConnectionId = "MAIN"
-            self.RequestBusy["MAIN"].acquire()
+            self.RequestBusy[ConnectionId].acquire()
 
         RequestId = f"REQUEST{ConnectionId}"
 
@@ -775,7 +782,7 @@ class HTTP:
             elif "Subtitles" in Handler:
                 StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 30, ConnectionId, "", 0, "")
             else:
-                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 300, ConnectionId, "", 0, "")
+                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 1200, ConnectionId, "", 0, "")
 
             # Redirects
             if StatusCode in (301, 302, 307, 308):
@@ -819,7 +826,7 @@ class HTTP:
                 self.Response[RequestId] = noData(StatusCode, {}, Binary)
                 break
 
-            if StatusCode in (600, 605, 612): # not data received, broken pipes, undefined error
+            if StatusCode in (600, 605, 612): # no data received, broken pipes, undefined error
                 xbmc.log(f"EMBY.emby.http: Request retry {StatusCode} / {ConnectionId}", 2) # LOGWARNING
                 self.socket_close(ConnectionId)
                 continue
@@ -1113,11 +1120,11 @@ class HTTP:
 
                 # Main connection ping
                 if Counter == 1 and not self.RequestBusy["MAIN"].locked():
-                    self.send_request("POST", "System/Ping", {}, {}, True, "", False, "MAIN", "MAINPING")
+                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAIN")
 
                 # Mainfallback connection ping
                 if Counter == 2 and not self.RequestBusy["MAINFALLBACK"].locked():
-                    self.send_request("POST", "System/Ping", {}, {}, True, "", False, "MAINFALLBACK", "MAINFALLBACKPING")
+                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAINFALLBACK")
 
                 # Async connection ping
                 if Counter == 3 and not self.RequestBusy["ASYNC"].locked():

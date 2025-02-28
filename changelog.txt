@@ -1,3 +1,25 @@
+11.1.24
+=============
+fix minor http communication issue
+increase http timeouts to 20 minutes -> Emby MusicAlbum queries are very slow
+
+
+
+11.1.23
+=============
+fix playback cancel on multiselection for episodes and musicvideo not respected
+add option to cancel artwork cache
+
+
+
+11.1.22
+=============
+update Chinese language file
+fix http communication issue, when server connection was dropped
+fix sort order for mixed content playlists
+
+
+
 11.1.21
 =============
 fix shuffle playback session info
