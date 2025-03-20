@@ -26,7 +26,13 @@ class HTTP:
         self.Connecting = allocate_lock()
         self.RequestBusy = {"MAIN": allocate_lock(), "MAINFALLBACK": allocate_lock(), "REQUESTMAIN": allocate_lock(), "REQUESTMAINFALLBACK": allocate_lock(), "ASYNC": allocate_lock()}
         self.Running = False
-        self.SSLContext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        self.SSLContext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+        try:
+            self.SSLContext.options |= ssl.OP_IGNORE_UNEXPECTED_EOF
+        except Exception as error:
+            xbmc.log(f"EMBY.emby.http: Socket change options Error: {error}", 2) # LOGWARNING
+
         self.SSLContext.load_default_certs()
         self.Websocket = websocket.WebSocket(EmbyServer)
         self.WebsocketBuffer = b""
@@ -120,175 +126,189 @@ class HTTP:
             del self.Connection[ConnectionId]
 
     def socket_open(self, ConnectionString, ConnectionId, CloseConnection):
-        NewHeader = False
-
-        if ConnectionId not in self.Connection:
-            self.Connection[ConnectionId] = {}
-
-        if "ConnectionString" not in self.Connection[ConnectionId]:
-            self.Connection[ConnectionId]["ConnectionString"] = ConnectionString
-            NewHeader = True
-        else:
-            if self.Connection[ConnectionId]["ConnectionString"] != ConnectionString:
-                self.Connection[ConnectionId]["ConnectionString"] = ConnectionString
-                NewHeader = True
-
-        if NewHeader:
-            try:
-                Scheme, self.Connection[ConnectionId]["Hostname"], self.Connection[ConnectionId]["Port"], self.Connection[ConnectionId]["SubUrl"] = utils.get_url_info(ConnectionString)
-            except Exception as error:
-                xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Wrong ConnectionString: {ConnectionString} / {error}", 2) # LOGWARNING
-
-                if ConnectionId == "MAIN":
-                    utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33678), time=utils.displayMessage, sound=False)
-
-                self.socket_del(ConnectionId)
-                return 611
-
-            self.Connection[ConnectionId]["SSL"] = bool(Scheme == "https")
-
-            if CloseConnection:
-                ConnectionMode = 'close'
-            else:
-                ConnectionMode = 'keep-alive'
-
-            self.Connection[ConnectionId]["RequestHeader"] = {"Host": f"{self.Connection[ConnectionId]['Hostname']}:{self.Connection[ConnectionId]['Port']}", 'Content-type': 'application/json; charset=utf-8', 'Accept-Charset': 'utf-8', 'Accept-encoding': 'gzip', 'User-Agent': f"{utils.addon_name}/{utils.addon_version}", 'Connection': ConnectionMode, 'Authorization': f'Emby Client="{utils.addon_name}", Device="{utils.device_name}", DeviceId="{self.EmbyServer.ServerData["DeviceId"]}", Version="{utils.addon_version}"'}
-
-            if ConnectionId == "DOWNLOAD":
-                self.Connection[ConnectionId]["RequestHeader"]['Accept-encoding'] = "identity"
-
-            StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], False)
-
-            if StatusCodeSocket:
-                self.socket_del(ConnectionId)
-                return StatusCodeSocket
-
-        RetryCounter = 0
+        SSLIssueCounter = 0
 
         while True:
-            try:
-                self.Connection[ConnectionId]["Socket"] = _socket.socket(self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][1], _socket.SOCK_STREAM)
-                self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
-                self.Connection[ConnectionId]["Socket"].settimeout(3) # set timeout
-                self.Connection[ConnectionId]["Socket"].connect((self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][0], self.Connection[ConnectionId]['Port']))
-                break
-            except TimeoutError:
-                if ConnectionId not in self.Connection:
-                    xbmc.log(f"EMBY.emby.http: TimeoutError: No Connection {ConnectionId}", 2) # LOGWARNING
-                    return 699
+            NewHeader = False
 
-                RetryCounter += 1
+            if ConnectionId not in self.Connection:
+                self.Connection[ConnectionId] = {}
 
-                if RetryCounter == 1:
-                    StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
+            if "ConnectionString" not in self.Connection[ConnectionId]:
+                self.Connection[ConnectionId]["ConnectionString"] = ConnectionString
+                NewHeader = True
+            else:
+                if self.Connection[ConnectionId]["ConnectionString"] != ConnectionString:
+                    self.Connection[ConnectionId]["ConnectionString"] = ConnectionString
+                    NewHeader = True
 
-                    if StatusCodeSocket:
-                        self.socket_del(ConnectionId)
-                        return StatusCodeSocket
+            if NewHeader:
+                try:
+                    Scheme, self.Connection[ConnectionId]["Hostname"], self.Connection[ConnectionId]["Port"], self.Connection[ConnectionId]["SubUrl"] = utils.get_url_info(ConnectionString)
+                except Exception as error:
+                    xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Wrong ConnectionString: {ConnectionString} / {error}", 2) # LOGWARNING
 
-                if RetryCounter <= 10:
-                    continue
+                    if ConnectionId == "MAIN":
+                        utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33678), time=utils.displayMessage, sound=False)
 
-                xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Timeout", 2) # LOGWARNING
-                self.socket_del(ConnectionId)
-                return 606
-            except ConnectionRefusedError:
-                if ConnectionId not in self.Connection:
-                    xbmc.log(f"EMBY.emby.http: ConnectionRefusedError: No {ConnectionId}", 2) # LOGWARNING
-                    return 699
+                    self.socket_del(ConnectionId)
+                    return 611
 
-                RetryCounter += 1
+                self.Connection[ConnectionId]["SSL"] = bool(Scheme == "https")
 
-                if RetryCounter == 1:
-                    StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
+                if CloseConnection:
+                    ConnectionMode = 'close'
+                else:
+                    ConnectionMode = 'keep-alive'
 
-                    if StatusCodeSocket:
-                        self.socket_del(ConnectionId)
-                        return StatusCodeSocket
+                self.Connection[ConnectionId]["RequestHeader"] = {"Host": f"{self.Connection[ConnectionId]['Hostname']}:{self.Connection[ConnectionId]['Port']}", 'Content-type': 'application/json; charset=utf-8', 'Accept-Charset': 'utf-8', 'Accept-encoding': 'gzip', 'User-Agent': f"{utils.addon_name}/{utils.addon_version}", 'Connection': ConnectionMode, 'Authorization': f'Emby Client="{utils.addon_name}", Device="{utils.device_name}", DeviceId="{self.EmbyServer.ServerData["DeviceId"]}", Version="{utils.addon_version}"'}
 
-                if RetryCounter == 1:
-                    continue
+                if ConnectionId == "DOWNLOAD":
+                    self.Connection[ConnectionId]["RequestHeader"]['Accept-encoding'] = "identity"
 
-                self.socket_del(ConnectionId)
-                xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionId}", 2) # LOGWARNING
-                xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionString}", 0) # LOGDEBUG
-                return 607
-            except Exception as error:
-                if ConnectionId not in self.Connection:
-                    xbmc.log(f"EMBY.emby.http: No Connection {ConnectionId}", 2) # LOGWARNING
-                    return 699
+                StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], False)
 
-                RetryCounter += 1
+                if StatusCodeSocket:
+                    self.socket_del(ConnectionId)
+                    return StatusCodeSocket
 
-                if RetryCounter == 1:
-                    StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
+            RetryCounter = 0
 
-                    if StatusCodeSocket:
-                        self.socket_del(ConnectionId)
-                        return StatusCodeSocket
+            while True:
+                try:
+                    self.Connection[ConnectionId]["Socket"] = _socket.socket(self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][1], _socket.SOCK_STREAM)
+                    self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
+                    self.Connection[ConnectionId]["Socket"].settimeout(3) # set timeout
+                    self.Connection[ConnectionId]["Socket"].connect((self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][0], self.Connection[ConnectionId]['Port']))
+                    break
+                except TimeoutError:
+                    if ConnectionId not in self.Connection:
+                        xbmc.log(f"EMBY.emby.http: TimeoutError: No Connection {ConnectionId}", 2) # LOGWARNING
+                        return 699
 
-                if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
+                    RetryCounter += 1
+
+                    if RetryCounter == 1:
+                        StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
+
+                        if StatusCodeSocket:
+                            self.socket_del(ConnectionId)
+                            return StatusCodeSocket
+
                     if RetryCounter <= 10:
                         continue
 
                     xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Timeout", 2) # LOGWARNING
                     self.socket_del(ConnectionId)
                     return 606
+                except ConnectionRefusedError:
+                    if ConnectionId not in self.Connection:
+                        xbmc.log(f"EMBY.emby.http: ConnectionRefusedError: No {ConnectionId}", 2) # LOGWARNING
+                        return 699
 
-                if RetryCounter == 1:
-                    continue
+                    RetryCounter += 1
 
-                if str(error).lower().find("errno 22") != -1 or str(error).lower().find("invalid argument") != -1: # [Errno 22] Invalid argument
+                    if RetryCounter == 1:
+                        StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
+
+                        if StatusCodeSocket:
+                            self.socket_del(ConnectionId)
+                            return StatusCodeSocket
+
+                    if RetryCounter == 1:
+                        continue
+
                     self.socket_del(ConnectionId)
-                    xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Invalid argument", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionId}", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionString}", 0) # LOGDEBUG
+                    return 607
+                except Exception as error:
+                    if ConnectionId not in self.Connection:
+                        xbmc.log(f"EMBY.emby.http: No Connection {ConnectionId}", 2) # LOGWARNING
+                        return 699
 
-                    if ConnectionId == "MAIN":
-                        utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33679), time=utils.displayMessage, sound=False)
+                    RetryCounter += 1
 
-                    return 610
+                    if RetryCounter == 1:
+                        StatusCodeSocket = self.socket_addrinfo(ConnectionId, self.Connection[ConnectionId]["Hostname"], True)
 
-                xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Undefined error: {error} / Type: {type(error)}", 2) # LOGWARNING
+                        if StatusCodeSocket:
+                            self.socket_del(ConnectionId)
+                            return StatusCodeSocket
+
+                    if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
+                        if RetryCounter <= 10:
+                            continue
+
+                        xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Timeout", 2) # LOGWARNING
+                        self.socket_del(ConnectionId)
+                        return 606
+
+                    if RetryCounter == 1:
+                        continue
+
+                    if str(error).lower().find("errno 22") != -1 or str(error).lower().find("invalid argument") != -1: # [Errno 22] Invalid argument
+                        self.socket_del(ConnectionId)
+                        xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Invalid argument", 2) # LOGWARNING
+
+                        if ConnectionId == "MAIN":
+                            utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33679), time=utils.displayMessage, sound=False)
+
+                        return 610
+
+                    xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Undefined error: {error} / Type: {type(error)}", 2) # LOGWARNING
+                    self.socket_del(ConnectionId)
+                    return 699
+
+            if ConnectionId in self.Connection:
+                if self.Connection[ConnectionId]["SSL"]:
+                    RetryCounter = 0
+
+                    while True:
+                        try:
+                            self.Connection[ConnectionId]["Socket"] = self.SSLContext.wrap_socket(self.Connection[ConnectionId]["Socket"], do_handshake_on_connect=True, suppress_ragged_eofs=True, server_hostname=self.Connection[ConnectionId]["Hostname"])
+                            self.Connection[ConnectionId]["Socket"].settimeout(3) # set timeout
+                            SSLIssueCounter = 0
+                            break
+                        except ssl.CertificateError:
+                            self.socket_del(ConnectionId)
+                            xbmc.log("EMBY.emby.http: socket_open ssl certificate error", 3) # LOGERROR
+
+                            if ConnectionId == "MAIN":
+                                utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428), time=utils.displayMessage)
+
+                            return 608
+                        except Exception as error:
+                            RetryCounter += 1
+
+                            if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
+                                if RetryCounter <= 10:
+                                    continue
+
+                                xbmc.log(f"EMBY.emby.http: socket_open ssl {ConnectionId}: Timeout", 2) # LOGWARNING
+                                self.socket_del(ConnectionId)
+                                return 606
+
+                            SSLIssueCounter += 1
+                            xbmc.log(f"EMBY.emby.http: socket_open ssl undefined error {SSLIssueCounter}: {error}", 2) # LOGWARNING
+                            self.socket_del(ConnectionId)
+                            break
+            else:
+                xbmc.log(f"EMBY.emby.http: socket_open ssl: No ConnectionId {ConnectionId}", 2) # LOGWARNING
                 self.socket_del(ConnectionId)
                 return 699
 
-        if ConnectionId in self.Connection:
-            if self.Connection[ConnectionId]["SSL"]:
-                RetryCounter = 0
-
-                while True:
-                    try:
-                        self.Connection[ConnectionId]["Socket"] = self.SSLContext.wrap_socket(self.Connection[ConnectionId]["Socket"], do_handshake_on_connect=True, suppress_ragged_eofs=True, server_hostname=self.Connection[ConnectionId]["Hostname"])
-                        self.Connection[ConnectionId]["Socket"].settimeout(3) # set timeout
-                        break
-                    except ssl.CertificateError:
-                        self.socket_del(ConnectionId)
-                        xbmc.log("EMBY.emby.http: socket_open ssl certificate error", 3) # LOGERROR
-
-                        if ConnectionId == "MAIN":
-                            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428), time=utils.displayMessage)
-
-                        return 608
-                    except Exception as error:
-                        RetryCounter += 1
-
-                        if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
-                            if RetryCounter <= 10:
-                                continue
-
-                            xbmc.log(f"EMBY.emby.http: socket_open ssl {ConnectionId}: Timeout", 2) # LOGWARNING
-                            self.socket_del(ConnectionId)
-                            return 606
-
-                        xbmc.log(f"EMBY.emby.http: socket_open ssl undefined error: {error}", 2) # LOGWARNING
-                        self.socket_del(ConnectionId)
+            if SSLIssueCounter:
+                if SSLIssueCounter < 49:
+                    if utils.sleep(0.1):
                         return 699
-        else:
-            xbmc.log(f"EMBY.emby.http: socket_open ssl: No ConnectionId {ConnectionId}", 2) # LOGWARNING
-            self.socket_del(ConnectionId)
-            return 699
 
-        xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} opened", 0) # LOGDEBUG
-        return 0
+                    continue
+
+                return 699
+
+            xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} opened", 0) # LOGDEBUG
+            return 0
 
     def socket_close(self, ConnectionId):
         if ConnectionId in self.Connection:

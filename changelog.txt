@@ -1,3 +1,11 @@
+11.1.26
+=============
+fix dynamic node for musicvideo artists
+fix https EOF issues
+fix forced resyncs on Emby server updates
+
+
+
 11.1.25
 =============
 fix hibernate mode
