@@ -25,7 +25,7 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
 
     ListItem.setContentLookup(False)
 
-    if KodiItem['mediatype'] in ("episode", "movie", "musicvideo", "tvshow", "season", "set"):
+    if KodiItem['mediatype'] in ("episode", "movie", "musicvideo", "tvshow", "season", "set", "actor"):
         if KodiItem.get('ProductionLocation'):
             KodiItem['ProductionLocations'] = KodiItem['ProductionLocation'].split("/")
 

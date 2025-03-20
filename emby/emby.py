@@ -479,7 +479,7 @@ class EmbyServer:
                             EmbyServerVersionPreviousCompare = get_CompareVersion(ServerVersionPrevious)
                             EmbyServerVersionResyncCompare = get_CompareVersion(utils.EmbyServerVersionResync)
 
-                            if (EmbyServerVersionPreviousCompare < EmbyServerVersionResyncCompare >= ServerVersionCompare) or (ServerVersionCompare < EmbyServerVersionPreviousCompare >= EmbyServerVersionResyncCompare):
+                            if (EmbyServerVersionPreviousCompare < EmbyServerVersionResyncCompare <= ServerVersionCompare) or (ServerVersionCompare < EmbyServerVersionResyncCompare <= EmbyServerVersionPreviousCompare):
                                 Resync = ServerVersion
 
                             self.ServerData["ServerVersion"] = ServerVersion

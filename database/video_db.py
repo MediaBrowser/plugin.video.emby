@@ -860,7 +860,7 @@ class VideoDatabase:
             return {}
 
         Artwork = {"poster": ItemData[2]}
-        return {'mediatype': "actor", "dbid": KodiItemId, 'title': ItemData[1], 'artist': ItemData[1], 'path': f"videodb://musicvideos/actors/{KodiItemId}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "actor", "dbid": KodiItemId, 'title': ItemData[1], 'artist': ItemData[1], 'path': f"videodb://musicvideos/artists/{KodiItemId}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
 
     def del_musicartist(self, ArtistId):
         self.delete_people_by_Id(ArtistId)
