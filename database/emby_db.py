@@ -1356,7 +1356,7 @@ class EmbyDatabase:
 
                 # Change default movie version to highest resolution (width)
                 if utils.SyncHighestResolutionAsDefault:
-                    if MediaSource['KodiStreams']['Video'] and MediaSource['KodiStreams']['Video'][0]['width'] and MediaSource['KodiStreams']['Video'][0]['width'] > MovieDefault[1]:
+                    if MovieDefault[1] and MediaSource['KodiStreams']['Video'] and MediaSource['KodiStreams']['Video'][0]['width'] and MediaSource['KodiStreams']['Video'][0]['width'] > MovieDefault[1]:
                         MovieDefault = (True, MediaSource['KodiStreams']['Video'][0]['width'], ItemReferenced['KodiFileId'], ItemReferenced['KodiPathId'], ItemReferenced['KodiPath'])
 
                 # Change default movie version to local content
