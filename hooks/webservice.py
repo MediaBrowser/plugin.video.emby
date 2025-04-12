@@ -7,6 +7,8 @@ from hooks import favorites
 from database import dbio
 from helper import utils, context, playerops, pluginmenu, player, xmls
 DefaultVideoSettings = xmls.load_defaultvideosettings()
+SubtitlesLanguageDefault = DefaultVideoSettings.get("SubtitlesLanguage", "").lower()
+EnableSubtitleDefault = DefaultVideoSettings.get('ShowSubtitles', False)
 MediaIdMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyIdMapping = {"m": "Movie", "e": "Episode", "M": "MusicVideo", "a": "Audio", "i": "Movie", "T": "Video", "v": "Video", "A": "Audio"}
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
@@ -24,23 +26,21 @@ DelayedContentLock = allocate_lock()
 EmbyIdCurrentlyPlaying = 0
 
 def start():
-    if not Running:
-        globals()["Running"] = True
+    globals()["Running"] = True
 
-        try: # intercept multiple start by different threads (just precaution)
-            globals()['Socket'] = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
-            Socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
-            Socket.setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
-            Socket.bind(('127.0.0.1', 57342))
-        except Exception as Error:
-            xbmc.log(f"EMBY.hooks.webservice: Socket start (error) {Error}", 1) # LOGINFO
-            return False
+    try: # intercept multiple start by different threads (just precaution)
+        LocalSocket = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+        LocalSocket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+        LocalSocket.setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
+        LocalSocket.bind(('127.0.0.1', 57342))
+        globals()['Socket'] = LocalSocket
+    except Exception as Error:
+        xbmc.log(f"EMBY.hooks.webservice: Socket start (error) {Error}", 1) # LOGINFO
+        return False
 
-        xbmc.log("EMBY.hooks.webservice: Start", 1) # LOGINFO
-        utils.start_thread(Listen, ())
-        return True
-
-    return False
+    xbmc.log("EMBY.hooks.webservice: Start", 1) # LOGINFO
+    utils.start_thread(Listen, ())
+    return True
 
 def close():
     if Running:
@@ -51,15 +51,15 @@ def close():
         except Exception as Error:
             xbmc.log(f"EMBY.hooks.webservice: Socket shutdown (error) {Error}", 1) # LOGINFO
 
-        xbmc.log("EMBY.hooks.webservice: Shutdown weservice", 1) # LOGINFO
+        xbmc.log("EMBY.hooks.webservice: Shutdown webservice", 1) # LOGINFO
         xbmc.log(f"EMBY.hooks.webservice: DelayedContent queue size: {len(DelayedContent)}", 0) # LOGDEBUG
 
 def Listen():
-    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ webservice/57342 ]", 0) # LOGDEBUG
+    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ webservice/57342 ]", 1) # INFODEBUG
     Socket.listen()
     Socket.settimeout(1)
 
-    while not utils or not utils.SystemShutdown:
+    while not utils or not utils.SystemShutdown and Running:
         try:
             fd, _ = Socket._accept()
         except:
@@ -67,7 +67,7 @@ def Listen():
 
         utils.start_thread(worker_Query, (fd,))
 
-    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 0) # LOGDEBUG
+    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 1) # INFODEBUG
 
 def worker_Query(fd):  # thread by caller
     xbmc.log("EMBY.hooks.webservice: THREAD: --->[ worker_Query ]", 0) # LOGDEBUG
@@ -798,10 +798,7 @@ def SubTitlesAdd(QueryData):
             if FileSettings:
                 EnableSubtitle = bool(FileSettings[9])
             else:
-                if DefaultVideoSettings:
-                    EnableSubtitle = DefaultVideoSettings['ShowSubtitles']
-                else:
-                    EnableSubtitle = False
+                EnableSubtitle = EnableSubtitleDefault
 
             if Subtitle['language']:
                 SubtileLanguage = Subtitle['language']
@@ -820,10 +817,10 @@ def SubTitlesAdd(QueryData):
                 utils.writeFileBinary(Path, BinaryData)
                 del BinaryData
 
-                if DefaultVideoSettings["SubtitlesLanguage"].lower() in Subtitle['DisplayTitle'].lower():
+                if SubtitlesLanguageDefault in Subtitle['DisplayTitle'].lower():
                     DefaultSubtitlePath = Path
 
-                    if DefaultVideoSettings["SubtitlesLanguage"].lower() == "forced_only" and "forced" in Subtitle['DisplayTitle'].lower():
+                    if SubtitlesLanguageDefault == "forced_only" and "forced" in Subtitle['DisplayTitle'].lower():
                         DefaultSubtitlePath = Path
                     else:
                         playerops.AddSubtitle(Path)
