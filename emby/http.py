@@ -41,6 +41,7 @@ class HTTP:
         utils.start_thread(self.queued_request, ())
         self.ThreadsRunning = {"ASYNC": False, "DOWNLOAD": False, "QUEUEDREQUEST": True, "PING": False, "WEBSOCKET": False}
 
+        self.SSLContext.check_hostname = utils.sslverify
         if utils.sslverify:
             self.SSLContext.verify_mode = ssl.CERT_REQUIRED
         else:
