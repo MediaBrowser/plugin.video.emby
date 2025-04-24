@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2025-04-09 17:52+0800\n"
+"PO-Revision-Date: 2025-04-24 15:24+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -69,7 +69,7 @@ msgstr "电影"
 
 msgctxt "#30157"
 msgid "Enable enhanced artwork (i.e. cover art)"
-msgstr "启用增强的艺术图（例如封面艺术图）"
+msgstr "启用增强的艺术作品（例如封面艺术图）"
 
 msgctxt "#30160"
 msgid "Video quality"
@@ -205,11 +205,11 @@ msgstr "设置"
 
 msgctxt "#30409"
 msgid "EMBY: Delete item"
-msgstr "EMBY: 删除项目"
+msgstr "EMBY：删除项目"
 
 msgctxt "#30410"
 msgid "EMBY: Refresh item"
-msgstr "EMBY: 刷新项目"
+msgstr "EMBY:  刷新项目"
 
 msgctxt "#30412"
 msgid "Transcode"
@@ -649,7 +649,7 @@ msgstr "压缩艺术作品（降低质量）"
 
 msgctxt "#33117"
 msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
-msgstr "使用艺术作品缓存吗？如果没有，Kodi 仍将以较慢的速度缓存您的艺术作品。"
+msgstr "使用艺术作品缓存吗？如果没有，Kodi 仍将以较慢的速度缓存。"
 
 msgctxt "#33118"
 msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
@@ -1049,7 +1049,7 @@ msgstr "启用用户评分同步"
 
 msgctxt "#33222"
 msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
-msgstr "最终警告：需要完成数据库重置！"
+msgstr "最后警告：需要完全重置数据库！如果您拒绝，请在此停止并手动降级到旧版本。"
 
 msgctxt "#33223"
 msgid "Database reset required, wait for Kodi restart."
@@ -1065,11 +1065,11 @@ msgstr "无效备份"
 
 msgctxt "#33226"
 msgid "Artwork cache in progress"
-msgstr "正在缓存艺术图"
+msgstr "正在缓存艺术作品"
 
 msgctxt "#33227"
 msgid "Webserver must be enabled for artwork cache. Enable now?"
-msgstr "必须为艺术作品缓存启用 Web 服务器。"
+msgstr "必须为艺术作品缓存启用 Web 服务器。立即启用？"
 
 msgctxt "#33228"
 msgid "No password found, set password to 'kodi'"
@@ -1217,13 +1217,15 @@ msgstr "启用影院模式 (tv shows)"
 
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
-msgstr "也从 Emby 服务器删除项目？最后警告，这也会删除文件，而且不可逆转！"
+msgstr "是否从 Emby 服务器删除项？ 最后警告，这会删除文件且不可逆！"
 
 msgctxt "#33265"
 msgid ""
 "Delete FILES also from Emby server by Kodi events? \n"
 " THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
-msgstr "Kodi 事件也从 Emby 服务器中删除文件？ "
+msgstr ""
+"通过 Kodi events 从 Emby 服务器删除文件吗？\n"
+"  这是非常危险且不可逆！"
 
 msgctxt "#33266"
 msgid "Enable FILE delete on Kodi events"
@@ -1687,11 +1689,11 @@ msgstr "播客"
 
 msgctxt "#33383"
 msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
-msgstr "同步节点比动态节点快得多。"
+msgstr "同步节点比动态节点快得多。尽可能选择它们"
 
 msgctxt "#33384"
 msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
-msgstr "动态节点是动态构建的。"
+msgstr "动态节点是即时构建的。这会对性能产生影响。应尽可能避免这种情况。"
 
 msgctxt "#33385"
 msgid "Favorite musicvideos"
@@ -1847,7 +1849,7 @@ msgstr "消息框在 X 秒后自动关闭"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr "跳过片头、跳过片尾、电影模式和删除选项消息框将在 X 秒后自动关闭。 "
+msgstr "跳过片头、跳过片尾、电影模式和删除选项消息框将在 X 秒后自动关闭。0 表示禁用自动关闭"
 
 msgctxt "#33426"
 msgid "Composers"
@@ -1855,7 +1857,7 @@ msgstr "作曲家"
 
 msgctxt "#33427"
 msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
-msgstr "检测到损坏的设置文件，恢复默认值。 "
+msgstr "检测到设置文件已损坏，请恢复默认。5 秒后重新启动。"
 
 msgctxt "#33428"
 msgid "SSL Error"
@@ -2265,7 +2267,7 @@ msgstr "光盘"
 
 msgctxt "#33527"
 msgid "Logo"
-msgstr "标志"
+msgstr "徽标"
 
 msgctxt "#33528"
 msgid "Thumb"
@@ -2289,7 +2291,7 @@ msgstr "最大分辨率"
 
 msgctxt "#33533"
 msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
-msgstr "通过一个因子限制图像分辨率。"
+msgstr "通过一个因子限制图像分辨率。Base 是屏幕分辨率。例如 1920x1080 的 50%"
 
 msgctxt "#33534"
 msgid "Select transencode audiostream"
