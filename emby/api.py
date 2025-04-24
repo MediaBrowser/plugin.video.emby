@@ -584,7 +584,7 @@ class API:
 
             _, Header, Payload = self.EmbyServer.http.request("GET", f"Items/{Id}/Images/{ImageType}/{ImageIndex}", Params, {}, True, "", True)
 
-        if 'Content-Type' in Header:
+        if 'content-type' in Header:
             ContentType = Header['content-type']
 
             if ContentType == "image/jpeg":
