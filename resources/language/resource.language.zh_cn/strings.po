@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2025-04-25 10:12+0800\n"
+"PO-Revision-Date: 2025-06-18 10:46+0800\n"
 "Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -69,7 +69,7 @@ msgstr "电影"
 
 msgctxt "#30157"
 msgid "Enable enhanced artwork (i.e. cover art)"
-msgstr "启用增强的艺术作品（例如封面艺术图）"
+msgstr "启用增强的艺术图（例如封面艺术图）"
 
 msgctxt "#30160"
 msgid "Video quality"
@@ -245,7 +245,7 @@ msgstr "播放模式"
 
 msgctxt "#30512"
 msgid "Enable artwork caching"
-msgstr "启用艺术作品缓存"
+msgstr "启用艺术图缓存"
 
 msgctxt "#30516"
 msgid "Playback"
@@ -469,11 +469,11 @@ msgstr "运行缓存进程可能需要一些时间，是否要继续？"
 
 msgctxt "#33044"
 msgid "Reset existing artwork cache?"
-msgstr "重置现有的艺术作品缓存？"
+msgstr "重置现有的艺术图缓存？"
 
 msgctxt "#33045"
 msgid "Updating artwork cache"
-msgstr "更新艺术作品缓存"
+msgstr "更新艺术图缓存"
 
 msgctxt "#33046"
 msgid "Waiting for threads to exit"
@@ -501,7 +501,7 @@ msgstr "执行本地数据库重置"
 
 msgctxt "#33059"
 msgid "Cache all artwork"
-msgstr "缓存所有艺术作品"
+msgstr "缓存所有艺术图"
 
 msgctxt "#33060"
 msgid "Sync theme media"
@@ -537,7 +537,7 @@ msgstr "确定要重置本地 Kodi 数据库吗？"
 
 msgctxt "#33086"
 msgid "Remove all cached artwork?"
-msgstr "删除所有缓存的艺术作品？"
+msgstr "删除所有缓存的艺术图？"
 
 msgctxt "#33087"
 msgid "Reset all Emby add-on settings?"
@@ -545,7 +545,7 @@ msgstr "重置所有 Emby 插件项设置？"
 
 msgctxt "#33088"
 msgid "Database reset has completed, Kodi will now restart to apply the changes."
-msgstr "数据库重置已完成，Kodi 现在将重新启动以应用更改。"
+msgstr "数据库重置已完成，Kodi现在将重新启动以应用更改。"
 
 msgctxt "#33089"
 msgid "Enter folder name for backup"
@@ -593,7 +593,7 @@ msgstr "恢复之前的同步?"
 
 msgctxt "#33103"
 msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
-msgstr "在 Kodi 设置中启用 Web 服务器服务，以允许艺术作品缓存。"
+msgstr "在 Kodi 设置中启用 Web 服务器服务，以允许艺术图缓存。"
 
 msgctxt "#33104"
 msgid "Find more info in the github wiki/Create-and-restore-from-backup."
@@ -645,11 +645,11 @@ msgstr "调整远程连接"
 
 msgctxt "#33116"
 msgid "Compress artwork (reduces quality)"
-msgstr "压缩艺术作品（降低质量）"
+msgstr "压缩艺术图（降低质量）"
 
 msgctxt "#33117"
 msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
-msgstr "使用艺术作品缓存吗？如果没有，Kodi 仍将以较慢的速度缓存。"
+msgstr "使用艺术图缓存吗？如果没有，Kodi 仍将以较慢的速度缓存。"
 
 msgctxt "#33118"
 msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
@@ -1065,11 +1065,11 @@ msgstr "无效备份"
 
 msgctxt "#33226"
 msgid "Artwork cache in progress"
-msgstr "正在缓存艺术作品"
+msgstr "正在缓存艺术图"
 
 msgctxt "#33227"
 msgid "Webserver must be enabled for artwork cache. Enable now?"
-msgstr "必须为艺术作品缓存启用 Web 服务器。立即启用？"
+msgstr "必须为艺术图缓存启用 Web 服务器。立即启用？"
 
 msgctxt "#33228"
 msgid "No password found, set password to 'kodi'"
@@ -1185,7 +1185,7 @@ msgstr "恢复备份"
 
 msgctxt "#33256"
 msgid "Which artwork should be cached"
-msgstr "应该缓存哪些艺术作品"
+msgstr "应该缓存哪些艺术图"
 
 msgctxt "#33257"
 msgid "Video"
@@ -1361,7 +1361,7 @@ msgstr "电影模式"
 
 msgctxt "#33299"
 msgid "Artwork"
-msgstr "艺术作品"
+msgstr "艺术图"
 
 msgctxt "#33300"
 msgid "Menu"
@@ -1417,7 +1417,7 @@ msgstr "用户评分是要同步到 Kodi 的附加信息。在某些情况下（
 
 msgctxt "#33313"
 msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
-msgstr "执行完整的 Kodi 数据库重新同步。可选择重置设置和艺术作品。"
+msgstr "执行完整的 Kodi 数据库重新同步。可选择重置设置和艺术图。"
 
 msgctxt "#33314"
 msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
@@ -1489,7 +1489,7 @@ msgstr "996 Kbps 高清"
 
 msgctxt "#33332"
 msgid "Maximum artwork cache threads"
-msgstr "最大艺术作品缓存线程"
+msgstr "最大艺术图缓存线程"
 
 msgctxt "#33333"
 msgid "Animated icon"
@@ -1797,7 +1797,7 @@ msgstr "Emby 服务器忙"
 
 msgctxt "#33412"
 msgid "Delete artwork files"
-msgstr "删除艺术作品文件"
+msgstr "删除艺术图文件"
 
 msgctxt "#33413"
 msgid "Update views"
@@ -1865,7 +1865,7 @@ msgstr "SSL 错误"
 
 msgctxt "#33429"
 msgid "Artwork caching stopped: running low on space"
-msgstr "艺术作品缓存停止：空间不足"
+msgstr "艺术图缓存停止：空间不足"
 
 msgctxt "#33430"
 msgid "Websocket connection offline"
@@ -1906,7 +1906,7 @@ msgid ""
 "Caution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
 msgstr ""
 "TVShow Kodi 海报（Emby TVShow 主图像）将用作剧集 Kodi 海报。\n"
-"切换此选项需要完全重新同步，包括所有缓存的艺术作品。\n"
+"切换此选项需要完全重新同步，包括所有缓存的艺术图。\n"
 "注意：不要使用初始化同步向导（跳过它）"
 
 msgctxt "#33439"
@@ -1915,7 +1915,7 @@ msgstr "为下一集使用同人画图"
 
 msgctxt "#33440"
 msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
-msgstr "在下一集中，将缩略图（Kodi）替换为背景图（Kodi）"
+msgstr "在下一集中，将缩略图（Kodi）替换为同人画（Kodi）"
 
 msgctxt "#33441"
 msgid "Use alternative skip intro (message) layout"
@@ -2255,7 +2255,7 @@ msgstr "主图"
 
 msgctxt "#33524"
 msgid "Art"
-msgstr "艺术作品"
+msgstr "艺术图"
 
 msgctxt "#33525"
 msgid "Banner"
@@ -2267,7 +2267,7 @@ msgstr "光盘封面图"
 
 msgctxt "#33527"
 msgid "Logo"
-msgstr "标志"
+msgstr "徽标"
 
 msgctxt "#33528"
 msgid "Thumb"
@@ -2299,7 +2299,7 @@ msgstr "选择转码音频流"
 
 msgctxt "#33535"
 msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
-msgstr "路径替换支持插件模式下的章节图像（提取）。"
+msgstr "在插件模式下，路径替换支持章节图像（提取）。该模式可能会导致某些设备出现播放问题。同时禁用以下 Kodi 设置：\"媒体\"->\"视频\"->\"从文件中提取视频信息\"。"
 
 msgctxt "#33536"
 msgid "Enable websocket connection"
@@ -2307,7 +2307,7 @@ msgstr "启用 websocket 连接"
 
 msgctxt "#33537"
 msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
-msgstr "如果禁用：无实时更新，不会收到通知，远程命令将不起作用。"
+msgstr "如果禁用：无实时更新，不会收到任何通知，远程命令也无法使用。"
 
 msgctxt "#33538"
 msgid "Use workarounds for Kodi's episode bookmark issues"
@@ -2315,11 +2315,11 @@ msgstr "使用 Kodi 的剧集书签问题的解决方法"
 
 msgctxt "#33539"
 msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
-msgstr "通过列表视图选择剧集时，Kodi 在剧集书签方面存在一个错误。通过小工具选择的剧集不受影响。切换此选项需要重新同步整个剧集！"
+msgstr "通过列表视图选择剧集时，Kodi 的剧集书签将会产生错误。 通过小部件选择的剧集不受影响。 切换此选项需要重新同步电视节目！"
 
 msgctxt "#33540"
 msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
-msgstr "Kodi 存在动态小部件问题。"
+msgstr "Kodi 在动态小部件存在问题。 该选项可防止 Kodi 多次查询相同内容。 （边缘情况，默认关闭）"
 
 msgctxt "#33541"
 msgid "Enable HTTP/2 support"
@@ -2335,7 +2335,7 @@ msgstr "额外的音频小部件刷新"
 
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
-msgstr "在 Emby 报告进度更新后触发额外的（假）Kodi 音频扫描。"
+msgstr "在 Emby 报告进度更新后触发额外的（伪造）Kodi 音频扫描。皮肤助手需要此通知来刷新部件。通常皮肤助手会在视频扫描通知时刷新两个部件（视频和音频）。如果没有，您也可以启用额外的音频扫描。"
 
 msgctxt "#33545"
 msgid "Network timeouts"
@@ -2343,7 +2343,7 @@ msgstr "网络超时"
 
 msgctxt "#33546"
 msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
-msgstr "此选项影响 EPG 和多版本内容选择超时。"
+msgstr "此选项影响 EPG 和多版本内容选择超时。在某些情况下，EPG（大量记录）查询会过早超时。如果是这样，请增加设置。"
 
 msgctxt "#33547"
 msgid "EMBY: Favorites"
@@ -2739,7 +2739,7 @@ msgstr "选择备份"
 
 msgctxt "#33644"
 msgid "Changing artwork requires an artwork cache reset. Proceed?"
-msgstr "更改艺术作品需要重置缓存。是否继续？"
+msgstr "更改艺术图需要重置缓存。是否继续？"
 
 msgctxt "#33645"
 msgid "Notifications"
@@ -3031,4 +3031,4 @@ msgstr "Emby 服务器上未安装 Kodi companion 插件！请安装"
 
 msgctxt "#33717"
 msgid "Cancel artwork cache"
-msgstr "取消艺术作品缓存"
+msgstr "取消艺术图缓存"
