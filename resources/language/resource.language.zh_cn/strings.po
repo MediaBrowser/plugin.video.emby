@@ -1911,7 +1911,7 @@ msgstr ""
 
 msgctxt "#33439"
 msgid "Use fanart images for next up episodes"
-msgstr "为下一集使用同人画图"
+msgstr "为下一集使用同人画图像"
 
 msgctxt "#33440"
 msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
