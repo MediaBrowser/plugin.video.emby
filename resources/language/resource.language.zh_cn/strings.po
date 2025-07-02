@@ -545,7 +545,7 @@ msgstr "重置所有 Emby 插件项设置？"
 
 msgctxt "#33088"
 msgid "Database reset has completed, Kodi will now restart to apply the changes."
-msgstr "数据库重置已完成，Kodi现在将重新启动以应用更改。"
+msgstr "数据库重置已完成，Kodi 现在将重新启动以应用更改。"
 
 msgctxt "#33089"
 msgid "Enter folder name for backup"
