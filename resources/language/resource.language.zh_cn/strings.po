@@ -13,7 +13,7 @@ msgstr ""
 
 msgctxt "#29999"
 msgid "Emby for Kodi"
-msgstr "连接"
+msgstr "Emby for Kodi"
 
 msgctxt "#30000"
 msgid "Server address"
@@ -2337,7 +2337,7 @@ msgstr "此选项影响 EPG 和多版本内容选择超时。"
 
 msgctxt "#33547"
 msgid "EMBY: Favorites"
-msgstr "EMBY：最爱"
+msgstr "EMBY：收藏夹"
 
 msgctxt "#33548"
 msgid "EMBY: Watch together"
@@ -2381,11 +2381,11 @@ msgstr "收集电视节目"
 
 msgctxt "#33557"
 msgid "Collection musicvideos"
-msgstr "音乐录影带集合"
+msgstr "收藏音乐视频"
 
 msgctxt "#33558"
 msgid "Favorites"
-msgstr "最爱"
+msgstr "收藏夹"
 
 msgctxt "#33559"
 msgid "Duration of new content message"
