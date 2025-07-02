@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "PO-Revision-Date: 2025-01-17 13:28+0800\n"
-"Last-Translator: \n"
+"Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -69,7 +69,7 @@ msgstr "电影"
 
 msgctxt "#30157"
 msgid "Enable enhanced artwork (i.e. cover art)"
-msgstr "启用增强的艺术图（例如封面艺术图）"
+msgstr "启用增强艺术图（例如封面艺术图）"
 
 msgctxt "#30160"
 msgid "Video quality"
@@ -469,7 +469,7 @@ msgstr "运行缓存进程可能需要一些时间，是否要继续？"
 
 msgctxt "#33044"
 msgid "Reset existing artwork cache?"
-msgstr "重置现有的艺术图缓存？"
+msgstr "重置现有艺术图缓存？"
 
 msgctxt "#33045"
 msgid "Updating artwork cache"
@@ -1401,7 +1401,7 @@ msgstr "添加/删除/修复库、直播电视、主题。"
 
 msgctxt "#33310"
 msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
-msgstr "在本地将所有作品同步到 Kodi。这可能需要很长时间。必须启用 Kodi 的网络服务器，但不能使用 SSL 模式（尚不支持）。重启 Kodi 后不能中断缓存。"
+msgstr "在本地将所有艺术图同步到 Kodi。这可能需要很长时间。必须启用 Kodi 的网络服务器，但不能使用 SSL 模式（尚不支持）。重启 Kodi 后不能中断缓存。"
 
 msgctxt "#33311"
 msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
@@ -1413,7 +1413,7 @@ msgstr "用户评分是要同步到 Kodi 的附加信息。在某些情况下（
 
 msgctxt "#33313"
 msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
-msgstr "执行完整的 Kodi 数据库重新同步。可选择重置设置和插图。"
+msgstr "执行完整的 Kodi 数据库重新同步。可选择重置设置和艺术图。"
 
 msgctxt "#33314"
 msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
@@ -1745,7 +1745,7 @@ msgstr "打开插件设置"
 
 msgctxt "#33400"
 msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
-msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 内容）。可选择重置设置和插图。"
+msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 内容）。可选择重置设置和艺术图。"
 
 msgctxt "#33401"
 msgid "Reset all custom nodes and rebuild them"
@@ -3013,12 +3013,12 @@ msgstr "遵循 http 超时"
 
 msgctxt "#33715"
 msgid "Set local content as default"
-msgstr ""
+msgstr "设置本地内容为默认值"
 
 msgctxt "#33716"
 msgid "Kodi companion addon not installed on Emby server! Please install"
-msgstr ""
+msgstr "Emby 服务器上未安装 Kodi companion 插件！请安装""
 
 msgctxt "#33717"
 msgid "Cancel artwork cache"
-msgstr ""
+msgstr "取消艺术图缓存"
