@@ -7,7 +7,7 @@ if not Param:
     if webservice.start():
         import hooks.monitor
         hooks.monitor.StartUp()
-else:
+elif len(Param) == 1 or Param[1]:
     import _socket
     Argv = ';'.join(["service"] + Param)
     DataSend, XbmcMonitor, sock = f"EVENT {Argv}".encode('utf-8'), None, _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)

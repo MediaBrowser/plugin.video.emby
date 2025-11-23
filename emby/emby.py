@@ -1,6 +1,7 @@
 import uuid
 import json
 import _socket
+import xbmcvfs
 import xbmc
 from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, servermanual
 from helper import utils, playerops, pluginmenu
@@ -40,11 +41,11 @@ class EmbyServer:
         if not self.ServerReconnecting:
             if ShowMsg and utils.offlineMsg:
                 if self.Online:
-                    utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33575), time=utils.displayMessage, sound=False)
+                    utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=f"{self.ServerData['ServerName']}: {utils.Translate(33575)}", time=utils.displayMessage, sound=False)
                     self.MsgOffline = False
 
                 if not self.MsgOffline:
-                    utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33575), time=utils.displayMessage, sound=False)
+                    utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=f"{self.ServerData['ServerName']}: {utils.Translate(33575)}", time=utils.displayMessage, sound=False)
                     self.MsgOffline = True
 
             utils.SyncPause.update({f"server_reconnecting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
@@ -85,7 +86,7 @@ class EmbyServer:
         self.Loaded = True
 
         if utils.connectMsg:
-            utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33000)} {self.ServerData['UserName']}", icon=self.ServerData['UserImageUrl'], time=utils.displayMessage, sound=False)
+            utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33000), icon=self.ServerData['UserImageUrl'], time=utils.displayMessage, sound=False)
 
         utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = False
         xbmc.log("EMBY.emby.emby: [ Server Online ]", 1) # LOGINFO
@@ -134,7 +135,7 @@ class EmbyServer:
                 if 'ServerId' in LoadedServerSettings and LoadedServerSettings['ServerId']: # file content is valid
                     self.ServerData = LoadedServerSettings
 
-            utils.DatabaseFiles[self.ServerData['ServerId']] = utils.translatePath(f"special://profile/Database/emby_{self.ServerData['ServerId']}.db")
+            utils.DatabaseFiles[self.ServerData['ServerId']] = xbmcvfs.translatePath(f"special://profile/Database/emby_{self.ServerData['ServerId']}.db")
         else:
             self.ServerData["DeviceId"] = str(uuid.uuid4())
 
@@ -217,12 +218,20 @@ class EmbyServer:
             if SignedIn:
                 self.save_credentials()
                 utils.EmbyServers[self.ServerData['ServerId']] = self
+
+                if self.ServerData['ServerId'] not in utils.EmbyServerIds:
+                    utils.EmbyServerIds.append(self.ServerData['ServerId'])
+
                 self.start()
 
             return
 
         # re-establish connection
         utils.EmbyServers[self.ServerData['ServerId']] = self
+
+        if self.ServerData['ServerId'] not in utils.EmbyServerIds:
+            utils.EmbyServerIds.append(self.ServerData['ServerId'])
+
         utils.start_thread(self.EstablishExistingConnection, ())
 
     def EstablishExistingConnection(self):
@@ -234,7 +243,7 @@ class EmbyServer:
             if isValid:
                 ForceResync = False
 
-                if Resync:
+                if Resync: # Resync = True when Emby server version has changed upon "utils.EmbyServerVersionResync" threshold
                     xbmc.log("EMBY.emby.emby: EstablishExistingConnection: init resync", 0) # LOGDEBUG
                     ForceResync = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)) # final warning
 
@@ -266,18 +275,31 @@ class EmbyServer:
 
             xbmc.log("EMBY.emby.emby: EstablishExistingConnection: retry", 0) # LOGDEBUG
 
+        UserImageUrl = self.ServerData.get('UserImageUrl', "")
+
+        if not xbmcvfs.exists(UserImageUrl):
+            UserData = {'Id': self.ServerData['UserId'], 'Name': self.ServerData['UserName'], 'UserImageUrl': UserImageUrl}
+            self.get_UserImage(UserData)
+            self.ServerData['UserImageUrl'] = UserData['UserImageUrl']
+
         xbmc.log("EMBY.emby.emby: THREAD: ---<[ EstablishExistingConnection ]", 0) # LOGDEBUG
 
     def save_credentials(self):
         if not self.ServerSettings:
             self.ServerSettings = f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json"
 
-        utils.writeFileString(self.ServerSettings, json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False))
+        utils.writeFile(self.ServerSettings, json.dumps(self.ServerData, sort_keys=True, indent=4, ensure_ascii=False))
 
-    def ServerDisconnect(self):
-        xbmc.log("EMBY.emby.emby: Disconnect", 1) # LOGINFO
-        utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
-        utils.EmbyServers[self.ServerData['ServerId']].stop()
+    def ServerDisconnect(self, AccessRestricted=False):
+        xbmc.log(f"EMBY.emby.emby: Disconnect: {AccessRestricted}", 1) # LOGINFO
+
+        if self.ServerData['ServerId'] in utils.EmbyServers:
+            if not AccessRestricted:
+                utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
+
+            utils.EmbyServers[self.ServerData['ServerId']].stop()
+            del utils.EmbyServers[self.ServerData['ServerId']]
+
         utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
         self.EmbySession = []
         self.Online = False
@@ -319,18 +341,7 @@ class EmbyServer:
 
             for User in Users:
                 UserData = User.copy()
-                UserData['UserImageUrl'] = utils.icon
-
-                # Download user picture
-                BinaryData, _, FileExtension = self.API.get_Image_Binary(UserData['Id'], "Primary", 0, 0, True)
-
-                if BinaryData:
-                    Filename = utils.valid_Filename(f"{self.ServerData['ServerName']}_{UserData['Name']}_{UserData['Id']}.{FileExtension}")
-                    iconpath = f"{utils.FolderEmbyTemp}{Filename}"
-                    utils.delFile(iconpath)
-                    utils.writeFileBinary(iconpath, BinaryData)
-                    UserData['UserImageUrl'] = iconpath
-
+                self.get_UserImage(UserData)
                 UsersInfo.append(UserData)
 
             Dialog = usersconnect.UsersConnect("script-emby-connect-users.xml", *utils.CustomDialogParameters)
@@ -341,7 +352,6 @@ class EmbyServer:
 
             if SelectedUser and SelectedUser != "MANUAL":
                 self.ServerData.update({'UserImageUrl': SelectedUser['UserImageUrl'], 'UserName': SelectedUser['Name']})
-
 
                 if SelectedUser['HasPassword']:
                     xbmc.log("EMBY.emby.emby: User has password, present manual login", 0) # LOGDEBUG
@@ -469,6 +479,11 @@ class EmbyServer:
             PublicInfo = self.API.get_publicinfo()
 
             if PublicInfo:
+                if not isinstance(PublicInfo, dict): # Server offline
+                    self.Views.update_nodes()
+                    self.ServerData['ServerUrl'] = ""
+                    continue
+
                 ServerVersion = PublicInfo.get('Version', "")
                 ServerVersionPrevious = self.ServerData.get('ServerVersion', "")
 
@@ -490,14 +505,27 @@ class EmbyServer:
 
                 xbmc.log(f"EMBY.emby.emby: Server version: {ServerVersion}", 1) # LOGINFO
                 self.ServerData.update({'RemoteAddress': PublicInfo.get('WanAddress', self.ServerData['RemoteAddress']), 'LocalAddress': PublicInfo.get('LocalAddress', self.ServerData['LocalAddress']), 'ServerName': PublicInfo.get('ServerName'), 'ServerId': PublicInfo.get('Id')})
-                utils.DatabaseFiles[self.ServerData['ServerId']] = utils.translatePath(f"special://profile/Database/emby_{self.ServerData['ServerId']}.db")
+                utils.DatabaseFiles[self.ServerData['ServerId']] = xbmcvfs.translatePath(f"special://profile/Database/emby_{self.ServerData['ServerId']}.db")
                 return True, Resync, SaveConfig
 
+            self.Views.update_nodes()
             self.ServerData['ServerUrl'] = ""
             continue
 
         xbmc.log("EMBY.emby.emby: Tested all connection modes. Failing server connection", 1) # LOGINFO
         return False, Resync, SaveConfig
+
+    # Download user picture
+    def get_UserImage(self,UserData):
+        UserData['UserImageUrl'] = utils.icon
+        BinaryData, _, FileExtension = self.API.get_Image_Binary(UserData['Id'], "Primary", 0, 0, True, False, False)
+
+        if BinaryData:
+            Filename = utils.valid_Filename(f"{self.ServerData['ServerName']}_{UserData['Name']}_{UserData['Id']}.{FileExtension}")
+            iconpath = f"{utils.FolderEmbyTemp}{Filename}"
+            utils.delFile(iconpath)
+            utils.writeFile(iconpath, BinaryData)
+            UserData['UserImageUrl'] = iconpath
 
 def get_CompareVersion(Version):
     CompareVersion = ""

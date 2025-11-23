@@ -1,5 +1,6 @@
 import struct
 from urllib.parse import unquote
+import xbmcvfs
 import xbmc
 from database import dbio
 from . import utils
@@ -65,12 +66,12 @@ def CacheAllEntries(urls, ProgressBar):
 
         TempPath = f"{utils.FolderUserdataThumbnails}{Hash[0]}/{Hash}"
 
-        if not utils.checkFileExists(f"{TempPath}.jpg") and not utils.checkFileExists(f"{TempPath}.png"):
+        if not xbmcvfs.exists(f"{TempPath}.jpg") and not xbmcvfs.exists(f"{TempPath}.png"):
             if len(Data) > 5:
                 OverlayText = unquote("-".join(Data[5:]))
-                ImageBinary, _ = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText)
+                ImageBinary, _, _ = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText, True, True)
             else:
-                ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag)
+                ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag, False, True, True)
 
             Width, Height, ImageFormat = get_image_metadata(ImageBinary, Hash)
             cachedUrl = f"{Hash[0]}/{Hash}.{ImageFormat}"
@@ -80,7 +81,7 @@ def CacheAllEntries(urls, ProgressBar):
             if Width == 0:
                 xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: image not detected: {url[0]}", 2) # LOGWARNING
             else:
-                utils.writeFileBinary(Path, ImageBinary)
+                utils.writeFile(Path, ImageBinary)
                 Size = len(ImageBinary)
                 ArtworkCacheItems[ArtworkCacheIndex] = {'Url': url[0], 'Width': Width, 'Height': Height, 'Size': Size, 'Extension': ImageFormat, 'ImageHash': f"d0s{Size}", 'Path': Path, 'cachedUrl': cachedUrl}
 

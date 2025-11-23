@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <settings version="1">
     <section id="plugin.service.emby-next-gen">
-        <category id="general" label="29999" help="">
+        <category id="general" label="33649" help="">
             <group id="1" label="33649">
                 <setting id="manageserver" label="30614" type="action" help="33307">
                     <data>NotifyAll(plugin.service.emby-next-gen,manageserver)</data>
@@ -17,28 +17,6 @@
                     <data>NotifyAll(plugin.service.emby-next-gen,factoryreset)</data>
                     <level>0</level>
                     <control type="button" format="action"/>
-                </setting>
-            </group>
-            <group id="2" label="33110">
-                <setting label="30504" id="deviceNameOpt" type="boolean" help="33318">
-                    <level>3</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting label="30016" id="deviceName" type="string" help="33318">
-                    <level>3</level>
-                    <default>Kodi</default>
-                    <constraints>
-                        <allowempty>false</allowempty>
-                    </constraints>
-                    <dependencies>
-                        <dependency type="enable">
-                            <condition operator="is" setting="deviceNameOpt">true</condition>
-                        </dependency>
-                    </dependencies>
-                    <control type="edit" format="string">
-                        <heading>30016</heading>
-                    </control>
                 </setting>
             </group>
         </category>
@@ -83,6 +61,15 @@
                     </constraints>
                     <control type="edit" format="string"/>
                 </setting>
+                <setting label="" id="CurrentServicePluginVersion" type="string" help="">
+                    <level>0</level>
+                    <visible>false</visible>
+                    <default/>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
                 <setting id="managelibsselection" label="33194" type="action" help="33309">
                     <data>NotifyAll(plugin.service.emby-next-gen,managelibsselection)</data>
                     <level>0</level>
@@ -113,9 +100,21 @@
                     <level>2</level>
                     <control type="button" format="action"/>
                 </setting>
-                <setting id="usepathsubstitution" label="33486" type="boolean" help="33535">
+                <setting id="webservicemode" type="string" label="33744" help="">
                     <level>2</level>
-                    <default>true</default>
+                    <default>http</default>
+                    <constraints>
+                        <options>
+                            <option label="33747">http</option>
+                            <option label="33745">webdav</option>
+                            <option label="33746">pathsubstitution</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                </setting>
+                <setting id="ArtworkCacheIncremental" label="33728" type="boolean" help="33729">
+                    <level>2</level>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting id="BoxSetsToTags" label="33560" type="boolean" help="33561">
@@ -124,6 +123,11 @@
                     <control type="toggle"/>
                 </setting>
                 <setting id="MovieToSeries" label="33681" type="boolean" help="33682">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="LinkMusicVideos" label="33752" type="boolean" help="33753">
                     <level>2</level>
                     <default>true</default>
                     <control type="toggle"/>
@@ -161,11 +165,6 @@
                 <setting label="33239" id="xspplaylists" type="boolean" help="33311">
                     <level>3</level>
                     <default>false</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting label="33185" id="syncduringplayback" type="boolean">
-                    <level>2</level>
-                    <default>true</default>
                     <control type="toggle"/>
                 </setting>
                 <setting id="DownloadPath" type="path" label="33569" help="33574">
@@ -209,7 +208,119 @@
                     </control>
                 </setting>
             </group>
-            <group id="2" label="33577">
+            <group id="2" label="33766" help="33767">
+                <setting label="33794" id="PauseSyncDuringPlayback" type="boolean" help="33767">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33776" id="PauseRefreshLibrary" type="boolean" help="33767">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33786" id="PauseRefreshProgress" type="boolean" help="33767">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33768" id="PauseRefreshChapterImages" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33769" id="PauseVacuumDatabase" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33770" id="PauseLocalThemeVideosUploadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33771" id="PauseLocalThemeSongsUploadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33772" id="PauseChapterApiUpdateIntroDB" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33773" id="PauseTvMazeUpdateTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33774" id="PauseServerSync" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33775" id="PauseScanInternalMetadataFolderTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33777" id="PauseRefreshInternetChannels" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33778" id="PauseRefreshGuide" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33779" id="PauseDownloadSubtitles" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33780" id="PauseLocalYTrailersDownloadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33781" id="PauseTVLocalThemeSongDownloadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33782" id="PauseLocalThemeVideosDownloadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33783" id="PauseLocalThemeSongsDownloadTask" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33784" id="PauseMarkers" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33785" id="PauseSyncPrepare" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33785" id="PauseEmbScriptxSchedTask" type="boolean" help="33787">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33410" id="PauseOther" type="boolean" help="33767">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+            <group id="3" label="33577">
                 <setting id="MaxURILength" type="integer" label="33673" help="33674">
                     <level>3</level>
                     <default>1500</default>
@@ -760,6 +871,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_h264_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_h264">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33456" id="transcode_hevc" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -767,6 +896,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_hevc_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_hevc">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -780,6 +927,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_av1_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_av1">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33458" id="transcode_vp8" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -787,6 +952,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_vp8_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_vp8">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -800,6 +983,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_vp9_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_vp9">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33460" id="transcode_wmv3" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -807,6 +1008,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_wmv3_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_wmv3">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -820,6 +1039,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_mpeg4_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_mpeg4">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33462" id="transcode_mpeg2video" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -827,6 +1064,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_mpeg2video_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_mpeg2video">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -840,6 +1095,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_mjpeg_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_mjpeg">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33655" id="transcode_msmpeg4v2" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -847,6 +1120,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_msmpeg4v2_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_msmpeg4v2">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -860,6 +1151,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_msmpeg4v3_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_msmpeg4v3">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33653" id="transcode_vc1" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -870,6 +1179,24 @@
                         </dependency>
                     </dependencies>
                 </setting>
+                <setting id="transcode_vc1_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_vc1">true</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
                 <setting label="33654" id="transcode_prores" type="boolean" help="">
                     <level>2</level>
                     <default>false</default>
@@ -877,6 +1204,24 @@
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="useDirectPaths">false</condition>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="transcode_prores_resolution" type="integer" label="33735" help="33736">
+                    <level>2</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="33737">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="transcode_prores">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -1112,6 +1457,19 @@
                             <condition operator="is" setting="useDirectPaths">false</condition>
                         </dependency>
                     </dependencies>
+                </setting>
+                <setting id="transcode_resolution" type="integer" label="33742" help="33743">
+                    <level>2</level>
+                    <default>1920</default>
+                    <constraints>
+                        <options>
+                            <option label="33741">0</option>
+                            <option label="33738">1280</option>
+                            <option label="33739">1920</option>
+                            <option label="33740">3840</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
                 </setting>
             </group>
             <group id="10" label="33480">
@@ -1389,7 +1747,17 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="33789" id="enableContextSimilarOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting label="33676" id="enableContextSettingsOptions" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33798" id="enableContextPlayRandom" type="boolean" help="">
                     <level>2</level>
                     <default>true</default>
                     <control type="toggle"/>
@@ -1555,19 +1923,112 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting label="33795" id="getTotalEpisodes" type="boolean" help="33303">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33733" id="getLocalTrailers" type="boolean" help="33303">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+        </category>
+        <category id="Backup" label="33651" help="">
+            <group id="1" label="33651">
+                <setting id="backupPath" type="path" label="33093" help="">
+                    <level>2</level>
+                    <default/>
+                    <constraints>
+                        <writable>true</writable>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="button" format="path">
+                        <heading>32025</heading>
+                    </control>
+                </setting>
+                <setting id="backup" label="33092" type="action" help="">
+                    <data>NotifyAll(plugin.service.emby-next-gen,backup)</data>
+                    <level>2</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="!is" setting="backupPath"/>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="restore" label="33255" type="action" help="">
+                    <data>NotifyAll(plugin.service.emby-next-gen,restore)</data>
+                    <level>2</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="!is" setting="backupPath"/>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="backupdelete" label="33754" type="action" help="">
+                    <data>NotifyAll(plugin.service.emby-next-gen,backupdelete)</data>
+                    <level>2</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="!is" setting="backupPath"/>
+                        </dependency>
+                    </dependencies>
+                </setting>
             </group>
         </category>
         <category id="Advanced" label="30022" help="">
             <group id="1" label="30022">
+                <setting label="30504" id="deviceNameOpt" type="boolean" help="33318">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="30016" id="deviceName" type="string" help="33318">
+                    <level>3</level>
+                    <default>Kodi</default>
+                    <constraints>
+                        <allowempty>false</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <condition operator="is" setting="deviceNameOpt">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="edit" format="string">
+                        <heading>30016</heading>
+                    </control>
+                </setting>
                 <setting label="33536" id="websocketenabled" type="boolean" help="33537">
                     <level>3</level>
                     <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33720" id="BusyDialogClose" type="boolean" help="33721">
+                    <level>3</level>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting label="33694" id="NotifyEvents" type="boolean" help="33695">
                     <level>3</level>
                     <default>false</default>
                     <control type="toggle"/>
+                </setting>
+                <setting id="Tos" type="string" label="33722" help="33723">
+                    <level>3</level>
+                    <default>CS0 (Best Effort)</default>
+                    <constraints>
+                        <options>
+                            <option label="33727">CS4 (Real-time interactive)</option>
+                            <option label="33724">CS0 (Best Effort)</option>
+                            <option label="33725">CS5, EF (Expedited Forwarding)</option>
+                            <option label="33726">CS1, AF11 (Assured Forwarding)</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
                 </setting>
                 <setting id="startupDelay" type="integer" label="30529" help="33302">
                     <level>2</level>
@@ -1603,6 +2064,18 @@
                     <default>true</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="WebserviceWorkers" type="integer" label="33718" help="33719">
+                    <level>3</level>
+                    <default>5</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>10</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                </setting>
                 <setting label="33452" id="verifyFreeSpace" type="boolean" help="">
                     <level>3</level>
                     <default>true</default>
@@ -1612,39 +2085,6 @@
                     <data>NotifyAll(plugin.service.emby-next-gen,databasevacuummanual)</data>
                     <level>3</level>
                     <control type="button" format="action"/>
-                </setting>
-            </group>
-            <group id="2" label="33651">
-                <setting id="backupPath" type="path" label="33093" help="">
-                    <level>2</level>
-                    <default/>
-                    <constraints>
-                        <writable>true</writable>
-                        <allowempty>true</allowempty>
-                    </constraints>
-                    <control type="button" format="path">
-                        <heading>32025</heading>
-                    </control>
-                </setting>
-                <setting id="backup" label="33092" type="action" help="">
-                    <data>NotifyAll(plugin.service.emby-next-gen,backup)</data>
-                    <level>2</level>
-                    <control type="button" format="action"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <condition operator="!is" setting="backupPath"/>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting id="restore" label="33255" type="action" help="">
-                    <data>NotifyAll(plugin.service.emby-next-gen,restore)</data>
-                    <level>2</level>
-                    <control type="button" format="action"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <condition operator="!is" setting="backupPath"/>
-                        </dependency>
-                    </dependencies>
                 </setting>
             </group>
         </category>

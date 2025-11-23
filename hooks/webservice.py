@@ -1,29 +1,34 @@
 from _thread import allocate_lock
-from urllib.parse import unquote, parse_qsl
+from urllib.parse import parse_qsl
 import uuid
 import _socket
 import xbmc
 from hooks import favorites
 from database import dbio
+from emby import metadata
 from helper import utils, context, playerops, pluginmenu, player, xmls
 DefaultVideoSettings = xmls.load_defaultvideosettings()
 SubtitlesLanguageDefault = DefaultVideoSettings.get("SubtitlesLanguage", "").lower()
 EnableSubtitleDefault = DefaultVideoSettings.get('ShowSubtitles', False)
-MediaIdMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
-EmbyIdMapping = {"m": "Movie", "e": "Episode", "M": "MusicVideo", "a": "Audio", "i": "Movie", "T": "Video", "v": "Video", "A": "Audio"}
-EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
-sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
-sendNotFound = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\n\r\n'.encode()
-BlankWAV = b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x10\x00\x00\x00\x01\x00\x01\x00\x44\xac\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00\x64\x61\x74\x61\x74\x00\x00\x00\x00' # native blank wave file
-sendBlankWAV = ('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 45\r\nContent-type: audio/wav\r\n\r\n'.encode(), BlankWAV) # used to "stop" playback by sending a WAV file with silence. File is valid, so Kodi will not raise an error message
-TrailerInitItem = ["", None] # payload/listitem of the trailer initiated content item
-Cancel = False
+sendOK = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'.encode()
+sendNotFound = 'HTTP/1.1 404 Not Found\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'.encode()
+sendHeadPicture = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\nContent-Type: image/unknown\r\n\r\n'.encode()
+sendHeadAudio = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\nContent-Type: audio/unknown\r\n\r\n'.encode()
+sendHeadVideo = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\nContent-Type: video/unknown\r\n\r\n'.encode()
+sendHeadVideoHLS = 'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 0\r\nContent-Type: application/vnd.apple.mpegurl\r\n\r\n'.encode()
+sendBlankWAV = ('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: 45\r\nContent-Type: audio/wav\r\n\r\n'.encode(), b'\x52\x49\x46\x46\x25\x00\x00\x00\x57\x41\x56\x45\x66\x6d\x74\x20\x10\x00\x00\x00\x01\x00\x01\x00\x44\xac\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00\x64\x61\x74\x61\x74\x00\x00\x00\x00') # used to "stop" playback by sending a WAV file with silence. File is valid, so Kodi will not raise an error message. Data are native blank wave file
 Running = False
 Socket = None
 KeyBoard = xbmc.Keyboard()
 DelayedContent = {}
 DelayedContentLock = allocate_lock()
 EmbyIdCurrentlyPlaying = 0
+MaxWorkers = utils.WebserviceWorkers
+WorkerQueues = ()
+xbmc.log(f"EMBY.hooks.webservice: Number of workers {MaxWorkers}", 1) # LOGINFO
+
+for Counter in range(MaxWorkers):
+    WorkerQueues += ([allocate_lock(), False],) # ([Lock, Socket FD],...)
 
 def start():
     globals()["Running"] = True
@@ -39,6 +44,13 @@ def start():
         return False
 
     xbmc.log("EMBY.hooks.webservice: Start", 1) # LOGINFO
+
+    # preload simultan workers
+    for WorkerNumber in range(MaxWorkers):
+        worker_Queue_release(WorkerNumber) # could be triggered multiple times without stopping before (e.g. sleep)
+        WorkerQueues[WorkerNumber][0].acquire()
+        utils.start_thread(worker_Queues, (WorkerNumber,))
+
     utils.start_thread(Listen, ())
     return True
 
@@ -51,11 +63,15 @@ def close():
         except Exception as Error:
             xbmc.log(f"EMBY.hooks.webservice: Socket shutdown (error) {Error}", 1) # LOGINFO
 
+        for WorkerNumber in range(MaxWorkers):
+            WorkerQueues[WorkerNumber][1] = False
+            worker_Queue_release(WorkerNumber)
+
         xbmc.log("EMBY.hooks.webservice: Shutdown webservice", 1) # LOGINFO
         xbmc.log(f"EMBY.hooks.webservice: DelayedContent queue size: {len(DelayedContent)}", 0) # LOGDEBUG
 
 def Listen():
-    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ webservice/57342 ]", 1) # INFODEBUG
+    xbmc.log("EMBY.hooks.webservice: THREAD: --->[ webservice/57342 ]", 0) # LOGDEBUG
     Socket.listen()
     Socket.settimeout(1)
 
@@ -65,9 +81,38 @@ def Listen():
         except:
             continue
 
-        utils.start_thread(worker_Query, (fd,))
+        for WorkerNumber in range(MaxWorkers):
+            if not WorkerQueues[WorkerNumber][1]:
+                WorkerQueues[WorkerNumber][1] = fd
+                worker_Queue_release(WorkerNumber)
+                break
+        else:
+            xbmc.log(f"EMBY.hooks.webservice: New thread file descriptor: {fd}", 1) # LOGINFO
+            utils.start_thread(worker_Query, (fd,))
 
-    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 1) # INFODEBUG
+    xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ webservice/57342 ]", 0) # LOGDEBUG
+
+def worker_Queue_release(WorkerNumber):
+    try:
+        WorkerQueues[WorkerNumber][0].release()
+    except:
+        pass
+
+def worker_Queues(WorkerNumber):  # thread by caller
+    xbmc.log(f"EMBY.hooks.webservice: THREAD: --->[ worker_Queues/{WorkerNumber} ]", 0) # LOGDEBUG
+
+    while Running:
+        WorkerQueues[WorkerNumber][0].acquire()
+
+        if not Running or not WorkerQueues[WorkerNumber][1]:
+            worker_Queue_release(WorkerNumber)
+            break
+
+        xbmc.log(f"EMBY.hooks.webservice: Worker queue {WorkerNumber}, file descriptor: {WorkerQueues[WorkerNumber][1]}", 0) # LOGDEBUG
+        worker_Query(WorkerQueues[WorkerNumber][1])
+        globals()['WorkerQueues'][WorkerNumber][1] = False
+
+    xbmc.log(f"EMBY.hooks.webservice: THREAD: ---<[ worker_Queues/{WorkerNumber} ]", 0) # LOGDEBUG
 
 def worker_Query(fd):  # thread by caller
     xbmc.log("EMBY.hooks.webservice: THREAD: --->[ worker_Query ]", 0) # LOGDEBUG
@@ -75,29 +120,11 @@ def worker_Query(fd):  # thread by caller
     client.settimeout(None)
     data = client.recv(16384).decode()
     xbmc.log(f"EMBY.hooks.webservice: Incoming Data: {data}", 0) # LOGDEBUG
-    DelayQuery = 0
     IncomingData = data.split(' ')
 
-    if IncomingData[0] != "EVENT" or ("mode" in IncomingData[1] and "query=NodesDynamic" not in IncomingData[1] and "query=NodesSynced" not in IncomingData[1]):
-        while not utils.EmbyServers or not list(utils.EmbyServers.values())[0].Online:
-            Break = False
-
-            if utils.sleep(1):
-                xbmc.log("EMBY.hooks.webservice: Kodi Shutdown", 1) # LOGINFO
-                Break = True
-
-            if DelayQuery >= 30:
-                xbmc.log("EMBY.hooks.webservice: No Emby servers found, timeout query", 1) # LOGINFO
-                Break = True
-
-            if Break:
-                client.settimeout(1)
-                client.send(sendNotFound)
-                client.close()
-                xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] terminate query", 0) # LOGDEBUG
-                return
-
-            DelayQuery += 1
+    if IncomingData[0] in ("PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "DELETE", "LOCK", "UNLOCK"): # webdav methodS, currently not supported
+        client.send(sendNotFound)
+        return
 
     # Skip item e.g. used for cinemamode
     if IncomingData[1] in player.SkipItem:
@@ -117,6 +144,20 @@ def worker_Query(fd):  # thread by caller
             xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event specials", 0) # LOGDEBUG
             return
 
+        if args[1] == "multiversion":
+            client.send(sendOK)
+            client.close()
+            context.multiversion()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event multiversion", 0) # LOGDEBUG
+            return
+
+        if args[1] == "playrandom":
+            client.send(sendOK)
+            client.close()
+            context.playrandom()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event playrandom", 0) # LOGDEBUG
+            return
+
         if args[1] == "gotoshow":
             client.send(sendOK)
             client.close()
@@ -129,6 +170,55 @@ def worker_Query(fd):  # thread by caller
             client.close()
             context.gotoseason()
             xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event gotoseason", 0) # LOGDEBUG
+            return
+
+        if args[1] == "gotoalbum":
+            client.send(sendOK)
+            client.close()
+            context.gotoalbum()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event gotoalbum", 0) # LOGDEBUG
+            return
+
+        if args[1] == "gotoartist":
+            client.send(sendOK)
+            client.close()
+            context.gotoartist()
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event gotoartist", 0) # LOGDEBUG
+            return
+
+        if args[1] == "similarshow":
+            client.send(sendOK)
+            client.close()
+            context.similar("Series")
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event similarshow", 0) # LOGDEBUG
+            return
+
+        if args[1] == "similarartist":
+            client.send(sendOK)
+            client.close()
+            context.similar("Artist")
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event similarartist", 0) # LOGDEBUG
+            return
+
+        if args[1] == "similaralbum":
+            client.send(sendOK)
+            client.close()
+            context.similar("MusicAlbum")
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event similaralbum", 0) # LOGDEBUG
+            return
+
+        if args[1] == "similarmusicvideo":
+            client.send(sendOK)
+            client.close()
+            context.similar("MusicVideo")
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event similarmusicvideo", 0) # LOGDEBUG
+            return
+
+        if args[1] == "similarmovie":
+            client.send(sendOK)
+            client.close()
+            context.similar("Movie")
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event similarmovie", 0) # LOGDEBUG
             return
 
         if args[1] == "download":
@@ -224,6 +314,7 @@ def worker_Query(fd):  # thread by caller
         if mode == 'search':  # Simple commands
             client.send(sendOK)
             client.close()
+#            xbmc.executebuiltin('Dialog.Close(all,true),true')
             KeyBoard.setDefault('')
             KeyBoard.setHeading("Search term")
             KeyBoard.doModal()
@@ -237,13 +328,14 @@ def worker_Query(fd):  # thread by caller
                 CacheId1 = f"0Search0{ServerId}0"
                 CacheId2 = f"0Search0{ServerId}0{utils.maxnodeitems}"
 
+                # Delete cache from previous search
                 if "All" in utils.QueryCache:
                     if CacheId1 in utils.QueryCache["All"]:
                         utils.QueryCache["All"][CacheId1][0] = False
                     elif CacheId2 in utils.QueryCache["All"]:
                         utils.QueryCache["All"][CacheId2][0] = False
 
-                utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "videos", "parameters": ["plugin://plugin.service.emby-next-gen/?id=0&mode=browse&query=Search&server={ServerId}&parentid=0&content=All&libraryid=0", "return"]}}}}')
+                utils.ActivateWindow("videos", f"plugin://plugin.service.emby-next-gen/?id=0&mode=browse&query=Search&server={ServerId}&parentid=0&content=All&libraryid=0")
 
             xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event search", 0) # LOGDEBUG
             return
@@ -306,6 +398,11 @@ def worker_Query(fd):  # thread by caller
         if mode == 'browse':
             query = params.get("query")
 
+            if query not in ("NodesDynamic", "NodesSynced"):
+                if not wait_for_Embyserver(client, ServerId):
+                    client.close()
+                    return
+
             if query:
                 pluginmenu.browse(Handle, params.get('id'), query, params.get('parentid'), params.get('content'), ServerId, params.get('libraryid'), params.get('contentsupported', ""))
         elif mode == 'playlist':
@@ -322,6 +419,8 @@ def worker_Query(fd):  # thread by caller
             pluginmenu.collections(Handle, params['mediatype'], params.get('libraryname'))
         elif mode == 'inprogressmixed':
             pluginmenu.get_inprogress_mixed(Handle)
+        elif mode == 'recentlyaddedmusicvideoalbums':
+            pluginmenu.get_recentlyadded_musicvideosalbums(Handle, params.get('libraryname'))
         elif mode == 'remotepictures':
             pluginmenu.remotepictures(Handle, params.get('position'))
         else:  # 'listing'
@@ -332,312 +431,196 @@ def worker_Query(fd):  # thread by caller
         xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] event browse", 0) # LOGDEBUG
         return
 
-    PayloadLower = IncomingData[1].lower()
-    isHEAD = IncomingData[0] == "HEAD"
-    isPictureQuery = IncomingData[1].startswith('/picture/') or IncomingData[1].startswith('/delayed_content/picture')
+    # Detect content type
+    isPicture = False
+    isAudio = False
+    isVideo = False
+    isDelayedContent = IncomingData[1].startswith("/delayed_content/")
+    Payload = IncomingData[1].replace("/delayed_content", "")
 
-    if 'extrafanart' in PayloadLower or 'extrathumbs' in PayloadLower or 'extras/' in PayloadLower or PayloadLower.endswith('.edl') or PayloadLower.endswith('index.bdmv') or PayloadLower.endswith('index.bdm') or PayloadLower.endswith('.txt') or PayloadLower.endswith('.vprj') or PayloadLower.endswith('.xml') or PayloadLower.endswith('/') or PayloadLower.endswith('.nfo') or (not isPictureQuery and (PayloadLower.endswith('.bmp') or PayloadLower.endswith('.jpg') or PayloadLower.endswith('.jpeg') or PayloadLower.endswith('.ico') or PayloadLower.endswith('.png') or PayloadLower.endswith('.ifo') or PayloadLower.endswith('.gif') or PayloadLower.endswith('.tbn') or PayloadLower.endswith('.tiff'))): # Unsupported queries used by Kodi
-        client.send(sendNotFound)
-    elif IncomingData[0] == "GET" or isHEAD:
-        http_Query(client, IncomingData[1], isHEAD, isPictureQuery)
+    if "/picture/" in IncomingData[1]:
+        isPicture = True
+    elif "/audio/" in IncomingData[1]:
+        isAudio = True
     else:
-        client.send(sendOK)
+        isVideo = True
+
+    PayloadLower = Payload.lower()
+
+    if PayloadLower.endswith('/') or 'extrafanart' in PayloadLower or 'extrathumbs' in PayloadLower or 'extras/' in PayloadLower or PayloadLower.endswith('.edl') or PayloadLower.endswith('index.bdmv') or PayloadLower.endswith('index.bdm') or PayloadLower.endswith('.txt') or PayloadLower.endswith('.vprj') or PayloadLower.endswith('.xml') or PayloadLower.endswith('.nfo') or (not isPicture and (PayloadLower.endswith('.bmp') or PayloadLower.endswith('.jpg') or PayloadLower.endswith('.jpeg') or PayloadLower.endswith('.ico') or PayloadLower.endswith('.png') or PayloadLower.endswith('.ifo') or PayloadLower.endswith('.gif') or PayloadLower.endswith('.tbn') or PayloadLower.endswith('.tiff'))): # Filter invalid requests
+        client.send(sendNotFound)
+    else: # Process request
+        if IncomingData[0] == "GET":
+            GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo)
+        elif IncomingData[0] == "HEAD":
+            if isPicture:
+                client.send(sendHeadPicture)
+            elif isAudio:
+                client.send(sendHeadAudio)
+            else:
+                if PayloadLower.startswith("/dynamic/"): # set hls mimetype, as content lookup requests are disabled -> listitem.setContentLookup(False)
+                    client.send(sendHeadVideoHLS)
+                else:
+                    client.send(sendHeadVideo)
+        else:
+            xbmc.log("EMBY.hooks.webservice: Unknown method: {IncomingData[0]}", 1) # LOGINFO
+            client.send(sendOK)
 
     client.close()
     del client
     del IncomingData
     xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ]", 0) # LOGDEBUG
 
-def LoadISO(QueryData, client): # native content
+def LoadISO(MetaData, client): # native content
     player.MultiselectionDone = True
-    Path = QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Path']
+    Path = MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path']
 
     if Path.startswith('\\\\'):
         Path = Path.replace('\\\\', "smb://", 1).replace('\\\\', "\\").replace('\\', "/")
 
-    QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Path'] = Path
-    ListItem = player.load_KodiItem("LoadISO", QueryData['KodiId'], QueryData['Type'], Path)
+    MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path'] = Path
+    ListItem = player.load_KodiItem("LoadISO", MetaData['KodiId'], MetaData['Type'], Path)
 
     if not ListItem:
         client.send(sendOK)
     else:
-        set_QueuedPlayingItem(QueryData, None)
-        player.replace_playlist_listitem(ListItem, QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Path'])
-        set_DelayedContent(QueryData['Payload'], "blank")
+        set_QueuedPlayingItem(MetaData, None)
+        player.replace_playlist_listitem(ListItem, MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path'])
+        set_DelayedContent(MetaData['Payload'], "blank")
 
-def send_BlankWAV(client, ContentId):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+def send_BlankWAV(client, Payload):
+    utils.close_busyDialog()
 
     try:
         client.send(sendBlankWAV[0] + sendBlankWAV[1])
     except:
-        set_DelayedContent(ContentId, "blank")
+        set_DelayedContent(Payload, "blank")
 
-def build_Path(QueryData, Data):
+def build_Path(MetaData, Data):
     if "?" in Data:
         Parameter = "&"
     else:
         Parameter = "?"
 
-    Path = f"{utils.EmbyServers[QueryData['ServerId']].ServerData['ServerUrl']}/emby/{Data}{Parameter}MediaSourceId={QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id']}&PlaySessionId={QueryData['PlaySessionId']}&DeviceId={utils.EmbyServers[QueryData['ServerId']].ServerData['DeviceId']}&api_key={utils.EmbyServers[QueryData['ServerId']].ServerData['AccessToken']}"
+    Path = f"{utils.EmbyServers[MetaData['ServerId']].ServerData['ServerUrl']}/emby/{Data}{Parameter}MediaSourceId={MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id']}&PlaySessionId={MetaData['PlaySessionId']}&DeviceId={utils.EmbyServers[MetaData['ServerId']].ServerData['DeviceId']}&api_key={utils.EmbyServers[MetaData['ServerId']].ServerData['AccessToken']}"
     return Path
 
-def send_redirect(client, QueryData, Data):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+def send_redirect(client, MetaData, Data):
+    utils.close_busyDialog()
 
-    if QueryData['isHttp'] and utils.followhttp:
-        SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Path']}\r\nContent-length: 0\r\n\r\n".encode()
+    if MetaData['isHttp'] and utils.followhttp:
+        SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path']}\r\nContent-Length: 0\r\n\r\n".encode()
+        utils.HTTPResponseCaches[MetaData['EmbyId']] = SendData
     else:
-        Path = build_Path(QueryData, Data)
+        Path = build_Path(MetaData, Data)
 
         if "main.m3u8" in Data:
-            _, _, MainM3U8 = utils.EmbyServers[QueryData['ServerId']].http.request("GET", Path.replace(f"{utils.EmbyServers[QueryData['ServerId']].ServerData['ServerUrl']}/emby/" , ""), {}, {}, True, "", False)
-            MainM3U8Mod = MainM3U8.decode('utf-8').replace("hls1/main/", f"{utils.EmbyServers[QueryData['ServerId']].ServerData['ServerUrl']}/emby/videos/{QueryData['EmbyId']}/hls1/main/").encode()
-            SendData = f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(MainM3U8Mod)}\r\nContent-Type: text/plain\r\n\r\n".encode() + MainM3U8Mod
+            M3U8 = utils.EmbyServers[MetaData['ServerId']].API.get_m3u8(Path, MetaData['EmbyId'])
+            HlsId = f"{MetaData['Payload']}{Data.replace('/', '')}embyhls.m3u8"
+            Path = f"http://127.0.0.1:57342{HlsId}"
+            utils.HTTPResponseCaches[MetaData['EmbyId']] = f'HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(M3U8)}\r\nContent-Type: application/vnd.apple.mpegurl\r\n\r\n'.encode() + M3U8
+            SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {Path}\r\nContent-Length: 0\r\n\r\n".encode()
         else:
-            SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {Path}\r\nContent-length: 0\r\n\r\n".encode()
+            SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {Path}\r\nContent-Length: 0\r\n\r\n".encode()
+            utils.HTTPResponseCaches[MetaData['EmbyId']] = SendData
 
     xbmc.log(f"EMBY.hooks.webservice: Send data: {SendData}", 0) # LOGDEBUG
-
-    utils.HTTPQueryDoublesFilter[QueryData['EmbyId']] = {'Payload': QueryData['Payload'], 'SendData': SendData}
 
     try:
         client.send(SendData)
     except:
-        set_DelayedContent(QueryData['Payload'], SendData)
+        set_DelayedContent(MetaData['Payload'], SendData)
 
-def http_Query(client, Payload, isHEAD, isPictureQuery):
-    # Load parameters from url query
-    QueryData = {'isDynamic': False, 'isHttp': False}
-    PayloadMod = Payload
-
-    if PayloadMod.startswith("/dynamic/"):
-        QueryData['isDynamic'] = True
-        PayloadMod = PayloadMod.replace("/dynamic", "")
-
-    if PayloadMod.startswith("/http/"):
-        QueryData['isHttp'] = True
-        PayloadMod = PayloadMod.replace("/http", "")
-
-    PayloadSplit = PayloadMod.split("/")
-    MediaSources = []
-
-    if isPictureQuery:  # Image/picture
-        Data = PayloadMod[PayloadMod.rfind("/") + 1:].split("-") # MetaData
-        ServerId = PayloadSplit[2]
-        EmbyId = Data[1]
-        DataLen = len(Data)
-
-        if DataLen < 5:
-            xbmc.log(f"EMBY.hooks.webservice: Invalid picture {PayloadMod}", 2) # LOGDEBUG
-            client.send(sendNotFound)
-            return
-
-        QueryData.update({'ImageIndex': Data[2], 'ImageType': EmbyArtworkIDs[Data[3]], 'ImageTag': Data[4]})
-
-        if DataLen >= 6 and Data[5]:
-            QueryData['Overlay'] = unquote(Data[5])
-        else:
-            QueryData['Overlay'] = ""
-
-        PlayerId = 2
-    elif PayloadMod.startswith('/audio/'):
-        Data = PayloadMod[PayloadMod.rfind("/") + 1:].split("-") # MetaData
-        ServerId = PayloadSplit[2]
-        EmbyId = Data[1]
-        MediaSources = [[{'Id': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': ""}, [], [], []]]
-    else:
-        EmbyId = PayloadSplit[-3]
-        ServerId = PayloadSplit[-6]
-        Data = PayloadSplit[-2]
-        Data = Data.split("-")
-        Data[4] = bytes.fromhex(Data[4]).decode('utf-8')
-
-        # Extract metatdata, sperators are <>, ><, <<, :
-        MetadataSubs = Data[4].split("<>")
-
-        for Index, MetadataSub in enumerate(MetadataSubs):
-            MediaDatas = MetadataSub.split("<<")
-            MediaSources.append([{}, [], [], []])
-
-            for IndexSub, MediaData in enumerate(MediaDatas):
-                if IndexSub == 0:
-                    MediaSourceInfos = MediaData.split(":")
-
-                    for MediaSourceInfoIndex, MediaSourceInfo in enumerate(MediaSourceInfos):
-                        if MediaSourceInfoIndex == 0:
-                            MediaSources[Index][0]['Name'] = MediaSourceInfo.replace("<;>", ":")
-                        elif MediaSourceInfoIndex == 1:
-                            MediaSources[Index][0]['Size'] = MediaSourceInfo
-                        elif MediaSourceInfoIndex == 2:
-                            MediaSources[Index][0]['Id'] = MediaSourceInfo
-                        elif MediaSourceInfoIndex == 3:
-                            MediaSources[Index][0]['Path'] = MediaSourceInfo.replace("<;>", ":")
-                        elif MediaSourceInfoIndex == 4:
-                            MediaSources[Index][0]['IntroStartPositionTicks'] = int(MediaSourceInfo)
-                        elif MediaSourceInfoIndex == 5:
-                            MediaSources[Index][0]['IntroEndPositionTicks'] = int(MediaSourceInfo)
-                        elif MediaSourceInfoIndex == 6:
-                            MediaSources[Index][0]['CreditsPositionTicks'] = int(MediaSourceInfo)
-                        elif MediaSourceInfoIndex == 7:
-                            MediaSources[Index][0]['IsRemote'] = bool(int(MediaSourceInfo))
-                elif IndexSub == 1 and MediaData:
-                    VideoStreams = MediaData.split("><")
-
-                    for VideoStreamIndex, VideoStream in enumerate(VideoStreams):
-                        MediaSources[Index][1].append({})
-                        VideoStreamInfos = VideoStream.split(":")
-
-                        for VideoStreamInfoIndex, VideoStreamInfo in enumerate(VideoStreamInfos):
-                            if VideoStreamInfoIndex == 0:
-                                MediaSources[Index][1][VideoStreamIndex]['Codec'] = VideoStreamInfo
-                            elif VideoStreamInfoIndex == 1:
-                                MediaSources[Index][1][VideoStreamIndex]['BitRate'] = int(VideoStreamInfo)
-                            elif VideoStreamInfoIndex == 2:
-                                MediaSources[Index][1][VideoStreamIndex]['Index'] = VideoStreamInfo
-                            elif VideoStreamInfoIndex == 3:
-                                MediaSources[Index][1][VideoStreamIndex]['Width'] = int(VideoStreamInfo)
-                elif IndexSub == 2 and MediaData:
-                    AudioStreams = MediaData.split("><")
-
-                    for AudioStreamIndex, AudioStream in enumerate(AudioStreams):
-                        MediaSources[Index][2].append({})
-                        AudioStreamInfos = AudioStream.split(":")
-
-                        for AudioStreamInfoIndex, AudioStreamInfo in enumerate(AudioStreamInfos):
-                            if AudioStreamInfoIndex == 0:
-                                MediaSources[Index][2][AudioStreamIndex]['DisplayTitle'] = AudioStreamInfo
-                            elif AudioStreamInfoIndex == 1:
-                                MediaSources[Index][2][AudioStreamIndex]['Codec'] = AudioStreamInfo
-                            elif AudioStreamInfoIndex == 2:
-                                MediaSources[Index][2][AudioStreamIndex]['BitRate'] = int(AudioStreamInfo)
-                            elif AudioStreamInfoIndex == 3:
-                                MediaSources[Index][2][AudioStreamIndex]['Index'] = AudioStreamInfo
-                elif IndexSub == 3 and MediaData:
-                    SubtitleStreams = MediaData.split("><")
-
-                    for SubtitleStreamIndex, SubtitleStream in enumerate(SubtitleStreams):
-                        MediaSources[Index][3].append({})
-                        SubtitleStreamInfos = SubtitleStream.split(":")
-
-                        for SubtitleStreamInfoIndex, SubtitleStreamInfo in enumerate(SubtitleStreamInfos):
-                            if SubtitleStreamInfoIndex == 0:
-                                MediaSources[Index][3][SubtitleStreamIndex]['language'] = SubtitleStreamInfo
-                            elif SubtitleStreamInfoIndex == 1:
-                                MediaSources[Index][3][SubtitleStreamIndex]['DisplayTitle'] = SubtitleStreamInfo
-                            elif SubtitleStreamInfoIndex == 2:
-                                MediaSources[Index][3][SubtitleStreamIndex]['external'] = bool(int(SubtitleStreamInfo))
-                            elif SubtitleStreamInfoIndex == 3:
-                                MediaSources[Index][3][SubtitleStreamIndex]['Index'] = SubtitleStreamInfo
-                            elif SubtitleStreamInfoIndex == 4:
-                                MediaSources[Index][3][SubtitleStreamIndex]['Codec'] = SubtitleStreamInfo
-
-        QueryData.update({'KodiId': Data[1], 'KodiFileId': Data[2]})
-
-    if Data[0] in EmbyIdMapping:
-        EmbyType = EmbyIdMapping[Data[0]]
-    else:
-        EmbyType = None
-
-    QueryData.update({'MediaSources': MediaSources, 'Payload': Payload, 'Type': MediaIdMapping[Data[0]], 'ServerId': ServerId, 'EmbyId': EmbyId, 'MediaType': Data[0], "EmbyType": EmbyType, "DelayedContentSet": False, "SelectionIndexMediaSource": 0, "SelectionIndexVideoStream": 0, "SelectionIndexAudioStream": 0, "SelectionIndexSubtitleStream": -1})
-
-    if Data[0] in ("m", "M", "i", "T", "v", "e"):  # Videos or iso
-        player.PlaylistRemoveItem = -1
-        PlayerId = 1
-    elif Data[0] in ("a", "A"):  # Audios
-        PlayerId = 0
-    elif Data[0] == "t":  # tv channel
-        PlayerId = 1
-    elif Data[0] == "c":  # e.g. channel
-        PlayerId = 1
-    else: # "V"
-        PlayerId = 1
-
-    if isHEAD:
-        send_head_response(client, QueryData["Type"])
-        return
-
-    # Filter similar queries
-    for HTTPQueryDoubleFilter in list(utils.HTTPQueryDoublesFilter.values()):
-        if Payload == HTTPQueryDoubleFilter['Payload']:
-            client.send(HTTPQueryDoubleFilter['SendData'])
-            xbmc.log(f"EMBY.hooks.webservice: Double query: {Payload}", 1) # LOGINFO
-            return
-
-    # Delayed contents are used for user inputs (selection box for e.g. multicontent versions, transcoding selection etc.) are opened.
+def GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo):
+    # Delayed contents are used for user inputs (selection box for e.g. multicontent versions, transcoding selection etc.)
     # workaround for low Kodi network timeout settings, for long running processes. "delayed_content" folder is actually a redirect to keep timeout below threshold
-    if Payload.startswith("/delayed_content"):
-        ContentId = Payload.replace("/delayed_content", "")
-
-        if not send_delayed_content(client, ContentId):
+    if isDelayedContent:
+        if not send_delayed_content(client, Payload):
             for _ in range(utils.curltimeouts * 10 - 2):
                 if utils.sleep(0.1):
                     xbmc.log("EMBY.hooks.webservice: Delayed content interrupt, Kodi shutdown", 2) # LOGWARNING
                     client.send(sendNotFound)
                     break
 
-                if send_delayed_content(client, ContentId):
+                if send_delayed_content(client, Payload):
                     break
             else:
                 xbmc.log("EMBY.hooks.webservice: Continue waiting for content, send another redirect", 0) # DEBUGINFO
-                client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: http://127.0.0.1:57342/delayed_content{ContentId}\r\nContent-length: 0\r\n\r\n".encode())
+                client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: http://127.0.0.1:57342/delayed_content{Payload}\r\nContent-Length: 0\r\n\r\n".encode())
 
         return
 
-    # Waiting for Emby connection:
-    if QueryData['ServerId'] not in utils.EmbyServers:
-        xbmc.log(f"EMBY.hooks.webservice: Emby ServerId not found {QueryData['ServerId']}", 2) # LOGWARNING
+    # Load parameters from url request
+    MetaData = metadata.load_MetaData(Payload, isPicture, isAudio)
+
+    if not MetaData: # Invalid request
         client.send(sendNotFound)
         return
 
-    try:
-        while not utils.EmbyServers[QueryData['ServerId']].EmbySession:
-            xbmc.log(f"EMBY.hooks.webservice: Waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
-
-            if utils.sleep(1):
-                xbmc.log(f"EMBY.hooks.webservice: Kodi shutdown while waiting for Emby connection... {QueryData['ServerId']}", 1) # LOGINFO
-                client.send(sendNotFound)
-                return
-    except: # could be triggered when server was removed -> QueryData['ServerId'] removed from utils.EmbyServers
+    # Use cached responses
+    if MetaData['EmbyId'] in utils.HTTPResponseCaches:
+        client.send(utils.HTTPResponseCaches[MetaData['EmbyId']])
+        xbmc.log(f"EMBY.hooks.webservice: Cached response EmbyId: {MetaData['EmbyId']}", 1) # LOGINFO
+        xbmc.log(f"EMBY.hooks.webservice: Cached response Payload: {utils.HTTPResponseCaches[MetaData['EmbyId']]}", 0) # LOGDEBUG
         return
 
-    if QueryData['Type'] == 'picture':
+    # Set player id
+    if isVideo:
+        player.PlaylistRemoveItem = -1
+        player.set_PlayerId({"player": {"playerid": 1}})
+    elif isAudio:
+        player.set_PlayerId({"player": {"playerid": 0}})
+
+    # Waiting for Emby connection:
+    if not wait_for_Embyserver(client, MetaData['ServerId']):
+        return
+
+    try:
+        while not utils.EmbyServers[MetaData['ServerId']].EmbySession:
+            xbmc.log(f"EMBY.hooks.webservice: Waiting for Emby connection... {MetaData['ServerId']}", 1) # LOGINFO
+
+            if utils.sleep(1):
+                xbmc.log(f"EMBY.hooks.webservice: Kodi shutdown while waiting for Emby connection... {MetaData['ServerId']}", 1) # LOGINFO
+                client.send(sendNotFound)
+                return
+    except: # could be triggered when server was removed -> MetaData['ServerId'] removed from utils.EmbyServers
+        return
+
+    if MetaData['Type'] == 'picture':
         xbmc.log(f"EMBY.hooks.webservice: Load artwork data into cache: {Payload}", 0) # LOGDEBUG
 
-        if add_DelayedContent(QueryData, client):
+        if add_DelayedContent(MetaData, client):
             return
 
         xbmc.log(f"EMBY.hooks.webservice: Load artwork data from Emby: {Payload}", 0) # LOGDEBUG
 
-        if not QueryData['Overlay']:
-            BinaryData, ContentType, _ = utils.EmbyServers[QueryData['ServerId']].API.get_Image_Binary(QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['ImageTag'])
+        if not MetaData['Overlay']:
+            BinaryData, ContentType, _ = utils.EmbyServers[MetaData['ServerId']].API.get_Image_Binary(MetaData['EmbyId'], MetaData['ImageType'], MetaData['ImageIndex'], MetaData['ImageTag'], False, False, False)
         else:
-            BinaryData, ContentType = utils.image_overlay(QueryData['ImageTag'], QueryData['ServerId'], QueryData['EmbyId'], QueryData['ImageType'], QueryData['ImageIndex'], QueryData['Overlay'])
+            BinaryData, ContentType, _ = utils.image_overlay(MetaData['ImageTag'], MetaData['ServerId'], MetaData['EmbyId'], MetaData['ImageType'], MetaData['ImageIndex'], MetaData['Overlay'], False, False)
 
-        set_DelayedContent(QueryData['Payload'], f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(BinaryData)}\r\nContent-Type: {ContentType}\r\n\r\n".encode() + BinaryData)
+        set_DelayedContent(MetaData['Payload'], f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(BinaryData)}\r\nContent-Type: {ContentType}\r\n\r\n".encode() + BinaryData)
         xbmc.log(f"EMBY.hooks.webservice: Loaded Delayed Content for {Payload}", 0) # LOGDEBUG
         return
 
-    if QueryData['Type'] == 'audio':
-        playerops.PlayerId = 0
-        set_QueuedPlayingItem(QueryData, None)
-        send_redirect(client, QueryData, f"audio/{QueryData['EmbyId']}/stream?static=true")
+    if MetaData['Type'] == 'audio':
+        set_QueuedPlayingItem(MetaData, None)
+        send_redirect(client, MetaData, f"audio/{MetaData['EmbyId']}/stream?static=true")
         return
 
-    playerops.PlayerId = 1
-    globals()['EmbyIdCurrentlyPlaying'] = QueryData['EmbyId']
+    globals()['EmbyIdCurrentlyPlaying'] = MetaData['EmbyId']
 
-    if QueryData['Type'] == 'tvchannel':
-        MediasourceId, LiveStreamId, PlaySessionId, Container = utils.EmbyServers[QueryData['ServerId']].API.open_livestream(QueryData['EmbyId'])
+    if MetaData['Type'] == 'tvchannel':
+        MediasourceId, LiveStreamId, PlaySessionId, Container = utils.EmbyServers[MetaData['ServerId']].API.open_livestream(MetaData['EmbyId'])
 
         if not Container:
             xbmc.log("EMBY.hooks.webservice: LiveTV no container info", 3) # LOGERROR
             client.send(sendNotFound)
             return
 
-        QueryData['MediaSources'][0][0]['Id'] = MediasourceId
-        QueryData['LiveStreamId'] = LiveStreamId
-        set_QueuedPlayingItem(QueryData, PlaySessionId)
+        MetaData['MediaSources'][0][0]['Id'] = MediasourceId
+        MetaData['LiveStreamId'] = LiveStreamId
+        set_QueuedPlayingItem(MetaData, PlaySessionId)
 
         if utils.transcode_livetv_video or utils.transcode_livetv_audio:
             TranscodingVideoBitrate = ""
@@ -656,29 +639,27 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
                 TranscodingAudioCodec = "copy"
 
             if LiveStreamId:
-                send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}&LiveStreamId={LiveStreamId}{TranscodingVideoBitrate}{TranscodingAudioBitrate}")
+                send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}&LiveStreamId={LiveStreamId}{TranscodingVideoBitrate}{TranscodingAudioBitrate}")
             else:
-                send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}{TranscodingVideoBitrate}{TranscodingAudioBitrate}")
+                send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/stream.ts?VideoCodec={TranscodingVideoCodec}&AudioCodec={TranscodingAudioCodec}{TranscodingVideoBitrate}{TranscodingAudioBitrate}")
         else:
             if LiveStreamId:
-                send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/stream?static=true&LiveStreamId={LiveStreamId}")
+                send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/stream?static=true&LiveStreamId={LiveStreamId}")
             else:
-                send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/stream?static=true")
+                send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/stream?static=true")
 
         return
 
-    if QueryData['Type'] == 'channel':
-        set_QueuedPlayingItem(QueryData, None)
-        send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/main.m3u8")
+    if MetaData['Type'] == 'channel':
+        set_QueuedPlayingItem(MetaData, None)
+        send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/main.m3u8")
         return
-
-    player.PlayerEventsQueue.put((("play", f'{{"player":{{"playerid":{PlayerId}}}}}'),))
 
     # Cinnemamode
-    if ((utils.enableCinemaMovies and QueryData['Type'] == "movie") or (utils.enableCinemaEpisodes and QueryData['Type'] == "episode")) and not utils.RemoteMode and not player.TrailerStatus == "PLAYING":
-        if not QueryData['isDynamic']:
+    if not utils.RemoteMode and ((utils.enableCinemaMovies and MetaData['Type'] == "movie") or (utils.enableCinemaEpisodes and MetaData['Type'] == "episode")) and not player.TrailerStatus == "PLAYING":
+        if not MetaData['isDynamic']:
             videoDB = dbio.DBOpenRO("video", "http_Query")
-            Progress = videoDB.get_Progress_by_KodiType_KodiId(QueryData['Type'], QueryData['KodiId'])
+            Progress = videoDB.get_Progress_by_KodiType_KodiId(MetaData['Type'], MetaData['KodiId'])
             dbio.DBCloseRO("video", "http_Query")
         else:
             Progress = 0
@@ -686,24 +667,22 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
         if not Progress and player.TrailerStatus == "READY":
             player.playlistIndex = playerops.GetPlayerPosition(1)
             player.TrailerStatus = "PLAYING"
-            utils.EmbyServers[QueryData['ServerId']].http.Intros = []
-            globals()["TrailerInitItem"] = [QueryData['Payload'], None]
+            utils.EmbyServers[MetaData['ServerId']].http.Intros = []
             PlayTrailer = True
 
-            if add_DelayedContent(QueryData, client):
+            if add_DelayedContent(MetaData, client):
                 return
 
             if utils.askCinema:
                 PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autoclose) * 1000)
 
             if PlayTrailer:
-                utils.EmbyServers[QueryData['ServerId']].http.load_Trailers(QueryData['EmbyId'])
+                utils.EmbyServers[MetaData['ServerId']].http.load_Trailers(MetaData['EmbyId'])
 
-                if utils.EmbyServers[QueryData['ServerId']].http.Intros:
-                    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
-                    set_DelayedContent(QueryData['Payload'], "blank")
-                    player.play_Trailer(utils.EmbyServers[QueryData['ServerId']])
-                    globals()["TrailerInitItem"][1] = player.load_KodiItem("http_Query", QueryData['KodiId'], QueryData['Type'], None) # query path
+                if utils.EmbyServers[MetaData['ServerId']].http.Intros:
+                    utils.close_busyDialog()
+                    set_DelayedContent(MetaData['Payload'], "blank")
+                    player.play_Trailer(utils.EmbyServers[MetaData['ServerId']])
 
                     # skip incoming content queries, until intros finished playing
                     if player.playlistIndex == 0:
@@ -712,69 +691,71 @@ def http_Query(client, Payload, isHEAD, isPictureQuery):
                         PlaylistItems = playerops.GetPlaylistItems(1)
 
                         if PlaylistItems:
-                            player.SkipItem = (Payload, PlaylistItems[0]['file'].replace("/emby_addon_mode", "").replace("http://127.0.0.1:57342", ""))
+                            player.SkipItem = (Payload, PlaylistItems[0]['file'].replace("/emby_addon_mode", "").replace("http://127.0.0.1:57342", "").replace("dav://127.0.0.1:57342", ""))
                         else:
                             player.SkipItem = (Payload, )
 
                     return
 
-            xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
-            set_DelayedContent(QueryData['Payload'], f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: http://127.0.0.1:57342{Payload}\r\nConnection: close\r\nContent-length: 0\r\n\r\n".encode())
+            utils.close_busyDialog()
+            set_DelayedContent(MetaData['Payload'], f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nLocation: http://127.0.0.1:57342{Payload}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n".encode())
             return
 
         if player.TrailerStatus == "CONTENT":
             player.TrailerStatus = "READY"
 
-    if len(QueryData['MediaSources']) == 1 or utils.RemoteMode or (QueryData['MediaType'] in ("i", "v", "m") and not QueryData['isDynamic']):
-        if QueryData['MediaType'] == 'i':
-            if add_DelayedContent(QueryData, client):
+    if len(MetaData['MediaSources']) == 1 or utils.RemoteMode or (MetaData['MediaType'] in ("i", "v", "m") and not MetaData['isDynamic']): # no multiversion select for iso or movie/video -> Kodi takes care
+        if MetaData['MediaType'] == 'i':
+            if add_DelayedContent(MetaData, client):
                 return
 
-            LoadISO(QueryData, client)
+            LoadISO(MetaData, client)
             return
 
-        LoadData(QueryData, client)
+        LoadData(MetaData, client)
         return
 
-    # Multiversion
-    if add_DelayedContent(QueryData, client):
-        return
-
-    # Autoselect mediasource by highest resolution
-    if utils.SelectDefaultVideoversion:
-        QueryData['SelectionIndexMediaSource'] = 0
-    elif utils.AutoSelectHighestResolution:
+    # Select multiversion content
+    if metadata.MediaSourceContextMenu != -1: # Multiversion content played via contextmenu
+        MetaData['SelectionIndexMediaSource'] = metadata.MediaSourceContextMenu
+        metadata.MediaSourceContextMenu = -1
+    elif utils.SelectDefaultVideoversion: # Autoselect mediasource by default version
+        MetaData['SelectionIndexMediaSource'] = 0
+    elif utils.AutoSelectHighestResolution: # Autoselect mediasource by highest resolution
         HighestResolution = 0
-        QueryData['SelectionIndexMediaSource'] = 0
+        MetaData['SelectionIndexMediaSource'] = 0
 
-        for MediaSourceIndex, MediaSource in enumerate(QueryData['MediaSources']):
+        for MediaSourceIndex, MediaSource in enumerate(MetaData['MediaSources']):
             if HighestResolution < MediaSource[1][0]['Width']:
                 HighestResolution = MediaSource[1][0]['Width']
-                QueryData['SelectionIndexMediaSource'] = MediaSourceIndex
+                MetaData['SelectionIndexMediaSource'] = MediaSourceIndex
     else: # Manual select mediasource
+        if add_DelayedContent(MetaData, client):
+            return
+
         Selection = []
 
-        for MediaSource in QueryData['MediaSources']:
+        for MediaSource in MetaData['MediaSources']:
             Selection.append(f"{MediaSource[0]['Name']} - {utils.SizeToText(float(MediaSource[0]['Size']))} - {MediaSource[0]['Path']}")
 
-        QueryData['SelectionIndexMediaSource'] = utils.Dialog.select(utils.Translate(33453), Selection)
+        MetaData['SelectionIndexMediaSource'] = utils.Dialog.select(utils.Translate(33453), Selection)
 
-        if QueryData['SelectionIndexMediaSource'] == -1:
-            set_DelayedContent(QueryData['Payload'], "blank")
+        if MetaData['SelectionIndexMediaSource'] == -1: # Cancel
+            set_DelayedContent(MetaData['Payload'], "blank")
             playerops.Stop(False, 1)
             return
 
     # check if multiselection must be forced as native
-    if QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Path'].lower().endswith(".iso"):
-        LoadISO(QueryData, client)
+    if MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path'].lower().endswith(".iso"):
+        LoadISO(MetaData, client)
         return
 
-    LoadData(QueryData, client)
+    LoadData(MetaData, client)
     return
 
 # Load SRT subtitles
-def SubTitlesAdd(QueryData):
-    if not QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][3]:
+def SubTitlesAdd(MetaData):
+    if not MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][3]:
         return
 
     CounterSubTitle = 0
@@ -782,15 +763,15 @@ def SubTitlesAdd(QueryData):
     EnableSubtitle = False
     ExternalSubtitle = False
 
-    for Subtitle in QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][3]:
+    for Subtitle in MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][3]:
         if Subtitle['external']:
             CounterSubTitle += 1
             ExternalSubtitle = True
 
             # Get Subtitle Settings
-            if not QueryData['isDynamic']:
+            if not MetaData['isDynamic']:
                 videoDB = dbio.DBOpenRO("video", "http_Query")
-                FileSettings = videoDB.get_FileSettings(QueryData['KodiFileId'])
+                FileSettings = videoDB.get_FileSettings(MetaData['KodiFileId'])
                 dbio.DBCloseRO("video", "http_Query")
             else:
                 FileSettings = []
@@ -805,16 +786,16 @@ def SubTitlesAdd(QueryData):
             else:
                 SubtileLanguage = "undefined"
 
-            BinaryData = utils.EmbyServers[QueryData['ServerId']].API.get_Subtitle_Binary(QueryData['EmbyId'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id'], Subtitle['Index'], Subtitle['Codec'])
+            BinaryData = utils.EmbyServers[MetaData['ServerId']].API.get_Subtitle_Binary(MetaData['EmbyId'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id'], Subtitle['Index'], Subtitle['Codec'])
 
-            if QueryData['EmbyId'] != EmbyIdCurrentlyPlaying: # check if Kodi is still playing the same file
+            if MetaData['EmbyId'] != EmbyIdCurrentlyPlaying: # check if Kodi is still playing the same file
                 del BinaryData
                 return
 
             if BinaryData:
                 SubtitleCodec = Subtitle['Codec']
                 Path = f"{utils.FolderEmbyTemp}{utils.valid_Filename(f'{CounterSubTitle}.{SubtileLanguage}.{SubtitleCodec}')}"
-                utils.writeFileBinary(Path, BinaryData)
+                utils.writeFile(Path, BinaryData)
                 del BinaryData
 
                 if SubtitlesLanguageDefault in Subtitle['DisplayTitle'].lower():
@@ -833,170 +814,267 @@ def SubTitlesAdd(QueryData):
 
         playerops.SetSubtitle(EnableSubtitle)
 
-def LoadData(QueryData, client):
-    Transcoding = False
-
+def LoadData(MetaData, client):
     # Check transcoding
-    if QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][1] and QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][2]:
-        VideoCodec = QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][1][QueryData['SelectionIndexVideoStream']]['Codec']
-        AudioCodec = QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][2][QueryData['SelectionIndexAudioStream']]['Codec']
+    if MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][1] and MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][2]:
+        VideoCodec = MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][1][MetaData['SelectionIndexVideoStream']]['Codec']
+        AudioCodec = MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][2][MetaData['SelectionIndexAudioStream']]['Codec']
+        VideoResolutionWidth = MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][1][MetaData['SelectionIndexVideoStream']]['Width']
 
-        if utils.transcode_h264 and VideoCodec == "h264" or utils.transcode_hevc and VideoCodec == "hevc" or utils.transcode_av1 and VideoCodec == "av1" or utils.transcode_vp8 and VideoCodec == "vp8" or utils.transcode_vp9 and VideoCodec == "vp9" or utils.transcode_wmv3 and VideoCodec == "wmv3" or utils.transcode_mpeg4 and VideoCodec == "mpeg4" or utils.transcode_mpeg2video and VideoCodec == "mpeg2video" or utils.transcode_mjpeg and VideoCodec == "mjpeg" or utils.transcode_msmpeg4v3 and VideoCodec == "msmpeg4v3" or utils.transcode_msmpeg4v2 and VideoCodec == "msmpeg4v2" or utils.transcode_vc1 and VideoCodec == "vc1" or utils.transcode_prores and VideoCodec == "prores":
-            QueryData['TranscodeReasons'] = "VideoCodecNotSupported"
-            Transcoding = True
+        if utils.transcode_h264 and VideoCodec == "h264":
+            if utils.transcode_h264_resolution:
+                if VideoResolutionWidth > utils.transcode_h264_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_hevc and VideoCodec == "hevc":
+            if utils.transcode_hevc_resolution:
+                if VideoResolutionWidth > utils.transcode_hevc_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_av1 and VideoCodec == "av1":
+            if utils.transcode_av1_resolution:
+                if VideoResolutionWidth > utils.transcode_av1_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_vp8 and VideoCodec == "vp8":
+            if utils.transcode_vp8_resolution:
+                if VideoResolutionWidth > utils.transcode_vp8_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_vp9 and VideoCodec == "vp9":
+            if utils.transcode_vp9_resolution:
+                if VideoResolutionWidth > utils.transcode_vp9_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_wmv3 and VideoCodec == "wmv3":
+            if utils.transcode_wmv3_resolution:
+                if VideoResolutionWidth > utils.transcode_wmv3_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_mpeg4 and VideoCodec == "mpeg4":
+            if utils.transcode_mpeg4_resolution:
+                if VideoResolutionWidth > utils.transcode_mpeg4_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_mpeg2video and VideoCodec == "mpeg2video":
+            if utils.transcode_mpeg2video_resolution:
+                if VideoResolutionWidth > utils.transcode_mpeg2video_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_mjpeg and VideoCodec == "mjpeg":
+            if utils.transcode_mjpeg_resolution:
+                if VideoResolutionWidth > utils.transcode_mjpeg_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_msmpeg4v3 and VideoCodec == "msmpeg4v3":
+            if utils.transcode_msmpeg4v3_resolution:
+                if VideoResolutionWidth > utils.transcode_msmpeg4v3_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_msmpeg4v2 and VideoCodec == "msmpeg4v2":
+            if utils.transcode_msmpeg4v2_resolution:
+                if VideoResolutionWidth > utils.transcode_msmpeg4v2_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_vc1 and VideoCodec == "vc1":
+            if utils.transcode_vc1_resolution:
+                if VideoResolutionWidth > utils.transcode_vc1_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
+        elif utils.transcode_prores and VideoCodec == "prores":
+            if utils.transcode_prores_resolution:
+                if VideoResolutionWidth > utils.transcode_prores_resolution:
+                    MetaData['TranscodeReasons'] = "VideoResolutionNotSupported"
+            else:
+                MetaData['TranscodeReasons'] = "VideoCodecNotSupported"
 
         if utils.transcode_aac and AudioCodec == "aac" or utils.transcode_mp3 and AudioCodec == "mp3" or utils.transcode_mp2 and AudioCodec == "mp2" or utils.transcode_dts and AudioCodec == "dts" or utils.transcode_ac3 and AudioCodec == "ac3" or utils.transcode_eac3 and AudioCodec == "eac3" or utils.transcode_pcm_mulaw and AudioCodec == "pcm_mulaw" or utils.transcode_pcm_s24le and AudioCodec == "pcm_s24le" or utils.transcode_vorbis and AudioCodec == "vorbis" or utils.transcode_wmav2 and AudioCodec == "wmav2" or utils.transcode_ac4 and AudioCodec == "ac4" or utils.transcode_pcm_s16le and AudioCodec == "pcm_s16le" or utils.transcode_aac_latm and AudioCodec == "aac_latm" or utils.transcode_dtshd_hra and AudioCodec == "dtshd_hra" or utils.transcode_dtshd_ma and AudioCodec == "dtshd_ma" or utils.transcode_truehd and AudioCodec == "truehd" or utils.transcode_opus and AudioCodec == "opus":
-            if 'TranscodeReasons' in QueryData:
-                QueryData['TranscodeReasons'] += ",AudioCodecNotSupported"
+            if 'TranscodeReasons' in MetaData:
+                MetaData['TranscodeReasons'] += ",AudioCodecNotSupported"
             else:
-                QueryData['TranscodeReasons'] = "AudioCodecNotSupported"
+                MetaData['TranscodeReasons'] = "AudioCodecNotSupported"
 
-            Transcoding = True
-
-        if QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][1][QueryData['SelectionIndexVideoStream']]['BitRate'] >= utils.videoBitrate:
-            if 'TranscodeReasons' in QueryData:
-                QueryData['TranscodeReasons'] += ",ContainerBitrateExceedsLimit"
+        if MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][1][MetaData['SelectionIndexVideoStream']]['BitRate'] >= utils.videoBitrate:
+            if 'TranscodeReasons' in MetaData:
+                MetaData['TranscodeReasons'] += ",ContainerBitrateExceedsLimit"
             else:
-                QueryData.update({'TranscodeReasons': "ContainerBitrateExceedsLimit"})
-
-            Transcoding = True
+                MetaData.update({'TranscodeReasons': "ContainerBitrateExceedsLimit"})
 
     # Stream content
-    if not Transcoding:
-        if QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['IsRemote']:  # remote content -> verify source
-            StatusCode = utils.EmbyServers[QueryData['ServerId']].API.get_stream_statuscode(QueryData['EmbyId'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id'])
+    if 'TranscodeReasons' not in MetaData:
+        if MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['IsRemote']:  # remote content -> verify source
+            StatusCode = utils.EmbyServers[MetaData['ServerId']].API.get_stream_statuscode(MetaData['EmbyId'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id'])
             xbmc.log(f"EMBY.hooks.webservice: Remote content verification: {StatusCode}", 1) # LOGINFO
 
             if StatusCode != 200:
-                set_QueuedPlayingItem(QueryData, None)
-                send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/main.m3u8?VideoCodec={utils.TranscodeFormatVideo}&AudioCodec={utils.TranscodeFormatAudio}&TranscodeReasons=DirectPlayError")
+                set_QueuedPlayingItem(MetaData, None)
+                send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/main.m3u8?VideoCodec={utils.TranscodeFormatVideo}&AudioCodec={utils.TranscodeFormatAudio}&TranscodeReasons=DirectPlayError")
                 return
 
-        utils.start_thread(SubTitlesAdd, (QueryData,))
-        set_QueuedPlayingItem(QueryData, None)
-        send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/stream?static=true")
+        utils.start_thread(SubTitlesAdd, (MetaData,))
+        set_QueuedPlayingItem(MetaData, None)
+        send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/stream?static=true")
         return
 
     # Transcoding content
-    if len(QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][2]) > 1 and utils.transcode_select_audiostream:
+    if len(MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][2]) > 1 and utils.transcode_select_audiostream:
+        if add_DelayedContent(MetaData, client):
+            return
+
         Selection = []
 
-        for AudioStreams in QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][2]:
+        for AudioStreams in MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][2]:
             Selection.append(AudioStreams['DisplayTitle'])
 
-        QueryData['SelectionIndexAudioStream'] = utils.Dialog.select(heading=utils.Translate(33642), list=Selection)
+        MetaData['SelectionIndexAudioStream'] = utils.Dialog.select(heading=utils.Translate(33642), list=Selection)
 
-    if len(QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][3]):  # Subtitle) >= 1:
+    if len(MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][3]):  # Subtitle) >= 1:
+        if add_DelayedContent(MetaData, client):
+            return
+
         Selection = [utils.Translate(33702)]
 
-        for SubTitle in QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][3]:  # Subtitle:
+        for SubTitle in MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][3]:  # Subtitle:
             Selection.append(SubTitle['DisplayTitle'])
 
-        QueryData['SelectionIndexSubtitleStream'] = utils.Dialog.select(heading=utils.Translate(33484), list=Selection) - 1
+        MetaData['SelectionIndexSubtitleStream'] = utils.Dialog.select(heading=utils.Translate(33484), list=Selection) - 1
 
-    QueryData['SelectionIndexAudioStream'] = max(QueryData['SelectionIndexAudioStream'], 0)
+    MetaData['SelectionIndexAudioStream'] = max(MetaData['SelectionIndexAudioStream'], 0)
 
-    if QueryData['SelectionIndexSubtitleStream'] >= 0:
-        utils.start_thread(SubTitlesAdd, (QueryData,))
+    if MetaData['SelectionIndexSubtitleStream'] >= 0:
+        utils.start_thread(SubTitlesAdd, (MetaData,))
 
     TranscodingAudioBitrate = f"&AudioBitrate={utils.audioBitrate}"
     TranscodingVideoBitrate = f"&VideoBitrate={utils.videoBitrate}"
 
-    if QueryData['SelectionIndexSubtitleStream'] != -1:
-        Subtitle = f"&SubtitleStreamIndex={QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][3][QueryData['SelectionIndexSubtitleStream']]['Index']}"
+    if MetaData['SelectionIndexSubtitleStream'] != -1:
+        Subtitle = f"&SubtitleStreamIndex={MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][3][MetaData['SelectionIndexSubtitleStream']]['Index']}"
     else:
         Subtitle = ""
 
-    Audio = f"&AudioStreamIndex={QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][2][QueryData['SelectionIndexAudioStream']]['Index']}"
+    Audio = f"&AudioStreamIndex={MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][2][MetaData['SelectionIndexAudioStream']]['Index']}"
 
-    if 'VideoCodecNotSupported' in QueryData['TranscodeReasons'] or 'ContainerBitrateExceedsLimit' in QueryData['TranscodeReasons']:
+    if utils.transcode_resolution:
+        TranscodingVideoResolution = f"&Width={utils.transcode_resolution}"
+    else:
+        TranscodingVideoResolution = ""
+
+    if 'VideoCodecNotSupported' in MetaData['TranscodeReasons'] or 'ContainerBitrateExceedsLimit' in MetaData['TranscodeReasons'] or 'VideoResolutionNotSupported' in MetaData['TranscodeReasons']:
         TranscodingVideoCodec = f"&VideoCodec={utils.TranscodeFormatVideo}"
     else:
         TranscodingVideoCodec = "&VideoCodec=copy"
 
-    if 'AudioCodecNotSupported' in QueryData['TranscodeReasons'] or 'ContainerBitrateExceedsLimit' in QueryData['TranscodeReasons']:
+    if 'AudioCodecNotSupported' in MetaData['TranscodeReasons'] or 'ContainerBitrateExceedsLimit' in MetaData['TranscodeReasons']:
         TranscodingAudioCodec = f"&AudioCodec={utils.TranscodeFormatAudio}"
     else:
         TranscodingAudioCodec = "&AudioCodec=copy"
 
-    set_QueuedPlayingItem(QueryData, None)
-    send_redirect(client, QueryData, f"videos/{QueryData['EmbyId']}/main.m3u8?TranscodeReasons={QueryData['TranscodeReasons']}{TranscodingVideoCodec}{TranscodingAudioCodec}{TranscodingVideoBitrate}{TranscodingAudioBitrate}{Audio}{Subtitle}")
+    set_QueuedPlayingItem(MetaData, None)
+    send_redirect(client, MetaData, f"videos/{MetaData['EmbyId']}/main.m3u8?TranscodeReasons={MetaData['TranscodeReasons']}{TranscodingVideoCodec}{TranscodingVideoResolution}{TranscodingAudioCodec}{TranscodingVideoBitrate}{TranscodingAudioBitrate}{Audio}{Subtitle}")
 
-def send_delayed_content(client, ContentId):
-    xbmc.log(f"EMBY.hooks.webservice: send_delay_content: {ContentId}", 0) # DEBUGINFO
+def send_delayed_content(client, Payload):
+    xbmc.log(f"EMBY.hooks.webservice: send_delay_content: {Payload}", 0) # DEBUGINFO
     DelayedContentLock.acquire()
 
-    if ContentId in DelayedContent:
-        DC = DelayedContent[ContentId][0]
+    if Payload in DelayedContent:
+        DC = DelayedContent[Payload][0]
         DelayedContentLock.release()
 
         if DC:
-            xbmc.log(f"EMBY.hooks.webservice: Content available: {ContentId}", 0) # DEBUGINFO
+            xbmc.log(f"EMBY.hooks.webservice: Content available: {Payload}", 0) # DEBUGINFO
 
             if DC == "blank":
-                send_BlankWAV(client, ContentId)
+                send_BlankWAV(client, Payload)
             else:
                 client.send(DC)
 
             # Things could have changed by other threads since the check at the top so check again
             with DelayedContentLock:
-                if ContentId in DelayedContent:
-                    globals()['DelayedContent'][ContentId][1] -= 1
+                if Payload in DelayedContent:
+                    globals()['DelayedContent'][Payload][1] -= 1
 
-                    if DelayedContent[ContentId][1] < 0:
-                        del globals()['DelayedContent'][ContentId]
+                    if DelayedContent[Payload][1] < 0:
+                        del globals()['DelayedContent'][Payload]
 
             return True
 
         return False
 
     DelayedContentLock.release()
-    xbmc.log(f"EMBY.hooks.webservice: Delayed content not found {ContentId}", 3) # LOGERROR
+    xbmc.log(f"EMBY.hooks.webservice: Delayed content not found {Payload}", 3) # LOGERROR
     client.send(sendNotFound)
     return True
 
-def set_QueuedPlayingItem(QueryData, PlaySessionId):
-    utils.PlayerBusy = True
+def set_QueuedPlayingItem(MetaData, PlaySessionId):
+    player.PlayerBusy()
 
     # Disable delete after watched option for multicontent
-    if QueryData['SelectionIndexMediaSource'] != 0:
+    if MetaData['SelectionIndexMediaSource'] != 0:
         FilePath = ""
     else:
-        FilePath = QueryData['MediaSources'][0][0]['Path']
+        FilePath = MetaData['MediaSources'][0][0]['Path']
 
     if PlaySessionId:
-        QueryData['PlaySessionId'] = PlaySessionId
-        player.QueuedPlayingItem = [{'QueueableMediaTypes': ["Audio", "Video", "Photo"], 'CanSeek': True, 'IsPaused': False, 'ItemId': int(QueryData['EmbyId']), 'MediaSourceId': QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id'], 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': player.Volume, 'PlaybackRate': player.PlaybackRate[playerops.PlayerId], 'Shuffle': player.Shuffled[playerops.PlayerId], 'RepeatMode': player.RepeatMode[playerops.PlayerId], 'IsMuted': player.Muted, 'PlaySessionId': QueryData['PlaySessionId'], "LiveStreamId": QueryData['LiveStreamId']}, QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['IntroStartPositionTicks'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['IntroEndPositionTicks'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['CreditsPositionTicks'], utils.EmbyServers[QueryData['ServerId']], playerops.PlayerId, QueryData['Type'], FilePath]
+        MetaData['PlaySessionId'] = PlaySessionId
+        player.QueuedPlayingItem = [{'QueueableMediaTypes': ["Audio", "Video", "Photo"], 'CanSeek': True, 'IsPaused': False, 'ItemId': int(MetaData['EmbyId']), 'MediaSourceId': MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id'], 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': player.Volume, 'PlaybackRate': player.PlaybackRate[MetaData["PlayerId"]], 'Shuffle': player.Shuffled[MetaData["PlayerId"]], 'RepeatMode': player.RepeatMode[MetaData["PlayerId"]], 'IsMuted': player.Muted, 'PlaySessionId': MetaData['PlaySessionId'], "LiveStreamId": MetaData['LiveStreamId']}, MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['IntroStartPositionTicks'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['IntroEndPositionTicks'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['CreditsPositionTicks'], utils.EmbyServers[MetaData['ServerId']], MetaData["PlayerId"], MetaData['Type'], FilePath]
     else:
-        QueryData['PlaySessionId'] = str(uuid.uuid4()).replace("-", "")
-        player.QueuedPlayingItem = [{'QueueableMediaTypes': ["Audio", "Video", "Photo"], 'CanSeek': True, 'IsPaused': False, 'ItemId': int(QueryData['EmbyId']), 'MediaSourceId': QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['Id'], 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': player.Volume, 'PlaybackRate': player.PlaybackRate[playerops.PlayerId], 'Shuffle': player.Shuffled[playerops.PlayerId], 'RepeatMode': player.RepeatMode[playerops.PlayerId], 'IsMuted': player.Muted, 'PlaySessionId': QueryData['PlaySessionId']}, QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['IntroStartPositionTicks'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['IntroEndPositionTicks'], QueryData['MediaSources'][QueryData['SelectionIndexMediaSource']][0]['CreditsPositionTicks'], utils.EmbyServers[QueryData['ServerId']], playerops.PlayerId, QueryData['Type'], FilePath]
+        MetaData['PlaySessionId'] = str(uuid.uuid4()).replace("-", "")
+        player.QueuedPlayingItem = [{'QueueableMediaTypes': ["Audio", "Video", "Photo"], 'CanSeek': True, 'IsPaused': False, 'ItemId': int(MetaData['EmbyId']), 'MediaSourceId': MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id'], 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': player.Volume, 'PlaybackRate': player.PlaybackRate[MetaData["PlayerId"]], 'Shuffle': player.Shuffled[MetaData["PlayerId"]], 'RepeatMode': player.RepeatMode[MetaData["PlayerId"]], 'IsMuted': player.Muted, 'PlaySessionId': MetaData['PlaySessionId']}, MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['IntroStartPositionTicks'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['IntroEndPositionTicks'], MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['CreditsPositionTicks'], utils.EmbyServers[MetaData['ServerId']], MetaData["PlayerId"], MetaData['Type'], FilePath]
 
-def add_DelayedContent(QueryData, client):
-    if not QueryData['DelayedContentSet']:
-        QueryData['DelayedContentSet'] = True
+def add_DelayedContent(MetaData, client):
+    if not MetaData['DelayedContentSet']:
+        MetaData['DelayedContentSet'] = True
 
         with DelayedContentLock:
-            if QueryData['Payload'] in DelayedContent:
-                globals()['DelayedContent'][QueryData['Payload']][1] += 1
+            if MetaData['Payload'] in DelayedContent:
+                globals()['DelayedContent'][MetaData['Payload']][1] += 1
                 Added = True
             else:
-                globals()['DelayedContent'][QueryData['Payload']] = [None, 0]
+                globals()['DelayedContent'][MetaData['Payload']] = [None, 0]
                 Added = False
 
-        client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: http://127.0.0.1:57342/delayed_content{QueryData['Payload']}\r\nContent-length: 0\r\n\r\n".encode())
+        client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: http://127.0.0.1:57342/delayed_content{MetaData['Payload']}\r\nContent-Length: 0\r\n\r\n".encode())
         client.close()
         return Added
 
     return False
 
-def set_DelayedContent(ContentId, Data):
+def set_DelayedContent(Payload, Data):
     with DelayedContentLock:
-        globals()['DelayedContent'][ContentId][0] = Data
+        globals()['DelayedContent'][Payload][0] = Data
 
-def send_head_response(client, Type):
-    if Type == "picture":
-        client.send('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\nContent-Type: image/unknown\r\n\r\n'.encode())
-    elif Type in ("audio", "specialaudio"):
-        client.send('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\nContent-Type: audio/unknown\r\n\r\n'.encode())
-    else:
-        client.send('HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-length: 0\r\nContent-Type: video/unknown\r\n\r\n'.encode())
+def wait_for_Embyserver(client, ServerId):
+    DelayQuery = 0
+
+    while ServerId not in utils.EmbyServers or not utils.EmbyServers[ServerId].Online:
+        Break = False
+
+        if utils.sleep(1):
+            xbmc.log("EMBY.hooks.webservice: Kodi Shutdown", 1) # LOGINFO
+            Break = True
+
+        if DelayQuery >= 30:
+            xbmc.log("EMBY.hooks.webservice: No Emby servers found, timeout query", 1) # LOGINFO
+            Break = True
+
+        if Break:
+            client.settimeout(1)
+            client.send(sendNotFound)
+            xbmc.log("EMBY.hooks.webservice: THREAD: ---<[ worker_Query ] terminate query", 0) # LOGDEBUG
+            return False
+
+        DelayQuery += 1
+
+    return True

@@ -9,6 +9,7 @@ class TextureDatabase:
     def add_Index(self):
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
+        self.cursor.execute("ANALYZE")
 
     def add_texture(self, url, cachedUrl, imagehash, size, width, height, KodiTime):
         self.cursor.execute("SELECT id FROM texture WHERE url = ?", (url,))

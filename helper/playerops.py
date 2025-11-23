@@ -24,66 +24,92 @@ def enable_remotemode(ServerId):
     send_RemoteClients(ServerId, [], True)
 
 def ClearPlaylist(PlaylistId):
-    utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {{"playlistid": {PlaylistId}}}}}')
-    xbmc.log("EMBY.helper.playerops: [ ClearPlaylist ]", 1) # LOGINFO
+    if PlaylistId != -1:
+        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {{"playlistid": {PlaylistId}}}}}')
+
+        if PlaylistId == 2: # Clear picture cache
+            globals()['Pictures'] = []
+
+        xbmc.log(f"EMBY.helper.playerops: [ ClearPlaylist ] PlaylistId={PlaylistId}", 1) # LOGINFO
+    else:
+        xbmc.log(f"EMBY.helper.playerops: ClearPlaylist failed: PlaylistId={PlaylistId}", 3) # LOGERROR
 
 def InsertPlaylist(PlaylistId, Position, KodiType, KodiId):
-    utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {{"playlistid": {PlaylistId}, "position": {Position}, "item": {{"{KodiType}id": {KodiId}}}}}}}')
-    xbmc.log("EMBY.helper.playerops: [ InsertPlaylist ]", 1) # LOGINFO
+    if PlaylistId != -1:
+        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {{"playlistid": {PlaylistId}, "position": {Position}, "item": {{"{KodiType}id": {KodiId}}}}}}}')
+        xbmc.log("EMBY.helper.playerops: [ InsertPlaylist ]", 1) # LOGINFO
+    else:
+        xbmc.log(f"EMBY.helper.playerops: InsertPlaylist failed: PlaylistId={PlaylistId}", 3) # LOGERROR
 
 def GetPlaylistItems(PlaylistId):
-    Result = utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.GetItems", "params": {{"properties": ["file"], "playlistid": {PlaylistId}}}}}', True)
-
-    if Result:
-        Result = Result.get("result", {})
+    if PlaylistId != -1:
+        Result = utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.GetItems", "params": {{"properties": ["file"], "playlistid": {PlaylistId}}}}}', True)
 
         if Result:
-            return Result.get("items", [])
+            Result = Result.get("result", {})
 
-    xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: Result={Result}", 3) # LOGERROR
+            if Result:
+                return Result.get("items", [])
+
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: Result={Result}", 3) # LOGERROR
+    else:
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: PlaylistId={PlaylistId}", 3) # LOGERROR
+
     return []
 
 def GetPlayerInfo(PlayerIdLocal):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position", "time", "totaltime"]}}, "id": 1}}', True).get("result", {})
+    if PlayerIdLocal != -1:
+        Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position", "time", "totaltime"]}}, "id": 1}}', True).get("result", {})
 
-    if Result:
-        xbmc.log("EMBY.helper.playerops: [ GetPlayerInfo ]", 1) # LOGINFO
-        TimeStamp = Result.get("totaltime", {})
-        Duration = 0
+        if Result:
+            xbmc.log("EMBY.helper.playerops: [ GetPlayerInfo ]", 1) # LOGINFO
+            TimeStamp = Result.get("totaltime", {})
+            Duration = 0
 
-        if TimeStamp:
-            Duration = get_EmbyTicks(TimeStamp)
+            if TimeStamp:
+                Duration = get_EmbyTicks(TimeStamp)
 
-        TimeStamp = Result.get("time", {})
-        PositionTicks = 0
+            TimeStamp = Result.get("time", {})
+            PositionTicks = 0
 
-        if TimeStamp:
-            PositionTicks = get_EmbyTicks(TimeStamp)
+            if TimeStamp:
+                PositionTicks = get_EmbyTicks(TimeStamp)
 
-        return Result.get("position", -1), PositionTicks, Duration
+            return Result.get("position", -1), PositionTicks, Duration
 
-    xbmc.log(f"EMBY.helper.playerops: GetPlayerInfo failed: Result={Result}", 3) # LOGERROR
+        xbmc.log(f"EMBY.helper.playerops: GetPlayerInfo failed: Result={Result}", 3) # LOGERROR
+    else:
+        xbmc.log(f"EMBY.helper.playerops: GetPlayerInfo failed: PlayerId={PlayerIdLocal}", 3) # LOGERROR
+
     return -1, 0, 0
 
 def GetPlayerPosition(PlayerIdLocal):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position"]}}, "id": 1}}', True)
+    if PlayerIdLocal != -1:
+        Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position"]}}, "id": 1}}', True)
 
-    if Result:
-        Result = Result.get("result", {})
-        xbmc.log("EMBY.helper.playerops: [ GetPlayerPosition ]", 1) # LOGINFO
-        return Result.get("position", -1)
+        if Result:
+            Result = Result.get("result", {})
+            xbmc.log("EMBY.helper.playerops: [ GetPlayerPosition ]", 1) # LOGINFO
+            return Result.get("position", -1)
 
-    xbmc.log(f"EMBY.helper.playerops: GetPlayerPosition failed: Result={Result}", 3) # LOGERROR
+        xbmc.log(f"EMBY.helper.playerops: GetPlayerPosition failed: Result={Result}", 3) # LOGERROR
+    else:
+        xbmc.log(f"EMBY.helper.playerops: GetPlayerPosition failed: PlayerId={PlayerIdLocal}", 3) # LOGERROR
+
     return -1
 
 def GetPlaylistSize(PlaylistId):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.GetProperties", "params":{{"playlistid":{PlaylistId},"properties": ["size"]}}, "id": 1}}').get("result", {})
+    if PlaylistId != -1:
+        Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.GetProperties", "params":{{"playlistid":{PlaylistId},"properties": ["size"]}}, "id": 1}}').get("result", {})
 
-    if Result:
-        xbmc.log("EMBY.helper.playerops: [ GetPlaylistSize ]", 1) # LOGINFO
-        return Result.get("size", 0)
+        if Result:
+            xbmc.log("EMBY.helper.playerops: [ GetPlaylistSize ]", 1) # LOGINFO
+            return Result.get("size", 0)
 
-    xbmc.log(f"EMBY.helper.playerops: GetPlaylistSize failed: Result={Result}", 3) # LOGERROR
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistSize failed: Result={Result}", 3) # LOGERROR
+    else:
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistSize failed: PlaylistId={PlaylistId}", 3) # LOGERROR
+
     return 0
 
 def GetActivePlayer():
@@ -97,8 +123,11 @@ def GetActivePlayer():
     return False
 
 def PlayPlaylistItem(PlaylistId, Index):
-    utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": false}}   }},"id":1}}')
-    globals()['PlayerId'] = PlaylistId
+    if PlaylistId != -1:
+        utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": false}}   }},"id":1}}')
+        globals()['PlayerId'] = PlaylistId
+    else:
+        xbmc.log(f"EMBY.helper.playerops: PlayPlaylistItem failed: PlaylistId={PlaylistId}", 3) # LOGERROR
 
 def AddSubtitle(Path):
     utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.AddSubtitle", "params":{{"playerid": 1, "subtitle":"{Path}"}}, "id": 1}}', True)
@@ -112,7 +141,10 @@ def SetSubtitle(Enable):
     xbmc.log(f"EMBY.helper.playerops: [ SetSubtitle ] {Enable}", 1) # LOGINFO
 
 def RemovePlaylistItem(PlaylistId, Index):
-    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{{"playlistid":{PlaylistId}, "position":{Index}}}}}')
+    if PlaylistId != -1:
+        utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{{"playlistid":{PlaylistId}, "position":{Index}}}}}')
+    else:
+        xbmc.log(f"EMBY.helper.playerops: RemovePlaylistItem failed: PlaylistId={PlaylistId}", 3) # LOGERROR
 
 def Next():
     if PlayerId != -1:
@@ -193,7 +225,6 @@ def Unpause(isRemote=False):
         xbmc.log(f"EMBY.helper.playerops: Unpause failed: PlayerId={PlayerId} / PlayerPause={PlayerPause}", 3) # LOGERROR
 
 def TicksToTimestamp(Ticks, TimeStamp):
-    DeltaTime = 0
     Ticks = float(Ticks)
 
     if TimeStamp:
@@ -277,7 +308,7 @@ def PlayBackPositionExact():
 
 def PlayBackPosition():
     if PlayerId != -1:
-        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["time"]}},"id":1}}').get("result", {})
+        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["time"]}},"id":1}}', False).get("result", {})
 
         if Result:
             TimeStamp = Result.get("time", {})
@@ -293,7 +324,7 @@ def PlayBackPosition():
 
 def PlayBackDuration():
     if PlayerId != -1:
-        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["totaltime"]}},"id":1}}').get("result", {})
+        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["totaltime"]}},"id":1}}', False).get("result", {})
 
         if Result:
             TimeStamp = Result.get("totaltime", {})
@@ -319,7 +350,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
 
     utils.RemoteMode = False
     PlaylistItems = []
-    DelayedQueryEmbyIds = ()
+    DelayedQueryEmbyIds = []
     StartIndex = max(StartIndex, 0)
     embydb = dbio.DBOpenRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
@@ -332,13 +363,13 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
             PlaylistItems.append((EmbyID, None, None, None, None, None, None))
 
             if Index != StartIndex:
-                DelayedQueryEmbyIds += (str(EmbyID),)
+                DelayedQueryEmbyIds.append(str(EmbyID))
 
     dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
 
     # Load not synced startitem
     if not PlaylistItems[StartIndex][2]: # dynamic item
-        Item = EmbyServer.API.get_Item(ItemIds[StartIndex], ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False)
+        Item = EmbyServer.API.get_Item(ItemIds[StartIndex], ["Episode", "Movie", "Trailer", "MusicVideo", "Video", "Photo", "TvChannel", "Audio"], True, False, False, False, False)
 
         if not Item:
             return
@@ -367,34 +398,34 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
         PlayerIdPlaylistId = 1
         globals()['PlayerId'] = 1
 
-    if PlayCommand in ("PlayNow", "PlayNext"):
-        KodiPlaylistIndexStartitem = GetPlayerPosition(PlayerIdPlaylistId) + 1
-    elif PlayCommand == "PlayInit":
-        utils.RemoteMode = True
-        globals()['WatchTogether'] = True
-        Stop(isRemote)
-        KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
-    elif PlayCommand == "PlaySingle":
-        utils.RemoteMode = True
-        KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
-    else:
-        return
-
     if PlayerIdPlaylistId != 2: # Audio or video
+        if PlayCommand in ("PlayNow", "PlayNext"):
+            KodiPlaylistIndexStartitem = GetPlayerPosition(PlayerIdPlaylistId) + 1
+        elif PlayCommand == "PlayInit":
+            utils.RemoteMode = True
+            globals()['WatchTogether'] = True
+            Stop(isRemote)
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        elif PlayCommand == "PlaySingle":
+            utils.RemoteMode = True
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        else:
+            return
+
         if PlaylistItems[StartIndex][2]: # synced item (KodiType available)
             InsertPlaylist(PlayerIdPlaylistId, KodiPlaylistIndexStartitem, PlaylistItems[StartIndex][2], PlaylistItems[StartIndex][3])
         else:
             utils.Playlists[PlayerIdPlaylistId].add(PlaylistItems[StartIndex][5], PlaylistItems[StartIndex][4], index=KodiPlaylistIndexStartitem) # Path, ListItem, Index
     else: # picture
+        KodiPlaylistIndexStartitem = 0
+        xbmc.executebuiltin('Action(Stop)')
+#        xbmc.executebuiltin('Action(Back)')
+        ClearPlaylist(2)
         globals()["Pictures"].append((Item['KodiFullPath'], ListItem))
         utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Item["KodiFullPath"]}"}}}}}}')
-
-    if PlayerIdPlaylistId == 2: # picture
         globals()["Pictures"][KodiPlaylistIndexStartitem][1].select(True)
-        xbmc.executebuiltin('Action(Stop)')
-        xbmc.executebuiltin('Action(Back)')
-        ClearPlaylist(2)
-    else:
+
+    if PlayerIdPlaylistId != 2: # video, audio
         globals()['RemoteCommandActive'][4] += 1
         globals().update({"AVStarted": False, "PlayerPause": False})
         StartPositionTicks = int(StartPositionTicks)
@@ -423,16 +454,16 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
         WindowId = xbmcgui.getCurrentWindowId()
 
         if PlayerIdPlaylistId == 0 and WindowId != 12006:
-            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "visualisation"}}')
+            utils.ActivateWindow("visualisation", "")
         elif PlayerIdPlaylistId == 1 and WindowId != 12005:
-            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')
+            utils.ActivateWindow("fullscreenvideo", "")
 
     globals()['RemotePlaybackInit'] = False
 
-    #load additional items after playback started
+    # load additional items after playback started
     if PlayCommand not in ("PlayInit", "PlaySingle"):
         if DelayedQueryEmbyIds:
-            for Item in EmbyServer.API.get_Items_Ids(DelayedQueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False, "", None, {}):
+            for Item in EmbyServer.API.get_Items_Ids(DelayedQueryEmbyIds, ["Photo", "Movie", "Trailer", "MusicVideo", "Video", "Episode", "TvChannel", "Audio"], True, False, "", "", {}, None, False, False, False):
                 ListItem = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
                 common.set_path_filename(Item, EmbyServer.ServerData['ServerId'], None, True)
 
@@ -463,12 +494,12 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
             else:
                 Pictures.append((PlaylistItem[5], PlaylistItem[4]))
 
-    if PlayerIdPlaylistId == 2: # picture
-        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "pictures", "parameters": ["plugin://plugin.service.emby-next-gen/?mode=remotepictures&position={KodiPlaylistIndexStartitem}", "return"]}}}}')
-
     for Index, Picture in enumerate(Pictures):
         if Index != 0:
             utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Picture[0]}"}}}}}}')
+
+    if PlayerIdPlaylistId == 2: # picture
+        utils.ActivateWindow("pictures", f"plugin://plugin.service.emby-next-gen/?mode=remotepictures&position={KodiPlaylistIndexStartitem}")
 
 def add_RemoteClient(ServerId, SessionId, DeviceName, UserName):
     if SessionId not in RemoteClientData[ServerId]["SessionIds"]:
@@ -491,9 +522,10 @@ def add_RemoteClientExtendedSupportAck(ServerId, SessionId, DeviceName, UserName
         send_RemoteClients(ServerId, RemoteClientData[ServerId]["ExtendedSupportAck"], False)
 
 def init_RemoteClient(ServerId):
-    globals()['RemoteClientData'][ServerId] = {"SessionIds": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "Usernames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['UserName']}, "Devicenames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['DeviceName']}, "ExtendedSupport": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "ExtendedSupportAck": [utils.EmbyServers[ServerId].EmbySession[0]['Id']]}
+    if ServerId in utils.EmbyServers:
+        globals()['RemoteClientData'][ServerId] = {"SessionIds": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "Usernames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['UserName']}, "Devicenames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['DeviceName']}, "ExtendedSupport": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "ExtendedSupportAck": [utils.EmbyServers[ServerId].EmbySession[0]['Id']]}
 
-def delete_RemoteClient(ServerId, SessionIds, Force=False):
+def delete_RemoteClient(ServerId, SessionIds, Priority):
     if ServerId not in RemoteClientData:
         xbmc.log(f"EMBY.helper.playerops: ServerId {ServerId} not found in RemoteClientData", 2) # LOGWARNING
         return
@@ -508,7 +540,12 @@ def delete_RemoteClient(ServerId, SessionIds, Force=False):
         if SessionId in RemoteClientData[ServerId]["ExtendedSupportAck"]:
             globals()['RemoteClientData'][ServerId]["ExtendedSupportAck"].remove(SessionId)
 
-        globals()['RemoteClientData'][ServerId]["SessionIds"].remove(SessionId)
+        if SessionId in RemoteClientData[ServerId]["SessionIds"]:
+            globals()['RemoteClientData'][ServerId]["SessionIds"].remove(SessionId)
+        else:
+            xbmc.log(f"EMBY.helper.playerops: SessionId {SessionId} not found in RemoteClientData", 2) # LOGWARNING
+            continue
+
         del globals()['RemoteClientData'][ServerId]["Usernames"][SessionId]
         del globals()['RemoteClientData'][ServerId]["Devicenames"][SessionId]
 
@@ -518,7 +555,7 @@ def delete_RemoteClient(ServerId, SessionIds, Force=False):
         if SessionId == utils.EmbyServers[ServerId].EmbySession[0]['Id']:
             SelfRemove = True
 
-    send_RemoteClients(ServerId, ClientExtendedSupportAck, Force)
+    send_RemoteClients(ServerId, ClientExtendedSupportAck, Priority)
 
     # Remove self
     if SelfRemove:
@@ -584,7 +621,7 @@ def disable_RemoteClients(ServerId, ResetRemoteClients=True):
         if not utils.EmbyServers[ServerId].library.LockKodiStartSync.locked():
             utils.start_thread(utils.EmbyServers[ServerId].library.KodiStartSync, (False,))
 
-def send_RemoteClients(ServerId, SendSessionIds, Force):
+def send_RemoteClients(ServerId, SendSessionIds, Priority):
     if not utils.remotecontrol_sync_clients:
         return
 
@@ -607,7 +644,7 @@ def send_RemoteClients(ServerId, SendSessionIds, Force):
 
     for SessionId in SendSessionIds:
         if SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
-            utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", Data, Force)
+            utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", Data, Priority)
 
 # Remote control clients
 def RemoteCommand(ServerId, selfSessionId, Command, EmbyId=-1):
@@ -615,7 +652,9 @@ def RemoteCommand(ServerId, selfSessionId, Command, EmbyId=-1):
 
     if Command == "stop":
         if WatchTogether:
-            delete_RemoteClient(ServerId, [utils.EmbyServers[ServerId].EmbySession[0]['Id']])
+            if ServerId:
+                delete_RemoteClient(ServerId, [utils.EmbyServers[ServerId].EmbySession[0]['Id']], True)
+
             globals().update({'WatchTogether': False, 'RemoteControl': False})
             utils.RemoteMode = False
 

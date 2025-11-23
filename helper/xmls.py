@@ -82,6 +82,11 @@ def sources():
         SectionMain += '\n            <path pathversion="1">http://127.0.0.1:57342/</path>'
         SectionMain += '\n            <allowsharing>false</allowsharing>'
         SectionMain += '\n        </source>'
+        SectionMain += '\n        <source>'
+        SectionMain += '\n            <name>emby-for-kodi-next-gen-addon-video-dav</name>'
+        SectionMain += '\n            <path pathversion="1">dav://127.0.0.1:57342/</path>'
+        SectionMain += '\n            <allowsharing>false</allowsharing>'
+        SectionMain += '\n        </source>'
         SectionMain += '\n    </video>'
         Changed = True
     else:
@@ -103,6 +108,14 @@ def sources():
             SectionData += '\n        </source>'
             SectionChanged = True
 
+        if '<name>emby-for-kodi-next-gen-addon-video-dav</name>' not in SectionData:
+            SectionData += '\n        <source>'
+            SectionData += '\n            <name>emby-for-kodi-next-gen-addon-video-dav</name>'
+            SectionData += '\n            <path pathversion="1">dav://127.0.0.1:57342/</path>'
+            SectionData += '\n            <allowsharing>false</allowsharing>'
+            SectionData += '\n        </source>'
+            SectionChanged = True
+
         if SectionChanged:
             SectionMain = replace_Section("video", SectionData, SectionMain)
             Changed = True
@@ -119,6 +132,11 @@ def sources():
         SectionMain += '\n        <source>'
         SectionMain += '\n            <name>emby-for-kodi-next-gen-addon-music</name>'
         SectionMain += '\n            <path pathversion="1">http://127.0.0.1:57342/</path>'
+        SectionMain += '\n            <allowsharing>false</allowsharing>'
+        SectionMain += '\n        </source>'
+        SectionMain += '\n        <source>'
+        SectionMain += '\n            <name>emby-for-kodi-next-gen-addon-music-dav</name>'
+        SectionMain += '\n            <path pathversion="1">dav://127.0.0.1:57342/</path>'
         SectionMain += '\n            <allowsharing>false</allowsharing>'
         SectionMain += '\n        </source>'
         SectionMain += '\n    </music>'
@@ -142,13 +160,21 @@ def sources():
             SectionData += '\n        </source>'
             SectionChanged = True
 
+        if '<name>emby-for-kodi-next-gen-addon-music-dav</name>' not in SectionData:
+            SectionData += '\n        <source>'
+            SectionData += '\n            <name>emby-for-kodi-next-gen-addon-music-dav</name>'
+            SectionData += '\n            <path pathversion="1">dav://127.0.0.1:57342/</path>'
+            SectionData += '\n            <allowsharing>false</allowsharing>'
+            SectionData += '\n        </source>'
+            SectionChanged = True
+
         if SectionChanged:
             SectionMain = replace_Section("music", SectionData, SectionMain)
             Changed = True
 
     if Changed:
         SectionMain = f'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<sources>\n{SectionMain}\n</sources>'
-        utils.writeFileBinary(Filepath, SectionMain.encode("utf-8"))
+        utils.writeFile(Filepath, SectionMain.encode("utf-8"))
 
 # Settings table for audio and subtitle tracks.
 def load_defaultvideosettings():
@@ -220,8 +246,78 @@ def advanced_settings():
             SectionMain = SectionMain.replace("<to>http://127.0.0.1:57342/</to>", "<to>http://127.0.0.1:57342/|redirect-limit=1000</to>")
             Changed = True
 
+    SectionData = get_Section(SectionMain, "video")
+
+    if not SectionData:
+        SectionMain += '\n    <video>'
+        SectionMain += '\n        <excludefromlisting>'
+        SectionMain += '\n            <regexp>^\\/emby_addon_mode(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionMain += '\n            <regexp>^http:\\/\\/127.0.0.1:57342(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionMain += '\n            <regexp>^dav:\\/\\/127.0.0.1:57342(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionMain += '\n        </excludefromlisting>'
+        SectionMain += '\n        <excludefromscan>'
+        SectionMain += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionMain += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n        </excludefromscan>'
+        SectionMain += '\n        <excludetvshowsfromscan>'
+        SectionMain += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionMain += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n        </excludetvshowsfromscan>'
+        SectionMain += '\n    </video>'
+        Changed = True
+    elif "<regexp>/emby_addon_mode/</regexp>" not in SectionData:
+        SectionData += '\n        <excludefromlisting>'
+        SectionData += '\n            <regexp>^\\/emby_addon_mode(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionData += '\n            <regexp>^http:\\/\\/127.0.0.1:57342(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionData += '\n            <regexp>^dav:\\/\\/127.0.0.1:57342(?!.*(dynamic|musicvideo|tvshows|video|movies))</regexp>'
+        SectionData += '\n        </excludefromlisting>'
+        SectionData += '\n        <excludefromscan>'
+        SectionData += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionData += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionData += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionData += '\n        </excludefromscan>'
+        SectionData += '\n        <excludetvshowsfromscan>'
+        SectionData += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionData += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionData += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionData += '\n        </excludetvshowsfromscan>'
+        SectionMain = replace_Section("video", SectionData, SectionMain)
+        Changed = True
+
+    SectionData = get_Section(SectionMain, "audio")
+
+    if not SectionData:
+        SectionMain += '\n    <audio>'
+        SectionMain += '\n        <excludefromlisting>'
+        SectionMain += '\n            <regexp>^\\/emby_addon_mode(?!.*(dynamic|audio))</regexp>'
+        SectionMain += '\n            <regexp>^http:\\/\\/127.0.0.1:57342(?!.*(dynamic|audio))</regexp>'
+        SectionMain += '\n            <regexp>^dav:\\/\\/127.0.0.1:57342(?!.*(dynamic|audio))</regexp>'
+        SectionMain += '\n        </excludefromlisting>'
+        SectionMain += '\n        <excludefromscan>'
+        SectionMain += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionMain += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionMain += '\n        </excludefromscan>'
+        SectionMain += '\n    </audio>'
+        Changed = True
+    elif "<regexp>/emby_addon_mode/</regexp>" not in SectionData:
+        SectionData += '\n        <excludefromlisting>'
+        SectionData += '\n            <regexp>^\\/emby_addon_mode(?!.*(dynamic|audio))</regexp>'
+        SectionData += '\n            <regexp>^http:\\/\\/127.0.0.1:57342(?!.*(dynamic|audio))</regexp>'
+        SectionData += '\n            <regexp>^dav:\\/\\/127.0.0.1:57342(?!.*(dynamic|audio))</regexp>'
+        SectionData += '\n        </excludefromlisting>'
+        SectionData += '\n        <excludefromscan>'
+        SectionData += '\n            <regexp>/emby_addon_mode/</regexp>'
+        SectionData += '\n            <regexp>http://127.0.0.1:57342/</regexp>'
+        SectionData += '\n            <regexp>dav://127.0.0.1:57342/</regexp>'
+        SectionData += '\n        </excludefromscan>'
+        SectionMain = replace_Section("audio", SectionData, SectionMain)
+        Changed = True
+
     if Changed:
         SectionMain = f'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<advancedsettings>\n{SectionMain}\n</advancedsettings>'
-        utils.writeFileBinary(Filepath, SectionMain.encode("utf-8"))
+        utils.writeFile(Filepath, SectionMain.encode("utf-8"))
 
     return Changed
