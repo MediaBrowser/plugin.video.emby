@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.service.emby-next-gen" name="Emby for Kodi Next Gen" version="11.1.29" provider-name="quickmic">
+<addon id="plugin.service.emby-next-gen" name="Emby for Kodi Next Gen" version="12.3.5" provider-name="quickmic">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
         <import addon="script.module.dateutil" version="2.8.1" />
@@ -13,7 +13,11 @@
             </item>
             <item library="service.py" args="specials">
                 <label>33485</label>
-                <visible>[String.IsEqual(Window(10000).Property(EmbySpecials),True) + String.Contains(ListItem.Path,"-s-")]</visible>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySpecials),True) + [String.Contains(ListItem.Path,"-s-") | String.Contains(ListItem.Path,"-ms-")]]</visible>
+            </item>
+            <item library="service.py" args="multiversion">
+                <label>33748</label>
+                <visible>[String.Contains(ListItem.Path,"/e-") | String.Contains(ListItem.Path,"/musicvideos/")] + [String.Contains(ListItem.Path,"-m-") | String.Contains(ListItem.Path,"-ms-")]</visible>
             </item>
             <menu>
                 <label>33669</label>
@@ -25,10 +29,38 @@
                     <label>33671</label>
                     <visible>[String.IsEqual(Window(10000).Property(EmbyGoto),True) + String.IsEqual(ListItem.DBTYPE,"episode")]</visible>
                 </item>
+                <item library="service.py" args="gotoalbum">
+                    <label>33764</label>
+                    <visible>[String.IsEqual(Window(10000).Property(EmbyGoto),True) + String.IsEqual(ListItem.DBTYPE,"song")]</visible>
+                </item>
+                <item library="service.py" args="gotoartist">
+                    <label>33765</label>
+                    <visible>[String.IsEqual(Window(10000).Property(EmbyGoto),True) + String.IsEqual(ListItem.DBTYPE,"song")]</visible>
+                </item>
             </menu>
+            <item library="service.py" args="similarshow">
+                <label>33788</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySimilar),True) + String.IsEqual(ListItem.DBTYPE,"tvshow")]</visible>
+            </item>
+            <item library="service.py" args="similarartist">
+                <label>33788</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySimilar),True) + String.IsEqual(ListItem.DBTYPE,"artist")]</visible>
+            </item>
+            <item library="service.py" args="similaralbum">
+                <label>33788</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySimilar),True) + String.IsEqual(ListItem.DBTYPE,"album")]</visible>
+            </item>
+            <item library="service.py" args="similarmovie">
+                <label>33788</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbySimilar),True) + String.IsEqual(ListItem.DBTYPE,"movie")]</visible>
+            </item>
+            <item library="service.py" args="similarmusicvideo">
+                <label>33788</label>
+                <visible>[[String.IsEqual(Window(10000).Property(EmbySimilar),True) + String.IsEqual(ListItem.DBTYPE,"musicvideo")] + !String.IsEmpty(ListItem.DBID)]</visible>
+            </item>
             <item library="service.py" args="download">
                 <label>33570</label>
-                <visible>String.IsEqual(Window(10000).Property(EmbyDownload),True) + [[String.Contains(ListItem.Path,"/v-") | String.Contains(ListItem.Path,"/e-") | String.Contains(ListItem.Path,"/m-") | String.Contains(ListItem.Path,"/M-") | [[[String.IsEqual(ListItem.DBTYPE,"tvshow") | String.IsEqual(ListItem.DBTYPE,"season")] + !String.EndsWith(ListItem.Label," (download)")] + [String.Contains(ListItem.Path,"/emby_addon_mode/") | String.Contains(ListItem.Path,"http://127.0.0.1:57342/")]]] + !String.Contains(ListItem.Path,"/EMBY-offline-content/") + !String.Contains(ListItem.Path,"/dynamic/") + !String.IsEmpty(ListItem.DBID)]</visible>
+                <visible>String.IsEqual(Window(10000).Property(EmbyDownload),True) + [[String.Contains(ListItem.Path,"/v-") | String.Contains(ListItem.Path,"/e-") | String.Contains(ListItem.Path,"/m-") | String.Contains(ListItem.Path,"/M-") | [[[String.IsEqual(ListItem.DBTYPE,"tvshow") | String.IsEqual(ListItem.DBTYPE,"season")] + !String.EndsWith(ListItem.Label," (download)")] + [String.Contains(ListItem.Path,"/emby_addon_mode/") | String.Contains(ListItem.Path,"dav://127.0.0.1:57342/") | String.Contains(ListItem.Path,"http://127.0.0.1:57342/")]]] + !String.Contains(ListItem.Path,"/EMBY-offline-content/") + !String.Contains(ListItem.Path,"/dynamic/") + !String.IsEmpty(ListItem.DBID)]</visible>
             </item>
             <item library="service.py" args="deletedownload">
                 <label>33571</label>
@@ -66,9 +98,14 @@
                 <label>33675</label>
                 <visible>String.IsEqual(Window(10000).Property(EmbySettings),True)</visible>
             </item>
+            <item library="service.py" args="playrandom">
+                <label>33797</label>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyPlayRandom),True) + [String.IsEqual(ListItem.DBTYPE,"musicvideo") | String.IsEqual(ListItem.DBTYPE,"episode") | String.IsEqual(ListItem.DBTYPE,"movie") | String.IsEqual(ListItem.DBTYPE,"tvshow") | String.IsEqual(ListItem.DBTYPE,"season")]]</visible>
+            </item>
         </menu>
     </extension>
     <extension point="xbmc.addon.metadata">
+        <reuselanguageinvoker>true</reuselanguageinvoker>
         <platform>all</platform>
         <language>en</language>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>

@@ -1,4 +1,6 @@
-from urllib.parse import urlencode
+import os
+from urllib.parse import urlencode, quote
+import xbmcvfs
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -11,9 +13,9 @@ SearchTerm = ""
 MappingStaggered = {"Series": "Season", "Season": "Episode", "PhotoAlbum": "HomeVideos", "MusicAlbum": "Audio"} # additional stagged content parameter written in the code, based on conditions
 letters = ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
 MappingContentKodi = {"movies": "movies", "Video": "videos", "Season": "tvshows", "Episode": "episodes", "Series": "tvshows", "Movie": "movies", "Photo": "images", "PhotoAlbum": "images", "MusicVideo": "musicvideos", "MusicArtist": "artists", "MusicAlbum": "albums", "Audio": "songs", "TvChannel": "videos", "musicvideos": "musicvideos", "VideoMusicArtist": "musicvideos", "tvshows": "tvshows", "Folder": "files", "All": "files", "homevideos": "files", "Playlist": "files", "Trailer": "videos", "Person": "videos", "videos": "videos", "music": "songs"}
-Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person"), "playablevideos": ("MusicVideo", "Episode", "Movie", "Video"), "PlaylistsAudio": ("Audio",), "PlaylistsVideo": ("All",), "Playlists": ("Audio", "MusicVideo", "Episode", "Movie", "Video")}
-IconMapping = {"MusicArtist": "DefaultMusicArtists.png", "MusicAlbum": "DefaultMusicAlbums.png", "Audio": "DefaultMusicSongs.png", "Movie": "DefaultMovies.png", "Trailer": "DefaultAddonVideo.png", "BoxSet": "DefaultSets.png", "Series": "DefaultTVShows.png", "Season": "DefaultTVShowTitle.png", "Episode": "DefaultAddonVideo.png", "MusicVideo": "DefaultMusicVideos.png", "Video": "DefaultAddonVideo.png", "Photo": "DefaultPicture.png.png", "PhotoAlbum": "DefaultAddonPicture.png", "TvChannel": "DefaultAddonPVRClient.png", "Folder": "DefaultFolder.png", "Playlist": "DefaultPlaylist.png", "Genre": "DefaultGenre.png", "MusicGenre": "DefaultMusicGenres.png", "Person": "DefaultActor.png", "Tag": "DefaultTags.png", "Channel": "DefaultFolder.png", "CollectionFolder": "DefaultFolder.png", "Studio": "DefaultStudios.png"}
-LibraryMenu = {"LibraryAdd": utils.Translate(33154), "LibraryRemove": utils.Translate(33184), "LibraryUpdate": utils.Translate(33139), "LibraryRepair": utils.Translate(33140), "RefreshBoxsets": utils.Translate(33098), "ToggleLiveTv": "", "RefreshLiveTv": utils.Translate(33706), "ToggleThemes": "", "RefreshThemes": utils.Translate(33707)}
+Subcontent = {"tvshows": ("Series", "Season", "Episode", "Genre", "BoxSet"), "movies": ("Movie", "Genre", "BoxSet"), "music": ("MusicArtist", "MusicAlbum", "MusicGenre", "BoxSet", "Audio"), "musicvideos": ("MusicArtist", "MusicGenre", "BoxSet"), "homevideos": ("Photo", "PhotoAlbum", "Video"), "videos": ("Series", "Season", "Episode", "Genre", "BoxSet", "Movie", "Video", "Person"), "playablevideos": ("MusicVideo", "Episode", "Movie", "Video"), "PlaylistsAudio": ("Audio",), "PlaylistsVideo": ("All",), "Playlists": ("Audio", "MusicVideo", "Episode", "Movie", "Video"), "photos": ("PhotoAlbum", "Photo"), "PhotoAlbum": ("Photo", "PhotoAlbum", "Video", "Folder")}
+IconMapping = {"MusicArtist": "DefaultMusicArtists.png", "MusicAlbum": "DefaultMusicAlbums.png", "Audio": "DefaultMusicSongs.png", "Movie": "DefaultMovies.png", "Trailer": "DefaultAddonVideo.png", "BoxSet": "DefaultSets.png", "Series": "DefaultTVShows.png", "Season": "DefaultTVShowTitle.png", "Episode": "DefaultAddonVideo.png", "MusicVideo": "DefaultMusicVideos.png", "Video": "DefaultAddonVideo.png", "Photo": "DefaultPicture.png", "PhotoAlbum": "DefaultAddonPicture.png", "TvChannel": "DefaultAddonPVRClient.png", "Folder": "DefaultFolder.png", "Playlist": "DefaultPlaylist.png", "Genre": "DefaultGenre.png", "MusicGenre": "DefaultMusicGenres.png", "Person": "DefaultActor.png", "Tag": "DefaultTags.png", "Channel": "DefaultFolder.png", "CollectionFolder": "DefaultFolder.png", "Studio": "DefaultStudios.png"}
+LibraryMenu = {"LibraryAdd": utils.Translate(33154), "LibraryRemove": utils.Translate(33184), "LibraryUpdate": utils.Translate(33139), "LibraryRepair": utils.Translate(33140), "RefreshBoxsets": utils.Translate(33098), "RefreshMusicvideoLinks": utils.Translate(33749), "ToggleLiveTv": "", "RefreshLiveTv": utils.Translate(33706), "ToggleThemes": "", "RefreshThemes": utils.Translate(33707)}
 
 # Build plugin menu
 def listing(Handle, ContentSupported):
@@ -38,7 +40,7 @@ def listing(Handle, ContentSupported):
 
     xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 # Browse dynamically content
 def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSupported):
@@ -46,15 +48,19 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
     WindowId = xbmcgui.getCurrentWindowId()
     xbmc.log(f"EMBY.helper.pluginmenu: Browse: Id: {Id} / Query: {query} / ParentId: {ParentId} / LibraryId: {LibraryId} / Content: {Content} / WindowId: {WindowId} / ServerId: {ServerId} / ContentSupported: {ContentSupported}", 1) # LOGINFO
     ItemsListings = ()
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)')
+    utils.close_busyDialog()
 
     # Limit number of nodes for widget queries
     if WindowId not in (10502, 10025, 10002, 10035): # 10035=skinsettings, 10502=music, 10002=pictures, 10025=videos
         Extras = {"Limit": utils.maxnodeitems}
         CacheId = f"{Id}{query}{ParentId}{ServerId}{LibraryId}{utils.maxnodeitems}"
+        LowPriority = True
+        PlaybackCheck = True
     else:
         Extras = {}
         CacheId = f"{Id}{query}{ParentId}{ServerId}{LibraryId}"
+        LowPriority = False
+        PlaybackCheck = False
 
     if ServerId not in utils.EmbyServers:
         xbmc.log(f"EMBY.helper.pluginmenu: Pluginmenu invalid server id: {ServerId}", 3) # LOGERROR
@@ -66,15 +72,7 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
         WindowIdCheck = True
 
     xbmc.log(f"EMBY.helper.pluginmenu: WindowIdCheck: {WindowIdCheck}", 0) # LOGDEBUG
-    ContentQuery = Content
-
-    # Load from cache
-    if Content in utils.QueryCache and CacheId in utils.QueryCache[Content] and utils.QueryCache[Content][CacheId][0]:
-        if WindowIdCheck and reload_Window(Content, ContentQuery, WindowId, Handle, utils.QueryCache[Content][CacheId][3], utils.QueryCache[Content][CacheId][4], utils.QueryCache[Content][CacheId][5], utils.QueryCache[Content][CacheId][6], utils.QueryCache[Content][CacheId][7]):
-            return
-
-        add_ViewItems(Handle, query, Content, utils.QueryCache[Content][CacheId][1], utils.QueryCache[Content][CacheId][2])
-        return
+    ContentRequest = Content
 
     if query in ('NodesDynamic', 'NodesSynced'):
         for Node in utils.EmbyServers[ServerId].Views.Nodes[query]:
@@ -85,15 +83,23 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
         if query == 'NodesDynamic':
             for Node in utils.EmbyServers[ServerId].Views.Nodes[query]:
                 if ContentSupported == "image" and not Node['path'].startswith("library://"):
-                    ItemsListings = add_ListItem(ItemsListings, Node['title'], f"plugin://plugin.service.emby-next-gen/?id={Node['path']}&mode=browse&query=ImageDynamic&server={ServerId}&parentid={ParentId}&content={Content}&libraryid={LibraryId}", Node['icon'], "")
+                    ItemsListings = add_ListItem(ItemsListings, Node['title'], f"plugin://plugin.service.emby-next-gen/?id={Node['path']}&mode=browse&query=ImageDynamic&server={ServerId}&parentid={ParentId}&content={Content}&libraryid={LibraryId}&contentsupported={ContentSupported}", Node['icon'], "")
 
         xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
-        xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+        xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
+        return
+
+    # Load from cache
+    if Content in utils.QueryCache and CacheId in utils.QueryCache[Content] and utils.QueryCache[Content][CacheId][0]:
+        if WindowIdCheck and reload_Window(utils.QueryCache[Content][CacheId][8], ContentRequest, WindowId, Handle, utils.QueryCache[Content][CacheId][3], utils.QueryCache[Content][CacheId][4], utils.QueryCache[Content][CacheId][5], utils.QueryCache[Content][CacheId][6], utils.QueryCache[Content][CacheId][7], ContentSupported):
+            return
+
+        add_ViewItems(Handle, query, utils.QueryCache[Content][CacheId][8], utils.QueryCache[Content][CacheId][1], utils.QueryCache[Content][CacheId][2])
         return
 
     Unsorted = False
-    EmbyContentQuery = ()
+    RequestParams = ()
 
     if query == 'ImageDynamic':
         for Node in utils.EmbyServers[ServerId].Views.PictureNodes[Id]:
@@ -101,7 +107,7 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
 
         xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings))
         xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
-        xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+        xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
         return
 
     if query == 'Letter':
@@ -122,41 +128,45 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
 
         if Id == "0-9":
             Extras.update({'NameLessThan': "A", "SortBy": "SortName"})
-            EmbyContentQuery = (LocalParentId, [LocalContent], True, Extras, False, LibraryId)
         else:
             Extras.update({'NameStartsWith': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (LocalParentId, [LocalContent], True, Extras, False, LibraryId)
+
+        RequestParams = (LocalParentId, (LocalContent,), True, Extras, False, LibraryId)
+    elif query == 'similar':
+        Doublesfilter = set() # Emby server workaround bug -> IncludeItemTypes not respected by folders
+        SortItems = {"MusicArtist": (), "MusicAlbum": (), "Audio": (), "Movie": (), "Trailer": (), "BoxSet": (), "Series": (), "Season": (), "Episode": (), "MusicVideo": (), "Video": (), "Photo": (), "PhotoAlbum": (), "TvChannel": (), "Folder": (), "Playlist": (), "Genre": (), "MusicGenre": (), "Person": (), "Tag": (), "Channel": (), "CollectionFolder": (), "Studio": ()}
+
+        for Item in utils.EmbyServers[ServerId].API.get_similar(Id):
+            add_unifyedItem(Item, Doublesfilter, SortItems)
+
+        Content, ItemsListings, WindowIdCheck = unify_Item(SortItems, ItemsListings, Content, ParentId, ServerId, LibraryId, True, Id, WindowIdCheck, ContentSupported, ContentRequest, CacheId)
     elif query == 'Recentlyadded':
         Extras.update({"SortBy": "DateCreated", "SortOrder": "Descending", "GroupItems": "False", "Limit": utils.maxnodeitems})
-        EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, (Content,), True, Extras, False, LibraryId)
         Unsorted = True
     elif query == 'Unwatched':
         Extras.update({'filters': 'IsUnplayed', 'SortBy': "Random", "Limit": utils.maxnodeitems})
-        EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, (Content,), True, Extras, False, LibraryId)
         Unsorted = True
     elif query == 'Favorite':
-        if Content in Subcontent:
-            Extras.update({'filters': 'IsFavorite', "GroupItemsIntoCollections": True, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, Subcontent[Content], True, Extras, False, LibraryId)
-        else:
-            Extras.update({'filters': 'IsFavorite', "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        Extras.update({'filters': 'IsFavorite', "SortBy": "SortName"})
+        RequestParams = (ParentId, Subcontent.get(Content, (Content,)), True, Extras, False, LibraryId)
     elif query == 'Inprogress':
         Extras.update({'filters': 'IsResumable', "SortBy": "DatePlayed"})
-        EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, (Content,), True, Extras, False, LibraryId)
     elif query == 'Resume': # Continue Watching
         Extras.update({"SortBy": "DatePlayed"})
-        EmbyContentQuery = (ParentId, [Content], True, Extras, True, LibraryId)
+        RequestParams = (ParentId, (Content,), True, Extras, True, LibraryId)
     elif query == 'Recommendations':
         Doubles = []
 
-        for Item in utils.EmbyServers[ServerId].API.get_recommendations(ParentId):
+        for Item in utils.EmbyServers[ServerId].API.get_recommendations(ParentId, LowPriority, PlaybackCheck):
             if Item['Name'] not in Doubles:
                 Doubles.append(Item['Name'])
             else:
                 continue
 
-            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId)
+            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
 
         del Doubles
     elif query == 'BoxSet':
@@ -164,281 +174,181 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
 
         if LibraryId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (Id, ['BoxSet'], True, Extras, False, LibraryId)
+            RequestParams = (Id, ('BoxSet',), True, Extras, False, LibraryId)
         else:
             Extras.update({"GroupItemsIntoCollections": True, "SortBy": "SortName"})
-            EmbyContentQuery = (Id, ["All"], True, Extras, False, LibraryId)
+            RequestParams = (Id, ("All",), True, Extras, False, LibraryId)
     elif query == 'TvChannel':
         for Item in utils.EmbyServers[ServerId].API.get_channels():
-            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId)
+            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
     elif query == "Playlist":
         ParentId = Id
         Unsorted = True
-
-        if Content in Subcontent:
-            EmbyContentQuery = (ParentId, Subcontent[Content], True, Extras, False, LibraryId)
-        else:
-            EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, Subcontent.get(Content, (Content,)), True, Extras, False, LibraryId)
     elif query in ("Playlists", "PlaylistsAudio", "PlaylistsVideo"):
         Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (ParentId, ["Playlist"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Playlist",), True, Extras, False, LibraryId)
     elif query == "Video":
         Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (ParentId, ["Video"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Video",), True, Extras, False, LibraryId)
     elif query == "All":
-        if Content in Subcontent:
-            Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, Subcontent[Content], True, Extras, False, LibraryId)
-        else:
-            Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, [Content], True, Extras, False, LibraryId)
+        Extras.update({"SortBy": "SortName"})
+        RequestParams = (ParentId, Subcontent.get(Content, (Content,)), True, Extras, False, LibraryId)
     elif query == 'Random':
         Extras.update({'SortBy': "Random", "Limit": utils.maxnodeitems})
-        EmbyContentQuery = (Id, [Content], True, Extras, False, LibraryId)
+        RequestParams = (Id, (Content,), True, Extras, False, LibraryId)
         Unsorted = True
     elif query == 'Upcoming':
         for Item in utils.EmbyServers[ServerId].API.get_upcoming(ParentId):
-            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId)
+            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
 
     elif query == 'NextUp':
         for Item in utils.EmbyServers[ServerId].API.get_NextUp(Id):
-            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId)
+            ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
 
         Unsorted = True
     elif query == 'Season':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Season"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Season",), True, Extras, False, LibraryId)
     elif query == 'Episode':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Episode"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Episode",), True, Extras, False, LibraryId)
     elif query == 'Series':
         Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (ParentId, ["Series"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Series",), True, Extras, False, LibraryId)
     elif query == 'Photo':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Photo"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Photo",), True, Extras, False, LibraryId)
     elif query == 'HomeVideos':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Photo", "PhotoAlbum", "Video", "Folder"], False, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Photo", "PhotoAlbum", "Video", "Folder"), False, Extras, False, LibraryId)
     elif query == 'PhotoAlbum':
         Extras.update({"SortBy": "SortName"})
-        EmbyContentQuery = (ParentId, ["PhotoAlbum"], True, Extras, False, LibraryId)
-        Content = "Photo"
+        RequestParams = (ParentId, ("PhotoAlbum",), True, Extras, False, LibraryId)
     elif query == "Folder":
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer", "Photo", "PhotoAlbum"], False, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Folder", "Episode", "Movie", "MusicVideo", "BoxSet", "MusicAlbum", "MusicArtist", "Season", "Series", "Audio", "Video", "Trailer", "Photo", "PhotoAlbum"), False, Extras, False, LibraryId)
     elif query == 'MusicVideo':
         if ParentId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["MusicVideo"], True, Extras, False, LibraryId)
         else:
             Extras.update({'ArtistIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["MusicVideo"], True, Extras, False, LibraryId)
+
+        RequestParams = (ParentId, ("MusicVideo",), True, Extras, False, LibraryId)
     elif query in ('VideoMusicArtist', 'MusicArtist'):
-        EmbyContentQuery = (ParentId, ["MusicArtist"], True, {"SortBy": "SortName"}, False, LibraryId)
+        RequestParams = (ParentId, ("MusicArtist",), True, {"SortBy": "SortName"}, False, LibraryId)
     elif query == 'MusicGenre':
         if ParentId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["MusicGenre"], True, Extras, False, LibraryId)
+            RequestParams = (ParentId, ("MusicGenre",), True, Extras, False, LibraryId)
         else:
-            if Content == "music":
-                SubContentQuery = ("Audio",)
-            else:
-                SubContentQuery = (Content, )
-
             Extras.update({'GenreIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, SubContentQuery, True, Extras, False, LibraryId)
+
+            if Content == "music":
+                RequestParams = (ParentId, ("Audio",), True, Extras, False, LibraryId)
+            else:
+                RequestParams = (ParentId, (Content,), True, Extras, False, LibraryId)
     elif query == 'Genre':
         if ParentId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["Genre"], True, Extras, False, LibraryId)
+            RequestParams = (ParentId, ("Genre",), True, Extras, False, LibraryId)
         else:
-            if Content == "tvshows":
-                SubContentQuery = ("Series",)
-            elif Content == "movies":
-                SubContentQuery = ("Movie",)
-            elif Content == "musicvideos":
-                SubContentQuery = ("MusicVideo",)
-            elif Content == "homevideos":
-                SubContentQuery = ("Video", "PhotoAlbum", "Photo")
-            elif Content == "videos":
-                SubContentQuery = ("Episode", "Movie", "Video")
-            else:
-                SubContentQuery = (Content, )
-
             Extras.update({'GenreIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, SubContentQuery, True, Extras, False, LibraryId)
+
+            if Content == "tvshows":
+                RequestParams = (ParentId, ("Series",), True, Extras, False, LibraryId)
+            elif Content == "movies":
+                RequestParams = (ParentId, ("Movie",), True, Extras, False, LibraryId)
+            elif Content == "musicvideos":
+                RequestParams = (ParentId, ("MusicVideo",), True, Extras, False, LibraryId)
+            elif Content == "homevideos":
+                RequestParams = (ParentId, ("Video", "PhotoAlbum", "Photo"), True, Extras, False, LibraryId)
+            elif Content == "videos":
+                RequestParams = (ParentId, ("Episode", "Movie", "Video"), True, Extras, False, LibraryId)
+            else:
+                RequestParams = (ParentId, (Content,), True, Extras, False, LibraryId)
     elif query == 'Person':
         if LibraryId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (None, ['Movie', "Series", "Episode"], True, Extras, False, LibraryId)
         else:
             Extras.update({'PersonIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (None, ['Movie', "Series", "Episode"], True, Extras, False, LibraryId)
+
+        RequestParams = (None, ('Movie', "Series", "Episode"), True, Extras, False, LibraryId)
     elif query == 'Tag':
         if LibraryId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["Tag"], True, Extras, False, LibraryId)
+            RequestParams = (ParentId, ("Tag",), True, Extras, False, LibraryId)
         else:
             Extras.update({'TagIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, Subcontent[Content], True, Extras, False, LibraryId)
+            RequestParams = (ParentId, Subcontent.get(Content, (Content,)), True, Extras, False, LibraryId)
     elif query == 'Movie':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Movie"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Movie",), True, Extras, False, LibraryId)
     elif query == 'Audio':
         Extras.update({"SortBy": "SortName"})
         ParentId = Id
-        EmbyContentQuery = (ParentId, ["Audio"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Audio",), True, Extras, False, LibraryId)
     elif query == 'MusicAlbum':
         if LibraryId == Id: # initial query
             Extras.update({"SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["MusicAlbum"], True, Extras, False, LibraryId)
         else:
             Extras.update({'ArtistIds': Id, "SortBy": "SortName"})
-            EmbyContentQuery = (ParentId, ["MusicAlbum"], True, Extras, False, LibraryId)
+
+        RequestParams = (ParentId, ("MusicAlbum",), True, Extras, False, LibraryId)
     elif query == 'Search':
         Extras.update({'SearchTerm': SearchTerm})
-        EmbyContentQuery = (ParentId, ["Person", "Genre", "MusicGenre", "Movie", "Video", "Series", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"], True, Extras, False, LibraryId)
+        RequestParams = (ParentId, ("Person", "Genre", "MusicGenre", "Movie", "Video", "Series", "Episode", "MusicVideo", "MusicArtist", "MusicAlbum", "Audio"), True, Extras, False, LibraryId)
 
-    if EmbyContentQuery:
-        if Content == "PlaylistsVideo" and EmbyContentQuery[1] != ["Playlist"]:
-            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*EmbyContentQuery):
+    if RequestParams:
+        if Content == "PlaylistsVideo" and RequestParams[1] != ("Playlist",):
+            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*RequestParams, LowPriority, PlaybackCheck):
                 if Item['Type'] in ("MusicVideo", "Episode", "Movie", "Video"):
-                    ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Item['Type'], LibraryId)
+                    ItemsListings = load_ListItem(ParentId, Item, ServerId, ItemsListings, Item['Type'], LibraryId, ContentSupported, ContentRequest, CacheId)
         else:
             Doublesfilter = set() # Emby server workaround bug -> IncludeItemTypes not respected by folders
             SortItems = {"MusicArtist": (), "MusicAlbum": (), "Audio": (), "Movie": (), "Trailer": (), "BoxSet": (), "Series": (), "Season": (), "Episode": (), "MusicVideo": (), "Video": (), "Photo": (), "PhotoAlbum": (), "TvChannel": (), "Folder": (), "Playlist": (), "Genre": (), "MusicGenre": (), "Person": (), "Tag": (), "Channel": (), "CollectionFolder": (), "Studio": ()}
 
-            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*EmbyContentQuery):
-                ItemId = Item.get("Id", "")
+            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*RequestParams, LowPriority, PlaybackCheck):
+                add_unifyedItem(Item, Doublesfilter, SortItems)
 
-                if ItemId:
-                    if ItemId not in Doublesfilter:
-                        Doublesfilter.add(ItemId)
-                    else:
-                        continue
+            Content, ItemsListings, WindowIdCheck = unify_Item(SortItems, ItemsListings, Content, ParentId, ServerId, LibraryId, Unsorted, Id, WindowIdCheck, ContentSupported, ContentRequest, CacheId)
 
-                if utils.SystemShutdown:
-                    return
+    if ContentRequest not in utils.QueryCache:
+        utils.QueryCache[ContentRequest] = {}
 
-                if Item['Type'] in SortItems:
-                    SortItems[Item['Type']] += (Item,)
-                else:
-                    xbmc.log(f"EMBY.helper.pluginmenu: Invalid content: {Item['Type']}", 3) # LOGERROR
+    utils.QueryCache[ContentRequest][CacheId] = [True, ItemsListings, Unsorted, Id, query, ServerId, ParentId, LibraryId, Content]
 
-            TypeCounter = 0
-
-            for SortItemContent, SortedItems in list(SortItems.items()):
-                if SortedItems and SortItemContent not in ("Folder", "PhotoAlbum"):
-                    TypeCounter += 1
-
-                    if TypeCounter == 2: # multiple content types detected
-                        break
-
-            if TypeCounter == 2:
-                for SortItemContent, SortedItems in list(SortItems.items()):
-                    if not SortedItems or SortItemContent in ("Folder", "PhotoAlbum"):
-                        continue
-
-                    if SortItemContent not in utils.QueryCache:
-                        utils.QueryCache[SortItemContent] = {}
-
-                    ItemsListingsCached = ()
-
-                    for SortedItem in SortedItems:
-                        ItemsListingsCached = load_ListItem(ParentId, SortedItem, ServerId, ItemsListingsCached, Content, LibraryId)
-
-                    utils.QueryCache[SortItemContent][f"{Id}{SortItemContent}{ParentId}{ServerId}{LibraryId}"] = [True, ItemsListingsCached, Unsorted, Id, SortItemContent, ServerId, ParentId, LibraryId]
-                    ItemsListings = add_ListItem(ItemsListings, f"--{SortItemContent}--", f"plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={SortItemContent}&server={ServerId}&parentid={ParentId}&content={SortItemContent}&libraryid={LibraryId}", IconMapping[SortItemContent], SortItemContent)
-
-                WindowIdCheck = False
-            else: # unique content
-                for SortItemContent, SortedItems in list(SortItems.items()):
-                    if SortedItems:
-                        if SortItemContent in ("Folder", "PhotoAlbum"):
-                            continue
-
-                        if SortItemContent not in ("Genre", "MusicGenre", "Tag", "Playlist"): # Skip subqueries
-                            Content = SortItemContent
-
-                        for SortedItem in SortedItems:
-                            ItemsListings = load_ListItem(ParentId, SortedItem, ServerId, ItemsListings, Content, LibraryId)
-
-                        break
-
-            # Always add not playable items
-            for SubFolder in ("Folder", "PhotoAlbum"):
-                for FolderItem in SortItems[SubFolder]:
-                    ItemsListings = load_ListItem(ParentId, FolderItem, ServerId, ItemsListings, Content, LibraryId)
-
-    if ContentQuery not in utils.QueryCache:
-        utils.QueryCache[ContentQuery] = {}
-
-    utils.QueryCache[ContentQuery][CacheId] = [True, ItemsListings, Unsorted, Id, query, ServerId, ParentId, LibraryId]
-
-    if WindowIdCheck and reload_Window(Content, ContentQuery, WindowId, Handle, Id, query, ServerId, ParentId, LibraryId):
+    if WindowIdCheck and reload_Window(Content, ContentRequest, WindowId, Handle, Id, query, ServerId, ParentId, LibraryId, ContentSupported):
         return
 
     add_ViewItems(Handle, query, Content, ItemsListings, Unsorted)
 
 # Workaround for invalid window query
 # check if video or music navigation window is open (MyVideoNav.xml MyMusicNav.xml) -> open MyPics.xml etc 10502 = music, 10025 = videos, 10002 = pictures
-def reload_Window(Content, ContentQuery, WindowId, Handle, Id, query, ServerId, ParentId, LibraryId):
-    if utils.SyncPause.get('kodi_rw', False): # skip if scan is in progress
-        return False
-
+def reload_Window(Content, ContentRequest, WindowId, Handle, Id, query, ServerId, ParentId, LibraryId, ContentSupported):
     ReloadWindowId = ""
 
     if Content == "Photo" and WindowId in (10502, 10025):
-    #if Content in ("Photo", "PhotoAlbum") and WindowId in (10502, 10025):
         ReloadWindowId = "pictures"
+        ContentSupported = "image"
     elif Content in ("MusicAlbum", "MusicArtist", "Audio") and WindowId in (10002, 10025):
         ReloadWindowId = "music"
+        ContentSupported = "audio"
     elif Content in ("VideoMusicArtist", "Series", "Season", "Episode", "Movie", "Video", "MusicVideo") and WindowId in (10002, 10502):
         ReloadWindowId = "videos"
+        ContentSupported = "video"
 
     if ReloadWindowId:
         xbmc.log(f"EMBY.helper.pluginmenu: Change of (browse) node content. Reload window: {Content} / {WindowId} / {ReloadWindowId}", 1) # LOGINFO
-        xbmcplugin.endOfDirectory(Handle, succeeded=True, cacheToDisc=False)
-        xbmc.executebuiltin('Dialog.Close(busydialog,true)')
+        xbmcplugin.endOfDirectory(Handle, succeeded=True, cacheToDisc=False, updateListing=False)
         xbmc.executebuiltin('Action(back)')
-        ControlListSize = 99999
-
-        # Wait for "Back" Action processed
-        for _ in range(20): # Timeout 2 seconds
-            WindowIdCompare = xbmcgui.getCurrentWindowId()
-
-            if WindowIdCompare != WindowId:
-                break
-
-            CurrentWindow = xbmcgui.Window(WindowIdCompare)
-            ControlItemId = CurrentWindow.getFocusId()
-
-            if ControlItemId == 0:
-                break
-
-            try:
-                ControlItem = CurrentWindow.getControl(ControlItemId)
-                ControlListSize = ControlItem.size()
-            except Exception as Error:
-                xbmc.log(f"EMBY.helper.pluginmenu: ControlItem invalid: {Error}", 3) # LOGERROR
-                break
-
-            if ControlListSize == 0:
-                break
-
-            xbmc.sleep(100)
-        else:
-            xbmc.log("EMBY.helper.pluginmenu: ReloadWindow timeout", 3) # LOGERROR
-
-        xbmc.executebuiltin('Dialog.Close(busydialog,true)')
-        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "{ReloadWindowId}", "parameters": ["plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={query}&server={ServerId}&parentid={ParentId}&content={ContentQuery}&libraryid={LibraryId}", "return"]}}}}')
+        utils.start_thread(utils.ActivateWindow, (ReloadWindowId, f"plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={query}&server={ServerId}&parentid={ParentId}&content={ContentRequest}&libraryid={LibraryId}&contentsupported={ContentSupported}"))
         return True
 
     return False
@@ -452,7 +362,7 @@ def remotepictures(Handle, playposition):
 
     xbmcplugin.addDirectoryItems(Handle, list_li, len(list_li))
     xbmcplugin.setContent(Handle, "images")
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
     if playposition != "-1":
         utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Player.Open","params":{{"item":{{"playlistid":2,"position":{playposition}}}}}}}')
@@ -518,9 +428,10 @@ def AddUser(EmbyServer):
         EmbyServer.remove_AdditionalUser(UserData['UserId'])
         utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33066)} {UserData['UserName']}", icon=utils.icon, time=utils.displayMessage, sound=False)
 
-def load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId):
+def load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId):
     if "ListItem" in Item: # Item was fetched from internal database
         ItemsListings += ((Item["Path"], Item["ListItem"], Item["isFolder"]),)
+        utils.add_cachemapping(Item["Id"], ContentRequest, CacheId, len(ItemsListings) - 1)
     else: # Create Kodi listitem for dynamic loaded item
         ListItem = listitem.set_ListItem(Item, ServerId)
 
@@ -533,16 +444,24 @@ def load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId):
                 if LibraryId == "0": # Search
                     StaggeredQuery = "Audio"
                 else:
-                    if utils.EmbyServers[ServerId].Views.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
+                    if not ContentSupported:
+                        if utils.EmbyServers[ServerId].Views.ViewItems[LibraryId][1] in ('music', 'audiobooks', 'podcasts'):
+                            StaggeredQuery = "MusicAlbum"
+                        else:
+                            StaggeredQuery = "MusicVideo"
+                    elif ContentSupported == "audio":
                         StaggeredQuery = "MusicAlbum"
                     else:
                         StaggeredQuery = "MusicVideo"
 
-            params = {'id': Item['Id'], 'mode': "browse", 'query': StaggeredQuery, 'server': ServerId, 'parentid': ParentId, 'content': Content, 'libraryid': LibraryId}
+            params = {'id': Item['Id'], 'mode': 'browse', 'query': StaggeredQuery, 'server': ServerId, 'parentid': ParentId, 'content': Content, 'libraryid': LibraryId, 'contentsupported': ContentSupported}
             ItemsListings += ((f"plugin://plugin.service.emby-next-gen/?{urlencode(params)}", ListItem, True),)
         else:
             common.set_path_filename(Item, ServerId, None, True)
             ItemsListings += ((Item['KodiFullPath'], ListItem, False),)
+
+            if 'Id' in Item:
+                utils.add_cachemapping(Item['Id'], ContentRequest, CacheId, len(ItemsListings) - 1)
 
     return ItemsListings
 
@@ -551,7 +470,7 @@ def add_ListItem(ItemsListings, label, path, artwork, HelpText):
     ListItem = xbmcgui.ListItem(label, HelpText, path, True)
     ListItem.setContentLookup(False)
     ListItem.setProperties({'IsFolder': 'true', 'IsPlayable': 'false'})
-    ListItem.setArt({"thumb": artwork, "fanart": "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "landscape": artwork or "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "banner": "special://home/addons/plugin.service.emby-next-gen/resources/banner.png", "clearlogo": "special://home/addons/plugin.service.emby-next-gen/resources/clearlogo.png", "icon": artwork})
+    ListItem.setArt({"thumb": artwork, "fanart": "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "landscape": artwork or "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "clearlogo": "special://home/addons/plugin.service.emby-next-gen/resources/clearlogo.png", "icon": artwork})
     ItemsListings += ((path, ListItem, True),)
     return ItemsListings
 
@@ -607,7 +526,6 @@ def manage_servers(ServerConnect):  # threaded by caller
                 utils.EmbyServers[ServerIds[Selection]].Views.delete_node_by_id(LibraryId, True)
 
             utils.EmbyServers[ServerIds[Selection]].ServerDisconnect()
-            del utils.EmbyServers[ServerIds[Selection]]
     elif Selection == 2:
         _, ServerIds, ServerItems = get_EmbyServerList()
         Selection = utils.Dialog.select(utils.Translate(33431), ServerItems)
@@ -658,6 +576,8 @@ def manage_libraries(ServerSelection):  # threaded by caller
             utils.EmbyServers[EmbyServerId].library.select_libraries("RepairLibrarySelection")
         elif SelectionMenu[0][Selection] == "RefreshBoxsets":
             utils.EmbyServers[EmbyServerId].library.refresh_boxsets()
+        elif SelectionMenu[0][Selection] == "RefreshMusicvideoLinks":
+            utils.EmbyServers[EmbyServerId].library.refresh_musicvideolinks()
         elif SelectionMenu[0][Selection] == "ToggleLiveTv":
             if not utils.check_iptvsimple():
                 continue
@@ -679,7 +599,8 @@ def manage_libraries(ServerSelection):  # threaded by caller
             if utils.ThemesEnabled:
                 utils.EmbyServers[EmbyServerId].library.SyncThemes()
             else:
-                utils.delFolder(utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-themes"))
+                utils.delFolder(os.path.join(utils.DownloadPath, "EMBY-themes", ""))
+
         elif SelectionMenu[0][Selection] == "RefreshLiveTv":
             utils.start_thread(utils.EmbyServers[EmbyServerId].library.SyncLiveTV, ())
         elif SelectionMenu[0][Selection] == "RefreshThemes":
@@ -687,9 +608,9 @@ def manage_libraries(ServerSelection):  # threaded by caller
 
 # Special favorite synced node
 def favepisodes(Handle):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
     Handle = int(Handle)
-    CacheId = "favepisodes"
+    CacheId = "forcedrefresh_favepisodes"
 
     if "Episode" not in utils.QueryCache:
         utils.QueryCache["Episode"] = {}
@@ -720,18 +641,19 @@ def favepisodes(Handle):
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
 
-        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+        if "Episode" in utils.QueryCache:
+            utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.setContent(Handle, 'episodes')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 def favseasons(Handle):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
     Handle = int(Handle)
-    CacheId = "favseasons"
+    CacheId = "forcedrefresh_favseasons"
 
     if "Season" not in utils.QueryCache:
         utils.QueryCache["Season"] = {}
@@ -762,23 +684,24 @@ def favseasons(Handle):
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['path'], ListItem, isFolder),)
 
-        utils.QueryCache["Season"][CacheId] = [True, ListItems]
+        if "Season" in utils.QueryCache:
+            utils.QueryCache["Season"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.setContent(Handle, 'tvshows')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 # Special collection synced node
 def collections(Handle, KodiMediaType, LibraryTag):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
 
     if "BoxSet" not in utils.QueryCache:
         utils.QueryCache["BoxSet"] = {}
 
     Handle = int(Handle)
-    CacheId = f"collections_{LibraryTag}_{KodiMediaType}"
+    CacheId = f"forcedrefresh_collections_{LibraryTag}_{KodiMediaType}"
 
     if CacheId in utils.QueryCache["BoxSet"] and utils.QueryCache["BoxSet"][CacheId][0]:
         xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
@@ -798,13 +721,14 @@ def collections(Handle, KodiMediaType, LibraryTag):
             ListItem.setContentLookup(False)
             ListItems += ((f"videodb://{KodiMediaType}s/tags/{CollectionTagId}/", ListItem, True),)
 
-        utils.QueryCache["BoxSet"][CacheId] = [True, ListItems]
+        if "BoxSet" in utils.QueryCache:
+            utils.QueryCache["BoxSet"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_TITLE)
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'set')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 # This method will sync all Kodi artwork to textures13.db and cache them locally. This takes diskspace!
 def cache_textures():
@@ -848,7 +772,7 @@ def cache_textures_generator(selection):
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
-                for Item in EmbyServer.API.get_Items(None, ["PhotoAlbum"], True, True, {}, "", True, None):
+                for Item in EmbyServer.API.get_Items(None, ("PhotoAlbum",), True, {}, "", None, True, False):
                     if utils.TextureCacheCancel:
                         return
 
@@ -863,7 +787,7 @@ def cache_textures_generator(selection):
                 TempUrls = TotalRecords * [()]
                 ItemCounter = 0
 
-                for Item in EmbyServer.API.get_Items(None, ["Photo"], True, True, {}, "", True, None):
+                for Item in EmbyServer.API.get_Items(None, ("Photo",), True, {}, "", None, True, False):
                     if utils.TextureCacheCancel:
                         return
 
@@ -924,13 +848,13 @@ def cache_textures_generator(selection):
         dbio.DBCloseRO("music", "cache_textures")
 
 def get_next_episodes(Handle, libraryname):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
 
     if "Episode" not in utils.QueryCache:
         utils.QueryCache["Episode"] = {}
 
     Handle = int(Handle)
-    CacheId = f"next_episodes_{libraryname}"
+    CacheId = f"forcedrefresh_next_episodes_{libraryname}"
 
     if CacheId in utils.QueryCache["Episode"] and utils.QueryCache["Episode"][CacheId][0]:
         xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
@@ -953,21 +877,22 @@ def get_next_episodes(Handle, libraryname):
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
 
-        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+        if "Episode" in utils.QueryCache:
+            utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 def get_next_episodes_played(Handle, libraryname):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
 
     if "Episode" not in utils.QueryCache:
         utils.QueryCache["Episode"] = {}
 
     Handle = int(Handle)
-    CacheId = f"next_episodes_played_{libraryname}"
+    CacheId = f"forcedrefresh_next_episodes_played_{libraryname}"
 
     if CacheId in utils.QueryCache["Episode"] and utils.QueryCache["Episode"][CacheId][0]:
         xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
@@ -990,15 +915,19 @@ def get_next_episodes_played(Handle, libraryname):
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
 
-        utils.QueryCache["Episode"][CacheId] = [True, ListItems]
+        if "Episode" in utils.QueryCache:
+            utils.QueryCache["Episode"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'episodes')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 def get_playlist(Handle, ServerId, MediaType, Id):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    if ServerId not in utils.EmbyServers:
+        return
+
+    utils.close_busyDialog()
 
     if "Playlist" not in utils.QueryCache:
         utils.QueryCache["Playlist"] = {}
@@ -1023,13 +952,16 @@ def get_playlist(Handle, ServerId, MediaType, Id):
                 Path = ""
 
                 if MediaType == "audio":
-                    if KodiPlaylistIds[1] and KodiPlaylistIds[1].endswith("_audio"):
-                        Path = f'plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype={MediaType}&server={ServerId}&id={KodiPlaylistIds[1]}'
-                        PlaylistName = KodiPlaylistIds[1].replace("emby_", "").replace("_audio", "").replace("_", " ")
-                else:
-                    if KodiPlaylistIds[0] and KodiPlaylistIds[0].endswith("_video"):
+                    if KodiPlaylistIds[0] and KodiPlaylistIds[0].endswith("_audio"):
                         Path = f'plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype={MediaType}&server={ServerId}&id={KodiPlaylistIds[0]}'
-                        PlaylistName = KodiPlaylistIds[0].replace("emby_", "").replace("_video", "").replace("_", " ")
+                        PlaylistName = KodiPlaylistIds[0].replace("emby_", "").replace("_audio", "", 1).replace("_", " ")
+                else:
+
+
+
+                    if KodiPlaylistIds[1] and KodiPlaylistIds[1].endswith("_video"):
+                        Path = f'plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype={MediaType}&server={ServerId}&id={KodiPlaylistIds[1]}'
+                        PlaylistName = KodiPlaylistIds[1].replace("emby_", "").replace("_video", "", 1).replace("_", " ")
 
                 if not PlaylistName:
                     continue
@@ -1049,7 +981,7 @@ def get_playlist(Handle, ServerId, MediaType, Id):
 
             for PlaylistRecord in PlaylistRecords[1:]:
                 if PlaylistRecord:
-                    Data = PlaylistRecord.split("/")
+                    Data = PlaylistRecord.split("\n")[1].split("/")
 
                     if MediaType == "audio":
                         Data = Data[len(Data) - 1]
@@ -1063,12 +995,16 @@ def get_playlist(Handle, ServerId, MediaType, Id):
                             continue
 
                         EmbyId = Data[7]
+                        LibraryId = Data[5]
                         Data = Data[len(Data) - 2]
                         Data = Data.split("-")
 
                         if Data[0] == "M":
-                            KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "MusicVideo")
-                            KodiItems += (videodb.get_musicvideos_metadata_for_listitem(KodiId, ""),)
+                            KodiIds, LibraryIds = embydb.get_KodiId_LibraryId_by_EmbyId_EmbyType(EmbyId, "MusicVideo")
+                            KodiIds = KodiIds.split(",")
+                            LibraryIds = LibraryIds.split(",")
+                            Index = LibraryIds.index(LibraryId)
+                            KodiItems += (videodb.get_musicvideos_metadata_for_listitem(KodiIds[Index], ""),)
                         elif Data[0] == "m":
                             KodiId = embydb.get_KodiId_by_EmbyId_EmbyType(EmbyId, "Movie")
                             KodiItems += (videodb.get_movie_metadata_for_listitem(KodiId, ""),)
@@ -1105,16 +1041,51 @@ def get_playlist(Handle, ServerId, MediaType, Id):
         else:
             xbmcplugin.setContent(Handle, 'videos')
 
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
+
+def get_recentlyadded_musicvideosalbums(Handle, LibraryName):
+    utils.close_busyDialog()
+
+    if "MusicVideo" not in utils.QueryCache:
+        utils.QueryCache["MusicVideo"] = {}
+
+    Handle = int(Handle)
+    CacheId = f"forcedrefresh_recentlyaddedalbums_musicvideo_{LibraryName}"
+
+    if CacheId in utils.QueryCache["MusicVideo"] and utils.QueryCache["MusicVideo"][CacheId][0]:
+        xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
+        ListItems = utils.QueryCache["MusicVideo"][CacheId][1]
+    else:
+        videodb = dbio.DBOpenRO("video", "get_recentlyadded_musicvideosalbums")
+        KodiItems = videodb.get_musicvideos_recentlyadded_albums(LibraryName)
+        ListItems = ()
+
+        for KodiItem in KodiItems:
+            Path = f"videodb://musicvideos/titles/?artistid={KodiItem[0]}&xsp=" + quote(f'{{"rules":{{"and":[{{"field":"album","operator":"is","value":["{KodiItem[1]}"]}}]}},"type":"musicvideos"}}')
+            Artwork = videodb.get_artwork(KodiItem[3], "musicvideo", "")
+            People = videodb.get_people_artwork(KodiItem[3], "musicvideo")
+            MetaData = {'mediatype': "musicvideo", 'pathandfilename': Path, 'title': f"{KodiItem[2]} - {KodiItem[1]}", 'properties': {'IsFolder': 'true', 'IsPlayable': 'false'}, 'artwork': Artwork, 'people': People, 'Album': KodiItem[1], "Artists": [KodiItem[2]]}
+            isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(MetaData, None)
+            ListItems += ((MetaData['pathandfilename'], ListItem, isFolder),)
+
+        dbio.DBCloseRO("video", "get_recentlyadded_musicvideosalbums")
+
+        if "MusicVideo" in utils.QueryCache:
+            utils.QueryCache["MusicVideo"][CacheId] = [True, ListItems]
+
+    xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
+    xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.setContent(Handle, 'musicvideos')
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 def get_inprogress_mixed(Handle):
-    xbmc.executebuiltin('Dialog.Close(busydialog,true)') # workaround due to Kodi bug: https://github.com/xbmc/xbmc/issues/16756
+    utils.close_busyDialog()
 
     if "Episode_Movie_MusicVideo" not in utils.QueryCache:
         utils.QueryCache["Episode_Movie_MusicVideo"] = {}
 
     Handle = int(Handle)
-    CacheId = "inprogress_mixed"
+    CacheId = "forcedrefresh_inprogress_mixed"
 
     if CacheId in utils.QueryCache["Episode_Movie_MusicVideo"] and utils.QueryCache["Episode_Movie_MusicVideo"][CacheId][0]:
         xbmc.log(f"EMBY.helper.pluginmenu: Using QueryCache: {CacheId}", 1) # LOGINFO
@@ -1144,12 +1115,13 @@ def get_inprogress_mixed(Handle):
                 isFolder, ListItem = listitem.set_ListItem_from_Kodi_database(KodiItem)
                 ListItems += ((KodiItem['pathandfilename'], ListItem, isFolder),)
 
-        utils.QueryCache["Episode_Movie_MusicVideo"][CacheId] = [True, ListItems]
+        if "Episode_Movie_MusicVideo" in utils.QueryCache:
+            utils.QueryCache["Episode_Movie_MusicVideo"][CacheId] = [True, ListItems]
 
     xbmcplugin.addDirectoryItems(Handle, ListItems, len(ListItems))
     xbmcplugin.addSortMethod(Handle, xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.setContent(Handle, 'videos')
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
 
 # Delete all downloaded content
 def downloadreset(Path=""):
@@ -1161,7 +1133,7 @@ def downloadreset(Path=""):
         else:
             DownloadPath = utils.DownloadPath
 
-        utils.delFolder(utils.PathAddTrailing(f"{DownloadPath}EMBY-offline-content"))
+        utils.delFolder(os.path.join(DownloadPath, "EMBY-offline-content", ""))
         SQLs = {}
         dbio.DBOpenRW("video", "downloadreset", SQLs)
         Artworks = ()
@@ -1175,8 +1147,8 @@ def downloadreset(Path=""):
                 ArtworksData = SQLs['video'].get_artworks(Item[3], Item[4])
 
                 for ArtworkData in ArtworksData:
-                    if ArtworkData[3] in ("poster", "thumb", "landscape"):
-                        UrlMod = ArtworkData[4].replace("-download", "")
+                    if ArtworkData[1] in ("poster", "thumb", "landscape"):
+                        UrlMod = ArtworkData[2].replace("-download", "")
                         SQLs['video'].update_artwork(ArtworkData[0], UrlMod)
                         Artworks += ((UrlMod,),)
 
@@ -1216,20 +1188,36 @@ def factoryreset(KeepServerConfig, favoritesObj):
         favoritesObj.set_Favorites(False)
 
         # delete downloaded content
-        utils.delFolder(utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-offline-content"))
-        utils.delFolder(utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-themes"))
+        utils.delFolder(os.path.join(utils.DownloadPath, "EMBY-offline-content", ""))
+        utils.delFolder(os.path.join(utils.DownloadPath, "EMBY-themes", ""))
 
-        # Get EmbyServerIds based on config files
-        EmbyServerIds = []
-        _, files = utils.listDir(utils.FolderAddonUserdata)
+        # Get ServerIds based on config files
+        ServerIds = []
+        _, Filenames = xbmcvfs.listdir(utils.FolderAddonUserdata)
 
-        for Filename in files:
+        for Filename in Filenames:
             if Filename.startswith('server'):
-                EmbyServerIds.append(Filename.replace('servers_', "").replace('.json', ""))
+                ServerIds.append(Filename.replace('servers_', "").replace('.json', ""))
 
         # delete databases
-        delete_database('emby')
         SQLs = {}
+        EmbySyncedDatabases = {}
+
+        if KeepServerConfig:
+            for ServerId in ServerIds:
+                if ServerId not in utils.DatabaseFiles:
+                    utils.DatabaseFiles[ServerId] = xbmcvfs.translatePath(f"special://profile/Database/emby_{ServerId}.db")
+
+                try:
+                    embydb = dbio.DBOpenRO(ServerId, "factoryreset")
+                    EmbySyncedDatabases[ServerId] = embydb.get_LibrarySynced()
+                    dbio.DBCloseRO(ServerId, "factoryreset")
+                except Exception as Error:
+                    xbmc.log(f"EMBY.helper.pluginmenu: Factoryreset, cannot collect synced libraries: {Error}", 3) # LOGERROR
+                    EmbySyncedDatabases = {}
+                    break
+
+        delete_database('emby')
         dbio.DBOpenRW("video", "factoryreset", SQLs)
         SQLs["video"].common_db.delete_tables("Video")
         dbio.DBCloseRW("video", "factoryreset", SQLs)
@@ -1238,22 +1226,34 @@ def factoryreset(KeepServerConfig, favoritesObj):
         dbio.DBCloseRW("music", "factoryreset", SQLs)
         xbmc.log("EMBY.helper.pluginmenu: [ complete reset ]", 1) # LOGINFO
 
-        # Re-Init emby databases
-        for EmbyServerId in EmbyServerIds:
-            utils.DatabaseFiles[EmbyServerId] = utils.translatePath(f"special://profile/Database/emby_{EmbyServerId}.db")
-            SQLs = {}
-            dbio.DBOpenRW(EmbyServerId, "factoryreset", SQLs)
-            SQLs["emby"].init_EmbyDB()
-            dbio.DBCloseRW(EmbyServerId, "factoryreset", SQLs)
-
         # Set configuration as last (Kodi timing issue)
         if KeepServerConfig:
-            utils.set_settings('MinimumSetup', "OPENLIBRARY")
+            if EmbySyncedDatabases:
+                utils.set_settings('MinimumSetup', utils.MinimumVersion)
+            else:
+                utils.set_settings('MinimumSetup', "OPENLIBRARY")
 
+        # Re-Init emby databases
+        for ServerId in ServerIds:
+            utils.DatabaseFiles[ServerId] = xbmcvfs.translatePath(f"special://profile/Database/emby_{ServerId}.db")
+            SQLs = {}
+            dbio.DBOpenRW(ServerId, "factoryreset", SQLs)
+            SQLs["emby"].init_EmbyDB()
+
+            if ServerId in EmbySyncedDatabases:
+                for EmbySyncedDatabase in EmbySyncedDatabases[ServerId]:
+                    if EmbySyncedDatabase[2] == 'Playlist':
+                        SQLs["emby"].add_LibraryAdd(EmbySyncedDatabase[0], EmbySyncedDatabase[1], EmbySyncedDatabase[2], 'video,music')
+                    else:
+                        SQLs["emby"].add_LibraryAdd(EmbySyncedDatabase[0], EmbySyncedDatabase[1], EmbySyncedDatabase[2], EmbySyncedDatabase[3])
+
+            dbio.DBCloseRW(ServerId, "factoryreset", SQLs)
+
+        dbio.DBVacuum()
         utils.restart_kodi()
 
 def delete_database(Database):
-    _, files = utils.listDir("special://profile/Database/")
+    _, files = xbmcvfs.listdir("special://profile/Database/")
 
     for Filename in files:
         if Filename.startswith(Database):
@@ -1286,7 +1286,7 @@ def databasereset(favoritesObj):
         utils.set_settings("MinimumSetup", "")
         utils.delFolder(utils.FolderAddonUserdata)
     else:
-        _, files = utils.listDir(utils.FolderAddonUserdata)
+        _, files = xbmcvfs.listdir(utils.FolderAddonUserdata)
 
         for Filename in files:
             if Filename.startswith('sync_'):
@@ -1303,18 +1303,18 @@ def DeleteThumbnails():
     xbmc.executebuiltin('Dialog.Close(addoninformation)')
     ProgressBar = xbmcgui.DialogProgressBG()
     ProgressBar.create(utils.Translate(33199), utils.Translate(33412))
-    Folders, _ = utils.listDir('special://thumbnails/')
+    Folders, _ = xbmcvfs.listdir('special://thumbnails/')
     TotalFolders = len(Folders)
 
     for CounterFolder, Folder in enumerate(Folders, 1):
         ProgressBar.update(int(CounterFolder / TotalFolders * 100), utils.Translate(33199), f"{utils.Translate(33412)}: {Folder}")
-        _, Files = utils.listDir(f"special://thumbnails/{Folder}")
+        _, Files = xbmcvfs.listdir(f"special://thumbnails/{Folder}/")
         TotalFiles = len(Files)
 
         for CounterFile, File in enumerate(Files, 1):
-            ProgressBar.update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), f"{utils.Translate(33412)}: {Folder}{File}")
+            ProgressBar.update(int(CounterFile / TotalFiles * 100), utils.Translate(33199), f"{utils.Translate(33412)}: {Folder}/{File}")
             xbmc.log(f"EMBY.helper.pluginmenu: DELETE thumbnail {File}", 0) # LOGDEBUG
-            utils.delFile(f"special://thumbnails/{Folder}{File}")
+            utils.delFile(f"special://thumbnails/{Folder}/{File}")
 
     SQLs = {}
     dbio.DBOpenRW("texture", "cache_textures", SQLs)
@@ -1329,7 +1329,7 @@ def add_ViewItems(Handle, QueryContent, Content, ItemsListings, Unsorted):
 
     if not xbmcplugin.addDirectoryItems(Handle, ItemsListings, len(ItemsListings)):
         xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: addDirectoryItems FAIL", 3) # LOGERROR
-#        xbmc.executebuiltin('ReloadSkin()')
+        xbmcplugin.endOfDirectory(Handle, succeeded=False, cacheToDisc=False, updateListing=False)
         return
 
     # Set Sorting
@@ -1404,4 +1404,66 @@ def add_ViewItems(Handle, QueryContent, Content, ItemsListings, Unsorted):
         xbmcplugin.setContent(Handle, MappingContentKodi[ContentType])
 
     xbmc.log("EMBY.helper.pluginmenu: Dynamic nodes: endOfDirectory", 0) # LOGDEBUG
-    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(Handle, cacheToDisc=False, updateListing=False)
+
+def add_unifyedItem(Item, Doublesfilter, SortItems):
+    ItemId = Item.get("Id", "")
+
+    if ItemId:
+        if ItemId not in Doublesfilter:
+            Doublesfilter.add(ItemId)
+        else:
+            return
+
+    if Item['Type'] in SortItems:
+        SortItems[Item['Type']] += (Item,)
+    else:
+        xbmc.log(f"EMBY.helper.pluginmenu: Invalid content: {Item['Type']}", 3) # LOGERROR
+
+def unify_Item(SortItems, ItemsListings, Content, ParentId, ServerId, LibraryId, Unsorted, Id, WindowIdCheck, ContentSupported, ContentRequest, CacheId):
+    TypeCounter = 0
+
+    for SortItemContent, SortedItems in list(SortItems.items()):
+        if SortedItems and SortItemContent not in ("Folder", "PhotoAlbum"):
+            TypeCounter += 1
+
+            if TypeCounter == 2: # multiple content types detected
+                break
+
+    if TypeCounter == 2:
+        for SortItemContent, SortedItems in list(SortItems.items()):
+            if not SortedItems or SortItemContent in ("Folder", "PhotoAlbum"):
+                continue
+
+            if SortItemContent not in utils.QueryCache:
+                utils.QueryCache[SortItemContent] = {}
+
+            ItemsListingsCached = ()
+
+            for SortedItem in SortedItems:
+                ItemsListingsCached = load_ListItem(ParentId, SortedItem, ServerId, ItemsListingsCached, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
+
+            utils.QueryCache[SortItemContent][f"{Id}{SortItemContent}{ParentId}{ServerId}{LibraryId}"] = [True, ItemsListingsCached, Unsorted, Id, SortItemContent, ServerId, ParentId, LibraryId, SortItemContent]
+            ItemsListings = add_ListItem(ItemsListings, f"--{SortItemContent}--", f"plugin://plugin.service.emby-next-gen/?id={Id}&mode=browse&query={SortItemContent}&server={ServerId}&parentid={ParentId}&content={SortItemContent}&libraryid={LibraryId}", IconMapping[SortItemContent], SortItemContent)
+
+        WindowIdCheck = False
+    else: # unique content
+        for SortItemContent, SortedItems in list(SortItems.items()):
+            if SortedItems:
+                if SortItemContent in ("Folder", "PhotoAlbum"):
+                    continue
+
+                if SortItemContent not in ("Genre", "MusicGenre", "Tag", "Playlist"): # Skip subqueries
+                    Content = SortItemContent
+
+                for SortedItem in SortedItems:
+                    ItemsListings = load_ListItem(ParentId, SortedItem, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
+
+                break
+
+    # Always add not playable items
+    for SubFolder in ("Folder", "PhotoAlbum"):
+        for FolderItem in SortItems[SubFolder]:
+            ItemsListings = load_ListItem(ParentId, FolderItem, ServerId, ItemsListings, Content, LibraryId, ContentSupported, ContentRequest, CacheId)
+
+    return Content, ItemsListings, WindowIdCheck

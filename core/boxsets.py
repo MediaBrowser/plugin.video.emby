@@ -9,7 +9,11 @@ class BoxSets:
     def __init__(self, EmbyServer, SQLs):
         self.EmbyServer = EmbyServer
         self.SQLs = SQLs
-        self.TagObject = tag.Tag(EmbyServer, self.SQLs)
+        self.TagObject = tag.Tag(self.EmbyServer, self.SQLs)
+
+    def update_SQLs(self, SQLs): # When paused, databases are closed and re-opened -> Update database
+        self.SQLs = SQLs
+        self.TagObject.update_SQLs(self.SQLs)
 
     def change(self, Item, IncrementalSync):
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "BoxSet"):
@@ -21,7 +25,7 @@ class BoxSets:
         # Query assigned content for collections
         ContentsAssignedToBoxset = []
 
-        for ContentAssignedToBoxset in self.EmbyServer.API.get_Items(Item['Id'], ["All"], True, True, {'GroupItemsIntoCollections': True, "Fields": "PresentationUniqueKey"}, "", False, None):
+        for ContentAssignedToBoxset in self.EmbyServer.API.get_Items(Item['Id'], ("Audio", "Video", "Movie", "Episode", "MusicVideo", "Series"), True, {'GroupItemsIntoCollections': True, "Fields": "PresentationUniqueKey"}, "", None, True, False):
             ContentsAssignedToBoxset.append(ContentAssignedToBoxset)
 
         # Add new collection tag
@@ -91,54 +95,60 @@ class BoxSets:
         # Delete remove content from boxsets
         for KodiContentId in CurrentBoxSetContent:
             self.SQLs["video"].remove_from_boxset(KodiContentId)
-            xbmc.log(f"EMBY.core.boxsets: DELETE from boxset [{Item['Id']}] {Item['KodiItemId']} {Item['Name']}: {KodiContentId}", 1) # LOGINFO
+            xbmc.log(f"EMBY.core.boxsets: DELETE from boxset [{Item['Id']}] {Item['KodiItemId']} {Item['Name']}: {KodiContentId}", int(IncrementalSync)) # LOG
 
         common.set_KodiArtwork(Item, self.EmbyServer.ServerData['ServerId'], False)
+
+        if IncrementalSync and utils.ArtworkCacheIncremental:
+            common.cache_artwork(Item['KodiArtwork'])
+
         self.SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiItemId'], "set")
         Item['KodiParentId'] = ",".join(BoxSetKodiParentIds)
-        self.SQLs["emby"].add_reference_boxset(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['UserData']['IsFavorite'], Item['KodiParentId'])
-        self.set_favorite(Item['UserData']['IsFavorite'], Item['KodiItemId'], Item['Id'])
+        common.set_Favorite(Item)
+        self.SQLs["emby"].add_reference_boxset(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiParentId'])
         xbmc.log(f"EMBY.core.boxsets: UPDATE [{Item['Id']}] {Item['KodiItemId']} {Item['Name']}", int(IncrementalSync)) # LOG
-        utils.notify_event("content_update", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "set"}, IncrementalSync)
+        utils.notify_event("content_update", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "set"}, IncrementalSync)
         return True
 
     # This updates: Favorite, LastPlayedDate, PlaybackPositionTicks
-    def userdata(self, Item):
-        self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "BoxSet")
+    def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
+        if UpdateKodiFavorite:
+            self.set_favorite(Item['IsFavorite'], Item)
 
-        if utils.BoxSetsToTags:
-            EmbyTagId = f"999999993{Item['Id']}"
-            self.SQLs["emby"].update_favourite(Item['IsFavorite'], EmbyTagId, "Tag")
-
-        self.set_favorite(Item['IsFavorite'], Item['KodiItemId'], Item['Id'])
-        utils.reset_querycache("BoxSet")
-        xbmc.log(f"EMBY.core.boxsets: USERDATA {Item['Id']}", 1) # LOGINFO
-        utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "set"}, True)
+        xbmc.log(f"EMBY.core.boxsets: USERDATA {Item['Id']}", int(IncrementalSync)) # LOG
+        utils.notify_event("content_changed", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "set"}, True)
         return False
 
     def remove(self, Item, IncrementalSync):
-        KodiParentIds = self.SQLs["emby"].get_KodiParentIds(Item['Id'], "BoxSet")
+        Deleted, _ = self.SQLs["emby"].remove_item(Item['Id'], "BoxSet", Item['LibraryId'])
 
-        if self.SQLs["emby"].remove_item(Item['Id'], "BoxSet", Item['LibraryId']):
+        if Deleted:
             self.SQLs["emby"].add_RemoveItem(f"999999993{Item['Id']}", Item['LibraryId'])
 
-            for KodiParentId in KodiParentIds:
+            for KodiParentId in self.SQLs["emby"].get_KodiParentIds(Item['Id'], "BoxSet"):
                 self.SQLs["video"].remove_from_boxset(KodiParentId)
 
             self.SQLs["video"].common_db.delete_artwork(Item['KodiItemId'], "set")
-            self.set_favorite(False, Item['KodiItemId'], Item['Id'])
+            self.set_favorite(False, Item)
             self.SQLs["video"].delete_boxset(Item['KodiItemId'])
 
         xbmc.log(f"EMBY.core.boxsets: DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", int(IncrementalSync)) # LOG
-        utils.notify_event("content_remove", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "set"}, IncrementalSync)
+        utils.notify_event("content_remove", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "set"}, IncrementalSync)
 
-    def set_favorite(self, IsFavorite, KodiItemId, EmbyItemId):
-        _, ImageUrl, Itemname = self.SQLs["video"].get_favoriteData(None, KodiItemId, "set")
-        utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Boxset", "Set", EmbyItemId, self.EmbyServer.ServerData['ServerId'], ImageUrl), IsFavorite, f"videodb://movies/sets/{KodiItemId}/", Itemname, "window", 10025),))
+    def set_favorite(self, IsFavorite, Item):
+        common.validate_FavoriteImage(Item)
+        self.SQLs["emby"].update_favourite(IsFavorite, Item['Id'], "BoxSet")
+
+        if IsFavorite and not Item['KodiArtwork']['favourite'] or 'Name' not in Item:
+            _, Item['KodiArtwork']['favourite'], Item['Name'] = self.SQLs["video"].get_favoriteData(None, Item['KodiItemId'], "set")
+
+        utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Boxset", "Set", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"videodb://movies/sets/{Item['KodiItemId']}/", Item['Name'].replace('"', "'"), "window", 10025),))
 
         if utils.BoxSetsToTags:
-            EmbyTagId = f"999999993{EmbyItemId}"
+            EmbyTagId = f"999999993{Item['Id']}"
+            self.SQLs["emby"].update_favourite(IsFavorite, EmbyTagId, "Tag")
             KodiTagId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(EmbyTagId, "Tag")
 
             if KodiTagId:
-                self.TagObject.set_favorite(IsFavorite, KodiTagId, ImageUrl, EmbyTagId)
+                Item.update({'KodiItemId': KodiTagId, 'Id': EmbyTagId})
+                self.TagObject.set_favorite(IsFavorite, Item)

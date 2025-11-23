@@ -1,3 +1,4 @@
+from urllib.parse import quote, unquote
 import xbmc
 from helper import utils
 from . import common_db
@@ -18,6 +19,9 @@ class MusicDatabase:
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strReleaseType on album (strReleaseType)")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed on song (idAlbum, lastplayed, iTimesPlayed)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strMusicBrainzTrackID on song (strMusicBrainzTrackID)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strArtistDisp_strTitle on song (strArtistDisp, strTitle)")
+        self.cursor.execute("ANALYZE")
 
     def delete_Index(self):
         self.cursor.execute("DROP INDEX IF EXISTS idx_album_strType")
@@ -27,6 +31,9 @@ class MusicDatabase:
         self.cursor.execute("DROP INDEX IF EXISTS idx_artist_strDisambiguation")
         self.cursor.execute("DROP INDEX IF EXISTS idx_album_strReleaseType")
         self.cursor.execute("DROP INDEX IF EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed")
+        self.cursor.execute("DROP INDEX IF EXISTS idx_song_strMusicBrainzTrackID")
+        self.cursor.execute("DROP INDEX IF EXISTS idx_song_strArtistDisp_strTitle")
+        self.cursor.execute("ANALYZE")
 
     # Make sure rescan and kodi db set
     def disable_rescan(self, Timestamp):
@@ -42,16 +49,9 @@ class MusicDatabase:
 
         return ""
 
-    # studios
-    def add_studio(self, StudioName):
-        pass
-
-    def update_studio(self, StudioName, StudioId):
-        pass
-
     # artists
     def add_musicartist_link(self, ArtistId, MediaId, Role, Order, Name):
-        self.cursor.execute("INSERT INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (ArtistId, MediaId, Role, Order, Name))
+        self.cursor.execute("INSERT OR REPLACE INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (ArtistId, MediaId, Role, Order, Name))
 
     def del_musicartist(self, ArtistId):
         self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", (ArtistId,))
@@ -65,9 +65,9 @@ class MusicDatabase:
         Data = self.cursor.fetchone()
 
         if Data:
-            self.cursor.execute("SELECT * FROM song_artist WHERE idArtist = ?", (ArtistId,))
+            self.cursor.execute("SELECT EXISTS(SELECT 1 FROM song_artist WHERE idArtist = ?)", (ArtistId,))
 
-            if self.cursor.fetchone():
+            if self.cursor.fetchone()[0]:
                 Artists = True
 
             return Data[0], Data[1], Artists
@@ -96,48 +96,67 @@ class MusicDatabase:
                 MusicbrainzId = errorhandler_MusicBrainzID(ArtistName, MusicbrainzId, error)
 
     def get_artist_metadata_for_listitem(self, kodi_id):
-        self.cursor.execute("SELECT * FROM artist WHERE idArtist = ?", (kodi_id,))
-        ItemData = self.cursor.fetchone()
+        self.cursor.execute("SELECT strArtist, strMusicBrainzArtistID, strGenres, strBiography FROM artist WHERE idArtist = ?", (kodi_id,))
+        ArtistData = self.cursor.fetchone()
 
-        if not ItemData:
+        if not ArtistData:
             return {}
 
         Artwork = self.get_artwork(kodi_id, "artist")
-        return {'mediatype': "artist", "dbid": kodi_id, 'title': ItemData[1], 'artist': ItemData[1],'musicbrainzartistid': ItemData[2], 'genre': ItemData[9], 'comment': ItemData[13], 'path': f"musicdb://artists/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "artist", "dbid": kodi_id, 'title': ArtistData[0], 'artist': ArtistData[0],'musicbrainzartistid': ArtistData[1], 'genre': ArtistData[2], 'comment': ArtistData[3], 'path': f"musicdb://artists/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
+
+    def get_artistid_by_songid(self, KodiId):
+        self.cursor.execute("SELECT idArtist FROM song_artist WHERE idSong = ? AND idRole = ?", (KodiId, 1))
+        ArtistId = self.cursor.fetchone()
+
+        if not ArtistId:
+            return None
+
+        return ArtistId[0]
 
     # album
-    def add_album(self, Title, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort, LibraryId):
+    def add_album(self, Title, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, CommunityRating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort, LibraryId):
         self.cursor.execute("SELECT coalesce(max(idAlbum), 0) FROM album")
         idAlbum = self.cursor.fetchone()[0] + 1
 
         if not RunTime:
             RunTime = 0
 
+        if CommunityRating:
+            Rating = float(CommunityRating)
+        else:
+            Rating = 0.0
+
         while MusicBrainzAlbumID != "UNKNOWN ERROR":
             try:
-                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseGroupMBID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strReview, strImage, iUserrating, lastScraped, dateAdded, bCompilation, strLabel, iAlbumDuration, strArtistSort, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (idAlbum, Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, f"EmbyLibraryId-{LibraryId}"))
+                self.cursor.execute("INSERT INTO album(idAlbum, strAlbum, strMusicBrainzAlbumID, strReleaseGroupMBID, strReleaseType, strArtistDisp, strReleaseDate, strOrigReleaseDate, strGenres, strReview, strImage, fRating, lastScraped, dateAdded, bCompilation, strLabel, iAlbumDuration, strArtistSort, strType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (idAlbum, Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, f"EmbyLibraryId-{LibraryId}"))
                 return idAlbum
             except Exception as error:
                 MusicBrainzAlbumID = errorhandler_MusicBrainzID(Title, MusicBrainzAlbumID, error)
 
         return None
 
-    def update_album(self, KodiItemId, Title, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort):
+    def update_album(self, KodiItemId, Title, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, CommunityRating, LastScraped, DateAdded, MusicBrainzAlbumID, UniqueIdReleaseGroup, Compilation, Studios, RunTime, ArtistSort):
         if not RunTime:
             RunTime = 0
 
+        if CommunityRating:
+            Rating = float(CommunityRating)
+        else:
+            Rating = 0.0
+
         while MusicBrainzAlbumID != "UNKNOWN ERROR":
             try:
-                self.cursor.execute("UPDATE album SET strAlbum = ?, strMusicBrainzAlbumID = ?, strReleaseGroupMBID = ?, strReleaseType = ?, strArtistDisp = ?, strReleaseDate = ?, strOrigReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, iUserrating = ?, lastScraped = ?, dateAdded = ?, bCompilation = ?, strLabel = ?, iAlbumDuration = ?, strArtistSort = ? WHERE idAlbum = ?", (Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, KodiItemId))
+                self.cursor.execute("UPDATE album SET strAlbum = ?, strMusicBrainzAlbumID = ?, strReleaseGroupMBID = ?, strReleaseType = ?, strArtistDisp = ?, strReleaseDate = ?, strOrigReleaseDate = ?, strGenres = ?, strReview = ?, strImage = ?, fRating = ?, lastScraped = ?, dateAdded = ?, bCompilation = ?, strLabel = ?, iAlbumDuration = ?, strArtistSort = ? WHERE idAlbum = ?", (Title, MusicBrainzAlbumID, UniqueIdReleaseGroup, Type, Artist, ProductionYear, PremiereDate, Genre, Bio, Thumb, Rating, LastScraped, DateAdded, Compilation, Studios, RunTime, ArtistSort, KodiItemId))
                 return
             except Exception as error:
                 MusicBrainzAlbumID = errorhandler_MusicBrainzID(Title, MusicBrainzAlbumID, error)
 
     def get_album_metadata_for_listitem(self, kodi_id):
-        self.cursor.execute("SELECT * FROM albumview WHERE idAlbum = ?", (kodi_id,))
-        ItemData = self.cursor.fetchone()
+        self.cursor.execute("SELECT strAlbum, strMusicBrainzAlbumID, strArtists, strGenres, strReleaseDate, strReview, iTimesPlayed, lastplayed, iAlbumDuration, strOrigReleaseDate, fRating FROM albumview WHERE idAlbum = ?", (kodi_id,))
+        AlbumData = self.cursor.fetchone()
 
-        if not ItemData:
+        if not AlbumData:
             return {}
 
         Artwork = self.get_artwork(kodi_id, "album")
@@ -145,14 +164,23 @@ class MusicDatabase:
         if not Artwork:
             Artwork = self.get_artwork(kodi_id, "single")
 
-        return {'mediatype': "album", "dbid": kodi_id, 'title': ItemData[1], 'musicbrainzalbumid': ItemData[2], 'artist': ItemData[4], 'albumartists': ItemData[4], 'genre': ItemData[6], 'releasedate': ItemData[7], 'year': utils.convert_to_local(ItemData[7], False, True),'comment': ItemData[13], 'playcount': ItemData[27], 'lastplayed': ItemData[30], 'duration': ItemData[31], 'path': f"musicdb://albums/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "album", "dbid": kodi_id, 'title': AlbumData[0], 'musicbrainzalbumid': AlbumData[1], 'artist': AlbumData[2], 'albumartists': AlbumData[2], 'genre': AlbumData[3], 'releasedate': AlbumData[4], 'year': utils.convert_to_local(AlbumData[4], False, True),'comment': AlbumData[5], 'playcount': AlbumData[6], 'lastplayed': AlbumData[7], 'duration': AlbumData[8], 'path': f"musicdb://albums/{kodi_id}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork, 'CommunityRating': AlbumData[10]}
 
     def delete_link_album_artist(self, idAlbum):
         self.cursor.execute("DELETE FROM album_artist WHERE idAlbum = ?", (idAlbum,))
         self.cursor.execute("DELETE FROM removed_link")
 
     def add_albumartist_link(self, ArtistId, idAlbum, Order, Name):
-        self.cursor.execute("INSERT INTO album_artist(idArtist, idAlbum, iOrder, strArtist) VALUES (?, ?, ?, ?)", (ArtistId, idAlbum, Order, Name))
+        self.cursor.execute("INSERT OR REPLACE INTO album_artist(idArtist, idAlbum, iOrder, strArtist) VALUES (?, ?, ?, ?)", (ArtistId, idAlbum, Order, Name))
+
+    def get_albumid_by_songid(self, KodiId):
+        self.cursor.execute("SELECT idAlbum FROM song WHERE idSong = ?", (KodiId,))
+        AlbumId = self.cursor.fetchone()
+
+        if not AlbumId:
+            return None
+
+        return AlbumId[0]
 
     # song
     def get_song_doubles(self):
@@ -173,7 +201,20 @@ class MusicDatabase:
 
         return Data
 
-    def add_song(self, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, LibraryId):
+    def add_song_tag(self, KodiId, Tag): # e.g. for playlists
+        self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (KodiId,))
+        Comment = self.cursor.fetchone()
+
+        if Comment:
+            Comment = f"{Comment[0]}\n{Tag}"
+            self.cursor.execute("UPDATE song SET comment = ? WHERE idSong = ?", (Comment, KodiId))
+
+    def add_song(self, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, CommunityRating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, LibraryId):
+        if CommunityRating:
+            Rating = float(CommunityRating)
+        else:
+            Rating = 0.0
+
         self.cursor.execute("SELECT coalesce(max(idSong), 0) FROM song")
         idSong = self.cursor.fetchone()[0] + 1
 
@@ -182,32 +223,71 @@ class MusicDatabase:
         else:
             Comment = f"EmbyLibraryId-{LibraryId}"
 
-        BitRate, SampleRate, Channels, PlayCount = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount)
+        BitRate, SampleRate, Channels, _ = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, None)
 
         while MusicBrainzTrackID != "UNKNOWN ERROR":
             try:
-                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strOrigReleaseDate, strReleaseDate, strFileName, iTimesPlayed, lastplayed, rating, comment, dateAdded, iBitRate, iSampleRate, iChannels, strMusicBrainzTrackID, strArtistSort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (idSong, AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort))
+                self.cursor.execute("INSERT INTO song(idSong, idAlbum, idPath, strArtistDisp, strGenres, strTitle, iTrack, iDuration, strOrigReleaseDate, strReleaseDate, strFileName, rating, comment, dateAdded, iBitRate, iSampleRate, iChannels, strMusicBrainzTrackID, strArtistSort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (idSong, AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort))
                 return idSong
             except Exception as error:
                 MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
 
         return None
 
-    def update_song(self, KodiItemId, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, LibraryId, KodiPath):
-
-        if Comment:
-            Comment = f"{Comment}\n{LibraryId}"
+    def update_song(self, KodiItemId, KodiPathId, AlbumId, Artist, Genre, Title, Index, Runtime, PremiereDate, Year, Filename, CommunityRating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, KodiPath, PlaylistId):
+        if CommunityRating:
+            Rating = float(CommunityRating)
         else:
-            Comment = f"EmbyLibraryId-{LibraryId}"
+            Rating = 0.0
 
-        BitRate, SampleRate, Channels, PlayCount = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, PlayCount)
+        # Get/keep current Tags
+        self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (KodiItemId,))
+        CommentCurrent = self.cursor.fetchone()
+        CommentsCurrent = CommentCurrent[0].split("\n")
+        EmbyLibraryIds = ()
+        EmbyPlaylistIds = ()
 
-        while MusicBrainzTrackID != "UNKNOWN ERROR":
-            try:
-                self.cursor.execute("UPDATE song SET idAlbum = ?, idPath = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFileName = ?, iTimesPlayed = ?, lastplayed = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ? WHERE idSong = ?", (AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, PlayCount, DatePlayed, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, KodiItemId))
-                return
-            except Exception as error:
-                MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
+        for CommentCurrent in CommentsCurrent:
+            if CommentCurrent.startswith("EmbyLibraryId-"):
+                Tag = CommentCurrent.split("-")
+                EmbyLibraryIds += (Tag[1],)
+            elif CommentCurrent.startswith("EmbyPlaylistId-"):
+                Tag = CommentCurrent.split("-")
+                EmbyPlaylistIds += (Tag[1],)
+
+        if not Comment: # Comment could be None
+            Comment = ""
+
+        for EmbyLibraryId in EmbyLibraryIds:
+            if Comment:
+                Comment += f"\nEmbyLibraryId-{EmbyLibraryId}"
+            else:
+                Comment += f"EmbyLibraryId-{EmbyLibraryId}"
+
+
+        for EmbyPlaylistId in EmbyPlaylistIds:
+            if Comment:
+                Comment += f"\nEmbyPlaylistId-{EmbyPlaylistId}"
+            else:
+                Comment += f"EmbyPlaylistId-{EmbyPlaylistId}"
+
+        # Update song
+        BitRate, SampleRate, Channels, _ = set_metadata_song(Artist, Title, BitRate, SampleRate, Channels, None)
+
+        if EmbyPlaylistIds and not PlaylistId or str(PlaylistId) not in EmbyPlaylistIds: # Do not update existing track numbers when metadata from playlist
+            while MusicBrainzTrackID != "UNKNOWN ERROR":
+                try:
+                    self.cursor.execute("UPDATE song SET idAlbum = ?, idPath = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFileName = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ? WHERE idSong = ?", (AlbumId, KodiPathId, Artist, Genre, Title, Runtime, Year, PremiereDate, Filename, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, KodiItemId))
+                    return
+                except Exception as error:
+                    MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
+        else:
+            while MusicBrainzTrackID != "UNKNOWN ERROR":
+                try:
+                    self.cursor.execute("UPDATE song SET idAlbum = ?, idPath = ?, strArtistDisp = ?, strGenres = ?, strTitle = ?, iTrack = ?, iDuration = ?, strOrigReleaseDate = ?, strReleaseDate = ?, strFileName = ?, rating = ?, comment = ?, dateAdded = ?, iBitRate = ?, iSampleRate = ?, iChannels = ?, strMusicBrainzTrackID = ?, strArtistSort = ? WHERE idSong = ?", (AlbumId, KodiPathId, Artist, Genre, Title, Index, Runtime, Year, PremiereDate, Filename, Rating, Comment, DateAdded, BitRate, SampleRate, Channels, MusicBrainzTrackID, ArtistSort, KodiItemId))
+                    return
+                except Exception as error:
+                    MusicBrainzTrackID = errorhandler_MusicBrainzID(Title, MusicBrainzTrackID, error)
 
         self.cursor.execute("UPDATE path SET strPath = ? WHERE idPath = ?", (KodiPath, KodiPathId))
 
@@ -215,26 +295,33 @@ class MusicDatabase:
         self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (SongId,))
         self.cursor.execute("DELETE FROM removed_link")
 
-    def rate_song(self, iTimesPlayed, lastplayed, rating, idSong):
-        self.cursor.execute("UPDATE song SET iTimesPlayed = ?, lastplayed = ?, rating = ? WHERE idSong = ?", (iTimesPlayed, lastplayed, rating, idSong))
+    def update_song_metadata(self, iTimesPlayed, lastplayed, idSong):
+        self.cursor.execute("UPDATE song SET iTimesPlayed = ?, lastplayed = ? WHERE idSong = ?", (iTimesPlayed, lastplayed, idSong))
 
     def get_song_metadata_for_listitem(self, kodi_id):
-        self.cursor.execute("SELECT * FROM songview WHERE idSong = ?", (kodi_id,))
-        ItemData = self.cursor.fetchone()
+        self.cursor.execute("SELECT strArtists, strGenres, strTitle, iTrack, iDuration, strReleaseDate, strMusicBrainzTrackID, iTimesPlayed, comment, strAlbum, strPath, strAlbumArtists, strFileName, rating FROM songview WHERE idSong = ?", (kodi_id,))
+        SongData = self.cursor.fetchone()
 
-        if not ItemData:
+        if not SongData:
             return {}
 
         Artwork = self.get_artwork(kodi_id, "song")
 
-        if ItemData[5]:
-            Track = ItemData[5] % 65536
-            Disc = int(int(ItemData[5]) / 65536)
+        if SongData[3]:
+            Track = SongData[3] % 65536
+            Disc = int(int(SongData[3]) / 65536)
         else:
             Track = None
             Disc = None
 
-        return {'mediatype': "song", "dbid": kodi_id, 'artist': ItemData[1], 'genre': ItemData[3], 'title': ItemData[4], 'tracknumber': Track, 'discnumber': Disc, 'duration': ItemData[6], 'releasedate': ItemData[7], 'year': utils.convert_to_local(ItemData[7], False, True), 'musicbrainztrackid': ItemData[11], 'playcount': ItemData[12], 'comment': ItemData[19], 'Album': ItemData[21], 'path': ItemData[22], 'albumartists': ItemData[26], 'pathandfilename': f"{ItemData[22]}{ItemData[10]}", 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork}
+        return {'mediatype': "song", "dbid": kodi_id, 'artist': SongData[0], 'genre': SongData[1], 'title': SongData[2], 'tracknumber': Track, 'discnumber': Disc, 'duration': SongData[4], 'releasedate': SongData[5], 'year': utils.convert_to_local(SongData[5], False, True), 'musicbrainztrackid': SongData[6], 'playcount': SongData[7], 'comment': SongData[8], 'Album': SongData[9], 'path': SongData[10], 'albumartists': SongData[11], 'pathandfilename': f"{SongData[10]}{SongData[12]}", 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork, 'CommunityRating': SongData[13]}
+
+    def update_song_musicvideo(self, MusicBrainzTrackID, Path, Title, Artist):
+        self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ?", (Path, MusicBrainzTrackID, f"{MusicBrainzTrackID} ", f"{MusicBrainzTrackID}  ", f"{MusicBrainzTrackID}   ", f"{MusicBrainzTrackID}    ", f"{MusicBrainzTrackID}     ", f"{MusicBrainzTrackID}      ", f"{MusicBrainzTrackID}       ", f"{MusicBrainzTrackID}        ", f"{MusicBrainzTrackID}         ")) # Update by MusicBrainzTrackID, Trailing spaces are used for MusicBrainzTrackID unificaation
+        self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE strArtistDisp = ? AND strTitle = ? AND strVideoURL IS NULL", (Path, Artist, Title)) # Update by Artist, Title
+
+    def del_song_musicvideo(self):
+        self.cursor.execute("UPDATE song SET strVideoURL = NULL")
 
     # genres
     def add_genre_link(self, GenreId, MediaId, Order):
@@ -265,7 +352,7 @@ class MusicDatabase:
 
     def get_genre(self, LibraryId):
         Genres = []
-        self.cursor.execute("SELECT strGenres FROM song WHERE comment LIKE ? COLLATE NOCASE GROUP BY strGenres COLLATE NOCASE", (f"%EmbyLibraryId-{LibraryId}",))
+        self.cursor.execute("SELECT strGenres FROM song WHERE comment LIKE ? COLLATE NOCASE GROUP BY strGenres COLLATE NOCASE", (f"%EmbyLibraryId-{LibraryId}%",))
         strGenres = self.cursor.fetchall()
 
         for strGenre in strGenres:
@@ -293,105 +380,36 @@ class MusicDatabase:
 
         return "", False
 
-    def delete_musicgenre_by_Id(self, GenreId):
+    def delete_genre_by_Id(self, GenreId):
+        GenreName = ""
+        self.cursor.execute("SELECT strGenre FROM genre WHERE idGenre = ?", (GenreId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            GenreName = Data[0]
+
         self.cursor.execute("DELETE FROM song_genre WHERE idGenre = ?", (GenreId,))
         self.cursor.execute("DELETE FROM genre WHERE idGenre = ?", (GenreId,))
+        return GenreName
 
     def delete_artist(self, ArtistId):
         self.common_db.delete_artwork(ArtistId, "artist")
         self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", (ArtistId,))
         self.cursor.execute("DELETE FROM removed_link")
 
-    def delete_album(self, idAlbums, LibraryId):
-        for idAlbum in idAlbums.split(","):
-            if not LibraryId:
-                self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", (idAlbum,))
-                self.cursor.execute("DELETE FROM album_artist WHERE idAlbum = ?", (idAlbum,))
-                self.common_db.delete_artwork(idAlbum, "album")
-                self.common_db.delete_artwork(idAlbum, "single")
-                self.cursor.execute("DELETE FROM removed_link")
-            else:
-                self.cursor.execute("SELECT EXISTS(SELECT 1 FROM album WHERE idAlbum = ? AND strType = ?)", (idAlbum, f"EmbyLibraryId-{LibraryId}"))
+    def delete_album(self, idAlbum):
+        self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", (idAlbum,))
+        self.cursor.execute("DELETE FROM album_artist WHERE idAlbum = ?", (idAlbum,))
+        self.common_db.delete_artwork(idAlbum, "album")
+        self.common_db.delete_artwork(idAlbum, "single")
+        self.cursor.execute("DELETE FROM removed_link")
 
-                if self.cursor.fetchone()[0]:
-                    self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", (idAlbum,))
-                    self.cursor.execute("DELETE FROM album_artist WHERE idAlbum = ?", (idAlbum,))
-                    self.common_db.delete_artwork(idAlbum, "album")
-                    self.common_db.delete_artwork(idAlbum, "single")
-                    self.cursor.execute("DELETE FROM removed_link")
-                    return
+    def delete_song(self, idSong):
+        self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (idSong,))
+        self.cursor.execute("DELETE FROM song WHERE idSong = ?", (idSong,))
+        self.common_db.delete_artwork(idSong, "song")
+        self.cursor.execute("DELETE FROM removed_link")
 
-    # Delete abandoned albums
-    def delete_abandonedalbum(self, KodiAlbumIds):
-        for KodiAlbumId in KodiAlbumIds:
-            self.cursor.execute("SELECT EXISTS(SELECT 1 FROM song WHERE idAlbum = ?)", (KodiAlbumId,))
-
-            if not self.cursor.fetchone()[0]:
-                self.cursor.execute("SELECT idArtist FROM album_artist WHERE idAlbum = ?", (KodiAlbumId,))
-                KodiArtistIds = self.cursor.fetchall()
-                self.delete_album(str(KodiAlbumId), None)
-
-                # Delete abandoned artist
-                KodiArtistIds = set(KodiArtistIds) # filter doubles
-
-                for KodiArtistId in KodiArtistIds:
-                    self.cursor.execute("SELECT EXISTS(SELECT 1 FROM song_artist WHERE idArtist = ?)", (KodiArtistId[0],))
-
-                    if not self.cursor.fetchone()[0]:
-                        self.delete_artist(KodiArtistId[0])
-
-    def delete_song(self, idSongs, LibraryId):
-        KodiAlbumIds = []
-
-        for idSong in idSongs.split(","):
-            if not LibraryId:
-                self.cursor.execute("SELECT idAlbum FROM song WHERE idSong = ?", (idSong,))
-                KodiAlbumIds += self.cursor.fetchone()
-                self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (idSong,))
-                self.cursor.execute("DELETE FROM song WHERE idSong = ?", (idSong,))
-                self.common_db.delete_artwork(idSong, "song")
-                self.cursor.execute("DELETE FROM removed_link")
-            else:
-                self.cursor.execute("SELECT EXISTS(SELECT 1 FROM song WHERE idSong = ? AND comment LIKE ?)", (idSong, f"%EmbyLibraryId-{LibraryId}"))
-
-                if self.cursor.fetchone()[0]:
-                    self.cursor.execute("SELECT idAlbum FROM song WHERE idSong = ?", (idSong,))
-                    KodiAlbumIds += self.cursor.fetchone()
-                    self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (idSong,))
-                    self.cursor.execute("DELETE FROM song WHERE idSong = ?", (idSong,))
-                    self.common_db.delete_artwork(idSong, "song")
-                    self.cursor.execute("DELETE FROM removed_link")
-                    break
-
-        self.delete_abandonedalbum(KodiAlbumIds)
-
-    def delete_song_stacked(self, idSong, LibraryId):
-        DeleteEmbyItems = []
-        self.cursor.execute("SELECT idArtist FROM song_artist WHERE idSong = ?", (idSong,))
-        ArtistIds = self.cursor.fetchall()
-        self.cursor.execute("SELECT idAlbum FROM song WHERE idSong = ?", (idSong,))
-        AlbumId = self.cursor.fetchone()
-        self.delete_song(idSong, LibraryId)
-
-        # Remove empty songartists
-        for ArtistId in ArtistIds:
-            self.cursor.execute("SELECT idSong FROM song_artist WHERE idArtist = ?", (ArtistId[0],))
-            idSong = self.cursor.fetchone()
-
-            if not idSong:
-                self.delete_artist(ArtistId[0])
-                DeleteEmbyItems.append(("artist", ArtistId[0]))
-
-        # Remove empty albums
-        if AlbumId:
-            self.cursor.execute("SELECT idSong FROM song WHERE idAlbum = ?", (AlbumId[0],))
-            idSong = self.cursor.fetchone()
-
-            if not idSong:
-                self.delete_album(AlbumId[0], LibraryId)
-                DeleteEmbyItems.append(("album", AlbumId[0]))
-
-        return DeleteEmbyItems
     # Path
     def delete_path(self, KodiPath):
         self.cursor.execute("DELETE FROM path WHERE strPath = ?", (KodiPath,))
@@ -408,19 +426,44 @@ class MusicDatabase:
         self.cursor.execute("INSERT INTO path(idPath, strPath) VALUES (?, ?)", (path_id, strPath))
         return path_id
 
+    def toggle_path(self, OldPath, NewPath):
+        QuotedNew = NewPath != "/emby_addon_mode/"
+        QuotedOld = OldPath != "/emby_addon_mode/"
+        self.cursor.execute("SELECT idSong, strVideoURL FROM song WHERE strVideoURL IS NOT NULL")
+        VideoURLs = self.cursor.fetchall()
+
+        for VideoURL in VideoURLs:
+            Data = VideoURL[1].split("/")
+            FileName = Data[-1]
+
+            if QuotedNew:
+                if QuotedOld:
+                    FileNameNew = FileName
+                else:
+                    FileNameNew = quote(FileName)
+            else:
+                if QuotedOld:
+                    FileNameNew = unquote(FileName)
+                else:
+                    FileNameNew = FileName
+
+            Path = f'{"/".join(Data[:-1])}/{FileNameNew}'
+            Path = common_db.toggle_path(Path, NewPath).replace("|redirect-limit=1000", "")
+            self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE idSong = ?", (Path, VideoURL[0])) # Trailing spaces are used for MusicBrainzTrackID unificaation
+
     # artwork
     def get_artwork(self, KodiId, ContentType):
         Artwork = {}
-        self.cursor.execute("SELECT * FROM art WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
+        self.cursor.execute("SELECT type, url FROM art WHERE media_id = ? and media_type = ?", (KodiId, ContentType))
         ArtworksData = self.cursor.fetchall()
 
         for ArtworkData in ArtworksData:
-            Artwork[ArtworkData[3]] = ArtworkData[4]
+            Artwork[ArtworkData[0]] = ArtworkData[1]
 
         return Artwork
 
     # Favorite for content
-    def get_favoriteData(self, KodiId, ContentType):
+    def get_favoriteData(self, KodiId):
         self.cursor.execute("SELECT idPath, strTitle, strFilename, idAlbum FROM song WHERE idSong = ?", (KodiId,))
         ItemData = self.cursor.fetchone()
         Thumbnail = ""

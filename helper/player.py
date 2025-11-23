@@ -1,5 +1,6 @@
 import uuid
-from urllib.parse import unquote_plus
+import os
+from urllib.parse import unquote_plus, unquote
 import json
 import xbmc
 from database import dbio
@@ -71,17 +72,17 @@ def PlayerCommands():
                 # Workaround for Kodi bug seekposition higher than runtime
                 if 'RunTimeTicks' in PlayingItem[0] and int(PlayingItem[0]['RunTimeTicks']) < PlayingItem[0]['PositionTicks']:
                     PlayingItem[0]['PositionTicks'] = PlayingItem[0]['RunTimeTicks']
-                    PlaylistPosition = playerops.GetPlayerPosition(EventData['player']['playerid'])
+                    PlaylistPosition = playerops.GetPlayerPosition(playerops.PlayerId)
                     globals()['PlaybackEndedForced'] = True
-                    playerops.Stop(False, EventData['player']['playerid'])
-                    PlaylistSize = playerops.GetPlaylistSize(EventData['player']['playerid'])
+                    playerops.Stop(False, playerops.PlayerId)
+                    PlaylistSize = playerops.GetPlaylistSize(playerops.PlayerId)
                     PlaylistPosition += 1
 
                     if TrailerStatus != "PLAYING" and PlaylistPosition < PlaylistSize:
-                        playerops.PlayPlaylistItem(EventData['player']['playerid'], PlaylistPosition)
+                        playerops.PlayPlaylistItem(playerops.PlayerId, PlaylistPosition)
 
-                        if EventData['player']['playerid'] == 1:
-                            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')  # focus videoplayer
+                        if playerops.PlayerId == 1:
+                            utils.ActivateWindow("fullscreenvideo", "", False)
 
                     continue
 
@@ -122,7 +123,7 @@ def PlayerCommands():
 
             globals().update({"SkipIntroJumpDone": False, "SkipCreditsJumpDone": False})
 
-            if not utils.syncduringplayback:
+            if not utils.PauseSyncDuringPlayback:
                 utils.SyncPause['playing'] = True
 
             # 3D, ISO etc. content from webserverice (addon mode)
@@ -143,36 +144,16 @@ def PlayerCommands():
 
             # Dynamic content
             if 'id' not in EventData['item']:
-                # Themes
-                if FullPath.find("/EMBY-themes/") != -1:
-                    # Find native played themes info
-                    Separator = utils.get_Path_Seperator(FullPath)
-                    Pos = FullPath.rfind(Separator)
-                    Filename = FullPath[Pos + 1:]
-                    Path = FullPath[:Pos]
-                    SubIds = Filename.split("-")
+                if FullPath.find("/emby-themes-") != -1: # Themes
+                    PathSplit = os.path.split(FullPath)
+                    ThemeMetaData = PathSplit[1].split("-")
+                    EmbyId = ThemeMetaData[4]
+                    ServerId = ThemeMetaData[3]
+                    ThemeItem = utils.readFileString(os.path.join(utils.DownloadPath, "EMBY-themes", ThemeMetaData[3], f"{unquote(ThemeMetaData[5]).replace('<_>', '-')}", f"metadata-{EmbyId}.json"))
 
-                    if len(SubIds) > 1:
-                        SubIds2 = Path.split(Separator)
-                        ServerId = SubIds2[-2]
-                        EmbyId = SubIds[1]
-
-                        if SubIds[0] in ("A", "a"):
-                            Item = utils.EmbyServers[ServerId].API.get_Item(EmbyId, ("Audio",), True, False, False)
-                            ListItem = listitem.set_ListItem(Item, ServerId, FullPath)
-
-                            if "Audio" not in utils.QueryCache:
-                                utils.QueryCache["Audio"] = {}
-
-                            utils.QueryCache["Audio"]["Theme"] = [True, ((FullPath, ListItem, False), )]
-                        else:
-                            Item = utils.EmbyServers[ServerId].API.get_Item(EmbyId, ("Video",), True, False, False)
-                            ListItem = listitem.set_ListItem(Item, ServerId, FullPath)
-
-                            if "Video" not in utils.QueryCache:
-                                utils.QueryCache["Video"] = {}
-
-                            utils.QueryCache["Video"]["Theme"] = [True, ((FullPath, ListItem, False), )]
+                    if ThemeItem:
+                        ThemeItem = json.loads(ThemeItem)
+                        ListItem = listitem.set_ListItem(ThemeItem, ThemeMetaData[3], FullPath)
 
                         if XbmcPlayer.isPlaying():
                             XbmcPlayer.updateInfoTag(ListItem)
@@ -181,26 +162,25 @@ def PlayerCommands():
                             continue
 
                         globals()["QueuedPlayingItem"] = [{'QueueableMediaTypes': ["Audio", "Video", "Photo"], 'CanSeek': True, 'IsPaused': False, 'ItemId': int(EmbyId), 'MediaSourceId': None, 'PlaySessionId': str(uuid.uuid4()).replace("-", ""), 'PositionTicks': 0, 'RunTimeTicks': 0, 'VolumeLevel': Volume, 'PlaybackRate': PlaybackRate[playerops.PlayerId], 'Shuffle': Shuffled[playerops.PlayerId], 'IsMuted': Muted, 'RepeatMode': RepeatMode[playerops.PlayerId]}, None, None, None, utils.EmbyServers[ServerId], playerops.PlayerId, "", ""]
-                else:
-                    if not load_unsynced_content(FullPath, PlaylistPosition, KodiType):
+                else: # dynamic node items
+                    if not load_unsynced_content(FullPath, PlaylistPosition, ""):
                         continue
             else:
                 KodiId = EventData['item']['id']
                 KodiType = EventData['item']['type']
+                EmbyId, ServerId = utils.get_EmbyId_ServerId_by_Fake_KodiId(KodiId)
 
-                if KodiId > 1000000000:
-                    EmbyId = KodiId - 1000000000
+                if EmbyId:
                     KodiId = None
 
                     if not load_unsynced_content(FullPath, PlaylistPosition, KodiType):
                         continue
 
-            # Clear dynamic cache
-            if KodiType and KodiType in utils.KodiTypeMapping:
-                utils.reset_querycache(utils.KodiTypeMapping[KodiType])
+            if PlayingItem[0]:
+                utils.update_querycache_userdata(((str(PlayingItem[0]['ItemId']), PlayingItem[0]['PositionTicks'], utils.currenttime(), -1, False),))
 
             # native (bluray) content, get actual path
-            if FullPath.startswith("bluray://"):
+            if FullPath.startswith("bluray://") and not EmbyId:
                 FullPath = unquote_plus(FullPath)
                 FullPath = unquote_plus(FullPath)
                 FullPath = FullPath.replace("bluray://", "")
@@ -216,7 +196,7 @@ def PlayerCommands():
                         break
 
             # native content
-            if not QueuedPlayingItem and not FullPath.startswith("http://127.0.0.1:57342") and not FullPath.startswith("/emby_addon_mode/") and FullPath.find("/EMBY-themes/") == -1:
+            if not QueuedPlayingItem and not FullPath.startswith("dav://127.0.0.1:57342") and not FullPath.startswith("http://127.0.0.1:57342") and not FullPath.startswith("/emby_addon_mode/") and FullPath.find("/EMBY-themes/") == -1:
                 EmbyType = ""
 
                 # load native mode played content from database
@@ -239,14 +219,14 @@ def PlayerCommands():
                     if ((utils.enableCinemaMovies and EmbyType == "Movie") or (utils.enableCinemaEpisodes and EmbyType == "Episode")) and not utils.RemoteMode:
                         if TrailerStatus == "READY":
                             playerops.Pause()
-                            QueuedPlayingItem[4].http.Intros = []
+                            globals()["QueuedPlayingItem"][4].http.Intros = []
                             PlayTrailer = True
 
                             if utils.askCinema:
                                 PlayTrailer = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33016), autoclose=int(utils.autoclose) * 1000)
 
                             if PlayTrailer:
-                                QueuedPlayingItem[4].http.load_Trailers(EmbyId)
+                                globals()["QueuedPlayingItem"][4].http.load_Trailers(EmbyId)
 
                             if QueuedPlayingItem[4].http.Intros:
                                 globals()["playlistIndex"] = PlaylistPosition
@@ -295,9 +275,9 @@ def PlayerCommands():
                                     xbmc.log("EMBY.hooks.player: --< [ onAVStarted ] cancel", 1) # LOGINFO
                                     continue
 
-                            if MediaIndex == 0:
+                            if MediaIndex == 0: # Multiversion not changes
                                 playerops.Unpause()
-                            else:
+                            else: # Reload new multiversion
                                 globals()["MultiselectionDone"] = True
                                 Path = MediaSources[MediaIndex][2]
 
@@ -334,7 +314,7 @@ def PlayerCommands():
             xbmc.log(f"EMBY.hooks.player: [ onPlay ] {EventData}", 0) # LOGDEBUG
             set_PlayerId(EventData)
 
-            if not utils.syncduringplayback or playerops.WatchTogether:
+            if not utils.PauseSyncDuringPlayback or playerops.WatchTogether:
                 utils.SyncPause['playing'] = True
 
             if EmbyPlaying:
@@ -389,9 +369,6 @@ def PlayerCommands():
             playerops.EmbyIdPlaying = 0
             playerops.PlayerPause = False
 
-            if 'item' in EventData and "type" in EventData['item'] and EventData['item']['type'] in utils.KodiTypeMapping:
-                utils.reset_querycache(utils.KodiTypeMapping[EventData['item']['type']])
-
             if not PlayingItem[0]:
                 playerops.RemoteCommand(None, None, "stop")
                 continue
@@ -431,9 +408,9 @@ def PlayerCommands():
                 if PlayerId == playerops.PlayerId:
                     globals()["PlayingItem"][0].update({'RepeatMode': RepeatMode[playerops.PlayerId]})
 
-                if PlayingItem[4]:
-                    globals()["TrackerPaused"] = True
-                    PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "RepeatModeChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                    if PlayingItem[4]:
+                        globals()["TrackerPaused"] = True
+                        PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "RepeatModeChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
             elif "shuffled" in EventData['property']:
                 Shuffle = EventData['property']['shuffled']
                 PlayerId = EventData['player']['playerid']
@@ -442,9 +419,9 @@ def PlayerCommands():
                 if PlayerId == playerops.PlayerId:
                     globals()["PlayingItem"][0].update({'Shuffle': Shuffled[playerops.PlayerId]})
 
-                if PlayingItem[4]:
-                    globals()["TrackerPaused"] = True
-                    PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "ShuffleChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                    if PlayingItem[4]:
+                        globals()["TrackerPaused"] = True
+                        PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "ShuffleChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "speedchanged": # {"item":{"id":215,"type":"episode"},"player":{"playerid":1,"speed":2}}
             EventData = json.loads(Commands[1])
             Speed = EventData['player']['speed']
@@ -454,9 +431,9 @@ def PlayerCommands():
             if PlayerId == playerops.PlayerId:
                 globals()["PlayingItem"][0].update({'PlaybackRate': PlaybackRate[playerops.PlayerId]})
 
-            if PlayingItem[4]:
-                globals()["TrackerPaused"] = True
-                PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "PlaybackRateChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
+                if PlayingItem[4]:
+                    globals()["TrackerPaused"] = True
+                    PlaylistEmby[PlayingItem[5]] = PlayingItem[4].API.session_progress(PlayingItem[0], "PlaybackRateChange", PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
         elif Commands[0] == "clear": # '{"playlistid":1}'
             EventData = json.loads(Commands[1])
             globals()['PlaylistKodi'][EventData['playlistid']] = []
@@ -511,6 +488,7 @@ def stop_playback(delete, PlaybackEnded):
     if PlaybackEnded and PlayingItemLocal[0]['RunTimeTicks']:
         PlayingItemLocal[0]['PositionTicks'] = PlayingItemLocal[0]['RunTimeTicks']
 
+    utils.update_querycache_userdata(((str(PlayingItemLocal[0]['ItemId']), PlayingItemLocal[0]['PositionTicks'], utils.currenttime(), -1, PlaybackEnded),))
     PlaylistEmby[PlayingItem[5]] = PlayingItemLocal[4].API.session_stop(PlayingItemLocal[0], PlaylistKodi[PlayingItem[5]], PlaylistEmby[PlayingItem[5]])
     close_SkipIntroDialog()
     close_SkipCreditsDialog()
@@ -535,7 +513,7 @@ def stop_playback(delete, PlaybackEnded):
     if not PlayingItemLocal[0]:
         return
 
-    utils.HTTPQueryDoublesFilter.pop(str(PlayingItemLocal[0]['ItemId']), None) # delete dict key if exists
+    utils.HTTPResponseCaches.pop(str(PlayingItemLocal[0]['ItemId']), None) # delete dict key if exists
 
     # Set watched status
     Runtime = int(PlayingItemLocal[0]['RunTimeTicks'])
@@ -586,9 +564,13 @@ def PositionTracker():
             if Position == 0:
                 continue
 
-
             if Position == -1:
                 break
+
+            Runtime = int(PlayingItem[0].get('RunTimeTicks', 0))
+
+            if Runtime and (Position + 20000000) > Runtime: # 2 seconds before playback ends pause updates
+                PlayerBusy()
 
             xbmc.log(f"EMBY.hooks.player: PositionTracker: Position: {Position} / IntroStartPositionTicks: {PlayingItem[1]} / IntroEndPositionTicks: {PlayingItem[2]} / CreditsPositionTicks: {PlayingItem[3]} / SkipIntroJumpDone: {SkipIntroJumpDone}", 0) # LOGDEBUG
 
@@ -625,7 +607,7 @@ def PositionTracker():
                 else:
                     close_SkipCreditsDialog()
 
-            if LoopCounter % 10 == 0 and PlayingItem[4]: # modulo 10
+            if LoopCounter % 50 == 0 and PlayingItem[4]: # modulo 10
                 if not TrackerPaused:
                     globals()["PlayingItem"][0]['PositionTicks'] = Position
                     xbmc.log(f"EMBY.hooks.player: PositionTracker: Report progress {PlayingItem[0]['PositionTicks']}", 0) # LOGDEBUG
@@ -759,12 +741,14 @@ def PlayerBusy():
 def PlayerBusyThread():
     xbmc.log("EMBY.hooks.player: THREAD: --->[ PlayerBusyThread ]", 0) # LOGDEBUG
     utils.SyncPause['playerbusy'] = True
+    utils.PlayerBusy.acquire()
 
     while PlayerBusyDelay >= 0:
         utils.sleep(1)
         globals()["PlayerBusyDelay"] -= 1
 
     utils.SyncPause['playerbusy'] = False
+    utils.release_lock(utils.PlayerBusy)
     TasksRunning.remove("PlayerBusy")
     xbmc.log("EMBY.hooks.player: THREAD: ---<[ PlayerBusyThread ]", 0) # LOGDEBUG
 

@@ -1,9 +1,10 @@
 import sqlite3
 from _thread import get_ident, allocate_lock
+import xbmcvfs
 import xbmc
 import xbmcgui
 from helper import utils
-from . import emby_db, video_db, music_db, texture_db, common_db
+from . import emby_db, video_db, music_db, texture_db, addon_db, common_db
 
 DBConnectionsRW = {}
 DBConnectionsRO = {}
@@ -21,11 +22,13 @@ def DBVacuum():
         if 'version' in DBID:
             continue
 
+        if not xbmcvfs.exists(DBFile):
+            continue
+
         xbmc.log(f"EMBY.database.dbio: ---> DBVacuum: {DBID}", 0) # LOGDEBUG
 
         if DBID not in DBConnectionsRW:
-            globals()["DBConnectionsRW"][DBID] = [None, None, None]
-            globals()["DBConnectionsRW"][DBID][2] = allocate_lock()
+            globals()["DBConnectionsRW"][DBID] = [None, None, allocate_lock()]
 
         globals()["DBConnectionsRW"][DBID][2].acquire()
         globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(DBFile, timeout=999999)
@@ -50,7 +53,7 @@ def DBVacuum():
 def DBOpenRO(DBID, TaskId):
     DBIDThreadID = f"{DBID}{TaskId}{get_ident()}"
     xbmc.log(f"EMBY.database.dbio: ---> DBRO: {DBIDThreadID}", 0) # LOGDEBUG
-    globals()["DBConnectionsRO"][DBIDThreadID] = [sqlite3.connect(f"file:{utils.DatabaseFiles[DBID].decode('utf-8')}?mode=ro", uri=True, timeout=999999, check_same_thread=False), None]
+    globals()["DBConnectionsRO"][DBIDThreadID] = [sqlite3.connect(f"file:{utils.DatabaseFiles[DBID]}?mode=ro", uri=True, timeout=999999, check_same_thread=False), None]
     DBConnectionsRO[DBIDThreadID][1] = DBConnectionsRO[DBIDThreadID][0].cursor()
 
     if DBID == 'video':
@@ -61,6 +64,9 @@ def DBOpenRO(DBID, TaskId):
 
     if DBID == 'texture':
         return texture_db.TextureDatabase(DBConnectionsRO[DBIDThreadID][1])
+
+    if DBID == 'addon':
+        return addon_db.AddonDatabase(DBConnectionsRO[DBIDThreadID][1])
 
     if DBID in ('epg', 'tv'):
         return common_db.CommonDatabase(DBConnectionsRO[DBIDThreadID][1])
@@ -82,60 +88,51 @@ def DBOpenRW(Databases, TaskId, SQLs):
     DBIDs = Databases.split(",")
 
     for DBID in DBIDs:
-        if DBID == "none":
-            continue
+        if DBID in utils.DatabaseFiles:
+            if DBID not in DBConnectionsRW:
+                globals()["DBConnectionsRW"][DBID] = [None, None, allocate_lock()]
 
-        if DBID not in DBConnectionsRW:
-            globals()["DBConnectionsRW"][DBID] = [None, None, None]
-            globals()["DBConnectionsRW"][DBID][2] = allocate_lock()
+            xbmc.log(f"EMBY.database.dbio: ---> DBRW: {DBID}/{TaskId}/{DBConnectionsRW[DBID][2].locked()}", 0) # LOGDEBUG
+            globals()["DBConnectionsRW"][DBID][2].acquire()
+            globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID], timeout=999999, check_same_thread=False)
+            globals()["DBConnectionsRW"][DBID][1] = DBConnectionsRW[DBID][0].cursor()
+            DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
+            DBConnectionsRW[DBID][0].execute("PRAGMA secure_delete=false")
 
-        xbmc.log(f"EMBY.database.dbio: ---> DBRW: {DBID}/{TaskId}/{DBConnectionsRW[DBID][2].locked()}", 0) # LOGDEBUG
-        globals()["DBConnectionsRW"][DBID][2].acquire()
-        globals()["DBConnectionsRW"][DBID][0] = sqlite3.connect(utils.DatabaseFiles[DBID].decode('utf-8'), timeout=999999, check_same_thread=False)
-        globals()["DBConnectionsRW"][DBID][1] = DBConnectionsRW[DBID][0].cursor()
-        DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
-        DBConnectionsRW[DBID][0].execute("PRAGMA secure_delete=false")
-        DBConnectionsRW[DBID][0].execute("PRAGMA synchronous=normal")
-        DBConnectionsRW[DBID][0].execute("PRAGMA temp_store=memory")
-        DBConnectionsRW[DBID][0].execute("PRAGMA mmap_size=1073741824")
-        DBConnectionsRW[DBID][0].execute("PRAGMA automatic_index=0")
+            if DBID == 'video':
+                SQLs[DBID] = video_db.VideoDatabase(DBConnectionsRW[DBID][1])
+            elif DBID == 'music':
+                SQLs[DBID] = music_db.MusicDatabase(DBConnectionsRW[DBID][1])
+            elif DBID == 'texture':
+                SQLs[DBID] = texture_db.TextureDatabase(DBConnectionsRW[DBID][1])
+            elif DBID == 'addon':
+                SQLs[DBID] = addon_db.AddonDatabase(DBConnectionsRW[DBID][1])
+            elif DBID in ('tv', 'epg'):
+                SQLs[DBID] = common_db.CommonDatabase(DBConnectionsRW[DBID][1])
+            else:
+                SQLs["emby"] = emby_db.EmbyDatabase(DBConnectionsRW[DBID][1])
 
-        if DBID == 'video':
-            SQLs[DBID] = video_db.VideoDatabase(DBConnectionsRW[DBID][1])
-        elif DBID == 'music':
-            SQLs[DBID] = music_db.MusicDatabase(DBConnectionsRW[DBID][1])
-        elif DBID == 'texture':
-            SQLs[DBID] = texture_db.TextureDatabase(DBConnectionsRW[DBID][1])
-        elif DBID == 'epg':
-            SQLs[DBID] = common_db.CommonDatabase(DBConnectionsRW[DBID][1])
-        elif DBID == 'tv':
-            SQLs[DBID] = common_db.CommonDatabase(DBConnectionsRW[DBID][1])
-        else:
-            SQLs["emby"] = emby_db.EmbyDatabase(DBConnectionsRW[DBID][1])
-
-        xbmc.log(f"EMBY.database.dbio: ---> DBRW: {DBID}", 0) # LOGDEBUG
+            xbmc.log(f"EMBY.database.dbio: ---> DBRW: {DBID}", 0) # LOGDEBUG
 
 def DBCloseRW(Databases, TaskId, SQLs):
     DBIDs = Databases.split(",")
 
     for DBID in DBIDs:
-        if DBID == "none":
-            continue
+        if DBID in DBConnectionsRW:
+            DBConnectionsRW[DBID][1].close() # curser close
+            changes = DBConnectionsRW[DBID][0].total_changes
 
-        DBConnectionsRW[DBID][1].close() # curser close
-        changes = DBConnectionsRW[DBID][0].total_changes
+            if changes:
+                DBConnectionsRW[DBID][0].commit()
 
-        if changes:
-            DBConnectionsRW[DBID][0].commit()
+            DBConnectionsRW[DBID][0].close() # db close
 
-        DBConnectionsRW[DBID][0].close() # db close
+            if DBID in ('video', 'music', 'texture', 'epg', 'tv', 'addon'):
+                SQLs[DBID] = None
+            else:
+                SQLs["emby"] = None
 
-        if DBID in ('video', 'music', 'texture', 'epg', 'tv'):
-            SQLs[DBID] = None
-        else:
-            SQLs["emby"] = None
-
-        globals()["DBConnectionsRW"][DBID][0] = None
-        globals()["DBConnectionsRW"][DBID][1] = None
-        globals()["DBConnectionsRW"][DBID][2].release()
-        xbmc.log(f"EMBY.database.dbio: ---< DBRW: {DBID} / {changes} / {TaskId} rows updated on db close", 0) # LOGDEBUG
+            globals()["DBConnectionsRW"][DBID][0] = None
+            globals()["DBConnectionsRW"][DBID][1] = None
+            globals()["DBConnectionsRW"][DBID][2].release()
+            xbmc.log(f"EMBY.database.dbio: ---< DBRW: {DBID} / {changes} / {TaskId} rows updated on db close", 0) # LOGDEBUG

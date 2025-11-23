@@ -1,9 +1,11 @@
 import xbmc
-from helper import utils
 
 class Folder:
     def __init__(self, EmbyServer, SQLs):
         self.EmbyServer = EmbyServer
+        self.SQLs = SQLs
+
+    def update_SQLs(self, SQLs): # When paused, databases are closed and re-opened -> Update database
         self.SQLs = SQLs
 
     def change(self, Item, IncrementalSync):
@@ -22,8 +24,6 @@ class Folder:
         self.SQLs["emby"].remove_item(Item['Id'], "Folder", Item['LibraryId'])
         xbmc.log(f"EMBY.core.folder: DELETE {Item['Id']}", int(IncrementalSync)) # LOG
 
-    def userdata(self, Item):
-        xbmc.log(f"EMBY.core.folder: USERDATA {Item}", 1) # LOGINFO
-        self.change(Item, True)
-        utils.reset_querycache("Folder")
+    def userdata(self, Item, IncrementalSync, _UpdateKodiFavorite):
+        xbmc.log(f"EMBY.core.folder: USERDATA {Item['Id']}", int(IncrementalSync)) # LOG
         return False

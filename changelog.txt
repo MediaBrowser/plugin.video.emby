@@ -1,3 +1,203 @@
+12.3.5
+=============
+Update Chinese language
+Add play random (context menu)
+Change addom mode to http (as default)
+
+
+
+12.3.4
+=============
+fix remove Musicgenre sync
+
+
+
+12.3.3
+=============
+fix playlist remove
+fix song, musicvideo realtime remove
+
+
+
+12.3.2
+=============
+fix cast
+fix timeouts on content selections
+
+
+
+12.3.1
+=============
+fix sync issue when Item has no Id
+
+
+
+12.3.0
+=============
+fix tvshow boxset assignment
+fix musicgenres sync
+fix playlist sync upgrade issue
+
+
+
+12.2.1
+=============
+fix delayed dynamic views
+fix dynamic nodes updates when using multiple servers
+improve caching
+fix transcoding for dyanmic node content
+add playcount info for dynamic music nodes
+fix audiosync when same song is assigned to multiple Emby libraries
+fix dynamic nodes resume position
+fix several music sync issues
+rewrite playlist sync
+fix Kodi favorites bug
+improve database performance
+fix one offline server blocks all others
+fix overlay image file extension
+fix delete on Kodi events for multi-servers
+
+
+
+12.1.2
+=============
+fix episode metadata in hybrid mode
+fix translations
+add option to enable accurate TVShow and Season progress information in dynamic nodes. Views might be slower refreshed (optional, default is on)
+
+
+
+12.1.1
+=============
+fix server re-conenct on server hard reset
+add "goto album" in context menu
+add "goto artist" in context menu
+fix timestamp issue for backups (files < year 1980)
+fix canceled backup restore
+fix sync pause for multi servers (single busy servers blocked all server)
+improve logging
+Add sync pause when playback is about to end (2 seconds)
+fix ssl connection issues
+fix MPAA Rating for hybrid nodes
+fix Ratings for hybrid nodes
+fix date added for hybrid nodes
+fix cast for hybrid nodes
+Update chinese language
+fix offline content playback when Emby server is offline
+fix playlists when container contains slashes
+fix Kodi content type for hybrid nodes (solves the delete issue)
+support rating for songs
+support hybrid nodes for NextUp
+support hybrid nodes for recommendations
+fix cached items content type, when content is mixed
+fix compatibility issues
+replace "SELECT *" by column names (prevent Kodi database incompatibility issues)
+support rating for MusicAlbum
+fix dynamic audio nodes for mixed content Emby libraries
+assign photo and video to kodi specific image/video helper addons (Emby homevideo library)
+add "more like this" option in context menu
+fix Kodi nodes for mixed content views (also improves stability)
+fix dynamic nodes when content type is Program
+
+
+
+12.1.0
+=============
+Kodi 21 and 22 support
+sort iconnodes
+fix node labels when label is a number
+improve incremental sync performance
+fix minor incremental sync issues
+add dynamic nodes option to disable local trailers (default off, cause it's slow)
+fix dynamic node multi-favorites
+update Chinese langague file, thanks wabisabi926
+fix Kodi favorites when quotes used in names
+add transcoding options by resolution
+support davs native content
+support webdav protocol as internal webservice (which is now default)
+hide dummy sources from views
+fix minor server login issue
+fix minor watch together bug
+lower progress updates to 50 seconds (less server traffic)
+add multiversion selection option in context menu for episodes and musicvideos
+add time sync check < year 2000
+add support musicvideo links for songs based on MusicBrainzId, Fallback -> Artists/Title (default on)
+fix c22 in database in movies table -> filepath
+re-download userimage when deleted from temp folder
+fix song remove sync issue (edge case)
+fix updates for downloaded content
+use xbmcvfs wherever possible (Kodi's virtual file system)
+fix folder views
+fix dynamic tag node for picture
+rewrite backup function, it's possible to restore between major releases
+fix cinema intros, skip youtube trailers
+fix cinema intros, playback progress issue
+improve tvtunes integration
+support livetv remote playback
+improve remote playback performance for dynamic content
+fix remote playback disconnects
+minor http server communication improvements for async requests
+set custom resume points
+
+
+
+12.0.0
+=============
+fix Kodi 22 incompatibilities
+
+
+
+11.2.1
+=============
+fix genre images for dynamic nodes
+add extra nodes for Genre, MusicGenre, Tags and Studios synced nodes including the icon images
+fix music genre synced node
+fix musicvideo genres
+fix Chinese language file
+fix MusicGenre and Folder realtime updates
+fix folder view for dynamic nodes
+improve large incremental updates via websocket
+
+
+
+11.2.0
+=============
+improve webservice http communication
+clean code
+fix minor episode season number issue
+minor performance improvements for addon mode playback start
+add priority options for server requests
+improve Kodi scan (busy) detection
+new node for recently added musicvideo albums
+fix minor shutdown issue
+auto resync on mandatory DB resets
+fix year node
+fix disabled certificate verification
+support http deflate compression
+improve library artwork caching
+adjust database PRAGMAs 
+add option to disable BusyDialog (default on)
+add option to set TOS/DSCP IP headers (default best efford)
+add option to auto cache artwork for incremental synced content (default off)
+fix transcoding for newer ffmpeg versions
+fix favorites
+fix minor sync issue after wake when Kodi sync was in progress when sleep was activated and Emby removed an item while sleep
+fix incompatibilities with latest Emby server beta version
+
+
+11.1.30
+=============
+fix Chinese language file
+
+
+
+11.1.29
+=============
+fix genre images for dynamic nodes
+fix music genre nodes
+
+
+
 11.1.27
 =============
 fix sync issue for multiversion content when width info is not available

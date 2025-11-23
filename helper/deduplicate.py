@@ -29,7 +29,6 @@ def deduplicate():
     if selection == -1: # Cancel
         return
 
-    DoublesContent = {}
     DoublesSeries = {}
     DoublesSeasons = {}
 
