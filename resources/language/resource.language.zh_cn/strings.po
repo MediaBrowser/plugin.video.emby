@@ -2839,7 +2839,7 @@ msgstr "跳转到表演"
 
 msgctxt "#33669"
 msgid "EMBY: Go To"
-msgstr "EMBY: 前往"
+msgstr "EMBY: 跳转"
 
 msgctxt "#33670"
 msgid "Go To Show"
@@ -3351,8 +3351,8 @@ msgstr "播放列表（混合）"
 
 msgctxt "#33797"
 msgid "EMBY: Random play"
-msgstr ""
+msgstr "EMBY: 随机播放"
 
 msgctxt "#33798"
 msgid "Random play"
-msgstr ""
+msgstr "随机播放"
