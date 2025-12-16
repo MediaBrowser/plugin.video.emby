@@ -217,7 +217,7 @@ class Library:
                 if 'ItemsRemoved' in result:
                     if result['ItemsRemoved']:
                         self.removed(result['ItemsRemoved'], True, False)
-                else:
+                elif utils.verifyKodiCompanion:
                     utils.Dialog.ok(utils.addon_name, utils.Translate(33716))
 
                 xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: Kodi companion ]", 1) # LOGINFO
@@ -618,8 +618,6 @@ class Library:
                     self.close_Worker(WorkerName, RefreshVideo, RefreshAudio, ProgressBar, SQLs)
 
                 xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove completed ]", 0) # LOGDEBUG
-
-        return True
 
     def worker_remove_generator(self, SQLs, RemoveItems, RecordsPercent, ProgressBar):
         for index, RemoveItem in enumerate(RemoveItems, 1):
@@ -1381,6 +1379,7 @@ class Library:
                         if utils.useDirectPaths:
                             ThemeItemPath = ThemeItem['KodiFullPath']
                         else:
+                            ThemeItem['KodiPath'] = ThemeItem['KodiPath'].replace("|redirect-limit=1000", "")
                             ThemeItemPath = f"{ThemeItem['KodiPath']}{Filename}"
 
                     XMLData += f"    <file>{utils.encode_XML(ThemeItemPath)}</file>\n".encode("utf-8")

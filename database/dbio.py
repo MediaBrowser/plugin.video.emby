@@ -39,7 +39,20 @@ def DBVacuum():
             DBConnectionsRW[DBID][1].close()
             DBConnectionsRW[DBID][0].commit()
 
+        try:
+            DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=OFF")
+        except:
+            xbmc.log(f"EMBY.database.dbio: Journalmode cannot be changed to OFF ---> DBVacuum: {DBID}", 0) # LOGDEBUG
+
+        DBConnectionsRW[DBID][0].execute("PRAGMA page_size=65536")
         DBConnectionsRW[DBID][0].execute("VACUUM")
+
+        try:
+            DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
+        except:
+            xbmc.log(f"EMBY.database.dbio: Journalmode cannot be changed to WAL ---> DBVacuum: {DBID}", 0) # LOGDEBUG
+
+        DBConnectionsRW[DBID][0].execute("ANALYZE")
         DBConnectionsRW[DBID][0].close()
         globals()["DBConnectionsRW"][DBID][0] = None
         globals()["DBConnectionsRW"][DBID][1] = None

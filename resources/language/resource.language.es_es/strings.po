@@ -3353,3 +3353,11 @@ msgstr ""
 msgctxt "#33798"
 msgid "Random play"
 msgstr ""
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr ""
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr ""

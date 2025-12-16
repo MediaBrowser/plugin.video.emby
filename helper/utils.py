@@ -77,6 +77,7 @@ enableContextGotoOptions = True
 enableContextSimilarOptions = True
 enableContextPlayRandom = True
 verifyFreeSpace = True
+verifyKodiCompanion = True
 SyncLiveTvOnEvents = False
 SelectDefaultVideoversion = False
 transcode_h264 = False
@@ -389,8 +390,9 @@ def image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText
     FileExtension = img.format
     FileExtension = FileExtension.lower()
 
-    if FileExtension == "jpg":
+    if FileExtension in ("jpg", "jpeg"):
         ContentType = "image/jpeg"
+        FileExtension = "jpg"
     elif FileExtension == "png":
         ContentType = "image/png"
     elif FileExtension == "gif":
@@ -962,6 +964,7 @@ def InitSettings():
     load_settings_bool('LiveTVEnabled')
     load_settings_bool('ThemesEnabled')
     load_settings_bool('verifyFreeSpace')
+    load_settings_bool('verifyKodiCompanion')
     load_settings_bool('remotecontrol_force_clients')
     load_settings_bool('remotecontrol_client_control')
     load_settings_bool('remotecontrol_sync_clients')

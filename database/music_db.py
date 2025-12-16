@@ -10,30 +10,36 @@ class MusicDatabase:
         self.common_db = common_db.CommonDatabase(cursor)
 
     def add_Index(self):
-        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
-        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (2, "composer"))
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strType on album (strType)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_dateadded on album (dateAdded)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_dateadded on song (dateAdded)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment_strGenres on song (comment, strGenres)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strReleaseType on album (strReleaseType)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed on song (idAlbum, lastplayed, iTimesPlayed)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strMusicBrainzTrackID on song (strMusicBrainzTrackID)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strArtistDisp_strTitle on song (strArtistDisp, strTitle)")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
+            self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (2, "composer"))
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strType on album (strType)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_dateadded on album (dateAdded)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_dateadded on song (dateAdded)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment_strGenres on song (comment, strGenres)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strReleaseType on album (strReleaseType)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed on song (idAlbum, lastplayed, iTimesPlayed)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strMusicBrainzTrackID on song (strMusicBrainzTrackID)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strArtistDisp_strTitle on song (strArtistDisp, strTitle)")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.music_db: Database add index error: {Error}", 3) # LOGERROR
 
     def delete_Index(self):
-        self.cursor.execute("DROP INDEX IF EXISTS idx_album_strType")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_album_dateadded")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_song_dateadded")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_song_comment_strGenres")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_artist_strDisambiguation")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_album_strReleaseType")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_song_strMusicBrainzTrackID")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_song_strArtistDisp_strTitle")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("DROP INDEX IF EXISTS idx_album_strType")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_album_dateadded")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_song_dateadded")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_song_comment_strGenres")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_artist_strDisambiguation")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_album_strReleaseType")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_song_strMusicBrainzTrackID")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_song_strArtistDisp_strTitle")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.music_db: Database delete index error: {Error}", 3) # LOGERROR
 
     # Make sure rescan and kodi db set
     def disable_rescan(self, Timestamp):
