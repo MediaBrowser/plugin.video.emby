@@ -34,7 +34,6 @@ class Playlist:
         utils.delFile(f"{PlaylistVideoFolder}{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}.xml")
         TrackNumber = {"Audio": 0, "MusicVideo": 0}
         M3UPlaylist = {"Audio": "", "Video": ""}
-        EmbyLinkedId = {}
         KodiPlaylistId = {"Audio": "", "Video": ""}
         EmbyRemoveIds = set()
         EmbyLinkedId = {"Audio": (), "Video": (), "Movie": (), "Episode": (), "MusicVideo": ()}

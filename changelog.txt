@@ -1,3 +1,23 @@
+12.3.7
+=============
+improve database performance for some queries
+add pragma page_size = 65536 when executing database vaccum
+Update Chinese language
+fix themes
+fix image file extensions
+fix SongArtists Sortnames
+fix hybrid nodes for MusicArtists
+
+
+
+12.3.6
+=============
+add analyze db to vaccum option
+add option to disable Kodi Companion warning
+fix xbox sync issue
+
+
+
 12.3.5
 =============
 Update Chinese language
