@@ -587,7 +587,6 @@ def set_trailer(Item, EmbyServer):
                 Item['Trailer'] = Item['RemoteTrailers'][0]['Url']
 
 def set_PlayCount(UserData):
-    KodiPlayCount = None
     PlayCount = UserData.get('PlayCount', None)
 
     if 'Played' in UserData:
@@ -1349,7 +1348,12 @@ def get_MusicArtistInfos(Item, ArtistType, SQLs):
             Artists.append(ArtistItem['Name'])
             ArtistItem['KodiId'] = SQLs["emby"].get_KodiId_by_EmbyId_multi_db(ArtistItem['Id'], "MusicArtist", "music")
             KodiIds.append(ArtistItem['KodiId'])
-            SortNames.append(SQLs["music"].get_ArtistSortname(ArtistItem['KodiId']))
+            ArtistSortname = SQLs["music"].get_ArtistSortname(ArtistItem['KodiId'])
+
+            if ArtistSortname:
+                SortNames.append(SQLs["music"].get_ArtistSortname(ArtistItem['KodiId']))
+            else:
+                SortNames.append(ArtistItem['Name'])
 
         Item[f"{ArtistType}SortName"] = " / ".join(SortNames)
         Item[f"{ArtistType}Name"] = " / ".join(Artists)

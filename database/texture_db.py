@@ -1,3 +1,4 @@
+import xbmc
 from . import common_db
 
 
@@ -7,9 +8,12 @@ class TextureDatabase:
         self.common_db = common_db.CommonDatabase(cursor)
 
     def add_Index(self):
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.texture_db: Database add index error: {Error}", 3) # LOGERROR
 
     def add_texture(self, url, cachedUrl, imagehash, size, width, height, KodiTime):
         self.cursor.execute("SELECT id FROM texture WHERE url = ?", (url,))

@@ -14,30 +14,40 @@ class VideoDatabase:
         self.common_db = common_db.CommonDatabase(cursor)
 
     def add_Index(self):
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_strFilename on files (strFilename)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_dateAdded on files (dateAdded)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_lastPlayed on files (lastPlayed)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_playCount on files (playCount)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmark_type on bookmark (type)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmark_timeInSeconds on bookmark (timeInSeconds)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_rating_rating on rating (rating)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_episode_c12 on episode (c12)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_episode_idShow_idFile_c12 on episode (idShow, idFile, c12)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_genre_link_genre_id_media_id_media_type ON genre_link(genre_id, media_id, media_type)")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_strFilename on files (strFilename)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_dateAdded on files (dateAdded)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_lastPlayed on files (lastPlayed)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_files_playCount on files (playCount)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmark_type on bookmark (type)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmark_timeInSeconds on bookmark (timeInSeconds)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_rating_rating on rating (rating)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_episode_c12 on episode (c12)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_episode_idShow_idFile_c12 on episode (idShow, idFile, c12)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_genre_link_genre_id_media_id_media_type ON genre_link(genre_id, media_id, media_type)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_movie_idSet on movie (idSet)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_videoversion_media_type on videoversion (media_type)")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.video_db: Database add index error: {Error}", 3) # LOGERROR
 
     def delete_Index(self):
-        self.cursor.execute("DROP INDEX IF EXISTS idx_files_strFilename")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_files_dateAdded")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_files_lastPlayed")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_files_playCount")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_bookmark_type")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_bookmark_timeInSeconds")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_rating_rating")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_episode_c12")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_episode_idShow_idFile_c12")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_genre_link_genre_id_media_id_media_type")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("DROP INDEX IF EXISTS idx_files_strFilename")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_files_dateAdded")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_files_lastPlayed")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_files_playCount")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_bookmark_type")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_bookmark_timeInSeconds")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_rating_rating")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_episode_c12")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_episode_idShow_idFile_c12")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_genre_link_genre_id_media_id_media_type")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_movie_idSet")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_videoversion_media_type")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.video_db: Database delete index error: {Error}", 3) # LOGERROR
 
     # playcount
     def get_playcount(self, KodiItemId, ContentType):

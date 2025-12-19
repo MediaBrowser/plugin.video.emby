@@ -277,38 +277,44 @@ class EmbyDatabase:
         return True
 
     def add_Index(self):
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyLibraryId on EmbyLibraryMapping (EmbyLibraryId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyId_EmbyMusicAlbumId_EmbyMusicArtistId_EmbyMusicGenreId on EmbyLibraryMapping (EmbyId, EmbyMusicAlbumId, EmbyMusicArtistId, EmbyMusicGenreId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicAlbumId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicAlbumId, EmbyLibraryId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicArtistId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicArtistId, EmbyLibraryId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicGenreId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicGenreId, EmbyLibraryId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MediaSources_EmbyId on MediaSources (EmbyId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MediaSources_Path on MediaSources (Path)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Movie_EmbyFolder on Movie (EmbyFolder)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyFolder on Video (EmbyFolder)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyParentId on Video (EmbyParentId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Episode_EmbyFolder on Episode (EmbyFolder)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MusicVideo_EmbyFolder on MusicVideo (EmbyFolder)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Audio_EmbyFolder on Audio (EmbyFolder)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyParentId on Video (EmbyParentId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_KodiFileId on Video (KodiFileId)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Tag_Memo on Tag (Memo)")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyLibraryId on EmbyLibraryMapping (EmbyLibraryId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyId_EmbyMusicAlbumId_EmbyMusicArtistId_EmbyMusicGenreId on EmbyLibraryMapping (EmbyId, EmbyMusicAlbumId, EmbyMusicArtistId, EmbyMusicGenreId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicAlbumId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicAlbumId, EmbyLibraryId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicArtistId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicArtistId, EmbyLibraryId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_EmbyLibraryMapping_EmbyMusicGenreId_EmbyLibraryId on EmbyLibraryMapping (EmbyMusicGenreId, EmbyLibraryId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MediaSources_EmbyId on MediaSources (EmbyId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MediaSources_Path on MediaSources (Path)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Movie_EmbyFolder on Movie (EmbyFolder)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyFolder on Video (EmbyFolder)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyParentId on Video (EmbyParentId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Episode_EmbyFolder on Episode (EmbyFolder)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_MusicVideo_EmbyFolder on MusicVideo (EmbyFolder)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Audio_EmbyFolder on Audio (EmbyFolder)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_EmbyParentId on Video (EmbyParentId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Video_KodiFileId on Video (KodiFileId)")
+            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_Tag_Memo on Tag (Memo)")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.emby_db: Database add index error: {Error}", 3) # LOGERROR
 
     def delete_Index(self):
-        self.cursor.execute("DROP INDEX IF EXISTS idx_MediaSources_EmbyId")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_MediaSources_Path")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Series_EmbyPresentationKey")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Season_EmbyPresentationKey")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Movie_EmbyFolder")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyFolder")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyParentId")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Episode_EmbyFolder")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_MusicVideo_EmbyFolder")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Audio_EmbyFolder")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyParentId")
-        self.cursor.execute("DROP INDEX IF EXISTS idx_Video_KodiFileId")
-        self.cursor.execute("ANALYZE")
+        try: # xbox issue
+            self.cursor.execute("DROP INDEX IF EXISTS idx_MediaSources_EmbyId")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_MediaSources_Path")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Series_EmbyPresentationKey")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Season_EmbyPresentationKey")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Movie_EmbyFolder")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyFolder")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyParentId")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Episode_EmbyFolder")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_MusicVideo_EmbyFolder")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Audio_EmbyFolder")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Video_EmbyParentId")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_Video_KodiFileId")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.emby_db: Database delete index error: {Error}", 3) # LOGERROR
 
     # LibrarySynced
     def get_LibrarySynced(self):
@@ -1386,7 +1392,6 @@ class EmbyDatabase:
         # Delete mapping item
         if not EmbyLibraryId or EmbyLibraryId == "None":
             self.cursor.execute("DELETE FROM EmbyLibraryMapping WHERE EmbyId = ?", (EmbyId,))
-            self.cursor.execute("SELECT EXISTS(SELECT 1 FROM EmbyLibraryMapping WHERE EmbyId = ? AND EmbyMusicAlbumId = ? AND EmbyMusicArtistId = ? AND EmbyMusicGenreId = ?)", (EmbyId, 0, 0, 0))
             DeleteItem = True
         else:
             self.cursor.execute("DELETE FROM EmbyLibraryMapping WHERE EmbyId = ? AND EmbyLibraryId = ?", (EmbyId, EmbyLibraryId))
@@ -1506,9 +1511,9 @@ class EmbyDatabase:
                     KodiIds = Data[0].split(";")
 
                     if KodiDB == "video":
-                        return KodiIds[0], "video"
+                        return KodiIds[1], "video"
 
-                    return KodiIds[1], "music"
+                    return KodiIds[0], "music"
 
                 return None, None
 
@@ -1547,9 +1552,9 @@ class EmbyDatabase:
             Data = Data[0].split(";")
 
             if KodiDB == "video":
-                return Data[0]
+                return Data[1]
 
-            return Data[1]
+            return Data[0]
 
         return ""
 
