@@ -253,7 +253,7 @@ msgstr "播放"
 
 msgctxt "#30517"
 msgid "Network credentials"
-msgstr "网络证书"
+msgstr "网络凭证"
 
 msgctxt "#30518"
 msgid "Enable cinema mode"
@@ -1121,7 +1121,7 @@ msgstr "启用智能播放列表（这可能导致 Kodi 崩溃）"
 
 msgctxt "#33240"
 msgid "Enable userrating"
-msgstr "启用用户评级"
+msgstr "启用用户评分"
 
 msgctxt "#33241"
 msgid "Enable local trailers"
@@ -1975,7 +1975,7 @@ msgstr "选择媒体源"
 
 msgctxt "#33454"
 msgid "Use workarounds for Kodi's (dynamic) widget issues"
-msgstr "使用 Kodi 的（动态）小部件问题的解决方法"
+msgstr "使用 Kodi 的（动态）小组件问题的解决方法"
 
 msgctxt "#33455"
 msgid "H264"
@@ -2319,7 +2319,7 @@ msgstr "通过列表视图选择剧集时，Kodi 在剧集书签方面存在一�
 
 msgctxt "#33540"
 msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
-msgstr "Kodi 在动态小部件存在问题。 该选项可防止 Kodi 多次查询相同内容。 （边缘情况，默认关闭）"
+msgstr "Kodi 在动态小组件存在问题。 该选项可防止 Kodi 多次查询相同内容。 （边缘情况，默认关闭）"
 
 msgctxt "#33541"
 msgid "Enable HTTP/2 support"
@@ -2331,7 +2331,7 @@ msgstr "Kodi 通过 HTTP/2 协议播放内容时存在问题（默认关闭）"
 
 msgctxt "#33543"
 msgid "Extra audio widget refresh"
-msgstr "额外的音频小部件刷新"
+msgstr "额外的音频小组件刷新"
 
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
@@ -2815,11 +2815,11 @@ msgstr "下载系列"
 
 msgctxt "#33663"
 msgid "Set imdb as default rating provider"
-msgstr "将 imdb 设置为默认评级提供商"
+msgstr "将 imdb 设置为默认评分源"
 
 msgctxt "#33664"
 msgid "Assume Emby's community rating reflects imdb ratings"
-msgstr "假设 Emby 的社区评级反映了 IMDB 评级"
+msgstr "假设 Emby 的社区评分反映了 IMDB 评分"
 
 msgctxt "#33665"
 msgid "Next Episodes (Mixed content)"
