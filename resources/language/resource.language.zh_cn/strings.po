@@ -877,7 +877,7 @@ msgstr "分页 - 下载线程（默认值：3）"
 
 msgctxt "#33175"
 msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
-msgstr "分页提示：每个下载线程同时从Emby请求您的最大项目值。"
+msgstr "分页提示：每个下载线程同时从 Emby 请求您的最大项目值。"
 
 msgctxt "#33176"
 msgid "Update or repair your libraries to apply the changes below."
@@ -929,7 +929,7 @@ msgstr "同步烂番茄评分"
 
 msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
-msgstr "是否要同步烂番茄的评分吗？"
+msgstr "是否要同步烂番茄评分吗？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
@@ -1931,7 +1931,7 @@ msgstr "启用服务器进度"
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
-msgstr "Emby 服务器繁忙通知显示"
+msgstr "Emby 服务器忙碌通知显示"
 
 msgctxt "#33445"
 msgid "Query content changes"
@@ -3043,7 +3043,7 @@ msgstr "更高的值可以提升性能，但需要更多资源。更改需在 Ko
 
 msgctxt "#33720"
 msgid "Close busy dialog"
-msgstr "关闭繁忙对话框"
+msgstr "关闭忙碌对话框"
 
 msgctxt "#33721"
 msgid "Can prevent Kodi crashes"
