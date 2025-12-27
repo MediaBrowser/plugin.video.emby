@@ -55,7 +55,7 @@ class Videos:
         self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
 
         if Item['UpdateItem']:
-            common.delete_ContentItemReferences(Item, self.SQLs, "movie", False, False)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie", False, False)
             common.set_path_filename(Item, self.EmbyServer.ServerData['ServerId'], None)
             common.set_multipart(Item, self.EmbyServer)
             common.update_downloaded_info(Item, self.SQLs, "movie")
@@ -66,7 +66,7 @@ class Videos:
             common.set_multipart(Item, self.EmbyServer)
             Item['KodiPathId'] = self.SQLs['video'].get_add_path(Item['KodiPath'], "movies")
 
-        common.set_VideoCommon(Item, self.SQLs, "movie")
+        common.set_VideoCommon(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie")
         common.set_Genre_links(Item['KodiItemId'], self.SQLs, "movie", Item["GenreItems"])
         common.set_Studio_links(Item['KodiItemId'], self.SQLs, "movie", Item["Studios"])
         common.set_Tag_links(Item['KodiItemId'], self.SQLs, "movie", Item["TagItems"])
@@ -120,7 +120,7 @@ class Videos:
         return Update
 
     def remove(self, Item, IncrementalSync):
-        if common.delete_ContentItem(Item, self.SQLs, "movie", "Video", Item['isSpecial']):
+        if common.delete_ContentItem(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie", "Video", Item['isSpecial']):
             self.set_favorite(False, Item)
             self.SQLs["video"].delete_movie(Item['KodiItemId'], Item['KodiFileId'])
             xbmc.log(f"EMBY.core.videos: DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", int(IncrementalSync)) # LOG
