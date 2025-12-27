@@ -1036,7 +1036,14 @@ class VideoDatabase:
         elif All:
             self.cursor.execute("DELETE FROM tag_link WHERE media_id = ? AND media_type = ?", (MediaId, MediaType))
         else: # Keep favorites tag
-            self.cursor.execute("DELETE FROM tag_link WHERE media_id = ? AND media_type = ? AND  name NOT LIKE ?", (MediaId, MediaType, "% (Favorites)"))
+            self.cursor.execute("SELECT tag_id FROM tag_link WHERE media_id = ? AND media_type = ?", (MediaId, MediaType))
+            TagIds = self.cursor.fetchall()
+
+            for TagId in TagIds:
+                self.cursor.execute("SELECT EXISTS(SELECT 1 FROM tag WHERE tag_id = ? AND name NOT LIKE ?)", (TagId, "% (Favorites)"))
+
+                if self.cursor.fetchone()[0]:
+                    self.cursor.execute("DELETE FROM tag_link WHERE media_id = ? AND media_type = ?", (MediaId, MediaType))
 
     def get_collection_tags(self, LibraryTag, KodiMediaType):
         self.cursor.execute("SELECT tag_id, name FROM tag WHERE name LIKE ?", ("% (Collection)",))

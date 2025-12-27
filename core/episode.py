@@ -64,7 +64,7 @@ class Episode:
             Item['ParentIndexNumber'] = SeasonNumber
 
         if Item['UpdateItem']:
-            common.delete_ContentItemReferences(Item, self.SQLs, "episode", False, False)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "episode", False, False)
             common.set_path_filename(Item, self.EmbyServer.ServerData['ServerId'], None)
             common.set_multipart(Item, self.EmbyServer)
             common.update_downloaded_info(Item, self.SQLs, "episode")
@@ -75,7 +75,7 @@ class Episode:
             common.set_multipart(Item, self.EmbyServer)
             Item['KodiPathId'] = self.SQLs["video"].get_add_path(Item['KodiPath'], None)
 
-        common.set_VideoCommon(Item, self.SQLs, "episode")
+        common.set_VideoCommon(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "episode")
         common.set_Genre_links(Item['KodiItemId'], self.SQLs, "episode", Item["GenreItems"])
         common.set_Studio_links(Item['KodiItemId'], self.SQLs, "episode", Item["Studios"])
         common.set_Actor_links(Item['KodiItemId'], self.SQLs, "episode", Item["CastItems"])
@@ -118,7 +118,7 @@ class Episode:
     # Remove showid, fileid, pathid, emby reference.
     # There's no episodes left, delete show and any possible remaining seasons
     def remove(self, Item, IncrementalSync):
-        if common.delete_ContentItem(Item, self.SQLs, "episode", "Episode", False):
+        if common.delete_ContentItem(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "episode", "Episode", False):
             self.set_favorite(False, Item)
             self.SQLs["video"].delete_episode(Item['KodiItemId'], Item['KodiFileId'])
             xbmc.log(f"EMBY.core.episode: DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", int(IncrementalSync)) # LOG

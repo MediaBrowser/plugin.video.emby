@@ -57,11 +57,11 @@ class MusicVideo:
             EmbyMusicArtistIds, EmbyMusicGenreIds = self.set_metadata(UpdateItem, IncrementalSync)
             common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
             common.remove_old_EmbyMusicGenre(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicGenreIds, self.MusicGenreObject, IncrementalSync)
-            common.delete_ContentItemReferences(UpdateItem, self.SQLs, "musicvideo", False, False)
+            common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem, self.SQLs, "musicvideo", False, False)
             common.set_path_filename(UpdateItem, self.EmbyServer.ServerData['ServerId'], None)
             common.set_multipart(UpdateItem, self.EmbyServer)
             common.update_downloaded_info(UpdateItem, self.SQLs, "musicvideo")
-            self.assign_metadata(UpdateItem, KodiItemIdCurrent)
+            self.assign_metadata(UpdateItem, KodiItemIdCurrent, KodiFileIdCurrent)
             self.SQLs["video"].update_musicvideos(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem['KodiName'], UpdateItem['KodiArtwork']['poster'], UpdateItem['KodiRunTimeTicks'], UpdateItem['Directors'], UpdateItem['Studio'], UpdateItem['Overview'], UpdateItem['Album'], UpdateItem['MusicArtist'], UpdateItem['MusicGenre'], UpdateItem['IndexNumber'], UpdateItem['KodiPremiereDate'], UpdateItem['KodiFilename'], UpdateItem['KodiStackedFilename'], UpdateItem['KodiDateCreated'], KodiPathIdCurrent, UpdateItem['KodiPath'], bool(PlaylistTag), UpdateItem['KodiFullPath'])
             self.SQLs["emby"].update_reference_musicvideo(UpdateItem['Id'], UpdateItem['PresentationUniqueKey'], UpdateItem['LibraryId'], EmbyMusicArtistIds, EmbyMusicGenreIds)
             xbmc.log(f"EMBY.core.musicvideo: UPDATE [{KodiPathIdCurrent} / {KodiFileIdCurrent} / {KodiItemIdCurrent}] {UpdateItem['Id']}: {UpdateItem['Name']}", int(IncrementalSync)) # LOG
@@ -85,7 +85,7 @@ class MusicVideo:
             KodiPathIdCurrent = self.SQLs["video"].get_add_path(Item['KodiPath'], "musicvideos")
             Item['KodiPathId'] = common.add_Ids_SingleContent(KodiPathIds, KodiPathIdCurrent)
             Item['LibraryIds'] = common.add_Ids_SingleContent(LibraryIds, Item['LibraryId'])
-            self.assign_metadata(Item, KodiItemIdCurrent)
+            self.assign_metadata(Item, KodiItemIdCurrent, KodiFileIdCurrent)
             self.SQLs["video"].add_musicvideos(KodiItemIdCurrent, KodiFileIdCurrent, Item['Name'], Item['KodiArtwork']['poster'], Item['KodiRunTimeTicks'], Item['Directors'], Item['Studio'], Item['Overview'], Item['Album'], Item['MusicArtist'], Item['MusicGenre'], Item['IndexNumber'], Item['KodiFullPath'], KodiPathIdCurrent, Item['KodiPremiereDate'], Item['KodiDateCreated'], Item['KodiFilename'], Item['KodiStackedFilename'], bool(PlaylistTag))
             self.SQLs["emby"].add_reference_musicvideo(Item['Id'], Item['LibraryId'], KodiItemIds, KodiFileIds, Item['PresentationUniqueKey'], Item['Path'], KodiPathIds, Item['LibraryIds'], EmbyMusicArtistIds, EmbyMusicGenreIds)
             xbmc.log(f"EMBY.core.musicvideo: ADD [{KodiPathIdCurrent} / {KodiFileIdCurrent} / {KodiItemIdCurrent}] {Item['Id']}: {Item['Name']}", int(IncrementalSync)) # LOG
@@ -110,8 +110,8 @@ class MusicVideo:
         self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
         return EmbyMusicArtistIds, EmbyMusicGenreIds
 
-    def assign_metadata(self, Item, KodiItemIdCurrent):
-        common.set_VideoCommon(Item, self.SQLs, "musicvideo")
+    def assign_metadata(self, Item, KodiItemIdCurrent, KodiFileIdCurrent):
+        common.set_VideoCommon(KodiItemIdCurrent, KodiFileIdCurrent, Item, self.SQLs, "musicvideo")
         common.set_MusicGenre_links(KodiItemIdCurrent, self.SQLs, "musicvideo", Item["GenreItems"], 1)
         common.set_Studio_links(KodiItemIdCurrent, self.SQLs, "musicvideo", Item["Studios"])
         common.set_Tag_links(KodiItemIdCurrent, self.SQLs, "musicvideo", Item["TagItems"])
@@ -194,7 +194,7 @@ class MusicVideo:
                 KodiFileIdCurrent = None
 
             Item['LibraryIds'] = common.del_Ids_SingleContent(LibraryIds, Item['LibraryId'])
-            common.delete_ContentItemReferences(Item, self.SQLs, "MusicVideo", False, True)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "musicvideo", False, True)
             self.SQLs["video"].delete_musicvideos(KodiItemIdCurrent, KodiFileIdCurrent)
             common.update_multiversion(self.SQLs["emby"], "MusicVideo", Item['Id'], Item['LibraryId'], Item.get('PresentationUniqueKey', ''))
 

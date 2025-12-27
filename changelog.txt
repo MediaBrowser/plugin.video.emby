@@ -1,3 +1,14 @@
+12.3.8
+=============
+fix tag-links database issue
+fix minor sync issues
+fix boxset tag removal
+fix musicalbum removal on song updates
+fix song removal on musicalbum delete
+fix intros
+
+
+
 12.3.7
 =============
 improve database performance for some queries

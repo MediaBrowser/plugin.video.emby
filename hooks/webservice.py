@@ -1004,13 +1004,13 @@ def send_delayed_content(client, Payload):
             else:
                 client.send(DC)
 
-            # Things could have changed by other threads since the check at the top so check again
-            with DelayedContentLock:
-                if Payload in DelayedContent:
-                    globals()['DelayedContent'][Payload][1] -= 1
+                # Things could have changed by other threads since the check at the top so check again
+                with DelayedContentLock:
+                    if Payload in DelayedContent:
+                        globals()['DelayedContent'][Payload][1] -= 1
 
-                    if DelayedContent[Payload][1] < 0:
-                        del globals()['DelayedContent'][Payload]
+                        if DelayedContent[Payload][1] < 0:
+                            del globals()['DelayedContent'][Payload]
 
             return True
 

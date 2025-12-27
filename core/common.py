@@ -975,50 +975,50 @@ def set_MusicVideoTracks(Item):
         if Track.isdigit():
             Item['IndexNumber'] = int(Track)  # remove leading zero e.g. 01
 
-def delete_ContentItemReferences(Item, SQLs, KodiType, isSpecial, All):
+def delete_ContentItemReferences(KodiItemId, KodiFileId, Item, SQLs, KodiType, isSpecial, All):
     KodiLibraryTagIds = SQLs["emby"].get_KodiSpecialTagIds()
-    SQLs["video"].delete_links_actors(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_links_director(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_links_writer(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_links_countries(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_links_studios(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_links_tags(Item['KodiItemId'], KodiType, KodiLibraryTagIds, All)
-    SQLs["video"].delete_links_genres(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_uniqueids(Item['KodiItemId'], KodiType)
-    SQLs["video"].delete_bookmark(Item['KodiFileId'], 0) # Delete Chapter bookmarks
+    SQLs["video"].delete_links_actors(KodiItemId, KodiType)
+    SQLs["video"].delete_links_director(KodiItemId, KodiType)
+    SQLs["video"].delete_links_writer(KodiItemId, KodiType)
+    SQLs["video"].delete_links_countries(KodiItemId, KodiType)
+    SQLs["video"].delete_links_studios(KodiItemId, KodiType)
+    SQLs["video"].delete_links_tags(KodiItemId, KodiType, KodiLibraryTagIds, All)
+    SQLs["video"].delete_links_genres(KodiItemId, KodiType)
+    SQLs["video"].delete_uniqueids(KodiItemId, KodiType)
+    SQLs["video"].delete_bookmark(KodiFileId, 0) # Delete Chapter bookmarks
 
     if All: # Delete Resumepoints
-        SQLs["video"].delete_bookmark(Item['KodiFileId'], 1)
+        SQLs["video"].delete_bookmark(KodiFileId, 1)
 
-    SQLs["video"].delete_streams(Item['KodiFileId'])
-    SQLs["video"].delete_stacktimes(Item['KodiFileId'])
-    SQLs["video"].delete_ratings(Item['KodiItemId'], KodiType)
-    SQLs["video"].common_db.delete_artwork(Item['KodiItemId'], KodiType)
+    SQLs["video"].delete_streams(KodiFileId)
+    SQLs["video"].delete_stacktimes(KodiFileId)
+    SQLs["video"].delete_ratings(KodiItemId, KodiType)
+    SQLs["video"].common_db.delete_artwork(KodiItemId, KodiType)
 
     if KodiType == "movie":
-        SQLs["video"].common_db.delete_artwork(Item['KodiFileId'], "videoversion") # delete videoversions artwork
+        SQLs["video"].common_db.delete_artwork(KodiFileId, "videoversion") # delete videoversions artwork
 
         if isSpecial:
-            SQLs["video"].delete_videoversion(Item['KodiItemId'], KodiType)
+            SQLs["video"].delete_videoversion(KodiItemId, KodiType)
         else:
-            SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(Item['KodiItemId'], Item['KodiFileId'], KodiType) # delete videoversions
+            SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(KodiItemId, KodiFileId, KodiType) # delete videoversions
 
         SQLs['emby'].remove_item_by_parentid(Item['Id'], "Video", Item['LibraryId']) # delete reference specials
 
-def set_VideoCommon(Item, SQLs, KodiType):
-    SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiItemId'], KodiType)
-    SQLs["video"].add_bookmarks(Item['KodiFileId'], Item['KodiRunTimeTicks'], Item['MediaSources'][0]['KodiChapters'])
-    SQLs["video"].add_countries_and_links(Item['ProductionLocations'], Item['KodiItemId'], KodiType)
-    SQLs["video"].add_streams(Item['KodiFileId'], Item['MediaSources'][0]['KodiStreams']['Video'], Item['MediaSources'][0]['KodiStreams']['Audio'], Item['MediaSources'][0]['KodiStreams']['Subtitle'], Item['KodiRunTimeTicks'])
+def set_VideoCommon(KodiItemId, KodiFileId, Item, SQLs, KodiType):
+    SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], KodiItemId, KodiType)
+    SQLs["video"].add_bookmarks(KodiFileId, Item['KodiRunTimeTicks'], Item['MediaSources'][0]['KodiChapters'])
+    SQLs["video"].add_countries_and_links(Item['ProductionLocations'], KodiItemId, KodiType)
+    SQLs["video"].add_streams(KodiFileId, Item['MediaSources'][0]['KodiStreams']['Video'], Item['MediaSources'][0]['KodiStreams']['Audio'], Item['MediaSources'][0]['KodiStreams']['Subtitle'], Item['KodiRunTimeTicks'])
 
     if "KodiStackTimes" in Item:
-        SQLs["video"].add_stacktimes(Item['KodiFileId'], Item['KodiStackTimes'])
+        SQLs["video"].add_stacktimes(KodiFileId, Item['KodiStackTimes'])
 
-def delete_ContentItem(Item, SQLs, KodiType, EmbyType, isSpecial):
+def delete_ContentItem(KodiItemId, KodiFileId, Item, SQLs, KodiType, EmbyType, isSpecial):
     Delete, _ = SQLs['emby'].remove_item(Item['Id'], EmbyType, Item['LibraryId'], False)
 
-    if Delete and Item['KodiItemId']:  # Item['KodiItemId'] can be None for multiversion content
-        delete_ContentItemReferences(Item, SQLs, KodiType, isSpecial, True)
+    if Delete and KodiItemId:  # KodiItemId can be None for multiversion content
+        delete_ContentItemReferences(KodiItemId, KodiFileId, Item, SQLs, KodiType, isSpecial, True)
 
     return Delete
 
@@ -1503,7 +1503,7 @@ def add_multiversion(Item, EmbyType, EmbyServer, SQLs, ServerId, EmbyMusicArtist
 
             # Remove old Kodi video-db references
             if ItemReferenced['KodiItemId'] and str(Item['KodiItemId']) != str(ItemReferenced['KodiItemId']) and str(Item['KodiFileId']) != str(ItemReferenced['KodiFileId']):
-                delete_ContentItem(ItemReferenced, SQLs, utils.EmbyTypeMapping[EmbyType], EmbyType, True)
+                delete_ContentItem(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], ItemReferenced, SQLs, utils.EmbyTypeMapping[EmbyType], EmbyType, True)
 
                 if SQLs['video']: # video otherwise unsynced content e.g. specials
                     if EmbyType == "Episode":
@@ -1623,7 +1623,7 @@ def remove_old_EmbyMusicAlbum(EmbyDB, ItemId, LibraryId, MusicAlbumId, MusicAlbu
 
     if MusicAlbumId:
         if str(MusicAlbumId) != str(EmbyMusicAlbumIdOld):
-            MusicAlbumObject.remove({'Id': MusicAlbumId, 'LibraryId': LibraryId}, IncrementalSync)
+            MusicAlbumObject.remove({'Id': EmbyMusicAlbumIdOld, 'LibraryId': LibraryId}, IncrementalSync)
     elif EmbyMusicAlbumIdOld:
         MusicAlbumObject.remove({'Id': EmbyMusicAlbumIdOld, 'LibraryId': LibraryId}, IncrementalSync)
 
