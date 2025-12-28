@@ -150,5 +150,5 @@ class BoxSets:
             KodiTagId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(EmbyTagId, "Tag")
 
             if KodiTagId:
-                Item.update({'KodiItemId': KodiTagId, 'Id': EmbyTagId})
-                self.TagObject.set_favorite(IsFavorite, Item)
+                ItemTag = Item.copy()
+                ItemTag.update({'KodiItemId': KodiTagId, 'Id': EmbyTagId})

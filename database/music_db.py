@@ -249,6 +249,10 @@ class MusicDatabase:
         # Get/keep current Tags
         self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (KodiItemId,))
         CommentCurrent = self.cursor.fetchone()
+
+        if not CommentCurrent: # Temporary fix, mymusicdb trigger can remove songs. Permanent fix included in next major version
+            return
+
         CommentsCurrent = CommentCurrent[0].split("\n")
         EmbyLibraryIds = ()
         EmbyPlaylistIds = ()
