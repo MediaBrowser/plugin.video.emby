@@ -3043,7 +3043,7 @@ msgstr "更高的值可以提升性能，但需要更多资源。更改需在 Ko
 
 msgctxt "#33720"
 msgid "Close busy dialog"
-msgstr "关闭忙碌对话框"
+msgstr "关闭加载对话框"
 
 msgctxt "#33721"
 msgid "Can prevent Kodi crashes"
