@@ -3098,7 +3098,6 @@ msgstr ""
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
 msgstr ""
-
 msgctxt "#33737"
 msgid "always"
 msgstr ""
@@ -3353,4 +3352,104 @@ msgstr ""
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr ""
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr ""
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr ""
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr ""
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr ""
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr ""
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr ""
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr ""
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr ""
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr ""
+
+msgctxt "#33810"
+msgid "Homescreen navigation"
+msgstr ""
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr ""
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr ""
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr ""
+
+msgctxt "#33814"
+msgid "Download"
+msgstr ""
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr ""
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr ""
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr ""
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr ""
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr ""
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr ""
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr ""
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr ""
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr ""
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr ""
+
+msgctxt "#33825"
+msgid "Volume"
 msgstr ""
