@@ -1165,7 +1165,7 @@ msgstr "标语"
 
 msgctxt "#33251"
 msgid "Overview"
-msgstr "概述"
+msgstr "概要"
 
 msgctxt "#33252"
 msgid "Production locations"
@@ -1785,7 +1785,7 @@ msgstr "数据库将执行重建优化，此操作将导致关闭延迟"
 
 msgctxt "#33409"
 msgid "Reload skin"
-msgstr "重新加载皮肤"
+msgstr "重载皮肤"
 
 msgctxt "#33410"
 msgid "Other"
