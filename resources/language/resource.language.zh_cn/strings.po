@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2025-12-19 10:28+0800\n"
+"PO-Revision-Date: 2026-01-05 11:11+0800\n"
 "Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -253,7 +253,7 @@ msgstr "播放"
 
 msgctxt "#30517"
 msgid "Network credentials"
-msgstr "网络凭证"
+msgstr "网络证书"
 
 msgctxt "#30518"
 msgid "Enable cinema mode"
@@ -877,7 +877,7 @@ msgstr "分页 - 下载线程（默认值：3）"
 
 msgctxt "#33175"
 msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
-msgstr "分页提示：每个下载线程同时从 Emby 请求您的最大项目值。"
+msgstr "分页提示：每个下载线程同时从Emby请求您的最大项目值。"
 
 msgctxt "#33176"
 msgid "Update or repair your libraries to apply the changes below."
@@ -929,7 +929,7 @@ msgstr "同步烂番茄评分"
 
 msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
-msgstr "是否要同步烂番茄评分吗？"
+msgstr "是否要同步烂番茄的评分吗？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
@@ -1121,7 +1121,7 @@ msgstr "启用智能播放列表（这可能导致 Kodi 崩溃）"
 
 msgctxt "#33240"
 msgid "Enable userrating"
-msgstr "启用用户评分"
+msgstr "启用用户评级"
 
 msgctxt "#33241"
 msgid "Enable local trailers"
@@ -1931,7 +1931,7 @@ msgstr "启用服务器进度"
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
-msgstr "Emby 服务器忙碌通知显示"
+msgstr "Emby 服务器繁忙通知显示"
 
 msgctxt "#33445"
 msgid "Query content changes"
@@ -1979,63 +1979,63 @@ msgstr "使用 Kodi 的（动态）小组件问题的解决方法"
 
 msgctxt "#33455"
 msgid "H264"
-msgstr ""
+msgstr "H264"
 
 msgctxt "#33456"
 msgid "HEVC"
-msgstr ""
+msgstr "HEVC"
 
 msgctxt "#33457"
 msgid "AV1"
-msgstr ""
+msgstr "AV1"
 
 msgctxt "#33458"
 msgid "VP8"
-msgstr ""
+msgstr "VP8"
 
 msgctxt "#33459"
 msgid "VP9"
-msgstr ""
+msgstr "VP9"
 
 msgctxt "#33460"
 msgid "WMV3"
-msgstr ""
+msgstr "WMV3"
 
 msgctxt "#33461"
 msgid "MPEG4"
-msgstr ""
+msgstr "MPEG4"
 
 msgctxt "#33462"
 msgid "MPEG2VIDEO"
-msgstr ""
+msgstr "MPEG2VIDEO"
 
 msgctxt "#33463"
 msgid "MJPEG"
-msgstr ""
+msgstr "MJPEG"
 
 msgctxt "#33464"
 msgid "MSMPEG4V3"
-msgstr ""
+msgstr "MSMPEG4V3"
 
 msgctxt "#33465"
 msgid "AAC"
-msgstr ""
+msgstr "AAC"
 
 msgctxt "#33466"
 msgid "MP3"
-msgstr ""
+msgstr "MP3"
 
 msgctxt "#33467"
 msgid "MP2"
-msgstr ""
+msgstr "MP2"
 
 msgctxt "#33468"
 msgid "DTS"
-msgstr ""
+msgstr "DTS"
 
 msgctxt "#33469"
 msgid "AC3"
-msgstr ""
+msgstr "AC3"
 
 msgctxt "#33470"
 msgid "Transcode video"
@@ -2055,27 +2055,27 @@ msgstr "转码输出格式"
 
 msgctxt "#33474"
 msgid "EAC3"
-msgstr ""
+msgstr "E-AC3"
 
 msgctxt "#33475"
 msgid "PCM MULAW"
-msgstr ""
+msgstr "PCM MULAW"
 
 msgctxt "#33476"
 msgid "PCM S24LE"
-msgstr ""
+msgstr "PCM S24LE"
 
 msgctxt "#33477"
 msgid "VORBIS"
-msgstr ""
+msgstr "VORBIS"
 
 msgctxt "#33478"
 msgid "WMAV2"
-msgstr ""
+msgstr "WMAV2"
 
 msgctxt "#33479"
 msgid "AC4"
-msgstr ""
+msgstr "AC4"
 
 msgctxt "#33480"
 msgid "Transcode livetv"
@@ -2619,7 +2619,7 @@ msgstr "最喜欢的音乐视频"
 
 msgctxt "#33611"
 msgid "A-Z"
-msgstr ""
+msgstr "A-Z"
 
 msgctxt "#33612"
 msgid "Collections"
@@ -2775,39 +2775,39 @@ msgstr "EMBY: 远程播放"
 
 msgctxt "#33653"
 msgid "VC1"
-msgstr ""
+msgstr "VC1"
 
 msgctxt "#33654"
 msgid "PRORES"
-msgstr ""
+msgstr "PRORES"
 
 msgctxt "#33655"
 msgid "MSMPEG4V2"
-msgstr ""
+msgstr "MSMPEG4V2"
 
 msgctxt "#33656"
 msgid "AAC LATM"
-msgstr ""
+msgstr "AAC LATM"
 
 msgctxt "#33657"
 msgid "DTSHD HRA"
-msgstr ""
+msgstr "DTS-HD HRA"
 
 msgctxt "#33658"
 msgid "DTSHD MA"
-msgstr ""
+msgstr "DTS-HD MA"
 
 msgctxt "#33659"
 msgid "PCM S16LE"
-msgstr ""
+msgstr "PCM S16LE"
 
 msgctxt "#33660"
 msgid "TRUEHD"
-msgstr ""
+msgstr "TRUEHD"
 
 msgctxt "#33661"
 msgid "OPUS"
-msgstr ""
+msgstr "OPUS"
 
 msgctxt "#33662"
 msgid "Downloaded series"
@@ -2815,11 +2815,11 @@ msgstr "下载系列"
 
 msgctxt "#33663"
 msgid "Set imdb as default rating provider"
-msgstr "将 imdb 设置为默认评分源"
+msgstr "将 imdb 设置为默认评级提供商"
 
 msgctxt "#33664"
 msgid "Assume Emby's community rating reflects imdb ratings"
-msgstr "假设 Emby 的社区评分反映了 IMDB 评分"
+msgstr "假设 Emby 的社区评级反映了 IMDB 评级"
 
 msgctxt "#33665"
 msgid "Next Episodes (Mixed content)"
@@ -2839,7 +2839,7 @@ msgstr "跳转到表演"
 
 msgctxt "#33669"
 msgid "EMBY: Go To"
-msgstr "EMBY: 跳转"
+msgstr "EMBY: 前往"
 
 msgctxt "#33670"
 msgid "Go To Show"
@@ -3043,7 +3043,7 @@ msgstr "更高的值可以提升性能，但需要更多资源。更改需在 Ko
 
 msgctxt "#33720"
 msgid "Close busy dialog"
-msgstr "关闭加载对话框"
+msgstr "关闭繁忙对话框"
 
 msgctxt "#33721"
 msgid "Can prevent Kodi crashes"
@@ -3107,7 +3107,7 @@ msgstr "分辨率阈值"
 
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
-msgstr "当源内容的分辨率高于所选择的分辨率时，需要对内容进行转码处理。"
+msgstr "当源分辨率高于所选分辨率时，对内容进行转码"
 
 msgctxt "#33737"
 msgid "always"
@@ -3115,15 +3115,15 @@ msgstr "总是"
 
 msgctxt "#33738"
 msgid "720"
-msgstr ""
+msgstr "720"
 
 msgctxt "#33739"
 msgid "1080"
-msgstr ""
+msgstr "1080"
 
 msgctxt "#33740"
 msgid "2160"
-msgstr ""
+msgstr "2160"
 
 msgctxt "#33741"
 msgid "unlimited"
@@ -3364,3 +3364,103 @@ msgstr "Kodi Companion 警告"
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
 msgstr "Kodi Companion 是一款 Emby 服务器插件，用于追踪已删除的内容。"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "处理预告片"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "预告片"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "最近添加的预告片"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "主题音乐"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "启用音频"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "启用视频"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "淡入"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "淡出"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "数值越大淡入淡出时间越长，0为禁用"
+
+msgctxt "#33810"
+msgid "Homescreen navigation"
+msgstr "主屏幕导航"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "为小组件播放主题音乐"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "延迟启动"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "单位为秒"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "下载"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "本地存储主题音乐以提升性能"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "优先级"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "当两种主题音乐均可用时，定义优先播放顺序"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "远程预告片"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "远程预告片选择"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "影院开场动画"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "文件夹预告片"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "本地预告片"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "本地影片"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "预告片播放"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "音量"
