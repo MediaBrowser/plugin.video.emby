@@ -77,11 +77,11 @@ msgstr "视频质量"
 
 msgctxt "#30170"
 msgid "Recently Added TV Shows"
-msgstr "最近添加的电视节目"
+msgstr "最近添加的电视剧"
 
 msgctxt "#30171"
 msgid "In Progress TV Shows"
-msgstr "正在观看的电视节目"
+msgstr "正在观看的电视剧"
 
 msgctxt "#30174"
 msgid "Recently Added Movies"
@@ -181,7 +181,7 @@ msgstr "电影"
 
 msgctxt "#30305"
 msgid "TV Shows"
-msgstr "电视节目"
+msgstr "电视剧"
 
 msgctxt "#30401"
 msgid "Emby options"
@@ -785,7 +785,7 @@ msgstr "重新连接到先前加载的同一服务器。 如果要使用其他�
 
 msgctxt "#33152"
 msgid "Unable to locate TV Tunes in Kodi."
-msgstr "在 Kodi 中找不到电视节目。"
+msgstr "在 Kodi 中找不到电视剧。"
 
 msgctxt "#33153"
 msgid "Your Emby theme media has been synced to Kodi"
@@ -1213,7 +1213,7 @@ msgstr "启用影院模式 （电影）"
 
 msgctxt "#33263"
 msgid "Enable cinema mode (tv shows)"
-msgstr "启用影院模式 （电视节目）"
+msgstr "启用影院模式 （电视剧）"
 
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
@@ -1517,7 +1517,7 @@ msgstr "随机剧集"
 
 msgctxt "#33339"
 msgid "Random TVShows"
-msgstr "随机电视节目"
+msgstr "随机电视剧"
 
 msgctxt "#33340"
 msgid "Factory reset"
@@ -1541,11 +1541,11 @@ msgstr "未观看的剧集"
 
 msgctxt "#33345"
 msgid "Unwatched TV Shows"
-msgstr "未观看的电视节目"
+msgstr "未观看的电视剧"
 
 msgctxt "#33346"
 msgid "Favorite TVShows"
-msgstr "最喜欢的电视节目"
+msgstr "最喜欢的电视剧"
 
 msgctxt "#33347"
 msgid "Recently played TV Show"
@@ -1557,7 +1557,7 @@ msgstr "即将上映的剧集"
 
 msgctxt "#33349"
 msgid "TV Shows"
-msgstr "电视节目"
+msgstr "电视剧"
 
 msgctxt "#33350"
 msgid "Recently played"
@@ -1573,7 +1573,7 @@ msgstr "导演"
 
 msgctxt "#33353"
 msgid "TV Show tags"
-msgstr "电视节目标签"
+msgstr "电视剧标签"
 
 msgctxt "#33354"
 msgid "Episode tags"
@@ -1897,7 +1897,7 @@ msgstr "清空数据库"
 
 msgctxt "#33437"
 msgid "Assign TVShow posters to episodes"
-msgstr "将电视节目海报分配给剧集"
+msgstr "将电视剧海报分配给剧集"
 
 msgctxt "#33438"
 msgid ""
@@ -1955,7 +1955,7 @@ msgstr "同步直播频道"
 
 msgctxt "#33450"
 msgid "Sync livetv epg"
-msgstr "同步直播电视节目"
+msgstr "同步直播电视剧"
 
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
@@ -2387,7 +2387,7 @@ msgstr "电影合集"
 
 msgctxt "#33556"
 msgid "Collection tvshows"
-msgstr "电视节目合集"
+msgstr "电视剧合集"
 
 msgctxt "#33557"
 msgid "Collection musicvideos"
@@ -2707,7 +2707,7 @@ msgstr "电影"
 
 msgctxt "#33633"
 msgid "TVShows"
-msgstr "电视节目"
+msgstr "电视剧"
 
 msgctxt "#33634"
 msgid "Seasons"
@@ -2887,11 +2887,11 @@ msgstr "找不到下载路径"
 
 msgctxt "#33681"
 msgid "Add movie links to tvshows"
-msgstr "将电影链接添加到电视节目"
+msgstr "将电影链接添加到电视剧"
 
 msgctxt "#33682"
 msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
-msgstr "分配给 Kodi 电视节目视图中列出的电视节目的电影。"
+msgstr "分配给 Kodi 电视剧视图中列出的电视剧的电影。"
 
 msgctxt "#33683"
 msgid "Enable start sync"
@@ -2979,7 +2979,7 @@ msgstr "没有可用的路径信息，小心你的行为！"
 
 msgctxt "#33704"
 msgid "TVShow"
-msgstr "电视节目"
+msgstr "电视剧"
 
 msgctxt "#33705"
 msgid "Select primary library"
