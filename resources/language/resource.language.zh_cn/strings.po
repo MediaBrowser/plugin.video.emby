@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2026-01-05 11:11+0800\n"
+"PO-Revision-Date: 2026-01-17 20:24+0800\n"
 "Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -153,15 +153,15 @@ msgstr "最近添加的照片"
 
 msgctxt "#30253"
 msgid "Favourite Home Videos"
-msgstr "最喜欢的家庭视频"
+msgstr "收藏的家庭视频"
 
 msgctxt "#30254"
 msgid "Favourite Photos"
-msgstr "最喜欢的照片"
+msgstr "收藏的照片"
 
 msgctxt "#30255"
 msgid "Favourite Albums"
-msgstr "最喜欢的专辑"
+msgstr "收藏的专辑"
 
 msgctxt "#30256"
 msgid "Recently added Music videos"
@@ -1585,7 +1585,7 @@ msgstr "电影标签"
 
 msgctxt "#33357"
 msgid "Resume movie"
-msgstr "恢复电影"
+msgstr "继续播放电影"
 
 msgctxt "#33358"
 msgid "Countries"
@@ -1621,7 +1621,7 @@ msgstr "随机音乐视频"
 
 msgctxt "#33366"
 msgid "Resume musicvideos"
-msgstr "恢复音乐视频"
+msgstr "继续播放音乐视频"
 
 msgctxt "#33367"
 msgid "Videos"
@@ -1805,7 +1805,7 @@ msgstr "更新视图"
 
 msgctxt "#33414"
 msgid "Emby server busy: Sync in progress"
-msgstr "Emby 服务器忙：正在同步"
+msgstr "Emby 服务器繁忙：正在同步"
 
 msgctxt "#33415"
 msgid "Delete Kodi"
@@ -2667,15 +2667,15 @@ msgstr "A-Z 系列"
 
 msgctxt "#33623"
 msgid "Favorite songs"
-msgstr "最喜欢的歌曲"
+msgstr "收藏的歌曲"
 
 msgctxt "#33624"
 msgid "Favorite actors"
-msgstr "最喜欢的演员"
+msgstr "收藏的演员"
 
 msgctxt "#33625"
 msgid "Favorite audio"
-msgstr "最喜欢的音频"
+msgstr "收藏的音频"
 
 msgctxt "#33626"
 msgid "Search"
@@ -3307,7 +3307,7 @@ msgstr "转换媒体"
 
 msgctxt "#33786"
 msgid "Refresh in progress"
-msgstr "刷新中"
+msgstr "刷新进行中"
 
 msgctxt "#33787"
 msgid "Emby scripterX scheduled task"
@@ -3363,7 +3363,7 @@ msgstr "Kodi Companion 警告"
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
-msgstr "Kodi Companion 是一款 Emby 服务器插件，用于追踪已删除的内容。"
+msgstr "Kodi Companion 是一款 Emby 服务器插件，用于追踪已删除的内容"
 
 msgctxt "#33801"
 msgid "Processing trailers"
@@ -3443,7 +3443,7 @@ msgstr "远程预告片选择"
 
 msgctxt "#33820"
 msgid "Cinema intros"
-msgstr "影院开场动画"
+msgstr "影院开场"
 
 msgctxt "#33821"
 msgid "Folder trailers"
@@ -3464,3 +3464,75 @@ msgstr "预告片播放"
 msgctxt "#33825"
 msgid "Volume"
 msgstr "音量"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "调试日志"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "启用基于片头标记的视频功能"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "启用基于片头标记的音频功能"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "启用基于内容的视频功能"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "启用基于内容的音频功能"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "基于内容时长"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "启用转码功能，可能导致服务器产生高 CPU 负载"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "关闭"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "片头标记"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "内容"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "虚拟主题"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "导航"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "剧集视图"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "季视图"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "电视剧视图"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "电影视图"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "时序"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "播放"
