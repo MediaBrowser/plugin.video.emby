@@ -3190,7 +3190,7 @@ msgid "Compression not supported, backup not available."
 msgstr "不支持压缩，无法备份。"
 
 msgctxt "#33757"
-msgid "Backup in Progress"
+msgid "Backup 在 Progress"
 msgstr "正在备份"
 
 msgctxt "#33758"
@@ -3223,7 +3223,7 @@ msgstr "跳转到专辑"
 
 msgctxt "#33765"
 msgid "Go To Artist"
-msgstr "跳转到艺人"
+msgstr "跳转到艺术家"
 
 msgctxt "#33766"
 msgid "Pause sync"
