@@ -105,15 +105,15 @@ msgstr "下一集"
 
 msgctxt "#30180"
 msgid "Favorite Movies"
-msgstr "最喜欢的电影"
+msgstr "收藏的电影"
 
 msgctxt "#30181"
 msgid "Favorite Shows"
-msgstr "最喜欢的节目"
+msgstr "收藏的节目"
 
 msgctxt "#30182"
 msgid "Favorite Episodes"
-msgstr "最喜欢的剧集"
+msgstr "收藏的剧集"
 
 msgctxt "#30185"
 msgid "Boxsets"
@@ -1545,7 +1545,7 @@ msgstr "未观看的电视剧"
 
 msgctxt "#33346"
 msgid "Favorite TVShows"
-msgstr "最喜欢的电视剧"
+msgstr "收藏的电视剧"
 
 msgctxt "#33347"
 msgid "Recently played TV Show"
@@ -1697,7 +1697,7 @@ msgstr "动态节点是即时构建的。这会对性能产生影响。应尽可
 
 msgctxt "#33385"
 msgid "Favorite musicvideos"
-msgstr "最喜欢的音乐视频"
+msgstr "收藏的音乐视频"
 
 msgctxt "#33386"
 msgid "Synced nodes"
@@ -2471,7 +2471,7 @@ msgstr "Emby 服务器离线"
 
 msgctxt "#33576"
 msgid "Favorite Seasons"
-msgstr "最喜欢的季"
+msgstr "收藏的季"
 
 msgctxt "#33577"
 msgid "Paging"
@@ -2607,15 +2607,15 @@ msgstr "删除项目"
 
 msgctxt "#33608"
 msgid "Favorite videos"
-msgstr "最喜欢的视频"
+msgstr "收藏的视频"
 
 msgctxt "#33609"
 msgid "Favorite photos"
-msgstr "最喜欢的照片"
+msgstr "收藏的照片"
 
 msgctxt "#33610"
 msgid "Favorite musicvideos"
-msgstr "最喜欢的音乐视频"
+msgstr "收藏的音乐视频"
 
 msgctxt "#33611"
 msgid "A-Z"
@@ -2631,11 +2631,11 @@ msgstr "建议"
 
 msgctxt "#33614"
 msgid "Favorite movies"
-msgstr "最喜欢的电影"
+msgstr "收藏的电影"
 
 msgctxt "#33615"
 msgid "Favorite boxsets"
-msgstr "最喜欢的合集"
+msgstr "收藏的合集"
 
 msgctxt "#33616"
 msgid "A-Z photoalbum"
