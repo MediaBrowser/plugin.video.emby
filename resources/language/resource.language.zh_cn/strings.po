@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2026-01-17 20:24+0800\n"
+"PO-Revision-Date: 2026-01-19 20:44+0800\n"
 "Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -433,11 +433,11 @@ msgstr "正在搜集："
 
 msgctxt "#33022"
 msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
-msgstr "检测到需要为此版本的 Emby 重新创建数据库，需要继续吗？"
+msgstr "检测到当前版本 Emby for Kodi 需重建数据库，是否继续？"
 
 msgctxt "#33023"
 msgid "Emby for Kodi will not work correctly until the database is reset."
-msgstr "只有重置数据库后，Emby for Kodi 才能正常使用。"
+msgstr "在重置数据库前，Emby for Kodi 无法正常运行。"
 
 msgctxt "#33025"
 msgid "Completed in:"
@@ -485,7 +485,7 @@ msgstr "Kodi 无法定位文件："
 
 msgctxt "#33048"
 msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
-msgstr "使用 Emby 相对路径替换绝对路径，或确保将路径添加到 Kodi 的文件管理器。 有关更多信息，请查看 Emby for Kodi 的 github 维基百科中的常见问题解答。 停止同步？"
+msgstr "使用 Emby 相对路径替换绝对路径，或确保将路径添加到 Kodi 文件管理器。 有关更多信息，请查看 Emby for Kodi 官方 github 维基百科中的常见问题解答。是否停止同步？"
 
 msgctxt "#33049"
 msgid "New"
@@ -569,7 +569,7 @@ msgstr "备份文件夹"
 
 msgctxt "#33097"
 msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
-msgstr "重要，清理更新已在您的高级设置中删除，以防止与 Emby for Kodi 发生冲突。Kodi 将立即重新启动。"
+msgstr "重要提示：已从你的高级设置中移除 cleanonupdate 配置项，以避免与 Emby for Kodi 产生冲突。Kodi 即将重启。"
 
 msgctxt "#33098"
 msgid "Refresh boxsets"
@@ -657,7 +657,7 @@ msgstr "您已更改播放模式，需要重置 Kodi 才能应用更改，是否
 
 msgctxt "#33119"
 msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
-msgstr "同步过程中出错，重新启动 Kodi 时，您将能够恢复进度，如果问题仍然存在，请使用您的 Kodi 日志在 Emby for Kodi 论坛上报告。"
+msgstr "同步过程中发生错误。重启 Kodi 后即可恢复此前的同步进度。若问题持续存在，请携带你的 Kodi 日志前往 Emby for Kodi 官方论坛反馈。"
 
 msgctxt "#33120"
 msgid "Select the libraries to add"
@@ -693,7 +693,7 @@ msgstr "继续"
 
 msgctxt "#33128"
 msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
-msgstr "检查最新内容更新失败，在重新启动 kodi 之前，不会应用任何内容更新，如果此问题仍然存在，请使用您的Kodi日志在Emby for Kodi论坛上报告。"
+msgstr "获取最新内容更新失败。在重启 Kodi 前，将不会应用任何内容更新。若此问题持续存在，请携带你的 Kodi 日志前往 Emby for Kodi 官方论坛反馈。"
 
 msgctxt "#33129"
 msgid "You can sync libraries by launching the Emby add-on > Add libraries."
@@ -757,7 +757,7 @@ msgstr "删除媒体库"
 
 msgctxt "#33145"
 msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
-msgstr "请确保您的 Emby 服务器媒体库，可以在你访问的 Kodi 上安装，并且您的服务器上配置了路径替换。有关更多信息，请查看 Emby 中 Kodi 的 Github 维基百科的常见问题解答。"
+msgstr "请确保你的 Emby 服务端媒体库可被当前 Kodi 实例访问，且你已在服务端完成路径替换配置。如需了解更多信息，请查阅 Emby for Kodi 官方 GitHub Wiki 中的常见问题。"
 
 msgctxt "#33146"
 msgid "Unable to connect to Emby."
@@ -797,7 +797,7 @@ msgstr "添加媒体库"
 
 msgctxt "#33155"
 msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
-msgstr "当前应用的 Emby for Kodi 补丁已损坏！如果这个问题仍然存在，请在 Emby 的 Kodi 论坛上发帖，这个问题需要尽快解决。"
+msgstr "当前应用的 Emby for Kodi 补丁已损坏！若此问题持续存在，请前往 Emby for Kodi 官方论坛发帖反馈。此问题需尽快修复。"
 
 msgctxt "#33156"
 msgid "A patch has been applied!"
@@ -817,7 +817,7 @@ msgstr "启用音频/字幕选择"
 
 msgctxt "#33160"
 msgid "To avoid errors, please update Emby for Kodi to version: "
-msgstr "为避免错误，请将 Emby for Kodi 更新为版本："
+msgstr "为避免错误，请将 Emby for Kodi 更新至以下版本："
 
 msgctxt "#33161"
 msgid "Check for updates"
@@ -897,7 +897,7 @@ msgstr "强制转码"
 
 msgctxt "#33180"
 msgid "Restart Emby for Kodi"
-msgstr "为 Kodi 重新启动 Emby"
+msgstr "重启 Emby for Kodi"
 
 msgctxt "#33181"
 msgid "Restarting to apply the patch"
@@ -933,11 +933,11 @@ msgstr "是否要同步烂番茄的评分吗？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
-msgstr "重新启动 Emby 以便 Kodi 应用此更改？"
+msgstr "是否重启 Emby for Kodi 以应用此项更改？"
 
 msgctxt "#33192"
 msgid "Restart Emby for Kodi"
-msgstr "为 Kodi 重新启动 Emby"
+msgstr "重启 Emby for Kodi"
 
 msgctxt "#33193"
 msgid "Restarting..."
@@ -949,7 +949,7 @@ msgstr "管理媒体库"
 
 msgctxt "#33195"
 msgid "Enable Emby for Kodi"
-msgstr "为 Kodi 启用 Emby"
+msgstr "启用 Emby for Kodi"
 
 msgctxt "#33196"
 msgid "Advanced options"
@@ -957,7 +957,7 @@ msgstr "高级选项"
 
 msgctxt "#33197"
 msgid "A sync is already running, please wait until it completes and try again."
-msgstr "同步已经运行，请等待同步完成，然后重试。"
+msgstr "当前已有同步任务正在运行，请等待该任务完成后再重试。"
 
 msgctxt "#33199"
 msgid "Emby"
@@ -969,7 +969,7 @@ msgstr "Emby 播放"
 
 msgctxt "#33202"
 msgid "Music database rescan patch"
-msgstr "音乐数据库重新扫描修补程序"
+msgstr "音乐数据库重新扫描补丁"
 
 msgctxt "#33203"
 msgid "Task succeeded!"
@@ -981,7 +981,7 @@ msgstr "任务失败！"
 
 msgctxt "#33205"
 msgid "Enable simple play (external player friendly)"
-msgstr "启用简易播放（有助于外部播放器）"
+msgstr "启用简易播放（兼容外部播放器）"
 
 msgctxt "#33206"
 msgid "Transcode 10-bit (H264)"
@@ -1137,11 +1137,11 @@ msgstr "转码"
 
 msgctxt "#33244"
 msgid "Output format video"
-msgstr "输出格式视频"
+msgstr "视频输出格式"
 
 msgctxt "#33245"
 msgid "Output format audio"
-msgstr "输出格式音频"
+msgstr "音频输出格式"
 
 msgctxt "#33246"
 msgid "Show options in plugin menu"
@@ -1497,7 +1497,7 @@ msgstr "动态图标"
 
 msgctxt "#33334"
 msgid "Refresh skin on Emby server connection"
-msgstr "在 Emby 服务器连接上刷新皮肤"
+msgstr "Emby 服务器连接时刷新皮肤界面"
 
 msgctxt "#33335"
 msgid "Folder"
@@ -1689,11 +1689,11 @@ msgstr "播客"
 
 msgctxt "#33383"
 msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
-msgstr "同步节点比动态节点快得多。尽可能选择它们"
+msgstr "同步节点的响应速度远快于动态节点，请尽可能优先使用同步节点"
 
 msgctxt "#33384"
 msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
-msgstr "动态节点是即时构建的。这会对性能产生影响。应尽可能避免这种情况"
+msgstr "动态节点为实时生成模式，会对性能产生影响，请尽量避免使用"
 
 msgctxt "#33385"
 msgid "Favorite musicvideos"
@@ -1749,11 +1749,11 @@ msgstr "打开插件设置"
 
 msgctxt "#33400"
 msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
-msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 内容）。可选择重置设置和艺术图。"
+msgstr "执行 Kodi 数据库完整重新同步（包含非 Emby 内容）。可选择是否重置设置与艺术图。"
 
 msgctxt "#33401"
 msgid "Reset all custom nodes and rebuild them"
-msgstr "重置所有自定义节点并重建它们"
+msgstr "重置所有自定义节点并重新构建"
 
 msgctxt "#33402"
 msgid "Node query limit"
@@ -1761,7 +1761,7 @@ msgstr "节点查询限制"
 
 msgctxt "#33403"
 msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
-msgstr "限制进度节点查询频率。数值越大响应越慢且资源消耗越高。"
+msgstr "限制进度节点的查询数量。数值越高，加载速度越慢且占用资源越多。"
 
 msgctxt "#33404"
 msgid "Nodes"
@@ -1777,14 +1777,14 @@ msgstr "此功能禁用 Kodi 的内部进度更新。"
 
 msgctxt "#33407"
 msgid "Vacuum databases on Kodi shutdown"
-msgstr "Kodi 退出时自动优化数据库"
+msgstr "Kodi 退出时自动清理数据库"
 
 msgctxt "#33408"
 msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
 msgstr "数据库将执行重建优化，此操作将导致关闭延迟"
 
 msgctxt "#33409"
-msgid "Reload skin"
+msgid "Reload Skin"
 msgstr "重载皮肤"
 
 msgctxt "#33410"
@@ -1792,8 +1792,8 @@ msgid "Other"
 msgstr "其他"
 
 msgctxt "#33411"
-msgid "Emby server busy"
-msgstr "Emby 服务器忙"
+msgid "Emby Server busy"
+msgstr "Emby 服务器繁忙"
 
 msgctxt "#33412"
 msgid "Delete artwork files"
@@ -1804,7 +1804,7 @@ msgid "Update views"
 msgstr "更新视图"
 
 msgctxt "#33414"
-msgid "Emby server busy: Sync in progress"
+msgid "Emby Server busy: Sync in progress"
 msgstr "Emby 服务器繁忙：正在同步"
 
 msgctxt "#33415"
@@ -1893,7 +1893,7 @@ msgstr "按流派分类的歌曲"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr "清空数据库"
+msgstr "清理数据库"
 
 msgctxt "#33437"
 msgid "Assign TVShow posters to episodes"
@@ -3190,7 +3190,7 @@ msgid "Compression not supported, backup not available."
 msgstr "不支持压缩，无法备份。"
 
 msgctxt "#33757"
-msgid "Backup 在 Progress"
+msgid "Backup in Progress"
 msgstr "正在备份"
 
 msgctxt "#33758"
@@ -3223,7 +3223,7 @@ msgstr "跳转到专辑"
 
 msgctxt "#33765"
 msgid "Go To Artist"
-msgstr "跳转到艺术家"
+msgstr "跳转到艺人"
 
 msgctxt "#33766"
 msgid "Pause sync"
