@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Emby for Kodi next gen\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2026-01-19 20:44+0800\n"
+"PO-Revision-Date: 2026-01-19 23:28+0800\n"
 "Last-Translator: wabisabi926\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -25,7 +25,7 @@ msgstr "服务器名称"
 
 msgctxt "#30002"
 msgid "Force HTTP playback"
-msgstr "强制 HTTP 直接推流播放"
+msgstr "强制 HTTP 播放"
 
 msgctxt "#30003"
 msgid "Login method"
@@ -209,7 +209,7 @@ msgstr "EMBY: 删除项目"
 
 msgctxt "#30410"
 msgid "EMBY: Refresh item"
-msgstr "EMBY: 刷新项"
+msgstr "EMBY: 刷新项目"
 
 msgctxt "#30412"
 msgid "Transcode"
@@ -229,7 +229,7 @@ msgstr "同步"
 
 msgctxt "#30507"
 msgid "Enable notification if update count is greater than"
-msgstr "如果更新计数大于，则启用通知"
+msgstr "启用通知若更新条目大于"
 
 msgctxt "#30508"
 msgid "Sync empty shows"
@@ -265,11 +265,11 @@ msgstr "请求播放预告片"
 
 msgctxt "#30520"
 msgid "Skip the delete confirmation (use at your own risk)"
-msgstr "跳过删除确认（需谨慎开启！）"
+msgstr "跳过删除确认（风险自负）"
 
 msgctxt "#30521"
 msgid "Jump back on resume (in seconds)"
-msgstr "恢复时返回（秒）"
+msgstr "恢复播放时回退（秒）"
 
 msgctxt "#30522"
 msgid "Transcode H265/HEVC"
@@ -285,7 +285,7 @@ msgstr "永久用户"
 
 msgctxt "#30529"
 msgid "Startup delay (in seconds)"
-msgstr "启动延迟（以秒为单位）"
+msgstr "启动延迟（秒）"
 
 msgctxt "#30530"
 msgid "Enable server restart message"
@@ -305,7 +305,7 @@ msgstr "弹出音乐媒体库的持续时间"
 
 msgctxt "#30534"
 msgid "Notifications (in seconds)"
-msgstr "通知（以秒为单位）"
+msgstr "通知（秒）"
 
 msgctxt "#30535"
 msgid "Generate a new device Id"
@@ -313,7 +313,7 @@ msgstr "生成新的设备 ID"
 
 msgctxt "#30536"
 msgid "Allow the screensaver during syncs"
-msgstr "在同步期间允许屏幕保护程序"
+msgstr "在同步期间允许屏幕保护"
 
 msgctxt "#30539"
 msgid "Login"
@@ -325,11 +325,11 @@ msgstr "手动登录"
 
 msgctxt "#30543"
 msgid "Username or email"
-msgstr "用户名或邮箱地址"
+msgstr "用户名或邮箱"
 
 msgctxt "#30545"
 msgid "Enable server offline"
-msgstr "启用离线服务器"
+msgstr "允许服务器离线使用"
 
 msgctxt "#30547"
 msgid "Display message"
@@ -425,7 +425,7 @@ msgstr "是否播放预告片？"
 
 msgctxt "#33018"
 msgid "Gathering boxsets"
-msgstr "搜集合集"
+msgstr "正在搜集合集"
 
 msgctxt "#33021"
 msgid "Gathering:"
@@ -453,11 +453,11 @@ msgstr "注意！如果选择本地模式，某些 Emby 功能将会丢失，例
 
 msgctxt "#33036"
 msgid "Add-on (default)"
-msgstr "插件（默认）"
+msgstr "插件模式（默认）"
 
 msgctxt "#33037"
 msgid "Native (direct paths)"
-msgstr "本地（直接路径访问）"
+msgstr "本地模式（直接路径访问）"
 
 msgctxt "#33039"
 msgid "Enable music library?"
@@ -485,7 +485,7 @@ msgstr "Kodi 无法定位文件："
 
 msgctxt "#33048"
 msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
-msgstr "使用 Emby 相对路径替换绝对路径，或确保将路径添加到 Kodi 文件管理器。 有关更多信息，请查看 Emby for Kodi 官方 github 维基百科中的常见问题解答。是否停止同步？"
+msgstr "配置 Emby 绝对路径，或确保将路径添加到 Kodi 文件管理器。 有关更多信息，请查看 Emby for Kodi 官方 github wiki 中的常见问题解答。是否停止同步？"
 
 msgctxt "#33049"
 msgid "New"
@@ -557,7 +557,7 @@ msgstr "替换现有备份？"
 
 msgctxt "#33091"
 msgid "Created backup at:"
-msgstr "创建备份位置到："
+msgstr "创建备份到："
 
 msgctxt "#33092"
 msgid "Create a backup"
@@ -569,7 +569,7 @@ msgstr "备份文件夹"
 
 msgctxt "#33097"
 msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
-msgstr "重要提示：已从你的高级设置中移除 cleanonupdate 配置项，以避免与 Emby for Kodi 产生冲突。Kodi 即将重启。"
+msgstr "重要，更新时执行清理功能已在您的高级设置中被移除，以防止与 Emby for Kodi 发生冲突。Kodi 将立即重新启动。"
 
 msgctxt "#33098"
 msgid "Refresh boxsets"
@@ -581,11 +581,11 @@ msgstr "安装服务器插件 Kodi Companion，以便在启动时自动应用 Em
 
 msgctxt "#33100"
 msgid "Would you like to sync empty shows?"
-msgstr "是否要同步空的剧集？"
+msgstr "是否要同步空的电视剧？"
 
 msgctxt "#33101"
 msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
-msgstr "由于您使用的是启用音乐的本机播放模式，是否要从文件导入音乐评分？"
+msgstr "您当前启用了音乐功能的本地播放模式，是否要从文件导入音乐评分？"
 
 msgctxt "#33102"
 msgid "Resume the previous sync?"
@@ -613,7 +613,7 @@ msgstr "用户已加入播放会话"
 
 msgctxt "#33108"
 msgid "Notifications are delayed during video playback (except live tv)."
-msgstr "在视频播放过程中（直播电视除外）会延迟通知。"
+msgstr "在视频播放过程中延迟通知（直播电视除外）"
 
 msgctxt "#33109"
 msgid "Plugin"
@@ -625,15 +625,15 @@ msgstr "重新启动 Kodi 以生效。"
 
 msgctxt "#33111"
 msgid "Reset the local database to apply the playback mode change."
-msgstr "重置本地数据库以应用播放模式更改。"
+msgstr "需重置本地数据库，使新的播放模式生效。"
 
 msgctxt "#33112"
 msgid "Applies to Native and Add-on playback mode"
-msgstr "适用于本机和插件播放模式"
+msgstr "适用于本地模式和插件模式"
 
 msgctxt "#33113"
 msgid "Applies to Add-on playback mode only"
-msgstr "只适用于插件播放模式"
+msgstr "只适用于插件模式"
 
 msgctxt "#33114"
 msgid "Enable external subtitles"
@@ -649,7 +649,7 @@ msgstr "压缩艺术图（降低质量）"
 
 msgctxt "#33117"
 msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
-msgstr "使用艺术图缓存吗？如果没有，Kodi 仍将以较慢的速度缓存您的艺术图。"
+msgstr "是否启用艺术图缓存？如果不启用，Kodi 仍将以较慢的速度缓存您的艺术图。"
 
 msgctxt "#33118"
 msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
@@ -657,7 +657,7 @@ msgstr "您已更改播放模式，需要重置 Kodi 才能应用更改，是否
 
 msgctxt "#33119"
 msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
-msgstr "同步过程中发生错误。重启 Kodi 后即可恢复此前的同步进度。若问题持续存在，请携带你的 Kodi 日志前往 Emby for Kodi 官方论坛反馈。"
+msgstr "同步过程中发生错误。重启 Kodi 后即可恢复此前的同步进度。若问题持续存在，请携带您的 Kodi 日志前往 Emby for Kodi 官方论坛反馈。"
 
 msgctxt "#33120"
 msgid "Select the libraries to add"
@@ -669,7 +669,7 @@ msgstr "全部"
 
 msgctxt "#33122"
 msgid "Restart Kodi to resume where you left off."
-msgstr "重新启动 Kodi 以恢复您停止的位置。"
+msgstr "重新启动 Kodi 以恢复上次中断的位置。"
 
 msgctxt "#33123"
 msgid "Sync library to Kodi"
@@ -681,7 +681,7 @@ msgstr "包括演员（较慢）"
 
 msgctxt "#33125"
 msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
-msgstr "选择要与 Kodi 同步的 Emby 视图，您可以选择稍后同步媒体库。"
+msgstr "选择要同步到 Kodi 的 Emby 视图。您也可以选择稍后再同步媒体库。"
 
 msgctxt "#33126"
 msgid "Sync later"
@@ -693,7 +693,7 @@ msgstr "继续"
 
 msgctxt "#33128"
 msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
-msgstr "获取最新内容更新失败。在重启 Kodi 前，将不会应用任何内容更新。若此问题持续存在，请携带你的 Kodi 日志前往 Emby for Kodi 官方论坛反馈。"
+msgstr "无法获取最新的内容更新。在重启 Kodi 之前，任何内容更改都不会生效。如果此问题持续出现，请携带您的 Kodi 日志前往 Emby for Kodi 论坛进行反馈。"
 
 msgctxt "#33129"
 msgid "You can sync libraries by launching the Emby add-on > Add libraries."
@@ -721,7 +721,7 @@ msgstr "添加服务器"
 
 msgctxt "#33135"
 msgid "Kodi will now restart to apply a small patch for your Kodi version."
-msgstr "Kodi 现在将重新启动，为您的 Kodi 版本应用一个小补丁。"
+msgstr "Kodi 现在将重启，以针对您的 Kodi 版本应用一个小补丁。"
 
 msgctxt "#33136"
 msgid "Update library"
@@ -733,7 +733,7 @@ msgstr "启用 Kodi Companion（服务器插件）"
 
 msgctxt "#33138"
 msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
-msgstr "您可以手动更新媒体库，而不是依赖服务器插件 Kodi Companion。 启动插件选项和更新媒体库（或每个媒体库）。 要删除内容，您需要修复媒体库。"
+msgstr "您可以手动更新媒体库，而不必依赖服务器插件“Kodi Companion”。请运行本插件并选择“更新媒体库”（或针对单个库进行更新）。若要移除内容，则需要执行“修复媒体库”操作。"
 
 msgctxt "#33139"
 msgid "Update libraries"
@@ -749,7 +749,7 @@ msgstr "删除服务器"
 
 msgctxt "#33142"
 msgid "Something went wrong. Try again later."
-msgstr "出了点问题，稍后再试。"
+msgstr "发生了一些错误，请稍后重试。"
 
 msgctxt "#33144"
 msgid "Removing library"
@@ -757,7 +757,7 @@ msgstr "删除媒体库"
 
 msgctxt "#33145"
 msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
-msgstr "请确保你的 Emby 服务端媒体库可被当前 Kodi 实例访问，且你已在服务端完成路径替换配置。如需了解更多信息，请查阅 Emby for Kodi 官方 GitHub Wiki 中的常见问题。"
+msgstr "请确保您的 Kodi 安装环境可以正常访问 Emby 服务器的媒体库，并且您已在服务器上配置了“路径替换 (Path Substitution)”。如需获取更多信息，请查看 Emby for Kodi GitHub Wiki 中的常见问题解答 (FAQ)。"
 
 msgctxt "#33146"
 msgid "Unable to connect to Emby."
@@ -781,11 +781,11 @@ msgstr "更新服务器信息"
 
 msgctxt "#33151"
 msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
-msgstr "重新连接到先前加载的同一服务器。 如果要使用其他服务器，请重置本地数据库，包括用户信息。"
+msgstr "重新连接至此前加载过的服务器。如果您想使用不同的服务器，请重置本地数据库（包括用户信息）。"
 
 msgctxt "#33152"
 msgid "Unable to locate TV Tunes in Kodi."
-msgstr "在 Kodi 中找不到电视剧。"
+msgstr "在 Kodi 中未找到 TV Tunes 插件"
 
 msgctxt "#33153"
 msgid "Your Emby theme media has been synced to Kodi"
@@ -797,7 +797,7 @@ msgstr "添加媒体库"
 
 msgctxt "#33155"
 msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
-msgstr "当前应用的 Emby for Kodi 补丁已损坏！若此问题持续存在，请前往 Emby for Kodi 官方论坛发帖反馈。此问题需尽快修复。"
+msgstr "当前应用的 Emby for Kodi 补丁已损坏！若此问题持续存在，请前往 Emby for Kodi 论坛进行反馈。该问题需尽快修复。"
 
 msgctxt "#33156"
 msgid "A patch has been applied!"
@@ -865,11 +865,11 @@ msgstr "按首字母排序"
 
 msgctxt "#33172"
 msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
-msgstr "您有 {number} 个更新待处理。在看到新内容之前，这可能需要一些时间。通过启动 Emby 插件选项 > 更新媒体库，可能会更快的完成更新，仍要继续吗？"
+msgstr "您有 {number} 条更新待处理。在新内容显示之前可能需要一段时间。通过运行 Emby 插件 > “更新媒体库”来更新可能会更快。是否仍要继续？"
 
 msgctxt "#33173"
 msgid "Forget about the previous sync? This is not recommended."
-msgstr "忽略以前的同步？不建议这样做。"
+msgstr "忽略此前的同步记录？（不建议这样做）。"
 
 msgctxt "#33174"
 msgid "Paging - download threads (default: 3)"
@@ -877,15 +877,15 @@ msgstr "分页 - 下载线程（默认值：3）"
 
 msgctxt "#33175"
 msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
-msgstr "分页提示：每个下载线程同时从Emby请求您的最大项目值。"
+msgstr "分页提示：每个下载线程同时向Emby请求您设定的最大项目值。"
 
 msgctxt "#33176"
 msgid "Update or repair your libraries to apply the changes below."
-msgstr "更新或修复媒体库以应用以下更改。"
+msgstr "请更新或修复您的媒体库，以应用下列变更。"
 
 msgctxt "#33177"
 msgid "Display the progress bar if update count greater than"
-msgstr "如果更新计数大于，则显示进度条"
+msgstr "当更新条目数超过此值时显示进度条："
 
 msgctxt "#33178"
 msgid "Processing updates"
@@ -917,11 +917,11 @@ msgstr "删除媒体库"
 
 msgctxt "#33185"
 msgid "Enable sync during playback (may cause some lag)"
-msgstr "在播放期间启用同步（可能会导致一些延迟）"
+msgstr "允许在播放时同步（可能会导致卡顿）"
 
 msgctxt "#33186"
 msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
-msgstr "Kodi Companion 可加快启动同步速度。 其他同步由服务器事件触发。"
+msgstr "Kodi Companion（同步辅助插件）可以加快启动时的同步速度。其他同步操作则由服务器事件触发。"
 
 msgctxt "#33187"
 msgid "Sync Rotten Tomatoes ratings"
@@ -929,7 +929,7 @@ msgstr "同步烂番茄评分"
 
 msgctxt "#33188"
 msgid "Would you like to sync Rotten Tomatoes ratings?"
-msgstr "是否要同步烂番茄的评分吗？"
+msgstr "是否要同步烂番茄评分？"
 
 msgctxt "#33191"
 msgid "Restart Emby for Kodi to apply this change?"
@@ -941,7 +941,7 @@ msgstr "重启 Emby for Kodi"
 
 msgctxt "#33193"
 msgid "Restarting..."
-msgstr "重新启动..."
+msgstr "正在重启..."
 
 msgctxt "#33194"
 msgid "Manage libraries"
@@ -985,15 +985,15 @@ msgstr "启用简易播放（兼容外部播放器）"
 
 msgctxt "#33206"
 msgid "Transcode 10-bit (H264)"
-msgstr "转码 (H264)10-bit"
+msgstr "转码 (H264) 10-bit"
 
 msgctxt "#33207"
 msgid "Ask to proceed with sync if count greater than"
-msgstr "如果计数大于，则要求继续同步"
+msgstr "当更新条目数超过此值时提示是否继续同步："
 
 msgctxt "#33208"
 msgid "Transcode 10-bit (H265/HEVC)"
-msgstr "转码 (H265/HEVC)10-bit"
+msgstr "转码 (H265/HEVC) 10-bit"
 
 msgctxt "#33209"
 msgid "Play remote urls using Emby"
@@ -1001,7 +1001,7 @@ msgstr "使用 Emby 播放远程 URL"
 
 msgctxt "#33210"
 msgid "Display hidden users in selection"
-msgstr "在选择中显示隐藏用户"
+msgstr "在选择列表中显示隐藏用户"
 
 msgctxt "#33211"
 msgid "Reset patch update"
@@ -1029,7 +1029,7 @@ msgstr "转码 Dvd (MPEG2)"
 
 msgctxt "#33217"
 msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
-msgstr "验证连接？建议使用：仅对自签名证书禁用。"
+msgstr "是否验证连接？（建议：仅在使用自签名证书时禁用）。"
 
 msgctxt "#33218"
 msgid "By Year"
@@ -1049,7 +1049,7 @@ msgstr "启用用户评分同步"
 
 msgctxt "#33222"
 msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
-msgstr "最后警告：需要完全重置数据库！如果您拒绝，请在此停止并手动降级到旧版本。"
+msgstr "最终警告：必须进行完整的数据库重置！如果您拒绝，请就此停止操作并手动降级至之前的版本。"
 
 msgctxt "#33223"
 msgid "Database reset required, wait for Kodi restart."
@@ -1073,7 +1073,7 @@ msgstr "必须为艺术图缓存启用 Web 服务器。立即启用？"
 
 msgctxt "#33228"
 msgid "No password found, set password to 'kodi'"
-msgstr "未找到密码，将密码设置为 “kodi”"
+msgstr "未找到密码，已将密码设置为 'kodi'"
 
 msgctxt "#33229"
 msgid "No backup path set"
@@ -1121,7 +1121,7 @@ msgstr "启用智能播放列表（这可能导致 Kodi 崩溃）"
 
 msgctxt "#33240"
 msgid "Enable userrating"
-msgstr "启用用户评级"
+msgstr "启用用户评分"
 
 msgctxt "#33241"
 msgid "Enable local trailers"
@@ -1157,7 +1157,7 @@ msgstr "类型"
 
 msgctxt "#33249"
 msgid "Studios"
-msgstr "工作室"
+msgstr "制作公司"
 
 msgctxt "#33250"
 msgid "Taglines"
@@ -1185,7 +1185,7 @@ msgstr "恢复备份"
 
 msgctxt "#33256"
 msgid "Which artwork should be cached"
-msgstr "应该缓存哪些艺术图"
+msgstr "哪些艺术图需要缓存到本地？"
 
 msgctxt "#33257"
 msgid "Video"
@@ -1209,27 +1209,27 @@ msgstr "收集已删除的项目"
 
 msgctxt "#33262"
 msgid "Enable cinema mode (movies)"
-msgstr "启用影院模式 （电影）"
+msgstr "启用影院模式（电影）"
 
 msgctxt "#33263"
 msgid "Enable cinema mode (tv shows)"
-msgstr "启用影院模式 （电视剧）"
+msgstr "启用影院模式（电视剧）"
 
 msgctxt "#33264"
 msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
-msgstr "是否从 Emby 服务器删除项？ 最后警告，这会删除文件且不可逆！"
+msgstr "是否同时从 Emby 服务器上删除？最终警告：这也会删除物理文件且不可撤销！"
 
 msgctxt "#33265"
 msgid ""
 "Delete FILES also from Emby server by Kodi events? \n"
 " THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
 msgstr ""
-"通过 Kodi 事件从 Emby 服务器删除文件吗？\n"
-"  这是非常危险且不可逆！"
+"是否允许通过 Kodi 事件同步删除 Emby 服务器上的文件？\n"
+" 这极其危险且操作不可逆！"
 
 msgctxt "#33266"
 msgid "Enable FILE delete on Kodi events"
-msgstr "启用 Kodi 事件的文件删除功能"
+msgstr "启用通过 Kodi 事件的文件删除功能"
 
 msgctxt "#33267"
 msgid "Disable HTTP2 support"
@@ -1237,7 +1237,7 @@ msgstr "禁用 HTTP2 支持"
 
 msgctxt "#33268"
 msgid "Kodi restart initiated due to advancedsettings.xml changes"
-msgstr "由于 advancedsettings.xml 更改而启动 Kodi 重新启动"
+msgstr "由于 advancedsettings.xml 发生变更，已启动 Kodi 重启。"
 
 msgctxt "#33269"
 msgid "1.3 Mbps HD"
@@ -1369,35 +1369,35 @@ msgstr "菜单"
 
 msgctxt "#33301"
 msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
-msgstr "兼容模式将插件 ID 更改为 4.x （plugin.video.emby）。如果不是绝对需要，请不要使用它！切勿在此模式下执行更新！"
+msgstr "兼容模式会将插件 ID 更改为 4.x 版本（plugin.video.emby）。除非绝对必要，请勿使用此模式！在此模式下严禁进行任何插件更新！"
 
 msgctxt "#33302"
 msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
-msgstr "在某些情况下（WLAN、延迟网络启动等）延迟插件启动可能会改善连接性"
+msgstr "在某些情况下（如使用无线网络、网络启动延迟等），延迟启动插件可以提高连接稳定性。"
 
 msgctxt "#33303"
 msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
-msgstr "您可以调整为动态（未同步）内容加载的元信息。默认情况下，仅加载基本信息。扩展可能会延迟浏览列表。"
+msgstr "您可以调整动态内容（未同步内容）加载哪些元数据信息。默认情况下仅加载基本信息。扩展加载范围可能会导致浏览列表时出现延迟。"
 
 msgctxt "#33304"
 msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
-msgstr "请小心使用该选项。它不仅提供删除数据库的功能，还提供删除文件的功能。（需要管理员权限）"
+msgstr "请谨慎使用此选项。它提供的是“物理文件删除”，而不仅仅是“数据库记录移除”。（操作需具备管理员权限）"
 
 msgctxt "#33305"
 msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
-msgstr "这是一个调试选项。您可以手动设置上次同步日期/时间。Kodi 重启后，它将执行该操作。只需执行细微的调整。将日期/时间设置得太早可能会导致巨大的增量同步。"
+msgstr "这是一个调试选项。您可以手动设置“最后同步日期/时间”。Kodi 重启后将执行该操作。请仅进行微调。将日期/时间设置得过早会导致极其庞大的增量同步。"
 
 msgctxt "#33306"
 msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
-msgstr "重置唯一的设备 ID。需要手动重新连接到 emby 服务器。否则，实时通信可能会受到影响。"
+msgstr "重置唯一设备 ID。操作后需要手动重新连接 Emby 服务器。否则，实时通信功能可能会受到影响。"
 
 msgctxt "#33307"
 msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
-msgstr "连接到新的 Emby 服务器（多服务器）或重新连接现有的 Emby 服务器（调试）"
+msgstr "连接到新的 Emby 服务器（多服务器模式）或重新连接现有的 Emby 服务器（调试模式）"
 
 msgctxt "#33308"
 msgid "Show hidden users on Emby server for connections ops."
-msgstr "在 Emby 服务器上显示隐藏用户以进行连接操作。"
+msgstr "在执行连接操作时，显示 Emby 服务器上的隐藏用户。"
 
 msgctxt "#33309"
 msgid "Add/Remove/Repair libraries, live TV, themes."
@@ -1405,23 +1405,23 @@ msgstr "添加/删除/修复库、直播电视、主题。"
 
 msgctxt "#33310"
 msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
-msgstr "在本地将所有艺术图同步到 Kodi。这可能需要很长时间。必须启用 Kodi 的网络服务器，但不能使用 SSL 模式（尚不支持）。重启 Kodi 后不能中断缓存。"
+msgstr "将所有艺术图同步并缓存到 Kodi 本地。这可能耗时极长。必须启用 Kodi 的 Web 服务器，且不能处于 SSL 模式（目前尚不支持）。除了重启 Kodi 外，缓存过程无法中断。"
 
 msgctxt "#33311"
 msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
-msgstr "某些皮肤使用 xps 播放列表。通常不需要，如果您不需要它们，请将其关闭。"
+msgstr "某些皮肤会使用 xps 播放列表。通常并不需要此功能，如果您不需要，请保持关闭状态。"
 
 msgctxt "#33312"
 msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
-msgstr "用户评分是要同步到 Kodi 的附加信息。在某些情况下（第三方插件，如 trakt 等）可能会干扰同步的用户评分。Default 应为 on。如果更改此设置，则必须进行完全数据库重新同步才能应用更改。"
+msgstr "“用户评分”是同步到 Kodi 的额外信息。在极少数情况下（如使用 Trakt 等第三方插件），可能会与同步的评分产生冲突。默认建议开启。如果您更改此设置，必须进行“全量数据库同步”才能生效。"
 
 msgctxt "#33313"
 msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
-msgstr "执行完整的 Kodi 数据库重新同步。可选择重置设置和艺术图。"
+msgstr "执行完整的 Kodi 数据库重新同步。设置项和艺术图（海报等）可选择性重置。"
 
 msgctxt "#33314"
 msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
-msgstr "影院模式是 Emby 的一个主要功能。Emby 服务器支持预告片配置（要播放的预告片数量等）。"
+msgstr "影院模式是 Emby 的首映（会员）功能。您可以在 Emby 服务器端配置预告片的详细设置（例如播放预告片的数量等）。"
 
 msgctxt "#33315"
 msgid "Transcode audio bitrate"
@@ -1429,11 +1429,11 @@ msgstr "转码音频比特率"
 
 msgctxt "#33316"
 msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
-msgstr "网络速度。超过带宽的比特率将被转码。"
+msgstr "网络速度设置。超过此带宽限制的视频码率将被强制转码。"
 
 msgctxt "#33318"
 msgid "Devicename report to Emby server."
-msgstr "设备名称报告给 Emby 服务器。"
+msgstr "上报至 Emby 服务器的设备名称。"
 
 msgctxt "#33319"
 msgid "Report playback progress to additional users."
@@ -1441,7 +1441,7 @@ msgstr "向其他用户报告播放进度。"
 
 msgctxt "#33320"
 msgid "Gap between playback stopped and continuation start."
-msgstr "播放停止和继续开始之间的间隙。"
+msgstr "播放停止与继续播放起始点之间的间隔（缓冲时长）。"
 
 msgctxt "#33321"
 msgid "This is a Emby server feature."
@@ -1453,11 +1453,11 @@ msgstr "可以节省带宽"
 
 msgctxt "#33323"
 msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
-msgstr "在某些情况下，将插件菜单中的菜单选项显示为快捷方式很有用。"
+msgstr "在某些情况下，将菜单选项以快捷方式的形式显示在插件菜单中会非常有用。此外，它们还可以被添加到“收藏夹”等位置。"
 
 msgctxt "#33324"
 msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
-msgstr "连接菜单支持收藏管理、删除选项、（电影）特殊功能选择等。"
+msgstr "上下文菜单支持收藏夹管理、删除选项、（电影）花絮选择等功能。"
 
 msgctxt "#33325"
 msgid "Audio Bitrate"
@@ -1497,7 +1497,7 @@ msgstr "动态图标"
 
 msgctxt "#33334"
 msgid "Refresh skin on Emby server connection"
-msgstr "Emby 服务器连接时刷新皮肤界面"
+msgstr "在连接 Emby 服务器时刷新皮肤"
 
 msgctxt "#33335"
 msgid "Folder"
@@ -1585,7 +1585,7 @@ msgstr "电影标签"
 
 msgctxt "#33357"
 msgid "Resume movie"
-msgstr "继续播放电影"
+msgstr "续播电影"
 
 msgctxt "#33358"
 msgid "Countries"
@@ -1621,7 +1621,7 @@ msgstr "随机音乐视频"
 
 msgctxt "#33366"
 msgid "Resume musicvideos"
-msgstr "继续播放音乐视频"
+msgstr "续播音乐视频"
 
 msgctxt "#33367"
 msgid "Videos"
@@ -1689,7 +1689,7 @@ msgstr "播客"
 
 msgctxt "#33383"
 msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
-msgstr "同步节点的响应速度远快于动态节点，请尽可能优先使用同步节点"
+msgstr "同步节点远快于动态节点，请尽可能优先使用同步节点"
 
 msgctxt "#33384"
 msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
@@ -1741,7 +1741,7 @@ msgstr "最近添加的播客"
 
 msgctxt "#33396"
 msgid "Add/Remove/Repair libraries, live TV, themes"
-msgstr "添加/删除/修复库、直播电视、主题"
+msgstr "添加/删除/修复媒体库、直播电视、主题"
 
 msgctxt "#33398"
 msgid "Open plugin settings"
@@ -1749,11 +1749,11 @@ msgstr "打开插件设置"
 
 msgctxt "#33400"
 msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
-msgstr "执行 Kodi 数据库完整重新同步（包含非 Emby 内容）。可选择是否重置设置与艺术图。"
+msgstr "执行完整的 Kodi 数据库重新同步（包括非 Emby 的本地内容）。设置项和艺术图（海报等）可选择性重置。"
 
 msgctxt "#33401"
 msgid "Reset all custom nodes and rebuild them"
-msgstr "重置所有自定义节点并重新构建"
+msgstr "重置所有自定义节点并重新构建。"
 
 msgctxt "#33402"
 msgid "Node query limit"
@@ -1761,7 +1761,7 @@ msgstr "节点查询限制"
 
 msgctxt "#33403"
 msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
-msgstr "限制进度节点的查询数量。数值越高，加载速度越慢且占用资源越多。"
+msgstr "限制“进度节点”（如：正在观看、未观看）的查询数量。数值越高，加载速度越慢且消耗资源更多。"
 
 msgctxt "#33404"
 msgid "Nodes"
@@ -1769,15 +1769,15 @@ msgstr "节点"
 
 msgctxt "#33405"
 msgid "Use playback resume option from Emby server"
-msgstr "使用来自 Emby 服务器的播放恢复选项"
+msgstr "使用 Emby 服务器的播放续播选项"
 
 msgctxt "#33406"
 msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
-msgstr "此功能禁用 Kodi 的内部进度更新。"
+msgstr "此功能将禁用 Kodi 内部的进度更新。非 Emby 服务器的内容将不再接收进度更新。更改后需要重启 Kodi。"
 
 msgctxt "#33407"
 msgid "Vacuum databases on Kodi shutdown"
-msgstr "Kodi 退出时自动清理数据库"
+msgstr "在 Kodi 关闭时清理并压缩数据库"
 
 msgctxt "#33408"
 msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
@@ -1821,7 +1821,7 @@ msgstr "跳过片头"
 
 msgctxt "#33418"
 msgid "A message box will ask for jump to intro end position"
-msgstr "消息框会要求跳转到片头结束位置"
+msgstr "将弹出一个消息框，询问是否跳转到片头结束位置。"
 
 msgctxt "#33419"
 msgid "Markers"
@@ -1833,7 +1833,7 @@ msgstr "跳过片尾"
 
 msgctxt "#33421"
 msgid "A message box will ask for skip credits"
-msgstr "消息框会要求跳过片尾"
+msgstr "将弹出一个消息框，询问是否跳过片尾（演职员表）。"
 
 msgctxt "#33422"
 msgid "Ask skip intro"
@@ -1849,7 +1849,7 @@ msgstr "消息框在 X 秒后自动关闭"
 
 msgctxt "#33425"
 msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
-msgstr "跳过片头、跳过片尾、电影模式和删除选项消息框将在 X 秒后自动关闭。0 表示禁用自动关闭"
+msgstr "跳过片头、跳过片尾、影院模式以及删除选项的消息框将在 X 秒后自动关闭。设置为 0 则禁用自动关闭功能。"
 
 msgctxt "#33426"
 msgid "Composers"
@@ -1857,7 +1857,7 @@ msgstr "作曲家"
 
 msgctxt "#33427"
 msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
-msgstr "检测到设置文件已损坏，请恢复默认。5 秒后重新启动。"
+msgstr "检测到设置文件损坏，已恢复默认设置。系统将在 5 秒后重新启动。"
 
 msgctxt "#33428"
 msgid "SSL Error"
@@ -1893,11 +1893,11 @@ msgstr "按流派分类的歌曲"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr "清理数据库"
+msgstr "清理并压缩数据库"
 
 msgctxt "#33437"
 msgid "Assign TVShow posters to episodes"
-msgstr "将电视剧海报分配给剧集"
+msgstr "将电视剧海报分配给每一集"
 
 msgctxt "#33438"
 msgid ""
@@ -1905,9 +1905,9 @@ msgid ""
 "Toggle this option requires a complete resync including all cached artwork.\n"
 "Caution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
 msgstr ""
-"TVShow Kodi 海报（Emby TVShow 主图像）将用作剧集 Kodi 海报。\n"
-"切换此选项需要完全重新同步，包括所有缓存的艺术图。\n"
-"注意：不要使用初始化同步向导（跳过它）"
+"电视剧的主海报（即 Emby 电视剧的封面图）将被用作每一集单集的海报。\n"
+"切换此选项需要执行一次完整同步，包括所有缓存的艺术图（海报等）。\n"
+"警告：请勿使用初始同步向导（请跳过它），并在重新同步之前仔细检查设置。"
 
 msgctxt "#33439"
 msgid "Use fanart images for next up episodes"
@@ -1915,11 +1915,11 @@ msgstr "为下一集使用同人画图像"
 
 msgctxt "#33440"
 msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
-msgstr "在下一集中，将缩略图（Kodi）替换为同人画（Kodi）"
+msgstr "在下一集中，将 Kodi 缩略图替换为 Kodi 同人画"
 
 msgctxt "#33441"
 msgid "Use alternative skip intro (message) layout"
-msgstr "使用替代跳过片头（消息）布局"
+msgstr "使用备选的跳过片头（消息框）布局"
 
 msgctxt "#33442"
 msgid "Embuary skin design"
@@ -1931,19 +1931,19 @@ msgstr "启用服务器进度"
 
 msgctxt "#33444"
 msgid "Emby server busy-notifications are shown"
-msgstr "Emby 服务器繁忙通知显示"
+msgstr "显示 Emby 服务器忙碌通知"
 
 msgctxt "#33445"
 msgid "Query content changes"
-msgstr "查询内容变化"
+msgstr "查询内容变更"
 
 msgctxt "#33446"
 msgid "Query content changes / userdata"
-msgstr "查询内容更改/用户数据"
+msgstr "查询内容变更 / 用户数据"
 
 msgctxt "#33447"
 msgid "Query content changes / content"
-msgstr "查询内容变化/内容"
+msgstr "查询内容变更 / 内容"
 
 msgctxt "#33448"
 msgid "Disconnected from Emby server"
@@ -1955,11 +1955,11 @@ msgstr "同步直播频道"
 
 msgctxt "#33450"
 msgid "Sync livetv epg"
-msgstr "同步直播电视剧"
+msgstr "同步直播电视节目"
 
 msgctxt "#30515"
 msgid "Paging - items requested (default factor: 70)"
-msgstr "分页 - 请求的项目（默认因子：70）"
+msgstr "分页 - 请求条目数（默认基数：70）"
 
 msgctxt "#33451"
 msgid "Sync themes"
@@ -1975,7 +1975,7 @@ msgstr "选择媒体源"
 
 msgctxt "#33454"
 msgid "Use workarounds for Kodi's (dynamic) widget issues"
-msgstr "使用 Kodi 的（动态）小组件问题的解决方法"
+msgstr "针对 Kodi（动态）小组件问题启用补丁"
 
 msgctxt "#33455"
 msgid "H264"
@@ -2107,11 +2107,11 @@ msgstr "使用路径替换"
 
 msgctxt "#33487"
 msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
-msgstr "路径替换支持插件模式下的章节图像。"
+msgstr "路径替换支持在插件模式下显示章节图片。此模式在某些设备上可能会导致播放问题。"
 
 msgctxt "#33488"
 msgid "Assign unique actors for each emby library"
-msgstr "为每个 emby 库分配特定的演员"
+msgstr "为每个 Emby 媒体库分配独立的演员数据"
 
 msgctxt "#33489"
 msgid "Episodes"
@@ -2123,7 +2123,7 @@ msgstr "EMBY: 记录"
 
 msgctxt "#33491"
 msgid "Watch together canceled"
-msgstr "取消一起看"
+msgstr "“一起看”会话已取消"
 
 msgctxt "#33492"
 msgid "Waiting for participants"
@@ -2139,7 +2139,7 @@ msgstr "选择用户"
 
 msgctxt "#33495"
 msgid "Remote clients / Watch together"
-msgstr "远程客户端/一起看"
+msgstr "远程客户端 / 一起看"
 
 msgctxt "#33496"
 msgid "Delete timer"
@@ -2155,7 +2155,7 @@ msgstr "强制客户端"
 
 msgctxt "#33499"
 msgid "Clients not supporting watch together natively, will be force to participate"
-msgstr "客户端不支持原生一起看，强制参与"
+msgstr "对于原生不支持“一起看”功能的客户端，将强制其参与（会话）"
 
 msgctxt "#33500"
 msgid "Client control"
@@ -2171,15 +2171,15 @@ msgstr "同步客户端到 master"
 
 msgctxt "#33503"
 msgid "Master controls play, pause, seek"
-msgstr "总控播放、暂停、查找"
+msgstr "总控播放、暂停、进度跳转"
 
 msgctxt "#33504"
 msgid "Wait for participates"
-msgstr "等待参与"
+msgstr "等待参与者"
 
 msgctxt "#33505"
 msgid "Wait for participates in seconds"
-msgstr "等待参与的秒数"
+msgstr "等待参与者加入的秒数"
 
 msgctxt "#33506"
 msgid "Delay playback"
@@ -2187,7 +2187,7 @@ msgstr "延迟播放"
 
 msgctxt "#33507"
 msgid "Delay playback start, give clients time to sync"
-msgstr "延迟播放开始，给客户端时间同步"
+msgstr "延迟播放开始，为客户端留出同步时间"
 
 msgctxt "#33508"
 msgid "Maximum drift on pause"
@@ -2195,7 +2195,7 @@ msgstr "暂停状态下的最大时间漂移容差"
 
 msgctxt "#33509"
 msgid "Allowed async in milliseconds on pause"
-msgstr "暂停时允许异步（以毫秒为单位）"
+msgstr "暂停时允许的异步时间（毫秒）"
 
 msgctxt "#33510"
 msgid "Auto ack"
@@ -2211,7 +2211,7 @@ msgstr "延迟"
 
 msgctxt "#33513"
 msgid "Triggers a seek command after X seconds"
-msgstr "在 X 秒后触发搜索命令"
+msgstr "在 X 秒后触发一次跳转指令"
 
 msgctxt "#33514"
 msgid "Resync unsupported clients"
@@ -2291,7 +2291,7 @@ msgstr "最大分辨率"
 
 msgctxt "#33533"
 msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
-msgstr "通过一个因子限制图像分辨率。Base 是屏幕分辨率。例如 1920x1080 的 50%"
+msgstr "按比例限制图像分辨率。基准为屏幕分辨率。例如：1920x1080 的 50%"
 
 msgctxt "#33534"
 msgid "Select transencode audiostream"
@@ -2299,7 +2299,7 @@ msgstr "选择转码音频流"
 
 msgctxt "#33535"
 msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
-msgstr "在插件模式下，路径替换支持章节图像（提取）。该模式可能会导致某些设备出现播放问题。同时禁用以下 Kodi 设置：\"媒体\"->\"视频\"->\"从文件中提取视频信息\"。"
+msgstr "路径替换支持在插件模式下提取章节图像。此模式可能在某些设备上导致播放问题。此外，请务必禁用以下 Kodi 设置：'媒体' -> '视频' -> '从文件中提取视频信息'。"
 
 msgctxt "#33536"
 msgid "Enable websocket connection"
@@ -2307,19 +2307,19 @@ msgstr "启用 websocket 连接"
 
 msgctxt "#33537"
 msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
-msgstr "如果禁用：无实时更新，不会收到任何通知，远程命令也无法使用。"
+msgstr "如果禁用：将没有实时更新，无法接收通知，且远程控制指令将失效。"
 
 msgctxt "#33538"
 msgid "Use workarounds for Kodi's episode bookmark issues"
-msgstr "使用方法解决 Kodi 的剧集书签问题"
+msgstr "针对 Kodi 的剧集书签（进度）问题启用规避方案"
 
 msgctxt "#33539"
 msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
-msgstr "通过列表视图选择剧集时，Kodi 在剧集书签方面存在一个错误。通过小工具选择的剧集不受影响。切换此选项需要重新同步整个剧集！"
+msgstr "Kodi 在通过列表视图选择剧集时存在书签（进度）Bug，而通过小组件选择的剧集不受影响。切换此选项需要完整重新同步所有电视剧数据！"
 
 msgctxt "#33540"
 msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
-msgstr "Kodi 在动态小组件存在问题。 该选项可防止 Kodi 多次查询相同内容。 （边缘情况，默认关闭）"
+msgstr "Kodi 在处理动态小组件时存在缺陷。开启此选项可防止 Kodi 多次查询相同内容。（仅针对特殊情况，默认关闭）"
 
 msgctxt "#33541"
 msgid "Enable HTTP/2 support"
@@ -2335,7 +2335,7 @@ msgstr "额外的音频小组件刷新"
 
 msgctxt "#33544"
 msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
-msgstr "在 Emby 报告进度更新后触发额外的（伪造）Kodi 音频扫描。皮肤助手需要此通知来刷新部件。通常皮肤助手会在视频扫描通知时刷新两个部件（视频和音频）。如果没有，您也可以启用额外的音频扫描。"
+msgstr "在 Emby 报告进度更新后，触发一次额外的（虚假）Kodi 音频扫描。皮肤辅助工具（Skinhelpers）需要此通知来刷新小组件。通常这些工具在收到视频扫描通知时会同时刷新视频和音频小组件；如果不行，您可以启用此额外的音频扫描。"
 
 msgctxt "#33545"
 msgid "Network timeouts"
@@ -2343,7 +2343,7 @@ msgstr "网络超时"
 
 msgctxt "#33546"
 msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
-msgstr "此选项影响 EPG 和多版本内容选择超时。在某些情况下，EPG（大量记录）查询会过早超时。如果是这样，请增加设置。"
+msgstr "此选项会影响电子节目单（EPG）和多版本内容选择的超时时间。在某些情况下，EPG（记录数量巨大时）查询可能会过早超时。如果是这样，请增加此数值。"
 
 msgctxt "#33547"
 msgid "EMBY: Favorites"
@@ -2359,7 +2359,7 @@ msgstr "EMBY: 管理远程客户端"
 
 msgctxt "#33549"
 msgid "Unify metadata by library"
-msgstr "按库统一元数据"
+msgstr "按媒体库统一元数据"
 
 msgctxt "#33550"
 msgid "MusicArtist"
@@ -2399,7 +2399,7 @@ msgstr "最爱"
 
 msgctxt "#33559"
 msgid "Duration of new content message"
-msgstr "新内容消息的持续时间"
+msgstr "新内容提醒消息的持续时间"
 
 msgctxt "#33560"
 msgid "Boxsets as tags"
@@ -2415,7 +2415,7 @@ msgstr "网络超时"
 
 msgctxt "#33563"
 msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
-msgstr "调整网络超时（以秒为单位）。"
+msgstr "以秒为单位调整网络超时时间。修改此设置后需要重启 Kodi 才能生效。"
 
 msgctxt "#33564"
 msgid "Sync Emby favorites to Kodi favorites"
@@ -2435,11 +2435,11 @@ msgstr "继续观看"
 
 msgctxt "#33567"
 msgid "Sync livetv channels on events"
-msgstr "同步活动直播频道"
+msgstr "根据事件同步直播电视（Live TV）频道"
 
 msgctxt "#33568"
 msgid "Livetv channels re-synced on Kodi start and EPG changes"
-msgstr "在 Kodi 启动和 EPG 更改时 Livetv 频道重新同步"
+msgstr "在 Kodi 启动及节目单（EPG）变更时重新同步直播频道"
 
 msgctxt "#33569"
 msgid "Download location"
@@ -2591,7 +2591,7 @@ msgstr "收藏夹添加/删除"
 
 msgctxt "#33605"
 msgid "Specials playback"
-msgstr "特别节目播放"
+msgstr "播放特辑"
 
 msgctxt "#33606"
 msgid "Recording"
@@ -2623,11 +2623,11 @@ msgstr "A-Z"
 
 msgctxt "#33612"
 msgid "Collections"
-msgstr "收藏"
+msgstr "合集"
 
 msgctxt "#33613"
 msgid "Recommendations"
-msgstr "建议"
+msgstr "推荐"
 
 msgctxt "#33614"
 msgid "Favorite movies"
@@ -2647,7 +2647,7 @@ msgstr "A-Z 视频"
 
 msgctxt "#33618"
 msgid "Recently Released Unwatched Movies"
-msgstr "最近上映的未观看的电影"
+msgstr "最近上映的未观看电影"
 
 msgctxt "#33619"
 msgid "Recently Released Movies"
@@ -2739,7 +2739,7 @@ msgstr "选择备份"
 
 msgctxt "#33644"
 msgid "Changing artwork requires an artwork cache reset. Proceed?"
-msgstr "更改艺术图需要重置缓存。是否继续？"
+msgstr "更改艺术图（海报/剧照）设置需要重置艺术图缓存。是否继续？"
 
 msgctxt "#33645"
 msgid "Notifications"
@@ -2751,7 +2751,7 @@ msgstr "消息持续时间"
 
 msgctxt "#33647"
 msgid "Message duration in seconds"
-msgstr "消息持续时间（以秒为单位）"
+msgstr "消息持续时间（秒）"
 
 msgctxt "#33648"
 msgid "Server operations"
@@ -2815,11 +2815,11 @@ msgstr "下载系列"
 
 msgctxt "#33663"
 msgid "Set imdb as default rating provider"
-msgstr "将 imdb 设置为默认评级提供商"
+msgstr "将 IMDb 设为默认评分提供方"
 
 msgctxt "#33664"
 msgid "Assume Emby's community rating reflects imdb ratings"
-msgstr "假设 Emby 的社区评级反映了 IMDB 评级"
+msgstr "假设 Emby 的社区评分反映了 IMDB 评分"
 
 msgctxt "#33665"
 msgid "Next Episodes (Mixed content)"
@@ -2835,7 +2835,7 @@ msgstr "继续上次播放的内容"
 
 msgctxt "#33668"
 msgid "Go To Show"
-msgstr "跳转到表演"
+msgstr "跳转到电视剧"
 
 msgctxt "#33669"
 msgid "EMBY: Go To"
@@ -2859,7 +2859,7 @@ msgstr "URI 长度限制"
 
 msgctxt "#33674"
 msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
-msgstr "在某些情况下，较高的限制速度更快，但可能会触发 http 414 问题"
+msgstr "在某些情况下，设置更高的限制会提升速度，但可能会触发 HTTP 414 错误。"
 
 msgctxt "#33675"
 msgid "EMBY: Settings"
@@ -2875,7 +2875,7 @@ msgstr "启用离线消息"
 
 msgctxt "#33678"
 msgid "Invalid server address"
-msgstr "服务器地址无效"
+msgstr "无效服务器地址"
 
 msgctxt "#33679"
 msgid "Invalid argument"
@@ -2887,11 +2887,11 @@ msgstr "找不到下载路径"
 
 msgctxt "#33681"
 msgid "Add movie links to tvshows"
-msgstr "将电影链接添加到电视剧"
+msgstr "将电影链接添加到电视剧中"
 
 msgctxt "#33682"
 msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
-msgstr "分配给 Kodi 电视剧视图中列出的电视剧的电影。"
+msgstr "在 Kodi 的电视剧视图中列出与该剧集关联的电影。关联通过 Emby 的“合集（Collections）”功能实现。"
 
 msgctxt "#33683"
 msgid "Enable start sync"
@@ -2899,7 +2899,7 @@ msgstr "启用开始同步"
 
 msgctxt "#33684"
 msgid "If disabled, Emby content will not be synced while Kodi start"
-msgstr "如果禁用，Kodi 启动时 Emby 内容将不会同步"
+msgstr "如果禁用：Kodi 启动时将不会同步 Emby 内容。"
 
 msgctxt "#33685"
 msgid "Use classic selection"
@@ -2907,27 +2907,27 @@ msgstr "使用经典选择"
 
 msgctxt "#33686"
 msgid "Selection menu is shown when multicontent is available"
-msgstr "多内容可用时显示选择菜单"
+msgstr "当存在多版本内容时，显示选择菜单。"
 
 msgctxt "#33687"
 msgid "Multicontent"
-msgstr "多内容"
+msgstr "多版本"
 
 msgctxt "#33688"
 msgid "Deduplicate content"
-msgstr "删除重复内容"
+msgstr "内容去重"
 
 msgctxt "#33689"
 msgid "Removes similar content on multiple Emby server libraries"
-msgstr "删除多个 Emby 服务器库上的类似内容"
+msgstr "移除存在于多个 Emby 媒体库中的重复内容"
 
 msgctxt "#33690"
 msgid "Set highest video resolution as default"
-msgstr "将最高视频分辨率设置为默认"
+msgstr "将最高视频分辨率设为默认值"
 
 msgctxt "#33691"
 msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
-msgstr "此选项适用于 Kodi 的多版本选择，并且需要在切换时重新同步库。"
+msgstr "此选项适用于 Kodi 的多版本内容选择。切换此开关后，需要重新同步媒体库才能生效。"
 
 msgctxt "#33692"
 msgid "Auto select highest resolution"
@@ -2943,7 +2943,7 @@ msgstr "启用 Kodi API 通知"
 
 msgctxt "#33695"
 msgid "Report events via Kodi's API for external usage"
-msgstr "通过 Kodi 的 API 报告事件供外部使用"
+msgstr "通过 Kodi API 上报事件供外部调用"
 
 msgctxt "#33696"
 msgid "Access denied"
@@ -2975,7 +2975,7 @@ msgstr "无"
 
 msgctxt "#33703"
 msgid "No path info available, be careful what you do!"
-msgstr "没有可用的路径信息，小心你的行为！"
+msgstr "无可用路径信息，请谨慎操作！"
 
 msgctxt "#33704"
 msgid "TVShow"
@@ -3011,15 +3011,15 @@ msgstr "启用主题"
 
 msgctxt "#33712"
 msgid "Follow http"
-msgstr "遵循 http"
+msgstr "跟随 HTTP 重定向"
 
 msgctxt "#33713"
 msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
-msgstr "外部 http 内容将直接访问，而不是通过 Emby 服务器传输。"
+msgstr "外部 HTTP 内容将直接访问，不再通过 Emby 服务器中转。此选项可以解决 Emby 服务器的播放问题。"
 
 msgctxt "#33714"
 msgid "Follow http timeout"
-msgstr "遵循 http 超时设定"
+msgstr "HTTP 重定向超时时间"
 
 msgctxt "#33715"
 msgid "Set local content as default"
@@ -3035,7 +3035,7 @@ msgstr "取消艺术图缓存"
 
 msgctxt "#33718"
 msgid "Number of webservice workers"
-msgstr "网络服务工作线程数量"
+msgstr "Webservice 线程数"
 
 msgctxt "#33719"
 msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
@@ -3055,23 +3055,23 @@ msgstr "服务类型"
 
 msgctxt "#33723"
 msgid "IP header (TOS), could improve responsiveness"
-msgstr "IP 标头（TOS），可提高响应速度"
+msgstr "IP 标头 (TOS) 优化：可提升交互响应速度"
 
 msgctxt "#33724"
 msgid "CS0 (Best Effort)"
-msgstr "CS0（尽力而为）"
+msgstr "CS0 (普通：尽力而为)"
 
 msgctxt "#33725"
 msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5，EF（加速转发）"
+msgstr "CS5, EF (极速：加速转发)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
-msgstr "CS1，AF11（确保转发）"
+msgstr "CS1, AF11 (稳定：确保转发)"
 
 msgctxt "#33727"
 msgid "CS4 (Real-time interactive)"
-msgstr "CS4（实时交互）"
+msgstr "CS4 (实时：实时交互优先)"
 
 msgctxt "#33728"
 msgid "Incremental artwork cache"
@@ -3079,7 +3079,7 @@ msgstr "增量式艺术图缓存"
 
 msgctxt "#33729"
 msgid "Cache artwork automatically on partial syncs"
-msgstr "部分同步时自动缓存艺术图"
+msgstr "增量同步时自动缓存艺术图"
 
 msgctxt "#33730"
 msgid "Genres with icons"
@@ -3135,7 +3135,7 @@ msgstr "转码分辨率"
 
 msgctxt "#33743"
 msgid "Unlimited means keep source resolution"
-msgstr "无限制意味着保持源分辨率"
+msgstr "无限制表示保持原始分辨率"
 
 msgctxt "#33744"
 msgid "Webservice mode"
@@ -3239,7 +3239,7 @@ msgstr "视频预览缩略图提取"
 
 msgctxt "#33769"
 msgid "Vacuum database"
-msgstr "清理数据库"
+msgstr "压缩数据库"
 
 msgctxt "#33770"
 msgid "Upload local theme videos"
@@ -3307,7 +3307,7 @@ msgstr "转换媒体"
 
 msgctxt "#33786"
 msgid "Refresh in progress"
-msgstr "刷新进行中"
+msgstr "刷新中"
 
 msgctxt "#33787"
 msgid "Emby scripterX scheduled task"
@@ -3315,11 +3315,11 @@ msgstr "Emby scripterX 计划任务"
 
 msgctxt "#33788"
 msgid "EMBY: More like this"
-msgstr "EMBY: 更多类似内容"
+msgstr "EMBY: 更多相似"
 
 msgctxt "#33789"
 msgid "More like this"
-msgstr "更多相似内容"
+msgstr "更多相似"
 
 msgctxt "#33790"
 msgid "Homevideo tags"
@@ -3343,7 +3343,7 @@ msgstr "播放状态变化"
 
 msgctxt "#33795"
 msgid "Series and season progress"
-msgstr "剧集和季进度"
+msgstr "电视剧和季进度"
 
 msgctxt "#33796"
 msgid "Playlists (mixed)"
@@ -3363,7 +3363,7 @@ msgstr "Kodi Companion 警告"
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
-msgstr "Kodi Companion 是一款 Emby 服务器插件，用于追踪已删除的内容"
+msgstr "Kodi Companion 是一个 Emby 服务器插件，用于跟踪已删除的内容。"
 
 msgctxt "#33801"
 msgid "Processing trailers"
