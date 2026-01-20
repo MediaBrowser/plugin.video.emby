@@ -2403,7 +2403,7 @@ msgstr "新内容提醒的显示时长"
 
 msgctxt "#33560"
 msgid "Boxsets as tags"
-msgstr "合集作为标签"
+msgstr "将合集设为标签"
 
 msgctxt "#33561"
 msgid "Assign boxsets to tags"
@@ -3307,7 +3307,7 @@ msgstr "转换媒体"
 
 msgctxt "#33786"
 msgid "Refresh in progress"
-msgstr "刷新中"
+msgstr "刷新操作正在进行"
 
 msgctxt "#33787"
 msgid "Emby scripterX scheduled task"
@@ -3339,7 +3339,7 @@ msgstr "收藏的视频"
 
 msgctxt "#33794"
 msgid "Playback state changes"
-msgstr "播放状态变化"
+msgstr "播放状态变更"
 
 msgctxt "#33795"
 msgid "Series and season progress"
