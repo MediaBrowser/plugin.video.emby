@@ -193,11 +193,11 @@ msgstr "Emby 转码"
 
 msgctxt "#30405"
 msgid "Add to favorites"
-msgstr "添加到收藏夹"
+msgstr "添加到收藏"
 
 msgctxt "#30406"
 msgid "Remove from favorites"
-msgstr "从收藏夹中删除"
+msgstr "从收藏中删除"
 
 msgctxt "#30408"
 msgid "Settings"
@@ -849,7 +849,7 @@ msgstr "最近添加"
 
 msgctxt "#33168"
 msgid "Favourites"
-msgstr "收藏夹"
+msgstr "收藏"
 
 msgctxt "#33169"
 msgid "In Progress"
@@ -1453,7 +1453,7 @@ msgstr "可以节省带宽"
 
 msgctxt "#33323"
 msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
-msgstr "在某些情况下，将菜单选项以快捷方式的形式显示在插件菜单中会非常有用。此外，它们还可以被添加到“收藏夹”等位置。"
+msgstr "在某些情况下，将菜单选项以快捷方式的形式显示在插件菜单中会非常有用。此外，它们还可以被添加到“收藏”等位置。"
 
 msgctxt "#33324"
 msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
@@ -2419,7 +2419,7 @@ msgstr "以秒为单位调整网络超时时间。修改此设置后需要重启
 
 msgctxt "#33564"
 msgid "Sync Emby favorites to Kodi favorites"
-msgstr "将 Emby 收藏夹同步到 Kodi 收藏夹"
+msgstr "将 Emby 收藏同步到 Kodi 收藏"
 
 msgctxt "#33565"
 msgid "Kodi favorites.xml will be modified"
