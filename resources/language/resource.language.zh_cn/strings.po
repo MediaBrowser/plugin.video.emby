@@ -1777,7 +1777,7 @@ msgstr "此功能将禁用 Kodi 内部的进度更新。非 Emby 服务器的内
 
 msgctxt "#33407"
 msgid "Vacuum databases on Kodi shutdown"
-msgstr "在 Kodi 关闭时清理并压缩数据库"
+msgstr "在 Kodi 关闭时清理数据库"
 
 msgctxt "#33408"
 msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
@@ -1893,7 +1893,7 @@ msgstr "按流派分类的歌曲"
 
 msgctxt "#33436"
 msgid "Vacuum databases"
-msgstr "清理并压缩数据库"
+msgstr "清理数据库"
 
 msgctxt "#33437"
 msgid "Assign TVShow posters to episodes"
@@ -3239,7 +3239,7 @@ msgstr "视频预览缩略图提取"
 
 msgctxt "#33769"
 msgid "Vacuum database"
-msgstr "压缩数据库"
+msgstr "清理数据库"
 
 msgctxt "#33770"
 msgid "Upload local theme videos"
@@ -3363,7 +3363,7 @@ msgstr "Kodi Companion 警告"
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
-msgstr "Kodi Companion 是一个 Emby 服务器插件，用于跟踪已删除的内容。"
+msgstr "Kodi Companion 是一个 Emby 服务器插件，用于追踪已删除的内容。"
 
 msgctxt "#33801"
 msgid "Processing trailers"
@@ -3399,7 +3399,7 @@ msgstr "淡出"
 
 msgctxt "#33809"
 msgid "Larger values means longer fading time, zero is disabled"
-msgstr "数值越大淡入淡出时间越长，0为禁用"
+msgstr "数值越大淡入淡出时间越长，0 为禁用"
 
 msgctxt "#33810"
 msgid "Homescreen navigation"
