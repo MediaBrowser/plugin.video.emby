@@ -182,6 +182,33 @@ def get_Bitrate_Codec(Item, StreamType, MediaSource):
 
     return Bitrate, Codec
 
+def convert_iso_path(path):
+    if not utils.IsoPathConvertEnabled:
+        return path
+    
+    if not path:
+        return path
+    
+    path_lower = path.lower()
+    if '.iso' not in path_lower:
+        return path
+    
+    converted_path = path
+    
+    if utils.IsoPathConvertPrefix and utils.IsoPathConvertReplaceTo:
+        prefix = utils.IsoPathConvertPrefix
+        prefix_lower = prefix.lower()
+        if path_lower.startswith(prefix_lower):
+            prefix_len = len(prefix)
+            converted_path = utils.IsoPathConvertReplaceTo + converted_path[prefix_len:]
+    
+    if utils.IsoPathConvertRemoveTrailing:
+        iso_pos = converted_path.lower().find('.iso')
+        if iso_pos != -1:
+            converted_path = converted_path[:iso_pos + 4]
+    
+    return converted_path
+
 def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
     Item['KodiFullPath'] = ""
     isHttpByEmby = False
@@ -231,6 +258,9 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
         if not Item['KodiPath'].endswith(Item['Container']):
             Item['KodiPath'] += f".{Item['Container']}"
 
+    # Convert ISO paths if enabled
+    Item['KodiPath'] = convert_iso_path(Item['KodiPath'])
+
     if Item['KodiPath'].startswith('\\\\'):
         Item['KodiPath'] = Item['KodiPath'].replace('\\\\', "SMBINJECT", 1).replace('\\', "/") # only replace \\ on beginning with smb://
         Item['KodiPath'] = Item['KodiPath'].replace('//', "/")  # fix trailing "/" (Emby server path substitution -> user assigned "wrong" trailing "/")
@@ -260,6 +290,11 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
         Item['KodiFilename'] = Item['KodiPath']
         Item['KodiFullPath'] = Item['KodiPath']
         return
+
+    if Container == 'iso' or KodiPathLower.endswith(".iso"):
+        NativeMode = True
+    elif KodiPathLower.startswith("dav://") or KodiPathLower.startswith("davs://"):
+        NativeMode = True
 
     if Item['KodiPath']:
         Item['KodiFilename'] = utils.get_Filename(Item['KodiPath'], NativeMode)
