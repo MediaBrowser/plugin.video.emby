@@ -302,14 +302,14 @@ class Library:
                 if UpdateData[1]:
                     self.userdata(UpdateData[1], True, False)
 
-            self.RunJobs(True)
+            self.RunJobs()
 
         self.set_syncdate(NewSyncData)
         self.SyncLiveTVEPG()
         xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ]", 0) # LOGDEBUG
 
     # Userdata change is an high priority task
-    def worker_userdata(self, IncrementalSync):
+    def worker_userdata(self, IncrementalSync=False):
         WorkerName = "worker_userdata"
         UpdateUserDataCached = ()
 
@@ -405,7 +405,7 @@ class Library:
                 yield False, MetaData
                 xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Skip not synced item: {UserDataItem[0]}", 0) # LOGDEBUG
 
-    def worker_update(self, IncrementalSync):
+    def worker_update(self, IncrementalSync=False):
         MusicVideoLinks = False
         WorkerName = "worker_update"
 
@@ -542,7 +542,7 @@ class Library:
                         UpdateItemsIds.remove(UpdateItemsIdTemp)
                         yield False, {'Id': UpdateItemsIdTemp}
 
-    def worker_remove(self, IncrementalSync):
+    def worker_remove(self, IncrementalSync=False):
         with LockLowPriorityWorkers:
             WorkerName = "worker_remove"
 
@@ -1021,7 +1021,7 @@ class Library:
         return None
 
     # Run workers in specific order
-    def RunJobs(self, IncrementalSync):
+    def RunJobs(self, IncrementalSync=False):
         if not utils.SyncPause.get(f"server_busy_{self.EmbyServer.ServerData['ServerId']}", False):
             if self.worker_remove(IncrementalSync):
                 if self.worker_update(IncrementalSync):
