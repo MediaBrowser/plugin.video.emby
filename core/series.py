@@ -79,8 +79,14 @@ class Series:
         common.set_Director_links(Item['KodiItemId'], self.SQLs, "tvshow", Item["DirectorsItems"])
         self.SQLs["video"].add_countries_and_links(Item['ProductionLocations'], Item['KodiItemId'], "tvshow")
         self.SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiItemId'], "tvshow")
-        Item['KodiUniqueId'] = self.SQLs["video"].add_uniqueids(Item['KodiItemId'], Item['ProviderIds'], "tvshow", 'tvdb')
+        Item['KodiUniqueId'] = self.SQLs["video"].add_uniqueids(Item['KodiItemId'], Item['ProviderIds'], "tvshow", 'tmdb')
         Item['KodiRatingId'] = self.SQLs["video"].add_ratings(Item['KodiItemId'], "tvshow", "default", Item['CommunityRating'])
+
+        # Override OriginalTitle and sortTitle with pinyin from title (c00)
+        pinyin_title = utils.get_pinyin(Item['Name'])
+        if pinyin_title:
+            Item['OriginalTitle'] = pinyin_title
+            Item['SortName'] = pinyin_title
 
         if Item['UpdateItem']:
             self.SQLs["video"].update_tvshow(Item['Name'], Item['Overview'], Item['Status'], Item['KodiRatingId'], Item['KodiPremiereDate'], Item['KodiArtwork']['poster'], Item['Genre'], Item['OriginalTitle'], Item['KodiArtwork']['fanart'].get('fanart', None), Item['KodiUniqueId'], Item['OfficialRating'], Item['Studio'], Item['SortName'], Item['KodiRunTimeTicks'], Item['KodiItemId'], Item['Trailer'], Item['KodiPathId'], Item['KodiPath'])
