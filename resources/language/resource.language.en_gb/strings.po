@@ -3453,3 +3453,39 @@ msgstr ""
 msgctxt "#33825"
 msgid "Volume"
 msgstr ""
+
+msgctxt "#33801"
+msgid "Path Convert"
+msgstr ""
+
+msgctxt "#33802"
+msgid "Enable ISO Path Conversion"
+msgstr ""
+
+msgctxt "#33803"
+msgid "Path Prefix"
+msgstr ""
+
+msgctxt "#33804"
+msgid "Replace To"
+msgstr ""
+
+msgctxt "#33805"
+msgid "Remove Trailing Chars after .iso"
+msgstr ""
+
+msgctxt "#33806"
+msgid "Enable conversion of ISO file paths from Emby format to Kodi-compatible format. Note: A library resync is required after changing this setting or any ISO path conversion options."
+msgstr ""
+
+msgctxt "#33807"
+msgid "Path prefix to match and replace (e.g., /mnt/share1 or http://serveraddress:port/path1)"
+msgstr ""
+
+msgctxt "#33808"
+msgid "Replacement path prefix (e.g., /storage/folder1)"
+msgstr ""
+
+msgctxt "#33809"
+msgid "Remove trailing characters after .iso extension (e.g., query parameters like ?pickcode=1234)"
+msgstr ""
