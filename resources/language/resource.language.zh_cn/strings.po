@@ -3536,3 +3536,39 @@ msgstr "时序"
 msgctxt "#33843"
 msgid "Playback"
 msgstr "播放"
+
+msgctxt "#33801"
+msgid "Path Convert"
+msgstr "路径转换"
+
+msgctxt "#33802"
+msgid "Enable ISO Path Conversion"
+msgstr "启用 ISO 路径转换"
+
+msgctxt "#33803"
+msgid "Path Prefix"
+msgstr "路径前缀"
+
+msgctxt "#33804"
+msgid "Replace To"
+msgstr "替换为"
+
+msgctxt "#33805"
+msgid "Remove Trailing Chars after .iso"
+msgstr "移除 .iso 后的尾随字符"
+
+msgctxt "#33806"
+msgid "Enable conversion of ISO file paths from Emby format to Kodi-compatible format. Note: A library resync is required after changing this setting or any ISO path conversion options."
+msgstr "启用将 ISO 文件路径从 Emby 格式转换为 Kodi 兼容格式。注意：更改此设置或任何 ISO 路径转换选项后，需要重新同步媒体库。"
+
+msgctxt "#33807"
+msgid "Path prefix to match and replace (e.g., /mnt/share1 or http://serveraddress:port/path1)"
+msgstr "要匹配和替换的路径前缀（例如：/mnt/share1 或 http://serveraddress:port/path1）"
+
+msgctxt "#33808"
+msgid "Replacement path prefix (e.g., /storage/folder1)"
+msgstr "替换后的路径前缀（例如：/storage/folder1）"
+
+msgctxt "#33809"
+msgid "Remove trailing characters after .iso extension (e.g., query parameters like ?pickcode=1234)"
+msgstr "移除 .iso 扩展名后的尾随字符（例如：查询参数如 ?pickcode=1234）"
