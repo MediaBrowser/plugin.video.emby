@@ -611,6 +611,51 @@
                 </setting>
             </group>
         </category>
+        <category id="pathconvert" label="33801" help="">
+            <group id="1" label="33801">
+                <setting label="33802" id="IsoPathConvertEnabled" type="boolean" help="33806">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33803" id="IsoPathConvertPrefix" type="string" help="33807">
+                    <level>0</level>
+                    <default/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="IsoPathConvertEnabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+                <setting label="33804" id="IsoPathConvertReplaceTo" type="string" help="33808">
+                    <level>0</level>
+                    <default/>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="IsoPathConvertEnabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string"/>
+                </setting>
+                <setting label="33805" id="IsoPathConvertRemoveTrailing" type="boolean" help="33809">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="IsoPathConvertEnabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle"/>
+                </setting>
+            </group>
+        </category>
         <category id="playback" label="30516" help="">
             <group id="2" label="33298">
                 <setting label="33262" id="enableCinemaMovies" type="boolean" help="">
@@ -753,8 +798,8 @@
                     </control>
                 </setting>
                 <setting label="33712" id="followhttp" type="boolean" help="33713">
-                    <level>2</level>
-                    <default>false</default>
+                    <level>0</level>
+                    <default>true</default>
                     <control type="toggle"/>
                 </setting>
                 <setting id="followhttptimeout" type="integer" label="33714" help="">
@@ -1791,8 +1836,8 @@
             </group>
             <group id="7" label="33645">
                 <setting label="30249" id="connectMsg" type="boolean" help="">
-                    <level>2</level>
-                    <default>true</default>
+                    <level>0</level>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting label="30530" id="restartMsg" type="boolean" help="">
@@ -2082,8 +2127,8 @@
                     <control type="toggle"/>
                 </setting>
                 <setting label="33799" id="verifyKodiCompanion" type="boolean" help="33800">
-                    <level>3</level>
-                    <default>true</default>
+                    <level>0</level>
+                    <default>false</default>
                     <control type="toggle"/>
                 </setting>
                 <setting id="databasevacuummanual" label="33436" type="action" help="334078">
