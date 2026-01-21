@@ -1,6 +1,8 @@
 from _thread import start_new_thread, allocate_lock
 import os
 import json
+import sys
+import re
 from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from dateutil import tz, parser
@@ -16,6 +18,23 @@ import xbmcvfs
 import xbmc
 import xbmcaddon
 import xbmcgui
+
+# Add bundled pypinyin to path
+try:
+    addon_path = xbmcvfs.translatePath("special://home/addons/plugin.service.emby-next-gen/")
+    lib_path = os.path.join(addon_path, 'resources', 'lib')
+    if lib_path not in sys.path:
+        sys.path.insert(0, lib_path)
+except:
+    pass
+
+# Import pypinyin with graceful fallback
+try:
+    import pypinyin
+    PYPINYIN_AVAILABLE = True
+except:
+    PYPINYIN_AVAILABLE = False
+    xbmc.log("EMBY.helper.utils: pypinyin library not available, pinyin conversion will be disabled", 2) # LOGWARNING
 
 Addon = xbmcaddon.Addon("plugin.service.emby-next-gen")
 addon_version = Addon.getAddonInfo('version')
@@ -264,6 +283,69 @@ LinkMusicVideos = True
 XbmcMonitor = None
 Tos = "CS5, EF (Expedited Forwarding)"
 IconExtensions = ("jpg", "png", "gif", "webp", "apng", "avif", "svg", "ukn")
+
+def get_pinyin(text):
+    """
+    Convert Chinese characters in text to pinyin first letters.
+    
+    :param text: Input text string
+    :return: Pinyin first letters string, or original text if pypinyin unavailable
+    """
+    if not text or not PYPINYIN_AVAILABLE:
+        return text if text else ''
+    
+    try:
+        # Get pinyin for all characters
+        pinyin_result = pypinyin.pinyin(text, style=pypinyin.NORMAL, heteronym=True)
+        result = []
+        char_index = 0
+        
+        for pinyin_list in pinyin_result:
+            # Handle heteronym (multiple pronunciations) - use first one
+            if len(pinyin_list) > 1 and len(set([p[0].lower() for p in pinyin_list])) > 1:
+                # Multiple pronunciations with different first letters - use first
+                pinyin_list = [pinyin_list[0]]
+            
+            # Check if this is the original character (not converted to pinyin)
+            if len(pinyin_list) == 1 and pinyin_list[0] == text[char_index:char_index + len(pinyin_list[0])]:
+                # Original string returned (likely English/number, not Chinese)
+                original_segment = pinyin_list[0]
+                char_index += len(original_segment)
+                
+                # If it's alphanumeric, process based on word boundaries
+                if re.match(r'^[0-9a-zA-Z]+$', original_segment):
+                    # Check if there are spaces in the original text around this segment
+                    # For space-separated words, extract first letter of each
+                    # For continuous strings, include as-is
+                    # Split by spaces to identify word boundaries
+                    words = original_segment.split()
+                    if len(words) > 1:
+                        # Space-separated words - get first letter of each
+                        result.extend([word[0] for word in words if word])
+                    else:
+                        # Continuous alphanumeric - include as-is
+                        result.append(original_segment)
+                else:
+                    # Extract alphanumeric parts from mixed content
+                    alphanumeric_parts = re.findall(r'[0-9a-zA-Z]+', original_segment)
+                    for part in alphanumeric_parts:
+                        # Check if part has spaces (word boundaries)
+                        part_words = part.split()
+                        if len(part_words) > 1:
+                            result.extend([word[0] for word in part_words if word])
+                        else:
+                            result.append(part)
+            else:
+                # Chinese character converted to pinyin - get first letter
+                result.append(pinyin_list[0][0])
+                char_index += 1
+        
+        # Join and return lowercase, spaces removed
+        return ''.join(result).replace(' ', '').lower()
+    
+    except Exception as e:
+        xbmc.log(f"EMBY.helper.utils: Error in get_pinyin: {e}", 2) # LOGWARNING
+        return text if text else ''
 
 def refresh_widgets(isVideo):
     with WidgetsRefreshLock:
@@ -986,6 +1068,10 @@ def InitSettings():
     load_settings_bool('followhttp')
     load_settings_bool('BusyDialogClose')
     load_settings_bool('ArtworkCacheIncremental')
+    load_settings_bool('IsoPathConvertEnabled')
+    load_settings('IsoPathConvertPrefix')
+    load_settings('IsoPathConvertReplaceTo')
+    load_settings_bool('IsoPathConvertRemoveTrailing')
 
     if ArtworkLimitations:
         globals()["ScreenResolution"] = (int(xbmc.getInfoLabel('System.ScreenWidth')), int(xbmc.getInfoLabel('System.ScreenHeight')))
