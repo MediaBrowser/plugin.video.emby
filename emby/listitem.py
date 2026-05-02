@@ -4,28 +4,40 @@ from helper import utils
 from core import common
 
 def get_shortdate(EmbyDate):
+    if not EmbyDate:
+        return ""
+
     try:
         DateTime = EmbyDate.split(" ")
         DateTemp = DateTime[0].split("-")
         return f"{DateTemp[2]}-{DateTemp[1]}-{DateTemp[0]}"
     except Exception as Error:
-        xbmc.log(f"EMBY.emby.listitem: No valid date: {EmbyDate} / {Error}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.listitem (DEBUG): No valid date: {EmbyDate} / {Error}", 1) # LOGDEBUG
         return ""
 
-def set_ListItem_from_Kodi_database(KodiItem, Path=None):
+def set_ListItem_from_Kodi_database(KodiItem, Path=None, ContentLookup=True):
     if Path:
         ListItem = xbmcgui.ListItem(label=KodiItem['title'], offscreen=True, path=Path)
+        MimeType = get_MimeType(Path)
     else:
         if 'pathandfilename' in KodiItem:
             ListItem = xbmcgui.ListItem(label=KodiItem['title'], offscreen=True, path=KodiItem['pathandfilename'])
+            MimeType = get_MimeType(KodiItem['pathandfilename'])
         elif 'path' in KodiItem:
             ListItem = xbmcgui.ListItem(label=KodiItem['title'], offscreen=True, path=KodiItem['path'])
+            MimeType = get_MimeType(KodiItem['path'])
         else:
             ListItem = xbmcgui.ListItem(label=KodiItem['title'], offscreen=True)
+            MimeType = ""
 
-    ListItem.setContentLookup(False) # disable mime requests, as they stall webservice: hls mimetype must be set in webservice.py -> sendHeadVideoHLS
+    if MimeType:
+        ListItem.setMimeType(MimeType)
+        KodiItem['properties'].update({'mimetype': MimeType})
 
-    if KodiItem['mediatype'] in ("episode", "movie", "musicvideo", "tvshow", "season", "set", "actor"):
+        if not ContentLookup: # disable mime requests, as they stall webservice: hls mimetype must be set in webservice.py -> sendHeadVideoHLS -> Don't use it, it breaks transocding, for direct Embyserver re uests or not transcoding, it's save to use it
+            ListItem.setContentLookup(False)
+
+    if KodiItem['mediatype'] in ("episode", "movie", "musicvideo", "tvshow", "season", "set", "actor", "video"):
         if KodiItem.get('ProductionLocation'):
             KodiItem['ProductionLocations'] = KodiItem['ProductionLocation'].split("/")
 
@@ -69,11 +81,11 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         set_Trailer(KodiItem, InfoTags)
         set_RatingVideo(KodiItem, InfoTags)
 
-#        if KodiItem.get('path'):
-#            InfoTags.setPath(KodiItem['path'])
+        if KodiItem.get('path'):
+            InfoTags.setPath(KodiItem['path'])
 
-#        if KodiItem.get('pathandfilename'):
-#            InfoTags.setFilenameAndPath(KodiItem['pathandfilename'])
+        if KodiItem.get('pathandfilename'):
+            InfoTags.setFilenameAndPath(KodiItem['pathandfilename'])
 
         if KodiItem.get('track'):
             InfoTags.setTrackNumber(int(KodiItem['track']))
@@ -88,6 +100,9 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
                 People += (xbmc.Actor(*Person),)
 
             InfoTags.setCast(People)
+
+        if KodiItem.get('playcount'):
+            InfoTags.setPlaycount(KodiItem['playcount'])
     elif KodiItem['mediatype'] in ("song", "artist", "album"):
         InfoTags = ListItem.getMusicInfoTag()
         InfoTags.setDbId(int(KodiItem['dbid']), KodiItem['mediatype'])
@@ -122,6 +137,15 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         if KodiItem.get('musicbrainztrackid'):
             InfoTags.setMusicBrainzTrackID(KodiItem['musicbrainztrackid'])
 
+        if KodiItem.get('playcount'):
+            InfoTags.setPlayCount(KodiItem['playcount'])
+
+        if KodiItem.get('path'):
+            InfoTags.setURL(KodiItem['path'])
+
+        if KodiItem.get('pathandfilename'):
+            InfoTags.setURL(KodiItem['pathandfilename'])
+
 #        set_MusicBrainzAlbumArtistID(item, InfoTags)
 
     # Common infotags
@@ -138,9 +162,6 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
         if KodiItem.get('genre'):
             InfoTags.setGenres(KodiItem['genre'].split("/"))
 
-        if KodiItem.get('playCount'):
-            InfoTags.setPlaycount(KodiItem['playCount'])
-
         if KodiItem.get('lastplayed'):
             InfoTags.setLastPlayed(KodiItem['lastplayed'])
 
@@ -151,7 +172,7 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None):
     IsFolder = bool(KodiItem['properties']['IsFolder'] == "true")
     return IsFolder, ListItem
 
-def set_ListItem(item, ServerId, Path=None):
+def set_ListItem(item, ServerId, Path=None, ContentLookup=True):
     if 'Name' in item:
         Name = item['Name']
     elif 'SeriesName' in item: # {'ServerId': '2a38697ffc1b428b943aa1b6014e2263', 'PremiereDate': '2024-10-23T22:00:00.0000000Z', 'ProductionYear': 2024, 'IndexNumber': 2, 'ParentIndexNumber': 5, 'ProviderIds': {}, 'Type': 'Episode', 'SeriesName': 'Star Trek: Lower Decks', 'SeriesId': '58574', 'SeriesPrimaryImageTag': 'fb201a2139810a15d125dfea5e981f36', 'ParentThumbItemId': '58574', 'ParentThumbImageTag': '01e69ca501869a469606bc82bd94d300', 'LocationType': 'Virtual'}
@@ -164,17 +185,30 @@ def set_ListItem(item, ServerId, Path=None):
     else:
         listitem = xbmcgui.ListItem(label=Name, offscreen=True)
 
-    listitem.setContentLookup(False) # disable mime requests, as they stall webservice: hls mimetype must be set in webservice.py -> sendHeadVideoHLS
-    Properties = {'embyserverid': str(ServerId), 'embyid': str(item.get('Id', ""))}
+    MimeType = get_MimeType(item.get('Path', ""))
+
+    if MimeType:
+        listitem.setMimeType(MimeType)
+        Properties = {'embyserverid': str(ServerId), 'embyid': str(item.get('Id', "")), 'mimetype': MimeType}
+
+        if not ContentLookup: # disable mime requests, as they stall webservice: hls mimetype must be set in webservice.py -> sendHeadVideoHLS -> Don't use it, it breaks transocding, for direct Embyserver re uests or not transcoding, it's save to use it
+            listitem.setContentLookup(False)
+    else:
+        Properties = {'embyserverid': str(ServerId), 'embyid': str(item.get('Id', ""))}
+
     InfoTags = None
     IsVideo = False
 
     if item['Type'] == 'Folder' or item.get('NodesMenu', False):
         common.set_KodiArtwork(item, ServerId, True)
         common.set_overview(item)
+        common.set_path_filename(item, ServerId, None, True)
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
     elif item['Type'] == "TvChannel":
         common.load_tvchannel(item, ServerId)
+        common.set_streams(item)
+        common.set_chapters(item, ServerId)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("video")
@@ -190,11 +224,16 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_ResumePoint(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
+        set_Path(item, InfoTags)
+        set_FilenameAndPath(item, InfoTags)
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true'})
     elif item['Type'] in ("Movie", "Trailer"):
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
+        common.set_streams(item)
+        common.set_chapters(item, ServerId)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("movie")
@@ -221,10 +260,12 @@ def set_ListItem(item, ServerId, Path=None):
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
         set_ResumePoint(item, InfoTags)
+        set_Path(item, InfoTags)
+        set_FilenameAndPath(item, InfoTags)
 
-        if item['Type'] == "Movie" and utils.getLocalTrailers:
-            common.set_trailer(item, utils.EmbyServers[ServerId])
-            set_Trailer(item, InfoTags)
+#        if item['Type'] == "Movie" and utils.getLocalTrailers:
+#            common.set_trailer(item, utils.EmbyServers[ServerId])
+#            set_Trailer(item, InfoTags)
 
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true', "KodiType": "movie"})
     elif item['Type'] == "Series":
@@ -232,6 +273,7 @@ def set_ListItem(item, ServerId, Path=None):
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("tvshow")
@@ -259,10 +301,11 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
+        set_Path(item, InfoTags)
 
-        if utils.getLocalTrailers:
-            common.set_trailer(item, utils.EmbyServers[ServerId])
-            set_Trailer(item, InfoTags)
+#        if utils.getLocalTrailers:
+#            common.set_trailer(item, utils.EmbyServers[ServerId])
+#            set_Trailer(item, InfoTags)
 
         if utils.getTotalEpisodes:
             TotalEpisodes = get_TotalEpisodesSeries(item['Id'], ServerId) # load total episodes: "RecursiveItemCount" doesn't match UnplayedItemCount when specials available
@@ -278,6 +321,7 @@ def set_ListItem(item, ServerId, Path=None):
     elif item['Type'] == "Season":
         common.set_playstate(item)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("season")
@@ -303,6 +347,7 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
+        set_Path(item, InfoTags)
         isSpecial = "IndexNumber" in item and not item["IndexNumber"]
 
         if utils.getTotalEpisodes:
@@ -319,7 +364,10 @@ def set_ListItem(item, ServerId, Path=None):
     elif item['Type'] == "Episode":
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
+        common.set_streams(item)
+        common.set_chapters(item, ServerId)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("episode")
@@ -351,6 +399,8 @@ def set_ListItem(item, ServerId, Path=None):
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
         set_ResumePoint(item, InfoTags)
+        set_Path(item, InfoTags)
+        set_FilenameAndPath(item, InfoTags)
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true', "KodiType": "episode"})
 
         # Virtual content e.g. Upcoming
@@ -360,8 +410,11 @@ def set_ListItem(item, ServerId, Path=None):
     elif item['Type'] == "MusicVideo":
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
-        common.set_MusicVideoTracks(item)
+        common.set_streams(item)
+        common.set_chapters(item, ServerId)
         common.set_common(item, ServerId, True, False)
+        common.set_MusicVideoTracks(item)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("musicvideo")
@@ -391,11 +444,16 @@ def set_ListItem(item, ServerId, Path=None):
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
         set_ResumePoint(item, InfoTags)
+        set_Path(item, InfoTags)
+        set_FilenameAndPath(item, InfoTags)
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true', "KodiType": "musicvideo"})
     elif item['Type'] == "Video":
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
+        common.set_streams(item)
+        common.set_chapters(item, ServerId)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("video")
@@ -416,6 +474,8 @@ def set_ListItem(item, ServerId, Path=None):
         set_Directors(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
         set_ResumePoint(item, InfoTags)
+        set_Path(item, InfoTags)
+        set_FilenameAndPath(item, InfoTags)
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true', "KodiType": "movie"})
     elif item['Type'] == "MusicArtist":
         item['KodiLastScraped'] = utils.currenttime_kodi_format()
@@ -452,6 +512,7 @@ def set_ListItem(item, ServerId, Path=None):
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         item['IndexNumber'] = item.get('IndexNumber', None)
         common.set_RunTimeTicks(item)
         InfoTags = listitem.getMusicInfoTag()
@@ -474,11 +535,16 @@ def set_ListItem(item, ServerId, Path=None):
         set_Comment(item, InfoTags)
         set_Disc(item, InfoTags)
         set_Track(item, InfoTags)
+
+        if Path:
+            InfoTags.setURL(Path)
+
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true',  "KodiType": "song"})
     elif item['Type'] == "BoxSet":
         common.set_RunTimeTicks(item)
         common.set_playstate(item)
         common.set_common(item, ServerId, True, False)
+        common.set_path_filename(item, ServerId, None, True)
         InfoTags = listitem.getVideoInfoTag()
         IsVideo = True
         InfoTags.setMediaType("set")
@@ -502,18 +568,22 @@ def set_ListItem(item, ServerId, Path=None):
         set_UserRating(item, InfoTags)
         set_Premiered(item, InfoTags)
         set_EmbyIdAsKodiIdVideo(item, InfoTags, ServerId)
+        set_Path(item, InfoTags)
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
     elif item['Type'] == 'Playlist':
         InfoTags = listitem.getVideoInfoTag()
         InfoTags.setTitle(Name)
         common.set_KodiArtwork(item, ServerId, True)
         common.set_overview(item)
+        common.set_path_filename(item, ServerId, None, True)
+        set_Path(item, InfoTags)
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
     elif item['Type'] == "Photo":
         common.set_KodiArtwork(item, ServerId, True)
         item['Width'] = int(item.get('Width', 0))
         item['Height'] = int(item.get('Height', 0))
         common.set_Dates(item)
+        common.set_path_filename(item, ServerId, None, True)
         PictureInfoTags = listitem.getPictureInfoTag()
         PictureInfoTags.setDateTimeTaken(get_shortdate(item['KodiPremiereDate']))
 
@@ -524,6 +594,7 @@ def set_ListItem(item, ServerId, Path=None):
     elif item['Type'] == "PhotoAlbum":
         common.set_KodiArtwork(item, ServerId, True)
         common.set_Dates(item)
+        common.set_path_filename(item, ServerId, None, True)
         PictureInfoTags = listitem.getPictureInfoTag()
         PictureInfoTags.setDateTimeTaken(get_shortdate(item['KodiPremiereDate']))
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
@@ -531,6 +602,7 @@ def set_ListItem(item, ServerId, Path=None):
         InfoTags = listitem.getVideoInfoTag()
         InfoTags.setTitle(Name)
         common.set_KodiArtwork(item, ServerId, True)
+        common.set_path_filename(item, ServerId, None, True)
 
     if 'MediaSources' in item:
         common.set_streams(item)
@@ -626,6 +698,14 @@ def set_RatingVideo(Item, InfoTags):
 
     if RatingData:
         InfoTags.setRatings(RatingData, Item['RatingType'])
+
+def set_Path(Item, InfoTags):
+    if 'KodiPath' in Item and Item['KodiPath']:
+        InfoTags.setPath(Item['KodiPath'])
+
+def set_FilenameAndPath(Item, InfoTags):
+    if 'KodiFullPath' in Item and Item['KodiFullPath']:
+        InfoTags.setFilenameAndPath(Item['KodiFullPath'])
 
 def set_RatingMusic(Item, InfoTags):
     if 'CommunityRating' in Item and Item['CommunityRating']:
@@ -780,21 +860,13 @@ def set_Trailer(Item, InfoTags):
 
 def set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId): # Fake Id is necessary, otherwise Kodi does not report notifications via monitor.py
     if 'Id' in Item and Item['Id']:
-        if ServerId in utils.EmbyServerIds:
-            ServerIndex = utils.EmbyServerIds.index(ServerId)
-        else:
-            ServerIndex = 0
-
-        InfoTags.setDbId(int(f"1{ServerIndex}00000000") + int(Item['Id']))
+        Item['KodiId'] = utils.set_EmbyId_ServerId_by_Fake_KodiId(Item['Id'], ServerId)
+        InfoTags.setDbId(Item['KodiId']) # Maximum value is 2147483648
 
 def set_EmbyIdAsKodiIdAudio(Item, InfoTags, ServerId, KodiType): # Fake Id is necessary, otherwise Kodi does not report notifications via monitor.py
     if 'Id' in Item and Item['Id']:
-        if ServerId in utils.EmbyServerIds:
-            ServerIndex = utils.EmbyServerIds.index(ServerId)
-        else:
-            ServerIndex = 0
-
-        InfoTags.setDbId(int(f"1{ServerIndex}00000000") + int(Item['Id']), KodiType)
+        Item['KodiId'] = utils.set_EmbyId_ServerId_by_Fake_KodiId(Item['Id'], ServerId)
+        InfoTags.setDbId(Item['KodiId'], KodiType) # Maximum value is 2147483648
 
 def set_ListItem_StreamInfo(Content, InfoTags, Duration, StreamInfo):
     if Content == "video":
@@ -827,9 +899,9 @@ def get_TotalEpisodesSeason(ParentId, ServerId, isSpecial):
     Uid = 10000
 
     if isSpecial:
-        Params = (ParentId, ("Episode",), True, {}, None, False, False, False)
+        Params = (ParentId, ("Episode",), True, {}, None, False, False)
     else:
-        Params = (ParentId, ("Episode",), True, {"IsSpecialSeason": False}, None, False, False, False)
+        Params = (ParentId, ("Episode",), True, {"IsSpecialSeason": False}, None, False, False)
 
     for Item in utils.EmbyServers[ServerId].API.get_Items(*Params):
         Uid += 1
@@ -846,7 +918,7 @@ def get_TotalEpisodesSeries(ParentId, ServerId):
     EpisodeInfo = set()
     Uid = 10000
 
-    for Item in utils.EmbyServers[ServerId].API.get_Items(ParentId, ("Episode",), True, {"IsSpecialSeason": False, "fields": "SpecialEpisodeNumbers"}, None, False, False, False):
+    for Item in utils.EmbyServers[ServerId].API.get_Items(ParentId, ("Episode",), True, {"IsSpecialSeason": False, "fields": "SpecialEpisodeNumbers"}, None, False, False):
         if ("ParentIndexNumber" in Item and not Item["ParentIndexNumber"]) and not ("SortIndexNumber" in Item and Item["SortIndexNumber"]) and not ("SortParentIndexNumber" in Item and Item["SortParentIndexNumber"]): # Filter inserted specials
             continue
 
@@ -859,3 +931,212 @@ def get_TotalEpisodesSeries(ParentId, ServerId):
     TotalEpisodes = len(EpisodeInfo)
     del EpisodeInfo
     return TotalEpisodes
+
+def get_MimeType(Path):
+    if not Path:
+        return ""
+
+    p = Path.lower().replace("|redirect-limit=1000&failonerror=false", "").replace("|seekable=0&failonerror=false&verifypeer=false", "")
+
+    if p.endswith(".mp4") or p.endswith(".m4v"):
+        return "video/mp4"
+
+    if p.endswith(".mkv"):
+        return "video/x-matroska"
+
+    if p.endswith(".avi"):
+        return "video/x-msvideo"
+
+    if p.endswith(".ts") or p.endswith(".m2ts") or p.endswith(".mts"):
+        return "video/mp2t"
+
+    if p.endswith(".mpg") or p.endswith(".mpeg") or p.endswith(".mpe"):
+        return "video/mpeg"
+
+    if p.endswith(".webm"):
+        return "video/webm"
+
+    if p.endswith(".mov"):
+        return "video/quicktime"
+
+    if p.endswith(".wmv"):
+        return "video/x-ms-wmv"
+
+    if p.endswith(".ogv"):
+        return "video/ogg"
+
+    if p.endswith(".3gp"):
+        return "video/3gpp"
+
+    if p.endswith(".flv"):
+        return "video/x-flv"
+
+    if p.endswith(".mxf"):
+        return "application/mxf"
+
+    if p.endswith(".vob"):
+        return "video/dvd"
+
+    if p.endswith(".asf"):
+        return "video/x-ms-asf"
+
+    if p.endswith(".strm"):
+        return "text/plain"
+
+    if p.endswith(".m3u") or p.endswith(".m3u8"):
+        return "application/vnd.apple.mpegurl"
+
+    if p.endswith(".pls"):
+        return "audio/x-scpls"
+
+    if p.endswith(".jpg") or p.endswith(".jpeg") or p.endswith(".jpe") or p.endswith(".jfif"):
+        return "image/jpeg"
+
+    if p.endswith(".png"):
+        return "image/png"
+
+    if p.endswith(".gif"):
+        return "image/gif"
+
+    if p.endswith(".webp"):
+        return "image/webp"
+
+    if p.endswith(".avif"):
+        return "image/avif"
+
+    if p.endswith(".heic") or p.endswith(".heif"):
+        return "image/heic"
+
+    if p.endswith(".apng"):
+        return "image/apng"
+
+    if p.endswith(".svg") or p.endswith(".svgz"):
+        return "image/svg+xml"
+
+    if p.endswith(".ico"):
+        return "image/vnd.microsoft.icon"
+
+    if p.endswith(".bmp"):
+        return "image/bmp"
+
+    if p.endswith(".tiff") or p.endswith(".tif"):
+        return "image/tiff"
+
+    if p.endswith(".psd"):
+        return "image/vnd.adobe.photoshop"
+
+    if p.endswith(".ai") or p.endswith(".eps"):
+        return "application/postscript"
+
+    if p.endswith(".dng"):
+        return "image/x-adobe-dng"
+
+    if p.endswith(".cr2") or p.endswith(".cr3") or p.endswith(".crw"):
+        return "image/x-canon-raw"
+
+    if p.endswith(".nef") or p.endswith(".nrw"):
+        return "image/x-nikon-nef"
+
+    if p.endswith(".arw") or p.endswith(".srf") or p.endswith(".sr2"):
+        return "image/x-sony-arw"
+
+    if p.endswith(".orf"):
+        return "image/x-olympus-orf"
+
+    if p.endswith(".raf"):
+        return "image/x-fuji-raf"
+
+    if p.endswith(".rw2"):
+        return "image/x-panasonic-raw"
+
+    if p.endswith(".raw"):
+        return "image/x-dcraw"
+
+    if p.endswith(".jpx") or p.endswith(".jp2"):
+        return "image/jp2"
+
+    if p.endswith(".tga"):
+        return "image/x-tga"
+
+    if p.endswith(".pcx"):
+        return "image/x-pcx"
+
+    if p.endswith(".mp3"):
+        return "audio/mpeg"
+
+    if p.endswith(".flac"):
+        return "audio/flac"
+
+    if p.endswith(".m4a") or p.endswith(".m4b"):
+        return "audio/mp4"
+
+    if p.endswith(".wav"):
+        return "audio/wav"
+
+    if p.endswith(".aac"):
+        return "audio/aac"
+
+    if p.endswith(".ogg") or p.endswith(".oga"):
+        return "audio/ogg"
+
+    if p.endswith(".opus"):
+        return "audio/opus"
+
+    if p.endswith(".wma"):
+        return "audio/x-ms-wma"
+
+    if p.endswith(".aiff") or p.endswith(".aif") or p.endswith(".aifc"):
+        return "audio/x-aiff"
+
+    if p.endswith(".ac3"):
+        return "audio/ac3"
+
+    if p.endswith(".dts"):
+        return "audio/vnd.dts"
+
+    if p.endswith(".amr"):
+        return "audio/amr"
+
+    if p.endswith(".mp2"):
+        return "audio/mpeg"
+
+    if p.endswith(".dsf"):
+        return "audio/x-dsf"
+
+    if p.endswith(".dff"):
+        return "audio/x-dff"
+
+    if p.endswith(".ape"):
+        return "audio/x-ape"
+
+    if p.endswith(".wv"):
+        return "audio/x-wavpack"
+
+    if p.endswith(".tta"):
+        return "audio/x-tta"
+
+    if p.endswith(".mpc"):
+        return "audio/x-musepack"
+
+    if p.endswith(".shn"):
+        return "audio/x-shn"
+
+    if p.endswith(".mka"):
+        return "audio/x-matroska"
+
+    if p.endswith(".mid") or p.endswith(".midi"):
+        return "audio/midi"
+
+    if p.endswith(".mod"):
+        return "audio/x-mod"
+
+    if p.endswith(".it"):
+        return "audio/x-it"
+
+    if p.endswith(".s3m"):
+        return "audio/x-s3m"
+
+    if p.endswith(".xm"):
+        return "audio/x-xm"
+
+    return ""

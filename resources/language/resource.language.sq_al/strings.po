@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby për Kodi"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Adresa e serverit"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Emri i serverit"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Detyro riprodhimin e HTTP"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Metoda e hyrjes"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Niveli i regjistrit"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Emri i pajisjes"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "E avancuar"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Emri i përdoruesit"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Numri i portit"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Konfirmo fshirjen e skedarit"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Fshirja e ofertës pas riprodhimit"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Për episode"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Për filma"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Aktivizo veprën e përmirësuar të artit (d.m.th. kopertinën)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Cilësia e videos"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Shfaqje televizive të shtuara së fundi"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Shfaqjet televizive në vazhdim"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Filmat e shtuar së fundmi"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Episodet e shtuara së fundmi"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Filma në vazhdim"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Episodet në vazhdim"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Episodet e ardhshme"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Filmat e preferuar"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Shfaqjet e preferuara"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Episodet e preferuara"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Kuti"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Filma të pashikuar"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Artikuj të rastësishëm"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Artikujt e rekomanduar"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Ndërfaqja"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Rivendos bazën e të dhënave lokale Kodi"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Aktivizo mesazhin e mirëseardhjes"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Videot kryesore të shtuara së fundi"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Fotografitë e shtuara së fundmi"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Videot e preferuara në shtëpi"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Fotografitë e preferuara"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Albumet e preferuar"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Video muzikore të shtuara së fundi"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Video muzikore në vazhdim"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Klipe muzikore të pashikuara"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filma"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Shfaqje televizive"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Opsionet e emby"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr ""
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Shto në të preferuarat"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Hiq nga të preferuarat"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Cilësimet"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Fshi artikullin"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Rifresko artikullin"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Transkodi"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Verifiko lidhjen"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Përdorni emrin alternativ të pajisjes"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Sinkronizimi"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Aktivizo njoftimin nëse numri i përditësimeve është më i madh se"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Sinkronizoni shfaqjet boshe"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Aktivizo bibliotekën e muzikës"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Modaliteti i luajtjes"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Aktivizo memorien e veprave artistike"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Riprodhimi"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Kredencialet e rrjetit"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Aktivizo modalitetin e kinemasë"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Kërkoni të luani rimorkio"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Kapërceni konfirmimin e fshirjes (përdorni në rrezikun tuaj)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Kthehu përsëri në rezyme (në sekonda)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "Transkodi H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Injoroni specialet në episodet e ardhshme"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Përdorues të përhershëm"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Vonesa e nisjes (në sekonda)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Aktivizo mesazhin e rinisjes së serverit"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Aktivizo përmbajtje të re"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Kohëzgjatja e shfaqjes së bibliotekës së videove"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Kohëzgjatja e shfaqjes së bibliotekës muzikore"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Njoftimet (në sekonda)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Gjeneroni një ID të re pajisjeje"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Lejo ruajtësin e ekranit gjatë sinkronizimit"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Identifikohu"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Hyrja manuale"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Emri i përdoruesit ose emaili"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Aktivizo serverin jashtë linje"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Shfaq mesazh"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Hyni me Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Fjalëkalimi"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Hyni"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Anulo"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Zgjidhni serverin kryesor"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Emri i përdoruesit ose fjalëkalimi nuk mund të jenë bosh"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Nuk mund të lidhet me serverin e zgjedhur"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Lidhu me"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Shto manualisht server"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Ju lutemi identifikohuni"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Ndrysho përdoruesin Emby Connect"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Pritësi"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Lidhu"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Serveri ose porti nuk mund të jenë bosh"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Ndrysho përdoruesin Emby Connect"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Mirë se vini"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Serveri po riniset"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Emër përdoruesi ose fjalëkalimi i pavlefshëm"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Zgjidhni transmetimin audio"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Zgjidhni transmetimin e titrave"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Të fshihet skedari nga Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Luaj rimorkio?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Grumbullimi i kutive"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Mbledhja:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "U zbulua baza e të dhënave duhet të rikrijohet për këtë version të Emby për Kodi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby për Kodi nuk do të funksionojë siç duhet derisa baza e të dhënave të rivendoset."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Përfunduar në:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Është krijuar një ID e re e pajisjes. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Kujdes! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Shtesa (e parazgjedhur)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Vendas (shtigje të drejtpërdrejta)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Të aktivizohet biblioteka muzikore?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Ekzekutimi i procesit të memorizimit mund të marrë pak kohë. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Rivendosja e memories ekzistuese të veprave të artit?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Përditësimi i memories së veprës së artit"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Në pritje të daljes së fijeve"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi nuk mund të gjejë skedarin:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Përdorni zëvendësimin e shtegut Emby për të formatuar saktë shtegun tuaj ose për të siguruar që shtegu juaj të shtohet në menaxherin e skedarëve të Kodi. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "E re"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Shto përdorues në sesion"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Kryeni rivendosjen e bazës së të dhënave lokale"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Memorie të gjitha veprat e artit"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Sinkronizimi i mediave me temë"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Shto/Hiq përdoruesin nga sesioni"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Shto përdorues"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Hiq përdoruesin"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Hiq përdoruesin nga sesioni"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "U hoq"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Shtuar"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Jeni i sigurt që dëshironi të rivendosni bazën e të dhënave lokale Kodi?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Të hiqen të gjitha veprat artistike të ruajtura në memorie?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Të rivendosen të gjitha cilësimet e shtesës Emby?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Rivendosja e bazës së të dhënave ka përfunduar, Kodi tani do të riniset për të aplikuar ndryshimet."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Futni emrin e dosjes për kopje rezervë"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Të zëvendësohet rezervimi ekzistues?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Rezervimi i krijuar në:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Krijo një kopje rezervë"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Dosje rezervë"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "E rëndësishme, përditësimi i pastër u hoq në cilësimet tuaja të përparuara për të parandaluar konfliktin me Emby për Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Rifresko kutitë"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Instaloni shtojcën e serverit Kodi Companion për të aplikuar automatikisht përditësimet e bibliotekës emby në fillim. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Dëshironi të sinkronizoni shfaqjet boshe?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Meqenëse jeni duke përdorur modalitetin e riprodhimit origjinal me muzikë të aktivizuar, dëshironi të importoni vlerësimin e muzikës nga skedarët?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Të rifillohet sinkronizimi i mëparshëm?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Aktivizo shërbimin e uebserverit në cilësimet e Kodi për të lejuar ruajtjen e veprave të artit në memorie."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Gjeni më shumë informacion në wiki github/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Aktivizo menynë e kontekstit"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Aktivizo opsionin e transkodimit"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Përdoruesit u shtuan në seancë"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Njoftimet vonohen gjatë riprodhimit të videos (përveç transmetimit të drejtpërdrejtë)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr ""
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Rinisni Kodin për të hyrë në fuqi."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Rivendosni bazën e të dhënave lokale për të aplikuar ndryshimin e modalitetit të riprodhimit."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Zbatohet për modalitetin e riprodhimit origjinal dhe shtesë"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Zbatohet vetëm për modalitetin e riprodhimit shtesë"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Aktivizo titrat e jashtme"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Rregullo për lidhje në distancë"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Kompresoni vepra arti (ul cilësinë)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Aktivizoni memorien e veprave artistike? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Ke ndryshuar modalitetin e riprodhimit. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Diçka shkoi keq gjatë sinkronizimit. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Zgjidhni bibliotekat për të shtuar"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Të gjitha"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Rinisni Kodin për të rifilluar aty ku e latë."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Sinkronizoni bibliotekën me Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Përfshi njerëz (ngadalë)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Zgjidhni pamjet Emby për t'u sinkronizuar me Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Sinkronizimi më vonë"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Vazhdoni"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Dështoi në marrjen e përditësimeve më të fundit të përmbajtjes. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Mund të sinkronizoni bibliotekat duke hapur shtesën Emby > Shto librari."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Zgjidhni burimin"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Kuti freskuese"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Biblioteka e riparimit"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Hiq bibliotekën nga Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Shto server"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi tani do të riniset për të aplikuar një copëz të vogël për versionin tuaj Kodi."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Përditëso bibliotekën"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Aktivizo Kodi Companion (shtojca e serverit)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Mund ta përditësoni bibliotekën tuaj manualisht në vend që të mbështeteni në shoqëruesin e shtojcës së serverit Kodi. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Përditëso bibliotekat"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Riparimi i bibliotekave"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Hiq serverin"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Diçka shkoi keq. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Heqja e bibliotekës"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Ju lutemi sigurohuni që bibliotekat tuaja të serverit Emby të jenë të aksesueshme për instalimin tuaj Kodi dhe që keni konfiguruar zëvendësimin e rrugës në serverin tuaj. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Nuk mund të lidhet me Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Qasja juaj në Emby është e kufizuar."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Qasja juaj në këtë server është e kufizuar."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Nuk mund të lidhet me këtë server."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Përditëso informacionin e serverit"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Rilidhuni me të njëjtin server që ishte ngarkuar më parë. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Nuk mund të lokalizohet melodi televizive në Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Media juaj me temë Emby është sinkronizuar me Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Shto biblioteka"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Patch-i i aplikuar aktualisht për Emby për Kodi është i korruptuar! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Një patch është aplikuar!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Vetëm audio"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Vetëm titra"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Aktivizo zgjedhjen e audios/titrave"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Për të shmangur gabimet, ju lutemi përditësoni Emby për Kodi në version: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Kontrollo për përditësime"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Rivendosja e bibliotekës së muzikës?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Mbështetni këtë projekt"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Maskojeni informacionin e ndjeshëm në regjistër (nuk zbatohet për regjistrimin kodi)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Krijimi i kopjes rezervë dështoi"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinamik)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Shtuar së fundmi"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Të preferuarat"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Në progres"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "E pashikuar"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Me shkronjën e parë"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Keni {number} përditësime në pritje. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Harroni sinkronizimin e mëparshëm? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging - temat e shkarkimit (e parazgjedhur: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Këshilla e faqes: Çdo temë shkarkimi kërkon vlerën maksimale të artikujve tuaj nga Emby në të njëjtën kohë."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Përditësoni ose riparoni bibliotekat tuaja për të zbatuar ndryshimet e mëposhtme."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Shfaq shiritin e progresit nëse numri i përditësimeve është më i madh se"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Përpunimi i përditësimeve"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Transkodi i detyruar"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Rinis Emby për Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Rinisja për të aplikuar patch-in"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Luaj me modalitetin e kinemasë"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Aktivizo opsionin për të luajtur me modalitetin e kinemasë"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Hiq bibliotekat"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Aktivizo sinkronizimin gjatë riprodhimit (mund të shkaktojë pak vonesë)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Shoqëruesi Kodi përshpejton sinkronizimin e fillimit. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sinkronizimi i vlerësimeve të Rotten Tomatoes"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Dëshironi të sinkronizoni vlerësimet e Rotten Tomatoes?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Rinisni Emby që Kodi të zbatojë këtë ndryshim?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Rinis Emby për Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Rinisja..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Menaxhoni bibliotekat"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Aktivizo Emby për Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Opsione të avancuara"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Një sinkronizim po funksionon tashmë, ju lutemi prisni derisa të përfundojë dhe provoni përsëri."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "Embi"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr ""
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Patch i riskanimit të bazës së të dhënave muzikore"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Detyra u realizua!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Detyra dështoi!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Aktivizo lojën e thjeshtë (miqësore për lojtarët e jashtëm)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "Transkodi 10-bit (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Kërkoni të vazhdoni me sinkronizimin nëse numri është më i madh se"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "Transkodi 10-bit (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Luaj url në distancë duke përdorur Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Shfaq përdoruesit e fshehur në përzgjedhje"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Rivendos përditësimin e patch-it"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Publikimi i fundit"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Aktivizo etiketën për shumë episode. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Aktivizo rimorkio lokale"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Aktivizo rimorkiot"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkodi"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Video në formatin e daljes"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Audio me formatin e daljes"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Shfaq opsionet në menunë e shtojcave"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Informacioni i datës"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Zhanret"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studiot"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Etiketa"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Përmbledhje"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Vendet e prodhimit"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Bibliotekat dinamike"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Mënyra e përputhshmërisë"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Rivendos kopjen rezervë"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Cilat vepra arti duhet të ruhen në memorie"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Muzikë"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Data e sinkronizimit në rritje"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Koha e sinkronizimit në rritje"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Mbledhja e artikujve të hequr"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Aktivizo modalitetin e kinemasë (filma)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Aktivizo modalitetin e kinemasë (shfaqje televizive)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Të fshihen artikujt edhe nga serveri Emby? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Të fshihen SKIDA gjithashtu nga serveri Emby nga ngjarjet Kodi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Aktivizo fshirjen e FILE në ngjarjet e Kodi"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Çaktivizo mbështetjen e HTTP2"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Rinisja e kodit filloi për shkak të ndryshimeve të cilësimeve të avancuara.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr ""
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Modaliteti i kinemasë"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Vepër artistike"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Meny"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Modaliteti i përputhshmërisë ndryshon ID-në e shtojcës në 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Në disa rrethana (WLan, nisja e vonuar e rrjetit etj.) një nisje e vonuar e shtojcave mund të përmirësojë lidhjen"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Mund të rregulloni se çfarë meta informacioni ngarkohet për përmbajtje dinamike (jo të sinkronizuar). "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Kini kujdes me këtë opsion. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Ky është një opsion korrigjimi. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Rivendos ID-në unike të pajisjes. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Lidhu me një server të ri Emby (multiserver) ose rilidhe një server ekzistues Emby (debug)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Shfaq përdoruesit e fshehur në serverin Emby për funksionet e lidhjeve."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Shto/Hiq/Riparo biblioteka, TV drejtpërdrejt, tema."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Sinkronizon të gjitha veprat e artit në vend me Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Disa skin përdorin lista për luajtje xps. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Përdoruesit janë informacion shtesë për t'u sinkronizuar me Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Kryen një risinkronizim të plotë të bazës së të dhënave Kodi. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Modaliteti i kinemasë është një tipar premierë i Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Transkodoni shpejtësinë e biteve të audios"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Shpejtësia e rrjetit. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Raportimi i emrit të pajisjes te serveri Emby."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Raportoni përparimin e riprodhimit te përdorues të tjerë."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Hapësira ndërmjet ndalimit të riprodhimit dhe fillimit të vazhdimit."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Ky është një veçori e serverit Emby."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Mund të kursejë gjerësinë e brezit"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "Në disa raste është e dobishme të tregohen opsionet e menysë në menunë e shtojcave si shkurtore. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Menyja e kontaktit mbështet menaxhimin e të preferuarave, opsionet e fshirjes, përzgjedhjet e veçorive të veçanta (film), etj."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Shpejtësia e biteve të audios"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Fijet e memories maksimale të veprave të artit"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Ikonë e animuar"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Rifresko lëkurën në lidhjen e serverit Emby"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Dosja"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Përmbajtje e përzier"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Në vazhdim"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Episode të rastësishme"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Shfaqje të rastësishme televizive"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Rivendosja e fabrikës"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Rivendosja e nyjeve"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Jeni i sigurt që dëshironi të rivendosni nyjet tuaja?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Artistët"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Episode të pashikuara"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Shfaqje televizive të pashikuara"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Shfaqjet televizive të preferuara"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Shfaqje televizive e luajtur së fundmi"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Episodet e ardhshme"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Shfaqje televizive"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Luajtur kohët e fundit"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Episodi i luajtur së fundmi"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Drejtorët"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Etiketat e shfaqjeve televizive"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Etiketat e episodit"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Etiketat e filmave"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Resume film"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Vendet"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr "4 K"
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albume"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Video muzikore"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Etiketat e videove muzikore"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Video muzikore të rastësishme"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Rinis videot muzikore"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Video"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Foto"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fotoalbume"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Etiketat e fotoalbumit"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Etiketat e fotografive"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Etiketa video"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Fotot e shtuara së fundi"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Fotoalbume të shtuara së fundmi"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Videot e shtuara së fundmi"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Listat e luajtjes"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Libra audio"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Libra audio të rastësishëm"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "I padëgjuar"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Këngë të rastësishme"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Podkaste të rastësishme"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podkaste"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Nyjet e sinkronizuara janë shumë më të shpejta se nyjet dinamike. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Nyjet dinamike ndërtohen në fluturim. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Videot muzikore të preferuara"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Nyje të sinkronizuara"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Nyjet dinamike"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Albume të shtuara së fundmi"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Libra audio të shtuar së fundmi"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Këngët e shtuara së fundmi"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Albume të rastësishme"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Këngë të rastësishme"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Libra audio të rastësishëm"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Podkaste të rastësishme"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Podkaste të shtuara së fundmi"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Shto/Hiq/Ripar bibliotekat, TV drejtpërdrejt, tema"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Hap cilësimet e shtojcave"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Kryen një risinkronizim të plotë të bazës së të dhënave Kodi (përfshirë përmbajtjen jo Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Rivendosni të gjitha nyjet e personalizuara dhe rindërtoni ato"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Kufiri i pyetjes së nyjeve"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Kufizoni pyetjet për nyjet e përparimit. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Nyjet"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Përdor opsionin e rifillimit të riprodhimit nga serveri Emby"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Ky funksion çaktivizon përditësimet e brendshme të progresit të Kodi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Bazat e të dhënave vakum për mbylljen e Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Baza e të dhënave do të rindërtohet dhe optimizohet, me koston e një vonese të mbylljes"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Rifresko lëkurën"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Të tjera"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Serveri Emby i zënë"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Fshi skedarët e veprave të artit"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Përditëso pamjet"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Serveri Emby i zënë: Sinkronizimi është në progres"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Fshi Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Baza e të dhënave"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Kapërceni hyrjen"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Një kuti mesazhi do të kërkojë kalimin në pozicionin përfundimtar të hyrjes"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Shënues"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Kapërceni kreditet"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Një kuti mesazhi do të kërkojë kreditet e kapërcimit"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Pyet skip intro"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Kërkoni kredite me kapërcim"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Kutia e mesazheve mbyllet automatikisht pas X sekondash"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Kapërceni hyrjen, kapërceni kreditet, modaliteti i kinemasë dhe kutitë e mesazheve të opsionit të fshirjes do të mbyllen automatikisht pas X sekondash. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Kompozitorë"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Zbulohet skedari i cilësimeve të korruptuara, rivendosni parazgjedhjen. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Gabim SSL"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Regjistrimi i veprave të artit ndaloi: hapësira po mbaron"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Lidhja e rrjetit jashtë linje"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Zgjidhni serverin Emby"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Zgjidhni bibliotekat për të riparuar"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Zgjidhni bibliotekat për përditësimin"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Zgjidhni bibliotekat për të hequr"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Këngët sipas zhanrit"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Bazat e të dhënave me vakum"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Cakto postera televizive për episodet"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "Posterat e Kodit të TVShow (imazhi kryesor i Emby TVShow) do të përdoren si postera Kodi të episodit.\nÇelja e këtij opsioni kërkon një risinkronizim të plotë, duke përfshirë të gjitha veprat artistike të ruajtura në memorie.\nKujdes: Mos përdorni magjistarin e sinkronizimit fillestar (kapërcejeni) dhe rishikoni cilësimet përpara (ri)sinkronizimit."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Përdorni imazhe fanart për episodet e ardhshme"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Mbishkruan gishtat e mëdhenj (Kodi) me fanartët (Kodi) për nyjen e episodeve të ardhshme"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Përdorni paraqitjen alternative të kapërcimit të hyrjes (mesazhit)."
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Dizajni i lëkurës së embuary"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Aktivizo përparimin e serverit"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Shfaqen njoftimet e ngarkimit të serverit Emby"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Përmbajtja e pyetjeve ndryshon"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Ndryshimet e përmbajtjes së pyetjeve / të dhënat e përdoruesit"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Pyetje për ndryshimet/përmbajtjen e përmbajtjes"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Shkëputur nga serveri Emby"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Sinkronizoni kanalet e drejtpërdrejta televizive"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Sinkronizoni epg livetv"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - artikujt e kërkuar (faktori i parazgjedhur: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Sinkronizoni temat"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Verifiko hapësirën e lirë"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Zgjidhni Burimin e Medias"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Përdorni zgjidhje për çështjet e miniaplikacionit (dinamik) të Kodi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Video transkoduese"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Transkodi audio"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Kufiri i gjerësisë së brezit të transkodimit"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Formati i daljes së transkodit"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Zgjidhni transmetimin audio"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Zgjidhni titrat"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Speciale"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Përdorni zëvendësimin e rrugës"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Zëvendësimi i rrugës mbështet imazhet e kapitullit në modalitetin shtesë. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Caktoni aktorë unikë për çdo bibliotekë embi"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Episodet"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Regjistro"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Shikoni së bashku u anulua"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Në pritje të pjesëmarrësve"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Duke filluar..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Zgjidhni përdoruesit"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Klientë në distancë / Shikoni së bashku"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Fshij kohëmatësin"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Shto kohëmatës"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Force klientët"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Klientët që nuk mbështesin shikimin së bashku në mënyrë origjinale, do të detyrohen të marrin pjesë"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Kontrolli i klientit"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Klientët mund të kontrollojnë njëri-tjetrin"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Sinkronizoni klientët me master"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Kontrollet kryesore luajnë, ndalojnë, kërkojnë"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Prisni për pjesëmarrje"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Prisni për të marrë pjesë në sekonda"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Vonesa e riprodhimit"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Vonesoni fillimin e riprodhimit, jepuni klientëve kohë për t'u sinkronizuar"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Zhvendosja maksimale në pauzë"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Asinkronizimi i lejuar në milisekonda në pauzë"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Ack automatik"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Njohja automatike e kërkesës së klientit në distancë"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Vonesa"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Shkakton një komandë kërkimi pas X sekondave"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Risinkronizoni klientët e pambështetur"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Mbani lidhjen"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Vendosni lidhjen në fillim (sipas ID-së së pajisjes)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Shikoni së bashku"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Hiq klientin"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Shto klient"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Aktivizo modalitetin në distancë"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Çaktivizo modalitetin në distancë"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktivizo"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Fillore"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Bander"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disku"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Gishti i madh"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Sfondi"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitulli"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Kompresim"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Rezolucioni maksimal"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Kufizon rezolucionin e imazhit me një faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Zgjidhni transenkodimin e transmetimit audio"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Zëvendësimi i rrugës mbështet imazhet e kapitullit (nxjerrja) në modalitetin shtesë. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Aktivizo lidhjen me uebsocket"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Nëse çaktivizohet: Nuk ka përditësime në kohë reale, nuk do të merren njoftime dhe komandat në distancë nuk do të funksionojnë."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Përdorni zgjidhje për çështjet e faqerojtësve të episodit të Kodi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi ka një gabim me faqeshënuesit e episodit kur zgjedh një episod përmes pamjeve të listës. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi ka problem me miniaplikacionet dinamike. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Aktivizo mbështetjen për HTTP/2"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi ka probleme me luajtjen e përmbajtjes me protokollin http/2 (i parazgjedhur joaktiv)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Rifreskim shtesë i miniaplikacionit audio"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Shkakton një skanim audio shtesë (të rremë) Kodi pasi Emby raporton përditësimet e progresit. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Afatet e rrjetit"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Ky opsion ndikon në kohëzgjatjen e përzgjedhjes së përmbajtjes së EPG dhe shumë versioneve. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Të preferuarat"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Shikoni së bashku"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Menaxhoni klientët në distancë"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Unifikoni meta të dhënat sipas bibliotekës"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Artist muzikor"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Gjanri i Muzikës"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Zhanri"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Etiketë"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Koleksion i filmave"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Koleksion i shfaqjeve televizive"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Koleksion i videove muzikore"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Të preferuarat"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Kohëzgjatja e mesazhit me përmbajtje të re"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Kutitë si etiketa"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Cakto grupe kuti për etiketat"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Përfundimi i kohës së rrjetit"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Rregullimi i afateve kohore të rrjetit në sekonda. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Sinkronizoni të preferuarat e Emby me të preferuarat e Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml do të modifikohet"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Fotoalbume të shtuara së fundmi"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Vazhdo të shikosh"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Sinkronizoni kanalet televizive live në ngjarje"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Kanalet Livetv u risinkronizuan në fillimin e Kodi dhe ndryshimet EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Shkarko vendndodhjen"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Shkarko"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Fshi shkarkimin"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Fshini të gjithë skedarët e shkarkuar"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Jeni të sigurt që dëshironi të fshini të gjithë përmbajtjen jashtë linje?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "E gjithë përmbajtja e shkarkuar do të fshihet"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Serveri Emby jashtë linje"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Stinët e preferuar"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "Faqerojtje"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Muzikant"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Bum muzikor"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Zhanri muzikor"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Film"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Video muzikore"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Seri"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Sezoni"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Episodi"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fotoalbum"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Zhanri"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Lista e luajtjes"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanalet"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Rimorkio"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Dosja"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "Kuti"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Personi"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "Etiketë"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Me shumë përmbajtje"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Menaxho serverët"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Riprodhimi në distancë"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Shkarko përmbajtje"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Menyja e kontekstit"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Shto/hiq e preferuar"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Riprodhimi special"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Regjistrimi"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Rifresko artikullin"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Fshi artikullin"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Videot e preferuara"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Fotot e preferuara"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Videot muzikore të preferuara"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Koleksione"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Rekomandime"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Filmat e preferuar"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Kutitë e preferuara"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "Video A-Z"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Filma të pashikuar të publikuar së fundmi"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Filma të publikuar së fundmi"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z video muzikore"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "Filma A-Z"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "Seria A-Z"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Këngët e preferuara"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Aktorët e preferuar"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Audioja e preferuar"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Kërko"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Në vazhdim (Përmbajtje e përzier)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Vazhdo të shikosh (Përmbajtje e përzier)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Filma të shkarkuar"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Episodet e shkarkuara"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Video muzikore të shkarkuara"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filma"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "Shfaqje televizive"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Stinët"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Këngë"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Aktorë"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Faqerojtësit"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Të shkarkosh temat (PO) apo të lidhësh temat (JO)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Zgjidhni transmetimin audio"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Zgjidhni Rezervimi"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Ndryshimi i veprës artistike kërkon një rivendosje të memories së veprës së artit. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Njoftimet"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Kohëzgjatja e mesazhit"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Kohëzgjatja e mesazhit në sekonda"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Operacionet e serverit"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Lidhjet"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Fshi artikullin"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr ""
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Luajtje në distancë"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr "E VËRTETË"
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Seriali i shkarkuar"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Cakto imdb si ofrues të vlerësimit të paracaktuar"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Supozoni se vlerësimi i komunitetit të Emby pasqyron vlerësimet e imdb"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Episodet e ardhshme (përmbajtje e përzier)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Vazhdo luajtjen e fundit (Përmbajtje e përzier)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Vazhdo lojën e fundit"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Shko te Shfaq"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Shko te"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Shko te Shfaq"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Shko te sezoni"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Rivendosja e nyjeve përfundoi"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "Kufiri i gjatësisë URI"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Kufijtë më të lartë janë më të shpejtë në disa raste, por mund të shkaktojnë probleme të http 414"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Cilësimet"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Cilësimet"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Aktivizo mesazhin jashtë linje"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Adresë e pavlefshme serveri"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Argument i pavlefshëm"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Shtegu i shkarkimit nuk u gjet"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Shto lidhje filmash në shfaqje televizive"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Filmat e caktuar për shfaqjet televizive të listuara në pamjet e shfaqjeve televizive të Kodi. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Aktivizo sinkronizimin e fillimit"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Nëse çaktivizohet, përmbajtja Emby nuk do të sinkronizohet ndërsa Kodi fillon"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Përdorni përzgjedhjen klasike"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Menyja e përzgjedhjes shfaqet kur disponohet shumë përmbajtje"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Me shumë përmbajtje"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Përmbajtja e kopjuar"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Heq përmbajtje të ngjashme në bibliotekat e shumta të serverëve Emby"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Cakto rezolucionin më të lartë të videos si parazgjedhje"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Ky opsion zbatohet për zgjedhjen e shumëversioneve të Kodit dhe kërkon risinkronizimin e bibliotekës në ndryshim."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Zgjidhni automatikisht rezolucionin më të lartë"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Zbatohet për opsionin klasik me shumëzgjedhje"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Aktivizo njoftimin e Kodi API"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Raportoni ngjarjet përmes API-së së Kodi për përdorim të jashtëm"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Qasja u mohua"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Albumet sipas vitit"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Beqarë sipas vitit"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Beqarë"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Beqarët e shtuar së fundmi"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Beqare të rastësishme"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Asnjë"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Nuk ka informacion për shtigjet, kini kujdes se çfarë bëni!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "TV Show"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Zgjidhni bibliotekën primare"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Rifresko LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Rifresko temat"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Çaktivizo LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Aktivizo LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Çaktivizo temat"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Aktivizo temat"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Ndiqni http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Përmbajtja e jashtme http do të aksesohet drejtpërdrejt dhe nuk do të transmetohet përmes serverit Emby. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Ndiqni kohën e http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Cakto përmbajtjen lokale si parazgjedhje"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Shtesa shoqëruese e Kodi nuk është instaluar në serverin Emby! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Anulo cache-in e veprave artistike"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Numri i punonjësve të shërbimit në internet"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Vlerat më të larta mund të përmirësojnë performancën, por duhen më shumë burime. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Mbyll dialogun e zënë"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Mund të parandalojë përplasjet e Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Lloji i shërbimit"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "Kreu IP (TOS), mund të përmirësojë reagimin"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Përpjekja më e mirë)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (Përcjellja e përshpejtuar)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (Përcjellje e sigurt)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (ndërveprues në kohë reale)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Memoria e fshehtë në rritje e veprave të artit"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Memoria e fshehtë e veprave artistike automatikisht në sinkronizimet e pjesshme"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Zhanret me ikona"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Studio me ikona"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Etiketa me ikona"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Rimorkio lokale"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Ndryshimet e ngarkesës"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Pragu i rezolucionit"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transkodoni përmbajtjen kur rezolucioni i burimit është mbi rezolucionin e zgjedhur"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Pragu i rezolucionit"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transkodoni përmbajtjen kur rezolucioni i burimit është mbi rezolucionin e zgjedhur"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "gjithmonë"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "e pakufizuar"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Rezolucioni i transkodimit"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Të pakufizuar do të thotë të ruash rezolucionin e burimit"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Modaliteti i shërbimit në internet"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Zëvendësimi i rrugës"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr ""
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Rifresko lidhjet e videove muzikore"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Përditëson lidhjet e videove muzikore në bazën e të dhënave muzikore"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Koha nuk sinkronizohet, kapërce përditësimet"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Shto lidhje video muzikore në muzikë"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Videot muzikore të caktuara për muzikën e listuar në pamjet e këngëve të Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Fshi kopjen rezervë"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Futni emrin rezervë"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Kompresimi nuk mbështetet, rezervimi nuk ofrohet."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Rezervimi në progres"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Metoda e sinkronizimit të temave audio"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Metoda e sinkronizimit të temave video"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Shkarko"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Telekomanda"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Aktivizo temat audio"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Aktivizo temat e videove"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Shko te Albumi"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Shko te Artisti"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Ndalo sinkronizimin"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Ndalo sinkronizimin kur serveri është i zënë me detyra"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Nxjerrja e fotografive të pamjes paraprake të videos"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Baza e të dhënave me vakum"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Ngarko video me temë lokale"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Ngarko këngë me temë lokale"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Përditëso bazën e të dhënave hyrëse"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "Përditësimi i labirintit televiziv"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Transferimi i mediave"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Skano dosjen e meta të dhënave"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Skanoni bibliotekën e mediave"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Rifresko kanalet e internetit"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Rifresko udhëzuesin"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Shkarko titrat"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Shkarko trailerat lokale të filmave në YouTube"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Shkarko këngë me temë televizive lokale"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Shkarko video me temë lokale"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Shkarko këngë me tema lokale"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Zbuloni hyrjet"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Konvertoni media"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Rifreskimi në vazhdim"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Detyrë e planifikuar Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Më shumë si kjo"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Më shumë si kjo"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Etiketat e videove në shtëpi"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Videot e preferuara në shtëpi"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Etiketa video"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Videot e preferuara"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Gjendja e riprodhimit ndryshon"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Përparimi i serive dhe sezonit"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Listat për luajtje (të përziera)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Lojë e rastësishme"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Lojë rastësore"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Paralajmërim shoqërues Kodi"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion është një shtesë e serverit Emby që mban gjurmët e përmbajtjes së fshirë"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Rimorkio përpunuese"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Rimorkio"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Rimorkio të shtuara së fundmi"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Temat"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Aktivizo audion"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Aktivizo videon"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Zbehet"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Zbehet"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Vlerat më të mëdha do të thotë kohë më e gjatë e zbehjes, zero është i çaktivizuar"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Ekrani fillestar"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Luan tema për miniaplikacionet"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Fillimi i vonuar"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Vlerat janë në sekonda"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Shkarko"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Ruani temat në nivel lokal për performancë më të mirë"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioritet"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Përcakton se cila temë luhet e para kur të dyja janë të disponueshme"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Rimorkio në distancë"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Zgjedhja e rimorkiove në distancë"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Hyrje në kinema"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Rimorkio me dosje"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Rimorkio lokale"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Film lokal"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Riprodhimi i rimorkios"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Vëllimi"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Regjistri i korrigjimit"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Aktivizo videon nga shënuesit e hyrjes"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Aktivizo audion nga shënuesit e hyrjes"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Aktivizo videon sipas përmbajtjes"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Aktivizo audion sipas përmbajtjes"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Sipas kohëzgjatjes së përmbajtjes"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Transkodimi i përdorur, mund të çojë në ngarkesë të madhe të CPU-së në server"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Fikur"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Shenja hyrëse"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Përmbajtja"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Temat virtuale"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigacion"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Pamje episodi"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Pamje sezonale"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Pamja e emisionit televiziv"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Pamje filmi"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Kohët"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Riprodhimi"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Përditësoni të preferuarat e audios"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Përditëso të preferuarat e albumeve muzikore"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Përditëso të preferuarat e videos"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Përditëso të preferuarat e videove muzikore"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Përditëso të preferuarat e setit të kutive"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Përditëso të preferuarat e serive"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Përditëso të preferuarat e sezonit"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Përditëso të preferuarat e listës së luajtjes"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Përditëso të preferuarat e episodit"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Përditëso të preferuarat e filmave"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Përditëso të preferuarat e zhanrit"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Përditëso të preferuarat e studios"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Përditëso të preferuarat e etiketave"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Përditëso të preferuarat e zhanrit të muzikës"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Përditëso të preferuarat e personave"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Përditëso të preferuarat e personave"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Rezervimi i rivendosur nga:"
+

@@ -9,7 +9,6 @@ except:
 
 import xbmcvfs
 import xbmc
-import xbmcgui
 from helper import utils
 
 BackupInProgress = ""
@@ -22,6 +21,8 @@ if not xbmcvfs.exists(utils.backupPath):
     utils.mkDir(utils.backupPath)
 
 def Backup():
+    global BackupInProgress
+
     if not CompressionZip:
         utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33756), icon=utils.icon, time=utils.displayMessage)
         return
@@ -37,41 +38,42 @@ def Backup():
         xbmc.log("EMBY.helper.backup: --<[ backup ] invalid file", 1) # LOGINFO
         return
 
-    globals()['BackupInProgress'] = BackupFilename
-    ProgressBar = xbmcgui.DialogProgressBG()
-    ProgressBar.create(utils.addon_name, utils.Translate(33651))
+    BackupInProgress = BackupFilename
+    utils.close_dialog(10146) # addoninformation
+    utils.create_ProgressBar("Backup", utils.Translate(33199), utils.Translate(33651))
+
     with zipfile.ZipFile(xbmcvfs.translatePath(f"{utils.backupPath}{BackupFilename}.zip"), 'w', zipfile.ZIP_STORED, strict_timestamps=False) as ZipFile: # Compression might corrupt data, do not use zipfile.ZIP_DEFLATED, user uncompressed!
         # Backup service plugin
-        ProgressBar.update(int(0 / 0.10), utils.Translate(33651), "plugin.service.emby-next-gen")
+        utils.update_ProgressBar("Backup", int(0 / 0.10), utils.Translate(33651), "plugin.service.emby-next-gen")
         compress_Folder("special://home/addons/plugin.service.emby-next-gen/", ZipFile, (), (), (".pyc",))
 
         # Backup audio plugin
-        ProgressBar.update(int(1 / 0.10), utils.Translate(33651), "plugin.audio.emby-next-gen")
+        utils.update_ProgressBar("Backup", int(1 / 0.10), utils.Translate(33651), "plugin.audio.emby-next-gen")
         compress_Folder("special://home/addons/plugin.audio.emby-next-gen/", ZipFile, (), (), (".pyc",))
 
         # Backup video plugin
-        ProgressBar.update(int(2 / 0.10), utils.Translate(33651), "plugin.video.emby-next-gen")
+        utils.update_ProgressBar("Backup", int(2 / 0.10), utils.Translate(33651), "plugin.video.emby-next-gen")
         compress_Folder("special://home/addons/plugin.video.emby-next-gen/", ZipFile, (), (), (".pyc",))
 
         # Backup image plugin
-        ProgressBar.update(int(3 / 0.10), utils.Translate(33651), "plugin.image.emby-next-gen")
+        utils.update_ProgressBar("Backup", int(3 / 0.10), utils.Translate(33651), "plugin.image.emby-next-gen")
         compress_Folder("special://home/addons/plugin.image.emby-next-gen/", ZipFile, (), (), (".pyc",))
 
         # Backup userdata
-        ProgressBar.update(int(4 / 0.10), utils.Translate(33651), "userdata")
+        utils.update_ProgressBar("Backup", int(4 / 0.10), utils.Translate(33651), "userdata")
         compress_Folder(utils.FolderAddonUserdata, ZipFile, (utils.backupPath, os.path.join(utils.DownloadPath, "EMBY-offline-content", ''), utils.backupPath, os.path.join(utils.DownloadPath, "EMBY-themes", ''), "special://profile/addon_data/plugin.service.emby-next-gen/backup/"), (), ())
 
         # Backup library
-        ProgressBar.update(int(5 / 0.10), utils.Translate(33651), "library")
+        utils.update_ProgressBar("Backup", int(5 / 0.10), utils.Translate(33651), "library")
         compress_Folder("special://profile/library/", ZipFile, (), (), ())
 
         # Backup playlists
-        ProgressBar.update(int(6 / 0.10), utils.Translate(33651), "playlists")
+        utils.update_ProgressBar("Backup", int(6 / 0.10), utils.Translate(33651), "playlists")
         compress_Folder("special://profile/playlists/", ZipFile, (), (), ())
 
         # Backup music database
         utils.SyncPause["Backup"] = True
-        ProgressBar.update(int(7 / 0.10), utils.Translate(33651), "music database")
+        utils.update_ProgressBar("Backup", int(7 / 0.10), utils.Translate(33651), "music database")
         busy_KodiDatabase()
         DatabaseSHM = f'{utils.DatabaseFiles["music"]}-shm'
         DatabaseWAL = f'{utils.DatabaseFiles["music"]}-wal'
@@ -89,7 +91,7 @@ def Backup():
         compress_Folder("special://profile/Database/", ZipFile, (), ("MyMusic",), ())
 
         # Backup video database
-        ProgressBar.update(int(8 / 0.10), utils.Translate(33651), "video database")
+        utils.update_ProgressBar("Backup", int(8 / 0.10), utils.Translate(33651), "video database")
         busy_KodiDatabase()
         DatabaseSHM = f'{utils.DatabaseFiles["video"]}-shm'
         DatabaseWAL = f'{utils.DatabaseFiles["video"]}-wal'
@@ -107,7 +109,7 @@ def Backup():
         compress_Folder("special://profile/Database/", ZipFile, (), ("MyVideos",), ())
 
         # Backup emby database
-        ProgressBar.update(int(9 / 0.10), utils.Translate(33651), "emby database")
+        utils.update_ProgressBar("Backup", int(9 / 0.10), utils.Translate(33651), "emby database")
 
         for ServerId in utils.EmbyServers:
             EmbyDatabaseFile = utils.DatabaseFiles[ServerId]
@@ -128,15 +130,14 @@ def Backup():
         utils.SyncPause["Backup"] = False
 
         # Backup favourites
-        ProgressBar.update(int(10 / 0.10), utils.Translate(33651), "favourites")
+        utils.update_ProgressBar("Backup", int(10 / 0.10), utils.Translate(33651), "favourites")
 
         if xbmcvfs.exists("special://profile/favourites.xml"):
             compress_Files(["favourites.xml"], (), (), "special://profile/", ZipFile)
 
-    ProgressBar.close()
-    del ProgressBar
+    utils.close_ProgressBar("Backup")
     utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33091)} {BackupFilename}", icon=utils.icon, time=utils.displayMessage)
-    globals()['BackupInProgress'] = ""
+    BackupInProgress = ""
     xbmc.log("EMBY.helper.backup: --<[ backup ]", 1) # LOGINFO
 
 def Restore():
@@ -156,20 +157,21 @@ def Restore():
         xbmc.log(f"EMBY.helper.backup: --<[ restore ] invalid file: {RestoreFile}", 1) # LOGINFO
         return
 
+    utils.close_dialog(10146) # addoninformation
     RestoreFile = xbmcvfs.translatePath(RestoreFile)
     FolderExtract = "special://profile/addon_data/plugin.service.emby-next-gen/extract/"
     utils.delFolder(FolderExtract)
     utils.mkDir(FolderExtract)
     FolderExtractReal = xbmcvfs.translatePath(FolderExtract)
-    ProgressBar = xbmcgui.DialogProgressBG()
-    ProgressBar.create(utils.addon_name, utils.Translate(33255))
+    utils.create_ProgressBar("Restore", utils.Translate(33199), utils.Translate(33255))
 
     with zipfile.ZipFile(RestoreFile, 'r', strict_timestamps=False) as ZipFile:
         NameList = ZipFile.namelist()
         TotalItems = len(NameList) / 100
 
         for Index, CompressedFile in enumerate(NameList):
-            ProgressBar.update(int(Index / TotalItems), utils.Translate(33255), f"{CompressedFile}")
+            utils.update_ProgressBar("Restore", Index / TotalItems, utils.Translate(33255), CompressedFile)
+
             ZipFile.extract(CompressedFile, path=FolderExtractReal)
             FileExtract = f"{FolderExtract}{CompressedFile}"
             FileDestination = f"special://{base64.urlsafe_b64decode(CompressedFile).decode('utf-8')}"
@@ -191,8 +193,8 @@ def Restore():
                 utils.copyFile(FileExtract, FileDestination)
 
     utils.delFolder(FolderExtract)
-    ProgressBar.close()
-    del ProgressBar
+    utils.close_ProgressBar("Restore")
+    utils.Dialog.notification(heading=utils.addon_name, message=f"{utils.Translate(33860)} {RestoreFile}", icon=utils.icon, time=utils.displayMessage)
     xbmc.log("EMBY.helper.backup: --<[ restore ]", 1) # LOGINFO
     utils.restart_kodi()
 
@@ -324,7 +326,7 @@ def compress_Recursive(PathSource, Folders, FoldersExclude, FileBegins, FileEnds
 
         # Skip folder by FoldersExclude
         if FolderSource in FoldersExclude:
-            xbmc.log(f"EMBY.helper.utils: Skip folder compress {FolderSource}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.helper.utils (DEBUG): Skip folder compress {FolderSource}", 1) # LOGDEBUG
             continue
 
         SubFolders, Filenames = xbmcvfs.listdir(FolderSource)
@@ -342,7 +344,7 @@ def compress_Files(Filenames, FileBegins, FileEndsExclude, FolderSource, ZipFile
                 if Filename.startswith(FileBegin):
                     break
             else: # prefix not found
-                xbmc.log(f"EMBY.helper.utils: Filecompress filtered by filename begin: {Filename}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.helper.utils (DEBUG): Filecompress filtered by filename begin: {Filename}", 1) # LOGDEBUG
                 continue
 
         # Filter by exclude filename end
@@ -355,7 +357,7 @@ def compress_Files(Filenames, FileBegins, FileEndsExclude, FolderSource, ZipFile
                     break
 
             if Skip:
-                xbmc.log(f"EMBY.helper.utils: Filecompress filtered by excluded filename end: {Filename}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.helper.utils (DEBUG): Filecompress filtered by excluded filename end: {Filename}", 1) # LOGDEBUG
                 continue
 
         CompressFile = xbmcvfs.translatePath(os.path.join(FolderSource, Filename))
@@ -364,9 +366,14 @@ def compress_Files(Filenames, FileBegins, FileEndsExclude, FolderSource, ZipFile
             ArchiveName = base64.urlsafe_b64encode(f"{FolderSource.replace('special://', '')}{Filename}".encode('utf-8')).decode('utf-8') # workaround for zipfile ascii issues
             ZipFile.write(CompressFile.encode('utf-8'), arcname=ArchiveName)
         else:
-            xbmc.log(f"EMBY.helper.utils: Filecompress, file not found: {CompressFile}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.helper.utils (DEBUG): Filecompress, file not found: {CompressFile}", 1) # LOGDEBUG
 
 def busy_KodiDatabase():
-    while 'kodi_rw' in utils.SyncPause and utils.SyncPause['kodi_rw']:
-        xbmc.log("EMBY.helper.backup: Kodi database is busy, delay backup.", 1) # LOGINFO
-        utils.sleep(1)
+    xbmc.log("EMBY.helper.backup (DEBUG): CONDITION: --->[ SyncPauseCondition ]", 1) # LOGDEBUG
+
+    with utils.SafeLock(utils.SyncPauseCondition):
+        while 'kodi_rw' in utils.SyncPause and utils.SyncPause['kodi_rw']:
+            utils.SyncPauseCondition.wait(timeout=0.1)
+
+    xbmc.log("EMBY.helper.backup (DEBUG): CONDITION: ---<[ SyncPauseCondition ]", 1) # LOGDEBUG
+    xbmc.log("EMBY.helper.backup: Kodi database is busy, delay backup.", 1) # LOGINFO

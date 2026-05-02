@@ -1,8 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' standalone="yes"?>
-<addon id="plugin.service.emby-next-gen" name="Emby for Kodi Next Gen" version="12.3.8" provider-name="quickmic">
+<addon id="plugin.service.emby-next-gen" name="Emby for Kodi Next Gen" version="12.4.19" provider-name="quickmic">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
-        <import addon="script.module.dateutil" version="2.8.1" />
     </requires>
     <extension point="xbmc.service" library="service.py" />
     <extension point="kodi.context.item">
@@ -68,7 +67,7 @@
             </item>
             <item library="service.py" args="favorites">
                 <label>33547</label>
-                <visible>[String.IsEqual(Window(10000).Property(EmbyFavourite),True) + String.IsEqual(Window(10000).Property(EmbyFavourite),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://") + !String.StartsWith(ListItem.FolderPath,"favourites:") + !String.StartsWith(ListItem.Path,"pvr://")]</visible>
+                <visible>[String.IsEqual(Window(10000).Property(EmbyFavourite),True) + !String.StartsWith(ListItem.FolderPath,"library://") + !String.StartsWith(ListItem.FolderPath,"addons://") + !String.StartsWith(ListItem.FolderPath,"plugin://") + !String.StartsWith(ListItem.FolderPath,"favourites:") + !String.StartsWith(ListItem.Path,"pvr://")]</visible>
             </item>
             <item library="service.py" args="watchtogether">
                 <label>33548</label>
@@ -105,7 +104,7 @@
         </menu>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <reuselanguageinvoker>true</reuselanguageinvoker>
+        <reuselanguageinvoker>false</reuselanguageinvoker>
         <platform>all</platform>
         <language>en</language>
         <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
@@ -139,9 +138,9 @@ Emby para Kodi es la mejor manera de disfrutar del incre&#237;ble motor de repro
         <description lang="sv">V&#228;lkommen till Emby f&#246;r Kodi Ett helt nytt s&#228;tt att hantera och visa ditt mediebibliotek. Emby-till&#228;gget f&#246;r Kodi kombinerar det b&#228;sta fr&#229;n Kodi - ultrasmidig navigering, vackra anv&#228;ndargr&#228;nssnitt och uppspelning av alla filer under solen, och Emby - den mest kraftfulla helt &#246;ppen k&#228;llkod f&#246;r multiklient-metadataindexerare och -server.
 
     Emby for Kodi &#228;r det absolut b&#228;sta s&#228;ttet att njuta av den otroliga Kodi-uppspelningsmotorn i kombination med kraften i Embys centraliserade databas. Funktioner: Direkt integration med Kodi-biblioteket f&#246;r inbyggd Kodi-hastighet Omedelbar synkronisering med Emby-servern Fullst&#228;ndigt st&#246;d f&#246;r film-, TV- och musiksamlingar Emby Server direktstr&#246;mning och omkodningsst&#246;d - anv&#228;nd Kodi n&#228;r du &#228;r borta fr&#229;n hemmet!</description>
-        <description lang="zh">&#27426;&#36814;&#20351;&#29992; Emby for Kodi &#19968;&#31181;&#31649;&#29702;&#21644;&#26597;&#30475;&#23186;&#20307;&#24211;&#30340;&#20840;&#26032;&#26041;&#24335;&#12290; Kodi &#30340; Emby &#25554;&#20214;&#32467;&#21512;&#20102; Kodi &#30340;&#20248;&#28857; - &#36229;&#27969;&#30021;&#30340;&#23548;&#33322;&#12289;&#28418;&#20142;&#30340;&#29992;&#25143;&#30028;&#38754;&#21644;&#22312;&#38451;&#20809;&#19979;&#25773;&#25918;&#20219;&#20309;&#25991;&#20214;&#65292;&#20197;&#21450; Emby - &#26368;&#24378;&#22823;&#30340;&#23436;&#20840;&#24320;&#28304;&#22810;&#23458;&#25143;&#31471;&#23186;&#20307;&#20803;&#25968;&#25454;&#32034;&#24341;&#22120;&#21644;&#26381;&#21153;&#22120;&#12290;
+        <description lang="zh">欢迎使用 Emby for Kodi，这是一种管理和浏览媒体库的全新方式。Kodi 的 Emby 插件融合了 Kodi 的优势——超流畅的导航、精美的用户界面和几乎支持所有格式的文件播放，以及 Emby——功能最强大的完全开源多客户端媒体元数据索引器和服务器。
 
-    Emby for Kodi &#26159;&#20139;&#21463;&#20196;&#20154;&#38590;&#20197;&#32622;&#20449;&#30340; Kodi &#25773;&#25918;&#24341;&#25806;&#19982; Emby &#38598;&#20013;&#24335;&#25968;&#25454;&#24211;&#30340;&#24378;&#22823;&#21151;&#33021;&#30340;&#32477;&#23545;&#26368;&#20339;&#26041;&#24335;&#12290; &#29305;&#28857;&#65306; &#30452;&#25509;&#19982; Kodi &#24211;&#38598;&#25104;&#65292;&#23454;&#29616;&#21407;&#29983; Kodi &#36895;&#24230; &#19982; Emby &#26381;&#21153;&#22120;&#21363;&#26102;&#21516;&#27493; &#23436;&#20840;&#25903;&#25345;&#30005;&#24433;&#12289;&#30005;&#35270;&#21644;&#38899;&#20048;&#25910;&#34255; Emby &#26381;&#21153;&#22120;&#30452;&#25509;&#27969;&#23186;&#20307;&#21644;&#36716;&#30721;&#25903;&#25345; - &#20986;&#38376;&#22312;&#22806;&#26102;&#20351;&#29992; Kodi&#65281;</description>
+Emby for Kodi 是体验卓越的 Kodi 播放引擎与 Emby 集中式数据库强大功能相结合的最佳选择。主要特性：与 Kodi 媒体库直接集成，带来原生 Kodi 速度；与 Emby 服务器即时同步；全面支持电影、电视和音乐收藏；Emby 服务器提供直接流媒体和转码支持——即使出门在外也能使用 Kodi！</description>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>

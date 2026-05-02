@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Kodi용 Emby"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "서버 주소"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "서버 이름"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "강제 HTTP 재생"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "로그인 방법"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "로그 레벨"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "장치 이름"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "고급"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "사용자 이름"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "포트 번호"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "파일 삭제 확인"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "재생 후 삭제 제안"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "에피소드용"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "영화의 경우"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "향상된 아트워크 활성화(예: 커버 아트)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "비디오 품질"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "최근 추가된 TV 프로그램"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "진행 중인 TV 쇼"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "최근 추가된 영화"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "최근 추가된 에피소드"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "진행 중인 영화"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "진행 중인 에피소드"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "다음 에피소드"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "좋아하는 영화"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "좋아하는 프로그램"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "좋아하는 에피소드"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "박스세트"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "보지 않은 영화"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "랜덤 아이템"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "추천 아이템"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "인터페이스"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "로컬 Kodi 데이터베이스 재설정"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "환영 메시지 활성화"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "최근 추가된 홈 비디오"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "최근 추가된 사진"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "좋아하는 홈 비디오"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "좋아하는 사진"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "좋아하는 앨범"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "최근 추가된 뮤직 비디오"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "진행중 뮤직비디오"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "보지 않은 뮤직 비디오"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "영화"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "TV 쇼"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "엠비 옵션"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Emby 트랜스코드"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "즐겨찾기에 추가"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "즐겨찾기에서 삭제"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "설정"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: 항목 삭제"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: 아이템 새로 고침"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "트랜스코드"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "연결 확인"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "대체 장치 이름 사용"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "동기화"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "업데이트 횟수가 다음보다 큰 경우 알림을 활성화합니다."
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "빈 쇼 동기화"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "음악 라이브러리 활성화"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "재생 모드"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "아트웍 캐싱 활성화"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "재생"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "네트워크 자격 증명"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "시네마 모드 활성화"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "예고편 재생 요청"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "삭제 확인 건너뛰기(사용 책임은 본인 부담)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "이력서에서 다시 이동(초 단위)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "트랜스코드 H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "다음화 특집 무시"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "영구 사용자"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "시작 지연(초)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "서버 재시작 메시지 활성화"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "새 콘텐츠 활성화"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "비디오 라이브러리 팝업 기간"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "뮤직 라이브러리 팝업 기간"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "알림(초)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "새 장치 ID 생성"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "동기화 중 화면 보호기 허용"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "로그인"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "수동 로그인"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "사용자 이름 또는 이메일"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "서버 오프라인 활성화"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "표시 메시지"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Emby Connect로 로그인"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "비밀번호"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "로그인"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "취소"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "메인서버 선택"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "사용자 이름이나 비밀번호는 비워둘 수 없습니다."
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "선택한 서버에 연결할 수 없습니다"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "연결 대상"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "수동으로 서버 추가"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "로그인해주세요"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Emby Connect 사용자 변경"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "호스트"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "커넥트"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "서버 또는 포트는 비워둘 수 없습니다."
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Emby Connect 사용자 변경"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "환영합니다"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "서버를 다시 시작하는 중입니다."
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "잘못된 사용자 이름 또는 비밀번호"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "오디오 스트림을 선택하세요"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "자막 스트림을 선택하세요"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Emby에서 파일을 삭제하시겠습니까?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "예고편을 재생하시겠습니까?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "박스셋 수집"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "게더링:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Kodi용 Emby 버전에 대해 데이터베이스를 다시 생성해야 함을 감지했습니다. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Kodi용 Emby는 데이터베이스가 재설정될 때까지 올바르게 작동하지 않습니다."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "완료 날짜:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "새로운 장치 ID가 생성되었습니다. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "주의! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "애드온(기본값)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "네이티브(직접 경로)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "음악 라이브러리를 활성화하시겠습니까?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "캐싱 프로세스를 실행하는 데 다소 시간이 걸릴 수 있습니다. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "기존 작품 캐시를 재설정하시겠습니까?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "아트웍 캐시 업데이트 중"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "스레드가 종료되기를 기다리는 중"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi가 파일을 찾을 수 없습니다:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Emby 경로 대체를 사용하여 경로 형식을 올바르게 지정하거나 경로가 Kodi의 파일 관리자에 추가되었는지 확인하세요. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "뉴"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "세션에 사용자 추가"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "로컬 데이터베이스 재설정 수행"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "모든 아트워크 캐시"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "동기화 테마 미디어"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "세션에서 사용자 추가/제거"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "사용자 추가"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "사용자 제거"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "세션에서 사용자 제거"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "제거됨"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "추가"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "로컬 Kodi 데이터베이스를 재설정하시겠습니까?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "캐시된 아트워크를 모두 제거하시겠습니까?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "모든 Emby 애드온 설정을 재설정하시겠습니까?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "데이터베이스 재설정이 완료되었습니다. Kodi는 이제 변경 사항을 적용하기 위해 다시 시작합니다."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "백업할 폴더 이름을 입력하세요."
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "기존 백업을 교체하시겠습니까?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "백업 생성 위치:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "백업 생성"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "백업 폴더"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "중요, Kodi용 Emby와의 충돌을 방지하기 위해 고급 설정에서 cleanonupdate가 제거되었습니다. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "박스 세트 새로 고침"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "시작 시 Emby 라이브러리 업데이트를 자동으로 적용하려면 서버 플러그인 Kodi Companion을 설치하세요. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "빈 쇼를 동기화하시겠습니까?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "음악이 활성화된 기본 재생 모드를 사용하고 있으므로 파일에서 음악 평가를 가져오시겠습니까?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "이전 동기화를 재개하시겠습니까?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "아트워크 캐싱을 허용하려면 Kodi 설정에서 웹 서버 서비스를 활성화하세요."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "github wiki/Create-and-restore-from-backup에서 자세한 정보를 찾아보세요."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "컨텍스트 메뉴 활성화"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "트랜스코딩 옵션을 활성화합니다."
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "세션에 추가된 사용자"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "비디오 재생 중에 알림이 지연됩니다(라이브 TV 제외)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "플러그인"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "적용하려면 Kodi를 다시 시작하세요."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "재생 모드 변경 사항을 적용하려면 로컬 데이터베이스를 재설정하세요."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Native 및 Add-on 재생 모드에 적용됩니다."
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Add-on 재생 모드에만 적용됩니다."
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "외부 자막 활성화"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "원격 연결을 위해 조정"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "아트웍 압축(품질 저하)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "아트워크 캐싱을 활성화하시겠습니까? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "재생 모드를 변경했습니다. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "동기화 중에 문제가 발생했습니다. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "추가할 라이브러리를 선택하세요"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "전체"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Kodi를 다시 시작하여 중단한 부분부터 다시 시작하세요."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Kodi에 라이브러리 동기화"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "사람 포함(느림)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Kodi와 동기화할 Emby 보기를 선택하세요. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "나중에 동기화"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "계속"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "최신 콘텐츠 업데이트를 검색하지 못했습니다. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Emby 추가 기능 > 라이브러리 추가를 실행하여 라이브러리를 동기화할 수 있습니다."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "소스를 선택하세요"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "박스세트 새로 고침"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "수리 라이브러리"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Kodi에서 라이브러리 제거"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "서버 추가"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi는 이제 Kodi 버전에 작은 패치를 적용하기 위해 다시 시작됩니다."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "라이브러리 업데이트"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Kodi Companion 활성화(서버 플러그인)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "서버 플러그인 Kodi 컴패니언에 의존하지 않고 라이브러리를 수동으로 업데이트할 수 있습니다. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "라이브러리 업데이트"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "라이브러리 수리"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "서버 제거"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "뭔가 잘못됐어요. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "라이브러리 제거 중"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Emby 서버 라이브러리가 Kodi 설치에 액세스할 수 있고 서버에 경로 대체가 구성되어 있는지 확인하세요. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Emby에 연결할 수 없습니다."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Emby에 대한 액세스가 제한되었습니다."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "이 서버에 대한 액세스가 제한되었습니다."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "이 서버에 연결할 수 없습니다."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "서버 정보 업데이트"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "이전에 로드된 동일한 서버에 다시 연결하세요. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Kodi에서 TV 음악을 찾을 수 없습니다."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Emby 테마 미디어가 Kodi에 동기화되었습니다."
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "라이브러리 추가"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "현재 Emby for Kodi에 적용된 패치가 손상되었습니다! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "패치가 적용되었습니다!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "오디오 전용"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "자막만"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "오디오/자막 선택 활성화"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "오류를 방지하려면 Kodi용 Emby를 다음 버전으로 업데이트하세요. "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "업데이트 확인"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "음악 라이브러리를 재설정하시겠습니까?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "이 프로젝트를 지원하세요"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "로그에서 민감한 정보를 마스크합니다(kodi 로깅에는 적용되지 않음)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "백업을 생성하지 못했습니다."
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(동적)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "최근 추가됨"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "즐겨찾기"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "진행중"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "감시되지 않음"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "첫 글자로"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "보류 중인 업데이트가 {number}개 있습니다. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "이전 동기화를 잊어버리셨나요? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "페이징 - 스레드 다운로드(기본값: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "페이징 팁: 각 다운로드 스레드는 동시에 Emby에서 최대 항목 값을 요청합니다."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "아래 변경 사항을 적용하려면 라이브러리를 업데이트하거나 복구하세요."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "업데이트 횟수가 다음보다 큰 경우 진행률 표시줄을 표시합니다."
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "업데이트 처리 중"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "강제 트랜스코드"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Kodi용 Emby 다시 시작"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "패치를 적용하기 위해 다시 시작하는 중"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "시네마 모드로 재생"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "시네마 모드로 재생하는 옵션을 활성화합니다."
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "라이브러리 제거"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "재생 중 동기화 활성화(약간 지연이 발생할 수 있음)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Kodi 컴패니언은 시작 동기화 속도를 높입니다. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Rotten Tomatoes 등급 동기화"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Rotten Tomatoes 등급을 동기화하시겠습니까?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Kodi가 이 변경 사항을 적용하려면 Emby를 다시 시작하시겠습니까?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Kodi용 Emby 다시 시작"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "다시 시작하는 중..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "라이브러리 관리"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Kodi용 Emby 활성화"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "고급 옵션"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "동기화가 이미 실행 중입니다. 완료될 때까지 기다렸다가 다시 시도하세요."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "엠비"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "엠비 플레이"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "음악 데이터베이스 재검색 패치"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "작업 성공!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "작업이 실패했습니다!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "간단한 플레이 활성화(외부 플레이어 친화적)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "트랜스코드 10비트(H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "개수가 다음보다 큰 경우 동기화를 진행하도록 요청"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "트랜스코드 10비트(H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Emby를 사용하여 원격 URL 재생"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "선택 항목에 숨겨진 사용자 표시"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "패치 업데이트 재설정"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "최신 릴리스"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "다중 에피소드에 대한 라벨을 활성화합니다. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "로컬 예고편 활성화"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "예고편 활성화"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "트랜스코드"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "출력 형식 비디오"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "출력 형식 오디오"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "플러그인 메뉴에 옵션 표시"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "날짜 정보"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "장르"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "스튜디오"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "태그라인"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "개요"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "생산지"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "동적 라이브러리"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "호환성 모드"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "백업 복원"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "어떤 작품을 캐시해야 할까요?"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "비디오"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "음악"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "증분 동기화 날짜"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "증분 동기화 시간"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "삭제된 항목을 수집하는 중"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "시네마 모드 활성화(영화)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "시네마 모드 활성화(TV 프로그램)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Emby 서버에서도 항목을 삭제하시겠습니까? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Kodi 이벤트로 Emby 서버에서도 파일을 삭제하시겠습니까? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Kodi 이벤트에서 FILE 삭제 활성화"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "HTTP2 지원 비활성화"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "advancedsettings.xml 변경으로 인해 Kodi 다시 시작이 시작되었습니다."
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1.3Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2.0Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3.2Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4.7Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6.2Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7.7Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9.2Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10.7Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12.2Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13.7Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15.2Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16.7Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18.2Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20.0Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25.0Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30.0Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35.0Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40.0Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100.0Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000.0Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr "64Kbps"
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr "96Kbps"
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr "128Kbps"
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr "192Kbps"
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr "256Kbps"
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr "320Kbps"
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr "384Kbps"
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr "448Kbps"
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr "512Kbps"
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "시네마 모드"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "작품"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "메뉴"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "호환성 모드는 플러그인 ID를 4.x(plugin.video.emby)로 변경합니다. "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "일부 상황(WLan, 지연된 네트워크 시작 등)에서는 지연된 플러그인 시작으로 연결이 향상될 수 있습니다."
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "동적(동기화되지 않음) 콘텐츠에 대해 로드되는 메타 정보를 조정할 수 있습니다. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "이 옵션을 주의하세요. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "디버그 옵션입니다. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "고유 장치 ID를 재설정합니다. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "새로운 Emby 서버에 연결(다중 서버)하거나 기존 Emby 서버에 다시 연결(디버그)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "연결 작업을 위해 Emby 서버에 숨겨진 사용자를 표시합니다."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "라이브러리, 라이브 TV, 테마를 추가/제거/복구합니다."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "모든 아트워크를 Kodi에 로컬로 동기화합니다. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "일부 스킨은 XPS 재생 목록을 사용합니다. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "사용자 평가는 Kodi에 동기화할 추가 정보입니다. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "전체 Kodi 데이터베이스 재동기화를 수행합니다. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "시네마 모드는 Emby의 주요 기능입니다. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "트랜스코드 오디오 비트 전송률"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "네트워크 속도. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "장치 이름이 Emby 서버에 보고됩니다."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "추가 사용자에게 재생 진행 상황을 보고합니다."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "재생이 중지되고 계속 시작되는 사이의 간격입니다."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Emby 서버 기능입니다."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "대역폭을 절약할 수 있습니다."
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "어떤 경우에는 플러그인 메뉴의 메뉴 옵션을 바로가기로 표시하는 것이 유용합니다. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Contect 메뉴는 즐겨찾기 관리, 삭제 옵션, (영화) 특수 기능 선택 등을 지원합니다."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "오디오 비트 전송률"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr "664Kbps SD"
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr "996Kbps HD"
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "최대 아트웍 캐시 스레드"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "애니메이션 아이콘"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Emby 서버 연결 시 스킨 새로 고침"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "폴더"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "혼합 콘텐츠"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "진행중"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "임의의 에피소드"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "랜덤 TV쇼"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "공장 초기화"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "노드 재설정"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "노드를 재설정하시겠습니까?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "예술가"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "보지 않은 에피소드"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "보지 않은 TV 프로그램"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "좋아하는 TV쇼"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "최근에 재생된 TV 쇼"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "다음 에피소드"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "TV 쇼"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "최근 재생됨"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "최근에 재생된 에피소드"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "이사"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "TV 쇼 태그"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "에피소드 태그"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "영화 태그"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "영화 재개"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "국가"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "앨범"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "뮤직비디오"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "뮤직비디오 태그"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "임의의 뮤직비디오"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "뮤직비디오 재개"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "비디오"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "사진"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "포토앨범"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "포토앨범 태그"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "사진 태그"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "비디오 태그"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "최근 추가된 사진"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "최근 추가된 사진앨범"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "최근 추가된 동영상"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "재생 목록"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "오디오북"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "무작위 오디오북"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "듣지 않음"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "임의의 노래"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "임의의 팟캐스트"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "팟캐스트"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "동기화된 노드는 동적 노드보다 훨씬 빠릅니다. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "동적 노드가 즉시 구축됩니다. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "좋아하는 뮤직비디오"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "동기화된 노드"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "동적 노드"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "최근 추가된 앨범"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "최근 추가된 오디오북"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "최근 추가된 곡"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "랜덤 앨범"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "임의의 노래"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "무작위 오디오북"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "임의의 팟캐스트"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "최근 추가된 팟캐스트"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "라이브러리, 라이브 TV, 테마 추가/제거/복구"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "플러그인 설정 열기"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "전체 Kodi 데이터베이스 재동기화를 수행합니다(Emby가 아닌 콘텐츠 포함). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "모든 사용자 정의 노드를 재설정하고 다시 빌드합니다."
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "노드 쿼리 제한"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "진행 노드에 대한 쿼리를 제한합니다. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "노드"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Emby 서버에서 재생 재개 옵션 사용"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "이 기능은 Kodi의 내부 진행률 업데이트를 비활성화합니다. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Kodi 종료 시 진공 데이터베이스"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "종료 지연으로 인해 데이터베이스가 재구축되고 최적화됩니다."
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "스킨 리로드"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "기타"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby 서버가 사용 중입니다."
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "작품 파일 삭제"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "뷰 업데이트"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby 서버 사용 중: 동기화 진행 중"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Kodi 삭제"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "데이터베이스"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "인트로 건너뛰기"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "인트로 끝 위치로 이동하라는 메시지 상자가 표시됩니다."
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "마커"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "크레딧 건너뛰기"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "메시지 상자에서 크레딧 건너뛰기를 요청합니다."
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "인트로 건너뛰기 요청"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "스킵 크레딧 요청"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "X초 후에 메시지 상자가 자동으로 닫힙니다."
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "소개 건너뛰기, 크레딧 건너뛰기, 영화 모드 및 삭제 옵션 메시지 상자는 X초 후에 자동으로 닫힙니다. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "작곡가"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "손상된 설정 파일이 감지되었습니다. 기본값을 복원합니다. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL 오류"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "아트워크 캐싱이 중지되었습니다. 공간이 부족합니다."
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "웹소켓 연결 오프라인"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Emby 서버 선택"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "수리할 라이브러리를 선택하세요"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "업데이트할 라이브러리를 선택하세요."
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "제거할 라이브러리를 선택하세요."
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "장르별 노래"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "진공 데이터베이스"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "에피소드에 TVShow 포스터 할당"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi 포스터(Emby TVShow 기본 이미지)는 에피소드 Kodi 포스터로 사용됩니다.\n이 옵션을 전환하려면 캐시된 모든 아트워크를 포함하여 전체 재동기화가 필요합니다.\n주의: 초기화 동기화 마법사를 사용하지 말고(건너뛰기) 동기화하기 전에 설정을 검토하세요."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "다음 에피소드에는 팬아트 이미지를 사용하세요"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "다음 에피소드 노드를 위해 (Kodi) 팬아트로 (Kodi) 엄지손가락을 덮어씁니다."
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "대체 건너뛰기 소개(메시지) 레이아웃 사용"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "엠부아리 스킨 디자인"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "서버 진행 활성화"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Emby 서버 사용 중 알림이 표시됩니다."
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "쿼리 내용 변경"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "컨텐츠 변경/사용자 데이터 쿼리"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "질의 내용 변경/내용"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Emby 서버와의 연결이 끊어졌습니다."
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "실시간 TV 채널 동기화"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "실시간 TV EPG 동기화"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - 요청된 항목(기본 요소: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "테마 동기화"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "여유 공간 확인"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "미디어 소스 선택"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Kodi의 (동적) 위젯 문제에 대한 해결 방법 사용"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr "MPEG2비디오"
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "비디오 트랜스코드"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "오디오 트랜스코드"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "트랜스코드 대역폭 제한"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "트랜스코딩 출력 형식"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr "PCM 뮬로"
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr "보비스"
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "트랜스코딩 라이브TV"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "오디오"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "비디오"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "오디오스트림 선택"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "자막 선택"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: 스페셜"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "경로 대체 사용"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "경로 대체는 애드온 모드에서 챕터 이미지를 지원합니다. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "각 emby 라이브러리에 고유 액터 할당"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "에피소드"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: 기록"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "함께보기 취소"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "참가자를 기다리고 있습니다"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "시작 중..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "사용자 선택"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "원격 클라이언트 / 함께 시청하기"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "타이머 삭제"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "타이머 추가"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "강제 클라이언트"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "기본적으로 Watch를 함께 지원하지 않는 클라이언트는 강제로 참여하게 됩니다."
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "클라이언트 제어"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "클라이언트는 서로를 제어할 수 있습니다."
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "클라이언트를 마스터에 동기화"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "마스터는 재생, 일시 정지, 탐색을 제어합니다."
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "참여를 기다립니다"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "초 후에 참여를 기다립니다."
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "지연 재생"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "재생 시작을 지연하고 클라이언트에 동기화할 시간을 제공합니다."
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "일시정지 시 최대 드리프트"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "일시 정지 시 밀리초 단위로 비동기 허용"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "자동 승인"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "들어오는 원격 클라이언트 요청을 자동으로 승인합니다."
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "지연"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "X초 후에 탐색 명령을 트리거합니다."
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "지원되지 않는 클라이언트를 다시 동기화합니다."
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "연결 유지"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "시작 시 연결 설정(장치 ID별)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY:함께 시청하세요"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: 클라이언트 제거"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: 클라이언트 추가"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: 원격 모드 활성화"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: 원격 모드 비활성화"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "활성화"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "기본"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "아트"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "배너"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "디스크"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "로고"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "엄지"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "백드롭"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "챕터"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "압축"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "최대 해상도"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "이미지 해상도를 요소로 제한합니다. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "트랜스인코드 오디오 스트림 선택"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "경로 대체는 애드온 모드에서 챕터 이미지(추출)를 지원합니다. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "웹소켓 연결 활성화"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "비활성화된 경우: 실시간 업데이트가 없으며 알림이 수신되지 않으며 원격 명령이 작동하지 않습니다."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Kodi의 에피소드 북마크 문제에 대한 해결 방법을 사용하세요."
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi에는 목록 보기를 통해 에피소드를 선택할 때 에피소드 북마크에 버그가 있습니다. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi에 동적 위젯에 문제가 있습니다. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "HTTP/2 지원 활성화"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi는 http/2 프로토콜을 통해 콘텐츠를 재생하는 데 문제가 있습니다(기본값은 꺼짐)."
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "추가 오디오 위젯 새로 고침"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Emby가 진행 업데이트를 보고한 후 추가(가짜) Kodi 오디오 스캔을 트리거합니다. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "네트워크 시간 초과"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "이 옵션은 EPG 및 다중 버전 콘텐츠 선택 시간 초과에 영향을 줍니다. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: 즐겨찾기"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY:함께 시청하세요"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: 원격 클라이언트 관리"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "라이브러리별 메타데이터 통합"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "뮤직아티스트"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "음악장르"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "장르"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "스튜디오"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "태그"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "컬렉션 무비"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "컬렉션 TV쇼"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "컬렉션 뮤직비디오"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "즐겨찾기"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "새 콘텐츠 메시지의 기간"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "태그로서의 박스세트"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "태그에 박스세트 할당"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "네트워크 시간 초과"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "네트워크 시간 초과를 초 단위로 조정합니다. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Emby 즐겨찾기를 Kodi 즐겨찾기에 동기화"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml이 수정됩니다."
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "최근 추가된 사진앨범"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "계속 시청"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "이벤트에 대한 실시간 TV 채널 동기화"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Kodi 시작 및 EPG 변경 시 Livetv 채널이 다시 동기화됩니다."
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "다운로드 위치"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: 다운로드"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: 다운로드 삭제"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "다운로드한 파일 모두 삭제"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "모든 오프라인 콘텐츠를 삭제하시겠습니까?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "다운로드한 모든 콘텐츠가 삭제됩니다."
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby 서버 오프라인"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "가장 좋아하는 계절"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "페이징"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "음악가"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "뮤지컬앨범"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "음악장르"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "오디오"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "영화"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "뮤직비디오"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "시리즈"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "시즌"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "에피소드"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "비디오"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "포토앨범"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "장르"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "사진"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "재생목록"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "채널"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "라이브TV"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "트레일러"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "폴더"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "박스셋"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "사람"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "태그"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "스튜디오"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "멀티컨텐츠"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "서버 관리"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "원격 재생"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "콘텐츠 다운로드"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "컨텍스트 메뉴"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "즐겨찾기 추가/제거"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "스페셜 재생"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "녹음"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "항목 새로 고침"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "항목 삭제"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "좋아하는 동영상"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "좋아하는 사진"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "좋아하는 뮤직비디오"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "컬렉션"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "추천"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "좋아하는 영화"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "즐겨찾는 박스셋"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z 포토앨범"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z 비디오"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "최근 개봉한 미공개 영화"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "최근 개봉 영화"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z 뮤직비디오"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z 영화"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z 시리즈"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "좋아하는 노래"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "좋아하는 배우"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "즐겨찾는 오디오"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "검색"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "진행 중(혼합 콘텐츠)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "계속 시청하기 (혼합 콘텐츠)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "다운로드된 영화"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "다운로드된 에피소드"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "다운로드된 뮤직비디오"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "영화"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "TV쇼"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "계절"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "노래"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "배우"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "북마크"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "테마를 다운로드하시겠습니까(YES) 아니면 링크 테마를 다운로드하시겠습니까(NO)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "오디오 스트림 선택"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "백업 선택"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "작품을 변경하려면 작품 캐시를 재설정해야 합니다. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "알림"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "메시지 기간"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "메시지 기간(초)"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "서버 작업"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "연결"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "항목 삭제"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "백업"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: 리모트 플레이"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr "프로레스"
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr "트루HD"
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "다운로드된 시리즈"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "imdb를 기본 평가 제공자로 설정"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Emby의 커뮤니티 평가가 imdb 평가를 반영한다고 가정합니다."
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "다음 에피소드(혼합 콘텐츠)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "마지막 재생 계속(혼합 콘텐츠)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "마지막 재생 계속"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "쇼로 이동"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: 이동"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "쇼로 이동"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "시즌으로 이동"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "노드 재설정이 완료되었습니다."
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI 길이 제한"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "경우에 따라 한도가 높을수록 더 빠르지만 http 414 문제가 발생할 수 있습니다."
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: 설정"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "설정"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "오프라인 메시지 활성화"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "잘못된 서버 주소"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "인수가 잘못되었습니다."
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "다운로드 경로를 찾을 수 없습니다."
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "TV쇼에 영화 링크 추가"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Kodi의 TV쇼 조회수에 나열된 TV쇼에 할당된 영화입니다. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "시작 동기화 활성화"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "비활성화된 경우 Kodi가 시작되는 동안 Emby 콘텐츠가 동기화되지 않습니다."
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "클래식 선택 사용"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "멀티컨텐츠를 사용할 수 있을 때 선택 메뉴가 표시됩니다."
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "멀티컨텐츠"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "콘텐츠 중복 제거"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "여러 Emby 서버 라이브러리에서 유사한 콘텐츠를 제거합니다."
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "최고 비디오 해상도를 기본값으로 설정"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "이 옵션은 Kodi의 다중 버전 선택에 적용되며 토글 시 라이브러리를 다시 동기화해야 합니다."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "최고 해상도 자동 선택"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "클래식 다중 선택 옵션에 적용됩니다."
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Kodi API 알림 활성화"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "외부 사용을 위해 Kodi의 API를 통해 이벤트 보고"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "액세스가 거부되었습니다."
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "연도별 앨범"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "연도별 싱글"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "싱글즈"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "최근 추가된 싱글"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "랜덤 싱글"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "없음"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "사용 가능한 경로 정보가 없습니다. 조심하세요!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "TV쇼"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "기본 라이브러리 선택"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "LiveTv 새로 고침"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "새로고침 테마"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "LiveTv 비활성화"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "LiveTv 활성화"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "테마 비활성화"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "테마 활성화"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "http 팔로우"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "외부 http 콘텐츠는 Emby 서버를 통해 파이프되지 않고 직접 액세스됩니다. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "http 시간 초과를 따릅니다."
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "로컬 콘텐츠를 기본값으로 설정"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Kodi 컴패니언 애드온이 Emby 서버에 설치되지 않았습니다! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "아트워크 캐시 취소"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "웹 서비스 작업자 수"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "값이 높을수록 성능이 향상될 수 있지만 더 많은 리소스가 필요합니다. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "사용 중인 대화 상자 닫기"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Kodi 충돌을 방지할 수 있습니다."
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "서비스 유형"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP 헤더(TOS), 응답성을 향상시킬 수 있음"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0(최선의 노력)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF(신속 전달)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11(보증된 전달)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4(실시간 대화형)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "증분 아트웍 캐시"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "부분 동기화 시 아트웍을 자동으로 캐시합니다."
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "아이콘이 있는 장르"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "아이콘이 있는 스튜디오"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "아이콘이 포함된 태그"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "로컬 트레일러"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "변경사항 로드"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "해상도 임계값"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "소스 해상도가 선택한 해상도보다 높을 때 콘텐츠를 트랜스코딩합니다."
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "해상도 임계값"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "소스 해상도가 선택한 해상도보다 높을 때 콘텐츠를 트랜스코딩합니다."
+
+msgctxt "#33737"
+msgid "always"
+msgstr "항상"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "무제한"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "트랜스코딩 해상도"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "무제한은 소스 해상도를 유지함을 의미합니다."
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "웹서비스 모드"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr "웹다브"
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "경로 대체"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr "http"
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: 다중 버전"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "뮤직비디오 링크 새로고침"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "음악 데이터베이스에 대한 뮤직비디오 링크 업데이트"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "시간이 동기화되지 않았습니다. 업데이트를 건너뜁니다."
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "음악에 뮤직비디오 링크 추가"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Kodi의 노래 보기에 나열된 음악에 할당된 뮤직비디오입니다."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "백업 삭제"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "백업 이름을 입력하세요"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "압축이 지원되지 않으며 백업을 사용할 수 없습니다."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "백업 진행 중"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "오디오 테마 동기화 방법"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "비디오 테마 동기화 방법"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "다운로드"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "원격"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "오디오 테마 활성화"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "비디오 테마 활성화"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "앨범으로 이동"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "아티스트로 이동"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "동기화 일시중지"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "서버가 작업으로 바쁜 경우 동기화를 일시 중지합니다."
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "비디오 미리보기 썸네일 추출"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "진공 데이터베이스"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "로컬 테마 동영상 업로드"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "로컬 테마곡 업로드"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "인트로 데이터베이스 업데이트"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV 미로 업데이트"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "미디어 전송"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "메타데이터 폴더 스캔"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "스캔 미디어 라이브러리"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "인터넷 채널 새로고침"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "가이드 새로고침"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "자막 다운로드"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "로컬 YouTube 영화 예고편 다운로드"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "지역 TV 주제가 다운로드"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "로컬 테마 동영상 다운로드"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "로컬 테마곡 다운로드"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "인트로 감지"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "미디어 변환"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "새로 고침 진행 중"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX 예약된 작업"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: 유사한 항목 더 보기"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "비슷한 항목 더 보기"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "홈비디오 태그"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "좋아하는 홈비디오"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "비디오 태그"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "좋아하는 동영상"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "재생 상태 변경"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "시리즈 및 시즌 진행"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "재생 목록(혼합)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY : 랜덤 플레이"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "랜덤 플레이"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi Companion 경고"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion은 삭제된 콘텐츠를 추적하는 Emby 서버 애드온입니다."
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "트레일러 처리"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "트레일러"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "최근 추가된 예고편"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "테마"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "오디오 활성화"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "비디오 활성화"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "페이드 인"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "페이드 아웃"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "값이 클수록 페이딩 시간이 길어지고 0은 비활성화됩니다."
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "홈 화면"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "위젯용 테마를 재생합니다."
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "지연된 시작"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "값은 초 단위입니다."
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "다운로드"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "더 나은 성능을 위해 테마를 로컬에 저장"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "우선순위"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "둘 다 사용 가능한 경우 어떤 테마가 먼저 재생되는지 정의합니다."
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "원격 트레일러"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "원격 트레일러 선택"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "시네마 인트로"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "폴더 예고편"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "로컬 트레일러"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "로컬 무비"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "예고편 재생"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "볼륨"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "디버그 로그"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "인트로 마커로 비디오 활성화"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "인트로 마커로 오디오 활성화"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "콘텐츠별 비디오 활성화"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "컨텐츠별 오디오 활성화"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "콘텐츠 기간별"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "트랜스코딩이 사용되어 서버에 과도한 CPU 로드가 발생할 수 있습니다."
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "끄기"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "인트로 마커"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "컨텐츠"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "가상 테마"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "내비게이션"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "에피소드 보기"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "시즌뷰"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "TV쇼 보기"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "영화보기"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "타이밍"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "재생"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "오디오 즐겨찾기 업데이트"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "뮤지컬붐 즐겨찾기 업데이트"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "비디오 즐겨찾기 업데이트"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "뮤직비디오 즐겨찾기 업데이트"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "박스셋 즐겨찾기 업데이트"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "시리즈 즐겨찾기 업데이트"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "시즌 즐겨찾기 업데이트"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "재생목록 즐겨찾기 업데이트"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "에피소드 즐겨찾기 업데이트"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "영화 즐겨찾기 업데이트"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "장르 즐겨찾기 업데이트"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "스튜디오 즐겨찾기 업데이트"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "태그 즐겨찾기 업데이트"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "음악 장르 즐겨찾기 업데이트"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "개인 즐겨찾기 업데이트"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "개인 즐겨찾기 업데이트"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "복원된 백업 위치:"
+

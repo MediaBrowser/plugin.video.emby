@@ -155,7 +155,7 @@ SyncNodes = {
         ('emby_collections_tvshows', f"EMBY: {utils.Translate(33556)}", 'DefaultTags.png', "tvshows", (("PLUGIN", "collections", "tvshow"),)),
         ('emby_collections_musicvideos', f"EMBY: {utils.Translate(33557)}", 'DefaultTags.png', "musicvideos", (("PLUGIN", "collections", "musicvideo"),)),
         ('emby_downloaded_movies', f"EMBY: {utils.Translate(33629)}", 'DefaultMovies.png', "movies", (("path", "contains", "EMBY-offline-content"),), ("ascending", "sorttitle"), False, False),
-        ('emby_downloaded_series', f"EMBY: {utils.Translate(33662)}", 'DefaultAddonVideo.png', "tvshows", (("path", "contains", "EMBY-offline-content"),), ("ascending", "sorttitle"), False, False),
+        ('emby_downloaded_series', f"EMBY: {utils.Translate(33662)}", 'DefaultAddonVideo.png', "tvshows", (("title", "endswith", " (download)"),), ("ascending", "sorttitle"), False, False),
         ('emby_downloaded_episodes', f"EMBY: {utils.Translate(33630)}", 'DefaultAddonVideo.png', "episodes", (("path", "contains", "EMBY-offline-content"),), ("ascending", "sorttitle"), False, False),
         ('emby_downloaded_musicvideos', f"EMBY: {utils.Translate(33631)}", 'DefaultMusicVideos.png', "musicvideos", (("path", "contains", "EMBY-offline-content"),), ("ascending", "sorttitle"), False, False)
     ],
@@ -268,6 +268,12 @@ DynamicNodes = {
         ('BoxSet', utils.Translate(30185), 'DefaultSets.png', "BoxSet", True),
         ('Recentlyadded', utils.Translate(33375), 'DefaultRecentlyAddedMovies.png', "Video", False)
     ],
+    'trailers': [
+        ('Letter', utils.Translate(33617), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "Trailer", False),
+        ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder", True),
+        ('Trailer', utils.Translate(33594), 'DefaultAddonVideo.png', "Trailer", False),
+        ('Recentlyadded', utils.Translate(33803), 'DefaultRecentlyAddedMovies.png', "Trailer", False)
+    ],
     'homephotos': [
         ('Letter', utils.Translate(33616), 'special://home/addons/plugin.service.emby-next-gen/resources/letter.png', "PhotoAlbum", False),
         ('Folder', utils.Translate(33335), 'DefaultFolder.png', "Folder", True),
@@ -350,6 +356,9 @@ class Views:
                 if view['ContentType'] in ("books", "games", "photos"):
                     continue
 
+                if utils.SystemShutdown:
+                    return
+
                 if Dynamic or f"'{view['LibraryId']}'" in str(self.EmbyServer.library.LibrarySynced):
                     if view['ContentType'] in ('music', 'audiobooks', 'podcasts'):
                         view['Tag'] = f"EmbyLibraryId-{library_id}"
@@ -423,6 +432,8 @@ class Views:
 
             if library['Type'] == 'Channel' and library['Name'].lower() == "podcasts":
                 library['ContentType'] = "podcasts"
+            elif library['Type'] == 'Channel' and library['Name'].lower() == "trailers":
+                library['ContentType'] = "trailers"
             elif library['Type'] == 'Channel':
                 library['ContentType'] = "channels"
             else:
@@ -633,86 +644,87 @@ class Views:
 
             NodeIndex = 0
 
-            for node in SyncNodes[view['ContentType']]:
-                # Node: [filename, label, icon, content, [[rule1, Filter, Operator], [rule1, Filter, Operator], ...], [direction, order], useLimit, group, Subfolder]
-                NodeIndex += 1
+            if view['ContentType'] in SyncNodes:
+                for node in SyncNodes[view['ContentType']]:
+                    # Node: [filename, label, icon, content, [[rule1, Filter, Operator], [rule1, Filter, Operator], ...], [direction, order], useLimit, group, Subfolder]
+                    NodeIndex += 1
 
-                if view['ContentType'] in ("rootaudio", "rootvideo"):
-                    if not self.EmbyServer.ServerData['ServerId']:
-                        continue
+                    if view['ContentType'] in ("rootaudio", "rootvideo"):
+                        if not self.EmbyServer.ServerData['ServerId']:
+                            continue
 
-                    if view['ContentType'] == "rootvideo":
-                        NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://video/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
+                        if view['ContentType'] == "rootvideo":
+                            NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://video/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
+                        else:
+                            NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://music/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
+
+                        NodeAdd = True
+
+                        if node[0] in ('emby_collections_movies', 'emby_collections_tvshows', 'emby_collections_musicvideos'):
+                            NodeAdd = utils.BoxSetsToTags
+
+                        if NodeAdd:
+                            self.Nodes['NodesSynced'].append(NodeData)
+                        else:
+                            if NodeData in self.Nodes['NodesSynced']:
+                                del self.Nodes['NodesSynced'][self.Nodes['NodesSynced'].index(NodeData)]
+
+                    if len(node) == 9:
+                        FolderPath = f"{folder}{node[8][0]}/"
+
+                        if node[8][1] == "DBMUSICGENRE":
+                            utils.delFolder(FolderPath)
+                            utils.mkDir(FolderPath)
+                            musicdb = dbio.DBOpenRO("music", "node_songsbygenres")
+                            Genres = musicdb.get_genre(view['LibraryId'])
+                            dbio.DBCloseRO("music", "node_songsbygenres")
+
+                            for Genre in Genres:
+                                SubNode = list(node)
+                                SubNode[0] = utils.valid_Filename(Genre)
+                                SubNode[1] = utils.encode_XML(Genre)
+                                SubNode[4] = list(SubNode[4])
+                                SubNode[4][1] += (Genre,)
+                                self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 10)
+                                NodeIndex += 1
+                        elif node[8][1] == "LETTER":
+                            utils.mkDir(FolderPath)
+
+                            for Letter in ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"):
+                                SubNode = list(node)
+                                SubNode[0] = Letter
+                                SubNode[1] = Letter
+                                SubNode[4] = list(SubNode[4])
+
+                                if Letter == "0-9":
+                                    SubNode[4][1] += (("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "&amp;", "Ä", "Ö", "Ü", "!", "(", ")", "@", "#", "$", "^", "*", "-", "=", "+", "{", "}", "[", "]", "?", ":", ";", ",", ".", "~", "&lt;", "&gt;", "&quot;", "&apos;", '"'),)
+                                else:
+                                    SubNode[4][1] += (Letter,)
+
+                                self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 1)
+                                NodeIndex += 1
+
+                        add_IndexFile(FolderPath, node[1], node[2], 0)
                     else:
-                        NodeData = {'title': node[1].replace("EMBY: ", ""), 'path': f"library://music/{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml", 'icon': node[2]}
-
-                    NodeAdd = True
-
-                    if node[0] in ('emby_collections_movies', 'emby_collections_tvshows', 'emby_collections_musicvideos'):
-                        NodeAdd = utils.BoxSetsToTags
-
-                    if NodeAdd:
-                        self.Nodes['NodesSynced'].append(NodeData)
-                    else:
-                        if NodeData in self.Nodes['NodesSynced']:
-                            del self.Nodes['NodesSynced'][self.Nodes['NodesSynced'].index(NodeData)]
-
-                if len(node) == 9:
-                    FolderPath = f"{folder}{node[8][0]}/"
-
-                    if node[8][1] == "DBMUSICGENRE":
-                        utils.delFolder(FolderPath)
-                        utils.mkDir(FolderPath)
-                        musicdb = dbio.DBOpenRO("music", "node_songsbygenres")
-                        Genres = musicdb.get_genre(view['LibraryId'])
-                        dbio.DBCloseRO("music", "node_songsbygenres")
-
-                        for Genre in Genres:
-                            SubNode = list(node)
-                            SubNode[0] = utils.valid_Filename(Genre)
-                            SubNode[1] = utils.encode_XML(Genre)
-                            SubNode[4] = list(SubNode[4])
-                            SubNode[4][1] += (Genre,)
-                            self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 10)
-                            NodeIndex += 1
-                    elif node[8][1] == "LETTER":
-                        utils.mkDir(FolderPath)
-
-                        for Letter in ("0-9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"):
-                            SubNode = list(node)
-                            SubNode[0] = Letter
-                            SubNode[1] = Letter
-                            SubNode[4] = list(SubNode[4])
-
-                            if Letter == "0-9":
-                                SubNode[4][1] += (("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "&amp;", "Ä", "Ö", "Ü", "!", "(", ")", "@", "#", "$", "^", "*", "-", "=", "+", "{", "}", "[", "]", "?", ":", ";", ",", ".", "~", "&lt;", "&gt;", "&quot;", "&apos;", '"'),)
-                            else:
-                                SubNode[4][1] += (Letter,)
-
-                            self.set_synced_node(FolderPath, view, SubNode, NodeIndex, 1)
-                            NodeIndex += 1
-
-                    add_IndexFile(FolderPath, node[1], node[2], 0)
-                else:
-                    self.set_synced_node(folder, view, node, NodeIndex, 1)
+                        self.set_synced_node(folder, view, node, NodeIndex, 1)
 
     def set_synced_node(self, Folder, view, node, NodeIndex, LimitFactor):
-        Label = node[1]
-
         if view.get('ContentType', "").startswith("root"):
             FilePath = f"{Folder}{node[0]}_{self.EmbyServer.ServerData['ServerId']}.xml"
         else:
             FilePath = f"{Folder}{node[0]}.xml"
 
-        if Label == "LIBRARYNAME":
-            Label = view["Name"]
-
-        LabelXMLEncoded = utils.encode_XML(Label.strip())
-
-        if LabelXMLEncoded.isnumeric(): # Keep number as label, appand null -> Kodi translates plain numbers based on language files
-            LabelXMLEncoded += "&#000;"
-
         if not xbmcvfs.exists(FilePath):
+            Label = node[1]
+
+            if Label == "LIBRARYNAME":
+                Label = view["Name"]
+
+            LabelXMLEncoded = utils.encode_XML(Label.strip())
+
+            if LabelXMLEncoded.isnumeric(): # Keep number as label, appand null -> Kodi translates plain numbers based on language files
+                LabelXMLEncoded += "&#000;"
+
             utils.mkDir(Folder)
 
             if not self.EmbyServer.ServerData["ServerId"]:

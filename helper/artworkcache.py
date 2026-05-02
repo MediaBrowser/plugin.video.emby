@@ -8,7 +8,7 @@ from . import utils
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
 
 # Cache all entries
-def CacheAllEntries(urls, ProgressBar):
+def CacheAllEntries(urls, WorkerName):
     total = len(urls)
     ArtworkCacheItems = 1000 * [{}]
     ArtworkCacheIndex = 0
@@ -33,7 +33,7 @@ def CacheAllEntries(urls, ProgressBar):
             continue
 
         Folder = url[0].split("/")
-        Data = url[0][url[0].rfind("/") + 1:].replace("|redirect-limit=1000", "").split("-")
+        Data = url[0][url[0].rfind("/") + 1:].split("-")
 
         if len(Data) < 4 or len(Folder) < 5:
             xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: Invalid item found {url}", 2) # LOGWARNING
@@ -49,17 +49,7 @@ def CacheAllEntries(urls, ProgressBar):
             continue
 
         ImageType = EmbyArtworkIDs[Data[3]]
-
-        # Calculate hash -> crc32mpeg2
-        crc = 0xffffffff
-
-        for val in url[0].encode("utf-8"):
-            crc ^= val << 24
-
-            for _ in range(8):
-                crc = crc << 1 if (crc & 0x80000000) == 0 else (crc << 1) ^ 0x104c11db7
-
-        Hash = hex(crc).replace("0x", "")
+        Hash = utils.kodi_hash(url[0])
 
         if utils.SystemShutdown:
             return
@@ -69,9 +59,9 @@ def CacheAllEntries(urls, ProgressBar):
         if not xbmcvfs.exists(f"{TempPath}.jpg") and not xbmcvfs.exists(f"{TempPath}.png"):
             if len(Data) > 5:
                 OverlayText = unquote("-".join(Data[5:]))
-                ImageBinary, _, _ = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText, True, True)
+                ImageBinary, _, _ = utils.image_overlay(ImageTag, ServerId, EmbyID, ImageType, ImageIndex, OverlayText)
             else:
-                ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag, False, True, True)
+                ImageBinary, _, _ = utils.EmbyServers[ServerId].API.get_Image_Binary(EmbyID, ImageType, ImageIndex, ImageTag, False)
 
             Width, Height, ImageFormat = get_image_metadata(ImageBinary, Hash)
             cachedUrl = f"{Hash[0]}/{Hash}.{ImageFormat}"
@@ -87,10 +77,7 @@ def CacheAllEntries(urls, ProgressBar):
 
             del ImageBinary
 
-        Value = int((IndexUrl + 1) / total * 100)
-
-        if ProgressBar:
-            ProgressBar.update(Value, "Emby", f"{utils.Translate(33045)}: {EmbyID} / {IndexUrl}")
+        utils.update_ProgressBar(WorkerName, (IndexUrl + 1) / total * 100, utils.Translate(33199), f"{utils.Translate(33045)}: {EmbyID} / {IndexUrl}")
 
     add_textures(ArtworkCacheItems)
 
@@ -140,5 +127,5 @@ def get_image_metadata(ImageBinaryData, Hash):
     else: # Not supported format
         xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache: invalid image format: {Hash}", 2) # LOGWARNING
 
-    xbmc.log(f"EMBY.helper.pluginmenu: Artwork cache image data: {width} / {height} / {Hash}", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.pluginmenu (DEBUG): Artwork cache image data: {width} / {height} / {Hash}", 1) # LOGDEBUG
     return width, height, imageformat

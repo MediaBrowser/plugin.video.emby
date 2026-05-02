@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby Kodi jaoks"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "serveri aadress"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "serveri nimi"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "sunnitud HTTP taasesitus"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "sisselogimismeetod"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Logi tase"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Seadme nimi"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Täiustatud"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Kasutajanimi"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "pordi number"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Kinnitage faili kustutamine"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Paku kustutamist pärast taasesitamist"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Episoodide jaoks"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Filmide jaoks"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Luba täiustatud kujundus (st kaanekujundus)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "video kvaliteet"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Hiljuti lisatud telesaated"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Käimasolevad telesaated"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Hiljuti lisatud filmid"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Hiljuti lisatud episoodid"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Käimasolevad filmid"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Käimasolevad episoodid"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Järgmised episoodid"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Lemmikfilmid"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "lemmiksaated"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Lemmikepisoodid"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Karbid"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Vaatamata filmid"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Juhuslikud üksused"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Soovitatavad üksused"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "liides"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "lähtestage kohalik Kodi andmebaas"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Luba tervitussõnum"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Hiljuti lisatud koduvideod"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Hiljuti lisatud fotod"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "lemmikkoduvideod"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Lemmikfotod"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Lemmikalbumid"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Hiljuti lisatud muusikavideod"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Pooleli Muusikavideod"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Vaatamata muusikavideod"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmid"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "telesaated"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby valikud"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr ""
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Lisa lemmikute hulka"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Eemalda lemmikutest"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Seaded"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Kustuta üksus"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Värskenda üksust"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Ümberkood"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Kontrollige ühendust"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "kasutage alternatiivset seadme nime"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Sünkroonimine"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "lubage teavitus, kui värskenduste arv on suurem kui"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "tühjade saadete sünkroonimine"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Luba muusikakogu"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "taasesitusrežiim"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Lubage kunstiteose vahemällu salvestamine"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Taasesitus"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Võrgu mandaadid"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "kinorežiimi lubamine"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Küsi treilereid esitada"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Jätke kustutamise kinnitus vahele (kasutage omal vastutusel)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Hüppa tagasi CV-le (sekundites)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "ümberkood H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "ignoreerige järgmiste osade eripakkumisi"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "alalised kasutajad"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "käivitusviivitus (sekundites)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Luba serveri taaskäivitamise teade"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Luba uus sisu"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Videoteegi hüpikakna kestus"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Muusikakogu hüpikakna kestus"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "teavitused (sekundites)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "genereerige uus seadme ID"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "lubage sünkroonimise ajal ekraanisäästja"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Logi sisse"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "käsitsi sisselogimine"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "kasutajanimi või e-posti aadress"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "lubage server võrguühenduseta"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Kuva teade"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Logige sisse Emby Connectiga"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Parool"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Logige sisse"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Tühista"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "valige põhiserver"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Kasutajanimi või parool ei tohi olla tühi"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Valitud serveriga ei saa ühendust luua"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Ühendage"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "lisage server käsitsi"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Palun logige sisse"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Emby Connecti kasutaja muutmine"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Saatejuht"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Ühenda"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Server või port ei saa olla tühi"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Emby Connecti kasutaja muutmine"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Tere tulemast"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Server taaskäivitub"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Kehtetu kasutajanimi või parool"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "valige helivoog"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "valige subtiitrite voog"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Kas kustutada fail Embyst?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Kas esitada treilereid?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Kogumiskastid"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Kogunemine:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Tuvastati, et selle Emby for Kodi versiooni jaoks tuleb andmebaas uuesti luua. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby for Kodi ei tööta korralikult enne, kui andmebaas on lähtestatud."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Lõppenud:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Loodi uus seadme ID. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Ettevaatust! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Lisandmoodul (vaikeseade)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (otsesed teed)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Kas lubada muusikakogu?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Vahemällu salvestamise protsessi käivitamine võib võtta aega. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Kas lähtestada olemasoleva kunstiteose vahemälu?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "kunstiteose vahemälu värskendamine"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Lõimede väljumise ootamine"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi ei leia faili:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "kasutage tee õigeks vormindamiseks Emby tee asendust või veenduge, et teie tee lisatakse Kodi failihaldurisse. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Uus"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Lisa kasutaja seansile"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Lähtestage kohalik andmebaas"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "salvestage kõik kunstiteosed vahemällu"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Teemameediumide sünkroonimine"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Lisa/eemalda kasutaja seansist"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Lisa kasutaja"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Eemalda kasutaja"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "kasutaja seansist eemaldamine"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Eemaldatud"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Lisatud"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Kas olete kindel, et soovite oma kohaliku Kodi andmebaasi lähtestada?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Kas eemaldada kõik vahemällu salvestatud kunstiteosed?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Kas lähtestada kõik Emby lisandmooduli seaded?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Andmebaasi lähtestamine on lõpule viidud, Kodi taaskäivitab muudatuste rakendamiseks."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Sisestage varundamiseks kausta nimi"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Kas asendada olemasolev varukoopia?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Varukoopia loodud aadressil:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Looge varukoopia"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Varukoopia kaust"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Oluline on, et teie täpsemates seadetes eemaldati puhastusvärskendus, et vältida konflikti Emby for Kodi-ga. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Värskenda kastid"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "installige serveri pistikprogramm Kodi Companion, et käivitamisel automaatselt rakendada embüteegi värskendusi. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Kas soovite tühje saateid sünkroonida?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Kuna kasutate algset taasesitusrežiimi ja muusika on lubatud, kas soovite importida failidest muusika reitingu?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Kas jätkata eelmist sünkroonimist?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Lubage veebiserveri teenus Kodi seadetes, et lubada kunstiteoste vahemällu salvestamine."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "otsige lisateavet githubi wikist/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "kontekstimenüü lubamine"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "lubage ümberkodeerimise võimalus"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Seansile on lisatud kasutajaid"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Teavitused viibivad video taasesituse ajal (v.a otse-TV)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr ""
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Kodi jõustumiseks taaskäivitage."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "taasesitusrežiimi muutmise rakendamiseks lähtestage kohalik andmebaas."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Kehtib alg- ja lisataasesitusrežiimis"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Kehtib ainult lisandmooduliga taasesitusrežiimis"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Luba välised subtiitrid"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "reguleerige kaugühenduse jaoks"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Tihendage kunstiteost (langendab kvaliteeti)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Kas lubada kunstiteose vahemällu salvestamine? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "olete muutnud taasesitusrežiimi. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Sünkroonimise ajal läks midagi valesti. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "valige lisatavad teegid"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Kõik"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Taaskäivitage Kodi, et jätkata sealt, kus pooleli jäite."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "sünkroonige raamatukogu Kodiga"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Kaasake inimesed (aeglane)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "valige Kodiga sünkroonimiseks Emby vaated. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Sünkrooni hiljem"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Jätkake"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Viimaste sisuvärskenduste toomine ebaõnnestus. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "teeke saate sünkroonida, käivitades Emby lisandmooduli > Lisa teegid."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Valige allikas"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Värskendavad karbid"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Remondi raamatukogu"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "teegi eemaldamine Kodist"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Lisa server"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi taaskäivitub, et rakendada teie Kodi versioonile väike plaaster."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Uuenda raamatukogu"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "lubage Kodi Companion (serveri pistikprogramm)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "saate oma teeki käsitsi värskendada, mitte tugineda serveri pistikprogrammi Kodi kaaslasele. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "värskendage teeke"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "raamatukogude remont"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Eemalda server"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Midagi läks valesti. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Teegi eemaldamine"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Veenduge, et teie Emby serveriteegid on teie Kodi installi jaoks juurdepääsetavad ja et teie serveris on konfigureeritud tee asendus. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Embyga ei saa ühendust luua."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "teie juurdepääs Embyle on piiratud."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "teie juurdepääs sellele serverile on piiratud."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Selle serveriga ei saa ühendust luua."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Värskendage serveriteavet"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Looge uuesti ühendus sama serveriga, mis varem laaditi. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Kodis ei õnnestunud telelugusid leida."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "teie Emby teemameedium on Kodiga sünkroonitud"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "lisage teegid"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Emby for Kodi jaoks praegu rakendatud plaaster on rikutud! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Plaaster on rakendatud!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Ainult heli"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Ainult subtiitrid"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Heli/subtiitrite valiku lubamine"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Vigade vältimiseks värskendage Emby for Kodi versioonile: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Otsige värskendusi"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Kas lähtestada muusikakogu?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Toetage seda projekti"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Mask tundliku teabe logis (ei kehti kodi logimise kohta)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Varukoopia loomine ebaõnnestus"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dünaamiline)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Hiljuti lisatud"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Lemmikud"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Käimisel"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Vaatamata"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Esimese tähe järgi"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "teil on ootel {number} värskendust. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Kas unustate eelmise sünkroonimise? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging – lõimede allalaadimine (vaikimisi: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Lehekülje näpunäide: iga allalaadimise lõim taotleb Embylt teie üksuste maksimaalset väärtust samal ajal."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Allolevate muudatuste rakendamiseks värskendage või parandage oma teeke."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Kuvage edenemisriba, kui värskenduste arv on suurem kui"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Värskenduste töötlemine"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Sundtranskodeerimine"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Taaskäivitage Emby Kodi jaoks"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Taaskäivitamine plaastri paigaldamiseks"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "mängige kinorežiimis"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "lubage kinorežiimis mängimise võimalus"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "teekide eemaldamine"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "lubage taasesituse ajal sünkroonimine (võib põhjustada mõningast viivitust)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Kodi kaaslane kiirendab käivitamise sünkroonimist. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sünkrooni Rotten Tomatoesi hinnangud"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Kas soovite sünkroonida Rotten Tomatoesi hinnangud?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "kas selle muudatuse rakendamiseks taaskäivitada Kodi jaoks Emby?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Taaskäivitage Emby Kodi jaoks"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Taaskäivitamine..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Hallake teeke"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "lubage Emby Kodi jaoks"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Täpsemad valikud"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Sünkroonimine juba töötab, oodake, kuni see lõpeb, ja proovige uuesti."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Emby mäng"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "muusika andmebaasi uuesti skannimise plaaster"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Ülesanne õnnestus!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Ülesanne ebaõnnestus!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "lubage lihtne esitus (välise mängija sõbralik)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "10-bitine ümberkood (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Paluge sünkroonimisega jätkata, kui arv on suurem kui"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "10-bitine ümberkood (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Esitage kaug-URL-e Emby abil"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Kuva valikus peidetud kasutajad"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Lähtestage plaastri värskendus"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "uusim väljalase"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Luba silt mitme episoodi jaoks. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "lubage kohalikud treilerid"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Luba treilerid"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Ümberkood"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Video väljundvormingus"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Väljundvormingus heli"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Kuva suvandid pistikprogrammi menüüs"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Kuupäeva teave"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Žanrid"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Stuudios"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Tunnuslaused"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Ülevaade"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Tootmiskohad"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dünaamilised raamatukogud"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Ühilduvusrežiim"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Taasta varukoopia"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Milline kunstiteos tuleks vahemällu salvestada"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Muusika"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "astmeline sünkroonimise kuupäev"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "astmeline sünkroonimisaeg"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Eemaldatud esemete kogumine"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "kinorežiimi lubamine (filmid)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "kinorežiimi lubamine (telesaated)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Kas kustutada üksused ka Emby serverist? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Kas kustutada Kodi sündmuste poolt FILES ka Emby serverist? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "lubage Kodi sündmustel FILE-i kustutamine"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Keela HTTP2 tugi"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Kodi taaskäivitamine algatati advancedsettings.xml muudatuste tõttu"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Kinorežiim"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Kunstiteos"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Menüü"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Ühilduvusrežiim muudab pistikprogrammi ID-ks 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Teatud juhtudel (WLAN, võrgu hilinenud käivitamine jne) võib pistikprogrammi viivitusega käivitamine ühenduvust parandada"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Saate reguleerida, millist metateavet dünaamilise (mitte sünkroonimata) sisu jaoks laaditakse. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Olge selle valikuga ettevaatlik. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "See on silumisvalik. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "lähtestab unikaalse seadme ID. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "looge ühendus uue Emby serveriga (multiserver) või ühendage uuesti olemasolev Emby server (silumine)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Näita peidetud kasutajaid Emby serveris ühenduse loomiseks."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "lisage/eemaldage/parandage teeke, otsetelevisiooni, teemasid."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "sünkroonib kõik kunstiteosed kohapeal Kodiga. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Mõned nahad kasutavad XPS esitusloendeid. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "kasutaja määramine on lisateave, mis tuleb Kodiga sünkroonida. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "teostab täieliku Kodi andmebaasi uuesti sünkroonimise. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Kinorežiim on Emby esmaesitlusfunktsioon. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Transkodeerige heli bitikiirus"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Võrgu kiirus. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Seadmenime aruanne Emby serverile."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Teatage taasesituse edenemisest lisakasutajatele."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Vahe taasesituse peatamise ja jätkamise vahel."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "See on Emby serveri funktsioon."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Saab säästa ribalaiust"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "mõnel juhul on kasulik kuvada pistikprogrammi menüüs olevaid menüüvalikuid otseteedena. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Kontaktmenüü toetab lemmikute haldamist, kustutamisvalikuid, (filmi) erifunktsioonide valikuid jne."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Heli bitikiirus"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maksimaalne kunstiteose vahemälu lõime"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animeeritud ikoon"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Värskendage Emby serveri ühenduses nahka"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Kaust"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "segasisu"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Käimisel"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "juhuslikud episoodid"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Juhuslikud telesaated"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "tehaseseadetele lähtestamine"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Sõlmed lähtestatakse"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Kas olete kindel, et soovite oma sõlmed lähtestada?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Kunstnikud"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Vaatamata jaod"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Vaatamata telesaated"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "lemmiksaated"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Hiljuti mängitud telesaade"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Tulevased jaod"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "telesaated"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Hiljuti mängitud"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Hiljuti mängitud jagu"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Režissöörid"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "TV-saate sildid"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Episoodi sildid"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Filmisildid"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Jätka filmi"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Riigid"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albumid"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Muusikavideod"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Muusikavideo sildid"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "juhuslikud muusikavideod"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Jätkake muusikavideoid"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Videod"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Fotod"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fotoalbumid"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Fotoalbumi sildid"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Fotosildid"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "videosildid"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Hiljuti lisatud fotod"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Hiljuti lisatud fotoalbumid"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Hiljuti lisatud videod"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Esitusloendid"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Audioraamatud"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Juhuslikud audioraamatud"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Kuulamata"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Juhuslikud laulud"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Juhuslikud taskuhäälingusaated"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Taskuhäälingusaated"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Sünkroonitud sõlmed on palju kiiremad kui dünaamilised sõlmed. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Dünaamilised sõlmed ehitatakse käigu pealt. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "lemmikmuusikavideod"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "sünkroonitud sõlmed"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dünaamilised sõlmed"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Hiljuti lisatud albumid"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Hiljuti lisatud audioraamatud"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Hiljuti lisatud laulud"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "juhuslikud albumid"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Juhuslikud laulud"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Juhuslikud audioraamatud"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Juhuslikud taskuhäälingusaated"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Hiljuti lisatud taskuhäälingusaated"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "lisage/eemaldage/parandage teeke, otsetelevisiooni, teemasid"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Avage pistikprogrammi seaded"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "teostab täieliku Kodi andmebaasi uuesti sünkroonimise (sealhulgas muu kui Emby sisu). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "lähtestage kõik kohandatud sõlmed ja ehitage need uuesti"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Sõlmpäringu piirang"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Piirake edenemissõlmede päringuid. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Sõlmed"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Kasutage taasesituse jätkamise valikut Emby serverist"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "see funktsioon keelab Kodi sisemised edenemise värskendused. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "vaakumandmebaasid Kodi sulgemisel"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Andmebaas ehitatakse uuesti üles ja optimeeritakse väljalülitusviivituse tõttu"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr ""
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "muu"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby server on hõivatud"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Kustutage kunstiteoste failid"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Värskenda vaateid"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby server hõivatud: sünkroonimine on pooleli"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Kustuta Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Andmebaas"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Jäta sissejuhatus vahele"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Teatekast palub hüpata sissejuhatava lõppasendisse"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Markerid"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Jäta tiitrid vahele"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Sõnumikast küsib krediiti vahelejätmist"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Küsi vahelejätmise sissejuhatus"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Küsi krediiti vahele"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "teatekast sulgub automaatselt X sekundi pärast"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Sissejuhatuse vahelejätmise, tiitrite vahelejätmise, kinorežiimi ja kustutamisvalikute teatekastid sulguvad automaatselt X sekundi pärast. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Heliloojad"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "tuvastati rikutud seadistusfail, taasta vaikeseade. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL-i viga"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Kunstiteose vahemällu salvestamine peatus: ruum hakkab otsa saama"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "võrguühenduseta võrguühendus"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "valige Emby server"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Valige parandatavad raamatukogud"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "valige värskendatavad teegid"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "valige eemaldatavad teegid"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Laulud žanrite järgi"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vaakumandmebaasid"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "määrake osadele TVShow plakatid"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-plakatid (Emby TVShow esmane pilt) kasutatakse jagu Kodi-plakatitena.\nSelle valiku sisselülitamiseks on vaja täielikku uuesti sünkroonimist, sealhulgas kogu vahemällu salvestatud kunstiteost.\nEttevaatust. Ärge kasutage init-sünkroonimise viisardit (jätke see vahele) ja vaadake enne (taas)sünkroonimist üle seaded."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Kasutage järgmistes osades fanart-pilte"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "kirjutab (Kodi) pöidlad üle (Kodi) fanartidega järgmiste jagude sõlme jaoks"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Kasutage alternatiivset sissejuhatuse vahelejätmise (sõnumi) paigutust"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Embuary naha disain"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Luba serveri edenemine"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Kuvatakse Emby serveri hõivatuse teated"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "päringu sisu muutub"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "päringu sisu muutused / kasutajaandmed"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "päringu sisu muutused / sisu"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Ühendus Emby serveriga katkes"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "sünkroonige otseülekande kanalid"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Sünkrooni otse-TV epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Lehekülg – taotletud üksused (vaiketegur: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Sünkrooni teemad"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "kontrollige vaba ruumi"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "valige Media Source"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "kasutage Kodi (dünaamiliste) vidinate probleemide lahendamiseks lahendusi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Video ümberkodeerimine"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "heli ümberkodeerimine"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Transkodeeri ribalaiuse piirang"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Transcode väljundvorming"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Heli"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Valige helivoog"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Valige subtiitrid"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: eripakkumised"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Kasuta tee asendust"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Path asendus toetab peatükkide pilte lisarežiimis. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "määrake igale embrüoteekile ainulaadsed näitlejad"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "episoodid"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: rekord"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "koosvaatamine on tühistatud"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Ootan osalejaid"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Alustan..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Valige kasutajad"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Kaugkliendid / Vaadake koos"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Taimeri kustutamine"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Lisage taimer"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Sundige kliente"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Kliendid, kes ei toeta ühiselt vaatamist, on sunnitud osalema"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Kliendi kontroll"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Kliendid saavad üksteist kontrollida"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Sünkroonige kliendid masteriga"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Peamine juhib esitust, pausi, otsimist"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Oodake osalejaid"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Oodake, kuni osaleb mõne sekundi pärast"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Taasesituse viivitus"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Viivitage taasesituse algust, andke klientidele aega sünkroonimiseks"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maksimaalne triiv pausi ajal"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Lubatud asünkroonimine millisekundites pausi ajal"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Automaatne kinnitus"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Kinnitab automaatselt sissetuleva kaugkliendi taotluse"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Viivitus"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Käivitab otsingukäsu X sekundi pärast"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Toetamata klientide sünkroonimine uuesti"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Hoidke ühendust"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "looge ühendus käivitamisel (seadme ID järgi)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Vaadake koos"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: eemaldage klient"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Lisa klient"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: lubab kaugjuhtimisrežiimi"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Keela kaugrežiim"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Luba"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Esmane"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Bänner"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "ketas"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Pöial"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Taust"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "peatükk"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Tihendamine"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "maksimaalne eraldusvõime"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Piirab pildi eraldusvõimet teguri võrra. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "valige helivoo ümberkodeerimine"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Path asendus toetab peatükkide kujutisi (väljavõtmist) lisarežiimis. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "lubage veebipesa ühendus"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Kui see on keelatud: reaalajas värskendusi ei tehta, märguandeid ei võeta ja kaugkäsklused ei tööta."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "kasutage Kodi jao järjehoidjate probleemide lahendamiseks lahendusi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodil on loendivaadete kaudu jao valimisel viga jao järjehoidjatega. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodil on probleeme dünaamiliste vidinatega. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "lubage HTTP/2 tugi"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodil on probleeme sisu esitamisega http/2-protokolli kaudu (vaikimisi välja lülitatud)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Täiendav helividina värskendamine"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "käivitab täiendava (võlts) Kodi heli skannimise pärast seda, kui Emby on teatanud edenemise värskendustest. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Võrgu ajalõpud"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "see valik mõjutab EPG ja mitme versiooni sisu valimise ajalõpusid. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Lemmikud"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Vaadake koos"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Hallake kaugkliente"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Metaandmete ühendamine teegi kaupa"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Muusikakunstnik"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Muusikažanr"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Žanr"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Stuudio"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Kogumikufilmid"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Kogu telesaated"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Muusikavideote kogu"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Lemmikud"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Uue sisusõnumi kestus"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Kastikomplektid siltidena"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "määrake siltidele kastikomplektid"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Võrgu ajalõpp"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Võrgu ajalõppude reguleerimine sekundites. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Emby lemmikute sünkroonimine Kodi lemmikutega"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi lemmikud.xml muudetakse"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Hiljuti lisatud fotoalbumid"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Jätkake vaatamist"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "sündmuste reaalajas telekanalite sünkroonimine"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "LiveTV kanalid sünkrooniti uuesti Kodi käivitumisel ja EPG muudatustel"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "allalaadimise asukoht"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Laadi alla"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Kustuta allalaadimine"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Kustutage kõik allalaaditud failid"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Kas soovite kindlasti kustutada kogu võrguühenduseta sisu?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "kogu allalaaditud sisu kustutatakse"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby server võrguühenduseta"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Lemmikhooajad"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Muusikamängija"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Muusikaalbum"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Muusikažanr"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Heli"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Film"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Muusikavideo"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "seeria"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Hooaeg"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "episood"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fotoalbum"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Žanr"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Esitusloend"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanalid"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "Otse-TV"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Haagis"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Kaust"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Isik"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Stuudio"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Multisisu"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Halda servereid"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Kaug taasesitus"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Laadige sisu alla"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Kontekstimenüü"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Lemmik lisa/eemalda"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Taasesituse eripakkumine"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Salvestus"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Värskenda üksust"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Kustuta üksus"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "lemmikvideod"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Lemmikfotod"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "lemmikmuusikavideod"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Kogud"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Soovitused"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Lemmikfilmid"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Lemmikkarbid"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z videod"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Hiljuti ilmunud vaatamata filmid"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Hiljuti ilmunud filmid"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z muusikavideod"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z filmid"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z seeria"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Lemmiklaulud"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Lemmiknäitlejad"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "lemmikheli"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Otsi"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Pooleli (sega sisu)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Jätkake vaatamist (segasisu)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Allalaaditud filmid"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Allalaaditud jaod"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Allalaaditud muusikavideod"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmid"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "TV-saated"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Aastaajad"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Laulud"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Näitlejad"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Järjehoidjad"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Kas laadida teemad alla (JAH) või linkide teemad (EI)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "valige helivoog"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Valige Varundamine"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Kunstiteose muutmiseks on vaja kunstiteose vahemälu lähtestada. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Teavitused"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Sõnumi kestus"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Sõnumi kestus sekundites"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Serveri toimingud"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Ühendused"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Kustuta üksus"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Varukoopia"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Kaugesitus"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Allalaaditud seeria"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "määrake imdb vaikereitingu pakkujaks"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Oletame, et Emby kogukonna hinnang peegeldab imdb hinnanguid"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Järgmised jaod (segatud sisu)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Jätka viimati mängitud (sega sisu)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Jätka viimati mängitud"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Mine näitama"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Mine"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Mine näitama"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Mine hooaja juurde"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Sõlmede lähtestamine on lõpetatud"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI pikkuse piirang"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Kõrgemad piirangud on mõnel juhul kiiremad, kuid võivad vallandada http 414 probleeme"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Seaded"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Seaded"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Luba võrguühenduseta sõnum"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Kehtetu serveri aadress"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Kehtetu argument"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Allalaadimisteed ei leitud"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "lisage telesaadetele filmilinke"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Kodi telesaadete vaadetes loetletud telesaadetele määratud filmid. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Luba sünkroonimise alustamine"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "kui see on keelatud, ei sünkroonita Emby sisu Kodi käivitumise ajal"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Kasutage klassikalist valikut"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Valikmenüü kuvatakse, kui saadaval on mitu sisu"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Multisisu"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Sisu dubleerimine"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "eemaldab sarnase sisu mitmest Emby serveriteegist"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "määrake vaikimisi kõrgeim video eraldusvõime"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "see suvand kehtib Kodi mitmeversiooni valiku kohta ja nõuab lülitiga raamatukogu uuesti sünkroonimist."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "kõrgeima eraldusvõime automaatne valimine"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Kehtib klassikalise mitmikvaliku suvandile"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "lubage Kodi API teatis"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Väliseks kasutamiseks teatage sündmustest Kodi API kaudu"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Juurdepääs keelatud"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "albumid aastate kaupa"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "vallalised aasta lõikes"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "vallalised"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Hiljuti lisatud singlid"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Juhuslikud üksikmängud"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Puudub"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Teeteave pole saadaval, olge oma tegemistega ettevaatlik!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "TV saade"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Valige esmane teek"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Värskenda LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Värskenda teemasid"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Keela LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Luba LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Keela teemad"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Luba teemad"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Jälgi http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Välisele http-sisule pääseb juurde otse ja seda ei edastata Emby serveri kaudu. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Jälgi http ajalõpu"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "määrake vaikimisi kohalik sisu"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Kodi kaaslase lisandmoodul pole Emby serverisse installitud! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Tühista kunstiteose vahemälu"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Veebiteenuste töötajate arv"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Kõrgemad väärtused võivad jõudlust parandada, kuid vajavad rohkem ressursse. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "sulgege hõivatud dialoog"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "võib ära hoida Kodi krahhe"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Teenuse tüüp"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP päis (TOS), võib reageerimist parandada"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (parim pingutus)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (kiireedastus)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (tagatud edastamine)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (reaalajas interaktiivne)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Inkrementaalne kunstiteose vahemälu"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Osalise sünkroonimise korral salvestage kunstiteosed automaatselt vahemällu"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Ikoonidega žanrid"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Ikoonidega stuudiod"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Ikoonidega sildid"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Kohalikud haagised"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Laadi muudatused"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "eraldusvõime lävi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Sisu ümberkodeerimine, kui allika eraldusvõime on suurem kui valitud eraldusvõime"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "eraldusvõime lävi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Sisu ümberkodeerimine, kui allika eraldusvõime on suurem kui valitud eraldusvõime"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "alati"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "piiramatu"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Transkodeerimise eraldusvõime"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Piiramatu tähendab allika eraldusvõime säilitamist"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Veebiteenuse režiim"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Tee asendus"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiversioon"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Värskendage muusikavideo linke"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Värskendab muusikavideo linke muusika andmebaasi"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Aega pole sünkroonitud, jätke värskendused vahele"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "lisage muusikale muusikavideo linke"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Kodi lauluvaadetes loetletud muusikale määratud muusikavideod."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Kustutage varukoopia"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Sisestage varunimi"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "tihendamist ei toetata, varundamine pole saadaval."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Varundamine on pooleli"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Heliteemade sünkroonimismeetod"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Videoteemade sünkroonimismeetod"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Laadi alla"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Kaugjuhtimispult"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "heliteemade lubamine"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "lubage videoteemad"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Mine albumisse"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Mine esitaja juurde"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Peata sünkroonimine"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Peatage sünkroonimine, kui server on ülesannetega hõivatud"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Video eelvaate pisipiltide ekstraktimine"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vakuumandmebaas"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Laadige üles kohalikke teemavideoid"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Laadige üles kohalikke teemalaule"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Värskendage sissejuhatuse andmebaasi"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV labürinti värskendus"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Edastage meedia"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Skanni metaandmete kaust"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Skannige meediumiteeki"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Värskendage Interneti-kanaleid"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Värskenda juhendit"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Laadige alla subtiitrid"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Laadige alla kohalike YouTube'i filmide treilerid"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Laadige alla kohaliku TV teemalaulud"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Laadige alla kohaliku teemaga videod"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Laadige alla kohalikud teemalaulud"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Tuvasta sissejuhatus"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Teisenda meediumid"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Värskendamine on pooleli"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX ajastatud ülesanne"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Rohkem sellist"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Rohkem sellist"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Koduvideo sildid"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "lemmik koduvideod"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "videosildid"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "lemmikvideod"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Taasesituse olek muutub"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "seeria ja hooaja edenemine"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "esitusloendid (segatud)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: juhuslik mäng"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Juhuslik esitus"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi kaaslase hoiatus"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion on Emby serveri lisandmoodul, mis jälgib kustutatud sisu"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Haagiste töötlemine"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Haagised"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Hiljuti lisatud treilerid"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Teemad"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "heli lubamine"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Video lubamine"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "sumbub sisse"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Tuleb välja"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Suuremad väärtused tähendavad pikemat tuhmumisaega, null on keelatud"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Avakuva"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Esitab vidinate teemasid"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Viitstart"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Väärtused on sekundites"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Laadi alla"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Parema jõudluse tagamiseks salvestage teemad kohapeal"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioriteet"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "määrab, millist teemat esimesena esitatakse, kui mõlemad on saadaval"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Kaughaagised"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Kaughaagiste valik"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Kino sissejuhatus"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Folder haagised"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Kohalikud haagised"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Kohalik film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Treileri taasesitus"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Köide"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Silumislogi"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Video sissejuhatavate markerite abil lubamine"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Lubage heli sissejuhatavate markerite abil"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "lubage video sisu järgi"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "lubage heli sisu järgi"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Sisu kestuse järgi"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "kasutatakse ümberkodeerimist, mis võib põhjustada serveri suure protsessori koormuse"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "väljas"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Sissejuhatavad markerid"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Sisu"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuaalsed teemad"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigeerimine"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "episoodivaade"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Hooaja vaade"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "telesaate vaade"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Filmivaade"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Ajad"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Taasesitus"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Värskendage heli lemmikuid"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "muusikaalbumi lemmikute värskendamine"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Värskendage lemmikvideoid"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "muusikavideo lemmikute värskendamine"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Värskendage kastikomplekti lemmikuid"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Värskendage seeria lemmikuid"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Värskendage hooaja lemmikuid"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Värskendage esitusloendi lemmikuid"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Värskendage episoodide lemmikuid"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Värskendage filmide lemmikuid"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Värskendage žanri lemmikuid"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Värskendage stuudio lemmikuid"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Värskendage sildi lemmikuid"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Värskendage muusikažanri lemmikuid"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Värskendage inimeste lemmikuid"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Värskendage inimeste lemmikuid"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Taastatud varukoopia asukohast:"
+

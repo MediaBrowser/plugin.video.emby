@@ -1,21 +1,16 @@
-from _thread import allocate_lock
-import os
+import threading
 import json
-from urllib.parse import quote
 import unicodedata
-import xbmcvfs
 import xbmc
-import xbmcaddon
-import xbmcgui
-from core import movies, videos, musicvideo, folder, boxsets, genre, musicgenre, musicartist, musicalbum, audio, tag, person, studio, playlist, series, season, episode, common
-from helper import utils
+from core import movies, videos, musicvideo, folder, boxsets, genre, musicgenre, musicartist, musicalbum, audio, tag, person, studio, playlist, series, season, episode, trailer, photoalbum, photo, common
+from helper import utils, cache
 from hooks import favorites
 from . import dbio
 
-LockPause = allocate_lock()
-LockPauseBusy = allocate_lock()
-LockLowPriorityWorkers = allocate_lock()
-LockLibraryOps = allocate_lock()
+LockPause = threading.Lock()
+LockPauseBusy = threading.Lock()
+LockLowPriorityWorkers = threading.Lock()
+LockLibraryOps = threading.Lock()
 
 
 class Library:
@@ -26,49 +21,84 @@ class Library:
         self.LibrarySyncedKodiDBs = {}
         self.LibrarySyncedNames = {}
         self.LibrarySyncedContent = {}
-        self.LastSyncTime = ""
         self.SettingsLoaded = False
-        self.LockKodiStartSync = allocate_lock()
-        self.LockDBRWOpen = allocate_lock()
+        self.LockKodiStartSync = threading.Lock()
+        self.LockDBRWOpen = threading.Lock()
+        self.DatabaseInitCondition = threading.Condition(threading.Lock())
+        self.SettingsLoadedCondition = threading.Condition(threading.Lock())
+        self.ServerStartingId = f"{self.EmbyServer.ServerData['ServerId']}_server_starting"
+        self.ServerBusyId = f"{self.EmbyServer.ServerData['ServerId']}_server_busy"
+        self.ServerDatabaseInitId = f"{self.EmbyServer.ServerData['ServerId']}_database_init"
+        self.ServerReconnectingId = f"{self.EmbyServer.ServerData['ServerId']}_server_reconnecting"
+        self.ServerStartSyncId = f"{self.EmbyServer.ServerData['ServerId']}_server_startscync"
+        self.RemoveId = f"{self.EmbyServer.ServerData['ServerId']}_remove"
+        self.LibraryRemoveId = f"{self.EmbyServer.ServerData['ServerId']}_library_remove"
+        self.LibraryAddId = f"{self.EmbyServer.ServerData['ServerId']}_library_add"
+        self.UserDataId = f"{self.EmbyServer.ServerData['ServerId']}_userdata"
+        self.UpdateId = f"{self.EmbyServer.ServerData['ServerId']}_update"
+        self.UpdateParentsId = f"{self.EmbyServer.ServerData['ServerId']}_update_parents"
+        self.LibraryRemoveCleanId = f"{self.EmbyServer.ServerData['ServerId']}_library_remove_clean"
+        self.KodiStartSyncId = f"{self.EmbyServer.ServerData['ServerId']}_kodi_start_sync"
+        self.MusicVideoLinks = f"{self.EmbyServer.ServerData['ServerId']}_musicvideo_links"
+        self.SelectLibrariesId = f"{self.EmbyServer.ServerData['ServerId']}_select_libraries"
+        self.JobBusy = False
 
     # Wait for database init
-    def wait_DatabaseInit(self, WorkerName):
-        if utils.SyncPause.get(f"database_init_{self.EmbyServer.ServerData['ServerId']}", True):
-            xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Wait for database init ]", 1) # LOGINFO
+    def wait_DatabaseInit(self, WorkerId):
+        if utils.DebugLog:
+            xbmc.log(f"EMBY.database.library (DEBUG) -->[ WorkerId {WorkerId}: wait for database init ]", 1) # LOGINFO
+            xbmc.log("EMBY.database.library (DEBUG): CONDITION: --->[ DatabaseInitCondition ]", 1) # LOGDEBUG
 
-            while utils.SyncPause.get(f"database_init_{self.EmbyServer.ServerData['ServerId']}", True):
-                xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: worker {WorkerName} wait for database init ]", 1) # LOGINFO
+        with utils.SafeLock(self.DatabaseInitCondition):
+            while utils.SyncPause.get(self.ServerDatabaseInitId, True):
+                self.DatabaseInitCondition.wait(timeout=0.1)
 
-                if utils.sleep(1):
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Wait for database init (shutdown) ]", 1) # LOGINFO
+                if utils.SystemShutdown:
+                    if utils.DebugLog:
+                        xbmc.log(f"EMBY.database.library (DEBUG): --<[ WorkerId {WorkerId}: wait for database init ]", 1) # LOGINFO
+                        xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ DatabaseInitCondition ]", 1) # LOGDEBUG
+
                     return False
 
-            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Wait for database init ]", 1) # LOGINFO
+        if utils.DebugLog:
+            xbmc.log(f"EMBY.database.library (DEBUG): --<[ WorkerId {WorkerId}: wait for database init ]", 1) # LOGINFO
+            xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ DatabaseInitCondition ]", 1) # LOGDEBUG
 
         return True
 
-    def open_Worker(self, WorkerName):
-        utils.get_scans()
+    def open_Worker(self, WorkerId):
+        if utils.DebugLog:
+            xbmc.log(f"EMBY.database.library (DEBUG): -->[ WorkerId {WorkerId}: Worker_is_paused ]", 1) # LOGINFO
+            xbmc.log("EMBY.database.library (DEBUG): CONDITION: --->[ SyncPauseCondition ]", 1) # LOGDEBUG
 
-        if self.Worker_is_paused(WorkerName):
-            xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Worker_is_paused ]", 1) # LOGINFO
+        WriteLog = True
 
-            while self.Worker_is_paused(WorkerName):
-                if utils.sleep(1):
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Worker_is_paused (shutdown) ]", 1) # LOGINFO
+        with utils.SafeLock(utils.SyncPauseCondition):
+            while self.Worker_is_paused(WorkerId):
+                utils.SyncPauseCondition.wait(timeout=0.1)
+
+                if utils.SystemShutdown:
+                    if utils.DebugLog:
+                        xbmc.log(f"EMBY.database.library (DEBUG): --<[ WorkerId {WorkerId}: Worker_is_paused ]", 1) # LOGINFO
+                        xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ SyncPauseCondition ]", 1) # LOGDEBUG
+
                     return False
 
-            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: open_Worker delay: Worker_is_paused ]", 1) # LOGINFO
+                if WriteLog:
+                    xbmc.log(f"EMBY.database.library: [ WorkerId {WorkerId}: Worker_is_paused ]", 1) # LOGINFO
+                    WriteLog = False
 
-        if utils.SystemShutdown:
-            return False
+        if utils.DebugLog:
+            xbmc.log(f"EMBY.database.library (DEBUG): --<[ WorkerId {WorkerId}: Worker_is_paused ]", 1) # LOGINFO
+            xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ SyncPauseCondition ]", 1) # LOGDEBUG
 
         return True
 
-    def close_Worker(self, WorkerName, RefreshVideo, RefreshAudio, ProgressBar, SQLs):
-        self.close_EmbyDBRW(WorkerName, SQLs)
+    def close_Worker(self, WorkerId, RefreshVideo, RefreshAudio, SQLs):
+        self.close_EmbyDBRW(WorkerId, SQLs)
         common.CachedItemsMissing = {}
         common.CachedArtworkDownload = ()
+        utils.close_ProgressBar(WorkerId)
 
         if RefreshVideo:
             utils.refresh_widgets(True)
@@ -76,33 +106,33 @@ class Library:
         if RefreshAudio:
             utils.refresh_widgets(False)
 
-        if ProgressBar:
-            ProgressBar.close()
-            del ProgressBar
-
-    def open_EmbyDBRW(self, WorkerName, Priority):
+    def open_EmbyDBRW(self, WorkerId, Priority):
         # if worker in progress, interrupt workers database ops (worker has lower priority) compared to all other Emby database (rw) ops
         if Priority and LockLowPriorityWorkers.locked() and self.LockDBRWOpen.locked():
-            utils.SyncPause['priority'] = True
+            utils.update_SyncPause('priority', True)
 
-        self.LockDBRWOpen.acquire() # Wait for close
+        while not self.LockDBRWOpen.acquire(timeout=0.1):
+            pass
+
         SQLs = {}
-        dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], WorkerName, SQLs)
+        dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], WorkerId, SQLs)
         return SQLs
 
-    def close_EmbyDBRW(self, WorkerName, SQLs):
-        dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerName, SQLs)
-        utils.SyncPause['priority'] = False
+    def close_EmbyDBRW(self, WorkerId, SQLs):
+        dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], WorkerId, SQLs)
 
         if self.LockDBRWOpen.locked():
             self.LockDBRWOpen.release()
+
+        utils.update_SyncPause('priority', False)
+
     def set_syncdate(self, TimestampUTC):
         # Update sync update timestamp
         SQLs = self.open_EmbyDBRW("set_syncdate", True)
         SQLs["emby"].update_LastIncrementalSync(TimestampUTC)
+        SQLs["emby"].update_LastIncrementalSyncStart(TimestampUTC)
         self.close_EmbyDBRW("set_syncdate", SQLs)
-        self.LastSyncTime = TimestampUTC
-        utils.set_syncdate(self.LastSyncTime)
+        utils.set_syncdate(TimestampUTC)
 
     def load_LibrarySynced(self, SQLs):
         self.LibrarySynced = SQLs["emby"].get_LibrarySynced()
@@ -122,7 +152,22 @@ class Library:
 
     def load_settings(self):
         xbmc.log(f"EMBY.database.library: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: load settings ]", 1) # LOGINFO
-        utils.SyncPause[f"database_init_{self.EmbyServer.ServerData['ServerId']}"] = True
+        self.ServerStartingId = f"{self.EmbyServer.ServerData['ServerId']}_server_starting"
+        self.ServerBusyId = f"{self.EmbyServer.ServerData['ServerId']}_server_busy"
+        self.ServerDatabaseInitId = f"{self.EmbyServer.ServerData['ServerId']}_database_init"
+        self.ServerReconnectingId = f"{self.EmbyServer.ServerData['ServerId']}_server_reconnecting"
+        self.ServerStartSyncId = f"{self.EmbyServer.ServerData['ServerId']}_server_startscync"
+        self.RemoveId = f"{self.EmbyServer.ServerData['ServerId']}_remove"
+        self.LibraryRemoveId = f"{self.EmbyServer.ServerData['ServerId']}_library_remove"
+        self.LibraryAddId = f"{self.EmbyServer.ServerData['ServerId']}_library_add"
+        self.UserDataId = f"{self.EmbyServer.ServerData['ServerId']}_userdata"
+        self.UpdateId = f"{self.EmbyServer.ServerData['ServerId']}_update"
+        self.UpdateParentsId = f"{self.EmbyServer.ServerData['ServerId']}_update_parents"
+        self.LibraryRemoveCleanId = f"{self.EmbyServer.ServerData['ServerId']}_library_remove_clean"
+        self.KodiStartSyncId = f"{self.EmbyServer.ServerData['ServerId']}_kodi_start_sync"
+        self.MusicVideoLinks = f"{self.EmbyServer.ServerData['ServerId']}_musicvideo_links"
+        self.SelectLibrariesId = f"{self.EmbyServer.ServerData['ServerId']}_select_libraries"
+        utils.update_SyncPause(self.ServerDatabaseInitId, True)
 
         # Load essential data and prefetching Media tags
         SQLs = self.open_EmbyDBRW("load_settings", True)
@@ -136,7 +181,6 @@ class Library:
             xbmc.log(f"EMBY.database.library: load settings: database corrupt: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: load settings ]", 3) # LOGERROR
             return
 
-        self.LastSyncTime = SQLs["emby"].get_LastIncrementalSync()
         self.close_EmbyDBRW("load_settings", SQLs)
 
         # Init database
@@ -157,16 +201,26 @@ class Library:
         dbio.DBOpenRW("tv", "load_settings", SQLs)
         SQLs["tv"].analyze()
         dbio.DBCloseRW("tv", "load_settings", SQLs)
-        utils.SyncPause[f"database_init_{self.EmbyServer.ServerData['ServerId']}"] = False
+        utils.update_SyncPause(self.ServerDatabaseInitId, False)
         self.SettingsLoaded = True
+
+        with utils.SafeLock(self.DatabaseInitCondition):
+            self.DatabaseInitCondition.notify_all()
+
+        with utils.SafeLock(self.SettingsLoadedCondition):
+            self.SettingsLoadedCondition.notify_all()
+
+        with utils.SafeLock(utils.EmbyServerOnlineCondition):
+            utils.EmbyServerOnlineCondition.notify_all()
+
         xbmc.log(f"EMBY.database.library: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: load settings ]", 1) # LOGINFO
 
     def KodiStartSync(self, Firstrun):  # Threaded by caller -> emby.py
-        xbmc.log(f"EMBY.database.library: THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: --->[ {self.KodiStartSyncId} ]", 1) # LOGDEBUG
 
-        with self.LockKodiStartSync:
-            if not utils.startsyncenabled:
-                xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] IncrementalSync disabled", 0) # LOGDEBUG
+        with utils.SafeLock(self.LockKodiStartSync):
+            if not utils.startsyncenabled or utils.SystemShutdown:
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] IncrementalSync disabled", 1) # LOGDEBUG
                 return
 
             # Verify time sync
@@ -177,70 +231,93 @@ class Library:
                 return
 
             NewSyncData = utils.currenttime()
+            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): CONDITION: --->[ {self.KodiStartSyncId} ] SettingsLoadedCondition", 1) # LOGDEBUG
 
-            while not self.SettingsLoaded:
-                if utils.sleep(1):
-                    xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] shutdown 1", 0) # LOGDEBUG
-                    return
+            with utils.SafeLock(self.SettingsLoadedCondition):
+                while not self.SettingsLoaded:
+                    self.SettingsLoadedCondition.wait(timeout=0.1)
+
+                    if utils.SystemShutdown:
+                        if utils.DebugLog:
+                            xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 1", 1) # LOGDEBUG
+                            xbmc.log(f"EMBY.database.library (DEBUG): CONDITION: ---<[ {self.KodiStartSyncId} ] SettingsLoadedCondition", 1) # LOGDEBUG
+
+                        return
+
+            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): CONDITION: ---<[ {self.KodiStartSyncId} ] SettingsLoadedCondition", 1) # LOGDEBUG
 
             if Firstrun:
                 self.select_libraries("AddLibrarySelection")
 
             # Upsync downloaded content progress
-            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "KodiIncrementalSync")
+            embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.KodiStartSyncId)
             DownlodedItems = embydb.get_DownloadItem()
-            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "KodiIncrementalSync")
-            videodb = dbio.DBOpenRO("video", "KodiIncrementalSync")
+            LastSyncTime = embydb.get_LastIncrementalSync()
+            LastSyncTimeStart = embydb.get_LastIncrementalSyncStart()
+
+            if not LastSyncTimeStart:
+                LastSyncTimeStart = LastSyncTime
+
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.KodiStartSyncId)
+            videodb = dbio.DBOpenRO("video", self.KodiStartSyncId)
 
             for DownlodedItem in DownlodedItems:
                 utils.ItemSkipUpdate.append(str(DownlodedItem[0]))
-                Found, timeInSeconds, playCount, lastPlayed, = videodb.get_Progress(DownlodedItem[2])
+                Found, timeInSeconds, playCount, lastPlayed = videodb.get_Progress(DownlodedItem[2])
 
                 if Found:
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): Upsync offline content {DownlodedItem}", 1) # LOGDEBUG
                     self.EmbyServer.API.set_progress_upsync(DownlodedItem[0], int(timeInSeconds * 10000000), playCount, utils.convert_to_gmt(lastPlayed))  # Id, PlaybackPositionTicks, PlayCount, LastPlayedDate
 
-            dbio.DBCloseRO("video", "KodiIncrementalSync")
+            dbio.DBCloseRO("video", self.KodiStartSyncId)
             UpdateData = [[], []]
 
             if utils.SystemShutdown:
-                xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] shutdown 2", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 2", 1) # LOGDEBUG
                 return
 
             # Retrieve changes
-            if self.LastSyncTime:
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Retrieve changes, last synced: {self.LastSyncTime}", 1) # LOGINFO
-                ProgressBar = xbmcgui.DialogProgressBG()
-                ProgressBar.create(utils.Translate(33199), utils.Translate(33445))
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: Kodi companion ]", 1) # LOGINFO
-                result = self.EmbyServer.API.get_sync_queue(self.LastSyncTime)  # Kodi companion
+            if LastSyncTimeStart:
+                utils.SyncPause[self.ServerStartSyncId] = True
+                xbmc.log(f"EMBY.database.library: [ {self.KodiStartSyncId} ] last synced: {LastSyncTime} / {LastSyncTimeStart}", 1) # LOGINFO
+                utils.create_ProgressBar(self.KodiStartSyncId, utils.Translate(33199), utils.Translate(33445))
+                xbmc.log(f"EMBY.database.library: -->[ {self.KodiStartSyncId} ] Kodi companion", 1) # LOGINFO
+                result = self.EmbyServer.API.get_sync_queue(LastSyncTimeStart)  # Kodi companion
 
                 if 'ItemsRemoved' in result:
                     if result['ItemsRemoved']:
-                        self.removed(result['ItemsRemoved'], True, False)
+                        self.removed(result['ItemsRemoved'], False, False)
                 elif utils.verifyKodiCompanion:
                     utils.Dialog.ok(utils.addon_name, utils.Translate(33716))
 
-                xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: Kodi companion ]", 1) # LOGINFO
+                xbmc.log(f"EMBY.database.library: --<[ {self.KodiStartSyncId} ] Kodi companion ]", 1) # LOGINFO
                 ProgressBarTotal = len(self.LibrarySynced) / 100
                 ProgressBarIndex = 0
 
                 for LibrarySyncedId, LibrarySyncedName, LibrarySyncedEmbyType, _ in self.LibrarySynced:
                     if utils.SystemShutdown:
-                        xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] shutdown 3", 0) # LOGDEBUG
-                        ProgressBar.close()
-                        del ProgressBar
+                        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 3", 1) # LOGDEBUG
+                        utils.close_ProgressBar(self.KodiStartSyncId)
+                        utils.SyncPause[self.ServerStartSyncId] = False
                         return
 
-                    xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] {LibrarySyncedName} / {LibrarySyncedEmbyType}", 1) # LOGINFO
+                    xbmc.log(f"EMBY.database.library: [ {self.KodiStartSyncId} ] {LibrarySyncedName} / {LibrarySyncedEmbyType}", 1) # LOGINFO
                     LibraryName = ""
                     ProgressBarIndex += 1
 
                     if LibrarySyncedId in self.EmbyServer.Views.ViewItems:
                         LibraryName = self.EmbyServer.Views.ViewItems[LibrarySyncedId][0]
-                        ProgressBar.update(int(ProgressBarIndex / ProgressBarTotal), utils.Translate(33445), f"{LibraryName} / {LibrarySyncedEmbyType}")
+
+                        if utils.SystemShutdown:
+                            utils.close_ProgressBar(self.KodiStartSyncId)
+                            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 4", 1) # LOGDEBUG
+                            utils.SyncPause[self.ServerStartSyncId] = False
+                            return
+
+                        utils.update_ProgressBar(self.KodiStartSyncId, ProgressBarIndex / ProgressBarTotal, utils.Translate(33199), f"{LibraryName} / {LibrarySyncedEmbyType}")
 
                     if not LibraryName and LibrarySyncedEmbyType != "Person":
-                        xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: KodiIncrementalSync remove library {LibrarySyncedId} ]", 1) # LOGINFO
+                        xbmc.log(f"EMBY.database.library: [ {self.KodiStartSyncId} ] remove library {LibrarySyncedId}", 1) # LOGINFO
                         continue
 
                     ItemIndex = 0
@@ -248,15 +325,17 @@ class Library:
                     UpdateUserDataTemp = 10000 * [()] # pre allocate memory
 
                     if LibrarySyncedEmbyType == "Folder":
-                        Params = {'MinDateLastSaved': self.LastSyncTime}
+                        Params = {'MinDateLastSaved': LastSyncTime}
+                    elif LibrarySyncedEmbyType in ("Person", "BoxSet"): # No realtime sync supported by Emby server (at least not for people artwork and boxsets)
+                        Params = {'MinDateLastSavedForUser': LastSyncTimeStart, "Fields": "UserDataLastPlayedDate"}
                     else:
-                        Params = {'MinDateLastSavedForUser': self.LastSyncTime, "Fields": "UserDataLastPlayedDate"}
+                        Params = {'MinDateLastSavedForUser': LastSyncTime, "Fields": "UserDataLastPlayedDate"}
 
-                    for Item in self.EmbyServer.API.get_Items(LibrarySyncedId, (LibrarySyncedEmbyType,), True, Params, "", None, True, True):
+                    for Item in self.EmbyServer.API.get_Items(LibrarySyncedId, (LibrarySyncedEmbyType,), True, Params, "", None, True):
                         if utils.SystemShutdown:
-                            ProgressBar.close()
-                            del ProgressBar
-                            xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] shutdown 4", 0) # LOGDEBUG
+                            utils.close_ProgressBar(self.KodiStartSyncId)
+                            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 5", 1) # LOGDEBUG
+                            utils.SyncPause[self.ServerStartSyncId] = False
                             return
 
                         if ItemIndex >= 10000:
@@ -268,17 +347,20 @@ class Library:
 
                         self.set_recording_type(Item)
                         UpdateDataTemp[ItemIndex] = (Item['Id'], Item['Type'], LibrarySyncedId)
-                        UpdateUserDataTemp[ItemIndex] = (Item['Id'], Item['Type'], Item['UserData'].get("PlaybackPositionTicks", None), Item['UserData'].get("PlayCount", None), Item['UserData'].get("IsFavorite", None), Item['UserData'].get("Played", None), Item['UserData'].get("LastPlayedDate", None), Item['UserData'].get("PlayedPercentage", None), Item['UserData'].get("UnplayedItemCount", None))
+
+                        if Item['Type'] != "Folder": # Folder has no userdata
+                            UpdateUserDataTemp[ItemIndex] = (Item['Id'], Item['Type'], Item['UserData'].get("PlaybackPositionTicks", None), Item['UserData'].get("PlayCount", None), Item['UserData'].get("IsFavorite", None), Item['UserData'].get("Played", None), Item['UserData'].get("LastPlayedDate", None), Item['UserData'].get("PlayedPercentage", None), Item['UserData'].get("UnplayedItemCount", None))
+
                         ItemIndex += 1
 
                     UpdateData[0] += UpdateDataTemp
                     UpdateData[1] += UpdateUserDataTemp
 
-                ProgressBar.close()
-                del ProgressBar
+                utils.close_ProgressBar(self.KodiStartSyncId)
 
                 if utils.SystemShutdown:
-                    xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ] shutdown 5", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ] shutdown 6", 1) # LOGDEBUG
+                    utils.SyncPause[self.ServerStartSyncId] = False
                     return
 
             # Run jobs
@@ -290,7 +372,7 @@ class Library:
                     UpdateData[0].remove(())
 
                 if UpdateData[0]:
-                    self.updated(UpdateData[0], True, False)
+                    self.updated(UpdateData[0], False, False)
 
             # Userdata updated
             if UpdateData[1]:
@@ -300,42 +382,41 @@ class Library:
                     UpdateData[1].remove(())
 
                 if UpdateData[1]:
-                    self.userdata(UpdateData[1], True, False)
+                    self.userdata(UpdateData[1], False, False)
 
-            self.RunJobs(True)
+            utils.SyncPause[self.ServerStartSyncId] = False
+            self.RunJobs(False, True)
 
         self.set_syncdate(NewSyncData)
         self.SyncLiveTVEPG()
-        xbmc.log(f"EMBY.database.library: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: retrieve changes ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): THREAD: ---<[ {self.KodiStartSyncId} ]", 1) # LOGDEBUG
 
     # Userdata change is an high priority task
     def worker_userdata(self, IncrementalSync):
-        WorkerName = "worker_userdata"
         UpdateUserDataCached = ()
 
-        if not self.wait_DatabaseInit(WorkerName):
+        if not self.wait_DatabaseInit(self.UserDataId):
             return
 
-        SQLs = {"emby": dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)}
+        SQLs = {"emby": dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.UserDataId)}
         UserDataItems = SQLs["emby"].get_Userdata()
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker userdata started ] queue size: {len(UserDataItems)}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.UserDataId} ] queue size: {len(UserDataItems)}", 1) # LOGDEBUG
 
         if not UserDataItems:
-            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker userdata empty ]", 0) # LOGDEBUG
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.UserDataId)
+            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UserDataId} ] worker userdata empty", 1) # LOGDEBUG
             return
 
-        ProgressBar = xbmcgui.DialogProgressBG()
-        ProgressBar.create(utils.Translate(33199), utils.Translate(33178))
+        utils.create_ProgressBar(self.UserDataId, utils.Translate(33199), utils.Translate(33178))
         RecordsPercent = len(UserDataItems) / 100
-        UpdateItems, Others = self.ItemsSort(self.worker_userdata_generator, SQLs, UserDataItems, False, RecordsPercent, ProgressBar)
+        UpdateItems, Others = self.ItemsSort(self.worker_userdata_generator, SQLs, UserDataItems, False, RecordsPercent)
 
         if not SQLs['emby']:
-            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker userdata interrupt ] (ItemsSort)", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UserDataId} ] ItemsSort", 1) # LOGDEBUG
             return
 
-        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-        SQLs = self.open_EmbyDBRW(WorkerName, True)
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.UserDataId)
+        SQLs = self.open_EmbyDBRW(self.UserDataId, True)
         RefreshAudio = False
         RefreshVideo = False
         RefreshWidgets = False
@@ -343,7 +424,7 @@ class Library:
         for KodiDBs, CategoryItems in list(UpdateItems.items()):
             if content_available(CategoryItems):
                 RecordsPercent = len(CategoryItems) / 100
-                dbio.DBOpenRW(KodiDBs, WorkerName, SQLs)
+                dbio.DBOpenRW(KodiDBs, self.UserDataId, SQLs)
 
                 for Items in CategoryItems:
                     if not Items:
@@ -351,15 +432,21 @@ class Library:
 
                     RefreshVideo, RefreshAudio = get_content_database(KodiDBs, Items, RefreshVideo, RefreshAudio)
                     ClassObject = None
+                    ReleaseCounter = 0
 
                     for index, Item in enumerate(Items, 1):
+                        ReleaseCounter += 1
+
+                        if ReleaseCounter % 50 == 0:
+                            xbmc.sleep(0) # release GIL
+
                         Item = json.loads(Item)
 
                         if not ClassObject:
                             ClassObject = self.load_libraryObject(Item['Type'], SQLs)
 
                         SQLs["emby"].delete_Userdata(Item["Id"])
-                        Continue, Update = self.update_UserData(int(index / RecordsPercent), index, Item, SQLs, KodiDBs, ProgressBar, IncrementalSync, ClassObject, True)
+                        Continue, Update = self.update_UserData(index / RecordsPercent, index, Item, SQLs, KodiDBs, IncrementalSync, ClassObject, True, self.UserDataId, True)
                         UpdateUserDataCached += ((str(Item['Id']), Item.get('PlaybackPositionTicks', 0), Item.get('LastPlayedDate', ""), common.set_PlayCount(Item), False),)
 
                         if Update:
@@ -367,35 +454,37 @@ class Library:
 
                         if not Continue:
                             del ClassObject
-                            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker userdata interrupt ]", 0) # LOGDEBUG
+                            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UserDataId} ] worker userdata interrupt", 1) # LOGDEBUG
                             return
 
                     del ClassObject
 
-                dbio.DBCloseRW(KodiDBs, WorkerName, SQLs)
+                dbio.DBCloseRW(KodiDBs, self.UserDataId, SQLs)
 
         for Other in Others: # Unsynced content
             Other = json.loads(Other)
-            SQLs["emby"].delete_Userdata(Other['Id'])
-            UpdateUserDataCached += ((str(Other['Id']), Other.get('PlaybackPositionTicks', 0), Other.get('LastPlayedDate', ""), common.set_PlayCount(Other), False),)
+
+            if not SQLs["emby"].exist_UpdateItem(Other['Id']): # Do not remove items which are flagged for update
+                SQLs["emby"].delete_Userdata(Other['Id'])
+                UpdateUserDataCached += ((str(Other['Id']), Other.get('PlaybackPositionTicks', 0), Other.get('LastPlayedDate', ""), common.set_PlayCount(Other), False),)
 
         SQLs["emby"].update_LastIncrementalSync(utils.currenttime())
-        utils.update_querycache_userdata(UpdateUserDataCached)
+        cache.update_querycache_userdata(UpdateUserDataCached)
         del UpdateUserDataCached
 
         if Others:
-            self.close_Worker(WorkerName, True, True, ProgressBar, SQLs)
+            self.close_Worker(self.UserDataId, True, True, SQLs)
         else:
             if RefreshWidgets:
-                self.close_Worker(WorkerName, RefreshVideo, RefreshAudio, ProgressBar, SQLs)
+                self.close_Worker(self.UserDataId, RefreshVideo, RefreshAudio, SQLs)
             else:
-                self.close_Worker(WorkerName, False, False, ProgressBar, SQLs)
+                self.close_Worker(self.UserDataId, False, False, SQLs)
 
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker userdata completed ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UserDataId} ] worker userdata completed", 1) # LOGDEBUG
 
-    def worker_userdata_generator(self, SQLs, UserDataItems, RecordsPercent, ProgressBar):
+    def worker_userdata_generator(self, SQLs, UserDataItems, RecordsPercent):
         for index, UserDataItem in enumerate(UserDataItems, 1): # UserDataItem = EmbyId, EmbyType, EmbyPlaybackPositionTicks, EmbyPlayCount, EmbyIsFavorite, EmbyPlayed, EmbyLastPlayedDate
-            ProgressBar.update(int(index / RecordsPercent), utils.Translate(33178), str(UserDataItem[0]))
+            utils.update_ProgressBar(self.UserDataId, index / RecordsPercent, utils.Translate(33178), str(UserDataItem[0]))
             MetaData = SQLs["emby"].get_UserData_MetaData(UserDataItem[0], UserDataItem[1])
             MetaData.update({"Id": UserDataItem[0], 'PlaybackPositionTicks': UserDataItem[2], 'PlayCount': UserDataItem[3], 'IsFavorite': UserDataItem[4], 'LastPlayedDate': UserDataItem[6], 'Played': UserDataItem[5], 'PlayedPercentage': UserDataItem[7], 'UnplayedItemCount': UserDataItem[8]})
 
@@ -403,57 +492,55 @@ class Library:
                 yield True, MetaData
             else: # skip if item is not synced
                 yield False, MetaData
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Skip not synced item: {UserDataItem[0]}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Skip not synced item: {UserDataItem[0]}", 1) # LOGDEBUG
 
     def worker_update(self, IncrementalSync):
         MusicVideoLinks = False
-        WorkerName = "worker_update"
 
         while True: # While running update additional updates migth be addded
-            with LockLowPriorityWorkers:
-                if not self.wait_DatabaseInit(WorkerName):
+            with utils.SafeLock(LockLowPriorityWorkers):
+                if not self.wait_DatabaseInit(self.UpdateId):
                     return False
 
-                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
-                UpdateItems, UpdateItemsCount, KodiDBMapping = embydb.get_UpdateItem()
+                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.UpdateId)
+                UpdateItems, UpdateItemsCount, KodiDBMappingUpdate = embydb.get_UpdateItem()
                 RemoveItems = embydb.empty_RemoveItem()
-                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.UpdateId)
                 del embydb
 
             # Re-run if removed items are added while waiting for updates
             if RemoveItems:
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Worker update, removed items found, trigger removal", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): [ {self.UpdateId} ] Worker update, removed items found, trigger removal", 1) # LOGDEBUG
                 self.worker_remove(IncrementalSync)
 
             # Process updates
-            with LockLowPriorityWorkers:
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker update started ] queue size: {UpdateItemsCount}", 0) # LOGDEBUG
+            with utils.SafeLock(LockLowPriorityWorkers):
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.UpdateId} ] queue size: {UpdateItemsCount}", 1) # LOGDEBUG
 
                 if not UpdateItemsCount: # Job done
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker update empty ]", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UpdateId} ] worker update empty", 1) # LOGDEBUG
 
                     if utils.LinkMusicVideos and MusicVideoLinks:
                         self.refresh_musicvideolinks()
 
                     return True
 
-                if not self.open_Worker(WorkerName):
+                if not self.open_Worker(self.UpdateId):
                     return False
 
-                ProgressBar = xbmcgui.DialogProgressBG()
-                ProgressBar.create(utils.Translate(33199), utils.Translate(33178))
+                utils.create_ProgressBar(self.UpdateId, utils.Translate(33199), utils.Translate(33178))
                 RecordsPercent = UpdateItemsCount / 100
                 index = 0
-                UpdateItems, Others = self.ItemsSort(self.worker_update_generator, {}, UpdateItems, False, RecordsPercent, ProgressBar)
+                UpdateItems, Others = self.ItemsSort(self.worker_update_generator, {}, UpdateItems, False, RecordsPercent)
                 RefreshAudio = False
                 RefreshVideo = False
-                SQLs = self.open_EmbyDBRW(WorkerName, False)
+                SQLs = self.open_EmbyDBRW(self.UpdateId, False)
 
                 for KodiDBs, CategoryItems in list(UpdateItems.items()):
                     Continue = True
 
                     if content_available(CategoryItems):
-                        dbio.DBOpenRW(KodiDBs, WorkerName, SQLs)
+                        dbio.DBOpenRW(KodiDBs, self.UpdateId, SQLs)
 
                         for Items in CategoryItems:
                             if not Items:
@@ -461,123 +548,182 @@ class Library:
 
                             RefreshVideo, RefreshAudio = get_content_database(KodiDBs, Items, RefreshVideo, RefreshAudio)
                             ClassObject = None
+                            ReleaseCounter = 0
 
                             for Item in Items:
+                                ReleaseCounter += 1
+
+                                if ReleaseCounter % 50 == 0:
+                                    xbmc.sleep(0) # release GIL
+
                                 Item = json.loads(Item)
 
-                                if not MusicVideoLinks and Item['Type'] in ("Audio", "MusicVideo"):
+                                if not MusicVideoLinks and Item['Type'] in ("Audio", "MusicVideo") and Item.get('ExtraType', "") != "ThemeSong":
                                     MusicVideoLinks = True
 
                                 if not ClassObject:
                                     ClassObject = self.load_libraryObject(Item['Type'], SQLs)
 
-                                SQLs["emby"].delete_UpdateItem(Item['Id'])
+                                if 'EmbyParentId' in Item:
+                                    SQLs["emby"].delete_UpdateItem_Parent(Item['EmbyParentId'], Item['EmbyParentType'], Item['LibraryId'], Item['KodiParentId'])
+                                else:
+                                    SQLs["emby"].delete_UpdateItem(Item['Id'])
+
                                 index += 1
 
-                                if Item['Id'] in KodiDBMapping:
-                                    ClassObject.KodiDBMapping = KodiDBMapping[Item['Id']]
+                                if Item['Id'] in KodiDBMappingUpdate:
+                                    ClassObject.KodiDBMapping = KodiDBMappingUpdate[Item['Id']]
 
-                                if not self.update_Item(int(index / RecordsPercent), index, Item, SQLs, KodiDBs, ProgressBar, True, ClassObject):
-                                    self.EmbyServer.API.ProcessProgress[WorkerName] = -1
-                                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker update interrupt ]", 0) # LOGDEBUG
+                                if not self.update_Item(index / RecordsPercent, index, Item, SQLs, KodiDBs, IncrementalSync, ClassObject, self.UpdateId):
+#                                    self.EmbyServer.API.update_Progress(self.UpdateId, -1)
+                                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.UpdateId} ] worker update interrupt", 1) # LOGDEBUG
                                     del ClassObject
                                     return False
 
                             del ClassObject
 
-                        dbio.DBCloseRW(KodiDBs, WorkerName, SQLs)
+                        dbio.DBCloseRW(KodiDBs, self.UpdateId, SQLs)
 
                     if not Continue:
                         break
 
-                self.EmbyServer.API.ProcessProgress[WorkerName] = -1
+#                self.EmbyServer.API.update_Progress(self.UpdateId, -1)
 
                 for Other in Others:
                     Other = json.loads(Other)
-                    SQLs["emby"].delete_UpdateItem(Other['Id'])
+
+                    if 'EmbyParentId' in Other:
+                        SQLs["emby"].delete_UpdateItem_Parent(Other['EmbyParentId'], Other['EmbyParentType'], Other['LibraryId'], Other['KodiParentId'])
+                    else:
+                        SQLs["emby"].delete_UpdateItem(Other['Id'])
 
                 SQLs["emby"].update_LastIncrementalSync(utils.currenttime())
-                utils.reset_querycache()
+                cache.reset_querycache()
 
                 if Others:
-                    self.close_Worker(WorkerName, True, True, ProgressBar, SQLs)
+                    self.close_Worker(self.UpdateId, True, True, SQLs)
                 else:
-                    self.close_Worker(WorkerName, RefreshVideo, RefreshAudio, ProgressBar, SQLs)
+                    self.close_Worker(self.UpdateId, RefreshVideo, RefreshAudio, SQLs)
 
-    def worker_update_generator(self, SQLs, UpdateItems, RecordsPercent, ProgressBar):
+    def worker_update_generator(self, SQLs, UpdateItems, RecordsPercent):
         Counter = 0
 
         for LibraryId, UpdateItemsArray in list(UpdateItems.items()):
-            for ContentType, UpdateItemsIds in list(UpdateItemsArray.items()):
-                if not UpdateItemsIds:
+            for ContentType, UpdateItemsData in list(UpdateItemsArray.items()):
+                if not UpdateItemsData:
                     continue
-
-                ContentTypeLabel = ContentType
-
-                if ContentType == "unknown":
-                    ContentType = ["Person", "Studio", "Genre", "Tag", "Trailer", "BoxSet", "Movie", "Video", "Series", "Season", "Episode", "MusicArtist", "MusicGenre", "MusicVideo", "MusicAlbum", "Audio", "Playlist", "Folder"]
-                else:
-                    ContentType = [ContentType]
-
-                UpdateItemsIdsTemp = UpdateItemsIds.copy()
 
                 if LibraryId in self.EmbyServer.Views.ViewItems:
                     LibraryName = self.EmbyServer.Views.ViewItems[LibraryId][0]
                 else:
                     LibraryName = LibraryId
 
-                ProgressBar.update(int(Counter / RecordsPercent), utils.Translate(33734), f"{LibraryName} / {ContentTypeLabel}")
+                utils.update_ProgressBar(self.UpdateId, Counter / RecordsPercent, utils.Translate(33734), f"{LibraryName} / {ContentType}")
 
-                for Item in self.EmbyServer.API.get_Items_Ids(UpdateItemsIds, ContentType, False, False, "worker_update", LibraryId, {}, {"Object": self.pause_workers, "Params": ("Startsync_http", SQLs, "", None)}, False, True, True):
-                    Counter += 1
+                # Update Items is subcontent of a ParentItem
+                if isinstance(UpdateItemsData[0], dict):
+                    UpdateItemsDataTemp = UpdateItemsData.copy()
+                    utils.create_ProgressBar(self.UpdateParentsId, utils.Translate(33199), utils.Translate(33178))
+                    RecordsPercentParents = len(UpdateItemsData) / 100
 
-                    if Item['Id'] in UpdateItemsIds:
-                        UpdateItemsIds.remove(Item['Id'])
+                    for ParentCounter, ParentItem in enumerate(UpdateItemsData): # {'EmbyParentId': 76037, 'EmbyParentType': 'Movie'}
+                        if ContentType == "Trailer":
+                            for TrailerLocal in self.EmbyServer.API.get_local_trailers(ParentItem['EmbyParentId']):
+                                TrailerLocal.update({'EmbyParentType': ParentItem['EmbyParentType'], 'LibraryId': LibraryId, 'EmbyParentId': ParentItem['EmbyParentId'], 'KodiParentId': ParentItem['KodiParentId']})
+                                if ParentItem in UpdateItemsDataTemp:
+                                    UpdateItemsDataTemp.remove(ParentItem)
 
-                    yield True, Item
+                                yield True, TrailerLocal
+                        elif ContentType == "Special": # Specials
+                            for Special in self.EmbyServer.API.get_specialfeatures(ParentItem['EmbyParentId']):
+                                Special.update({'EmbyParentType': ParentItem['EmbyParentType'], 'LibraryId': LibraryId, 'EmbyParentId': ParentItem['EmbyParentId'], 'KodiParentId': ParentItem['KodiParentId']})
+                                if ParentItem in UpdateItemsDataTemp:
+                                    UpdateItemsDataTemp.remove(ParentItem)
 
-                # Remove not detected Items
-                for UpdateItemsIdTemp in UpdateItemsIdsTemp:
-                    if UpdateItemsIdTemp in UpdateItemsIds:
-                        UpdateItemsIds.remove(UpdateItemsIdTemp)
-                        yield False, {'Id': UpdateItemsIdTemp}
+                                yield True, Special
+                        elif ContentType == "Theme": # ThemeSong
+                            Themes = self.EmbyServer.API.get_themes(ParentItem['EmbyParentId'])
+
+                            if 'ThemeSongsResult' in Themes:
+                                for ThemeSong in Themes['ThemeSongsResult']['Items']:
+                                    ThemeSong.update({'EmbyParentType': ParentItem['EmbyParentType'], 'LibraryId': LibraryId, 'EmbyParentId': ParentItem['EmbyParentId'], 'KodiParentId': ParentItem['KodiParentId']})
+
+                                    if ParentItem in UpdateItemsDataTemp:
+                                        UpdateItemsDataTemp.remove(ParentItem)
+
+                                    yield True, ThemeSong
+
+                            if 'ThemeVideosResult' in Themes:
+                                for ThemeVideo in Themes['ThemeVideosResult']['Items']:
+                                    ThemeVideo.update({'EmbyParentType': ParentItem['EmbyParentType'], 'LibraryId': LibraryId, 'EmbyParentId': ParentItem['EmbyParentId'], 'KodiParentId': ParentItem['KodiParentId']})
+
+                                    if ParentItem in UpdateItemsDataTemp:
+                                        UpdateItemsDataTemp.remove(ParentItem)
+
+                                    yield True, ThemeVideo
+
+                        utils.update_ProgressBar(self.UpdateParentsId, ParentCounter / RecordsPercentParents, utils.Translate(33734), f"{LibraryName} / {ContentType}")
+
+                    utils.close_ProgressBar(self.UpdateParentsId)
+
+                    for UpdateItemDataTemp in UpdateItemsDataTemp:
+                        UpdateItemDataTemp['LibraryId'] = LibraryId
+                        yield False, UpdateItemDataTemp
+                else: # Get Items by Ids
+                    if ContentType == "unknown":
+                        ContentType = ["Person", "Studio", "Genre", "Tag", "Trailer", "BoxSet", "Movie", "Video", "Series", "Season", "Episode", "MusicArtist", "MusicGenre", "MusicVideo", "MusicAlbum", "Audio", "Playlist", "Folder", "PhotoAlbum", "Photo"]
+                    else:
+                        ContentType = [ContentType]
+
+                    UpdateItemsDataTemp = UpdateItemsData.copy()
+
+                    for Item in self.EmbyServer.API.get_Items_Ids(UpdateItemsData, ContentType, False, False, "", LibraryId, {}, {"Object": self.pause_workers, "Params": ("Startsync_http", SQLs, None)}, False):
+                        Counter += 1
+
+                        if Item['Id'] in UpdateItemsData:
+                            UpdateItemsData.remove(Item['Id'])
+
+                        yield True, Item
+
+                    # Remove not detected Items
+                    for UpdateItemsIdTemp in UpdateItemsDataTemp:
+                        if UpdateItemsIdTemp in UpdateItemsData:
+                            UpdateItemsData.remove(UpdateItemsIdTemp)
+                            yield False, {'Id': UpdateItemsIdTemp}
 
     def worker_remove(self, IncrementalSync):
-        with LockLowPriorityWorkers:
-            WorkerName = "worker_remove"
-
-            if not self.wait_DatabaseInit(WorkerName):
+        with utils.SafeLock(LockLowPriorityWorkers):
+            if not self.wait_DatabaseInit(self.RemoveId):
                 return False
 
             while True: # Removed items can add additional subitems to be removed
-                EmbyDB = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                EmbyDB = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.RemoveId)
                 RemoveItems = EmbyDB.get_RemoveItem()
-                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.RemoveId)
                 del EmbyDB
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove started ] queue size: {len(RemoveItems)}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.RemoveId} ] queue size: {len(RemoveItems)}", 1) # LOGDEBUG
 
                 if not RemoveItems:
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove empty ]", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.RemoveId} ] worker remove empty", 1) # LOGDEBUG
                     return True
 
-                if not self.open_Worker(WorkerName):
+                if not self.open_Worker(self.RemoveId):
                     return False
 
                 RefreshAudio = False
                 RefreshVideo = False
-                ProgressBar = xbmcgui.DialogProgressBG()
-                ProgressBar.create(utils.Translate(33199), utils.Translate(33261))
+                utils.create_ProgressBar(self.RemoveId, utils.Translate(33199), utils.Translate(33261))
                 RecordsPercent = len(RemoveItems) / 100
-                SQLs = self.open_EmbyDBRW(WorkerName, False)
-                UpdateItems, Others = self.ItemsSort(self.worker_remove_generator, SQLs, RemoveItems, True, RecordsPercent, ProgressBar)
+                SQLs = self.open_EmbyDBRW(self.RemoveId, False)
+                UpdateItems, Others = self.ItemsSort(self.worker_remove_generator, SQLs, RemoveItems, True, RecordsPercent)
 
                 if not SQLs['emby']:
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove interrupt ] (ItemsSort)", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.RemoveId} ] ItemsSort", 1) # LOGDEBUG
                     return False
 
                 for KodiDBs, CategoryItems in list(UpdateItems.items()):
                     if content_available(CategoryItems):
-                        dbio.DBOpenRW(KodiDBs, WorkerName, SQLs)
+                        dbio.DBOpenRW(KodiDBs, self.RemoveId, SQLs)
 
                         for Items in CategoryItems:
                             if not Items:
@@ -586,8 +732,14 @@ class Library:
                             RecordsPercent = len(Items) / 100
                             RefreshVideo, RefreshAudio = get_content_database(KodiDBs, Items, RefreshVideo, RefreshAudio)
                             ClassObject = None
+                            ReleaseCounter = 0
 
                             for index, Item in enumerate(Items, 1):
+                                ReleaseCounter += 1
+
+                                if ReleaseCounter % 50 == 0:
+                                    xbmc.sleep(0) # release GIL
+
                                 Item = json.loads(Item)
 
                                 if not ClassObject:
@@ -595,132 +747,130 @@ class Library:
 
                                 SQLs["emby"].delete_RemoveItem(Item['Id'])
 
-                                if not self.remove_Item(int(index / RecordsPercent), index, Item, SQLs, KodiDBs, ProgressBar, IncrementalSync, ClassObject):
+                                if not self.remove_Item(index / RecordsPercent, index, Item, SQLs, KodiDBs, IncrementalSync, ClassObject):
                                     del ClassObject
-                                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove interrupt ]", 0) # LOGDEBUG
+                                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.RemoveId} ] worker remove interrupt", 1) # LOGDEBUG
                                     return False
 
                             del ClassObject
 
-                        dbio.DBCloseRW(KodiDBs, WorkerName, SQLs)
+                        dbio.DBCloseRW(KodiDBs, self.RemoveId, SQLs)
 
                 for Other in Others:
                     Other = json.loads(Other)
                     SQLs["emby"].delete_RemoveItem(Other['Id'])
 
                 SQLs["emby"].update_LastIncrementalSync(utils.currenttime())
-                utils.reset_querycache()
+                cache.reset_querycache()
 
                 if Others:
                     utils.refresh_DynamicNode()
-                    self.close_Worker(WorkerName, True, True, ProgressBar, SQLs)
+                    self.close_Worker(self.RemoveId, True, True, SQLs)
                 else:
-                    self.close_Worker(WorkerName, RefreshVideo, RefreshAudio, ProgressBar, SQLs)
+                    self.close_Worker(self.RemoveId, RefreshVideo, RefreshAudio, SQLs)
 
-                xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker remove completed ]", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.RemoveId} ] worker remove completed", 1) # LOGDEBUG
 
-    def worker_remove_generator(self, SQLs, RemoveItems, RecordsPercent, ProgressBar):
+    def worker_remove_generator(self, SQLs, RemoveItems, RecordsPercent):
         for index, RemoveItem in enumerate(RemoveItems, 1):
-            if not self.pause_workers("worker_remove_generator", SQLs, ProgressBar, None):
+            if not self.pause_workers(self.RemoveId, SQLs, None):
                 break
 
-            ProgressBar.update(int(index / RecordsPercent), utils.Translate(33261), str(RemoveItem[0]))
+            utils.update_ProgressBar(self.RemoveId, index / RecordsPercent, utils.Translate(33261), str(RemoveItem[0]))
             FoundRemoveItems = SQLs["emby"].get_remove_generator_items(RemoveItem[0], RemoveItem[1])
 
             for FoundRemoveItem in FoundRemoveItems:
-                FoundRemoveItem['LibraryId'] = str(RemoveItem[1])
+                if RemoveItem[1]:
+                    FoundRemoveItem['LibraryId'] = str(RemoveItem[1])
+                else:
+                    FoundRemoveItem['LibraryId'] = ""
+
                 yield True, FoundRemoveItem
 
             if not FoundRemoveItems:
                 yield False, {'Id': RemoveItem[0]}
 
     def worker_library_remove(self):
-        with LockLibraryOps:
-            with LockLowPriorityWorkers:
-                WorkerName = "worker_library_remove"
-
-                if not self.wait_DatabaseInit(WorkerName):
+        with utils.SafeLock(LockLibraryOps):
+            with utils.SafeLock(LockLowPriorityWorkers):
+                if not self.wait_DatabaseInit(self.LibraryRemoveId):
                     return False
 
-                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.LibraryRemoveId)
                 RemovedLibraries = embydb.get_LibraryRemove()
-                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.LibraryRemoveId)
                 del embydb
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library started ] queue size: {len(RemovedLibraries)}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.LibraryRemoveId} ] queue size: {len(RemovedLibraries)}", 1) # LOGDEBUG
 
                 if not RemovedLibraries:
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library empty ]", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryRemoveId} ] worker library empty", 1) # LOGDEBUG
                     return True
 
-                if not self.open_Worker(WorkerName):
+                if not self.open_Worker(self.LibraryRemoveId):
                     return False
 
-                ProgressBar = xbmcgui.DialogProgressBG()
-                ProgressBar.create(utils.Translate(33199), utils.Translate(33184))
+                utils.create_ProgressBar(self.LibraryRemoveId, utils.Translate(33199), utils.Translate(33184))
                 RemovedLibrariesPercent = len(RemovedLibraries) / 100
-                SQLs = self.open_EmbyDBRW(WorkerName, False)
+                SQLs = self.open_EmbyDBRW(self.LibraryRemoveId, False)
 
                 for RemovedLibraryIndex, RemovedLibrary in enumerate(RemovedLibraries):
                     SQLs["emby"].remove_LibraryRemove(RemovedLibrary[0])
-                    ProgressBar.update(int(RemovedLibraryIndex / RemovedLibrariesPercent), f"{utils.Translate(33184)}", RemovedLibrary[1])
+                    utils.update_ProgressBar(self.LibraryRemoveId, RemovedLibraryIndex / RemovedLibrariesPercent, utils.Translate(33184), RemovedLibrary[1])
                     SQLs["emby"].add_remove_library_items(RemovedLibrary[0])
                     xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: removed library: {RemovedLibrary[0]} ]", 1) # LOGINFO
-                    dbio.DBOpenRW("video", WorkerName, SQLs)
-                    SQLs["video"].delete_tag(RemovedLibrary[1])
+                    dbio.DBOpenRW("video", self.LibraryRemoveId, SQLs)
                     SQLs["video"].delete_path(f"{utils.AddonModePath}tvshows/{self.EmbyServer.ServerData['ServerId']}/{RemovedLibrary[0]}/")
                     SQLs["video"].delete_path(f"{utils.AddonModePath}movies/{self.EmbyServer.ServerData['ServerId']}/{RemovedLibrary[0]}/")
                     SQLs["video"].delete_path(f"{utils.AddonModePath}musicvideos/{self.EmbyServer.ServerData['ServerId']}/{RemovedLibrary[0]}/")
-                    dbio.DBCloseRW("video", WorkerName, SQLs)
-                    dbio.DBOpenRW("music", WorkerName, SQLs)
+                    dbio.DBCloseRW("video", self.LibraryRemoveId, SQLs)
+                    dbio.DBOpenRW("music", self.LibraryRemoveId, SQLs)
                     SQLs["music"].delete_path(f"{utils.AddonModePath}audio/{self.EmbyServer.ServerData['ServerId']}/{RemovedLibrary[0]}/")
-                    dbio.DBCloseRW("music", WorkerName, SQLs)
+                    dbio.DBCloseRW("music", self.LibraryRemoveId, SQLs)
                     self.EmbyServer.Views.delete_playlist_by_id(RemovedLibrary[0])
                     self.EmbyServer.Views.delete_node_by_id(RemovedLibrary[0])
                     utils.notify_event("library_remove", {"EmbyId": RemovedLibrary[0]}, True)
 
                 self.load_LibrarySynced(SQLs)
-                self.close_Worker(WorkerName, True, True, ProgressBar, SQLs)
+                self.close_Worker(self.LibraryRemoveId, True, True, SQLs)
 
         if RemovedLibraries:
             if self.worker_remove(False):
-                SQLs = self.open_EmbyDBRW(f"{WorkerName}_clean", True)
+                SQLs = self.open_EmbyDBRW(self.LibraryRemoveCleanId, True)
 
                 for RemovedLibrary in RemovedLibraries:
                     SQLs["emby"].remove_LibrarySyncedMirrow(RemovedLibrary[0])
 
                 self.load_LibrarySynced(SQLs)
-                self.close_EmbyDBRW(f"{WorkerName}_clean", SQLs)
+                self.close_EmbyDBRW(self.LibraryRemoveCleanId, SQLs)
                 self.worker_library_add()
 
             self.EmbyServer.Views.update_nodes()
-            utils.reset_querycache()
+            cache.reset_querycache()
 
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library completed ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryRemoveId} ] worker library completed", 1) # LOGDEBUG
         return True
 
     def worker_library_add(self):
-        with LockLibraryOps:
-            with LockLowPriorityWorkers:
-                WorkerName = "worker_library_add"
-
-                if not self.wait_DatabaseInit(WorkerName):
+        with utils.SafeLock(LockLibraryOps):
+            with utils.SafeLock(LockLowPriorityWorkers):
+                if not self.wait_DatabaseInit(self.LibraryAddId):
                     return
 
-                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.LibraryAddId)
                 AddedLibraries = embydb.get_LibraryAdd()
-                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], WorkerName)
+                dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.LibraryAddId)
                 del embydb
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library started ] queue size: {len(AddedLibraries)}", 0) # LOGDEBUG
+
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.LibraryAddId} ] queue size: {len(AddedLibraries)}", 1) # LOGDEBUG
 
                 if not AddedLibraries:
-                    xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library empty ]", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryAddId} ] worker library empty", 1) # LOGDEBUG
                     return
 
-                if not self.open_Worker(WorkerName):
+                if not self.open_Worker(self.LibraryAddId):
                     return
 
-                ProgressBar = xbmcgui.DialogProgressBG()
-                ProgressBar.create(utils.Translate(33199), utils.Translate(33238))
+                utils.create_ProgressBar(self.LibraryAddId, utils.Translate(33199), utils.Translate(33238))
                 GenreUpdate = False
                 StudioUpdate = False
                 TagUpdate = False
@@ -730,8 +880,21 @@ class Library:
                 MusicVideoLinks = False
                 newContent = utils.newContent
                 utils.newContent = False  # Disable new content notification on init sync
-                SQLs = self.open_EmbyDBRW(WorkerName, False)
+                SQLs = self.open_EmbyDBRW(self.LibraryAddId, False)
                 SQLs["emby"].delete_Index()
+
+                # remove index (for faster inserts)
+                dbio.DBOpenRW('video', self.LibraryAddId, SQLs)
+                SQLs["video"].delete_Index()
+                dbio.DBCloseRW('video', self.LibraryAddId, SQLs)
+                dbio.DBOpenRW('music', self.LibraryAddId, SQLs)
+                SQLs["music"].delete_Index()
+                dbio.DBCloseRW('music', self.LibraryAddId, SQLs)
+                dbio.DBOpenRW('texture', self.LibraryAddId, SQLs)
+                SQLs["texture"].delete_Index()
+                dbio.DBCloseRW('texture', self.LibraryAddId, SQLs)
+
+                # Add libraries
                 AddedLibrariesPercent = len(AddedLibraries) / 100
 
                 for AddedLibraryIndex, AddedLibrary in enumerate(AddedLibraries): # AddedLibrary -> LibraryId, LibraryName, EmbyType, KodiDB, KodiDBs
@@ -752,75 +915,78 @@ class Library:
                     elif AddedLibrary[2] in ("Audio", "MusicVideo"):
                         MusicVideoLinks = True
 
-                    ProgressBar.update(AddedLibraryProgress, f"{utils.Translate(33238)}", AddedLibrary[1])
+                    utils.update_ProgressBar(self.LibraryAddId, AddedLibraryProgress, utils.Translate(33238), AddedLibrary[1])
                     SQLs["emby"].add_LibrarySyncedMirrow(AddedLibrary[0], AddedLibrary[1], AddedLibrary[2], AddedLibrary[3])
                     self.load_LibrarySynced(SQLs)
-                    dbio.DBOpenRW(AddedLibrary[3], WorkerName, SQLs)
-                    VideoDB = AddedLibrary[3].find("video") != -1
-                    MusicDB = AddedLibrary[3].find("music") != -1
+                    dbio.DBOpenRW(AddedLibrary[3], self.LibraryAddId, SQLs)
+                    self.EmbyServer.API.update_Progress(self.LibraryAddId, 0)
 
-                    if VideoDB:
-                        SQLs["video"].delete_Index()
-
-                    if MusicDB:
-                        SQLs["music"].delete_Index()
-
-                    self.EmbyServer.API.ProcessProgress[WorkerName] = 0
-
-                    # Add Kodi tag for each library
-                    if AddedLibrary[3] == "video" and AddedLibrary[0] != "999999999":
+                    if AddedLibrary[2] in ("Movie", "Video", "MusicVideo", "Series") and "video" in SQLs and SQLs["video"]:
                         TagObject = tag.Tag(self.EmbyServer, SQLs)
-                        TagObject.change({"LibraryId": AddedLibrary[0], "Type": "Tag", "Id": f"999999993{AddedLibrary[0]}", "Name": AddedLibrary[1], "Memo": "library"}, False)
+                        TagObject.change({"LibraryId": AddedLibrary[0], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}00{AddedLibrary[0]}", "Name": AddedLibrary[1], "Memo": "library"}, False) # add library name as tag
+
+                        if AddedLibrary[2] in ("Movie", "Video"):
+                            TagObject.change({"LibraryId": AddedLibrary[0], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}01{AddedLibrary[0]}", "Name": "Movies (Favorites)", "Memo": "favorite"}, False) # add library favorits as tag
+                        elif AddedLibrary[2] == "MusicVideo":
+                            TagObject.change({"LibraryId": AddedLibrary[0], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}02{AddedLibrary[0]}", "Name": "Musicvideos (Favorites)", "Memo": "favorite"}, False) # add library favorits as tag
+                        elif AddedLibrary[2] == "Series":
+                            TagObject.change({"LibraryId": AddedLibrary[0], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}03{AddedLibrary[0]}", "Name": "TVShows (Favorites)", "Memo": "favorite"}, False) # add library favorits as tag
+
                         del TagObject
 
                     # Add Item
                     ClassObject = self.load_libraryObject(AddedLibrary[2], SQLs)
 
-                    for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items(AddedLibrary[0], (AddedLibrary[2],), False, {}, WorkerName, {"Object": self.pause_workers, "Params": (WorkerName, SQLs, ProgressBar, ClassObject)}, True, True), 1):
+                    for ItemIndex, Item in enumerate(self.EmbyServer.API.get_Items(AddedLibrary[0], (AddedLibrary[2],), False, {}, self.LibraryAddId, {"Object": self.pause_workers, "Params": (self.LibraryAddId, SQLs, ClassObject)}, True), 1):
                         # Add Content
                         Item["LibraryId"] = AddedLibrary[0]
-                        self.EmbyServer.API.ProcessProgress[WorkerName] = ItemIndex
+                        self.EmbyServer.API.update_Progress(self.LibraryAddId, ItemIndex)
 
-                        if not self.update_Item(AddedLibraryProgress, ItemIndex, Item, SQLs, AddedLibrary[3], ProgressBar, False, ClassObject):
+                        if not self.update_Item(AddedLibraryProgress, ItemIndex, Item, SQLs, AddedLibrary[3], False, ClassObject, self.LibraryAddId):
                             del ClassObject
-                            self.EmbyServer.API.ProcessProgress[WorkerName] = -1
-                            xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library interrupt ] (paused)", 0) # LOGDEBUG
+                            self.EmbyServer.API.update_Progress(self.LibraryAddId, -1)
+                            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryAddId} ] paused", 1) # LOGDEBUG
                             return
 
                         # Add UserData
                         UpdateKodiFavorites = AddedLibrary[2] not in ("MusicGenre", "Genre", "Studio", "Tag", "MusicArtist", "Person") # skip favorite updates, they must be refreshed last
-                        Continue, _ = self.update_UserData(AddedLibraryProgress, ItemIndex, Item, SQLs, AddedLibrary[3], None, False, ClassObject, UpdateKodiFavorites)
+                        Continue, _ = self.update_UserData(AddedLibraryProgress, ItemIndex, Item, SQLs, AddedLibrary[3], False, ClassObject, UpdateKodiFavorites, self.LibraryAddId, False)
 
                         if not Continue:
                             del ClassObject
-                            self.EmbyServer.API.ProcessProgress[WorkerName] = -1
-                            ProgressBar.close()
-                            del ProgressBar
-                            xbmc.log("EMBY.database.library: --<[ worker library interrupt ] (paused)", 0) # LOGDEBUG
+                            self.EmbyServer.API.update_Progress(self.LibraryAddId, -1)
+                            utils.close_ProgressBar(self.LibraryAddId)
+                            if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryAddId} ] paused 2", 1) # LOGDEBUG
                             return
 
                     del ClassObject
 
                     if not SQLs["emby"]:
-                        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library interrupt ] (closed database)", 0) # LOGDEBUG-> db can be closed via http busyfunction
+                        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryAddId} ] closed database", 1) # LOGDEBUG-> db can be closed via http busyfunction
                         return
 
                     SQLs["emby"].add_LibrarySynced(AddedLibrary[0], AddedLibrary[1], AddedLibrary[2], AddedLibrary[3])
                     SQLs["emby"].remove_LibraryAdd(AddedLibrary[0], AddedLibrary[1], AddedLibrary[2], AddedLibrary[3])
                     self.load_LibrarySynced(SQLs)
-
-                    if VideoDB:
-                        SQLs["video"].add_Index()
-
-                    if MusicDB:
-                        SQLs["music"].add_Index()
-
-                    dbio.DBCloseRW(AddedLibrary[3], WorkerName, SQLs)
+                    dbio.DBCloseRW(AddedLibrary[3], self.LibraryAddId, SQLs)
                     utils.notify_event("library_add", {"EmbyId": AddedLibrary[0]}, True)
 
+                # add index
+                dbio.DBOpenRW('video', self.LibraryAddId, SQLs)
+                SQLs["video"].add_Index()
+                dbio.DBCloseRW('video', self.LibraryAddId, SQLs)
+                dbio.DBOpenRW('music', self.LibraryAddId, SQLs)
+                SQLs["music"].add_Index()
+                dbio.DBCloseRW('music', self.LibraryAddId, SQLs)
+                dbio.DBOpenRW("texture", self.LibraryAddId, SQLs)
+                SQLs["texture"].add_Index()
+                dbio.DBCloseRW("texture", self.LibraryAddId, SQLs)
                 SQLs["emby"].add_Index()
-                utils.newContent = newContent
-                self.close_Worker(WorkerName, True, True, ProgressBar, SQLs)
+                self.close_Worker(self.LibraryAddId, True, True, SQLs)
+
+                # Update musicvideo links
+                if utils.LinkMusicVideos and MusicVideoLinks:
+                    self.refresh_musicvideolinks()
 
                 # Update favorites for subitems
                 if GenreUpdate:
@@ -841,22 +1007,21 @@ class Library:
                 if MusicArtistUpdate:
                     favorites.update_MusicArtist(self.EmbyServer)
 
-                if utils.LinkMusicVideos and MusicVideoLinks:
-                    self.refresh_musicvideolinks()
-
+                # refresh
+                utils.newContent = newContent
                 self.EmbyServer.Views.update_nodes()
-                utils.reset_querycache()
-                xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker library completed ]", 0) # LOGDEBUG
+                cache.reset_querycache()
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.LibraryAddId} ] worker library completed", 1) # LOGDEBUG
         #        utils.sleep(2) # give Kodi time to catch up (otherwise could cause crashes)
         #        xbmc.executebuiltin('ReloadSkin()') # Skin reload broken in Kodi 21
 
-        self.RunJobs(False)
+        self.RunJobs(False, False)
 
     # Process item operations
-    def update_Item(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, ProgressBar, IncrementalSync, ClassObject):
+    def update_Item(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, IncrementalSync, ClassObject, WorkerId):
         self.set_recording_type(Item)
 
-        with LockPause:
+        with utils.SafeLock(LockPause):
             Ret = ClassObject.change(Item, IncrementalSync)
 
         if "Name" in Item:
@@ -866,60 +1031,60 @@ class Library:
         else:
             ProgressMsg = "unknown"
 
-        ProgressBar.update(ProgressValue, f"{Item['Type']}: {ItemIndex}", ProgressMsg)
+        utils.update_ProgressBar(WorkerId, ProgressValue, f"{Item['Type']}: {ItemIndex}", ProgressMsg)
 
         if Ret and utils.newContent:
             utils.Dialog.notification(heading=f"{utils.Translate(33049)} {Item['Type']}", message=Item.get('Name', "unknown"), icon=utils.icon, time=utils.newContentTime, sound=False)
 
-        if not self.pause_workers("update_Item", SQLs, ProgressBar, ClassObject):
+        if not self.pause_workers(WorkerId, SQLs, ClassObject):
             return False
 
         if utils.SystemShutdown:
-            dbio.DBCloseRW(KodiDBs, "update_item", SQLs)
-            self.close_Worker("update_item", False, False, ProgressBar, SQLs)
-            xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: worker exit (shutdown 2) ]", 1) # LOGINFO
+            dbio.DBCloseRW(KodiDBs, WorkerId, SQLs)
+            self.close_Worker(WorkerId, False, False, SQLs)
+            if utils.DebugLog: xbmc.log(f"EMBY.database.library: [ {WorkerId} ] shutdown 2", 1) # LOGINFO
             return False
 
         del Item
         return True
 
-    def update_UserData(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, ProgressBar, IncrementalSync, ClassObject, UpdateFavorite):
-        if ProgressBar:
-            ProgressBar.update(ProgressValue, f"{Item['Type']}: {ItemIndex}", str(Item['Id']))
+    def update_UserData(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, IncrementalSync, ClassObject, UpdateFavorite, WorkerId, UpdateProgress):
+        if UpdateProgress:
+            utils.update_ProgressBar(WorkerId, ProgressValue, f"{Item['Type']}: {ItemIndex}", str(Item['Id']))
 
         Update = ClassObject.userdata(Item, IncrementalSync, UpdateFavorite)
 
         if utils.SystemShutdown:
-            dbio.DBCloseRW(KodiDBs, "update_UserData", SQLs)
-            self.close_Worker("update_UserData", False, False, ProgressBar, SQLs)
-            xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: worker exit (shutdown 2) ]", 1) # LOGINFO
+            dbio.DBCloseRW(KodiDBs, WorkerId, SQLs)
+            self.close_Worker(WorkerId, False, False, SQLs)
+            xbmc.log(f"EMBY.database.library: [ {WorkerId} ] shutdown 2", 1) # LOGINFO
             return False, False
 
         del Item
         return True, Update
 
-    def remove_Item(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, ProgressBar, IncrementalSync, ClassObject):
-        ProgressBar.update(ProgressValue, f"{Item['Type']}: {ItemIndex}", str(Item['Id']))
+    def remove_Item(self, ProgressValue, ItemIndex, Item, SQLs, KodiDBs, IncrementalSync, ClassObject):
+        utils.update_ProgressBar(self.RemoveId, ProgressValue, f"{Item['Type']}: {ItemIndex}", str(Item['Id']))
 
-        with LockPause:
+        with utils.SafeLock(LockPause):
             ClassObject.remove(Item, IncrementalSync)
 
-        if not self.pause_workers("remove_Item", SQLs, ProgressBar, ClassObject):
+        if not self.pause_workers(self.RemoveId, SQLs, ClassObject):
             return False
 
         if utils.SystemShutdown:
-            dbio.DBCloseRW(KodiDBs, "remove_Item", SQLs)
-            self.close_Worker("remove_Item", False, False, ProgressBar, SQLs)
-            xbmc.log(f"EMBY.database.library: [ Emby server {self.EmbyServer.ServerData['ServerId']}: worker exit (shutdown 2) ]", 1) # LOGINFO
+            dbio.DBCloseRW(KodiDBs, self.RemoveId, SQLs)
+            self.close_Worker(self.RemoveId, False, False, SQLs)
+            xbmc.log(f"EMBY.database.library: [ {self.RemoveId} ] shutdown 2", 1) # LOGINFO
             return False
 
         del Item
         return True
 
-    def pause_workers(self, WorkerName, SQLs, ProgressBar, ClassObject):
-        with LockPauseBusy:
+    def pause_workers(self, WorkerId, SQLs, ClassObject):
+        with utils.SafeLock(LockPauseBusy):
             # Check if Kodi db or emby is about to open -> close db, wait, reopen db
-            if self.Worker_is_paused(WorkerName):
+            if self.Worker_is_paused(WorkerId):
                 Databases = set()
 
                 for SQLKey, SQLDatabase in list(SQLs.items()):
@@ -930,33 +1095,43 @@ class Library:
                             Databases.add(SQLKey)
 
                 Databases = ",".join(Databases)
-                xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker delay {WorkerName} ] {utils.SyncPause}", 0) # LOGDEBUG
-                LockPause.acquire()
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {WorkerId} ] {utils.SyncPause}", 1) # LOGDEBUG
+
+                while not LockPause.acquire(timeout=0.1):
+                    pass
 
                 if Databases:
-                    dbio.DBCloseRW(Databases, WorkerName, SQLs)
+                    dbio.DBCloseRW(Databases, WorkerId, SQLs)
 
                     if self.LockDBRWOpen.locked():
                         self.LockDBRWOpen.release()
 
                 # Wait on progress updates
-                while self.Worker_is_paused(WorkerName):
-                    if utils.sleep(1):
-                        if ProgressBar:
-                            ProgressBar.close()
-                            del ProgressBar
+                if utils.DebugLog: xbmc.log("EMBY.database.library (DEBUG): CONDITION: --->[ SyncPauseCondition ]", 1) # LOGDEBUG
 
-                        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker delay {WorkerName} ] shutdown", 0) # LOGDEBUG
-                        LockPause.release()
-                        return False
+                with utils.SafeLock(utils.SyncPauseCondition):
+                    while self.Worker_is_paused(WorkerId):
+                        utils.SyncPauseCondition.wait(timeout=0.1)
 
-                xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: worker delay {WorkerName} ] {utils.SyncPause}", 0) # LOGDEBUG
+                        if utils.SystemShutdown:
+                            utils.close_ProgressBar(WorkerId)
+
+                            if utils.DebugLog:
+                                xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ SyncPauseCondition ]", 1) # LOGDEBUG
+                                xbmc.log(f"EMBY.database.library (DEBUG): --<[ {WorkerId} ] {utils.SyncPause}", 1) # LOGDEBUG
+
+                            LockPause.release()
+                            return False
+
+                if utils.DebugLog:
+                    xbmc.log("EMBY.database.library (DEBUG): CONDITION: ---<[ SyncPauseCondition ]", 1) # LOGDEBUG
+                    xbmc.log(f"EMBY.database.library (DEBUG): --<[ {WorkerId} ] {utils.SyncPause}", 1) # LOGDEBUG
 
                 if Databases:
-                    if not self.LockDBRWOpen.locked():
-                        self.LockDBRWOpen.acquire()
+                    while not self.LockDBRWOpen.acquire(timeout=0.1):
+                        pass
 
-                    dbio.DBOpenRW(Databases, WorkerName, SQLs)
+                    dbio.DBOpenRW(Databases, WorkerId, SQLs)
 
                 # Update object due new database -> SQLs
                 if ClassObject:
@@ -1018,11 +1193,31 @@ class Library:
         if MediaType == "Playlist":
             return playlist.Playlist(self.EmbyServer, SQLs)
 
+        if MediaType == "Trailer":
+            return trailer.Trailer(self.EmbyServer, SQLs)
+
+        if MediaType == "PhotoAlbum":
+            return photoalbum.PhotoAlbum(self.EmbyServer, SQLs)
+
+        if MediaType == "Photo":
+            return photo.Photo(self.EmbyServer, SQLs)
+
         return None
 
-    # Run workers in specific order
-    def RunJobs(self, IncrementalSync):
-        if not utils.SyncPause.get(f"server_busy_{self.EmbyServer.ServerData['ServerId']}", False):
+    def RunJobs(self, IncrementalSync, DropJobs):
+        if utils.SystemShutdown:
+            return
+
+        if self.JobBusy:
+            return
+
+        if DropJobs:
+            self.JobBusy = True
+
+        if utils.DebugLog: xbmc.log("EMBY.database.library (DEBUG): --->[ run jobs ]", 1) # LOGDEBUG
+        self.worker_userdata(IncrementalSync) # Priority
+
+        if not utils.SyncPause.get(self.ServerBusyId, False):
             if self.worker_remove(IncrementalSync):
                 if self.worker_update(IncrementalSync):
                     if self.worker_library_remove():
@@ -1033,15 +1228,17 @@ class Library:
             if self.worker_library_remove():
                 self.worker_library_add()
 
-        self.worker_userdata(IncrementalSync)
+        self.worker_userdata(IncrementalSync) # Check again after updates
+        self.JobBusy = False
+        if utils.DebugLog: xbmc.log("EMBY.database.library (DEBUG): ---<[ run jobs ]", 1) # LOGDEBUG
 
     # Select from libraries synced. Either update or repair libraries.
     # Send event back to service.py
     def select_libraries(self, mode):
         LibrariesSelected = ()
         LibrariesSelectedIds = ()
-        utils.reset_querycache()
-        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "select_libraries")
+        cache.reset_querycache()
+        embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], self.SelectLibrariesId)
 
         if mode in ('RepairLibrarySelection', 'RemoveLibrarySelection', 'UpdateLibrarySelection'):
             PendingSyncRemoved = embydb.get_LibraryRemove_EmbyLibraryIds()
@@ -1051,12 +1248,12 @@ class Library:
                     if LibrarySyncedId not in LibrariesSelectedIds:
                         LibrariesSelectedIds += (LibrarySyncedId,)
                         LibrariesSelected += ({'Id': LibrarySyncedId, 'Name': LibrarySyncedName},)
-        else:  # AddLibrarySelection
+        else: # AddLibrarySelection
             AvailableLibs = self.EmbyServer.Views.ViewItems.copy()
             PendingSyncAdded = embydb.get_LibraryAdd_EmbyLibraryIds()
 
             for AvailableLibId, AvailableLib in list(AvailableLibs.items()):
-                if AvailableLib[1] in ("movies", "musicvideos", "tvshows", "music", "audiobooks", "podcasts", "mixed", "homevideos", "playlists") and AvailableLibId not in self.LibrarySyncedNames and AvailableLibId not in PendingSyncAdded:
+                if AvailableLib[1] in ("movies", "musicvideos", "tvshows", "music", "audiobooks", "podcasts", "mixed", "homevideos", "playlists", "trailers") and AvailableLibId not in self.LibrarySyncedNames and AvailableLibId not in PendingSyncAdded:
                     LibrariesSelected += ({'Id': AvailableLibId, 'Name': AvailableLib[0]},)
 
         SelectionMenu = [x['Name'] for x in LibrariesSelected]
@@ -1071,20 +1268,20 @@ class Library:
         elif mode == 'AddLibrarySelection':
             Text = utils.Translate(33120)
         else:
-            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "select_libraries")
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.SelectLibrariesId)
             return
 
         Selections = utils.Dialog.multiselect(Text, SelectionMenu)
 
         if not Selections:
-            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "select_libraries")
+            dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.SelectLibrariesId)
             return
 
         # "All" selected
         if 0 in Selections:
             Selections = list(range(1, len(LibrariesSelected) + 1))
 
-        xbmc.executebuiltin('Dialog.Close(addoninformation)')
+        utils.close_dialog(10146) # addoninformation
         LibraryIdsRemove = ()
         LibraryRemoveItems = ()
         LibraryIdsAdd = ()
@@ -1102,15 +1299,15 @@ class Library:
                 LibraryRemoveItems += (LibrariesSelected[x - 1],)
                 LibraryIdsRemove += (LibrariesSelected[x - 1]['Id'],)
 
-        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], "select_libraries")
-        SQLs = self.open_EmbyDBRW("select_libraries", True)
+        dbio.DBCloseRO(self.EmbyServer.ServerData['ServerId'], self.SelectLibrariesId)
+        SQLs = self.open_EmbyDBRW(self.SelectLibrariesId, True)
 
         if LibraryRemoveItems:
             # detect shared content type
             removeGlobalVideoContent = True
 
             for LibrarySyncedId, _, LibrarySyncedEmbyType, _ in self.LibrarySynced:
-                if LibrarySyncedId not in LibraryIdsRemove and LibrarySyncedEmbyType in ('Movie', 'Series', 'Video', 'MusicVideo'):
+                if LibrarySyncedId not in LibraryIdsRemove + ('999999999', '999999998') and LibrarySyncedEmbyType in ('Movie', 'Series', 'Video', 'MusicVideo'):
                     removeGlobalVideoContent = False
                     break
 
@@ -1118,6 +1315,9 @@ class Library:
                 xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: remove library: 999999999 / Person ]", 1) # LOGINFO
                 SQLs["emby"].remove_LibrarySynced("999999999")
                 SQLs["emby"].add_LibraryRemove("999999999", "Person")
+                xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: remove library: 999999998 / Video ]", 1) # LOGINFO
+                SQLs["emby"].remove_LibrarySynced("999999998")
+                SQLs["emby"].add_LibraryRemove("999999998", "Video")
 
             # Remove libraries
             for LibraryIdRemove in LibraryRemoveItems:
@@ -1135,17 +1335,19 @@ class Library:
                 if LibraryIdAdd in self.EmbyServer.Views.ViewItems:
                     ViewData = self.EmbyServer.Views.ViewItems[LibraryIdAdd]
 
-                    if ViewData[1] in ('movies', 'tvshows', 'mixed', 'musicvideos'):
+                    if ViewData[1] in ('movies', 'tvshows', 'mixed', 'musicvideos', 'trailers'):
                         syncGlobalVideoContent = True
                         break
 
             for LibrarySyncedId, _, LibrarySyncedEmbyType, _ in self.LibrarySynced:
-                if LibrarySyncedId == "999999999" and LibrarySyncedEmbyType == "Person":
+                if (LibrarySyncedId == "999999999" and LibrarySyncedEmbyType == "Person") or (LibrarySyncedId == "999999998" and LibrarySyncedEmbyType == "Video"):
                     syncGlobalVideoContent = False
 
             if syncGlobalVideoContent:
                 SQLs["emby"].add_LibraryAdd("999999999", "shared", "Person", "video") # Person can only be queried globally by Emby server
-                xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: added library: 999999999 ]", 1) # LOGINFO
+                SQLs["emby"].add_LibraryAdd("999999998", "shared", "Video", "none") # Video's with no ParentId are Trailes in TrailerFolder and can only be queried globally by Emby server
+                xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: added library: 999999999 / Person ]", 1) # LOGINFO
+                xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: added library: 999999998 / Video ]", 1) # LOGINFO
 
             # Add libraries
             for LibraryId in LibraryIdsAdd:
@@ -1175,7 +1377,6 @@ class Library:
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Genre", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Tag", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Studio", "video")
-                        SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Video", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Movie", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "BoxSet", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Folder", "none")
@@ -1188,10 +1389,12 @@ class Library:
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "BoxSet", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Folder", "none")
                     elif library_type == 'homevideos':
+                        SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "PhotoAlbum", "none")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Genre", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Tag", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Studio", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Video", "video")
+                        SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Photo", "none")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "BoxSet", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Folder", "none")
                     elif library_type == 'tvshows':
@@ -1220,6 +1423,9 @@ class Library:
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Season", "video")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "MusicAlbum", "music")
                         SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Playlist", "video,music")
+                    elif library_type == 'trailers':
+                        SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Trailer", "none")
+                        SQLs["emby"].add_LibraryAdd(LibraryId, library_name, "Folder", "none")
 
                     xbmc.log(f"EMBY.database.library: ---[ Emby server {self.EmbyServer.ServerData['ServerId']}: added library: {LibraryId} ]", 1) # LOGINFO
                 else:
@@ -1227,7 +1433,7 @@ class Library:
 
             SQLs["emby"].update_LastIncrementalSync(utils.currenttime())
 
-        self.close_EmbyDBRW("select_libraries", SQLs)
+        self.close_EmbyDBRW(self.SelectLibrariesId, SQLs)
 
         if LibraryIdsRemove:
             utils.start_thread(self.worker_library_remove, ())
@@ -1236,8 +1442,8 @@ class Library:
             utils.start_thread(self.worker_library_add, ())
 
     def refresh_boxsets(self):  # threaded by caller
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_boxsets ]", 0) # LOGDEBUG
-        xbmc.executebuiltin('Dialog.Close(addoninformation)')
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_boxsets ]", 1) # LOGDEBUG
+        utils.close_dialog(10146) # addoninformation
         SQLs = self.open_EmbyDBRW("refresh_boxsets", False)
         dbio.DBOpenRW("video", "refresh_boxsets", SQLs)
 
@@ -1260,139 +1466,7 @@ class Library:
         self.close_EmbyDBRW("refresh_boxsets", SQLs)
         self.worker_remove(False)
         self.worker_library_add()
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_boxsets ]", 0) # LOGDEBUG
-
-    def SyncThemes(self):
-        if not utils.check_tvtunes:
-            return
-
-        xbmc.executebuiltin('Dialog.Close(addoninformation)')
-        LibraryThemeIds = set()
-        DownloadAudioThemes = False
-        DownloadVideoThemes = False
-        Path = os.path.join(utils.DownloadPath, "EMBY-themes", "")
-        utils.mkDir(Path)
-        Path = os.path.join(Path, self.EmbyServer.ServerData['ServerId'], "")
-        utils.mkDir(Path)
-        utils.SendJson('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"service.tvtunes","enabled":true}}')
-        tvtunes = xbmcaddon.Addon(id="service.tvtunes")
-        tvtunes.setSetting('custom_path_enable', "true")
-        tvtunes.setSetting('custom_path', Path)
-        xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: TV Tunes custom path is enabled and set", 1) # LOGINFO
-        UseAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33762), defaultbutton=11) # defaultbutton=11 = yes
-
-        if UseAudioThemes and not utils.useDirectPaths:
-            DownloadAudioThemes = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33758), yeslabel=utils.Translate(33760), nolabel=utils.Translate(33761), defaultbutton=11) # defaultbutton=11 = yes
-
-        UseVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33763), defaultbutton=10) # defaultbutton=10 = no
-
-        if UseVideoThemes and not utils.useDirectPaths:
-            DownloadVideoThemes = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33759), yeslabel=utils.Translate(33760), nolabel=utils.Translate(33761), defaultbutton=10) # defaultbutton=10 = no
-
-        ProgressBar = xbmcgui.DialogProgressBG()
-        ProgressBar.create(utils.Translate(33199), utils.Translate(33451))
-
-        for LibrarySyncedId, _, LibrarySyncedEmbyType, _ in self.LibrarySynced:
-            if LibrarySyncedEmbyType in ('Movie', 'Series'):
-                LibraryThemeIds.add(LibrarySyncedId)
-
-        items = {}
-
-        for LibraryThemeId in LibraryThemeIds:
-            if UseVideoThemes:
-                for item in self.EmbyServer.API.get_Items(LibraryThemeId, ("Movie", "Series"), True, {'HasThemeVideo': "True"}, "", None, True, False):
-                    items[item['Id']] = normalize_string(item['Name'])
-
-            if UseAudioThemes:
-                for item in self.EmbyServer.API.get_Items(LibraryThemeId, ("Movie", "Series"), True, {'HasThemeSong': "True"}, "", None, True, False):
-                    items[item['Id']] = normalize_string(item['Name'])
-
-        Index = 1
-        TotalItems = len(items) / 100
-
-        for ItemId, Name in list(items.items()):
-            ProgressBar.update(int(Index / TotalItems), utils.Translate(33451), Name)
-            NfoPath = os.path.join(Path, Name, "")
-            utils.mkDir(NfoPath)
-            NfoFile = f"{NfoPath}tvtunes.nfo"
-            ThemeItems = []
-
-            if UseAudioThemes and not UseVideoThemes:
-                Theme = self.EmbyServer.API.get_themes(ItemId, True, False)
-
-                if 'ThemeSongsResult' in Theme:
-                    ThemeItems += Theme['ThemeSongsResult']['Items']
-            elif UseVideoThemes and not UseAudioThemes:
-                Theme = self.EmbyServer.API.get_themes(ItemId, False, True)
-
-                if 'ThemeVideosResult' in Theme:
-                    ThemeItems += Theme['ThemeVideosResult']['Items']
-            elif UseVideoThemes and UseAudioThemes:
-                Theme = self.EmbyServer.API.get_themes(ItemId, True, True)
-
-                if 'ThemeSongsResult' in Theme:
-                    ThemeItems += Theme['ThemeSongsResult']['Items']
-
-                if 'ThemeVideosResult' in Theme:
-                    ThemeItems += Theme['ThemeVideosResult']['Items']
-
-            if utils.SystemShutdown:
-                ProgressBar.close()
-                del ProgressBar
-                return
-
-            # add content sorted by audio -> video
-            if ThemeItems:
-                XMLData = b'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<tvtunes>\n'
-
-                for ThemeItem in ThemeItems:
-                    if 'Path' not in ThemeItem or 'Size' not in ThemeItem or not ThemeItem['Size']:
-                        xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Theme: No Path or Size {ThemeItem}", 0) # LOGDEBUG
-                        xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Theme: No Path or Size: {ThemeItem['Id']}", 3) # LOGERROR
-                        continue
-
-                    isAudio = ThemeItem.get('Type', 'unknown') == 'Audio'
-                    isVideo = ThemeItem.get('Type', 'unknown') == 'Video'
-
-                    if isAudio:
-                        Filename = f"emby-themes-audio-{self.EmbyServer.ServerData['ServerId']}-{ThemeItem['Id']}-{quote(Name).replace('-', '<_>')}-theme.{ThemeItem.get('Container', 'unknown')}"
-                    else:
-                        Filename = f"emby-themes-video-{self.EmbyServer.ServerData['ServerId']}-{ThemeItem['Id']}-{quote(Name).replace('-', '<_>')}-theme.{ThemeItem.get('Container', 'unknown')}"
-
-                    MetaDataFile = f"{NfoPath}/metadata-{ThemeItem['Id']}.json"
-                    utils.delFile(MetaDataFile)
-                    utils.writeFile(MetaDataFile, json.dumps(ThemeItem))
-
-                    if (isAudio and DownloadAudioThemes) or (isVideo and DownloadVideoThemes):
-                        if utils.useDirectPaths:
-                            ThemeItemPath = ThemeItem['KodiFullPath']
-                        else:
-                            ThemeItemPath = xbmcvfs.translatePath(f"{NfoPath}{Filename}")
-
-                        if not xbmcvfs.exists(ThemeItemPath):
-                            self.EmbyServer.API.download_file(ThemeItem['Id'], "", NfoPath, ThemeItemPath, ThemeItem['Size'], Name, "", "", "", "")
-                    else:
-                        common.set_streams(ThemeItem)
-                        common.set_chapters(ThemeItem, self.EmbyServer.ServerData['ServerId'])
-                        common.set_path_filename(ThemeItem, self.EmbyServer.ServerData['ServerId'], None, True)
-
-                        if utils.useDirectPaths:
-                            ThemeItemPath = ThemeItem['KodiFullPath']
-                        else:
-                            ThemeItem['KodiPath'] = ThemeItem['KodiPath'].replace("|redirect-limit=1000", "")
-                            ThemeItemPath = f"{ThemeItem['KodiPath']}{Filename}"
-
-                    XMLData += f"    <file>{utils.encode_XML(ThemeItemPath)}</file>\n".encode("utf-8")
-
-                XMLData += b'</tvtunes>'
-                utils.delFile(NfoFile)
-                utils.writeFile(NfoFile, XMLData)
-
-            Index += 1
-
-        ProgressBar.close()
-        del ProgressBar
-        utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33153), icon=utils.icon, time=utils.displayMessage, sound=False)
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_boxsets ]", 1) # LOGDEBUG
 
     def SyncLiveTV(self):
         if not utils.check_iptvsimple():
@@ -1444,8 +1518,14 @@ class Library:
 
         # Build M3U
         PlaylistM3U = "#EXTM3U\n"
+        ReleaseCounter = 0
 
         for ChannelSorted in ChannelsSorted:
+            ReleaseCounter += 1
+
+            if ReleaseCounter % 50 == 0:
+                xbmc.sleep(0) # release GIL
+
             if ChannelSorted['TagItems']:
                 Tag = ChannelSorted['TagItems'][0]['Name']
             else:
@@ -1493,8 +1573,14 @@ class Library:
 
         xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: load EPG ]", 1) # LOGINFO
         epg = '<?xml version="1.0" encoding="utf-8" ?><tv>'
+        ReleaseCounter = 0
 
         for item in self.EmbyServer.API.get_channelprogram():
+            ReleaseCounter += 1
+
+            if ReleaseCounter % 50 == 0:
+                xbmc.sleep(0) # release GIL
+
             temp = item['StartDate'].split("T")
             timestampStart = temp[0].replace("-", "")
             temp2 = temp[1].split(".")
@@ -1533,132 +1619,125 @@ class Library:
 
     # Add item_id to userdata queue
     def userdata(self, Items, IncrementalSync, ProcessUpdates=True):  # threaded by caller -> websocket via monitor
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: userdata ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: userdata ]", 1) # LOGDEBUG
 
         if Items:
             SQLs = self.open_EmbyDBRW("userdata", True)
-
-            for Item in Items:
-                SQLs["emby"].add_Userdata(Item[0], Item[1], Item[2], Item[3], Item[4], Item[5], Item[6], Item[7], Item[8])
-
+            SQLs["emby"].add_Userdatas(Items)
             self.close_EmbyDBRW("userdata", SQLs)
 
             if ProcessUpdates:
                 self.worker_userdata(IncrementalSync)
 
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: userdata ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: userdata ]", 1) # LOGDEBUG
 
     # Add item_id to updated queue
     def updated(self, Items, IncrementalSync, ProcessUpdates=True):  # threaded by caller
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: updated ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: updated ]", 1) # LOGDEBUG
 
         if Items:
             SQLs = self.open_EmbyDBRW("updated", True)
-
-            for Item in Items:
-                SQLs["emby"].add_UpdateItem(Item[0], Item[1], Item[2])
-
+            SQLs["emby"].add_UpdateItems(Items)
             self.close_EmbyDBRW("updated", SQLs)
 
             if ProcessUpdates:
-                if not utils.SyncPause.get(f"server_busy_{self.EmbyServer.ServerData['ServerId']}", False):
+                if not utils.SyncPause.get(self.ServerBusyId, False):
                     self.worker_update(IncrementalSync)
                 else:
-                    xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: updated trigger skipped due to server busy", 1) # LOGINFO
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: updated trigger skipped due to server busy", 1) # LOGINFO
 
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: updated ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: updated ]", 1) # LOGDEBUG
 
     # Add item_id to removed queue
     def removed(self, Ids, IncrementalSync, ProcessUpdates=True):  # threaded by caller
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: removed ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: removed ]", 1) # LOGDEBUG
 
         if Ids:
             SQLs = self.open_EmbyDBRW("removed", True)
-
-            for Id in Ids:
-                SQLs["emby"].add_RemoveItem(Id, "")
-
+            SQLs["emby"].add_RemoveItems_EmbyId(Ids)
             self.close_EmbyDBRW("removed", SQLs)
 
             if ProcessUpdates:
-                if not utils.SyncPause.get(f"server_busy_{self.EmbyServer.ServerData['ServerId']}", False):
+                if not utils.SyncPause.get(self.ServerBusyId, False):
                     self.worker_remove(IncrementalSync)
                 else:
                     xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: removed trigger skipped due to server busy", 1) # LOGINFO
 
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: removed ]", 0) # LOGDEBUG
+        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: removed ]", 1) # LOGDEBUG
 
     # Add item_id to removed queue
     def removed_deduplicate(self, Ids):  # threaded by caller
         if Ids:
             SQLs = self.open_EmbyDBRW("removed", True)
-
-            for Id in Ids:
-                SQLs["emby"].add_RemoveItem(Id[1], Id[0])
-
+            SQLs["emby"].add_RemoveItems_EmbyLibraryId_EmbyId(Ids)
             self.close_EmbyDBRW("removed", SQLs)
             self.worker_remove(True)
 
-    def Worker_is_paused(self, WorkerName):
+    def Worker_is_paused(self, WorkerId):
         for Key, Busy in list(utils.SyncPause.items()):
             if Busy:
-                if WorkerName in ("worker_remove", "worker_library_remove") and Key.startswith("server_busy_"): # Continue removes, even emby server is busy
+                if WorkerId.endswith("remove") and Key == self.ServerBusyId: # Continue removes, even emby server is busy
                     continue
 
-                # Doublecheck scan is in progress, sometimes Kodi simply does not fire callbacks
-                if Key == "kodi_rw":
-                    IsScanningVideo, IsScanningMusic = utils.get_scans()
-
-                    if not IsScanningVideo and not IsScanningMusic:
-                        xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Worker_is_paused overwrite Kodi scans: {WorkerName} / {utils.SyncPause}", 1) # LOGINFO
-                        continue
-                elif Key.startswith("server_starting") and not Key.endswith(self.EmbyServer.ServerData['ServerId']):
-                    continue
-                elif Key.startswith("server_busy") and not Key.endswith(self.EmbyServer.ServerData['ServerId']):
-                    continue
-                elif Key.startswith("database_init") and not Key.endswith(self.EmbyServer.ServerData['ServerId']):
-                    continue
-                elif Key.startswith("server_reconnecting") and not Key.endswith(self.EmbyServer.ServerData['ServerId']):
+                if Key.endswith("server_busy") and Key != self.ServerBusyId:
                     continue
 
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Worker_is_paused: {WorkerName} / {utils.SyncPause}", 1) # LOGINFO
+                if Key.endswith("database_init") and Key != self.ServerDatabaseInitId:
+                    continue
+
+                if Key.endswith("server_reconnecting") and Key != self.ServerReconnectingId:
+                    continue
+
+
+
+                if Key.endswith("server_startscync") and Key != self.ServerStartSyncId:
+                    continue
+
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): Emby server Worker_is_paused: {WorkerId} / {utils.SyncPause}", 1) # LOGINFO
                 return True
 
         return False
 
     def refresh_musicvideolinks(self):
-        xbmc.log(f"EMBY.database.library: -->[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_musicvideolinks ]", 0) # LOGDEBUG
-        xbmc.executebuiltin('Dialog.Close(addoninformation)')
-        ProgressBar = xbmcgui.DialogProgressBG()
-        ProgressBar.create(utils.Translate(33749), utils.Translate(33363))
-        videodb = dbio.DBOpenRO("video", "MusicvideoLinks")
-        MusicVideoDatas = videodb.get_musicvideos_KodiId_MusicBrainzId_Artist_Title()
-        dbio.DBCloseRO("video", "MusicvideoLinks")
-        TotalItems = len(MusicVideoDatas) / 100
-        SQLs = {}
-        dbio.DBOpenRW("music", "MusicvideoLinks", SQLs)
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): -->[ {self.MusicVideoLinks} ] refresh", 1) # LOGDEBUG
+        utils.close_dialog(10146) # addoninformation
 
-        # Clear old links
+        utils.create_ProgressBar(self.MusicVideoLinks, utils.Translate(33749), utils.Translate(33363))
+        videodb = dbio.DBOpenRO("video", self.MusicVideoLinks)
+        MusicVideoDatas = videodb.get_musicvideos_KodiId_MusicBrainzId_Artist_Title()
+        dbio.DBCloseRO("video", self.MusicVideoLinks)
+        TotalItems = len(MusicVideoDatas)
+        SQLs = {}
+        dbio.DBOpenRW("music", self.MusicVideoLinks, SQLs)
         SQLs["music"].del_song_musicvideo()
 
-        # Add new musicvideo links
-        for Index, MusicVideoData in enumerate(MusicVideoDatas, 1): # MusicBrainzId, Path, Title, Artist
-            if utils.SystemShutdown:
-                break
+        # Bulk Update in Chunks
+        if MusicVideoDatas:
+            for i in range(0, TotalItems, 1000):
+                xbmc.sleep(0) # release GIL
 
-            SQLs["music"].update_song_musicvideo(MusicVideoData[0], MusicVideoData[1], MusicVideoData[2], MusicVideoData[3])
-            ProgressBar.update(int(Index / TotalItems), utils.Translate(33363), f"{MusicVideoData[3]} - {MusicVideoData[2]}")
+                if utils.SystemShutdown:
+                    break
 
-        dbio.DBCloseRW("music", "MusicvideoLinks", SQLs)
-        ProgressBar.close()
-        del ProgressBar
-        xbmc.log(f"EMBY.database.library: --<[ Emby server {self.EmbyServer.ServerData['ServerId']}: refresh_musicvideolinks ]", 0) # LOGDEBUG
+                chunk = MusicVideoDatas[i : i + 1000]
+                SQLs["music"].update_song_musicvideo(chunk)
+                utils.update_ProgressBar(self.MusicVideoLinks, (i + len(chunk)) / TotalItems * 100, utils.Translate(33363), f"{chunk[-1][3]} - {chunk[-1][2]}")
 
-    def ItemsSort(self, GeneratorFunction, SQLs, Items, Reverse, RecordsPercent, ProgressBar):
-        SortItems = {'Movie': set(), 'Video': set(), 'BoxSet': set(), 'MusicVideo': set(), 'Series': set(), 'Episode': set(), 'MusicAlbum': set(), 'MusicArtist': set(), 'AlbumArtist': set(), 'Season': set(), 'Folder': set(), 'Audio': set(), 'Genre': set(), 'MusicGenre': set(), 'Tag': set(), 'Person': set(), 'Studio': set(), 'Playlist': set()}
+        dbio.DBCloseRW("music", self.MusicVideoLinks, SQLs)
+        utils.close_ProgressBar(self.MusicVideoLinks)
+        if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): --<[ {self.MusicVideoLinks} ] refresh", 1) # LOGDEBUG
+
+    def ItemsSort(self, GeneratorFunction, SQLs, Items, Reverse, RecordsPercent):
+        SortItems = {'Movie': set(), 'Video': set(), 'BoxSet': set(), 'MusicVideo': set(), 'Series': set(), 'Episode': set(), 'MusicAlbum': set(), 'MusicArtist': set(), 'AlbumArtist': set(), 'Season': set(), 'Folder': set(), 'Audio': set(), 'Genre': set(), 'MusicGenre': set(), 'Tag': set(), 'Person': set(), 'Studio': set(), 'Playlist': set(), 'Trailer': set(), 'PhotoAlbum': set(), 'Photo': set()}
         Others = set()
+        ReleaseCounter = 0
 
-        for Valid, Item in GeneratorFunction(SQLs, Items, RecordsPercent, ProgressBar):
+        for Valid, Item in GeneratorFunction(SQLs, Items, RecordsPercent):
+            ReleaseCounter += 1
+
+            if ReleaseCounter % 100 == 0:
+                xbmc.sleep(0) # release GIL
+
             if not Item:
                 continue
 
@@ -1668,22 +1747,22 @@ class Library:
                 if Item['Type'] in SortItems:
                     SortItems[Item['Type']].add(json.dumps(Item)) # Dict is not hashable (not possible adding "dict" to "set") -> convert to json string necessary
                 else: # e.g. PlaceHolder
-                    xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Unsupported item type {Item['Type']}", 1) # LOGINFO
+                    if utils.DebugLog: xbmc.log(f"EMBY.database.library(DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Unsupported item type {Item['Type']}", 1) # LOGDEBUG
                     Others.add(json.dumps(Item))
             else:
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Unknown {Item}", 1) # LOGINFO
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Unknown {Item} / {GeneratorFunction}", 1) # LOGDEBUG
                 Others.add(json.dumps(Item))
                 continue
 
         if Reverse: # on remove, reverse sort order
-            return {"video": [SortItems['Person'], SortItems['Studio'], SortItems['Genre'], SortItems['Tag'], SortItems['BoxSet'], SortItems['Video'], SortItems['Movie'], SortItems['Episode'], SortItems['Season'], SortItems['Series']], "music,video": [SortItems['MusicGenre'], SortItems['Audio'], SortItems['MusicVideo'], SortItems['MusicAlbum'], SortItems['MusicArtist'], SortItems['Playlist']], "none": [SortItems['Folder']]}, Others
+            return {"video": [SortItems['Person'], SortItems['Studio'], SortItems['Genre'], SortItems['Tag'], SortItems['BoxSet'], SortItems['Trailer'], SortItems['Video'], SortItems['Movie'], SortItems['Episode'], SortItems['Season'], SortItems['Series']], "music,video": [SortItems['MusicGenre'], SortItems['Audio'], SortItems['MusicVideo'], SortItems['MusicAlbum'], SortItems['MusicArtist'], SortItems['Playlist']], "none": [SortItems['Photo'], SortItems['PhotoAlbum'], SortItems['Folder']]}, Others
 
-        return {"video": [SortItems['Person'], SortItems['Studio'], SortItems['Genre'], SortItems['Tag'], SortItems['Series'], SortItems['Season'], SortItems['Episode'], SortItems['Movie'], SortItems['Video'], SortItems['BoxSet']], "music,video": [SortItems['MusicGenre'], SortItems['MusicArtist'], SortItems['MusicAlbum'], SortItems['MusicVideo'], SortItems['Audio'], SortItems['Playlist']], "none": [SortItems['Folder']]}, Others
+        return {"video": [SortItems['Person'], SortItems['Studio'], SortItems['Genre'], SortItems['Tag'], SortItems['Series'], SortItems['Season'], SortItems['Trailer'], SortItems['Episode'], SortItems['Movie'], SortItems['Video'], SortItems['BoxSet']], "music,video": [SortItems['MusicGenre'], SortItems['MusicArtist'], SortItems['MusicAlbum'], SortItems['MusicVideo'], SortItems['Audio'], SortItems['Playlist']], "none": [SortItems['Folder'], SortItems['PhotoAlbum'], SortItems['Photo']]}, Others
 
     def set_recording_type(self, Item):
         if 'Type' in Item:
             if Item['Type'] == "Recording":
-                xbmc.log(f"EMBY.database.library: Emby server {self.EmbyServer.ServerData['ServerId']}: Recording detected", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.library (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Recording detected", 1) # LOGDEBUG
 
                 if Item.get('IsSeries', False):
                     Item['Type'] = 'Episode'

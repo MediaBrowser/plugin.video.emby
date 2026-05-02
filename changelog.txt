@@ -1,3 +1,192 @@
+12.4.19
+=============
+fix dedulication
+fix minor sync issues
+fix minor shutdown issue
+fix playcount for songs
+
+
+
+12.4.18
+=============
+fix offline content
+improve http communication
+fix dynamic nodes cache for multitype content
+fix dynamic nodes search function
+fix watch together pause
+
+
+
+12.4.17
+=============
+fix favorites
+fix playlist artworks
+fix subitem (Tag, Genre etc.) artwork updates
+
+
+
+12.4.16
+=============
+add new Boxset info to Kodi database
+fix 3d metadata flags
+add new Kodi database strHdrDetail field
+fix subtitle metadata in Kodi database
+add translations
+fix artwork changes
+fix dates (production year)
+
+
+
+12.4.15
+=============
+fix theme play bug
+fix remove multiversion episode
+fix specials sync
+
+
+
+12.4.14
+=============
+unblock database opens
+fix minor progress update issue
+fix livetv progress
+improve kodi scan detection
+fix picture viewer
+cleanup code
+fix cinemamode for native content when autoplay next is enabled
+several minor bugfixes
+fix progress for fake themes
+improve themes play
+
+
+
+12.4.13
+=============
+fix database open
+
+
+
+12.4.12
+=============
+intercept invalid Emby items while sync
+stability improvements
+
+
+
+12.4.11
+=============
+fix settings
+fix folder delete
+
+
+
+12.4.10
+=============
+fix init sync bug
+
+
+
+12.4.9
+=============
+update Chinese language
+fix multiversion movie progress sync
+
+
+
+12.4.8
+=============
+fix close progress bars
+fix database commit issues
+fix sync timing issues
+fix shutdown issues
+
+
+
+12.4.7
+=============
+fix timeformat issue for Kodi 21
+
+
+
+12.4.6
+=============
+improve progress bars
+improve performance
+fix playback issues
+update Chinese language
+
+
+
+12.4.5
+=============
+fix progress position
+
+
+
+12.4.4
+=============
+update Chinese language
+fix Kodi 22 sync issue for multicontent movie
+
+
+
+12.4.3
+=============
+fix date issue
+
+
+
+12.4.2
+=============
+fix micro stalls for dynamic/hybrid nodes
+update Chinese language file
+fix transcoding for dynamic/hybrid nodes
+fix dynamic hybrid nodes
+fix favorits in dynamic nodes
+improve mime type detection (avoids stat call timeouts)
+fix themes for tvshow hybrid nodes
+
+
+
+12.4.1
+=============
+fix song listitem when loaded from mymusic.db and playcount is available
+fix playerid for themes
+improve performance and less cpu load
+improve sync performance
+add debug log option into advanced settings
+fix content remove issue
+fix date issue
+themes based on skip intro markers
+themes based on content playback
+fix cinema intros whem themes and autoplay next is enabled
+fix trailer remove for edge cases
+fix multiversion file delete
+fix addon settings when Kodi holds a lock
+fix micro stalls on Kodi
+fix watch together when playback was in progress
+update chinese language file
+
+
+
+12.4.0
+=============
+sync trailers (used as hybrid node)
+sync photos (used as hybrid node)
+sync photoalbums (used as hybrid node)
+sync themes
+sync specials
+fix musicartist remove for mixed content libraries
+fix playlist sync issues
+improve sync performance
+improve photoviewer
+improve hybrid nodes
+improve caching for dynamic nodes
+themeplay is now native implemented
+fix several minor issues
+
+
+
 12.3.8
 =============
 fix tag-links database issue

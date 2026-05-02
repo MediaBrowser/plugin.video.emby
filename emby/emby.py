@@ -1,6 +1,6 @@
 import uuid
 import json
-import _socket
+import socket
 import xbmcvfs
 import xbmc
 from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, servermanual
@@ -24,7 +24,6 @@ class EmbyServer:
         self.Views = views.Views(self)
         self.library = library.Library(self)
         self.Online = False
-        self.Loaded = False
         self.MsgOffline = False
         xbmc.log("EMBY.emby.emby: ---[ INIT EMBYCLIENT: ]---", 1) # LOGINFO
 
@@ -36,7 +35,7 @@ class EmbyServer:
             utils.start_thread(self.worker_ServerReconnect, (ShowMsg,))
 
     def worker_ServerReconnect(self, ShowMsg):
-        xbmc.log(f"EMBY.emby.emby: THREAD: --->[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.emby (DEBUG): THREAD: --->[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGDEBUG
 
         if not self.ServerReconnecting:
             if ShowMsg and utils.offlineMsg:
@@ -48,7 +47,8 @@ class EmbyServer:
                     utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=f"{self.ServerData['ServerName']}: {utils.Translate(33575)}", time=utils.displayMessage, sound=False)
                     self.MsgOffline = True
 
-            utils.SyncPause.update({f"server_reconnecting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
+            utils.update_SyncPause(self.library.ServerReconnectingId, True)
+            utils.update_SyncPause(self.library.ServerBusyId, False)
             self.ServerReconnecting = True
 
             while True:
@@ -67,43 +67,51 @@ class EmbyServer:
                     self.start()
                     break
 
-            utils.SyncPause[f"server_reconnecting_{self.ServerData['ServerId']}"] = False
+            utils.update_SyncPause(self.library.ServerReconnectingId, False)
             self.ServerReconnecting = False
 
-        xbmc.log(f"EMBY.emby.emby: THREAD: ---<[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.emby: THREAD (DEBUG): ---<[ Reconnecting ] {self.ServerData['ServerName']} / {self.ServerData['ServerId']}", 1) # LOGDEBUG
 
     def start(self):
         xbmc.log(f"EMBY.emby.emby: ---[ START EMBYCLIENT: {self.ServerData['ServerName']} / {self.ServerData['ServerId']}]---", 1) # LOGINFO
-        utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = True
-        self.Online = True
         self.library.load_settings()
+        utils.update_SyncPause(self.library.ServerStartingId, True)
+        self.Online = True
+
+        with utils.SafeLock(utils.EmbyServerOnlineCondition):
+            utils.EmbyServerOnlineCondition.notify_all()
+
         playerops.init_RemoteClient(self.ServerData['ServerId'])
         self.Views.update_views()
         self.Views.update_nodes()
         self.http.start()
         utils.start_thread(self.library.KodiStartSync, (self.Firstrun,))  # start initial sync
         self.Firstrun = False
-        self.Loaded = True
 
         if utils.connectMsg:
             utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33000), icon=self.ServerData['UserImageUrl'], time=utils.displayMessage, sound=False)
 
-        utils.SyncPause[f"server_starting_{self.ServerData['ServerId']}"] = False
+        utils.update_SyncPause(self.library.ServerStartingId, False)
         xbmc.log("EMBY.emby.emby: [ Server Online ]", 1) # LOGINFO
 
     def stop(self):
         xbmc.log(f"EMBY.emby.emby: --->[ STOP EMBYCLIENT: {self.ServerData['ServerId']} ]---", 1) # LOGINFO
 
         if self.EmbySession and not self.ShutdownInProgress:
-            xbmc.log("EMBY.emby.emby: Emby client stop", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Emby client stop", 1) # LOGDEBUG
             self.ShutdownInProgress = True
-            utils.SyncPause.update({f"server_starting_{self.ServerData['ServerId']}": True, f"server_busy_{self.ServerData['ServerId']}": False})
+            utils.update_SyncPause(self.library.ServerStartingId, True)
+            utils.update_SyncPause(self.library.ServerBusyId, False)
             playerops.delete_RemoteClient(self.ServerData['ServerId'], [self.EmbySession[0]['Id']], True)
             self.EmbySession = []
             self.Online = False
+
+            with utils.SafeLock(utils.EmbyServerOnlineCondition):
+                utils.EmbyServerOnlineCondition.notify_all()
+
             self.ShutdownInProgress = False
         else:
-            xbmc.log("EMBY.emby.emby: Emby client already closed", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Emby client already closed", 1) # LOGDEBUG
 
         self.http.stop()
         xbmc.log(f"EMBY.emby.emby: ---<[ STOP EMBYCLIENT: {self.ServerData['ServerId']} ]---", 1) # LOGINFO
@@ -187,7 +195,7 @@ class EmbyServer:
                             if self.ServerHandshake():
                                 break
                 elif ConnectionMode == "ManualAddress":
-                    xbmc.log("EMBY.emby.emby: Adding manual server", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Adding manual server", 1) # LOGDEBUG
                     Dialog = servermanual.ServerManual("script-emby-connect-server-manual.xml", *utils.CustomDialogParameters)
                     Dialog.doModal()
                     self.ServerData['ManualAddress'] = Dialog.ManualAddress
@@ -235,7 +243,7 @@ class EmbyServer:
         utils.start_thread(self.EstablishExistingConnection, ())
 
     def EstablishExistingConnection(self):
-        xbmc.log("EMBY.emby.emby: THREAD: --->[ EstablishExistingConnection ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): THREAD: --->[ EstablishExistingConnection ]", 1) # LOGDEBUG
 
         while True:
             isValid, Resync, SaveConfig = self.TestConnections()
@@ -244,36 +252,36 @@ class EmbyServer:
                 ForceResync = False
 
                 if Resync: # Resync = True when Emby server version has changed upon "utils.EmbyServerVersionResync" threshold
-                    xbmc.log("EMBY.emby.emby: EstablishExistingConnection: init resync", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): EstablishExistingConnection: init resync", 1) # LOGDEBUG
                     ForceResync = utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33222)) # final warning
 
                     if not ForceResync: # final warning
-                        xbmc.log("EMBY.emby.emby: THREAD: ---<[ EstablishExistingConnection ] resync abort", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.emby: THREAD (DEBUG): ---<[ EstablishExistingConnection ] resync abort", 1) # LOGDEBUG
                         return
 
                 if self.ServerHandshake():
                     self.start()
 
                     if ForceResync:
-                        xbmc.log("EMBY.emby.emby: EstablishExistingConnection: init resync", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): EstablishExistingConnection: init resync", 1) # LOGDEBUG
                         self.ServerData["ServerVersion"] = Resync
                         self.save_credentials()
                         pluginmenu.factoryreset(True, favorites)
                     elif SaveConfig:
-                        xbmc.log("EMBY.emby.emby: EstablishExistingConnection: Save config", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): EstablishExistingConnection: Save config", 1) # LOGDEBUG
                         self.save_credentials()
 
                 break
 
             if self.ServerData.get('ServerRemoved', False):
-                xbmc.log("EMBY.emby.emby: THREAD: ---<[ EstablishExistingConnection ] server removed", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.emby: THREAD (DEBUG): ---<[ EstablishExistingConnection ] server removed", 1) # LOGDEBUG
                 return
 
             if utils.sleep(1):
-                xbmc.log("EMBY.emby.emby: THREAD: ---<[ EstablishExistingConnection ] shutdown", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.emby: THREAD (DEBUG): ---<[ EstablishExistingConnection ] shutdown", 1) # LOGDEBUG
                 return
 
-            xbmc.log("EMBY.emby.emby: EstablishExistingConnection: retry", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): EstablishExistingConnection: retry", 1) # LOGDEBUG
 
         UserImageUrl = self.ServerData.get('UserImageUrl', "")
 
@@ -282,7 +290,7 @@ class EmbyServer:
             self.get_UserImage(UserData)
             self.ServerData['UserImageUrl'] = UserData['UserImageUrl']
 
-        xbmc.log("EMBY.emby.emby: THREAD: ---<[ EstablishExistingConnection ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): THREAD: ---<[ EstablishExistingConnection ]", 1) # LOGDEBUG
 
     def save_credentials(self):
         if not self.ServerSettings:
@@ -303,6 +311,9 @@ class EmbyServer:
         utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
         self.EmbySession = []
         self.Online = False
+
+        with utils.SafeLock(utils.EmbyServerOnlineCondition):
+            utils.EmbyServerOnlineCondition.notify_all()
 
     def ServerHandshake(self):
         self.EmbySession = self.API.get_device()
@@ -354,7 +365,7 @@ class EmbyServer:
                 self.ServerData.update({'UserImageUrl': SelectedUser['UserImageUrl'], 'UserName': SelectedUser['Name']})
 
                 if SelectedUser['HasPassword']:
-                    xbmc.log("EMBY.emby.emby: User has password, present manual login", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): User has password, present manual login", 1) # LOGDEBUG
                     Username = SelectedUser['Name']
                 else:
                     self.ServerData["UserName"] = SelectedUser['Name']
@@ -378,7 +389,7 @@ class EmbyServer:
             Data = json.loads(Data)
 
         self.ServerData.update({'EmbyConnectUserId': Data['User']['Id'], 'EmbyConnectUserName': Data['User']['Name'], 'EmbyConnectAccessToken': Data['AccessToken']})
-        xbmc.log("EMBY.emby.emby: Begin getConnectServers", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Begin getConnectServers", 1) # LOGDEBUG
         EmbyConnectServers = self.API.get_embyconnect_servers()
 
         if not isinstance(EmbyConnectServers, dict):
@@ -408,14 +419,14 @@ class EmbyServer:
         return True
 
     def ServerDetect(self):
-        xbmc.log("EMBY.emby.emby: Begin getAvailableServers", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Begin getAvailableServers", 1) # LOGDEBUG
         MULTI_GROUP = ("<broadcast>", 7359)
         MESSAGE = b"who is EmbyServer?"
-        sock = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(1.0)  # This controls the socket.timeout exception
-        sock.setsockopt(_socket.SOL_SOCKET, _socket.SO_BROADCAST, 1)
-        xbmc.log(f"EMBY.emby.emby: MultiGroup: {MULTI_GROUP}", 0) # LOGDEBUG
-        xbmc.log(f"EMBY.emby.emby: Sending UDP Data: {MESSAGE}", 0) # LOGDEBUG
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.emby (DEBUG): MultiGroup: {MULTI_GROUP}", 1) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.emby (DEBUG): Sending UDP Data: {MESSAGE}", 1) # LOGDEBUG
         found_servers = []
 
         # get severs via broadcast
@@ -429,7 +440,7 @@ class EmbyServer:
 
                     if IncomingData not in found_servers:
                         found_servers.append(IncomingData)
-                except _socket.timeout:
+                except socket.timeout:
                     xbmc.log(f"EMBY.emby.emby: Found Servers: {found_servers}", 1) # LOGINFO
                     break
                 except Exception as Error:
@@ -463,7 +474,7 @@ class EmbyServer:
             self.Found_Servers.append({'Id': found_server['Id'], 'LocalAddress': server or found_server['Address'], 'Name': found_server['Name']})
 
     def TestConnections(self):
-        xbmc.log("EMBY.emby.emby: Begin connectToServer", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.emby.emby (DEBUG): Begin connectToServer", 1) # LOGDEBUG
         Resync = ""
         SaveConfig = False
 
@@ -518,7 +529,7 @@ class EmbyServer:
     # Download user picture
     def get_UserImage(self,UserData):
         UserData['UserImageUrl'] = utils.icon
-        BinaryData, _, FileExtension = self.API.get_Image_Binary(UserData['Id'], "Primary", 0, 0, True, False, False)
+        BinaryData, _, FileExtension = self.API.get_Image_Binary(UserData['Id'], "Primary", 0, 0, True)
 
         if BinaryData:
             Filename = utils.valid_Filename(f"{self.ServerData['ServerName']}_{UserData['Name']}_{UserData['Id']}.{FileExtension}")

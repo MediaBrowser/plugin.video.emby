@@ -3013,43 +3013,43 @@ msgstr "Följ http timeout"
 
 msgctxt "#33715"
 msgid "Set local content as default"
-msgstr ""
+msgstr "Ställ in lokalt innehåll som standard"
 
 msgctxt "#33716"
 msgid "Kodi companion addon not installed on Emby server! Please install"
-msgstr ""
+msgstr "Kodi companion addon not installed on Emby server! "
 
 msgctxt "#33717"
 msgid "Cancel artwork cache"
-msgstr ""
+msgstr "Avbryt konstcachen"
 
 msgctxt "#33718"
 msgid "Number of webservice workers"
-msgstr ""
+msgstr "Antal webbtjänstarbetare"
 
 msgctxt "#33719"
 msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
-msgstr ""
+msgstr "Higher values can improve performance but needs more resources. "
 
 msgctxt "#33720"
 msgid "Close busy dialog"
-msgstr ""
+msgstr "Stäng upptagen dialog"
 
 msgctxt "#33721"
 msgid "Can prevent Kodi crashes"
-msgstr ""
+msgstr "Kan förhindra Kodi-krascher"
 
 msgctxt "#33722"
 msgid "Type of service"
-msgstr ""
+msgstr "Typ av tjänst"
 
 msgctxt "#33723"
 msgid "IP header (TOS), could improve responsiveness"
-msgstr ""
+msgstr "IP-header (TOS), kan förbättra responsen"
 
 msgctxt "#33724"
 msgid "CS0 (Best Effort)"
-msgstr ""
+msgstr "CS0 (Bästa försök)"
 
 msgctxt "#33725"
 msgid "CS5, EF (Expedited Forwarding)"
@@ -3061,39 +3061,39 @@ msgstr ""
 
 msgctxt "#33727"
 msgid "CS4 (Real-time interactive)"
-msgstr ""
+msgstr "CS4 (Interaktiv i realtid)"
 
 msgctxt "#33728"
 msgid "Incremental artwork cache"
-msgstr ""
+msgstr "Inkrementell konstcache"
 
 msgctxt "#33729"
 msgid "Cache artwork automatically on partial syncs"
-msgstr ""
+msgstr "Cachebilder automatiskt vid partiella synkroniseringar"
 
 msgctxt "#33730"
 msgid "Genres with icons"
-msgstr ""
+msgstr "Genrer med ikoner"
 
 msgctxt "#33731"
 msgid "Studios with icons"
-msgstr ""
+msgstr "Studios med ikoner"
 
 msgctxt "#33732"
 msgid "Tags with icons"
-msgstr ""
+msgstr "Taggar med ikoner"
 
 msgctxt "#33733"
 msgid "Local trailers"
-msgstr ""
+msgstr "Lokala släpvagnar"
 
 msgctxt "#33734"
 msgid "Load changes"
-msgstr ""
+msgstr "Belastningsförändringar"
 
 msgctxt "#33735"
 msgid "Resolution threshold"
-msgstr ""
+msgstr "Upplösningströskel"
 
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
@@ -3101,7 +3101,7 @@ msgstr ""
 
 msgctxt "#33735"
 msgid "Resolution threshold"
-msgstr ""
+msgstr "Upplösningströskel"
 
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
@@ -3109,7 +3109,7 @@ msgstr ""
 
 msgctxt "#33737"
 msgid "always"
-msgstr ""
+msgstr "alltid"
 
 msgctxt "#33738"
 msgid "720"
@@ -3125,19 +3125,19 @@ msgstr ""
 
 msgctxt "#33741"
 msgid "unlimited"
-msgstr ""
+msgstr "obegränsat"
 
 msgctxt "#33742"
 msgid "Transcoding resolution"
-msgstr ""
+msgstr "Omkodningsupplösning"
 
 msgctxt "#33743"
 msgid "Unlimited means keep source resolution"
-msgstr ""
+msgstr "Obegränsat innebär att behålla källupplösningen"
 
 msgctxt "#33744"
 msgid "Webservice mode"
-msgstr ""
+msgstr "Webbtjänstläge"
 
 msgctxt "#33745"
 msgid "Webdav"
@@ -3145,7 +3145,7 @@ msgstr ""
 
 msgctxt "#33746"
 msgid "Path substitution"
-msgstr ""
+msgstr "Bibyte"
 
 msgctxt "#33747"
 msgid "Http"
@@ -3157,19 +3157,19 @@ msgstr ""
 
 msgctxt "#33749"
 msgid "Refresh musicvideo links"
-msgstr ""
+msgstr "Uppdatera musikvideolänkar"
 
 msgctxt "#33750"
 msgid "Updates musicvideo links to music database"
-msgstr ""
+msgstr "Uppdaterar musikvideolänkar till musikdatabas"
 
 msgctxt "#33751"
 msgid "Time not synced, skip updates"
-msgstr ""
+msgstr "Tid inte synkroniserad, hoppa över uppdateringar"
 
 msgctxt "#33752"
 msgid "Add musicvideo links to music"
-msgstr ""
+msgstr "Lägg till musikvideolänkar till musik"
 
 msgctxt "#33753"
 msgid "Musicvideos assigned to music listed in Kodi's song views."
@@ -3177,11 +3177,11 @@ msgstr ""
 
 msgctxt "#33754"
 msgid "Delete backup"
-msgstr ""
+msgstr "Ta bort säkerhetskopia"
 
 msgctxt "#33755"
 msgid "Enter backup name"
-msgstr ""
+msgstr "Ange backupnamn"
 
 msgctxt "#33756"
 msgid "Compression not supported, backup not available."
@@ -3189,87 +3189,87 @@ msgstr ""
 
 msgctxt "#33757"
 msgid "Backup in Progress"
-msgstr ""
+msgstr "Säkerhetskopiering pågår"
 
 msgctxt "#33758"
 msgid "Audio themes synchronization method"
-msgstr ""
+msgstr "Synkroniseringsmetod för ljudteman"
 
 msgctxt "#33759"
 msgid "Video themes synchronization method"
-msgstr ""
+msgstr "Synkroniseringsmetod för videoteman"
 
 msgctxt "#33760"
 msgid "Download"
-msgstr ""
+msgstr "Ladda ner"
 
 msgctxt "#33761"
 msgid "Remote"
-msgstr ""
+msgstr "Fjärrkontroll"
 
 msgctxt "#33762"
 msgid "Enable audio themes"
-msgstr ""
+msgstr "Aktivera ljudteman"
 
 msgctxt "#33763"
 msgid "Enable video themes"
-msgstr ""
+msgstr "Aktivera videoteman"
 
 msgctxt "#33764"
 msgid "Go To Album"
-msgstr ""
+msgstr "Gå till album"
 
 msgctxt "#33765"
 msgid "Go To Artist"
-msgstr ""
+msgstr "Gå till artist"
 
 msgctxt "#33766"
 msgid "Pause sync"
-msgstr ""
+msgstr "Pausa synkronisering"
 
 msgctxt "#33767"
 msgid "Pause sync when server is busy with tasks"
-msgstr ""
+msgstr "Pausa synkronisering när servern är upptagen med uppgifter"
 
 msgctxt "#33768"
 msgid "Video preview thumbnail extraction"
-msgstr ""
+msgstr "Utdrag för videoförhandsgranskning av miniatyrbilder"
 
 msgctxt "#33769"
 msgid "Vacuum database"
-msgstr ""
+msgstr "Vakuumdatabas"
 
 msgctxt "#33770"
 msgid "Upload local theme videos"
-msgstr ""
+msgstr "Ladda upp videor med lokala tema"
 
 msgctxt "#33771"
 msgid "Upload local theme songs"
-msgstr ""
+msgstr "Ladda upp lokala temalåtar"
 
 msgctxt "#33772"
 msgid "Update intro database"
-msgstr ""
+msgstr "Uppdatera introdatabasen"
 
 msgctxt "#33773"
 msgid "TV maze update"
-msgstr ""
+msgstr "TV-labyrintuppdatering"
 
 msgctxt "#33774"
 msgid "Transfer media"
-msgstr ""
+msgstr "Överför media"
 
 msgctxt "#33775"
 msgid "Scan metadata folder"
-msgstr ""
+msgstr "Scan metadatamapp"
 
 msgctxt "#33776"
 msgid "Scan media library"
-msgstr ""
+msgstr "Skanna mediabibliotek"
 
 msgctxt "#33777"
 msgid "Refresh internet channels"
-msgstr ""
+msgstr "Uppdatera internetkanaler"
 
 msgctxt "#33778"
 msgid "Refresh guide"
@@ -3277,88 +3277,329 @@ msgstr ""
 
 msgctxt "#33779"
 msgid "Download subtitles"
-msgstr ""
+msgstr "Ladda ner undertexter"
 
 msgctxt "#33780"
 msgid "Download local YouTube movie trailers"
-msgstr ""
+msgstr "Ladda ner lokala YouTube-filmtrailers"
 
 msgctxt "#33781"
 msgid "Download local TV theme songs"
-msgstr ""
+msgstr "Ladda ner lokala TV-temalåtar"
 
 msgctxt "#33782"
 msgid "Download Local theme videos"
-msgstr ""
+msgstr "Ladda ner lokala temavideor"
 
 msgctxt "#33783"
 msgid "Download Local theme songs"
-msgstr ""
+msgstr "Ladda ner lokala temalåtar"
 
 msgctxt "#33784"
 msgid "Detect intros"
-msgstr ""
+msgstr "Upptäck intro"
 
 msgctxt "#33785"
 msgid "Convert media"
-msgstr ""
+msgstr "Konvertera media"
 
 msgctxt "#33786"
 msgid "Refresh in progress"
-msgstr ""
+msgstr "Uppdatering pågår"
 
 msgctxt "#33787"
 msgid "Emby scripterX scheduled task"
-msgstr ""
+msgstr "Emby scripterX schemalagd uppgift"
 
 msgctxt "#33788"
 msgid "EMBY: More like this"
-msgstr ""
+msgstr "EMBY: Mer sånt här"
 
 msgctxt "#33789"
 msgid "More like this"
-msgstr ""
+msgstr "Mer sånt här"
 
 msgctxt "#33790"
 msgid "Homevideo tags"
-msgstr ""
+msgstr "Hemvideotaggar"
 
 msgctxt "#33791"
 msgid "Favorite homevideos"
-msgstr ""
+msgstr "Favorit hemmavideor"
 
 msgctxt "#33792"
 msgid "Video tags"
-msgstr ""
+msgstr "Videotaggar"
 
 msgctxt "#33793"
 msgid "Favorite videos"
-msgstr ""
+msgstr "Favoritvideor"
 
 msgctxt "#33794"
 msgid "Playback state changes"
-msgstr ""
+msgstr "Uppspelningsstatus ändras"
 
 msgctxt "#33795"
 msgid "Series and season progress"
-msgstr ""
+msgstr "Serien och säsongens framsteg"
 
 msgctxt "#33796"
 msgid "Playlists (mixed)"
-msgstr ""
+msgstr "Spellistor (blandade)"
 
 msgctxt "#33797"
 msgid "EMBY: Random play"
-msgstr ""
+msgstr "EMBY: Slumpmässig uppspelning"
 
 msgctxt "#33798"
 msgid "Random play"
-msgstr ""
+msgstr "Slumpmässigt spel"
 
 msgctxt "#33799"
 msgid "Kodi Companion warning"
-msgstr ""
+msgstr "Kodi Companion varning"
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
 msgstr ""
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Bearbetning av trailers"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Släpvagnar"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Nyligen tillagda trailers"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Teman"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Aktivera ljud"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Aktivera video"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Tona in"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Tona ut"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr ""
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Hemskärm"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Spelar teman för widgets"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Försenad start"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Värden är i sekunder"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Ladda ner"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Lagra teman lokalt för bättre prestanda"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioritet"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr ""
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Fjärrvagnar"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Val av fjärrvagnar"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr ""
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Mappvagnar"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Lokala släpvagnar"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Lokal film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Traileruppspelning"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Volym"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Felsökningslogg"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Aktivera video med intromarkörer"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Aktivera ljud med intromarkörer"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Aktivera video efter innehåll"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Aktivera ljud efter innehåll"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Efter innehållslängd"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr ""
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Av"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Intromarkörer"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Innehåll"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuella teman"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigering"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Avsnittsvy"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Säsongsvy"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "TV-programvy"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Filmvisning"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Tidstider"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Uppspelning"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Uppdatera ljudfavoriter"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Uppdatera musikalbumfavoriter"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Uppdatera videofavoriter"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Uppdatera musikvideofavoriter"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Uppdatera boxset-favoriter"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Uppdatera seriefavoriter"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Uppdatera säsongens favoriter"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Uppdatera favoriter i spellistan"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Uppdatera avsnittsfavoriter"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Uppdatera filmfavoriter"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Uppdatera genrefavoriter"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Uppdatera studiofavoriter"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Uppdatera taggfavoriter"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Uppdatera favoriter i musikgenren"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Uppdatera personfavoriter"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Uppdatera personfavoriter"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Återställd säkerhetskopia från:"
+

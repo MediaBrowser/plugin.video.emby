@@ -23,9 +23,8 @@ class Playlist:
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Playlist"):
             return False
 
-        common.set_Favorite(Item)
         common.set_Favorites_Artwork(Item, self.EmbyServer.ServerData['ServerId'])
-        xbmc.log(f"EMBY.core.playlist: Process item: {Item['Name']}", 0) # DEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.playlist (DEBUG): Process item: {Item['Name']}", 1) # DEBUG
         IconFile = utils.download_Icon(Item['Id'], Item['ImageTags'].get("Primary", "noimage"), self.EmbyServer.ServerData["ServerId"], Item['Name'], True) # Download image
         ItemFilename = utils.valid_Filename(Item['Name'])
         utils.delFile(f"{utils.PlaylistPathMusic}emby_{ItemFilename}_audio.m3u")
@@ -37,7 +36,7 @@ class Playlist:
         KodiPlaylistId = {"Audio": "", "Video": ""}
         EmbyRemoveIds = set()
         EmbyLinkedId = {"Audio": (), "Video": (), "Movie": (), "Episode": (), "MusicVideo": ()}
-        PlaylistItems = self.EmbyServer.API.get_Items(Item['Id'], ("Audio", "Video", "Movie", "Episode", "MusicVideo"), False, {}, "", None, True, True)
+        PlaylistItems = self.EmbyServer.API.get_Items(Item['Id'], ("Audio", "Video", "Movie", "Episode", "MusicVideo"), False, {}, "", None, True)
 
         # Get previously links EmbyItemIds
         if Item['UpdateItem']:
@@ -61,7 +60,7 @@ class Playlist:
                 EmbyRemoveIds.remove(str(PlaylistItem['Id']))
 
             PlaylistItem['ParentIndexNumber'] = 0
-            PlaylistItem['LibraryId'] = f"{Item['LibraryId']}_{Item['Id']}"
+            PlaylistItem['LibraryId'] = Item['LibraryId']
             common.set_common(PlaylistItem, self.EmbyServer.ServerData['ServerId'], True, IncrementalSync)
 
             if PlaylistItemType == "Audio":
@@ -81,13 +80,13 @@ class Playlist:
             elif PlaylistItemType == "MusicVideo":
                 TrackNumber["MusicVideo"] += 1
                 PlaylistItem['IndexNumber'] = TrackNumber["MusicVideo"]
-                PlaylistTag = {"LibraryId": PlaylistItem["LibraryId"], "Type": "Tag", "Id": f"999999988{Item['Id']}", "Name": f"{Item['Name']} (Playlist)", "Memo": "playlist"}
+                PlaylistTag = {"LibraryId": PlaylistItem["LibraryId"], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}{Item['Id']}", "Name": Item['Name'], "Memo": "playlist", 'ImageTags': Item.get('ImageTags', [])}
                 self.TagObject.change(PlaylistTag, False)
                 self.MusicVideoObject.change(PlaylistItem, IncrementalSync, PlaylistTag)
                 common.set_RunTimeTicks(PlaylistItem)
                 common.set_streams(PlaylistItem)
                 common.set_path_filename(PlaylistItem, self.EmbyServer.ServerData['ServerId'], None)
-                Node = (f"{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}", utils.encode_XML(Item['Name']), IconFile, "musicvideos", (("tag", "is", f"{Item['Name']} (Playlist)"),), ("ascending", "track"), False, False)
+                Node = (f"{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}", utils.encode_XML(Item['Name']), IconFile, "musicvideos", (("tag", "is", Item['Name']),), ("ascending", "track"), False, False)
                 View = {'ContentType': "playlistsvideo", "Tag": f"EmbyPlaylistId-{Item['Id']}", "Name": Item['Name']}
                 self.EmbyServer.Views.set_synced_node(PlaylistVideoFolder, View, Node, Item['Id'], 0)
                 M3UPlaylist["Video"] += f"#EXTINF:-1,{PlaylistItem['Name']}\n"
@@ -111,7 +110,11 @@ class Playlist:
         Item['KodiItemId'] = f'{KodiPlaylistId["Audio"]};{KodiPlaylistId["Video"]}'
         Item['EmbyLinkedId'] = f'{EmbyLinkedId["Audio"]};{EmbyLinkedId["Video"]};{EmbyLinkedId["Movie"]};{EmbyLinkedId["Episode"]};{EmbyLinkedId["MusicVideo"]}'
         self.SQLs["emby"].add_reference_playlist(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiArtwork']['favourite'], Item['EmbyLinkedId'], Item['Name'])
-        xbmc.log(f"EMBY.core.playlist: ADD/REPLACE [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.playlist: ADD/REPLACE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.playlist (DEBUG): ADD/REPLACE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
 
         if EmbyRemoveIds:
             for EmbyRemoveId in EmbyRemoveIds:
@@ -120,17 +123,10 @@ class Playlist:
         return False
 
     def remove(self, Item, IncrementalSync):
-        self.SQLs["emby"].remove_item(Item['Id'], "Playlist", Item['LibraryId'])
+        if not common.verify_KodiIds(Item, IncrementalSync, False):
+            return
+
         self.set_favorite(False, Item)
-        EmbyLinkedIdsByContent = Item['EmbyLinkedId'].split(";")
-
-        for Index in (0, 4): # ("Audio", "Video", "Movie", "Episode", "MusicVideo") -> Audio and Musicvideo playlist items are synced into Kodi's database
-            EmbyLinkedIds = EmbyLinkedIdsByContent[Index].split(',')
-
-            for EmbyLinkedId in EmbyLinkedIds:
-                if EmbyLinkedId:
-                    self.SQLs["emby"].add_RemoveItem(EmbyLinkedId, Item['LibraryId'])
-
         KodiItemIds = Item['KodiItemId'].split(";")
 
         if KodiItemIds[0]: # Audio
@@ -140,16 +136,30 @@ class Playlist:
         if KodiItemIds[1]: # Video
             utils.delFile(f"{PlaylistVideoFolder}{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}.xml")
             utils.delFile(f"{utils.PlaylistPathVideo}{KodiItemIds[1]}.m3u")
+            TagId = f"{utils.MappingIds['Tag']}{Item['Id']}"
+            TagKodiId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(TagId, "Tag")
+            self.TagObject.remove({'Id': TagId, 'KodiItemId': TagKodiId, "LibraryId": Item['LibraryId']}, IncrementalSync)
 
-        self.SQLs["emby"].add_RemoveItem(f"999999988{Item['Id']}", f"{Item['LibraryId']}_{Item['Id']}")
-        xbmc.log(f"EMBY.core.playlist: DELETE [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+        self.SQLs["emby"].remove_item(Item['Id'], "Playlist", Item['LibraryId'])
+
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.playlist: DELETE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.playlist (DEBUG): DELETE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
 
     def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
+        common.set_Favorite(Item)
+
         if UpdateKodiFavorite:
             self.set_favorite(Item['IsFavorite'], Item)
 
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Playlist")
-        xbmc.log(f"EMBY.core.playlist: USERDATA [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.playlist: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.playlist (DEBUG): USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
         return False
 
     def set_favorite(self, IsFavorite, Item):
@@ -161,11 +171,11 @@ class Playlist:
             Item['KodiArtwork']['favourite'] = self.SQLs["emby"].get_item_by_id(Item['Id'], "Playlist")[3]
 
         if EmbyLinkedIds[0]: # Audio
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Audio", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"library://music/emby_playlistsaudio_Playlists/{Item['Id']}.xml/", Item['Name'].replace('"', "'"), "window", 10502),))
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Audio", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"library://music/emby_playlistsaudio_Playlists/{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}.xml/", Item['Name'].replace('"', "'"), "window", 10502),))
 
         if EmbyLinkedIds[4]: # Musicvideo
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"library://video/emby_playlistsvideo_Playlists/{Item['Id']}.xml/", Item['Name'].replace('"', "'"), "window", 10025),))
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"library://video/emby_playlistsvideo_Playlists/{self.EmbyServer.ServerData['ServerId']}_{Item['Id']}.xml/", Item['Name'].replace('"', "'"), "window", 10025),))
 
         if EmbyLinkedIds[1] or EmbyLinkedIds[2] or EmbyLinkedIds[3]: # Mixed videos
             PlaylistName = KodiItemIds[1].replace("emby_", "").replace("_video", "", 1).replace("_", " ")
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype=video&server={self.EmbyServer.ServerData['ServerId']}&id={KodiItemIds[0]}", PlaylistName, "window", 10025),))
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.EmbyServer.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype=video&server={self.EmbyServer.ServerData['ServerId']}&id={KodiItemIds[1]}", PlaylistName, "window", 10025),))

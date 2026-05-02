@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "ემბი კოდისთვის"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "სერვერის მისამართი"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "სერვერის სახელი"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "HTTP დაკვრის იძულება"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "შესვლის მეთოდი"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "ჟურნალის დონე"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "მოწყობილობის სახელი"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "გაფართოებული"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "მომხმარებლის სახელი"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "პორტის ნომერი"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "დაადასტურეთ ფაილის წაშლა"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "შეთავაზება წაშლა დაკვრის შემდეგ"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "ეპიზოდებისთვის"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "ფილმებისთვის"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "გაძლიერებული ნამუშევრების ჩართვა (მაგ. ყდის არტი)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "ვიდეოს ხარისხი"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "ახლახან დამატებული სატელევიზიო შოუები"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "მიმდინარე სატელევიზიო შოუები"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "ახლახან დამატებული ფილმები"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "ახლახან დამატებული ეპიზოდები"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "პროგრესი ფილმები"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "მიმდინარე ეპიზოდები"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "შემდეგი ეპიზოდები"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "საყვარელი ფილმები"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "საყვარელი შოუები"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "საყვარელი ეპიზოდები"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "ყუთები"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "უყურებელი ფილმები"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "შემთხვევითი ნივთები"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "რეკომენდებული ნივთები"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "ინტერფეისი"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "გადატვირთეთ ადგილობრივი Kodi მონაცემთა ბაზა"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "ჩართეთ მისასალმებელი შეტყობინება"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "ახლახან დამატებული საწყისი ვიდეოები"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "ახლახან დამატებული ფოტოები"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "საყვარელი სახლის ვიდეოები"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "საყვარელი ფოტოები"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "საყვარელი ალბომები"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "ახლახან დამატებული მუსიკალური ვიდეოები"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "მიმდინარეობს მუსიკალური ვიდეოები"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "უყურებელი მუსიკალური ვიდეოები"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "ფილმები"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "სატელევიზიო შოუები"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby პარამეტრები"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "ემბი ტრანსკოდი"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "რჩეულებში დამატება"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "რჩეულებიდან ამოღება"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "პარამეტრები"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: წაშალეთ ელემენტი"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: განაახლეთ ელემენტი"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "ტრანსკოდი"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "გადაამოწმეთ კავშირი"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "გამოიყენეთ მოწყობილობის ალტერნატიული სახელი"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "სინქრონიზაცია"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "ჩართეთ შეტყობინება, თუ განახლების რაოდენობა აღემატება"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "ცარიელი შოუების სინქრონიზაცია"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "ჩართეთ მუსიკალური ბიბლიოთეკა"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "დაკვრის რეჟიმი"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "ჩართეთ ნამუშევრების ქეშირება"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "დაკვრა"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "ქსელის რწმუნებათა სიგელები"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "ჩართეთ კინოს რეჟიმი"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "ითხოვეთ თრეილერის დაკვრა"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "გამოტოვეთ წაშლის დადასტურება (გამოიყენეთ საკუთარი რისკის ქვეშ)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "რეზიუმეზე გადახტომა (წამებში)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "ტრანსკოდი H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "უგულებელყოთ სპეციალობა მომდევნო ეპიზოდებში"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "მუდმივი მომხმარებლები"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "გაშვების შეფერხება (წამებში)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "სერვერის გადატვირთვის შეტყობინების ჩართვა"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "ჩართეთ ახალი შინაარსი"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "ვიდეო ბიბლიოთეკის ამომხტარის ხანგრძლივობა"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "მუსიკალური ბიბლიოთეკის პოპ-აპის ხანგრძლივობა"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "შეტყობინებები (წამებში)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "შექმენით ახალი მოწყობილობის ID"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "ეკრანმზოგის დაშვება სინქრონიზაციის დროს"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "შესვლა"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "ხელით შესვლა"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "მომხმარებლის სახელი ან ელფოსტა"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "სერვერის ოფლაინ ჩართვა"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "შეტყობინების ჩვენება"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "შედით Emby Connect-ით"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "პაროლი"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "შედით"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "გაუქმება"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "აირჩიეთ მთავარი სერვერი"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "მომხმარებლის სახელი ან პაროლი არ შეიძლება იყოს ცარიელი"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "არჩეულ სერვერთან დაკავშირება შეუძლებელია"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "დაკავშირება"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "ხელით დაამატეთ სერვერი"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "გთხოვთ შეხვიდეთ"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "შეცვალეთ Emby Connect მომხმარებელი"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "მასპინძელი"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "დაკავშირება"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "სერვერი ან პორტი არ შეიძლება იყოს ცარიელი"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "შეცვალეთ Emby Connect მომხმარებელი"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "მოგესალმებით"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "სერვერის გადატვირთვა"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "მომხმარებლის სახელი ან პაროლი არასწორია"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "აირჩიეთ აუდიო ნაკადი"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "აირჩიეთ სუბტიტრების ნაკადი"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "წაშალოთ ფაილი Emby-დან?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "თრეილერების თამაში?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "ყუთების შეგროვება"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "შეკრება:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "აღმოაჩინა მონაცემთა ბაზა ხელახლა უნდა შეიქმნას Emby-ის ამ ვერსიისთვის Kodi-სთვის. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby for Kodi არ იმუშავებს სწორად, სანამ მონაცემთა ბაზის გადატვირთვა არ მოხდება."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "დასრულებული:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "შეიქმნა ახალი მოწყობილობის ID. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "სიფრთხილე! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "დანამატი (ნაგულისხმევი)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "მშობლიური (პირდაპირი ბილიკები)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "ჩართოთ მუსიკალური ბიბლიოთეკა?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "ქეშირების პროცესის გაშვებას შეიძლება გარკვეული დრო დასჭირდეს. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "გადატვირთოთ არსებული ნამუშევრების ქეში?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "ნამუშევრების ქეშის განახლება"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "ველოდები ძაფების გამოსვლას"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi ვერ პოულობს ფაილს:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "გამოიყენეთ Emby ბილიკის ჩანაცვლება თქვენი ბილიკის სწორად დასაფორმებლად ან იმის უზრუნველსაყოფად, რომ თქვენი ბილიკი დაემატება Kodi-ს ფაილ მენეჯერს. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "ახალი"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "სესიაზე მომხმარებლის დამატება"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "შეასრულეთ ადგილობრივი მონაცემთა ბაზის გადატვირთვა"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "ყველა ნამუშევრის ქეშირება"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "თემის მედიის სინქრონიზაცია"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "მომხმარებლის დამატება/წაშლა სესიიდან"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "მომხმარებლის დამატება"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "მომხმარებლის წაშლა"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "ამოიღეთ მომხმარებელი სესიიდან"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "ამოღებულია"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "დამატებულია"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "დარწმუნებული ხართ, რომ გსურთ თქვენი ადგილობრივი Kodi მონაცემთა ბაზის გადატვირთვა?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "წაშალოთ ყველა ქეშირებული ნამუშევარი?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "გადატვირთოთ Emby დანამატის ყველა პარამეტრი?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "მონაცემთა ბაზის გადატვირთვა დასრულდა, Kodi ახლა გადაიტვირთება ცვლილებების გამოსაყენებლად."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "შეიყვანეთ საქაღალდის სახელი სარეზერვო ასლისთვის"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "შეცვალოთ არსებული სარეზერვო ასლი?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "შეიქმნა სარეზერვო ასლი:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "შექმენით სარეზერვო საშუალება"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "სარეზერვო საქაღალდე"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "მნიშვნელოვანია, გასუფთავების განახლება წაიშალა თქვენს გაფართოებულ პარამეტრებში Emby-თან კონფლიქტის თავიდან ასაცილებლად Kodi-სთვის. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "განაახლეთ ყუთები"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "დააინსტალირეთ სერვერის მოდული Kodi Companion, რომ ავტომატურად გამოიყენოს emby ბიბლიოთეკის განახლებები გაშვებისას. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "გსურთ ცარიელი შოუების სინქრონიზაცია?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "ვინაიდან იყენებთ დაკვრის მშობლიურ რეჟიმს ჩართული მუსიკის მქონე, გსურთ ფაილებიდან მუსიკის რეიტინგის იმპორტი?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "განაახლონ წინა სინქრონიზაცია?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "ჩართეთ ვებ სერვერის სერვისი Kodi პარამეტრებში, რათა მოხდეს ნამუშევრების ქეშირება."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "იპოვეთ მეტი ინფორმაცია github ვიკიში/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "ჩართეთ კონტექსტური მენიუ"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "ჩართეთ ტრანსკოდის ვარიანტი"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "სესიას დაემატა მომხმარებლები"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "შეტყობინებები იგვიანებს ვიდეოს დაკვრის დროს (პირდაპირი ტელევიზიის გარდა)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "დანამატი"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "გადატვირთეთ Kodi ძალაში შესვლისთვის."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "გადატვირთეთ ადგილობრივი მონაცემთა ბაზა დაკვრის რეჟიმის ცვლილების გამოსაყენებლად."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "ვრცელდება მშობლიურ და დანამატების დაკვრის რეჟიმებზე"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "ვრცელდება მხოლოდ დანამატების დაკვრის რეჟიმზე"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "ჩართეთ გარე სუბტიტრები"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "დაარეგულირეთ დისტანციური კავშირისთვის"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "ნამუშევრის შეკუმშვა (ამცირებს ხარისხს)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "ჩართოთ ნამუშევრების ქეშირება? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "თქვენ შეცვალეთ დაკვრის რეჟიმი. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "სინქრონიზაციისას მოხდა რაღაც შეცდომა. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "აირჩიეთ დასამატებელი ბიბლიოთეკები"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "ყველა"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "გადატვირთეთ Kodi, რომ განაახლოთ იქ, სადაც შეჩერდით."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "ბიბლიოთეკის სინქრონიზაცია Kodi-სთან"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "ხალხის ჩართვა (ნელი)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "აირჩიეთ Emby ხედები კოდის სინქრონიზაციისთვის. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "სინქრონიზაცია მოგვიანებით"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "გაგრძელება"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "კონტენტის უახლესი განახლებების მოძიება ვერ მოხერხდა. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "ბიბლიოთეკების სინქრონიზაცია შეგიძლიათ Emby დანამატის გაშვებით > ბიბლიოთეკების დამატება."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "აირჩიეთ წყარო"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "გამაგრილებელი ყუთები"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "სარემონტო ბიბლიოთეკა"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "წაშალეთ ბიბლიოთეკა Kodi-დან"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "სერვერის დამატება"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi ახლა გადაიტვირთება, რომ გამოიყენოს პატარა პატჩი თქვენი Kodi ვერსიისთვის."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "ბიბლიოთეკის განახლება"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "ჩართეთ Kodi Companion (სერვერის მოდული)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "თქვენ შეგიძლიათ განაახლოთ თქვენი ბიბლიოთეკა ხელით, ვიდრე დაეყრდნოთ სერვერის მოდულის Kodi კომპანიონს. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "ბიბლიოთეკების განახლება"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "ბიბლიოთეკების შეკეთება"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "სერვერის წაშლა"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "რაღაც შეფერხდა. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "ბიბლიოთეკის ამოღება"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "გთხოვთ, დარწმუნდეთ, რომ თქვენი Emby სერვერის ბიბლიოთეკები ხელმისაწვდომია თქვენი Kodi ინსტალაციისთვის და რომ თქვენ გაქვთ კონფიგურირებული ბილიკის ჩანაცვლება თქვენს სერვერზე. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Emby-თან დაკავშირება შეუძლებელია."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "თქვენი წვდომა Emby-ზე შეზღუდულია."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "თქვენი წვდომა ამ სერვერზე შეზღუდულია."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "ამ სერვერთან დაკავშირება შეუძლებელია."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "სერვერის ინფორმაციის განახლება"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "ხელახლა დაუკავშირდით იმავე სერვერს, რომელიც ადრე იყო ჩატვირთული. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "ვერ ვპოულობ სატელევიზიო მელოდიებს Kodi-ში."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "თქვენი Emby თემის მედია სინქრონიზებულია Kodi-სთან"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "ბიბლიოთეკების დამატება"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Emby-ისთვის კოდისთვის გამოყენებული ამჟამად გამოყენებული პატჩი დაზიანებულია! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "დაყენებულია პაჩი!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "მხოლოდ აუდიო"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "მხოლოდ სუბტიტრები"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "აუდიო/სუბტიტრების არჩევის ჩართვა"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "შეცდომების თავიდან ასაცილებლად, გთხოვთ, განაახლოთ Emby კოდისთვის ვერსიაზე: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "შეამოწმეთ განახლებები"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "გადატვირთეთ მუსიკალური ბიბლიოთეკა?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "მხარი დაუჭირეთ ამ პროექტს"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "სენსიტიური ინფორმაციის ნიღაბი ჟურნალში (არ ვრცელდება kodi logging-ზე)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "სარეზერვო ასლის შექმნა ვერ მოხერხდა"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(დინამიური)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "ახლახან დამატებულია"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "რჩეული"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "მიმდინარეობს"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "უყურებელი"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "პირველი წერილით"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "თქვენ გაქვთ {number} განახლება მომლოდინე. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "დაგავიწყდათ წინა სინქრონიზაცია? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging - ჩამოტვირთეთ ძაფები (ნაგულისხმევი: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "პეიჯინგის რჩევა: თითოეული ჩამოტვირთვის თემა ერთდროულად ითხოვს თქვენი ნივთების მაქსიმალურ მნიშვნელობას Emby-სგან."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "განაახლეთ ან შეაკეთეთ თქვენი ბიბლიოთეკები ქვემოთ მოცემული ცვლილებების გამოსაყენებლად."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "აჩვენეთ პროგრესის ზოლი, თუ განახლების რაოდენობა აღემატება"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "განახლებების დამუშავება"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "იძულებითი ტრანსკოდი"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "გადატვირთეთ Emby Kodi-სთვის"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "გადატვირთვა პაჩის გამოყენებისთვის"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "თამაში კინოს რეჟიმით"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "ჩართეთ კინოს რეჟიმით თამაშის ვარიანტი"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "წაშალეთ ბიბლიოთეკები"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "ჩართეთ სინქრონიზაცია დაკვრის დროს (შეიძლება გამოიწვიოს გარკვეული შეფერხება)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Kodi კომპანიონი აჩქარებს დაწყების სინქრონიზაციას. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Rotten Tomatoes-ის შეფასებების სინქრონიზაცია"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "გსურთ Rotten Tomatoes-ის რეიტინგების სინქრონიზაცია?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "გადატვირთეთ Emby კოდისთვის, რომ გამოიყენოს ეს ცვლილება?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "გადატვირთეთ Emby Kodi-სთვის"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "გადატვირთვა..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "ბიბლიოთეკების მართვა"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "ჩართეთ Emby Kodi-სთვის"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "გაფართოებული პარამეტრები"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "სინქრონიზაცია უკვე გაშვებულია, გთხოვთ, დაელოდოთ მის დასრულებას და სცადოთ ხელახლა."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "ემბი"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "ემბის თამაში"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "მუსიკის მონაცემთა ბაზის ხელახალი სკანირების პაჩი"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "დავალება შესრულდა!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "ამოცანა ვერ მოხერხდა!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "მარტივი თამაშის ჩართვა (გარე მოთამაშეებისთვის მოსახერხებელი)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "ტრანსკოდი 10-ბიტიანი (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "მოითხოვეთ სინქრონიზაციის გაგრძელება, თუ რაოდენობა აღემატება"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "ტრანსკოდი 10-ბიტიანი (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "დაუკარით დისტანციური urls Emby-ის გამოყენებით"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "აჩვენეთ ფარული მომხმარებლები შერჩევისას"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "გადატვირთეთ პაჩის განახლება"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "უახლესი გამოშვება"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "ჩართეთ ლეიბლი მრავალ ეპიზოდისთვის. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "ჩართეთ ადგილობრივი მისაბმელი"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "ჩართეთ მისაბმელები"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "ტრანსკოდი"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "გამომავალი ფორმატის ვიდეო"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "გამომავალი ფორმატის აუდიო"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "პარამეტრების ჩვენება დანამატის მენიუში"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "თარიღის ინფორმაცია"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "ჟანრები"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "სტუდია"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "სლოგანი"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "მიმოხილვა"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "წარმოების ადგილები"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "დინამიური ბიბლიოთეკები"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "თავსებადობის რეჟიმი"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "სარეზერვო ასლის აღდგენა"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "რომელი ნამუშევარი უნდა იყოს ქეშირებული"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "ვიდეო"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "მუსიკა"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "დამატებითი სინქრონიზაციის თარიღი"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "დამატებითი სინქრონიზაციის დრო"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "ამოღებული ნივთების შეგროვება"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "ჩართეთ კინოს რეჟიმი (ფილმები)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "ჩართეთ კინოს რეჟიმი (სატელევიზიო შოუები)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "წაშალოთ ელემენტები ასევე Emby სერვერიდან? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "წაშალოთ FILES ასევე Emby სერვერიდან Kodi-ის მოვლენებით? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "ჩართეთ FILE წაშლა კოდის მოვლენებზე"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "გამორთეთ HTTP2 მხარდაჭერა"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "კოდის გადატვირთვა დაიწყო advancedsettings.xml ცვლილებების გამო"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr ""
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "კინოს რეჟიმი"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "ნამუშევარი"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "მენიუ"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "თავსებადობის რეჟიმი ცვლის მოდულის ID-ს 4.x-ზე (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "ზოგიერთ შემთხვევაში (WLan, ქსელის დაგვიანებული გაშვება და ა.შ.) დაგვიანებულმა დანამატის დაწყებამ შეიძლება გააუმჯობესოს კავშირი"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "შეგიძლიათ დაარეგულიროთ რომელი მეტაინფორმაცია იტვირთება დინამიური (არასინქრონიზებული) კონტენტისთვის. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "ფრთხილად იყავით ამ პარამეტრით. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "ეს არის გამართვის ვარიანტი. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "აღადგენს უნიკალური მოწყობილობის ID-ს. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "დაუკავშირდით ახალ Emby სერვერს (მულტისერვერს) ან ხელახლა დააკავშირეთ არსებული Emby სერვერი (გამართვა)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Emby სერვერზე დამალული მომხმარებლების ჩვენება კავშირების ოპერაციებისთვის."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "ბიბლიოთეკების დამატება/წაშლა/შეკეთება, პირდაპირი ტელევიზია, თემები."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "ყველა ნამუშევრის სინქრონიზაცია ადგილობრივად Kodi-სთან. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "ზოგიერთი სკინი იყენებს xps დასაკრავ სიებს. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "მომხმარებლის რეიტინგი არის დამატებითი ინფორმაცია კოდის სინქრონიზაციისთვის. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "ასრულებს Kodi მონაცემთა ბაზის სრულ ხელახალი სინქრონიზაციას. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "კინოს რეჟიმი არის Emby-ს პრემიერის ფუნქცია. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "ტრანსკოდი აუდიო ბიტის სიხშირე"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "ქსელის სიჩქარე. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "მოწყობილობის სახელის მოხსენება Emby სერვერზე."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "შეატყობინეთ დაკვრის პროგრესს დამატებით მომხმარებლებს."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "უფსკრული დაკვრის შეჩერებასა და გაგრძელების დაწყებას შორის."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "ეს არის Emby სერვერის ფუნქცია."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "შეუძლია დაზოგოს გამტარობა"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "ზოგიერთ შემთხვევაში სასარგებლოა მენიუს პარამეტრების ჩვენება დანამატის მენიუში მალსახმობების სახით. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Contect მენიუ მხარს უჭერს ფავორიტების მართვას, წაშლის ვარიანტებს, (ფილმის) სპეციალური ფუნქციების არჩევას და ა.შ."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "აუდიო ბიტრეიტი"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr "ევც"
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "ნამუშევრების ქეშის მაქსიმალური ძაფები"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "ანიმაციური ხატი"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "განაახლეთ კანი Emby სერვერის კავშირზე"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "საქაღალდე"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "შერეული შინაარსი"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "მიმდინარეობს"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "შემთხვევითი ეპიზოდები"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "შემთხვევითი სატელევიზიო შოუები"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "ქარხნული პარამეტრების გადატვირთვა"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "კვანძების გადატვირთვა"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "დარწმუნებული ხართ, რომ გსურთ თქვენი კვანძების გადატვირთვა?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "მხატვრები"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "უყურებელი ეპიზოდები"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "უყურებელი სატელევიზიო შოუები"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "საყვარელი სატელევიზიო შოუები"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "ახლახანს ნათამაშები სატელევიზიო შოუ"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "მომავალი ეპიზოდები"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "სატელევიზიო შოუები"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "ახლახანს ითამაშა"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "ახლახანს ნათამაშები ეპიზოდი"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "რეჟისორები"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "სატელევიზიო შოუს ტეგები"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "ეპიზოდის ტეგები"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "ფილმის ტეგები"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "ფილმის რეზიუმე"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "ქვეყნები"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "ალბომები"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "მუსიკალური ვიდეოები"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "მუსიკალური ვიდეო ტეგები"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "შემთხვევითი მუსიკალური ვიდეოები"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "მუსიკალური ვიდეოების განახლება"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "ვიდეოები"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "ფოტოები"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "ფოტოალბომი"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "ფოტოალბომის ტეგები"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "ფოტო ტეგები"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "ვიდეო ტეგები"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "ახლახან დამატებული ფოტოები"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "ახლახან დამატებული ფოტოალბომი"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "ახლახან დამატებული ვიდეოები"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "ფლეილისტები"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "აუდიო წიგნები"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "შემთხვევითი აუდიოწიგნები"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "მოუსმენელი"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "შემთხვევითი სიმღერები"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "შემთხვევითი პოდკასტი"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "პოდკასტი"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "სინქრონიზებული კვანძები ბევრად უფრო სწრაფია, ვიდრე დინამიური კვანძები. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "დინამიური კვანძები იქმნება ფრენის დროს. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "საყვარელი მუსიკალური ვიდეოები"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "სინქრონიზებული კვანძები"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "დინამიური კვანძები"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "ახლახან დამატებული ალბომები"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "ახლახან დამატებული აუდიოწიგნები"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "ახლახან დამატებული სიმღერები"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "შემთხვევითი ალბომები"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "შემთხვევითი სიმღერები"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "შემთხვევითი აუდიოწიგნები"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "შემთხვევითი პოდკასტი"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "ახლახან დამატებული პოდკასტი"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "ბიბლიოთეკების დამატება/წაშლა/შეკეთება, პირდაპირი ტელევიზია, თემები"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "გახსენით მოდულის პარამეტრები"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "ასრულებს Kodi მონაცემთა ბაზის სრულ ხელახალი სინქრონიზაციას (მათ შორის, არა Emby შინაარსი). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "გადატვირთეთ ყველა მორგებული კვანძი და აღადგინეთ ისინი"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "კვანძის მოთხოვნის ლიმიტი"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "მოთხოვნების შეზღუდვა პროგრესის კვანძებისთვის. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "კვანძები"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "გამოიყენეთ დაკვრის განახლების ვარიანტი Emby სერვერიდან"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "ეს ფუნქცია გამორთავს კოდის შიდა პროგრესის განახლებებს. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "ვაკუუმი მონაცემთა ბაზები კოდის გამორთვაზე"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "მონაცემთა ბაზის აღდგენა და ოპტიმიზაცია მოხდება გამორთვის დაგვიანების ხარჯზე"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "გადატვირთეთ კანი"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "სხვა"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby სერვერი დაკავებულია"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "წაშალეთ ნამუშევრების ფაილები"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "ნახვების განახლება"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby სერვერი დაკავებულია: სინქრონიზაცია მიმდინარეობს"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "წაშალე კოდი"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "მონაცემთა ბაზა"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "გამოტოვეთ შესავალი"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "შეტყობინებების ყუთი ითხოვს გადასვლას შესავალ ბოლო პოზიციაზე"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "მარკერები"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "გამოტოვეთ კრედიტები"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "შეტყობინების ყუთი ითხოვს გამოტოვების კრედიტებს"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "დასვით გამოტოვების შესავალი"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "მოითხოვეთ კრედიტების გამოტოვება"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "შეტყობინებების ყუთი ავტომატურად იხურება X წამის შემდეგ"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "გამოტოვეთ შესავალი, გამოტოვეთ კრედიტები, კინოს რეჟიმი და წაშალეთ ოფციების შეტყობინებების ყუთები ავტომატურად დაიხურება X წამის შემდეგ. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "კომპოზიტორები"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "აღმოჩენილია დაზიანებული პარამეტრების ფაილი, აღადგინეთ ნაგულისხმევი. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL შეცდომა"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "ნამუშევრების ქეშირება შეწყდა: სივრცე იწურება"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "ვებსოკეტის კავშირი ხაზგარეშე"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "აირჩიეთ Emby სერვერი"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "აირჩიეთ ბიბლიოთეკები შესაკეთებლად"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "აირჩიეთ ბიბლიოთეკები გასაახლებლად"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "აირჩიეთ წასაშლელი ბიბლიოთეკები"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "სიმღერები ჟანრის მიხედვით"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "ვაკუუმური მონაცემთა ბაზები"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "TVShow პლაკატების მინიჭება ეპიზოდებს"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-პოსტერები (Emby TVShow პირველადი სურათი) გამოყენებული იქნება ეპიზოდის კოდი-პოსტერებად.\nამ პარამეტრის გადართვა მოითხოვს სრულ ხელახალი სინქრონიზაციას ყველა ქეშირებული ნამუშევრის ჩათვლით.\nგაფრთხილება: არ გამოიყენოთ საწყისი სინქრონიზაციის ოსტატი (გამოტოვეთ იგი) და გადახედეთ პარამეტრებს (ხელახალი) სინქრონიზაციის წინ."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "გამოიყენეთ fanart სურათები შემდეგი ეპიზოდებისთვის"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "გადაიწერს (Kodi) ცერა თითებს (Kodi) ფანართებით შემდეგი ეპიზოდების კვანძისთვის"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "გამოიყენეთ ალტერნატიული გამოტოვების შესავალი (შეტყობინებების) განლაგება"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "ემბუარული კანის დიზაინი"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "სერვერის პროგრესის ჩართვა"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "ნაჩვენებია Emby სერვერის დატვირთული შეტყობინებები"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "შეკითხვის შინაარსი იცვლება"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "შეკითხვის შინაარსის ცვლილებები / მომხმარებლის მონაცემები"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "შეკითხვის შინაარსის ცვლილებები / შინაარსი"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "გათიშულია Emby სერვერიდან"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "ლაივ სატელევიზიო არხების სინქრონიზაცია"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "სინქრონიზაცია Livetv epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "პეიჯინგი - მოთხოვნილი ელემენტები (ნაგულისხმევი ფაქტორი: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "თემების სინქრონიზაცია"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "შეამოწმეთ თავისუფალი ადგილი"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "აირჩიეთ მედია წყარო"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "გამოიყენეთ გამოსავალი Kodi-ის (დინამიური) ვიჯეტის პრობლემებისთვის"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "ტრანსკოდი ვიდეო"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "ტრანსკოდი აუდიო"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "ტრანსკოდის გამტარუნარიანობის ლიმიტი"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "ტრანსკოდის გამომავალი ფორმატი"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "ტრანსკოდი livetv"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "აუდიო"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "ვიდეო"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "აირჩიეთ აუდიო ნაკადი"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "აირჩიეთ სუბტიტრები"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: სპეციალური"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "გამოიყენეთ ბილიკის ჩანაცვლება"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "ბილიკის ჩანაცვლება მხარს უჭერს თავების სურათებს დამატებების რეჟიმში. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "დანიშნეთ უნიკალური მსახიობები თითოეული ემბი ბიბლიოთეკისთვის"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "ეპიზოდები"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: ჩანაწერი"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "ერთად ყურება გაუქმდა"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "ველოდები მონაწილეებს"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "იწყება..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "აირჩიეთ მომხმარებლები"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "დისტანციური კლიენტები / უყურეთ ერთად"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "წაშალე ტაიმერი"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "დაამატეთ ტაიმერი"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "იძულებითი კლიენტები"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "კლიენტები, რომლებიც არ უჭერენ მხარს ერთად ყურებას, იძულებულნი იქნებიან მონაწილეობა მიიღონ"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "კლიენტის კონტროლი"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "კლიენტებს შეუძლიათ ერთმანეთის კონტროლი"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "კლიენტების სინქრონიზაცია მასტერთან"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "ოსტატი აკონტროლებს დაკვრას, პაუზას, ძიებას"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "დაელოდეთ მონაწილეებს"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "დაელოდეთ მონაწილეობას წამებში"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "დაკვრის დაგვიანება"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "გადაიდო დაკვრის დაწყება, მიეცით კლიენტებს დრო სინქრონიზაციისთვის"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "მაქსიმალური დრიფტი პაუზის დროს"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "დაშვებული ასინქრონიზაცია მილიწამებში პაუზის დროს"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "ავტომატური შეტევა"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "დისტანციური კლიენტის შემომავალი მოთხოვნის ავტომატური დადასტურება"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "დაგვიანებით"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "ააქტიურებს ძიების ბრძანებას X წამის შემდეგ"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "მხარდაჭერილი კლიენტების ხელახლა სინქრონიზაცია"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "კავშირის შენარჩუნება"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "კავშირის დამყარება დაწყებისას (მოწყობილობის ID-ით)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: უყურეთ ერთად"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: კლიენტის ამოღება"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: კლიენტის დამატება"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: ჩართეთ დისტანციური რეჟიმი"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: გამორთეთ დისტანციური რეჟიმი"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "ჩართვა"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "პირველადი"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "ხელოვნება"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "ბანერი"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "დისკი"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "ლოგო"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "ცერი"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "ფონი"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "თავი"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "შეკუმშვა"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "მაქსიმალური გარჩევადობა"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "ზღუდავს გამოსახულების გარჩევადობას ფაქტორით. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "აირჩიეთ ტრანსენკოდის აუდიო ნაკადი"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "ბილიკის ჩანაცვლება მხარს უჭერს თავების სურათებს (ამოღებას) დამატებების რეჟიმში. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "ჩართეთ ვებსოკეტის კავშირი"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "თუ გამორთულია: რეალურ დროში განახლებები არ არის, შეტყობინებები არ მიიღება და დისტანციური ბრძანებები არ იმუშავებს."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "გამოიყენეთ გამოსავალი კოდის ეპიზოდის სანიშნეების პრობლემებისთვის"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi-ს აქვს შეცდომა ეპიზოდის სანიშნეებთან სიის ნახვების საშუალებით ეპიზოდის არჩევისას. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi-ს პრობლემა აქვს დინამიურ ვიჯეტებთან. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "ჩართეთ HTTP/2 მხარდაჭერა"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi-ს აქვს პრობლემები http/2 პროტოკოლით კონტენტის დაკვრის დროს (ნაგულისხმევი გამორთულია)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "აუდიო ვიჯეტის დამატებითი განახლება"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "ააქტიურებს კოდის დამატებით (ყალბი) აუდიო სკანირებას მას შემდეგ, რაც Emby აცნობებს პროგრესის განახლებებს. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "ქსელის დროის ამოწურვა"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "ეს პარამეტრი გავლენას ახდენს EPG და მრავალ ვერსიის კონტენტის შერჩევის დროზე. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: ფავორიტები"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: უყურეთ ერთად"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: მართეთ დისტანციური კლიენტები"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "მეტამონაცემების გაერთიანება ბიბლიოთეკის მიხედვით"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "მუსიკის შემსრულებელი"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "მუსიკის ჟანრი"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "ჟანრი"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "სტუდია"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "ტეგი"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "ფილმების კოლექცია"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "სატელევიზიო შოუების კოლექცია"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "მუსიკალური ვიდეოების კოლექცია"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "რჩეულები"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "ახალი შინაარსის შეტყობინების ხანგრძლივობა"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "ყუთები ტეგების სახით"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "მინიჭება ყუთები ტეგებს"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "ქსელის დროის ამოწურვა"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "ქსელის დროის ამოწურვის რეგულირება წამებში. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Emby რჩეულების სინქრონიზაცია კოდის ფავორიტებთან"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml შეიცვლება"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "ახლახან დამატებული ფოტოალბომი"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "განაგრძეთ ყურება"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "პირდაპირი ტელეარხების სინქრონიზაცია მოვლენებზე"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Livetv არხები ხელახლა სინქრონიზებულია Kodi start-ზე და EPG ცვლილებებზე"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "ჩამოტვირთვის მდებარეობა"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: ჩამოტვირთვა"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: ჩამოტვირთვის წაშლა"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "წაშალეთ ყველა გადმოწერილი ფაილი"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "დარწმუნებული ხართ, რომ გსურთ წაშალოთ მთელი ოფლაინ კონტენტი?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "ყველა გადმოწერილი კონტენტი წაიშლება"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby სერვერი ხაზგარეშე"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "საყვარელი სეზონები"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "პეიჯინგი"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "მუსიკოსი"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "მუსიკალური ბუმი"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "მუსიკალური ჟანრი"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "აუდიო"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "ფილმი"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "მუსიკალური ვიდეო"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "სერია"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "სეზონი"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "ეპიზოდი"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "ვიდეო"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "ფოტოალბომი"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "ჟანრი"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "ფოტო"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "დასაკრავი სია"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "არხები"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "თრეილერი"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "საქაღალდე"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "ყუთი"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "პირი"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "ტეგი"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "სტუდია"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "მრავალკონტენტი"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "სერვერების მართვა"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "დისტანციური დაკვრა"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "ჩამოტვირთეთ შინაარსი"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "კონტექსტური მენიუ"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "რჩეული დამატება/წაშლა"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "სპეციალური დაკვრა"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "ჩაწერა"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "განაახლეთ ელემენტი"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "ელემენტის წაშლა"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "საყვარელი ვიდეოები"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "საყვარელი ფოტოები"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "საყვარელი მუსიკალური ვიდეოები"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr "ა-ზ"
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "კოლექციები"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "რეკომენდაციები"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "საყვარელი ფილმები"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "საყვარელი ყუთები"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z ფოტოალბომი"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z ვიდეოები"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "ახლახან გამოშვებული უყურებელი ფილმები"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "ახლახან გამოსული ფილმები"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z მუსიკალური ვიდეოები"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z ფილმები"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z სერია"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "საყვარელი სიმღერები"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "საყვარელი მსახიობები"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "საყვარელი აუდიო"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "ძებნა"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "მიმდინარეობს (შერეული შინაარსი)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "განაგრძეთ ყურება (შერეული შინაარსი)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "გადმოწერილი ფილმები"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "გადმოწერილი ეპიზოდები"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "ჩამოტვირთული მუსიკალური ვიდეოები"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "ფილმები"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "სატელევიზიო შოუები"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "სეზონები"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "სიმღერები"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "მსახიობები"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "სანიშნეები"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "თემების ჩამოტვირთვა (დიახ) თუ თემების ბმული (არა)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "აირჩიეთ აუდიო ნაკადი"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "აირჩიეთ სარეზერვო"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "ნამუშევრის შეცვლა მოითხოვს ნამუშევრების ქეშის გადატვირთვას. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "შეტყობინებები"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "შეტყობინების ხანგრძლივობა"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "შეტყობინების ხანგრძლივობა წამებში"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "სერვერის ოპერაციები"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "კავშირები"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "ელემენტის წაშლა"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "სარეზერვო"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: დისტანციური თამაში"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr "პრორესი"
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "გადმოწერილი სერია"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "დააყენეთ imdb როგორც ნაგულისხმევი რეიტინგის პროვაიდერი"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "დავუშვათ ემბის საზოგადოების რეიტინგი ასახავს imdb რეიტინგებს"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "შემდეგი ეპიზოდები (შერეული შინაარსი)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "ბოლო დაკვრის გაგრძელება (შერეული შინაარსი)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "განაგრძეთ ბოლო თამაში"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "გადადით ჩვენებაზე"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: გადადით"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "გადადით ჩვენებაზე"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "სეზონზე გადასვლა"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "კვანძების გადატვირთვა დასრულდა"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI სიგრძის ლიმიტი"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "უფრო მაღალი ლიმიტები ზოგიერთ შემთხვევაში უფრო სწრაფია, მაგრამ შეიძლება გამოიწვიოს http 414 პრობლემები"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: პარამეტრები"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "პარამეტრები"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "ჩართეთ ოფლაინ შეტყობინება"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "სერვერის მისამართი არასწორია"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "არასწორი არგუმენტი"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "ჩამოტვირთვის გზა ვერ მოიძებნა"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "დაამატეთ ფილმების ბმულები სატელევიზიო შოუში"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "ფილმები მინიჭებული ტელეშოუებისთვის, რომლებიც ჩამოთვლილია კოდის სატელევიზიო შოუში. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "ჩართეთ დაწყების სინქრონიზაცია"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "თუ გამორთულია, Emby შინაარსი არ იქნება სინქრონიზებული კოდის დაწყებისას"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "გამოიყენეთ კლასიკური შერჩევა"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "შერჩევის მენიუ ნაჩვენებია, როდესაც მრავალკონტენტი ხელმისაწვდომია"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "მრავალკონტენტი"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "დუბლიკატი შინაარსი"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "შლის მსგავსი შინაარსის Emby სერვერის მრავალ ბიბლიოთეკაში"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "დააყენეთ ვიდეოს უმაღლესი გარჩევადობა ნაგულისხმევად"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "ეს პარამეტრი ეხება Kodi-ს მრავალვერსიის არჩევანს და საჭიროებს ბიბლიოთეკის ხელახალი სინქრონიზაციას გადართვაზე."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "ავტომატურად აირჩიეთ უმაღლესი გარჩევადობა"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "ვრცელდება კლასიკურ მრავალარჩევან ვარიანტზე"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "ჩართეთ Kodi API შეტყობინება"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "შეატყობინეთ მოვლენებს Kodi's API-ით გარე გამოყენებისთვის"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "წვდომა აკრძალულია"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "ალბომები წლის მიხედვით"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "მარტოხელები წლის მიხედვით"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "მარტოხელები"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "ახლახან დამატებული სინგლები"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "შემთხვევითი სინგლები"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "არცერთი"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "არ არის ხელმისაწვდომი ბილიკის ინფორმაცია, ფრთხილად იყავით რას აკეთებთ!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "სატელევიზიო შოუ"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "აირჩიეთ პირველადი ბიბლიოთეკა"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "განაახლეთ LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "თემების განახლება"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "გამორთეთ LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "LiveTv-ის ჩართვა"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "თემების გამორთვა"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "თემების ჩართვა"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "მიჰყევით http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "გარე http კონტენტზე იქნება პირდაპირი წვდომა და არა Emby სერვერის მეშვეობით. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "მიჰყევით http-ის ვადას"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "დააყენეთ ადგილობრივი კონტენტი ნაგულისხმევად"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "კოდის კომპანიონი დამატება არ არის დაინსტალირებული Emby სერვერზე! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "გააუქმეთ ნამუშევრების ქეში"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "ვებსერვისის მუშაკთა რაოდენობა"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "უფრო მაღალ მნიშვნელობებს შეუძლიათ გააუმჯობესონ შესრულება, მაგრამ სჭირდება მეტი რესურსი. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "დაკავებული დიალოგის დახურვა"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "შეიძლება თავიდან აიცილოს Kodi ავარია"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "მომსახურების ტიპი"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP სათაური (TOS), შეუძლია გააუმჯობესოს რეაგირება"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (საუკეთესო ძალისხმევა)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (დაჩქარებული გადამისამართება)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (გადაგზავნა გარანტირებული)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (რეალურ დროში ინტერაქტიული)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "ნამუშევრების დამატებითი ქეში"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "ნამუშევრების ქეში ავტომატურად ნაწილობრივ სინქრონიზაციაზე"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "ჟანრები ხატებით"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "სტუდიები ხატებით"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "ტეგები ხატებით"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "ადგილობრივი მისაბმელი"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "დატვირთვის ცვლილებები"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "რეზოლუციის ბარიერი"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "კონტენტის ტრანსკოდირება, როდესაც წყაროს გარჩევადობა არჩეულ გარჩევადობაზე მაღალია"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "რეზოლუციის ბარიერი"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "კონტენტის ტრანსკოდირება, როდესაც წყაროს გარჩევადობა არჩეულ გარჩევადობაზე მაღალია"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "ყოველთვის"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "შეუზღუდავი"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "ტრანსკოდირების გარჩევადობა"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "შეუზღუდავი ნიშნავს წყაროს გარჩევადობის შენარჩუნებას"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "ვებ სერვისის რეჟიმი"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr "ვებდავ"
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "ბილიკის ჩანაცვლება"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: მრავალვერსია"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "განაახლეთ მუსიკალური ვიდეოს ბმულები"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "განაახლებს მუსიკალური ვიდეოს ბმულებს მუსიკალური მონაცემთა ბაზაში"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "დრო არ არის სინქრონიზებული, გამოტოვეთ განახლებები"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "დაამატეთ მუსიკალური ვიდეოს ბმულები მუსიკას"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "კომის სიმღერების ხედებში ჩამოთვლილ მუსიკაზე მინიჭებული მუსიკალური ვიდეოები."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "სარეზერვო ასლის წაშლა"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "შეიყვანეთ სარეზერვო სახელი"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "შეკუმშვა არ არის მხარდაჭერილი, სარეზერვო ასლი მიუწვდომელია."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "სარეზერვო ასლი მიმდინარეობს"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "აუდიო თემების სინქრონიზაციის მეთოდი"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "ვიდეო თემების სინქრონიზაციის მეთოდი"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "ჩამოტვირთეთ"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "დისტანციური"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "ჩართეთ აუდიო თემები"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "ჩართეთ ვიდეო თემები"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "გადადით ალბომზე"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "გადადით მხატვარზე"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "სინქრონიზაციის პაუზა"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "შეაჩერე სინქრონიზაცია, როდესაც სერვერი დაკავებულია ამოცანებით"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "ვიდეო გადახედვის ესკიზის ამოღება"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "ვაკუუმის მონაცემთა ბაზა"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "ატვირთეთ ადგილობრივი თემის ვიდეოები"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "ატვირთეთ ადგილობრივი თემის სიმღერები"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "საწყისი მონაცემთა ბაზის განახლება"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "სატელევიზიო ლაბირინთში განახლება"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "სატრანსფერო მედია"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "მეტამონაცემების საქაღალდის სკანირება"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "მედია ბიბლიოთეკის სკანირება"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "განაახლეთ ინტერნეტ არხები"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "განაახლეთ სახელმძღვანელო"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "ჩამოტვირთეთ სუბტიტრები"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "ჩამოტვირთეთ ადგილობრივი YouTube ფილმების თრეილერი"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "ჩამოტვირთეთ ადგილობრივი ტელევიზიის სიმღერები"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "ჩამოტვირთეთ ადგილობრივი თემის ვიდეოები"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "ჩამოტვირთეთ ადგილობრივი თემის სიმღერები"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "ინტროების აღმოჩენა"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "მედიის კონვერტაცია"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "განახლება მიმდინარეობს"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX დაგეგმილი დავალება"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: უფრო მსგავსი"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "მეტი მსგავსი"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "საშინაო ვიდეო ტეგები"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "საყვარელი სახლის ვიდეოები"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "ვიდეო ტეგები"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "საყვარელი ვიდეოები"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "დაკვრის მდგომარეობა იცვლება"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "სერიის და სეზონის პროგრესი"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "დასაკრავი სიები (შერეული)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: შემთხვევითი თამაში"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "შემთხვევითი თამაში"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi Companion გაფრთხილება"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion არის Emby სერვერის დამატება, რომელიც თვალყურს ადევნებს წაშლილ შინაარსს"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "დამუშავების მისაბმელები"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "მისაბმელიანი"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "ახლახან დამატებული თრეილერი"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "თემები"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "ჩართეთ აუდიო"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "ვიდეოს ჩართვა"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "გაქრება"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "გაქრება"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "უფრო დიდი მნიშვნელობები ნიშნავს უფრო გაქრობის დროს, ნული გამორთულია"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "საწყისი ეკრანი"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "უკრავს თემებს ვიჯეტებისთვის"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "დაგვიანებული დაწყება"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "მნიშვნელობები წამებშია"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "ჩამოტვირთეთ"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "შეინახეთ თემები ადგილობრივად უკეთესი შესრულებისთვის"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "პრიორიტეტი"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "განსაზღვრავს, რომელი თემა ითამაშებს პირველად, როცა ორივე ხელმისაწვდომია"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "დისტანციური მისაბმელი"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "დისტანციური მისაბმელების შერჩევა"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "კინოს შესავალი"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "საქაღალდის მისაბმელი"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "ადგილობრივი მისაბმელი"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "ადგილობრივი ფილმი"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "თრეილერის დაკვრა"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "ტომი"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "გამართვის ჟურნალი"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "ვიდეოს ჩართვა შესავალი მარკერებით"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "აუდიოს ჩართვა შესავალი მარკერებით"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "ვიდეოს ჩართვა კონტენტის მიხედვით"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "აუდიოს ჩართვა შინაარსის მიხედვით"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "შინაარსის ხანგრძლივობის მიხედვით"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "გამოყენებული ტრანსკოდირება, შეიძლება გამოიწვიოს სერვერზე CPU-ს მძიმე დატვირთვა"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "გამორთულია"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "შესავალი მარკერები"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "შიგთავსი"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "ვირტუალური თემები"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "ნავიგაცია"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "ეპიზოდის ხედი"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "სეზონის ხედი"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "სატელევიზიო შოუს ნახვა"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "ფილმის ნახვა"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "დროები"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "დაკვრა"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "აუდიო ფავორიტების განახლება"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "განაახლეთ მუსიკალური ალბომების ფავორიტები"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "განაახლეთ ვიდეოს ფავორიტები"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "განაახლეთ მუსიკალური ვიდეოს ფავორიტები"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "განაახლეთ ყუთების ფავორიტები"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "განაახლეთ სერიების ფავორიტები"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "განაახლეთ სეზონის ფავორიტები"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "განაახლეთ დასაკრავი სიის რჩეულები"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "განაახლეთ ეპიზოდების ფავორიტები"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "განაახლეთ ფილმების ფავორიტები"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "განაახლეთ ჟანრის ფავორიტები"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "განაახლეთ სტუდიის ფავორიტები"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "თეგის რჩეულების განახლება"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "განაახლეთ მუსიკის ჟანრის ფავორიტები"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "განაახლეთ ადამიანების ფავორიტები"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "განაახლეთ ადამიანების ფავორიტები"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "სარეზერვო ასლის აღდგენა:"
+

@@ -1,6 +1,6 @@
 import xbmc
 from helper import utils
-from . import common, genre, tag, studio, person, boxsets
+from . import common, genre, tag, studio, person, trailer
 
 
 class Movies:
@@ -11,7 +11,7 @@ class Movies:
         self.TagObject = tag.Tag(self.EmbyServer, self.SQLs)
         self.StudioObject = studio.Studio(self.EmbyServer, self.SQLs)
         self.PersonObject = person.Person(self.EmbyServer, self.SQLs)
-        self.BoxSetObject = boxsets.BoxSets(self.EmbyServer, self.SQLs)
+        self.TrailerObject = trailer.Trailer(self.EmbyServer, self.SQLs)
 
     def update_SQLs(self, SQLs): # When paused, databases are closed and re-opened -> Update database
         self.SQLs = SQLs
@@ -19,43 +19,55 @@ class Movies:
         self.TagObject.update_SQLs(self.SQLs)
         self.StudioObject.update_SQLs(self.SQLs)
         self.PersonObject.update_SQLs(self.SQLs)
-        self.BoxSetObject.update_SQLs(self.SQLs)
+        self.TrailerObject.update_SQLs(self.SQLs)
 
     def change(self, Item, IncrementalSync):
         if not common.verify_content(Item, "movie"):
             return False
 
-        xbmc.log(f"EMBY.core.movies: Process item: {Item['Name']}", 0) # DEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.movies (DEBUG): Process item: {Item['Name']}", 1) # DEBUG
 
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Movie"):
             return False
 
         # ungroup versions
+        isMultiVersion = False
+
         if Item['UpdateItem']:
-            Movieversions = self.SQLs["emby"].get_movieversions(Item['Id'])
+            MultiVersionsFound = self.SQLs["emby"].get_movieversions(Item['Id'])
 
-            if len(Movieversions) > 1:
-                for Movieversion in Movieversions:
-                    DelteItem = {'KodiFileId': Movieversion[1], 'KodiItemId': Movieversion[2], 'Id': Movieversion[0], 'KodiPathId': Movieversion[3], 'LibraryId': Item['LibraryId']}
-                    self.remove(DelteItem, False)
+            if len(MultiVersionsFound) > 1:
+                isMultiVersion = True
+                LastPlayedTicksCompare = 0
 
-                Item['UpdateItem'] = False
+                for MultiVersionFound in MultiVersionsFound:
+                    Found, timeInSeconds, playCount, lastPlayed = self.SQLs["video"].get_Progress(MultiVersionFound[1])
 
-        common.set_Favorite(Item)
-        common.set_trailer(Item, self.EmbyServer)
+                    if lastPlayed:
+                        LastPlayedTicks = utils.get_unix_ticks(lastPlayed)
+                    else:
+                        LastPlayedTicks = 0
+
+                    if Found and LastPlayedTicks > LastPlayedTicksCompare:
+                        LastPlayedTicksCompare = LastPlayedTicks
+                        Item.update({'KodiPlayCount': playCount, 'KodiLastPlayedDate': lastPlayed, 'KodiPlaybackPositionTicks': timeInSeconds, 'IsFavorite': Item['EmbyFavourite']})
+
+                for MultiVersionFound in MultiVersionsFound:
+                    self.remove({'KodiFileId': MultiVersionFound[1], 'KodiItemId': MultiVersionFound[2], 'Id': MultiVersionFound[0], 'KodiPathId': MultiVersionFound[3], 'LibraryId': Item['LibraryId']}, False)
+
         common.set_RunTimeTicks(Item)
         common.set_streams(Item)
         common.set_chapters(Item, self.EmbyServer.ServerData['ServerId'])
         common.set_common(Item, self.EmbyServer.ServerData['ServerId'], False, IncrementalSync)
-        Item['TagItems'].append({"LibraryId": Item["LibraryId"], "Type": "Tag", "Id": f"999999993{Item['LibraryId']}", "Name": Item['LibraryName'], "Memo": "library"})
+        Item['TagItems'].append({"LibraryId": Item["LibraryId"], "Type": "Tag", "Id": f"{utils.MappingIds['Tag']}00{Item['LibraryId']}", "Name": Item['LibraryName'], "Memo": "library"})
         common.set_MetaItems(Item, self.SQLs, self.GenreObject, self.EmbyServer, "Genre", "GenreItems", "", IncrementalSync, Item["LibraryId"])
         common.set_MetaItems(Item, self.SQLs, self.StudioObject, self.EmbyServer, "Studio", "Studios", "", IncrementalSync, Item["LibraryId"])
         common.set_MetaItems(Item, self.SQLs, self.TagObject, self.EmbyServer, "Tag", 'TagItems', "", IncrementalSync, Item["LibraryId"])
         common.set_people(Item, self.SQLs, self.PersonObject, self.EmbyServer, IncrementalSync)
         self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
 
-        if Item['UpdateItem']:
-            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie", False, False)
+        if Item['UpdateItem'] and not isMultiVersion:
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "movie", False)
             common.set_path_filename(Item, self.EmbyServer.ServerData['ServerId'], None)
             common.set_multipart(Item, self.EmbyServer)
             common.update_downloaded_info(Item, self.SQLs, "movie")
@@ -66,6 +78,7 @@ class Movies:
             common.set_multipart(Item, self.EmbyServer)
             Item['KodiPathId'] = self.SQLs['video'].get_add_path(Item['KodiPath'], "movies")
 
+        common.set_RemoteTrailer(Item, self.TrailerObject, IncrementalSync)
         common.set_VideoCommon(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie")
         common.set_Genre_links(Item['KodiItemId'], self.SQLs, "movie", Item["GenreItems"])
         common.set_Studio_links(Item['KodiItemId'], self.SQLs, "movie", Item["Studios"])
@@ -81,83 +94,93 @@ class Movies:
         if not Item['ProductionLocations']:
             Item['ProductionLocations'].append(None)
 
-        if Item['UpdateItem']:
+        if Item['UpdateItem'] and not isMultiVersion:
             self.SQLs["video"].update_movie(Item['KodiItemId'], Item['KodiFileId'], Item['KodiName'], Item['Overview'], Item['ShortOverview'], Item['Tagline'], Item['KodiRatingId'], Item['Writers'], Item['KodiArtwork']['poster'], Item['KodiUniqueId'], Item['KodiSortName'], Item['KodiRunTimeTicks'], Item['OfficialRating'], Item['Genre'], Item['Directors'], Item['OriginalTitle'], Item['Studio'], Item['Trailer'], Item['KodiArtwork']['fanart'].get('fanart', None), Item['ProductionLocations'][0], Item['KodiPremiereDate'], None, Item['KodiFilename'], Item['KodiStackedFilename'], Item['KodiDateCreated'], Item['MediaSources'][0]['Name'], Item['KodiPathId'], Item['KodiPath'], Item['KodiFullPath'])
             self.SQLs["emby"].update_reference_movie(Item['Id'], Item['PresentationUniqueKey'], Item['LibraryId'])
-            xbmc.log(f"EMBY.core.movies: UPDATE [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.movies: UPDATE [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.movies (DEBUG): UPDATE [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", 1) # LOGDEBUG
+
             utils.notify_event("content_update", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "movie"}, IncrementalSync)
         else:
             self.SQLs["video"].add_movie(Item['KodiItemId'], Item['KodiFileId'], Item['Name'], Item['Overview'], Item['ShortOverview'], Item['Tagline'], Item['KodiRatingId'], Item['Writers'], Item['KodiArtwork']['poster'], Item['KodiUniqueId'], Item['SortName'], Item['KodiRunTimeTicks'], Item['OfficialRating'], Item['Genre'], Item['Directors'], Item['OriginalTitle'], Item['Studio'], Item['Trailer'], Item['KodiArtwork']['fanart'].get('fanart', None), Item['ProductionLocations'][0], Item['KodiFullPath'], Item['KodiPathId'], Item['KodiPremiereDate'], Item['KodiFilename'], Item['KodiDateCreated'], None, Item['KodiStackedFilename'], Item['MediaSources'][0]['Name'])
             self.SQLs["emby"].add_reference_movie(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiFileId'], Item['PresentationUniqueKey'], Item['Path'], Item['KodiPathId'])
-            xbmc.log(f"EMBY.core.movies: ADD [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.movies: ADD [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.movies (DEBUG): ADD [{Item['KodiPathId']} / {Item['KodiFileId']} / {Item['KodiItemId']}] {Item['Id']}: {Item['Name']}", 1) # LOGDEBUG
+
             utils.notify_event("content_add", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "movie"}, IncrementalSync)
 
         common.update_boxsets(IncrementalSync, Item['ParentId'], Item['LibraryId'], self.SQLs, self.EmbyServer) # Update Boxset
         common.add_multiversion(Item, "Movie", self.EmbyServer, self.SQLs, self.EmbyServer.ServerData['ServerId'], None, None)
 
-        if 'SpecialFeatureCount' in Item:
-            if int(Item['SpecialFeatureCount']):
-                SpecialFeatures = self.EmbyServer.API.get_specialfeatures(Item['Id'])
+        # Update userdata
+        if isMultiVersion:
+            self.userdata(Item, IncrementalSync, True)
 
-                for SF_Item in SpecialFeatures:
-                    SF_Item.update({"LibraryId": Item['LibraryId'], "KodiItemId": Item['KodiItemId']})
-                    common.set_playstate(SF_Item)
-                    common.set_streams(SF_Item)
-                    common.set_RunTimeTicks(SF_Item)
-                    common.set_chapters(SF_Item, self.EmbyServer.ServerData['ServerId'])
-                    SF_Item['KodiFileId'] = self.SQLs["video"].create_entry_file()
-                    common.set_path_filename(SF_Item, self.EmbyServer.ServerData['ServerId'], None)
-                    common.set_multipart(SF_Item, self.EmbyServer)
-                    common.set_KodiArtwork(SF_Item, self.EmbyServer.ServerData['ServerId'], False)
-                    common.set_Favorite(SF_Item)
+        # Add Subitems
+        self.SQLs["emby"].add_UpdateItem_Parent(Item['Id'], "Movie", Item['LibraryId'], Item['KodiItemId'], "Theme", "") # Theme
 
-                    if IncrementalSync and utils.ArtworkCacheIncremental:
-                        common.cache_artwork(Item['KodiArtwork'])
+        if int(Item['SpecialFeatureCount']):
+            self.SQLs["emby"].add_UpdateItem_Parent(Item['Id'], "Movie", Item['LibraryId'], Item['KodiItemId'], "Special", "video") # Specials
 
-                    common.set_DateCreated(SF_Item)
-                    SF_Item['KodiPathId'] = self.SQLs['video'].get_add_path(SF_Item['KodiPath'], "movies")
-                    self.SQLs["video"].add_bookmarks(SF_Item['KodiFileId'], SF_Item['KodiRunTimeTicks'], SF_Item['MediaSources'][0]['KodiChapters'])
-                    self.SQLs["video"].add_streams(SF_Item['KodiFileId'], SF_Item['MediaSources'][0]['KodiStreams']['Video'], SF_Item['MediaSources'][0]['KodiStreams']['Audio'], SF_Item['MediaSources'][0]['KodiStreams']['Subtitle'], SF_Item['KodiRunTimeTicks'])
-                    self.SQLs["video"].common_db.add_artwork(SF_Item['KodiArtwork'], SF_Item['KodiFileId'], "videoversion")
-                    self.SQLs["video"].add_movie_version(Item['KodiItemId'], SF_Item['KodiFileId'], SF_Item['KodiPathId'], SF_Item['KodiFilename'], SF_Item['KodiDateCreated'], SF_Item['KodiStackedFilename'], SF_Item['Name'], "movie", "special")
-                    self.SQLs["emby"].add_streamdata(SF_Item['Id'], SF_Item['MediaSources'])
-                    self.SQLs["emby"].add_reference_video(SF_Item['Id'], SF_Item['LibraryId'], SF_Item['KodiItemId'], SF_Item['KodiFileId'], SF_Item['ParentId'], SF_Item['PresentationUniqueKey'], SF_Item['Path'], SF_Item['KodiPathId'], True)
+        if 'LocalTrailerCount' in Item and Item['LocalTrailerCount']:
+            self.SQLs["emby"].add_UpdateItem_Parent(Item['Id'], "Movie", Item['LibraryId'], Item['KodiItemId'], "Trailer", "video")
 
         return not Item['UpdateItem']
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
     def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
-        if not common.verify_Userdata_Updates(Item, IncrementalSync):
-            return True
+        if not common.verify_KodiIds(Item, IncrementalSync, True):
+            return False
 
         Update = False
         common.set_playstate(Item)
-        common.set_RunTimeTicks(Item)
+        common.set_Favorite(Item)
         self.SQLs["video"].set_Favorite_Tag(Item['IsFavorite'], Item['KodiItemId'], "movie")
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Movie")
 
         if UpdateKodiFavorite:
             self.set_favorite(Item['IsFavorite'], Item)
 
-        for KodiFileId in self.SQLs["video"].get_KodiFileId_by_videoversion(Item['KodiItemId'], "movie"):
-            if self.SQLs["video"].update_bookmark_playstate(KodiFileId[0], Item['KodiPlayCount'], Item['KodiLastPlayedDate'], Item['KodiPlaybackPositionTicks'], Item['KodiRunTimeTicks']):
+        for BookmarkData in self.SQLs["video"].get_BookmarkData_by_videoversion(Item['KodiItemId'], "movie"):
+            if self.SQLs["video"].update_bookmark_playstate(BookmarkData[0], Item['KodiPlayCount'], Item['KodiLastPlayedDate'], Item['KodiPlaybackPositionTicks'], BookmarkData[1]):
                 Update = True
 
-            xbmc.log(f"EMBY.core.movies: USERDATA [{KodiFileId[0]} / {Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.movies: USERDATA [{BookmarkData[0]} / {Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.movies (DEBUG): USERDATA [{BookmarkData[0]} / {Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
 
         utils.notify_event("content_changed", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "movie"}, True)
         return Update
 
     def remove(self, Item, IncrementalSync):
-        if common.delete_ContentItem(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie", "Movie", False):
+        if not common.verify_KodiIds(Item, IncrementalSync, True):
+            return
+
+        if common.delete_ContentItem(Item['KodiItemId'], Item['KodiFileId'], Item, self.SQLs, "movie", "Movie"):
             self.set_favorite(False, Item)
             self.SQLs["video"].delete_movie(Item['KodiItemId'], Item['KodiFileId'])
-            xbmc.log(f"EMBY.core.movies: DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.movies: DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.movies (DEBUG): DELETE [{Item['KodiItemId']} / {Item['KodiFileId']}] {Item['Id']}", 1) # LOGDEBUG
+
             utils.notify_event("content_remove", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "movie"}, IncrementalSync)
             common.update_multiversion(self.SQLs["emby"], "Movie", Item['Id'], Item['LibraryId'], Item.get('PresentationUniqueKey', ''))
         else:
             LibrarySyncedName = self.EmbyServer.library.LibrarySyncedNames[Item['LibraryId']]
             self.SQLs["video"].delete_library_links_tags(Item['KodiItemId'], "movie", LibrarySyncedName)
+
+        self.SQLs['emby'].remove_item_by_parentid(Item['Id'], "Video", Item['LibraryId']) # delete referenced specials, themes etc.
+        self.SQLs['emby'].remove_item_by_parentid(Item['Id'], "Audio", Item['LibraryId']) # delete referenced themes
+        self.SQLs['emby'].remove_item_by_parentid(Item['Id'], "Trailer", Item['LibraryId']) # delete referenced trailers
 
     def set_favorite(self, IsFavorite, Item):
         common.validate_FavoriteImage(Item)

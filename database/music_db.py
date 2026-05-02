@@ -3,26 +3,33 @@ import xbmc
 from helper import utils
 from . import common_db
 
-
 class MusicDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
         self.common_db = common_db.CommonDatabase(cursor)
+        self.Index = {}
 
     def add_Index(self):
+        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
+        self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (2, "composer"))
+
         try: # xbox issue
-            self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (1, "artist"))
-            self.cursor.execute("INSERT OR REPLACE INTO role(idRole, strRole) VALUES (?, ?)", (2, "composer"))
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strType on album (strType)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_dateadded on album (dateAdded)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_dateadded on song (dateAdded)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment_strGenres on song (comment, strGenres)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strReleaseType on album (strReleaseType)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed on song (idAlbum, lastplayed, iTimesPlayed)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strMusicBrainzTrackID on song (strMusicBrainzTrackID)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strArtistDisp_strTitle on song (strArtistDisp, strTitle)")
-            self.cursor.execute("ANALYZE")
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_album_strType'")
+            IndexTest = self.cursor.fetchone()
+
+            if not IndexTest:
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strType on album (strType)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_dateadded on album (dateAdded)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_dateadded on song (dateAdded)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_comment_strGenres on song (comment, strGenres)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_artist_strDisambiguation on artist (strDisambiguation)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_album_strReleaseType on album (strReleaseType)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_idAlbum_lastplayed_iTimesPlayed on song (idAlbum, lastplayed, iTimesPlayed)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strMusicBrainzTrackID on song (strMusicBrainzTrackID)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_song_strArtistDisp_strTitle on song (strArtistDisp, strTitle)")
+                self.cursor.execute("ANALYZE")
+                self.cursor.connection.commit()
+                self.cursor.execute("BEGIN IMMEDIATE TRANSACTION")
         except Exception as Error:
             xbmc.log(f"EMBY.database.music_db: Database add index error: {Error}", 3) # LOGERROR
 
@@ -38,6 +45,8 @@ class MusicDatabase:
             self.cursor.execute("DROP INDEX IF EXISTS idx_song_strMusicBrainzTrackID")
             self.cursor.execute("DROP INDEX IF EXISTS idx_song_strArtistDisp_strTitle")
             self.cursor.execute("ANALYZE")
+            self.cursor.connection.commit()
+            self.cursor.execute("BEGIN IMMEDIATE TRANSACTION")
         except Exception as Error:
             xbmc.log(f"EMBY.database.music_db: Database delete index error: {Error}", 3) # LOGERROR
 
@@ -60,9 +69,10 @@ class MusicDatabase:
         self.cursor.execute("INSERT OR REPLACE INTO song_artist(idArtist, idSong, idRole, iOrder, strArtist) VALUES (?, ?, ?, ?, ?)", (ArtistId, MediaId, Role, Order, Name))
 
     def del_musicartist(self, ArtistId):
-        self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", (ArtistId,))
+        self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ?", (ArtistId, "artist"))
         self.cursor.execute("DELETE FROM song_artist WHERE idArtist = ?", (ArtistId,))
         self.cursor.execute("DELETE FROM album_artist WHERE idArtist = ?", (ArtistId,))
+        self.cursor.execute("DELETE FROM artist WHERE idArtist = ?", (ArtistId,))
         self.cursor.execute("DELETE FROM removed_link")
 
     def get_Artist(self, ArtistId):
@@ -249,10 +259,6 @@ class MusicDatabase:
         # Get/keep current Tags
         self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (KodiItemId,))
         CommentCurrent = self.cursor.fetchone()
-
-        if not CommentCurrent: # Temporary fix, mymusicdb trigger can remove songs. Permanent fix included in next major version
-            return
-
         CommentsCurrent = CommentCurrent[0].split("\n")
         EmbyLibraryIds = ()
         EmbyPlaylistIds = ()
@@ -273,7 +279,6 @@ class MusicDatabase:
                 Comment += f"\nEmbyLibraryId-{EmbyLibraryId}"
             else:
                 Comment += f"EmbyLibraryId-{EmbyLibraryId}"
-
 
         for EmbyPlaylistId in EmbyPlaylistIds:
             if Comment:
@@ -326,9 +331,9 @@ class MusicDatabase:
 
         return {'mediatype': "song", "dbid": kodi_id, 'artist': SongData[0], 'genre': SongData[1], 'title': SongData[2], 'tracknumber': Track, 'discnumber': Disc, 'duration': SongData[4], 'releasedate': SongData[5], 'year': utils.convert_to_local(SongData[5], False, True), 'musicbrainztrackid': SongData[6], 'playcount': SongData[7], 'comment': SongData[8], 'Album': SongData[9], 'path': SongData[10], 'albumartists': SongData[11], 'pathandfilename': f"{SongData[10]}{SongData[12]}", 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'artwork': Artwork, 'CommunityRating': SongData[13]}
 
-    def update_song_musicvideo(self, MusicBrainzTrackID, Path, Title, Artist):
-        self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ?", (Path, MusicBrainzTrackID, f"{MusicBrainzTrackID} ", f"{MusicBrainzTrackID}  ", f"{MusicBrainzTrackID}   ", f"{MusicBrainzTrackID}    ", f"{MusicBrainzTrackID}     ", f"{MusicBrainzTrackID}      ", f"{MusicBrainzTrackID}       ", f"{MusicBrainzTrackID}        ", f"{MusicBrainzTrackID}         ")) # Update by MusicBrainzTrackID, Trailing spaces are used for MusicBrainzTrackID unificaation
-        self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE strArtistDisp = ? AND strTitle = ? AND strVideoURL IS NULL", (Path, Artist, Title)) # Update by Artist, Title
+    def update_song_musicvideo(self, data_list):
+        self.cursor.executemany("UPDATE song SET strVideoURL = ? WHERE strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ? OR strMusicBrainzTrackID = ?", [(d[1], d[0], f"{d[0]} ", f"{d[0]}  ", f"{d[0]}   ", f"{d[0]}    ", f"{d[0]}     ", f"{d[0]}      ", f"{d[0]}       ", f"{d[0]}        ", f"{d[0]}         ") for d in data_list if d[0]])
+        self.cursor.executemany("UPDATE song SET strVideoURL = ? WHERE strArtistDisp = ? AND strTitle = ? AND strVideoURL IS NULL", [(d[1], d[3], d[2]) for d in data_list])
 
     def del_song_musicvideo(self):
         self.cursor.execute("UPDATE song SET strVideoURL = NULL")
@@ -345,7 +350,7 @@ class MusicDatabase:
                 self.cursor.execute("UPDATE genre SET strGenre = ? WHERE idGenre = ?", (GenreNameMod, GenreId))
                 break
             except Exception as Error:
-                xbmc.log(f"EMBY.database.music_db: Update genre, Duplicate GenreName detected: {GenreNameMod} / {Error}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.database.music_db (DEBUG): Update genre, Duplicate GenreName detected: {GenreNameMod} / {Error}", 1) # LOGDEBUG
                 GenreNameMod += " "
 
     def get_add_genre(self, GenreName):
@@ -408,11 +413,12 @@ class MusicDatabase:
         self.cursor.execute("DELETE FROM removed_link")
 
     def delete_album(self, idAlbum):
-        self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", (idAlbum,))
         self.cursor.execute("DELETE FROM album_artist WHERE idAlbum = ?", (idAlbum,))
+        self.cursor.execute("DELETE FROM album_source WHERE idAlbum = ?", (idAlbum,))
         self.common_db.delete_artwork(idAlbum, "album")
         self.common_db.delete_artwork(idAlbum, "single")
         self.cursor.execute("DELETE FROM removed_link")
+        self.cursor.execute("DELETE FROM album WHERE idAlbum = ?", (idAlbum,))
 
     def delete_song(self, idSong):
         self.cursor.execute("DELETE FROM song_artist WHERE idSong = ?", (idSong,))
@@ -441,6 +447,7 @@ class MusicDatabase:
         QuotedOld = OldPath != "/emby_addon_mode/"
         self.cursor.execute("SELECT idSong, strVideoURL FROM song WHERE strVideoURL IS NOT NULL")
         VideoURLs = self.cursor.fetchall()
+        SQLData = ()
 
         for VideoURL in VideoURLs:
             Data = VideoURL[1].split("/")
@@ -458,8 +465,13 @@ class MusicDatabase:
                     FileNameNew = FileName
 
             Path = f'{"/".join(Data[:-1])}/{FileNameNew}'
-            Path = common_db.toggle_path(Path, NewPath).replace("|redirect-limit=1000", "")
-            self.cursor.execute("UPDATE song SET strVideoURL = ? WHERE idSong = ?", (Path, VideoURL[0])) # Trailing spaces are used for MusicBrainzTrackID unificaation
+            Path = common_db.toggle_path(Path, NewPath).replace("|redirect-limit=1000&failonerror=false", "")
+            SQLData += ((Path, VideoURL[0]),)
+
+        if SQLData:
+            self.cursor.executemany("UPDATE song SET strVideoURL = ? WHERE idSong = ?", SQLData) # Trailing spaces are used for MusicBrainzTrackID unificaation
+
+        del SQLData
 
     # artwork
     def get_artwork(self, KodiId, ContentType):
@@ -539,7 +551,7 @@ def errorhandler_MusicBrainzID(Title, MusicBrainzID, error):
     error = str(error)
 
     if "MusicBrainz" in error:  # Duplicate musicbrainz
-        xbmc.log(f"EMBY.database.music_db: Duplicate MusicBrainzID detected: {Title} / {MusicBrainzID} / {error}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.database.music_db (DEBUG): Duplicate MusicBrainzID detected: {Title} / {MusicBrainzID} / {error}", 1) # LOGDEBUG
         MusicBrainzID += " "
         return MusicBrainzID
 

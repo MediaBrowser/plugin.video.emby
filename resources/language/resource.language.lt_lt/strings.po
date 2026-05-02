@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby už Kodi"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Serverio adresas"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "serverio pavadinimas"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "priverstinis HTTP atkūrimas"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Prisijungimo būdas"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "žurnalo lygis"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "įrenginio pavadinimas"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Išplėstinė"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Vartotojo vardas"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "prievado numeris"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Patvirtinkite failo ištrynimą"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Pasiūlykite ištrinti po atkūrimo"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Epizodams"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Filmams"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "įgalinkite patobulintą iliustraciją (t. y. viršelio iliustraciją)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Vaizdo įrašo kokybė"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Neseniai pridėtos TV laidos"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Vykdomos TV laidos"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Neseniai pridėti filmai"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Neseniai pridėtos serijos"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Vykdomi filmai"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Vykdomi epizodai"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Kiti epizodai"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Mėgstamiausi filmai"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Mėgstamiausios laidos"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Mėgstamiausios serijos"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Dėžutės"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Nežiūrėti filmai"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Atsitiktiniai elementai"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Rekomenduojami elementai"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Sąsaja"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Iš naujo nustatykite vietinę Kodi duomenų bazę"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Įjungti pasveikinimo pranešimą"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Neseniai pridėti namų vaizdo įrašai"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Neseniai pridėtos nuotraukos"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Mėgstamiausi namų vaizdo įrašai"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Mėgstamiausios nuotraukos"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Mėgstamiausi albumai"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Neseniai pridėti muzikiniai vaizdo įrašai"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Vykdomi Muzikiniai vaizdo įrašai"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Nežiūrėti muzikiniai vaizdo įrašai"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmai"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "m.: TV laidos"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby parinktys"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr ""
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Įtraukti į mėgstamiausius"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Pašalinti iš mėgstamiausių"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Nustatymai"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Ištrinti elementą"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Atnaujinti elementą"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Transkodas"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Patikrinkite ryšį"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "naudokite alternatyvų įrenginio pavadinimą"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Sinchr"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Įjunkite pranešimą, jei atnaujinimų skaičius yra didesnis nei"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Sinchronizuoti tuščias laidas"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Įjungti muzikos biblioteką"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "atkūrimo režimas"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Įgalinkite meno kūrinių talpyklą"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Atkūrimas"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Tinklo kredencialai"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Įjunkite kino režimą"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Paprašykite paleisti anonsus"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Praleiskite ištrynimo patvirtinimą (naudokite savo rizika)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Grįžkite į CV (sekundėmis)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "Pakeisti H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Ignoruokite specialius pasiūlymus kitose serijose"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Nuolatiniai vartotojai"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "paleidimo delsa (sekundėmis)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Įgalinti serverio paleidimo iš naujo pranešimą"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Įgalinkite naują turinį"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Vaizdo įrašų bibliotekos iššokančiojo lango trukmė"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Muzikos bibliotekos iššokančiojo lango trukmė"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "pranešimai (sekundėmis)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "sugeneruokite naują įrenginio ID"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "leiskite ekrano užsklandą sinchronizuoti"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Prisijunkite"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "rankinis prisijungimas"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Vartotojo vardas arba el"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Įgalinkite serverį neprisijungus"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Rodyti pranešimą"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "prisijunkite naudodami Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "slaptažodis"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "prisijunkite"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Atšaukti"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "pasirinkite pagrindinį serverį"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Vartotojo vardo arba slaptažodžio laukas negali būti tuščias"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Nepavyko prisijungti prie pasirinkto serverio"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Prisijunkite prie"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "rankiniu būdu pridėti serverį"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Prisijunkite"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Pakeiskite Emby Connect vartotoją"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Šeimininkas"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Prisijunkite"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "serveris arba prievadas negali būti tušti"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Pakeiskite Emby Connect vartotoją"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Sveiki atvykę"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "serveris paleidžiamas iš naujo"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Neteisingas vartotojo vardas arba slaptažodis"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "pasirinkite garso srautą"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Pasirinkite subtitrų srautą"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Ištrinti failą iš Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Leisti anonsus?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Rinkimo dėžės"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Susirinkimas:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Aptikta, kad reikia iš naujo sukurti duomenų bazę šiai „Emby for Kodi“ versijai. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "„Emby for Kodi“ neveiks tinkamai, kol duomenų bazė nebus nustatyta iš naujo."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Užbaigta:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Sukurtas naujas įrenginio ID. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Atsargiai! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Priedas (numatytasis)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (tiesioginiai keliai)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Įjungti muzikos biblioteką?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "talpyklos proceso paleidimas gali užtrukti. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Iš naujo nustatyti esamą meno kūrinio talpyklą?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Atnaujinama meno kūrinių talpykla"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Laukiama, kol gijos baigsis"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi negali rasti failo:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "naudokite „Emby“ kelio pakeitimą, kad teisingai formatuotumėte kelią arba įsitikintumėte, kad jūsų kelias yra įtrauktas į „Kodi“ failų tvarkyklę. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Naujas"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Pridėti vartotoją prie sesijos"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "iš naujo nustatykite vietinę duomenų bazę"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Išsaugokite visus meno kūrinius talpykloje"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Sinchronizuoti temos laikmeną"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Pridėti / pašalinti vartotoją iš sesijos"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Pridėti vartotoją"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Pašalinti vartotoją"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Pašalinkite vartotoją iš sesijos"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Pašalinta"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Pridėta"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Ar tikrai norite iš naujo nustatyti vietinę „Kodi“ duomenų bazę?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Pašalinti visus talpykloje esančius meno kūrinius?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Iš naujo nustatyti visus „Emby“ priedo nustatymus?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Duomenų bazės nustatymas iš naujo baigtas, „Kodi“ dabar paleis iš naujo, kad pritaikytų pakeitimus."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Įveskite aplanko pavadinimą atsarginei kopijai kurti"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Pakeisti esamą atsarginę kopiją?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Atsarginė kopija sukurta adresu:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Sukurkite atsarginę kopiją"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Atsarginės kopijos aplankas"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Svarbu, kad jūsų išplėstiniuose nustatymuose pašalintas atnaujinimas, kad būtų išvengta konflikto su „Emby for Kodi“. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Atnaujinkite dėžučių rinkinius"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Įdiekite serverio papildinį „Kodi Companion“, kad paleidžiant automatiškai pritaikytumėte įterptinės bibliotekos naujinimus. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Ar norėtumėte sinchronizuoti tuščias laidas?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Kadangi naudojate savąjį atkūrimo režimą su įjungta muzika, ar norite importuoti muzikos įvertinimą iš failų?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Tęsti ankstesnį sinchronizavimą?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Įgalinkite žiniatinklio serverio paslaugą „Kodi“ nustatymuose, kad galėtumėte išsaugoti meno kūrinius talpykloje."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Raskite daugiau informacijos github wiki/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Įjunkite kontekstinį meniu"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "įgalinkite perkodavimo parinktį"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Į sesiją įtraukti vartotojai"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Vaizdo įrašo atkūrimo metu pranešimai vėluoja (išskyrus tiesioginę TV)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "Papildinys"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Iš naujo paleiskite „Kodi“, kad įsigaliotų."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Iš naujo nustatykite vietinę duomenų bazę, kad pritaikytumėte atkūrimo režimo pakeitimą."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "taikoma vietiniam ir papildiniam atkūrimo režimams"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "taikoma tik papildomo atkūrimo režimui"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Įjungti išorinius subtitrus"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Sureguliuokite nuotoliniam ryšiui"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Suspausti meno kūrinius (mažėja kokybė)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Įjungti meno kūrinių talpyklą? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "pakeitėte atkūrimo režimą. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Sinchronizuojant kažkas nutiko. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "pasirinkite bibliotekas, kurias norite pridėti"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Viskas"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Paleiskite Kodi iš naujo, kad tęstumėte ten, kur baigėte."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Sinchronizuoti biblioteką su Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Įtraukti žmones (lėtas)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "pasirinkite „Emby“ rodinius, kuriuos norite sinchronizuoti su „Kodi“. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Sinchronizuoti vėliau"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Tęskite"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Nepavyko gauti naujausių turinio naujinimų. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Galite sinchronizuoti bibliotekas paleisdami Emby priedą > Pridėti bibliotekas."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "pasirinkite šaltinį"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Gaivinančios dėžutės"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Remonto biblioteka"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Pašalinkite biblioteką iš Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Pridėti serverį"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "„Kodi“ dabar bus paleistas iš naujo, kad pritaikytų mažą pataisą jūsų „Kodi“ versijai."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Atnaujinkite biblioteką"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "įgalinkite „Kodi Companion“ (serverio papildinį)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "biblioteką galite atnaujinti rankiniu būdu, o ne pasikliauti serverio papildiniu Kodi. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Atnaujinkite bibliotekas"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "bibliotekų remontas"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Pašalinkite serverį"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Kažkas ne taip. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Pašalinama biblioteka"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Įsitikinkite, kad jūsų „Emby“ serverio bibliotekos yra prieinamos jūsų „Kodi“ diegimui ir ar jūsų serveryje sukonfigūruotas kelio pakeitimas. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Nepavyko prisijungti prie Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Jūsų prieiga prie Emby apribota."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Jūsų prieiga prie šio serverio apribota."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Nepavyko prisijungti prie šio serverio."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Atnaujinkite serverio informaciją"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Prisijunkite iš naujo prie to paties serverio, kuris buvo įkeltas anksčiau. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Nepavyko rasti TV melodijų Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "jūsų „Emby“ temos laikmena buvo sinchronizuota su „Kodi“."
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Pridėti bibliotekas"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "šiuo metu taikomas „Emby for Kodi“ pleistras yra sugadintas! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Uždėtas pleistras!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "tik garsas"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Tik subtitrai"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Įgalinkite garso / subtitrų pasirinkimą"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Kad išvengtumėte klaidų, atnaujinkite „Emby for Kodi“ į versiją: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Patikrinkite, ar nėra naujinimų"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Iš naujo nustatyti muzikos biblioteką?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Palaikykite šį projektą"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Užmaskuoti slaptą informaciją žurnale (netaikoma kodi registravimui)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Nepavyko sukurti atsarginės kopijos"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinaminis)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Neseniai pridėta"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Mėgstamiausi"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Vykdoma"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Nežiūrėta"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Pirmąja raide"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Laukia {number} atnaujinimų. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Pamiršote apie ankstesnį sinchronizavimą? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging – atsisiųsti gijas (numatytasis: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Patarimas dėl puslapių: kiekviena atsisiuntimo gija tuo pačiu metu reikalauja didžiausios elementų vertės iš Emby."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Atnaujinkite arba pataisykite savo bibliotekas, kad pritaikytumėte toliau nurodytus pakeitimus."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Rodykite eigos juostą, jei atnaujinimų skaičius didesnis nei"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Apdorojami naujinimai"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "priverstinis perkodavimas"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Iš naujo paleiskite „Kodi“ skirtą „Emby“."
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Paleidimas iš naujo, kad būtų pritaikytas pleistras"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Leiskite su kino režimu"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "įgalinkite parinktį žaisti su kino režimu"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Pašalinkite bibliotekas"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "įgalinkite sinchronizavimą atkūrimo metu (gali šiek tiek uždelsti)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "„Kodi“ kompanionas pagreitina paleidimo sinchronizavimą. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sinchronizuoti Rotten Tomatoes įvertinimus"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Ar norėtumėte sinchronizuoti Rotten Tomatoes įvertinimus?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Iš naujo paleisti „Emby“, kad būtų pritaikytas šis pakeitimas?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Iš naujo paleiskite „Kodi“ skirtą „Emby“."
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Paleidžiama iš naujo..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Tvarkyti bibliotekas"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "įgalinkite „Kodi“ skirtą „Emby“."
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Išplėstinės parinktys"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Sinchronizavimas jau vykdomas, palaukite, kol jis bus baigtas, ir bandykite dar kartą."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Emby žaisti"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "muzikos duomenų bazės pakartotinio nuskaitymo pataisa"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Užduotis pavyko!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Užduotis nepavyko!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Įgalinkite paprastą žaidimą (tinka išoriniam žaidėjui)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "10 bitų perkodavimas (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "paprašykite tęsti sinchronizavimą, jei skaičius didesnis nei"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "10 bitų perkodavimas (H265 / HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Leiskite nuotolinius URL naudodami Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Rodykite paslėptus pasirinktus vartotojus"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Iš naujo nustatykite pataisos naujinį"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Naujausias leidimas"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Įgalinti kelių serijų etiketę. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "įgalinkite vietinius anonsus"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "įgalinti anonsus"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkodas"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Išvesties formato vaizdo įrašas"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Garso išvesties formatas"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Rodyti parinktis papildinio meniu"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "datos informacija"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Žanrai"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studijos"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Apžvalga"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Gamybos vietos"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dinaminės bibliotekos"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Suderinamumo režimas"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Atkurkite atsarginę kopiją"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Kuris meno kūrinys turėtų būti talpykloje"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Vaizdo įrašas"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Muzika"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Papildoma sinchronizavimo data"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Laipsniškas sinchronizavimo laikas"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Išimtų daiktų rinkimas"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "įjungti kino režimą (filmai)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Įgalinkite kino režimą (televizijos laidos)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Ištrinti elementus ir iš Emby serverio? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Ištrinti FILES taip pat iš Emby serverio pagal Kodi įvykius? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Įgalinkite FILE ištrynimą „Kodi“ įvykiuose"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Išjungti HTTP2 palaikymą"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Kodi paleidimas iš naujo inicijuotas dėl advancedsettings.xml pakeitimų"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Kino režimas"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Meno kūrinys"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Meniu"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Suderinamumo režimas pakeičia papildinio ID į 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Tam tikromis aplinkybėmis (WLAN, atidėtas tinklo paleidimas ir tt) atidėtas papildinio paleidimas gali pagerinti ryšį"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Galite reguliuoti, kokia meta informacija įkeliama dinaminiam (nesinchronizuojamam) turiniui. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Būkite atsargūs naudodami šią parinktį. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Tai yra derinimo parinktis. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Iš naujo nustato unikalų įrenginio ID. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Prisijunkite prie naujo Emby serverio (daugiaserverio) arba iš naujo prijunkite esamą Emby serverį (derinimas)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Rodyti paslėptus vartotojus Emby serveryje ryšio operacijoms."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Pridėti / pašalinti / taisyti bibliotekas, tiesioginę TV, temas."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Sinchronizuoja visus meno kūrinius vietoje su Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Kai kurie apvalkalai naudoja XPS grojaraščius. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Naudotojo nustatymas yra papildoma informacija, kurią reikia sinchronizuoti su Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Atlieka visą Kodi duomenų bazės sinchronizavimą. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Kino režimas yra pirminė Emby funkcija. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Perkoduoti garso pralaidumą"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Tinklo greitis. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Įrenginio pavadinimo ataskaita Emby serveriui."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Praneškite apie atkūrimo eigą papildomiems vartotojams."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Tarpas tarp atkūrimo sustabdymo ir tęsimo pradžios."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Tai yra „Emby“ serverio funkcija."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Gali sutaupyti pralaidumo"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "Kai kuriais atvejais naudinga rodyti meniu parinktis papildinio meniu kaip nuorodas. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Contect meniu palaiko parankinių valdymą, ištrynimo parinktis, (filmo) specialių funkcijų pasirinkimą ir kt."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Garso pralaidumas"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maksimalus meno kūrinių talpyklos gijų skaičius"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animuota piktograma"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Atnaujinkite „Emby“ serverio ryšį"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Aplankas"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Mišrus turinys"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Vykdoma"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "m.: Atsitiktiniai epizodai"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "m.: Atsitiktinės TV laidos"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "atstatyti gamykliniai"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "mazgai nustatyti iš naujo"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Ar tikrai norite iš naujo nustatyti mazgus?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "m.: Menininkai"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "m.: Nežiūrėtos serijos"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Nežiūrėtos TV laidos"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Mėgstamiausios TV laidos"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "m.: neseniai paleista TV laida"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Būsimi epizodai"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "m.: TV laidos"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "neseniai žaista"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "m.: neseniai paleista serija"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "m.: Režisieriai"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "TV laidos žymos"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Epizodo žymos"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Filmo žymos"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Tęsti filmą"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Šalys"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albumai"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "muzikiniai vaizdo įrašai"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "muzikinio vaizdo įrašo žymos"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Atsitiktiniai muzikiniai vaizdo įrašai"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "tęsti muzikinius vaizdo įrašus"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Vaizdo įrašai"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "nuotraukos"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "nuotraukų albumai"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Nuotraukų albumo žymės"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Nuotraukų žymos"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Vaizdo įrašų žymos"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Neseniai pridėtos nuotraukos"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Neseniai pridėti nuotraukų albumai"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "neseniai pridėti vaizdo įrašai"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Grojaraščiai"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Garso knygos"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "m.: Atsitiktinės garsinės knygos"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Neklausyta"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Atsitiktinės dainos"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "m.: Atsitiktinės internetinės transliacijos"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "internetinės transliacijos"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Sinchronizuoti mazgai yra daug greitesni nei dinaminiai mazgai. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Dinaminiai mazgai kuriami sklandžiai. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Mėgstamiausi muzikiniai vaizdo įrašai"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Sinchronizuoti mazgai"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dinaminiai mazgai"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Neseniai pridėti albumai"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Neseniai pridėtos garsinės knygos"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Neseniai pridėtos dainos"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Atsitiktiniai albumai"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Atsitiktinės dainos"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "m.: Atsitiktinės garsinės knygos"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "m.: Atsitiktinės internetinės transliacijos"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Neseniai pridėtos internetinės transliacijos"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Pridėkite / pašalinkite / pataisykite bibliotekas, tiesioginę televiziją, temas"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Atidarykite papildinio nustatymus"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Atlieka visą Kodi duomenų bazės sinchronizavimą (įskaitant ne Emby turinį). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Iš naujo nustatykite visus pasirinktinius mazgus ir atkurkite juos iš naujo"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Mazgo užklausos riba"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Apriboti eigos mazgų užklausas. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Mazgai"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "naudokite atkūrimo tęsimo parinktį iš Emby serverio"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "ši funkcija išjungia „Kodi“ vidinius eigos atnaujinimus. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Vakuuminės duomenų bazės išjungus Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Duomenų bazė bus atkurta ir optimizuota dėl išjungimo delsos išlaidų"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Perkrauti odą"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Kita"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby serveris užimtas"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Ištrinkite meno kūrinių failus"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Atnaujinti rodinius"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Serveris užimtas: Vyksta sinchronizavimas"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Ištrinkite Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Duomenų bazė"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Praleisti įvadą"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Pranešimų laukelyje bus paprašyta pereiti į įvadinę galinę padėtį"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Žymekliai"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Praleiskite titrus"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Pranešimų laukelyje bus prašoma praleisti kreditus"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Klauskite praleisti įvadą"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Klauskite praleisti kreditus"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Pranešimų dėžutė automatiškai užsidaro po X sekundžių"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Praleisti įžangą, praleisti titrus, kino režimą ir ištrynimo parinkčių pranešimų laukeliai automatiškai užsidaro po X sekundžių. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "m.: Kompozitoriai"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "aptiktas sugadintas nustatymo failas, atkurkite numatytuosius nustatymus. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL klaida"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "m.: Meno kūrinių kaupimas talpykloje sustabdytas: trūksta vietos"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "„Websocket“ ryšys neprisijungęs"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Pasirinkite Emby serverį"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Pasirinkite taisytinas bibliotekas"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Pasirinkite bibliotekas, kurias norite atnaujinti"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Pasirinkite bibliotekas, kurias norite pašalinti"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "dainos pagal žanrą"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vakuuminės duomenų bazės"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Priskirkite TVShow plakatus prie epizodų"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi plakatai (Emby TVShow pagrindinis vaizdas) bus naudojami kaip serijos Kodi plakatai.\nNorint perjungti šią parinktį, reikia visiškai sinchronizuoti iš naujo, įskaitant visus talpykloje esančius meno kūrinius.\nĮspėjimas: nenaudokite pradinio sinchronizavimo vedlio (praleiskite jį) ir peržiūrėkite nustatymus prieš (iš naujo) sinchronizuodami."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "m.: Kitose serijose naudokite fanartinius vaizdus"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "m.: perrašo (Kodi) nykščius su (Kodi) fanarts, kad būtų galima naudoti kitų serijų mazgus"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "naudokite alternatyvų praleidimo įvado (pranešimo) išdėstymą"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Embuary skin dizainas"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Įjungti serverio eigą"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "m.: Rodomi Emby serverio užimtumo pranešimai"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "m.: Pasikeičia užklausos turinys"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "m.: Užklausos turinio pakeitimai / naudotojo duomenys"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "m.: Užklausos turinio pakeitimai / turinys"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "m.: Atjungtas nuo Emby serverio"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "m.: sinchronizuoti tiesioginės televizijos kanalus"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "m.: Sinchronizuoti tiesioginę TV epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Puslapis – prašomi elementai (numatytasis koeficientas: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "m.: sinchronizuojamos temos"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Patikrinkite laisvą vietą"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Pasirinkite medijos šaltinį"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "m.: naudokite „Kodi“ (dinaminių) valdiklių problemų sprendimo būdus"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "m.: Perkoduoti vaizdo įrašą"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "m.: perkoduoti garsą"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "perkoduoti pralaidumo riba"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "perkodavimo išvesties formatas"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "Transcode tiesioginė tv"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Garsas"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "Vaizdo įrašas"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Pasirinkite garso srautą"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Pasirinkite subtitrus"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Specialūs pasiūlymai"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Naudokite kelio pakeitimą"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Kelio pakeitimas palaiko skyrių vaizdus priedo režimu. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Kiekvienai emblemų bibliotekai priskirkite unikalius aktorius"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Epizodai"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Įrašas"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "m.: žiūrėjimas kartu atšauktas"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Laukiama dalyvių"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Prasideda..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Pasirinkite vartotojus"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Nuotoliniai klientai / Žiūrėkite kartu"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Ištrinkite laikmatį"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Pridėkite laikmatį"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Priverskite klientus"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Klientai, nepalaikantys žiūrėjimo kartu, bus priversti dalyvauti"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Kliento kontrolė"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Klientai gali kontroliuoti vienas kitą"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Sinchronizuoti klientus su pagrindiniu kompiuteriu"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Pagrindinis valdo atkūrimą, pristabdymą, ieškojimą"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Palaukite, kol dalyvaus"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Palaukite, kol dalyvaus po kelių sekundžių"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Atidėti atkūrimą"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Atidėkite atkūrimo pradžią, suteikite klientams laiko sinchronizuoti"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maksimalus poslinkis pristabdžius"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Leidžiamas asinchronizavimas milisekundėmis pristabdžius"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Automatinis patvirtinimas"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Automatiškai patvirtina gaunamą nuotolinio kliento užklausą"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Vėlavimas"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Suaktyvina paieškos komandą po X sekundžių"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Iš naujo sinchronizuoti nepalaikomus klientus"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Palaikykite ryšį"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Užmegzkite ryšį paleidžiant (pagal įrenginio ID)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Žiūrėkite kartu"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Pašalinti klientą"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Pridėti klientą"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Įjunkite nuotolinį režimą"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Išjungti nuotolinį režimą"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Įgalinti"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Pirminis"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "str"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Reklamjuostė"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Diskas"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "Logotipas"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Nykštys"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Fonas"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "skyrius"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Suspaudimas"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "maksimali skiriamoji geba"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "vaizdo skiriamoji geba ribojama vienu koeficientu. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "pasirinkite perkoduotą garso srautą"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Kelio pakeitimas palaiko skyrių vaizdus (ištraukimą) priedų režimu. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Įgalinkite interneto lizdo ryšį"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Jei išjungta: nebus naujinimų realiuoju laiku, nebus gauta pranešimų ir neveiks nuotolinės komandos."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "naudokite „Kodi“ serijos žymių problemų sprendimo būdus"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi turi riktą su epizodų žymėmis, kai pasirenkamas epizodas sąrašo rodiniuose. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "„Kodi“ turi problemų dėl dinaminių valdiklių. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Įgalinkite HTTP/2 palaikymą"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi turi problemų leidžiant turinį naudojant http/2 protokolą (numatytasis išjungtas)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "papildomas garso valdiklio atnaujinimas"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Suaktyvina papildomą (netikrą) Kodi garso nuskaitymą, kai Emby praneša apie progreso atnaujinimus. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Tinklo skirtasis laikas"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Ši parinktis turi įtakos EPG ir kelių versijų turinio pasirinkimo skirtajam laikui. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Mėgstamiausi"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Žiūrėkite kartu"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: valdykite nuotolinius klientus"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Suvienodinkite metaduomenis pagal biblioteką"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Muzikos atlikėjas"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Muzikos žanras"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Žanras"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Studija"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Žyma"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Kolekciniai filmai"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Kolekcinės televizijos laidos"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Muzikinių vaizdo įrašų kolekcija"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Mėgstamiausi"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Naujo turinio pranešimo trukmė"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Boxsets kaip žymos"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Priskirkite dėžučių rinkinius žymoms"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Tinklo skirtasis laikas"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Tinklo skirtojo laiko reguliavimas sekundėmis. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "sinchronizuokite „Emby“ parankinius su „Kodi“ mėgstamiausiais"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml bus pakeistas"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Neseniai pridėti nuotraukų albumai"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Žiūrėkite toliau"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "sinchronizuokite tiesioginės televizijos kanalus įvykiuose"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "„Livetv“ kanalai sinchronizuojami iš naujo paleidus „Kodi“ ir keičiant EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "atsisiuntimo vieta"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Atsisiųsti"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Ištrinti atsisiuntimą"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Ištrinkite visus atsisiųstus failus"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Ar tikrai norite ištrinti visą neprisijungus pasiekiamą turinį?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "visas atsisiųstas turinys bus ištrintas"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "„Emby“ serveris neprisijungęs"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Mėgstamiausi sezonai"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "Puslapis"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Muzikantas"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Muzikos albumas"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Muzikos žanras"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Garsas"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Filmas"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "muzikinis vaizdo įrašas"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Serija"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Sezonas"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Epizodas"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "Vaizdo įrašas"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "nuotraukų albumas"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Žanras"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Nuotrauka"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Grojaraštis"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanalai"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "Tiesioginė televizija"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "priekaba"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Aplankas"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Asmuo"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "Žyma"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Studija"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Daugialypis turinys"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Tvarkyti serverius"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Nuotolinis atkūrimas"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Atsisiųskite turinį"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Kontekstinis meniu"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Mėgstamiausias pridėti / pašalinti"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "specialus atkūrimas"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Įrašas"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Atnaujinkite elementą"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Ištrinti elementą"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Mėgstamiausi vaizdo įrašai"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Mėgstamiausios nuotraukos"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Mėgstamiausi muzikiniai vaizdo įrašai"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Kolekcijos"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Rekomendacijos"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Mėgstamiausi filmai"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Mėgstamiausios dėžutės"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z nuotraukų albumas"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z vaizdo įrašai"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Neseniai išleisti nežiūrėti filmai"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "neseniai išleisti filmai"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z muzikiniai vaizdo įrašai"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z filmai"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z serija"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Mėgstamiausios dainos"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Mėgstamiausi aktoriai"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Mėgstamiausias garso įrašas"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Paieška"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Vykdomas (mišrus turinys)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Tęsti žiūrėjimą (mišrus turinys)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Atsisiųsti filmai"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Atsisiųstos serijos"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Atsisiųsti muzikiniai vaizdo įrašai"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmai"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr ""
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "metų laikai"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Dainos"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Aktoriai"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Žymės"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Atsisiųsti temas (TAIP) arba nuorodų temas (NE)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "pasirinkite garso srautą"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Pasirinkite Atsarginė kopija"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "norint pakeisti meno kūrinį, reikia iš naujo nustatyti meno kūrinio talpyklą. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Pranešimai"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Pranešimo trukmė"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Pranešimo trukmė sekundėmis"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Serverio operacijos"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Ryšiai"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Ištrinti elementą"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Atsarginė kopija"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Nuotolinis atkūrimas"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "atsisiųsta serija"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Nustatyti imdb kaip numatytąjį įvertinimo teikėją"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Tarkime, kad Emby bendruomenės įvertinimas atspindi imdb įvertinimus"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Next Episodes (mišrus turinys)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Tęsti paskutinį kartą leistą (mišrus turinys)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Tęsti paskutinį kartą"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Eiti į Rodyti"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Eiti į"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Eiti į Rodyti"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Eiti į sezoną"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "mazgų nustatymas iš naujo baigtas"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI ilgio riba"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "kai kuriais atvejais aukštesnės ribos yra greitesnės, tačiau gali sukelti http 414 problemų"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Nustatymai"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Nustatymai"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Įgalinti neprisijungus pasiekiamą pranešimą"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Neteisingas serverio adresas"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Neteisingas argumentas"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Atsisiuntimo kelias nerastas"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "pridėkite filmų nuorodas į TV laidas"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "filmai, priskirti TV laidoms, išvardytoms Kodi TV laidų rodiniuose. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Įgalinkite sinchronizavimo pradžią"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Jei išjungta, „Emby“ turinys nebus sinchronizuojamas, kol „Kodi“ bus paleista"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Naudokite klasikinį pasirinkimą"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "pasirinkimo meniu rodomas, kai pasiekiamas daugialypis turinys"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Daugialypis turinys"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Atnaujinkite turinį"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "pašalina panašų turinį iš kelių Emby serverio bibliotekų"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Nustatyti aukščiausią vaizdo įrašo skiriamąją gebą kaip numatytąją"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Ši parinktis taikoma „Kodi“ kelių versijų pasirinkimui ir perjungus reikia iš naujo sinchronizuoti biblioteką."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "automatiškai pasirenkama didžiausia skiriamoji geba"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Taikoma klasikinei kelių pasirinkimo parinktims"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Įgalinkite Kodi API pranešimą"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Praneškite apie įvykius per Kodi API išoriniam naudojimui"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Prieiga uždrausta"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "albumai pagal metus"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "m.: Vienišiai pagal metus"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "m.: Vienišiai"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "m.: Neseniai pridėti singlai"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "m.: Atsitiktiniai singlai"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Nėra"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Nėra kelio informacijos, būkite atsargūs, ką darote!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr ""
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Pasirinkite pagrindinę biblioteką"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Atnaujinkite LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Atnaujinkite temas"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Išjungti LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Įjungti LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Išjungti temas"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Įgalinti temas"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Sekite http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Išorinis http turinys bus pasiekiamas tiesiogiai, o ne per Emby serverį. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Sekite http skirtąjį laiką"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Vietinį turinį nustatykite kaip numatytąjį"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "„Kodi“ papildomas priedas neįdiegtas „Emby“ serveryje! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Atšaukti meno kūrinių talpyklą"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Žiniatinklio paslaugų darbuotojų skaičius"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Didesnės vertės gali pagerinti našumą, bet reikia daugiau išteklių. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Uždarykite dialogo langą užimtas"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "gali užkirsti kelią Kodi gedimams"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Paslaugos tipas"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP antraštė (TOS), galėtų pagerinti atsaką"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (geriausios pastangos)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (pagreitintas persiuntimas)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (užtikrintas persiuntimas)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interaktyvus realiuoju laiku)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Papildoma meno kūrinių talpykla"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "automatiškai išsaugokite talpyklą, kai sinchronizuojama iš dalies"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Žanrai su piktogramomis"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Studijos su piktogramomis"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Žymos su piktogramomis"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Vietinės priekabos"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Įkelti pakeitimus"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "skyros slenkstis"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Perkoduokite turinį, kai šaltinio skiriamoji geba yra didesnė už pasirinktą skiriamąją gebą"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "skyros slenkstis"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Perkoduokite turinį, kai šaltinio skiriamoji geba yra didesnė už pasirinktą skiriamąją gebą"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "visada"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "neribotas"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "perkodavimo skiriamoji geba"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Neribotos priemonės, leidžiančios išlaikyti šaltinio skiriamąją gebą"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Žiniatinklio paslaugos režimas"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Kelio pakeitimas"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiversija"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Atnaujinkite muzikos vaizdo įrašų nuorodas"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Atnaujina muzikinių vaizdo įrašų nuorodas į muzikos duomenų bazę"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Laikas nesinchronizuotas, praleiskite naujinimus"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "prie muzikos pridėkite muzikos vaizdo įrašų nuorodas"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "muzikiniai vaizdo įrašai, priskirti muzikai, nurodytai Kodi dainų rodiniuose."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Ištrinkite atsarginę kopiją"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Įveskite atsarginės kopijos pavadinimą"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Suspaudimas nepalaikomas, atsarginė kopija negalima."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Vykdoma atsarginė kopija"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Garso temų sinchronizavimo metodas"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Vaizdo įrašų temų sinchronizavimo metodas"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Atsisiųskite"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Nuotolinis"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "įgalinkite garso temas"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "įgalinkite vaizdo įrašų temas"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Eiti į albumą"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Eiti į atlikėją"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Pristabdyti sinchronizavimą"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "pristabdykite sinchronizavimą, kai serveris užsiėmęs užduotimis"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Vaizdo įrašo peržiūros miniatiūrų ištraukimas"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vakuuminė duomenų bazė"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Įkelkite vietinių temų vaizdo įrašus"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Įkelkite vietinių teminių dainų"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Atnaujinkite įvadinę duomenų bazę"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV labirinto atnaujinimas"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Perkelkite laikmeną"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Nuskaityti metaduomenų aplanką"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Nuskaitykite medijos biblioteką"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Atnaujinkite interneto kanalus"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Atnaujinti vadovą"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Atsisiųskite subtitrus"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "atsisiųskite vietinių „YouTube“ filmų anonsus"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "atsisiųskite vietinės televizijos teminių dainų"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Atsisiųskite vietinės temos vaizdo įrašus"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Atsisiųskite vietinių teminių dainų"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Aptikti įžangą"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Konvertuokite laikmeną"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Vyksta atnaujinimas"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX suplanuota užduotis"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Daugiau panašaus"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Daugiau panašaus"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Namų vaizdo įrašo žymos"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Mėgstamiausi namų vaizdo įrašai"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Vaizdo įrašų žymos"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Mėgstamiausi vaizdo įrašai"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Keičiasi atkūrimo būsena"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Serija ir sezono eiga"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "grojaraščiai (mišrūs)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Atsitiktinis žaidimas"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Atsitiktinis žaidimas"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "„Kodi Companion“ įspėjimas"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "„Kodi Companion“ yra „Emby“ serverio priedas, kuris stebi ištrintą turinį"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Apdorojamos priekabos"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Priekabos"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Neseniai pridėtos priekabos"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Temos"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Įjungti garsą"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Įgalinti vaizdo įrašą"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "išnyksta"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Išnyksta"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Didesnės reikšmės reiškia ilgesnį išblukimo laiką, nulis išjungtas"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Pagrindinis ekranas"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Paleidžiamos valdiklių temos"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "atidėtas startas"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Reikšmės pateikiamos sekundėmis"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Atsisiųskite"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Išsaugokite temas vietoje, kad geriau veiktų"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Pirmenybė"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "apibrėžia, kuri tema grojama pirmiausia, kai galimos abi"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Nuotolinės priekabos"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Nuotolinių priekabų pasirinkimas"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Įvadas į kiną"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "aplanko priekabos"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Vietinės priekabos"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Vietinis filmas"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Anonso atkūrimas"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Tomas"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Derinimo žurnalas"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Įgalinkite vaizdo įrašą naudodami įvadinius žymeklius"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Įgalinkite garsą naudodami įvado žymeklius"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "įgalinkite vaizdo įrašą pagal turinį"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Įgalinkite garsą pagal turinį"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Pagal turinio trukmę"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "naudojamas perkodavimas, todėl serveris gali labai apkrauti CPU"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Išjungta"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Įvadiniai žymekliai"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Turinys"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtualios temos"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigacija"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Epizodo rodinys"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Sezono vaizdas"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "TV laidos vaizdas"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Filmo rodinys"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Laikai"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Atkūrimas"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Atnaujinkite mėgstamiausius garso įrašus"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Atnaujinkite mėgstamiausius muzikos albumus"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Atnaujinkite mėgstamiausius vaizdo įrašus"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Atnaujinkite mėgstamiausius muzikinius vaizdo įrašus"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Atnaujinkite mėgstamiausius dėžučių rinkinius"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Atnaujinkite mėgstamiausius serialus"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Atnaujinkite sezono mėgstamiausius"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Atnaujinkite mėgstamiausius grojaraščius"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Atnaujinkite mėgstamiausius epizodus"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Atnaujinkite mėgstamiausius filmus"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Atnaujinkite mėgstamiausius žanrus"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Atnaujinkite studijos mėgstamiausius"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Atnaujinkite parankinius"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Atnaujinkite mėgstamiausius muzikos žanrus"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Atnaujinkite mėgstamiausius žmones"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Atnaujinkite mėgstamiausius žmones"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Atkurta atsarginė kopija iš:"
+

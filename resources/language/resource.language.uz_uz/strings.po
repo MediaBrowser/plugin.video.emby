@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Kodi uchun Emby"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Server manzili"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Server nomi"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "HTTP ijrosini majburlash"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Kirish usuli"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Jurnal darajasi"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Qurilma nomi"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Kengaytirilgan"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Foydalanuvchi nomi"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Port raqami"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Faylni oʻchirishni tasdiqlang"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Ijrodan keyin oʻchirishni taklif qiling"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Epizodlar uchun"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Filmlar uchun"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Kengaytirilgan badiiy asarni yoqish (masalan, muqova rasmi)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Video sifati"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Yaqinda qo'shilgan teleko'rsatuvlar"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Teleko'rsatuvlar davom etmoqda"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Yaqinda qo'shilgan filmlar"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Yaqinda qo'shilgan epizodlar"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Davom etayotgan filmlar"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Davom etayotgan epizodlar"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Keyingi qismlar"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Sevimli filmlar"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Sevimli shoular"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Sevimli qismlar"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "qutilar to'plami"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Ko'rilmagan filmlar"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Tasodifiy elementlar"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Tavsiya etilgan narsalar"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Interfeys"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Mahalliy Kodi ma'lumotlar bazasini tiklash"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Xush kelibsiz xabarni yoqish"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Yaqinda qoʻshilgan uy videolari"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Yaqinda qo'shilgan rasmlar"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Sevimli uy videolari"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Sevimli rasmlar"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Sevimli albomlar"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Yaqinda qoʻshilgan musiqa videolari"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Musiqa videolari tayyorlanmoqda"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Ko'rilmagan musiqiy videolar"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmlar"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Teleko'rsatuvlar"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Embi variantlari"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Emby transkodi"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Sevimlilarga qo'shish"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Sevimlilardan olib tashlash"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Sozlamalar"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Elementni oʻchirish"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Elementni yangilash"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Transkod"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Ulanishni tekshiring"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Muqobil qurilma nomidan foydalaning"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Sinxronlash"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Yangilanishlar soni dan katta bo'lsa, bildirishnomani yoqing"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Bo'sh ko'rsatuvlarni sinxronlash"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Musiqa kutubxonasini yoqing"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Ijro rejimi"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "San'at asarini keshlashni yoqing"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Ijro qilish"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Tarmoq hisob ma'lumotlari"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Kino rejimini yoqing"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Treylerlarni o'ynashni so'rang"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "O'chirishni tasdiqlashni o'tkazib yuboring (o'z xavfingiz ostida foydalaning)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Rezyumega qaytish (soniyalarda)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "H265/HEVC transkodi"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Keyingi epizodlarda maxsus xabarlarga e'tibor bermang"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Doimiy foydalanuvchilar"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Ishga tushirish kechikishi (sekundlarda)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Serverni qayta ishga tushirish xabarini yoqish"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Yangi tarkibni yoqing"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Qalqib chiquvchi video kutubxonaning davomiyligi"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Musiqa kutubxonasining davomiyligi ochiladi"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Bildirishnomalar (soniyalarda)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Yangi qurilma identifikatorini yarating"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Sinxronizatsiya paytida ekran pardasiga ruxsat bering"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Kirish"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Qo'lda kirish"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Foydalanuvchi nomi yoki elektron pochta"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Serverni oflayn rejimda yoqish"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Xabarni ko'rsatish"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Emby Connect bilan tizimga kiring"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Parol"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Kirish"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Bekor qilish"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Asosiy serverni tanlang"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Foydalanuvchi nomi yoki parol bo'sh bo'lishi mumkin emas"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Tanlangan serverga ulanib bo‘lmadi"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Ulanish"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Serverni qo'lda qo'shish"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Iltimos, tizimga kiring"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Emby Connect foydalanuvchisini oʻzgartirish"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Xost"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Ulanish"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Server yoki port bo'sh bo'lishi mumkin emas"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Emby Connect foydalanuvchisini oʻzgartirish"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Xush kelibsiz"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Server qayta ishga tushmoqda"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "foydalanuvchi nomi yoki parol noto'g'ri"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Audio oqimni tanlang"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Subtitrlar oqimini tanlang"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Fayl Emby'dan o'chirilsinmi?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Treylerlarni o'ynaysizmi?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "To'plamlarni yig'ish"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Yig'ish:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Kodi uchun Emby-ning ushbu versiyasi uchun ma'lumotlar bazasini qayta yaratish kerakligi aniqlandi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Kodi uchun Emby ma'lumotlar bazasi qayta tiklanmaguncha to'g'ri ishlamaydi."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Bajarilgan:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Yangi qurilma identifikatori yaratildi. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Diqqat! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Qo'shimcha (standart)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (to'g'ridan-to'g'ri yo'llar)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Musiqa kutubxonasi yoqilsinmi?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Keshlash jarayonini ishga tushirish biroz vaqt talab qilishi mumkin. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Mavjud san'at asari keshi qayta tiklansinmi?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Badiiy asar keshi yangilanmoqda"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Mavzular chiqishi kutilmoqda"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi faylni topa olmadi:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Yo'lingizni to'g'ri formatlash yoki yo'lingiz Kodi fayl boshqaruvchisiga qo'shilganligiga ishonch hosil qilish uchun Emby yo'lini almashtirishdan foydalaning. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Yangi"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Seansga foydalanuvchi qo'shing"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Mahalliy ma'lumotlar bazasini tiklashni amalga oshiring"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Barcha san'at asarlarini keshlash"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Mavzuli mediani sinxronlash"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Foydalanuvchini sessiyaga qo'shish/o'chirish"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Foydalanuvchi qo'shish"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Foydalanuvchini olib tashlash"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Foydalanuvchini seansdan olib tashlash"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "O'chirildi"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Qo'shilgan"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Mahalliy Kodi ma'lumotlar bazasini qayta o'rnatmoqchimisiz?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Barcha keshlangan san'at asarlari o'chirilsinmi?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Emby plaginining barcha sozlamalari tiklansinmi?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Ma'lumotlar bazasini tiklash tugallandi, endi Kodi o'zgarishlarni qo'llash uchun qayta ishga tushadi."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Zaxiralash uchun jild nomini kiriting"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Mavjud zaxira nusxasi almashtirilsinmi?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Zaxira nusxasi yaratilgan:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Zaxira nusxasini yarating"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Zaxira papkasi"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Muhim, Kodi uchun Emby bilan ziddiyatni oldini olish uchun kengaytirilgan sozlamalaringizda tozalash yangilanishi olib tashlandi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "qutilar to'plamini yangilang"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Ishga tushganda emby kutubxonasi yangilanishlarini avtomatik ravishda qo'llash uchun Kodi Companion server plaginini o'rnating. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Bo'sh ko'rsatuvlarni sinxronlashni xohlaysizmi?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Musiqa yoqilgan holda mahalliy ijro rejimidan foydalanayotganingiz uchun fayllardan musiqa reytingini import qilmoqchimisiz?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Oldingi sinxronizatsiya davom ettirilsinmi?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "San'at asarini keshlashga ruxsat berish uchun Kodi sozlamalarida veb-server xizmatini yoqing."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Qo'shimcha ma'lumotni github wiki/Zaxiradan yaratish va tiklash-da toping."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Kontekst menyusini yoqing"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Transkod qilish opsiyasini yoqing"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Seansga qo'shilgan foydalanuvchilar"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Videoni ijro etish vaqtida bildirishnomalar kechiktiriladi (jonli televideniedan tashqari)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "Plagin"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Kuchga kirishi uchun Kodi-ni qayta ishga tushiring."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Ijro rejimini o'zgartirishni qo'llash uchun mahalliy ma'lumotlar bazasini qayta o'rnating."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Native va Add-on ijro rejimiga taalluqlidir"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Faqat qo'shimcha ijro rejimiga qo'llaniladi"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Tashqi subtitrlarni yoqish"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Masofaviy ulanish uchun sozlang"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "San'at asarini siqish (sifatni pasaytiradi)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "San'at asarini keshlash yoqilsinmi? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Ijro rejimini o'zgartirdingiz. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Sinxronlash vaqtida nimadir xato ketdi. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Qoʻshish uchun kutubxonalarni tanlang"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Hammasi"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "To‘xtagan joydan davom etish uchun Kodi-ni qayta ishga tushiring."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Kutubxonani Kodi bilan sinxronlashtiring"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Odamlarni qo'shing (sekin)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Kodi bilan sinxronlash uchun Emby ko'rinishlarini tanlang. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Keyinroq sinxronlash"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Davom eting"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Oxirgi kontent yangilanishlarini olinmadi. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Kutubxonalarni Emby plaginini ishga tushirish orqali sinxronlashtirishingiz mumkin > Kutubxonalar qo‘shish."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Manbani tanlang"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Yangilash qutilari"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Kutubxonani ta'mirlash"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Kutubxonani Kodi'dan olib tashlang"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Server qo'shing"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi endi sizning Kodi versiyangiz uchun kichik yamoqni qo'llash uchun qayta ishga tushadi."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Kutubxonani yangilash"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Kodi Companion-ni yoqing (server plagini)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Kodi hamrohi server plaginiga tayanmasdan kutubxonangizni qoʻlda yangilashingiz mumkin. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Kutubxonalarni yangilash"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Kutubxonalarni ta'mirlash"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Serverni olib tashlang"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Nimadir xato ketdi. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Kutubxonani olib tashlash"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Iltimos, Emby server kutubxonalaringiz Kodi oʻrnatishingiz uchun ochiq ekanligiga va serveringizda yoʻlni almashtirish sozlanganligiga ishonch hosil qiling. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Emby-ga ulanib bo'lmadi."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Emby-ga kirishingiz cheklangan."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Ushbu serverga kirishingiz cheklangan."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Ushbu serverga ulanib bo'lmadi."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Server ma'lumotlarini yangilash"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Ilgari yuklangan serverga qayta ulaning. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Kodi-da TV musiqalarini topib bo'lmadi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Sizning Emby mavzuli mediangiz Kodi bilan sinxronlashtirildi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Kutubxonalar qo'shish"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Kodi uchun Emby uchun hozirda qo'llaniladigan yamoq buzilgan! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Yamoq qo'llanildi!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Faqat audio"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Faqat subtitrlar"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Audio/subtitr tanlashni yoqing"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Xatolarga yo'l qo'ymaslik uchun, iltimos, Kodi uchun Emby-ni versiyaga yangilang: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Yangilanishlarni tekshiring"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Musiqa kutubxonasi qayta tiklansinmi?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Ushbu loyihani qo'llab-quvvatlang"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Jurnaldagi maxfiy ma'lumotlarni maskalash (kodi jurnaliga taalluqli emas)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Zaxira nusxasini yaratib bo‘lmadi"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinamik)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Yaqinda qo'shilgan"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Sevimlilar"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Davom etmoqda"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Koʻrilmagan"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Birinchi harf bilan"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Sizda {number} ta yangilanish kutilmoqda. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Oldingi sinxronlashni unutasizmi? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging - mavzularni yuklab olish (standart: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Peyjing boʻyicha maslahat: Har bir yuklab olish oqimi bir vaqtning oʻzida Emby’dan maksimal qiymatlaringizni soʻraydi."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Quyidagi o'zgarishlarni qo'llash uchun kutubxonalaringizni yangilang yoki ta'mirlang."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Agar yangilanishlar soni dan katta bo'lsa, jarayon panelini ko'rsating"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Yangilanishlarni qayta ishlash"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Majburiy transkod"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Kodi uchun Emby-ni qayta ishga tushiring"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Yamoqni qo'llash uchun qayta ishga tushirilmoqda"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Kino rejimi bilan oʻynang"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Kino rejimi bilan oʻynash opsiyasini yoqing"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Kutubxonalarni olib tashlash"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Ijro paytida sinxronlashni yoqing (ba'zi kechikishlarga olib kelishi mumkin)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Kodi hamrohi ishga tushirishni sinxronlashni tezlashtiradi. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Rotten Tomatoes reytinglarini sinxronlash"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Rotten Tomatoes reytinglarini sinxronlashni xohlaysizmi?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Kodi ushbu o'zgarishni qo'llashi uchun Emby qayta ishga tushirilsinmi?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Kodi uchun Emby-ni qayta ishga tushiring"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Qayta ishga tushirilmoqda..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Kutubxonalarni boshqarish"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Kodi uchun Emby-ni yoqing"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Kengaytirilgan variantlar"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Sinxronizatsiya allaqachon ishlamoqda, uning tugashini kuting va qaytadan urinib ko'ring."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "Embi"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Embi o'ynash"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Musiqa ma'lumotlar bazasini qayta skanerlash patchi"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Vazifa bajarildi!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Vazifa bajarilmadi!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Oddiy oʻyinni yoqing (tashqi oʻyinchiga qulay)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "10-bitli transkod (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Agar raqam kattaroq boʻlsa, sinxronlashni davom ettirishni soʻrang"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "10-bitli transkod (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Emby yordamida masofaviy urllarni oʻynang"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Tanlanganda yashirin foydalanuvchilarni ko'rsatish"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Yamoq yangilanishini tiklash"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Oxirgi nashr"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Ko'p epizodlar uchun yorliqni yoqish. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Mahalliy treylerlarni yoqing"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Treylerlarni yoqish"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkod"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Videoni chiqarish formati"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Ovozni chiqarish formati"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Plagin menyusida variantlarni ko'rsatish"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Sana ma'lumoti"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Janrlar"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studiyalar"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Tagliklar"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Umumiy ko'rinish"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Ishlab chiqarish joylari"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dinamik kutubxonalar"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Moslik rejimi"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Zaxira nusxasini tiklang"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Qaysi san'at asarini keshlash kerak"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Musiqa"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Qo'shimcha sinxronlash sanasi"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Qo'shimcha sinxronlash vaqti"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "O'chirilgan narsalarni yig'ish"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Kino rejimini yoqish (filmlar)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Kino rejimini yoqish (televidenie ko'rsatuvlari)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Elementlar Emby serveridan ham oʻchirilsinmi? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Kodi hodisalari orqali FILES ham Emby serveridan oʻchirilsinmi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Kodi voqealarida FILE o'chirishni yoqing"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "HTTP2 qo'llab-quvvatlashini o'chirib qo'ying"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Advancedsettings.xml o'zgarishlari tufayli Kodi qayta ishga tushirildi"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbit/s HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbit/s HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbit/s HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbit / s HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbit / s HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbit/s HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbit / s HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbit/s HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbit/s HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbit/s HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbit/s HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbit/s HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbit/s HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbit/s HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbit/s HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbit/s HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbit/s HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbit/s HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbit/s HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbit/s HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr "64 Kbit/s"
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr "96 Kbit/s"
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr "128 Kbit/s"
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr "192 Kbit/s"
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr "256 Kbit/s"
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr "320 Kbit/s"
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr "384 Kbit/s"
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr "448 Kbit/s"
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr "512 Kbit/s"
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Kino rejimi"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "San'at asari"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Menyu"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Moslik rejimi plagin identifikatorini 4.x (plugin.video.emby) ga o'zgartiradi. "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Ba'zi hollarda (WLan, tarmoqni kechiktirilgan ishga tushirish va h.k.) plaginning kechikishi ulanishni yaxshilashi mumkin."
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Dinamik (sinxronlashtirilmagan) kontent uchun qanday meta-maʼlumotlar yuklanishini sozlashingiz mumkin. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Ushbu parametrdan ehtiyot bo'ling. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Bu disk raskadrovka variantidir. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Noyob qurilma identifikatorini tiklaydi. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Yangi Emby serveriga (multiserver) ulaning yoki mavjud Emby serverini qayta ulaning (disk raskadrovka)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Ulanish operatsiyalari uchun Emby serverida yashirin foydalanuvchilarni ko'rsatish."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Kutubxonalar, jonli TV, mavzularni qo‘shish/o‘chirish/ta’mirlash."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Barcha san'at asarlarini mahalliy sifatida Kodi bilan sinxronlashtiradi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Ba'zi terilar xps pleylistlaridan foydalanadi. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Userrating - bu Kodi bilan sinxronlash uchun qo'shimcha ma'lumot. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Kodi ma'lumotlar bazasini to'liq qayta sinxronlashni amalga oshiradi. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Kino rejimi Emby-ning premyera xususiyatidir. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Audio bit tezligini transkod qilish"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Tarmoq tezligi. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Emby serveriga qurilma nomi hisoboti."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Qo‘shimcha foydalanuvchilarga ijro jarayoni haqida xabar bering."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Oʻynatish toʻxtatildi va davom etish boshlanishi oʻrtasidagi boʻshliq."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Bu Emby server xususiyati."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "O'tkazish qobiliyatini saqlashi mumkin"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "Ba'zi hollarda plagin menyusidagi menyu parametrlarini yorliqlar sifatida ko'rsatish foydali bo'ladi. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Contect menyusi sevimlilarni boshqarish, oʻchirish opsiyalari, (film) maxsus funksiyalarni tanlash va hokazolarni qoʻllab-quvvatlaydi."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Audio bit tezligi"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr "664 Kbit/s SD"
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maksimal badiiy asar keshlari"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animatsiyalangan belgi"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Emby server ulanishida terini yangilang"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Jild"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Aralash tarkib"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Davom etmoqda"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Tasodifiy epizodlar"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Tasodifiy teleko'rsatuvlar"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Zavod sozlamalarini tiklash"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Tugunlar qayta tiklandi"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Haqiqatan ham tugunlaringizni qayta o'rnatmoqchimisiz?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Rassomlar"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Ko'rilmagan qismlar"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Ko'rilmagan teleko'rsatuvlar"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Sevimli teleko'rsatuvlar"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Yaqinda o'ynagan teleko'rsatuv"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Kelgusi epizodlar"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Teleko'rsatuvlar"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Yaqinda o'ynadi"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Yaqinda o'ynalgan epizod"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Direktorlar"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Teleko'rsatuv teglari"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Epizod teglari"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Film teglari"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Filmni davom ettirish"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Mamlakatlar"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albomlar"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Musiqa videolari"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Musiqa video teglari"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Tasodifiy musiqiy videolar"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Musiqiy videolarni davom ettiring"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Videolar"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Rasmlar"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fotoalbomlar"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Fotoalbom teglari"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Foto teglar"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Video teglar"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Yaqinda qo'shilgan fotosuratlar"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Yaqinda qo'shilgan fotoalbomlar"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Yaqinda qo'shilgan videolar"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Pleylistlar"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Audiokitoblar"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Tasodifiy audiokitoblar"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Eshitilmagan"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Tasodifiy qo'shiqlar"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Tasodifiy podkastlar"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podkastlar"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Sinxronlashtirilgan tugunlar dinamik tugunlarga qaraganda ancha tezroq. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Dinamik tugunlar tezda qurilgan. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Sevimli kliplar"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Sinxronlangan tugunlar"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dinamik tugunlar"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Yaqinda qo'shilgan albomlar"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Yaqinda qo'shilgan audiokitoblar"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Yaqinda qo'shilgan qo'shiqlar"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Tasodifiy albomlar"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Tasodifiy qo'shiqlar"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Tasodifiy audiokitoblar"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Tasodifiy podkastlar"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Yaqinda qo'shilgan podkastlar"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Kutubxonalar, jonli TV, mavzularni qo‘shish/o‘chirish/ta’mirlash"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Plagin sozlamalarini oching"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Kodi ma'lumotlar bazasini to'liq qayta sinxronlashtirishni amalga oshiradi (shu jumladan Emby bo'lmagan tarkib). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Barcha maxsus tugunlarni tiklang va ularni qayta tiklang"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Tugun so'rovi chegarasi"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Jarayon tugunlari uchun so'rovlarni cheklash. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Tugunlar"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Emby serveridan ijroni davom ettirish opsiyasidan foydalaning"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Bu funksiya Kodi-ning ichki taraqqiyot yangilanishlarini o'chirib qo'yadi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Kodi o'chirilganda vakuumli ma'lumotlar bazalari"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Ma'lumotlar bazasi qayta quriladi va optimallashtiriladi, o'chirishni kechiktirish narxi"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Terini qayta yuklash"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Boshqalar"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby Server band"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Badiiy asar fayllarini oʻchirish"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Ko'rishlarni yangilash"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Server band: Sinxronlash davom etmoqda"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Kodini o'chirish"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Ma'lumotlar bazasi"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Kirishni oʻtkazib yuborish"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Xabar oynasi kirish so'nggi pozitsiyasiga o'tishni so'raydi"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Markerlar"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Kreditlarni o'tkazib yuborish"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Xabar oynasi kreditlarni o'tkazib yuborishni so'raydi"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Kirishni o‘tkazib yuborishni so‘rang"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Kreditlarni o'tkazib yuborishni so'rang"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "X soniyadan keyin xabarlar qutisi avtomatik ravishda yopiladi"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Kirishni o'tkazib yuborish, kreditlarni o'tkazib yuborish, kino rejimi va o'chirish opsiyalari xabar qutilari X soniyadan keyin avtomatik ravishda yopiladi. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Bastakorlar"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Buzilgan sozlamalar fayli aniqlandi, standartni tiklang. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL xatosi"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "San'at asarlarini keshlash to'xtatildi: bo'sh joy kam"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket ulanishi oflayn"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Emby serverini tanlang"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Ta'mirlash uchun kutubxonalarni tanlang"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Yangilanadigan kutubxonalarni tanlang"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "O'chirish uchun kutubxonalarni tanlang"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Janr bo'yicha qo'shiqlar"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vakuumli ma'lumotlar bazalari"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Epizodlarga TVShow afishalarini tayinlang"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-afishalari (Emby TVShow asosiy tasviri) Kodi-plakatlar epizodlari sifatida ishlatiladi.\nBu opsiyani oʻchirish uchun barcha keshlangan rasmlarni oʻz ichiga olgan holda toʻliq qayta sinxronlashni talab qiladi.\nDiqqat: Init sinxronlash ustasidan foydalanmang (uni oʻtkazib yuboring) va sinxronlashdan (qayta) oldin sozlamalarni koʻrib chiqing."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Keyingi epizodlar uchun fanart tasvirlaridan foydalaning"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Keyingi epizodlar tugunlari uchun (Kodi) fanartlari bilan (Kodi) bosh barmoqlarini ustiga yozadi"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Muqobil o'tkazib yuborish intro (xabar) tartibidan foydalaning"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Embuary teri dizayni"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Server jarayonini yoqing"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Emby server bandligi haqidagi bildirishnomalar ko'rsatiladi"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "So'rovlar tarkibi o'zgaradi"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "So'rovlar tarkibidagi o'zgarishlar / foydalanuvchi ma'lumotlari"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "So'rov mazmuni o'zgarishi / mazmuni"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Emby serveridan uzilgan"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Jonli telekanallarni sinxronlash"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "LiveTV epgni sinxronlash"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - so'ralgan elementlar (standart omil: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Mavzularni sinxronlash"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Bo'sh joyni tekshiring"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Media manbasini tanlang"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Kodi (dinamik) vidjet muammolari uchun vaqtinchalik echimlardan foydalaning"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr "yil: WMV3"
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Videoni transkod qilish"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Ovozni transkod qilish"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Transkod o'tkazish qobiliyati chegarasi"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Transcode chiqish formati"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "LiveTV transkodi"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Audio oqimni tanlang"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Subtitrni tanlang"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Maxsus"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Yo'lni almashtirishdan foydalaning"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Yo'lni almashtirish qo'shimcha rejimida bo'lim tasvirlarini qo'llab-quvvatlaydi. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Har bir embi kutubxonasi uchun noyob aktyorlarni tayinlang"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Epizodlar"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Rekord"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Birgalikda tomosha qilish bekor qilindi"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Ishtirokchilar kutilmoqda"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Boshlanmoqda..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Foydalanuvchilarni tanlang"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Masofaviy mijozlar / birgalikda tomosha qiling"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Taymerni oʻchirish"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Taymer qo‘shing"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Mijozlarni majburlash"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Birgalikda tomosha qilishni qoʻllab-quvvatlamaydigan mijozlar ishtirok etishga majbur boʻladi"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Mijoz nazorati"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Mijozlar bir-birini boshqarishi mumkin"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Mijozlarni masterga sinxronlash"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Master o'ynash, to'xtatib turish, qidirishni boshqaradi"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Ishtirokchilarni kuting"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Ishtirok etishni soniyalarda kuting"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Kechiktirilgan ijro"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Ijro qilishni kechiktirish, mijozlarga sinxronlash uchun vaqt bering"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Pauzada maksimal siljish"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Pauzada millisekundlarda asinxronlikka ruxsat berilgan"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Avtomatik qabul qilish"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "kiruvchi masofaviy mijoz so'rovini avtomatik ravishda tasdiqlash"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Kechikish"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "X soniyadan keyin qidirish buyrug'ini ishga tushiradi"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Qo'llab-quvvatlanmaydigan mijozlarni qayta sinxronlash"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Ulanishni davom eting"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Ishga tushganda ulanishni o'rnating (qurilma identifikatori bo'yicha)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Birga tomosha qiling"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: mijozni olib tashlang"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: mijoz qo‘shing"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Masofaviy rejimni yoqish"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Masofaviy rejimni o'chiring"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Yoqish"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Boshlang'ich"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "San'at"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disk"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "logotip"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Bosh barmog'i"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Orqa fon"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "bob"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Siqish"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maksimal ruxsat"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Tasvir ruxsatini faktor bilan cheklaydi. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Transencode audiostreamni tanlang"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Yoʻlni almashtirish qoʻshimcha rejimida boʻlim tasvirlarini (chiqarish) qoʻllab-quvvatlaydi. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Websocket ulanishini yoqing"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Agar oʻchirilgan boʻlsa: real vaqtda yangilanishlar, bildirishnomalar olinmaydi va masofaviy buyruqlar ishlamaydi."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Kodi epizodining xatcho'plari bilan bog'liq muammolar uchun vaqtinchalik echimlardan foydalaning"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodida epizodni koʻrishlar roʻyxati orqali tanlashda epizod xatchoʻplari bilan bogʻliq xatolik bor. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi dinamik vidjetlar bilan muammoga duch keldi. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "HTTP/2 qo'llab-quvvatlashini yoqing"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodida http/2 protokoli orqali kontentni ijro etishda muammolar bor (standart o'chirilgan)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Qo'shimcha audio vidjet yangilanishi"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Emby yangilanish jarayoni haqida xabar bergandan so'ng, qo'shimcha (soxta) Kodi audio skanerini ishga tushiradi. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Tarmoqning uzilishlari"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Ushbu parametr EPG va koʻp versiyali kontentni tanlash vaqtiga taʼsir qiladi. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Sevimlilar"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Birga tomosha qiling"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Masofaviy mijozlarni boshqarish"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Metamaʼlumotlarni kutubxona boʻyicha birlashtiring"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Musiqa rassomi"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Musiqa janri"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Janr"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Studiya"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "teg"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "To'plam filmlar"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Teleko'rsatuvlar to'plami"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Musiqiy videolar to'plami"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Sevimlilar"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Yangi mazmunli xabarning davomiyligi"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Teglar sifatida qutilar to'plami"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Teglarga qutilar to'plamini tayinlang"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Tarmoq vaqti tugashi"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Tarmoq kutish vaqtini soniyalarda sozlash. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Emby sevimlilarini Kodi sevimlilariga sinxronlang"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml o'zgartiriladi"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Yaqinda qo'shilgan fotoalbomlar"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Tomosha qilishda davom eting"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Voqealar bo'yicha jonli telekanallarni sinxronlash"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Livetv kanallari Kodi ishga tushirilganda va EPG o'zgarishlarida qayta sinxronlashtirildi"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Yuklab olish manzili"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Yuklab oling"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Yuklashni oʻchirish"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Barcha yuklab olingan fayllarni o'chirish"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Haqiqatan ham barcha oflayn kontentni oʻchirib tashlamoqchimisiz?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Barcha yuklab olingan kontent oʻchiriladi"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby server oflayn"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Sevimli fasllar"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "sahifalash"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Musiqachi"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Musiqiy albom"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Musiqa janri"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Kino"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Musiqa videosi"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Seriya"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Mavsum"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Qism"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fotoalbom"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Janr"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Surat"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Pleylist"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanallar"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Treyler"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Jild"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "qutilar to'plami"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Shaxs"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "teg"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Studiya"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Ko'p tarkibli"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Serverlarni boshqarish"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Masofadan ijro etish"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Kontentni yuklab oling"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Kontekst menyusi"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Sevimli qo'shish/o'chirish"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Maxsus ijro"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Yozib olish"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Elementni yangilang"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Elementni o'chirish"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Sevimli videolar"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Sevimli suratlar"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Sevimli kliplar"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "To'plamlar"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Tavsiyalar"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Sevimli filmlar"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Sevimli qutilar"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotoalbomi"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z videolari"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Yaqinda chiqarilgan, tomosha qilinmagan filmlar"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Yaqinda chiqarilgan filmlar"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z musiqiy videolari"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A dan Z gacha filmlar"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z seriyali"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Sevimli qo'shiqlar"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Sevimli aktyorlar"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Sevimli audio"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Qidiruv"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Davom etmoqda (aralash kontent)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Tomosha qilishni davom eting (aralash kontent)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Yuklab olingan filmlar"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Yuklab olingan epizodlar"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Yuklab olingan musiqiy videolar"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmlar"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "Teleko'rsatuvlar"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Fasllar"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Qo'shiqlar"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Aktyorlar"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "xatcho'plar"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Mavzularni yuklab oling (HA) yoki mavzularni bog'lang (YO'Q)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Ovoz oqimini tanlang"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Zaxiralash-ni tanlang"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Sanʼat asarini oʻzgartirish uchun sanʼat asarining keshini tiklash talab qilinadi. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Bildirishnomalar"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Xabar davomiyligi"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Xabar davomiyligi soniyalarda"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Server operatsiyalari"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Ulanishlar"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Elementni o'chirish"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Zaxira"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Masofadan o'ynash"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Yuklab olingan seriyalar"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Imdb-ni standart reyting provayderi sifatida o'rnating"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Faraz qiling, Emby hamjamiyat reytingi imdb reytinglarini aks ettiradi"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Keyingi qismlar (aralash kontent)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Oxirgi ijroni davom ettirish (aralash kontent)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Oxirgi oʻyinni davom ettiring"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Ko'rsatishga o'ting"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: O'tish"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Ko'rsatishga o'ting"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Mavsumga o'tish"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Tugunlarni tiklash tugallandi"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI uzunligi chegarasi"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Ba'zi hollarda yuqori chegaralar tezroq bo'ladi, lekin http 414 muammolarni keltirib chiqarishi mumkin"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Sozlamalar"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Sozlamalar"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Oflayn xabarni yoqish"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Server manzili noto‘g‘ri"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Yaroqsiz argument"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Yuklab olish yoʻli topilmadi"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Teleko'rsatuvlarga film havolalarini qo'shing"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Kodi tvshou ko'rinishlarida ro'yxatga olingan tvshoularga tayinlangan filmlar. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Sinxronlashni boshlashni yoqing"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Agar oʻchirilgan boʻlsa, Kodi ishga tushganda Emby kontenti sinxronlanmaydi"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Klassik tanlovdan foydalaning"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Ko'p kontent mavjud bo'lganda tanlash menyusi ko'rsatiladi"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Ko'p tarkibli"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Kontentni takrorlash"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Bir nechta Emby server kutubxonalaridagi o'xshash tarkibni o'chiradi"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Sukut boʻyicha eng yuqori video ruxsatini oʻrnating"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Ushbu parametr Kodi-ning ko'p versiyali tanloviga taalluqlidir va kutubxonani almashtirishda qayta sinxronlashni talab qiladi."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Eng yuqori ruxsatni avtomatik tanlash"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Klassik koʻp tanlov opsiyasiga qoʻllaniladi"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Kodi API bildirishnomasini yoqing"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Tashqi foydalanish uchun Kodi API orqali voqealar haqida xabar bering"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Kirish rad etildi"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Yillar bo'yicha albomlar"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Yil bo'yicha bo'ydoqlar"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Bo'ydoqlar"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Yaqinda qo'shilgan singllar"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Tasodifiy yakkaliklar"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Yo'q"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Yoʻl haqida maʼlumot yoʻq, nima qilayotganingizda ehtiyot boʻling!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr ""
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Asosiy kutubxonani tanlang"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "LiveTv-ni yangilang"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Mavzularni yangilash"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "LiveTv-ni o'chiring"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "LiveTv-ni yoqing"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Mavzularni o'chirib qo'ying"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Mavzularni yoqing"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "http-ga ergashing"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Tashqi http kontentiga to'g'ridan-to'g'ri kirish mumkin va Emby serveri orqali uzatilmaydi. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "http vaqt tugashiga rioya qiling"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Mahalliy tarkibni sukut bo'yicha o'rnating"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Kodi qo'shimchasi Emby serverida o'rnatilmagan! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Badiiy asar keshini bekor qilish"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Veb-xizmat xodimlari soni"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Yuqori qiymatlar unumdorlikni oshirishi mumkin, ammo koʻproq resurslar kerak. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "band dialog oynasini yoping"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Kodi ishdan chiqishini oldini oladi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Xizmat turi"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP sarlavhasi (TOS), sezgirlikni oshirishi mumkin"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Eng yaxshi harakat)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (Tezlashtirilgan yo'naltirish)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (Ishonchli yo'naltirish)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (Real vaqtda interaktiv)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Art arzimas kesh"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "San'at asarini qisman sinxronlashda avtomatik ravishda keshlash"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Belgilar bilan janrlar"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Belgilar bilan studiyalar"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Belgilar bilan teglar"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Mahalliy treylerlar"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "O'zgarishlarni yuklash"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Ruxsat chegarasi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Manba ruxsati tanlangan piksellar sonidan yuqori boʻlganda kontentni transkod qilish"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Ruxsat chegarasi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Manba ruxsati tanlangan piksellar sonidan yuqori boʻlganda kontentni transkod qilish"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "har doim"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "cheksiz"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Transkodlash ruxsati"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Cheksiz vositalar manba o'lchamlarini saqlaydi"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Veb-xizmat rejimi"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Yo'lni almashtirish"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr "HTTP"
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiversiya"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Musiqiy video havolalarini yangilang"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Musiqiy video havolalarini musiqa ma'lumotlar bazasiga yangilaydi"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Vaqt sinxronlanmagan, yangilanishlarni o‘tkazib yuboring"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Musiqaga musiqiy video havolalarini qo'shing"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Kodi qo'shiq ko'rishlar ro'yxatidagi musiqaga tayinlangan musiqiy videolar."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Zaxira nusxasini o'chirish"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Zaxira nomini kiriting"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Siqish qo‘llab-quvvatlanmaydi, zaxira nusxasi mavjud emas."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Zaxiralash davom etmoqda"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Audio mavzularni sinxronlashtirish usuli"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Video mavzularni sinxronlashtirish usuli"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Yuklab oling"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Masofadan"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Audio mavzularni yoqing"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Video mavzularini yoqing"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Albomga o'tish"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Ijrochiga o'ting"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Sinxronlashni pauza qilish"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Server vazifalar bilan band boʻlganda sinxronlashni toʻxtatib turing"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Videoni oldindan ko'rish eskizini chiqarish"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vakuum ma'lumotlar bazasi"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Mahalliy mavzuli videolarni yuklang"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Mahalliy mavzudagi qoʻshiqlarni yuklang"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Kirish ma'lumotlar bazasini yangilash"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV labirintini yangilash"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Mediani uzatish"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Metadata papkasini skanerlash"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Media kutubxonasini skanerlash"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Internet kanallarini yangilang"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Qo'llanmani yangilash"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Subtitrlarni yuklab oling"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Mahalliy YouTube film treylerini yuklab oling"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Mahalliy teledastur qoʻshiqlarini yuklab oling"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Mahalliy mavzuli videolarni yuklab oling"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Mahalliy mavzuli qoʻshiqlarni yuklab oling"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Kirishlarni aniqlash"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Mediani aylantirish"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Yangilash davom etmoqda"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX rejalashtirilgan vazifa"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Yana shunga o'xshash"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Yana shunga o'xshash"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Uy video teglari"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Sevimli uy videolari"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Video teglar"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Sevimli videolar"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Ijro holati o'zgaradi"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Seriya va mavsumning borishi"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Pleylistlar (aralash)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Tasodifiy oʻyin"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Tasodifiy o'yin"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi Companion ogohlantirishi"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion - bu o'chirilgan tarkibni kuzatib boradigan Emby server qo'shimchasi"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Treylerlarni qayta ishlash"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Treylerlar"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Yaqinda qo'shilgan treylerlar"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Mavzular"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Audioni yoqish"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Videoni yoqing"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Yo'qolish"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Yo'qolish"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Kattaroq qiymatlar uzoqroq o'chirish vaqtini bildiradi, nol o'chirilgan"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Bosh ekran"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Vidjetlar uchun mavzularni o‘ynaydi"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Kechiktirilgan boshlash"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Qiymatlar soniyalarda"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Yuklab oling"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Yaxshiroq ishlash uchun mavzularni mahalliy sifatida saqlang"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "ustuvorlik"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Har ikkisi ham mavjud boʻlganda qaysi mavzu birinchi oʻynalishini belgilaydi"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Masofaviy treylerlar"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Treylerlarni masofadan tanlash"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Kino kirishlari"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Papka treyleri"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Mahalliy treylerlar"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Mahalliy film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Treyler ijrosi"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "jild"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Nosozliklarni tuzatish jurnali"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Kirish belgilari bo'yicha videoni yoqing"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Kirish belgilari bo'yicha audioni yoqing"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Kontent bo'yicha videoni yoqing"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Kontent bo'yicha audioni yoqing"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Kontent davomiyligi bo'yicha"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Transkodlash ishlatilgan, serverda protsessorning og'ir yuklanishiga olib kelishi mumkin"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Oʻchirilgan"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Kirish belgilari"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Tarkib"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtual mavzular"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigatsiya"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Epizod ko'rinishi"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Mavsum ko'rinishi"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Teleko'rsatuv ko'rinishi"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Kino ko'rinishi"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Vaqtlar"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Ijro qilish"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Audio sevimlilarni yangilang"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Sevimli musiqiy albomlarni yangilang"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Sevimli videolarni yangilang"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Sevimli video kliplarni yangilang"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Sevimlilar to'plamini yangilang"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Sevimli seriyalarni yangilash"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Mavsumning sevimlilarini yangilash"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Sevimli pleylistlarni yangilash"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Sevimli epizodlarni yangilang"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Sevimli filmlarni yangilang"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Sevimli janrlarni yangilang"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Studio sevimlilarini yangilang"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Sevimli teglarni yangilang"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Sevimli musiqa janrini yangilang"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Sevimlilarni yangilash"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Sevimlilarni yangilash"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Qayta tiklangan zaxira nusxasi:"
+

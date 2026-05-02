@@ -3362,3 +3362,243 @@ msgstr ""
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
 msgstr ""
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr ""
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr ""
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr ""
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr ""
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr ""
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr ""
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr ""
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr ""
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr ""
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr ""
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr ""
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr ""
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr ""
+
+msgctxt "#33814"
+msgid "Download"
+msgstr ""
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr ""
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr ""
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr ""
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr ""
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr ""
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr ""
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr ""
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr ""
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr ""
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr ""
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr ""
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr ""
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr ""
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr ""
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr ""
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr ""
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr ""
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr ""
+
+msgctxt "#33833"
+msgid "Off"
+msgstr ""
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr ""
+
+msgctxt "#33835"
+msgid "Content"
+msgstr ""
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr ""
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr ""
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr ""
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr ""
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr ""
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr ""
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr ""
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr ""
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr ""
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr ""
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr ""
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr ""
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr ""
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr ""
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr ""
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr ""
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr ""
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr ""
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr ""
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr ""
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr ""
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr ""
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr ""
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr ""
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr ""

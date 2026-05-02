@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby untuk Kodi"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Alamat pelayan"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Nama pelayan"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Paksa main balik HTTP"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Kaedah log masuk"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Tahap log"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Nama peranti"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Maju"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Nama pengguna"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Nombor port"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Sahkan pemadaman fail"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Tawaran padam selepas main balik"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Untuk Episod"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Untuk Filem"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Dayakan karya seni yang dipertingkatkan (iaitu seni muka depan)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Kualiti video"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Rancangan TV Ditambah Baru-baru ini"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Rancangan TV Sedang Berlangsung"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Filem yang Ditambah Baru-baru ini"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Episod Terbaharu Ditambah"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Filem Sedang Berlangsung"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Episod Sedang Berlangsung"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Episod Seterusnya"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Filem Kegemaran"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Rancangan Kegemaran"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Episod Kegemaran"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Set kotak"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Filem Tidak Ditonton"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Item Rawak"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Item Disyorkan"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Antaramuka"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Tetapkan semula pangkalan data Kodi tempatan"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Dayakan mesej alu-aluan"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Video Laman Utama yang baru ditambah"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Foto yang baru ditambah"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Video Rumah Kegemaran"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Foto Kegemaran"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Album Kegemaran"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Video Muzik baru ditambah"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Sedang berjalan Video muzik"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Video Muzik yang tidak ditonton"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filem"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Rancangan TV"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Pilihan Emby"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Emby transkod"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Tambah pada kegemaran"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Alih keluar daripada kegemaran"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Tetapan"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Padam item"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Muat semula item"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Transkod"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Sahkan sambungan"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Gunakan nama peranti ganti"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Penyegerakan"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Dayakan pemberitahuan jika kiraan kemas kini lebih besar daripada"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Segerakkan rancangan kosong"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Dayakan pustaka muzik"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Mod main balik"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Dayakan caching karya seni"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Main semula"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Bukti kelayakan rangkaian"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Dayakan mod pawagam"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Minta untuk memainkan treler"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Langkau pengesahan pemadaman (gunakan atas risiko anda sendiri)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Lompat semula pada resume (dalam beberapa saat)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "Transkod H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Abaikan tawaran istimewa dalam episod seterusnya"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Pengguna tetap"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Kelewatan permulaan (dalam saat)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Dayakan mesej mulakan semula pelayan"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Dayakan kandungan baharu"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Tempoh pustaka video muncul"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Tempoh pustaka muzik muncul"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Pemberitahuan (dalam saat)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Jana Id peranti baharu"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Benarkan penyelamat skrin semasa penyegerakan"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Log masuk"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Log masuk manual"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Nama pengguna atau e-mel"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Dayakan pelayan luar talian"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Mesej paparan"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Log masuk dengan Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Kata Laluan"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Log masuk"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Batal"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Pilih pelayan utama"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Nama pengguna atau kata laluan tidak boleh kosong"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Tidak dapat menyambung ke pelayan yang dipilih"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Sambung ke"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Tambah pelayan secara manual"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Sila log masuk"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Tukar pengguna Emby Connect"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Tuan rumah"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Sambung"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Pelayan atau port tidak boleh kosong"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Tukar pengguna Emby Connect"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Selamat datang"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Pelayan dimulakan semula"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Nama pengguna atau kata laluan tidak sah"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Pilih strim audio"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Pilih aliran sari kata"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Padam fail daripada Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Main treler?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Mengumpul set kotak"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Perhimpunan:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Dapatkan pangkalan data perlu dicipta semula untuk versi Emby untuk Kodi ini. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby untuk Kodi tidak akan berfungsi dengan betul sehingga pangkalan data ditetapkan semula."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Selesai dalam:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Id peranti baharu telah dihasilkan. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Awas! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Tambah (lalai)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (laluan terus)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Dayakan perpustakaan muzik?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Menjalankan proses caching mungkin mengambil sedikit masa. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Tetapkan semula cache karya seni sedia ada?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Mengemas kini cache karya seni"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Menunggu benang untuk keluar"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi tidak dapat mencari fail:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Gunakan penggantian laluan Emby untuk memformat laluan anda dengan betul atau pastikan laluan anda ditambahkan pada pengurus fail Kodi. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Baru"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Tambah pengguna ke sesi"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Lakukan tetapan semula pangkalan data tempatan"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Cache semua karya seni"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Segerakkan media tema"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Tambah/Alih keluar pengguna daripada sesi"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Tambah pengguna"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Alih keluar pengguna"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Alih keluar pengguna daripada sesi"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Dialih keluar"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Ditambah"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Adakah anda pasti mahu menetapkan semula pangkalan data Kodi setempat anda?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Alih keluar semua karya seni cache?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Tetapkan semula semua tetapan tambahan Emby?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Tetapan semula pangkalan data telah selesai, Kodi kini akan dimulakan semula untuk menggunakan perubahan."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Masukkan nama folder untuk sandaran"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Gantikan sandaran sedia ada?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Dibuat sandaran di:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Buat sandaran"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Folder sandaran"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Penting, cleanonupdate telah dialih keluar dalam tetapan lanjutan anda untuk mengelakkan konflik dengan Emby untuk Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Segarkan set kotak"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Pasang pemalam pelayan Kodi Companion untuk menggunakan kemas kini perpustakaan emby secara automatik semasa permulaan. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Adakah anda ingin menyegerakkan rancangan kosong?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Oleh kerana anda menggunakan mod main balik asli dengan muzik didayakan, adakah anda mahu mengimport rating muzik daripada fail?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Sambung semula penyegerakan sebelumnya?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Dayakan perkhidmatan pelayan web dalam tetapan Kodi untuk membenarkan cache karya seni."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Cari maklumat lanjut dalam wiki github/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Dayakan menu konteks"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Dayakan pilihan untuk transkod"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Pengguna ditambahkan pada sesi"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Pemberitahuan ditangguhkan semasa main balik video (kecuali tv langsung)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "Pemalam"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Mulakan semula Kodi untuk berkuat kuasa."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Tetapkan semula pangkalan data tempatan untuk menggunakan perubahan mod main balik."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Digunakan pada mod main balik Native dan Add-on"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Terpakai pada mod main balik Add-on sahaja"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Dayakan sari kata luaran"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Laraskan untuk sambungan jauh"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Mampatkan karya seni (mengurangkan kualiti)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Dayakan caching karya seni? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Anda telah menukar mod main balik. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Sesuatu telah berlaku semasa penyegerakan. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Pilih perpustakaan untuk ditambah"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Semua"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Mulakan semula Kodi untuk menyambung semula dari tempat anda berhenti."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Segerakkan perpustakaan ke Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Sertakan orang (perlahan)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Pilih paparan Emby untuk disegerakkan ke Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Segerakkan kemudian"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Teruskan"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Gagal mendapatkan kemas kini kandungan terkini. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Anda boleh menyegerakkan perpustakaan dengan melancarkan alat tambah Emby > Tambah perpustakaan."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Pilih sumber"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Set kotak yang menyegarkan"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Membaiki perpustakaan"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Alih keluar perpustakaan daripada Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Tambah pelayan"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi kini akan dimulakan semula untuk menggunakan tampung kecil untuk versi Kodi anda."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Kemas kini perpustakaan"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Dayakan Kodi Companion (pemalam pelayan)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Anda boleh mengemas kini pustaka anda secara manual dan bukannya bergantung pada pemalam pelayan Kodi companion. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Kemas kini perpustakaan"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Membaiki perpustakaan"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Alih keluar pelayan"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Sesuatu telah berlaku. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Mengalih keluar perpustakaan"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Sila pastikan perpustakaan pelayan Emby anda boleh diakses oleh pemasangan Kodi anda dan anda mempunyai penggantian laluan yang dikonfigurasikan pada pelayan anda. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Tidak dapat menyambung ke Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Akses anda kepada Emby adalah terhad."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Akses anda kepada pelayan ini adalah terhad."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Tidak dapat menyambung ke pelayan ini."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Kemas kini maklumat pelayan"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Sambung semula ke pelayan yang sama yang telah dimuatkan sebelum ini. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Tidak dapat mencari TV Tunes dalam Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Media tema Emby anda telah disegerakkan ke Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Tambah perpustakaan"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Tampalan yang sedang digunakan untuk Emby untuk Kodi rosak! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Tampalan telah digunakan!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Audio sahaja"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Sari kata sahaja"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Dayakan pemilihan audio/sari kata"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Untuk mengelakkan ralat, sila kemas kini Emby untuk Kodi kepada versi: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Semak kemas kini"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Tetapkan semula pustaka muzik?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Sokong projek ini"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Topeng maklumat sensitif dalam log (tidak terpakai untuk pembalakan kodi)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Gagal membuat sandaran"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinamik)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Baru-baru ini ditambah"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Kegemaran"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Sedang Berlangsung"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Tidak ditonton"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Dengan huruf pertama"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Anda mempunyai {number} kemas kini belum selesai. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Lupakan tentang penyegerakan sebelumnya? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging - muat turun benang (lalai: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Petua paging: Setiap urutan muat turun meminta nilai item maksimum anda daripada Emby pada masa yang sama."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Kemas kini atau baiki perpustakaan anda untuk menggunakan perubahan di bawah."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Paparkan bar kemajuan jika kemas kini dikira lebih besar daripada"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Memproses kemas kini"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Paksa transkod"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Mulakan semula Emby untuk Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Memulakan semula untuk menggunakan tampalan"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Main dengan mod pawagam"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Dayakan pilihan untuk bermain dengan mod pawagam"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Alih keluar perpustakaan"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Dayakan penyegerakan semasa main balik (mungkin menyebabkan sedikit ketinggalan)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Rakan Kodi mempercepatkan penyegerakan permulaan. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Segerakkan penilaian Rotten Tomatoes"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Adakah anda ingin menyegerakkan penilaian Rotten Tomatoes?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Mulakan semula Emby untuk Kodi menggunakan perubahan ini?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Mulakan semula Emby untuk Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Memulakan semula..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Urus perpustakaan"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Dayakan Emby untuk Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Pilihan lanjutan"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Penyegerakan sedang berjalan, sila tunggu sehingga ia selesai dan cuba lagi."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Emby bermain"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Tampalan imbasan semula pangkalan data muzik"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Tugas berjaya!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Tugas gagal!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Dayakan permainan mudah (mesra pemain luaran)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "Transkod 10-bit (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Minta untuk meneruskan penyegerakan jika kiraan lebih besar daripada"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "Transkod 10-bit (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Mainkan url jauh menggunakan Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Paparkan pengguna tersembunyi dalam pilihan"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Tetapkan semula kemas kini patch"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Keluaran terkini"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Dayakan label untuk berbilang episod. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Dayakan treler tempatan"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Dayakan treler"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transkod"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Video format output"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Audio format output"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Tunjukkan pilihan dalam menu pemalam"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Maklumat tarikh"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Genre"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studio"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Gambaran Keseluruhan"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Lokasi pengeluaran"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Perpustakaan dinamik"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Mod keserasian"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Pulihkan sandaran"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Karya seni yang manakah harus di-cache"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Muzik"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Tarikh penyegerakan tambahan"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Masa penyegerakan tambahan"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Mengumpul item yang dialih keluar"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Dayakan mod pawagam (filem)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Dayakan mod pawagam ( rancangan tv)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Padam item juga dari pelayan Emby? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Padam FAIL juga dari pelayan Emby oleh acara Kodi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Dayakan pemadaman FILE pada acara Kodi"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Lumpuhkan sokongan HTTP2"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Kodi mulakan semula dimulakan kerana perubahan advancedsettings.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr ""
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr ""
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr ""
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Mod pawagam"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Karya seni"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr ""
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Mod keserasian menukar id pemalam kepada 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Dalam beberapa keadaan (WLan, permulaan rangkaian tertunda dll.) permulaan pemalam yang tertunda boleh meningkatkan ketersambungan"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Anda boleh melaraskan maklumat meta yang dimuatkan untuk kandungan dinamik (tidak disegerakkan). "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Berhati-hati dengan pilihan ini. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Ini ialah pilihan nyahpepijat. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Menetapkan semula id peranti unik. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Sambung ke pelayan Emby baharu (pelbagai pelayan) atau sambung semula pelayan Emby sedia ada (nyahpepijat)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Tunjukkan pengguna tersembunyi pada pelayan Emby untuk ops sambungan."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Tambah/Alih Keluar/Baiki perpustakaan, TV langsung, tema."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Menyegerakkan semua karya seni secara tempatan ke Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Sesetengah kulit menggunakan senarai main xps. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Penggunaan adalah maklumat tambahan untuk disegerakkan ke Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Melakukan penyegerakan semula pangkalan data Kodi yang lengkap. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Mod pawagam ialah ciri tayangan perdana Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Kadar bit audio transkod"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Kelajuan rangkaian. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Laporan nama peranti kepada pelayan Emby."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Laporkan kemajuan main balik kepada pengguna tambahan."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Jurang antara main balik dihentikan dan permulaan sambungan."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Ini ialah ciri pelayan Emby."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Boleh menjimatkan lebar jalur"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "Dalam beberapa kes, ia berguna untuk menunjukkan pilihan menu dalam menu pemalam sebagai pintasan. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Menu Contect menyokong pengurusan kegemaran, pilihan padam, (filem) pilihan ciri khas dll."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Kadar Bit Audio"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Benang cache karya seni maksimum"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Ikon animasi"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Segarkan kulit pada sambungan pelayan Emby"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr ""
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Kandungan bercampur"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Sedang berlangsung"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Episod rawak"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Rancangan TV Rawak"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Tetapan semula kilang"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Nod ditetapkan semula"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Adakah anda pasti mahu menetapkan semula nod anda?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Artis"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Episod Tidak Ditonton"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Rancangan TV yang tidak ditonton"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Rancangan TV Kegemaran"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Rancangan TV yang dimainkan baru-baru ini"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Episod akan datang"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Rancangan TV"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Baru-baru ini dimainkan"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Episod yang dimainkan baru-baru ini"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Pengarah"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Tag Rancangan TV"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Tag episod"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Tag filem"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Sambung semula filem"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Negara"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Album"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Video muzik"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Tag video muzik"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Video muzik rawak"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Sambung semula video muzik"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Video"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Foto"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Photoalbum"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Tanda album foto"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Tag foto"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Tag video"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Terbaru ditambah foto"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Baru-baru ini ditambah fotoalbum"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Video yang baru ditambah"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Senarai main"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Buku audio"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Buku audio rawak"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Tidak didengari"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Lagu rawak"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Podcast rawak"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podcast"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Nod disegerakkan jauh lebih pantas daripada nod dinamik. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Nod dinamik dibina dengan cepat. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Video muzik kegemaran"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Nod disegerakkan"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Nod dinamik"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Album yang baru ditambah"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Buku audio yang baru ditambah"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Lagu yang ditambah baru-baru ini"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Album rawak"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Lagu rawak"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Buku audio rawak"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Podcast rawak"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Podcast yang baru ditambah"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Tambah/Alih Keluar/Baiki perpustakaan, TV langsung, tema"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Buka tetapan pemalam"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Melaksanakan penyegerakan semula pangkalan data Kodi yang lengkap (termasuk kandungan bukan Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Tetapkan semula semua nod tersuai dan bina semula"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Had pertanyaan nod"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Hadkan pertanyaan untuk nod kemajuan. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Nod"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Gunakan pilihan sambung main balik daripada pelayan Emby"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Fungsi ini melumpuhkan kemas kini kemajuan dalaman Kodi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Pangkalan data vakum pada penutupan Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Pangkalan data akan dibina semula dan dioptimumkan, dengan kos kelewatan penutupan"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Muat Semula Kulit"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Lain-lain"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby Server sibuk"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Padam fail karya seni"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Kemas kini paparan"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Server sibuk: Penyegerakan sedang dijalankan"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Padam Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Pangkalan data"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Langkau pengenalan"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Kotak mesej akan meminta lompat ke kedudukan akhir intro"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Penanda"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Langkau kredit"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Kotak mesej akan meminta kredit langkau"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Tanya skip intro"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Tanya skip kredit"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Kotak mesej ditutup secara automatik selepas X saat"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Langkau pengenalan, langkau kredit, mod pawagam dan padam kotak mesej pilihan akan ditutup secara automatik selepas X saat. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Komposer"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Fail tetapan rosak dikesan, pulihkan lalai. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Ralat SSL"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Caching karya seni dihentikan: kehabisan ruang"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Sambungan soket web di luar talian"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Pilih pelayan Emby"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Pilih perpustakaan untuk dibaiki"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Pilih perpustakaan untuk dikemas kini"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Pilih perpustakaan untuk dialih keluar"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Lagu mengikut genre"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Pangkalan data vakum"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Berikan poster Rancangan TV kepada episod"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "Poster Kodi TVShow (imej utama Emby TVShow) akan digunakan sebagai poster Kodi episod.\nTogol pilihan ini memerlukan penyegerakan semula yang lengkap termasuk semua karya seni yang dicache.\nAwas: Jangan gunakan wizard penyegerakan init (langkaunya) dan semak tetapan sebelum penyegerakan (semula)."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Gunakan imej fanart untuk episod seterusnya"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Tulis ganti ibu jari (Kodi) dengan fanart (Kodi) untuk nod episod seterusnya"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Gunakan reka letak intro langkau alternatif (mesej)."
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Reka bentuk kulit Embuary"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Dayakan kemajuan pelayan"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Pemberitahuan sibuk pelayan Emby ditunjukkan"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Perubahan kandungan pertanyaan"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Perubahan kandungan pertanyaan / data pengguna"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Perubahan kandungan pertanyaan / kandungan"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Diputuskan sambungan daripada pelayan Emby"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Segerakkan saluran livetv"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Segerakkan livetv epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - item diminta (faktor lalai: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Segerakkan tema"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Sahkan ruang kosong"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Pilih Sumber Media"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Gunakan penyelesaian untuk isu widget (dinamik) Kodi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Video transkod"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Transkod audio"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Had lebar jalur transkod"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Format output kod"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Pilih strim audio"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Pilih sari kata"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Istimewa"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Gunakan penggantian laluan"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Penggantian laluan menyokong imej bab dalam mod tambahan. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Tetapkan pelakon unik untuk setiap perpustakaan emby"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Episod"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Rekod"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Tonton bersama dibatalkan"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Menunggu peserta"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Bermula..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Pilih pengguna"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Pelanggan jauh / Tonton bersama"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Padam pemasa"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Tambah pemasa"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Paksa pelanggan"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Pelanggan yang tidak menyokong menonton bersama secara asli, akan dipaksa untuk mengambil bahagian"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Kawalan pelanggan"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Pelanggan boleh mengawal satu sama lain"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Segerakkan pelanggan untuk menguasai"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Guru mengawal main, jeda, cari"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Tunggu untuk penyertaan"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Tunggu penyertaan dalam beberapa saat"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Tangguhkan main balik"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Tangguhkan mula main balik, beri masa kepada pelanggan untuk menyegerak"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Hanyut maksimum pada jeda"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Dibenarkan async dalam milisaat semasa jeda"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr ""
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Auto mengakui permintaan pelanggan jauh masuk"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Kelewatan"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Mencetuskan perintah cari selepas X saat"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Segerakkan semula pelanggan yang tidak disokong"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Kekalkan sambungan"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Wujudkan sambungan semasa mula (mengikut id peranti)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Tonton bersama"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Alih keluar pelanggan"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Tambah pelanggan"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Dayakan mod jauh"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Lumpuhkan mod jauh"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Dayakan"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Utama"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "Seni"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Sepanduk"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Cakera"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Ibu jari"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Tirai latar"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Bab"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Mampatan"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Resolusi maksimum"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Menghadkan peleraian imej dengan satu faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Pilih strim audio transencode"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Penggantian laluan menyokong imej bab (pengeluaran) dalam mod tambahan. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Dayakan sambungan soket web"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Jika dilumpuhkan: Tiada kemas kini masa nyata, tiada pemberitahuan akan diterima dan arahan jauh tidak akan berfungsi."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Gunakan penyelesaian untuk isu penanda halaman episod Kodi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi mempunyai pepijat dengan penanda halaman episod apabila memilih episod melalui paparan senarai. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi mempunyai masalah dengan widget dinamik. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Dayakan sokongan HTTP/2"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi menghadapi masalah memainkan kandungan melalui protokol http/2 (lalai dimatikan)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Muat semula widget audio tambahan"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Mencetuskan imbasan audio Kodi tambahan (palsu) selepas Emby melaporkan kemas kini kemajuan. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Tamat masa rangkaian"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Pilihan ini mempengaruhi tamat masa pemilihan kandungan EPG dan berbilang versi. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Kegemaran"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Tonton bersama"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Urus pelanggan jauh"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Satukan metadata mengikut perpustakaan"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Artis Muzik"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Genre Muzik"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Filem koleksi"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Koleksi rancangan tv"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Koleksi video muzik"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Kegemaran"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Tempoh mesej kandungan baharu"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Boxsets sebagai tag"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Berikan set kotak kepada tag"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Tamat masa rangkaian"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Melaraskan tamat masa rangkaian dalam beberapa saat. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Segerakkan kegemaran Emby kepada kegemaran Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml akan diubah suai"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Baru-baru ini ditambah fotoalbum"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Teruskan menonton"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Segerakkan saluran livetv pada acara"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Saluran Livetv disegerakkan semula pada permulaan Kodi dan perubahan EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Muat turun lokasi"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Muat turun"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Padam muat turun"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Padam semua fail yang dimuat turun"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Adakah anda pasti mahu memadamkan semua kandungan luar talian?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Semua kandungan yang dimuat turun akan dipadamkan"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Pelayan Emby di luar talian"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Musim Kegemaran"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Pemuzik"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Bum muzikal"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Genre muzik"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Filem"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Video muzik"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Siri"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Musim"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Episod"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Album foto"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Senarai main"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Saluran"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "TV Langsung"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Treler"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr ""
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "Set kotak"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Orang"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Pelbagai kandungan"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Urus pelayan"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Main semula dari jauh"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Muat turun kandungan"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Menu Konteks"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Tambah/buang kegemaran"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Main semula istimewa"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Rakaman"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Muat semula item"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Padam item"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Video kegemaran"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Foto kegemaran"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Video muzik kegemaran"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Koleksi"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Syor"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Filem kegemaran"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Set kotak kegemaran"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "Album foto A-Z"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr ""
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Filem Tidak Ditonton Baru-baru Dikeluarkan"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Filem Yang Terbaharu Dikeluarkan"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "Video muzik A-Z"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "Filem A-Z"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "Siri A-Z"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Lagu kegemaran"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Pelakon kegemaran"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Audio kegemaran"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Cari"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Sedang berjalan (Kandungan campuran)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Teruskan menonton (Kandungan campuran)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Filem yang dimuat turun"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Episod dimuat turun"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Muat turun video muzik"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filem"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "Rancangan TV"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Musim"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Lagu"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Pelakon"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Penanda halaman"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Muat turun tema (YA) atau pautkan tema (TIDAK)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Pilih aliran audio"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Pilih Sandaran"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Menukar karya seni memerlukan tetapan semula cache karya seni. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Pemberitahuan"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Tempoh mesej"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Tempoh mesej dalam beberapa saat"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Operasi pelayan"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Sambungan"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Padam item"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Sandaran"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Main jauh"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Siri dimuat turun"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Tetapkan imdb sebagai pembekal penilaian lalai"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Anggap penilaian komuniti Emby mencerminkan penilaian imdb"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Episod Seterusnya (Kandungan campuran)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Teruskan permainan terakhir (Kandungan campuran)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Teruskan permainan terakhir"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Pergi Untuk Tunjukkan"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Pergi Ke"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Pergi Untuk Tunjukkan"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Pergi Ke Musim"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Penetapan semula nod selesai"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "Had panjang URI"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Had yang lebih tinggi adalah lebih pantas dalam beberapa kes, tetapi boleh mencetuskan isu http 414"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Tetapan"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Tetapan"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Dayakan mesej luar talian"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Alamat pelayan tidak sah"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Hujah tidak sah"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Laluan muat turun tidak ditemui"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Tambahkan pautan filem ke rancangan tv"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Filem yang diberikan kepada rancangan tv yang disenaraikan dalam tontonan rancangan tv Kodi. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Dayakan mulakan penyegerakan"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Jika dilumpuhkan, kandungan Emby tidak akan disegerakkan semasa Kodi bermula"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Gunakan pilihan klasik"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Menu pilihan ditunjukkan apabila berbilang kandungan tersedia"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Pelbagai kandungan"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Nyahdua kandungan"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Mengalih keluar kandungan yang serupa pada berbilang perpustakaan pelayan Emby"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Tetapkan resolusi video tertinggi sebagai lalai"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Pilihan ini digunakan untuk pemilihan multiversi Kodi dan memerlukan penyegerakan semula perpustakaan pada togol."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Auto pilih resolusi tertinggi"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Digunakan pada pilihan berbilang pilih klasik"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Dayakan pemberitahuan API Kodi"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Laporkan peristiwa melalui API Kodi untuk kegunaan luaran"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Akses dinafikan"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Album mengikut tahun"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Bujang mengikut tahun"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Bujang"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Bujang baru-baru ini ditambah"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "perseorangan rawak"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Tiada"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Tiada maklumat laluan tersedia, berhati-hati dengan apa yang anda lakukan!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "Rancangan TV"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Pilih perpustakaan utama"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Muat semula LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Muat Semula Tema"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Lumpuhkan LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Dayakan LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Lumpuhkan Tema"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Dayakan Tema"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Ikuti http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Kandungan http luaran akan diakses terus dan tidak disalurkan melalui pelayan Emby. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Ikuti tamat masa http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Tetapkan kandungan tempatan sebagai lalai"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Addon pendamping Kodi tidak dipasang pada pelayan Emby! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Batalkan cache karya seni"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Bilangan pekerja perkhidmatan web"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Nilai yang lebih tinggi boleh meningkatkan prestasi tetapi memerlukan lebih banyak sumber. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Tutup dialog sibuk"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Boleh menghalang ranap Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Jenis perkhidmatan"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "Pengepala IP (TOS), boleh meningkatkan responsif"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Usaha Terbaik)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (Pemajuan Dipercepatkan)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (Pengiriman Terjamin)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interaktif masa nyata)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Cache karya seni tambahan"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Cache karya seni secara automatik pada penyegerakan separa"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Genre dengan ikon"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Studio dengan ikon"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Tag dengan ikon"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Treler tempatan"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Muatkan perubahan"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Ambang resolusi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Kandungan transkod apabila resolusi sumber melebihi resolusi yang dipilih"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Ambang resolusi"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Kandungan transkod apabila resolusi sumber melebihi resolusi yang dipilih"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "sentiasa"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "tidak terhad"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Resolusi transcoding"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Tanpa had bermaksud mengekalkan resolusi sumber"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Mod perkhidmatan web"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Penggantian laluan"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Pelbagai versi"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Muat semula pautan video muzik"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Mengemas kini pautan video muzik ke pangkalan data muzik"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Masa tidak disegerakkan, langkau kemas kini"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Tambah pautan video muzik pada muzik"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Video muzik yang diperuntukkan kepada muzik yang disenaraikan dalam tontonan lagu Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Padamkan sandaran"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Masukkan nama sandaran"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Mampatan tidak disokong, sandaran tidak tersedia."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Sandaran Sedang Berlangsung"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Kaedah penyegerakan tema audio"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Kaedah penyegerakan tema video"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Muat turun"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Jauh"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Dayakan tema audio"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Dayakan tema video"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Pergi Ke Album"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Pergi Ke Artis"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Jeda penyegerakan"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Jeda penyegerakan apabila pelayan sibuk dengan tugasan"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Pengekstrakan lakaran kecil pratonton video"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Pangkalan data vakum"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Muat naik video tema tempatan"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Muat naik lagu tema tempatan"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Kemas kini pangkalan data pengenalan"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "Kemas kini maze TV"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Pindahkan media"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Imbas folder metadata"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Imbas perpustakaan media"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Muat semula saluran internet"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Panduan muat semula"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Muat turun sari kata"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Muat turun treler filem YouTube tempatan"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Muat turun lagu tema TV tempatan"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Muat turun video tema Setempat"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Muat turun lagu tema tempatan"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Kesan intro"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Tukar media"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Muat semula sedang dijalankan"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Tugas berjadual Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Lebih seperti ini"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Lebih seperti ini"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Tag video rumah"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Video rumah kegemaran"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Tag video"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Video kegemaran"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Keadaan main balik berubah"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Siri dan kemajuan musim"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Senarai main (bercampur)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Main rawak"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Main rawak"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Amaran Kodi Companion"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion ialah tambahan pelayan Emby yang menjejaki kandungan yang dipadamkan"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Memproses treler"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Treler"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Treler yang baru ditambah"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Tema"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Dayakan audio"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Dayakan video"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Pudar masuk"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Pudar"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Nilai yang lebih besar bermakna masa pudar yang lebih lama, sifar dilumpuhkan"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Skrin utama"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Memainkan tema untuk widget"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Permulaan tertunda"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Nilai adalah dalam beberapa saat"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Muat turun"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Simpan tema secara setempat untuk prestasi yang lebih baik"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Keutamaan"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Mentakrifkan tema yang dimainkan dahulu apabila kedua-duanya tersedia"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Treler jauh"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Pemilihan treler jauh"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Intro pawagam"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Treler folder"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Treler tempatan"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Filem tempatan"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Main balik treler"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Jilid"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Log nyahpepijat"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Dayakan video dengan penanda pengenalan"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Dayakan audio dengan penanda pengenalan"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Dayakan video mengikut kandungan"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Dayakan audio mengikut kandungan"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Mengikut tempoh kandungan"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Transcoding digunakan, boleh membawa kepada beban CPU yang berat pada pelayan"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Mati"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Penanda pengenalan"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Kandungan"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Tema maya"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigasi"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Paparan episod"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Pandangan musim"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Pandangan Rancangan TV"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Pandangan filem"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Masa"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Main semula"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Kemas kini kegemaran audio"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Kemas kini album muzik kegemaran"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Kemas kini kegemaran video"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Kemas kini kegemaran video muzik"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Kemas kini kegemaran set kotak"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Kemas kini siri kegemaran"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Kemas kini kegemaran musim"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Kemas kini senarai main kegemaran"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Kemas kini kegemaran episod"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Kemas kini kegemaran filem"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Kemas kini kegemaran genre"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Kemas kini kegemaran studio"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Kemas kini teg kegemaran"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Kemas kini kegemaran genre muzik"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Kemas kini kegemaran orang"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Kemas kini kegemaran orang"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Sandaran dipulihkan daripada:"
+

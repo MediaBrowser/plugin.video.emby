@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby pre Kodi"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Adresa servera"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Názov servera"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Vynútiť prehrávanie HTTP"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Spôsob prihlásenia"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Úroveň denníka"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Názov zariadenia"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Pokročilé"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Užívateľské meno"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Číslo portu"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Potvrďte vymazanie súboru"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Po prehratí ponúknite vymazanie"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Pre epizódy"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Pre filmy"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Povoliť vylepšené umelecké diela (t. j. obaly)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Kvalita videa"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Nedávno pridané televízne relácie"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Prebiehajúce televízne relácie"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Nedávno pridané filmy"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Nedávno pridané epizódy"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr ""
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr ""
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Ďalšie epizódy"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Obľúbené filmy"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Obľúbené relácie"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Obľúbené epizódy"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Boxové súpravy"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Nepozreté filmy"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Náhodné položky"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Odporúčané položky"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Rozhranie"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Resetujte lokálnu databázu Kodi"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Povoliť uvítaciu správu"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Nedávno pridané domáce videá"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Nedávno pridané fotografie"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Obľúbené domáce videá"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Obľúbené fotografie"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Obľúbené albumy"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Nedávno pridané hudobné videá"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Prebieha Hudobné videá"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Nepozreté hudobné videá"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmy"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Televízne relácie"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Možnosti Emby"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Prekódovanie Emby"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Pridať medzi obľúbené"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Odstrániť z obľúbených"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Nastavenia"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Odstrániť položku"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Obnoviť položku"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Overte pripojenie"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Použite názov alternatívneho zariadenia"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Synchronizácia"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Povoliť upozornenie, ak je počet aktualizácií väčší ako"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Synchronizujte prázdne relácie"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Povoliť hudobnú knižnicu"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Režim prehrávania"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Povoľte ukladanie umeleckých diel do vyrovnávacej pamäte"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Prehrávanie"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Sieťové poverenia"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Povoľte režim kina"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Požiadajte o prehranie upútavok"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Preskočte potvrdenie odstránenia (použite na vlastné riziko)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Skočiť späť na pokračovanie (v sekundách)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr ""
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Ignorujte špeciálne ponuky v ďalších epizódach"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Stáli používatelia"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Oneskorenie spustenia (v sekundách)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Povoľte správu o reštarte servera"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Povoliť nový obsah"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Trvanie vyskakovacieho okna videotéky"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Trvanie vyskakovania hudobnej knižnice"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Upozornenia (v sekundách)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Vygenerujte nové ID zariadenia"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Povoliť šetrič obrazovky počas synchronizácií"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Prihláste sa"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Manuálne prihlásenie"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Užívateľské meno alebo e-mail"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Povoliť server offline"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Zobrazte správu"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Prihláste sa pomocou Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Heslo"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Prihláste sa"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Vyberte hlavný server"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Užívateľské meno alebo heslo nemôže byť prázdne"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Nedá sa pripojiť k vybranému serveru"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Pripojte sa k"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Ručne pridať server"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Prosím prihláste sa"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Zmeňte používateľa Emby Connect"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Hostiteľ"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Pripojte sa"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Server alebo port nemôže byť prázdny"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Zmeňte používateľa Emby Connect"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Vitajte"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Server sa reštartuje"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Neplatné používateľské meno alebo heslo"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Vyberte audio stream"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Vyberte prúd titulkov"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Odstrániť súbor z Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Prehrať upútavky?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Zhromažďovanie súprav boxov"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Zhromažďovanie:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Zistilo sa, že je potrebné znova vytvoriť databázu pre túto verziu Emby pre Kodi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby pre Kodi nebude fungovať správne, kým sa databáza neresetuje."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Dokončené o:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Bolo vygenerované nové ID zariadenia. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Pozor! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Add-on (predvolené)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Natívne (priame cesty)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Povoliť hudobnú knižnicu?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Spustenie procesu ukladania do vyrovnávacej pamäte môže chvíľu trvať. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Resetovať existujúcu vyrovnávaciu pamäť umeleckých diel?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Aktualizácia vyrovnávacej pamäte umeleckých diel"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Čaká sa na ukončenie vlákien"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi nemôže nájsť súbor:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Použite náhradu cesty Emby na správne formátovanie vašej cesty alebo zabezpečte, aby bola vaša cesta pridaná do správcu súborov Kodi. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Nové"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Pridajte používateľa do relácie"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Vykonajte lokálny reset databázy"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Uložte všetky umelecké diela do vyrovnávacej pamäte"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Synchronizujte médiá s témou"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Pridať/odstrániť používateľa z relácie"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Pridajte používateľa"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Odstrániť používateľa"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Odstráňte používateľa z relácie"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Odstránené"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Pridané"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Naozaj chcete resetovať lokálnu databázu Kodi?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Odstrániť všetky umelecké diela uložené vo vyrovnávacej pamäti?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Resetovať všetky nastavenia doplnku Emby?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Resetovanie databázy bolo dokončené, Kodi sa teraz reštartuje, aby sa zmeny uplatnili."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Zadajte názov priečinka pre zálohovanie"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Nahradiť existujúcu zálohu?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Vytvorená záloha na:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Vytvorte zálohu"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Záložný priečinok"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Dôležité, cleanonupdate bola odstránená vo vašich pokročilých nastaveniach, aby sa zabránilo konfliktu s Emby pre Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Obnovte súpravy boxov"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Nainštalujte serverový doplnok Kodi Companion, aby sa pri spustení automaticky aplikovali aktualizácie knižnice emby. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Chceli by ste synchronizovať prázdne relácie?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Keďže používate natívny režim prehrávania s povolenou hudbou, chcete importovať hodnotenie hudby zo súborov?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Obnoviť predchádzajúcu synchronizáciu?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Ak chcete povoliť ukladanie umeleckých diel do vyrovnávacej pamäte, povoľte službu webového servera v nastaveniach Kodi."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Viac informácií nájdete na github wiki/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Povoľte kontextové menu"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Povoľte možnosť prekódovania"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Používatelia pridaní do relácie"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Oznámenia sú počas prehrávania videa oneskorené (okrem živého televízneho vysielania)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr ""
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Reštartujte Kodi, aby sa prejavilo."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Resetujte lokálnu databázu, aby ste použili zmenu režimu prehrávania."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Platí pre natívny a doplnkový režim prehrávania"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Platí len pre doplnkový režim prehrávania"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Povoliť externé titulky"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Upravte pre vzdialené pripojenie"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Compress artwork (znižuje kvalitu)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Povoliť ukladanie umeleckých diel do vyrovnávacej pamäte? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Zmenili ste režim prehrávania. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Počas synchronizácie sa niečo pokazilo. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Vyberte knižnice, ktoré chcete pridať"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Všetko"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Reštartujte Kodi a pokračujte tam, kde ste prestali."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Synchronizujte knižnicu s Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Zahrnúť ľudí (pomaly)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Vyberte zobrazenia Emby na synchronizáciu s Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Synchronizovať neskôr"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Pokračovať"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Nepodarilo sa načítať najnovšie aktualizácie obsahu. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Knižnice môžete synchronizovať spustením doplnku Emby > Pridať knižnice."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Vyberte zdroj"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Osviežujúce súpravy boxov"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Opravná knižnica"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Odstrániť knižnicu z Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Pridať server"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi sa teraz reštartuje a použije malú opravu pre vašu verziu Kodi."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Aktualizujte knižnicu"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Povoliť Kodi Companion (server plugin)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Knižnicu môžete aktualizovať manuálne a nemusíte sa spoliehať na serverový doplnok Kodi. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Aktualizujte knižnice"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Opravy knižníc"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Odstráňte server"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Niečo sa pokazilo. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Odstraňujem knižnicu"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Uistite sa, že sú vaše knižnice servera Emby prístupné pre vašu inštaláciu Kodi a že máte na serveri nakonfigurovanú náhradu cesty. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Nedá sa pripojiť k Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Váš prístup k Emby je obmedzený."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Váš prístup k tomuto serveru je obmedzený."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Nedá sa pripojiť k tomuto serveru."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Aktualizujte informácie o serveri"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Znova sa pripojte k rovnakému serveru, ktorý bol predtým načítaný. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Nedá sa nájsť TV Tunes v Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Vaše mediálne téma Emby bolo synchronizované s Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Pridať knižnice"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Aktuálne aplikovaná oprava pre Emby pre Kodi je poškodená! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Bola aplikovaná oprava!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Len zvuk"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Len titulky"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Povoliť výber zvuku/titulkov"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Aby ste sa vyhli chybám, aktualizujte Emby pre Kodi na verziu: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Skontrolujte aktualizácie"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Resetovať hudobnú knižnicu?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Podporte tento projekt"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Maska citlivých informácií v protokole (neplatí pre protokolovanie kodi)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Nepodarilo sa vytvoriť zálohu"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dynamický)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Nedávno pridané"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Obľúbené"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Prebieha"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Nesledované"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Prvým písmenom"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Máte čakajúce aktualizácie (počet: {number}). "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Zabudli ste na predchádzajúcu synchronizáciu? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging – sťahovanie vlákien (predvolené: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Tip na stránkovanie: Každé vlákno sťahovania vyžaduje od Embyho súčasne vašu maximálnu hodnotu položiek."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Aktualizujte alebo opravte svoje knižnice, aby ste použili nižšie uvedené zmeny."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Zobrazí indikátor priebehu, ak je počet aktualizácií väčší ako"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Prebieha spracovanie aktualizácií"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Vynútiť prekódovanie"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Reštartujte Emby pre Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Reštartovanie kvôli aplikácii náplasti"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Hrajte v režime kina"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Povoľte možnosť hrať v režime kina"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Odstrániť knižnice"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Povoliť synchronizáciu počas prehrávania (môže spôsobiť oneskorenie)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Sprievodca Kodi urýchľuje synchronizáciu pri spustení. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sync hodnotenia Rotten Tomatoes"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Chcete synchronizovať hodnotenia Rotten Tomatoes?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Reštartujte Emby, aby Kodi použil túto zmenu?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Reštartujte Emby pre Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Reštartujem..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Spravujte knižnice"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Povoľte Emby pre Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Rozšírené možnosti"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Synchronizácia už beží, počkajte, kým sa dokončí a skúste to znova."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Hra Emby"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Oprava preskenovania hudobnej databázy"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Úloha bola úspešná!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Úloha zlyhala!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Povoliť jednoduché hranie (priateľské pre externého hráča)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr ""
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Požiadať o pokračovanie v synchronizácii, ak je počet väčší ako"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr ""
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Prehrávajte vzdialené adresy URL pomocou Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Zobraziť skrytých používateľov vo výbere"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Resetujte aktualizáciu opravy"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Najnovšie vydanie"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Povoliť označenie pre viacero epizód. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Povoliť miestne upútavky"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Povoliť upútavky"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr ""
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Výstupný formát videa"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Výstupný formát zvuku"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Zobraziť možnosti v ponuke doplnkov"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Informácie o dátume"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Žánre"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Štúdiá"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Slogany"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Prehľad"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Miesta výroby"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dynamické knižnice"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Režim kompatibility"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Obnovte zálohu"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Ktoré umelecké dielo by sa malo uložiť do vyrovnávacej pamäte"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Hudba"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Dátum prírastkovej synchronizácie"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Čas prírastkovej synchronizácie"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Zbieranie odstránených položiek"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Povoliť režim kina (filmy)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Povoliť režim kina (televízne programy)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Odstrániť položky aj z Emby servera? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Odstrániť SÚBORY aj zo servera Emby udalosťami Kodi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Povoľte vymazanie SÚBORU na udalostiach Kodi"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Zakážte podporu HTTP2"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Reštart Kodi bol spustený z dôvodu zmien advancedsettings.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr "64 kbps"
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr "96 kbps"
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr "128 kbps"
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr "192 kbps"
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr "256 kbps"
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr "320 kbps"
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr "384 kbps"
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr "448 kbps"
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr "512 kbps"
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Režim kina"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Umelecké dielo"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr ""
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Režim kompatibility zmení ID pluginu na 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Za určitých okolností (WLan, oneskorené spustenie siete atď.) môže oneskorené spustenie pluginu zlepšiť pripojenie"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Môžete upraviť, aké meta informácie sa načítajú pre dynamický (nesynchronizovaný) obsah. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Pri tejto možnosti buďte opatrní. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Toto je možnosť ladenia. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Resetuje jedinečné ID zariadenia. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Pripojte sa k novému serveru Emby (multserver) alebo znova pripojte existujúci server Emby (ladenie)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Zobraziť skrytých používateľov na serveri Emby pre pripojenie ops."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Pridať/odstrániť/opraviť knižnice, živé televízne vysielanie, témy."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Synchronizuje všetky umelecké diela lokálne s Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Niektoré vzhľady používajú zoznamy skladieb xps. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Userrating sú dodatočné informácie, ktoré sa majú synchronizovať s Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Vykoná kompletnú opätovnú synchronizáciu databázy Kodi. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Cinema mode je premiérová funkcia Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Prekódovanie bitovej rýchlosti zvuku"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Rýchlosť siete. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Hlásenie názvu zariadenia na server Emby."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Nahláste priebeh prehrávania ďalším používateľom."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Medzera medzi zastavením prehrávania a spustením pokračovania."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Toto je funkcia servera Emby."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Môže ušetriť šírku pásma"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "V niektorých prípadoch je užitočné zobraziť možnosti ponuky v ponuke doplnkov ako skratky. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Ponuka Contect podporuje správu obľúbených položiek, možnosti odstránenia, výber špeciálnych funkcií (filmov) atď."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr ""
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maximálny počet vlákien medzipamäte umeleckých diel"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animovaná ikona"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Obnovte vzhľad pripojenia k serveru Emby"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Priečinok"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Zmiešaný obsah"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Prebieha"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Náhodné epizódy"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Náhodné televízne relácie"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Obnovenie továrenských nastavení"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Resetovanie uzlov"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Naozaj chcete resetovať svoje uzly?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Umelci"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Nepozreté epizódy"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Nepozerané televízne relácie"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Obľúbené televízne relácie"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Nedávno hraná televízna relácia"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Nadchádzajúce epizódy"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Televízne relácie"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Nedávno hrané"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Nedávno hraná epizóda"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Riaditelia"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Štítky televíznych relácií"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Značky epizód"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Filmové štítky"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Pokračovať vo filme"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Krajiny"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albumy"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Hudobné videá"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Značky hudobných videí"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Náhodné hudobné videá"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Pokračovanie v hudobných videách"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Videá"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Fotografie"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fotoalbumy"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Štítky do fotoalbumu"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Značky na fotografiách"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Značky videa"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Nedávno pridané fotografie"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Nedávno pridané fotoalbumy"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Nedávno pridané videá"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Zoznamy skladieb"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Audioknihy"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Náhodné audioknihy"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Nepočúvané"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Náhodné piesne"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Náhodné podcasty"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podcasty"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Synchronizované uzly sú oveľa rýchlejšie ako dynamické uzly. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Dynamické uzly sa budujú za behu. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Obľúbené hudobné videá"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Synchronizované uzly"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dynamické uzly"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Nedávno pridané albumy"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Nedávno pridané audioknihy"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Nedávno pridané piesne"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Náhodné albumy"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Náhodné piesne"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Náhodné audioknihy"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Náhodné podcasty"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Nedávno pridané podcasty"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Pridať/odstrániť/opraviť knižnice, živé televízne vysielanie, témy"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Otvorte nastavenia zásuvného modulu"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Vykoná kompletnú opätovnú synchronizáciu databázy Kodi (vrátane obsahu, ktorý nie je Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Resetujte všetky vlastné uzly a prestavte ich"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Limit dopytu uzla"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Obmedzte dopyty na postupové uzly. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Uzly"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Použite možnosť obnovenia prehrávania zo servera Emby"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Táto funkcia zakáže interné aktualizácie postupu Kodi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Vákuové databázy pri vypnutí Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Databáza bude prebudovaná a optimalizovaná za cenu oneskorenia vypnutia"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Znova načítať kožu"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Iné"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Server Emby je zaneprázdnený"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Vymažte súbory umeleckých diel"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Aktualizovať zobrazenia"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Server Emby je zaneprázdnený: Prebieha synchronizácia"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Vymažte Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Databáza"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Preskočte úvod"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Okno správy požiada o skok na úvodnú koncovú pozíciu"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Značky"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Preskočiť titulky"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Schránka správy požiada o preskočenie kreditov"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Spýtaj sa preskoč úvod"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Opýtajte sa preskočiť titulky"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Schránka správ sa automaticky zatvára po X sekundách"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Preskočiť úvod, preskočiť titulky, režim kina a možnosti vymazania sa automaticky zatvoria po X sekundách. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Skladatelia"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Zistil sa poškodený súbor nastavení, obnovte predvolené nastavenie. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Chyba SSL"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Ukladanie umeleckých diel do vyrovnávacej pamäte bolo zastavené: nedostatok miesta"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket pripojenie offline"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Vyberte Emby server"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Vyberte knižnice na opravu"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Vyberte knižnice, ktoré chcete aktualizovať"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Vyberte knižnice, ktoré chcete odstrániť"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Piesne podľa žánru"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vákuové databázy"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Priraďte plagáty TVShow k epizódam"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-posters (primárny obrázok Emby TVShow) sa použijú ako epizódy Kodi-posters.\nPrepnutie tejto možnosti vyžaduje úplnú opätovnú synchronizáciu vrátane všetkých umeleckých diel uložených vo vyrovnávacej pamäti.\nUpozornenie: Nepoužívajte sprievodcu synchronizáciou init (preskočte ho) a pred (opätovnou) synchronizáciou skontrolujte nastavenia."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Použite fanartové obrázky pre ďalšie epizódy"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Prepíše (Kodi) palce s (Kodi) fanartmi pre uzol ďalších epizód"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Použite alternatívne rozloženie preskočenia úvodu (správy)."
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Dizajn embuárnej kože"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Povoliť postup servera"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Zobrazia sa upozornenia servera Emby o zaneprázdnenosti"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Obsah dopytu sa mení"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Dopyt na zmeny obsahu / užívateľské údaje"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Zmena obsahu dotazu / obsah"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Odpojené od servera Emby"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Synchronizácia živých televíznych kanálov"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Synchronizácia živého vysielania epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging – požadované položky (predvolený faktor: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Synchronizácia tém"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Overte voľné miesto"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Vyberte zdroj médií"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Použite riešenia pre problémy s (dynamickými) widgetmi Kodi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Prekódujte video"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Prekódovanie zvuku"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Limit šírky pásma prekódovania"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Výstupný formát prekódovania"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Vyberte audiostream"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Vyberte titulky"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Špeciálne ponuky"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Použite náhradu cesty"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Nahradenie cesty podporuje obrázky kapitol v režime doplnkov. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Priraďte jedinečných hercov pre každú knižnicu Emby"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Epizódy"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Záznam"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Spoločné sledovanie zrušené"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Čaká sa na účastníkov"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Začína sa..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Vyberte používateľov"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Vzdialení klienti / Sledujte spolu"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Vymazať časovač"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Pridať časovač"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Nútiť klientov"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Klienti, ktorí natívne nepodporujú spoločné sledovanie, budú nútení zúčastniť sa"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Kontrola klienta"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Klienti sa môžu navzájom ovládať"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Synchronizujte klientov na master"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Majster ovláda prehrávanie, pauzu, vyhľadávanie"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Počkajte na účastníkov"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Čakajte na účasť v sekundách"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Oneskorené prehrávanie"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Odložte spustenie prehrávania, dajte klientom čas na synchronizáciu"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maximálny drift pri pauze"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Povolená asynchronizácia v milisekundách pri pozastavení"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Automatické potvrdenie"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Automaticky potvrdiť prichádzajúcu požiadavku vzdialeného klienta"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Oneskorenie"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Spustí príkaz vyhľadávania po X sekundách"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Opätovná synchronizácia nepodporovaných klientov"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Udržujte spojenie"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Vytvorte pripojenie pri štarte (podľa ID zariadenia)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Sledujte spolu"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Odstráňte klienta"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Pridajte klienta"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Povolenie vzdialeného režimu"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Vypnutie diaľkového režimu"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Povoliť"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primárne"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "čl"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Reklamný prúžok"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Disk"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Palec"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Pozadie"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitola"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Kompresia"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximálne rozlíšenie"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Faktorom obmedzuje rozlíšenie obrazu. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Vyberte transencode audiostream"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Nahradenie cesty podporuje obrázky kapitol (extrakciu) v režime doplnkov. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Povoľte pripojenie websocket"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Ak je vypnuté: Žiadne aktualizácie v reálnom čase, nebudú prijímané žiadne upozornenia a vzdialené príkazy nebudú fungovať."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Použite riešenia pre problémy so záložkami epizódy Kodi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Spoločnosť Kodi má chybu so záložkami epizód pri výbere epizódy prostredníctvom zobrazení zoznamu. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi má problém s dynamickými widgetmi. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Povoľte podporu HTTP/2"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi má problémy s prehrávaním obsahu cez protokol http/2 (predvolene vypnuté)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Dodatočné obnovenie miniaplikácie zvuku"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Spustí dodatočné (falošné) skenovanie zvuku Kodi po tom, čo Emby nahlási aktualizácie priebehu. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Časový limit siete"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Táto možnosť ovplyvňuje časový limit pre výber obsahu EPG a viacerých verzií. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Obľúbené"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Sledujte spolu"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Spravujte vzdialených klientov"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Zjednotenie metadát podľa knižnice"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr ""
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Hudobný žáner"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Žáner"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Štúdio"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Značka"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Zbierka filmov"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Zbierka televíznych relácií"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Zbierka hudobných videí"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Obľúbené"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Trvanie správy s novým obsahom"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Boxsety ako štítky"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Priraďte k štítkom sady boxov"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Vypršal časový limit siete"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Úprava časových limitov siete v sekundách. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Synchronizujte obľúbené položky Emby s obľúbenými položkami Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi Favorites.xml bude upravený"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Nedávno pridané fotoalbumy"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Pokračovať v sledovaní"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Synchronizácia kanálov živého vysielania na udalostiach"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Kanály Livetv sa znova synchronizujú pri spustení Kodi a zmenách EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Miesto na stiahnutie"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Stiahnite si"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Odstrániť sťahovanie"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Vymažte všetky stiahnuté súbory"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Naozaj chcete odstrániť všetok offline obsah?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Všetok stiahnutý obsah bude vymazaný"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby server je offline"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Obľúbené ročné obdobia"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Hudobník"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Hudobný album"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Hudobný žáner"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Film"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Hudobné video"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Séria"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Sezóna"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Epizóda"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fotoalbum"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Žáner"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Zoznam skladieb"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanály"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "Živá televízia"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Príves"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Priečinok"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Osoba"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "Značka"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Štúdio"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Správa serverov"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Prehrávanie na diaľku"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Stiahnite si obsah"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Kontextové menu"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Pridať/odobrať medzi obľúbené"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Špeciálne prehrávanie"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Nahrávanie"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Obnoviť položku"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Vymazať položku"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Obľúbené videá"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Obľúbené fotografie"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Obľúbené hudobné videá"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Zbierky"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Odporúčania"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Obľúbené filmy"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Obľúbené súpravy krabičiek"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z videá"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Nedávno vydané nepozerané filmy"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Nedávno vydané filmy"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z hudobné videá"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z filmy"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "Séria A-Z"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Obľúbené piesne"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Obľúbení herci"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Obľúbený zvuk"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Hľadaj"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Prebieha (Zmiešaný obsah)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Pokračovať v sledovaní (Zmiešaný obsah)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Stiahnuté filmy"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Stiahnuté epizódy"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Stiahnuté hudobné videá"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmy"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "TV relácie"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Ročné obdobia"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Piesne"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Herci"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Záložky"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Stiahnuť témy (ÁNO) alebo prepojiť témy (NIE)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Vyberte audio stream"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Vyberte Zálohovať"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Zmena kresby vyžaduje resetovanie vyrovnávacej pamäte umeleckých diel. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Upozornenia"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Trvanie správy"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Trvanie správy v sekundách"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Operácie servera"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Pripojenia"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Vymazať položku"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Zálohovanie"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Hra na diaľku"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Stiahnutá séria"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Nastaviť imdb ako predvoleného poskytovateľa hodnotenia"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Predpokladajme, že hodnotenie komunity Emby odráža hodnotenia imdb"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Ďalšie epizódy (zmiešaný obsah)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Pokračovať naposledy hrané (Zmiešaný obsah)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Pokračovať v poslednej hre"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Choď na show"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Choď do"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Choď na show"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Prejdi na sezónu"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Resetovanie uzlov je dokončené"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "Obmedzenie dĺžky URI"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Vyššie limity sú v niektorých prípadoch rýchlejšie, ale môžu spôsobiť problémy http 414"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Nastavenia"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Nastavenia"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Povoliť offline správu"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Neplatná adresa servera"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Neplatný argument"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Cesta na stiahnutie sa nenašla"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Pridajte odkazy na filmy do televíznych relácií"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Filmy priradené k televíznym reláciám uvedeným v zobrazeniach televíznych relácií Kodi. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Povoliť spustenie synchronizácie"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Ak je zakázaná, obsah Emby sa nebude synchronizovať pri spustení Kodi"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Použite klasický výber"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Ponuka výberu sa zobrazí, keď je k dispozícii viac obsahu"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Deduplikovať obsah"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Odstráni podobný obsah z viacerých knižníc servera Emby"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Nastavte najvyššie rozlíšenie videa ako predvolené"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Táto možnosť sa vzťahuje na výber viacerých verzií Kodi a vyžaduje opätovnú synchronizáciu knižnice pri prepínaní."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Automatický výber najvyššieho rozlíšenia"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Vzťahuje sa na klasický viacnásobný výber"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Povoľte upozornenia Kodi API"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Hlásenie udalostí cez API Kodi na externé použitie"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Prístup odmietnutý"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Albumy podľa roku"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Slobodní podľa roku"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Slobodní"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Nedávno pridané singly"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Náhodní jednotlivci"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Žiadne"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Nie sú k dispozícii žiadne informácie o ceste, buďte opatrní, čo robíte!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr ""
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Vyberte primárnu knižnicu"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Obnoviť LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Obnoviť témy"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Zakázať LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Povoľte LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Zakázať motívy"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Povoliť motívy"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Nasledujte http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Externý http obsah bude sprístupnený priamo a nebude presmerovaný cez Emby server. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Sledujte časový limit http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Nastaviť lokálny obsah ako predvolený"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Sprievodný doplnok Kodi nie je nainštalovaný na serveri Emby! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Zrušiť vyrovnávaciu pamäť umeleckých diel"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Počet pracovníkov webových služieb"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Vyššie hodnoty môžu zlepšiť výkon, ale vyžadujú viac zdrojov. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Zatvorte zaneprázdnený dialóg"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Môže zabrániť zlyhaniam Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Typ služby"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP hlavička (TOS), môže zlepšiť odozvu"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (najlepšie úsilie)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (zrýchlené preposielanie)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr ""
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interaktívne v reálnom čase)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Prírastková vyrovnávacia pamäť umeleckých diel"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Automaticky ukladať kresbu do vyrovnávacej pamäte pri čiastočnej synchronizácii"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Žánre s ikonami"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Štúdiá s ikonami"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Štítky s ikonami"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Miestne prívesy"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Načítať zmeny"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Prah rozlíšenia"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Prekódovanie obsahu, keď je rozlíšenie zdroja vyššie ako zvolené rozlíšenie"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Prah rozlíšenia"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Prekódovanie obsahu, keď je rozlíšenie zdroja vyššie ako zvolené rozlíšenie"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "vždy"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "neobmedzene"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Rozlíšenie prekódovania"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Neobmedzené znamená zachovať rozlíšenie zdroja"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Režim webovej služby"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Náhrada cesty"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiverzia"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Obnovenie odkazov na hudobné videá"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Aktualizuje odkazy na hudobné videá s hudobnou databázou"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Čas nie je synchronizovaný, preskočte aktualizácie"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Pridajte odkazy na hudobné videá k hudbe"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Hudobné videá priradené k hudbe uvedenej v zobrazeniach skladieb Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Vymažte zálohu"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Zadajte názov zálohy"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Kompresia nie je podporovaná, záloha nie je dostupná."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Prebieha zálohovanie"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Metóda synchronizácie zvukových tém"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Metóda synchronizácie tém videa"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Stiahnuť"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Diaľkové"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Povoliť zvukové motívy"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Povoliť motívy videa"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Prejsť na album"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Choď na umelca"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Pozastaviť synchronizáciu"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Pozastaviť synchronizáciu, keď je server zaneprázdnený úlohami"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Extrakcia miniatúr ukážky videa"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vákuová databáza"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Odovzdajte miestne tematické videá"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Nahrajte miestne tematické piesne"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Aktualizujte úvodnú databázu"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "Aktualizácia televízneho bludiska"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Prenos médií"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Skenovať priečinok metadát"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Skenovanie knižnice médií"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Obnovte internetové kanály"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Sprievodca obnovením"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Stiahnite si titulky"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Stiahnite si upútavky miestnych filmov z YouTube"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Stiahnite si tematické piesne pre miestnu televíziu"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Stiahnite si videá s miestnymi témami"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Stiahnite si miestne tematické piesne"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Zistiť úvody"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Konvertovať médiá"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Prebieha obnova"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Plánovaná úloha Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Viac takýchto"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Viac takýchto"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Značky domáceho videa"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Obľúbené domáce videá"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Značky videa"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Obľúbené videá"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Stav prehrávania sa zmení"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Postup v sérii a sezóne"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Zoznamy skladieb (zmiešané)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Náhodné hranie"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Náhodné prehrávanie"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Varovanie Kodi Companion"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion je serverový doplnok Emby, ktorý sleduje odstránený obsah"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Spracovateľské prívesy"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Prívesy"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Nedávno pridané prívesy"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Témy"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Povoliť zvuk"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Povoliť video"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Vstúpte"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Zhasne"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Väčšie hodnoty znamenajú dlhší čas slabnutia, nula je vypnutá"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Domovská obrazovka"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Prehráva témy pre widgety"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Oneskorený štart"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Hodnoty sú v sekundách"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Stiahnuť"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Ukladajte témy lokálne pre lepší výkon"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Priorita"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Definuje, ktorá téma sa prehrá ako prvá, ak sú obe dostupné"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Diaľkové prívesy"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Výber diaľkových prívesov"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Úvod do kina"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Skladacie prívesy"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Miestne prívesy"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Miestny film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Prehrávanie upútavky"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Zväzok"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr ""
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Povoliť video pomocou úvodných značiek"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Povoliť zvuk podľa úvodných značiek"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Povoliť video podľa obsahu"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Povoliť zvuk podľa obsahu"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Podľa trvania obsahu"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Použité prekódovanie môže viesť k veľkému zaťaženiu CPU na serveri"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Vyp"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Úvodné značky"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Obsah"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuálne témy"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigácia"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Pohľad na epizódu"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Pohľad na sezónu"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Zobrazenie TV relácie"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Pohľad na film"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Načasovanie"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Prehrávanie"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Aktualizujte obľúbené zvukové súbory"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Aktualizujte obľúbené hudobné albumy"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Aktualizujte obľúbené videá"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Aktualizujte obľúbené hudobné videá"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Aktualizácia obľúbených boxov"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Aktualizujte obľúbené seriály"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Aktualizujte obľúbené položky sezóny"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Aktualizujte obľúbené položky zoznamu skladieb"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Aktualizujte obľúbené epizódy"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Aktualizujte obľúbené filmy"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Aktualizujte obľúbené žánre"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Aktualizujte obľúbené položky v štúdiu"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Aktualizujte obľúbené položky"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Aktualizujte obľúbené hudobné žánre"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Aktualizujte obľúbené osoby"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Aktualizujte obľúbené osoby"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Obnovená záloha z:"
+

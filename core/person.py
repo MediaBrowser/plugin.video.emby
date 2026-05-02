@@ -16,9 +16,8 @@ class Person:
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Person"):
             return False
 
-        xbmc.log(f"EMBY.core.person: Process item: {Item['Name']}", 0) # DEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.person (DEBUG): Process item: {Item['Name']}", 1) # DEBUG
         common.set_Favorites_Artwork(Item, self.EmbyServer.ServerData['ServerId'])
-        common.set_Favorite(Item)
         common.set_KodiArtwork(Item, self.EmbyServer.ServerData['ServerId'], False)
 
         if IncrementalSync and utils.ArtworkCacheIncremental:
@@ -27,34 +26,61 @@ class Person:
         if Item['KodiItemId']: # existing item
             self.SQLs["video"].common_db.delete_artwork(Item['KodiItemId'], "actor")
             self.SQLs["video"].update_person(Item['KodiItemId'], Item['Name'], Item['KodiArtwork']['favourite'])
-            xbmc.log(f"EMBY.core.person: UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.person: UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.person (DEBUG): UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGDEBUG
+
             utils.notify_event("content_update", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "actor"}, IncrementalSync)
         else:
             Item['KodiItemId'] = self.SQLs["video"].add_person(Item['Name'], Item['KodiArtwork']['favourite'])
             self.SQLs["emby"].add_reference_metadata(Item['Id'], Item['LibraryId'], "Person", Item['KodiItemId'])
-            xbmc.log(f"EMBY.core.person: ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.person: ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.person (DEBUG): ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGDEBUG
+
             utils.notify_event("content_add", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "actor"}, IncrementalSync)
 
         self.SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiItemId'], "actor")
         return not Item['UpdateItem']
 
     def remove(self, Item, IncrementalSync):
-        Delete, _ = self.SQLs["emby"].remove_item(Item['Id'], "Person", Item['LibraryId'])
+        Delete = self.SQLs["emby"].remove_item(Item['Id'], "Person", Item['LibraryId'])
 
         if Delete:
+            if not common.verify_KodiIds(Item, IncrementalSync, False):
+                return
+
             self.set_favorite(False, Item)
             self.SQLs["video"].delete_people_by_Id(Item['KodiItemId'])
-            xbmc.log(f"EMBY.core.person: DELETE [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.person: DELETE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.person (DEBUG): DELETE [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
             utils.notify_event("content_remove", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "actor"}, IncrementalSync)
 
     def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
+        if not common.verify_KodiIds(Item, IncrementalSync, False):
+            return False
+
+        common.set_Favorite(Item)
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Person")
 
         if UpdateKodiFavorite:
             self.set_favorite(Item['IsFavorite'], Item)
 
         utils.notify_event("content_changed", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "actor"}, True)
-        xbmc.log(f"EMBY.core.person: USERDATA [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.person: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.person (DEBUG): USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
         return False
 
     def set_favorite(self, IsFavorite, Item):
