@@ -72,10 +72,10 @@ def deduplicate():
                         else:
                             ItemsDelete[DoubleData["EmbyServerId"]] += ((EmbyLibraryId, DoubleData["EmbyId"]),)
 
-                        xbmc.log(f"EMBY.helper.pluginmenu: Deduplicate, delete item {ContentName} [{DoubleData['EmbyServerId']} / {DoubleData['EmbyLibraryIds'][0]} / {DoubleData['EmbyServerId']}]", 1) # LOGINFO
+                        xbmc.log(f"EMBY.helper.pluginmenu: Deduplicate, delete item {ContentName} [{DoubleData['EmbyServerId']} / {DoubleData['EmbyLibraryIds'][0]}]", 1) # LOGINFO
 
-        for ServerId, EmbyData in list(ItemsDelete.items()):
-            utils.EmbyServers[ServerId].library.removed_deduplicate(EmbyData)
+        for ServerId, EmbyDatas in list(ItemsDelete.items()):
+            utils.EmbyServers[ServerId].library.removed_deduplicate(EmbyDatas)
 
     if DoublesSeasons:
         deduplicate_subcontent(DoublesSeasons, "Season", LibrarySelectionMetadata, selection)
@@ -104,7 +104,7 @@ def deduplicate_subcontent(Doubles, EmbyType, LibrarySelectionMetadata, selectio
                     else:
                         ItemsMerge[DoublesData[1]["PriorityKodiId"]] = (KodiId,)
 
-                    xbmc.log(f"EMBY.helper.pluginmenu: Deduplicate, delete item {ContentName} [{DoubleData['EmbyServerId']} / {DoubleData['EmbyLibraryIds'][0]} / {DoubleData['EmbyServerId']}]", 1) # LOGINFO
+                    xbmc.log(f"EMBY.helper.pluginmenu: Deduplicate, delete item {ContentName} [{DoubleData['EmbyServerId']} / {DoubleData['EmbyLibraryIds'][0]}]", 1) # LOGINFO
 
     if ItemsMerge:
         SQLs = {}
@@ -120,8 +120,8 @@ def deduplicate_subcontent(Doubles, EmbyType, LibrarySelectionMetadata, selectio
 
         dbio.DBCloseRW("video", f"deduplicate {EmbyType}", SQLs)
 
-    for ServerId, EmbyData in list(ItemsDelete.items()):
-        utils.EmbyServers[ServerId].library.removed_deduplicate(EmbyData)
+    for ServerId, EmbyDatas in list(ItemsDelete.items()):
+        utils.EmbyServers[ServerId].library.removed_deduplicate(EmbyDatas)
 
 def deduplicate_by_library(Doubles, EmbyType, LibrarySelectionMetadata, selection):
     for EmbyServerId in utils.EmbyServers:

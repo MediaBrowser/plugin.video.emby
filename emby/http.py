@@ -1,21 +1,18 @@
-from _thread import allocate_lock
+import threading
 import base64
 import os
-import array
 import struct
 import hashlib
 import json
 import zlib
 import ssl
 import uuid
-import _socket
+import socket
 import xbmc
-import xbmcgui
+import xbmcvfs
 from helper import utils, queue, artworkcache
 from database import dbio
-from core import common
 from hooks import websocket
-
 
 class HTTP:
     def __init__(self, EmbyServer):
@@ -23,18 +20,23 @@ class HTTP:
         self.Intros = []
         self.Queues = {"ASYNC": queue.Queue(), "DOWNLOAD": queue.Queue(), "QUEUEDREQUESTMAIN": queue.Queue(), "QUEUEDREQUESTMAINFALLBACK": queue.Queue()}
         self.Connection = {}
-        self.Connecting = allocate_lock()
-        self.RequestBusy = {"MAIN": allocate_lock(), "MAINFALLBACK": allocate_lock(), "REQUESTMAIN": allocate_lock(), "REQUESTMAINFALLBACK": allocate_lock(), "ASYNC": allocate_lock(), "BUSY": allocate_lock()}
+        self.Connecting = threading.Lock()
+        self.RequestBusy = {"MAIN": threading.Lock(), "MAINFALLBACK": threading.Lock(), "REQUESTMAIN": threading.Lock(), "REQUESTMAINFALLBACK": threading.Lock(), "ASYNC": threading.Lock()}
+        self.CounterLock = threading.Lock()
+        self.HttpIdleEvent = threading.Event()
+        self.HttpIdleEvent.set()
         self.Running = False
+        self.ThreadsRunningCondition = threading.Condition(threading.Lock())
 #        self.SSLContext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         self.SSLContext = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         self.SSLContext.load_default_certs()
-        self.Websocket = websocket.WebSocket(EmbyServer)
+        self.Websocket = websocket.WebSocket(EmbyServer, self.ThreadsRunningCondition)
         self.WebsocketBuffer = b""
         self.AddrInfo = {}
         self.Response = {}
         self.ThreadsRunning = {"ASYNC": False, "DOWNLOAD": False, "QUEUEDREQUESTMAIN": False, "QUEUEDREQUESTMAINFALLBACK": False, "PING": False, "WEBSOCKET": False}
         self.RequestsCounter = 0
+        self.DownloadId = f"{self.EmbyServer.ServerData['ServerId']}_download"
 
         if utils.sslverify:
             self.SSLContext.verify_mode = ssl.CERT_REQUIRED
@@ -43,10 +45,17 @@ class HTTP:
             self.SSLContext.verify_mode = ssl.CERT_NONE
 
     def start(self):
-        with self.Connecting:
-            if not self.Running:
+        if utils.SystemShutdown:
+            return
+
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http: --->[ {self.EmbyServer.ServerData['ServerId']} HTTP ] 1", 1) # LOGINFO
+        self.DownloadId = f"{self.EmbyServer.ServerData['ServerId']}_download"
+
+        with utils.SafeLock(self.Connecting):
+            if not self.Running and not utils.SystemShutdown:
                 self.Running = True
-                xbmc.log("EMBY.emby.http: --->[ HTTP ]", 1) # LOGINFO
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http: --->[ {self.EmbyServer.ServerData['ServerId']} HTTP ] 2", 1) # LOGINFO
+                self.DownloadId = f"{self.EmbyServer.ServerData['ServerId']}_download"
 
                 if not self.ThreadsRunning["QUEUEDREQUESTMAIN"]:
                     self.ThreadsRunning["QUEUEDREQUESTMAIN"] = True
@@ -81,15 +90,21 @@ class HTTP:
                         self.ThreadsRunning["WEBSOCKET"] = True
                         utils.start_thread(self.websocket_listen, ())
 
+                with utils.SafeLock(self.ThreadsRunningCondition):
+                    self.ThreadsRunningCondition.notify_all()
+
     def stop(self):
-        with self.Connecting:
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http: ---<[ {self.EmbyServer.ServerData['ServerId']} HTTP ] 1", 1) # LOGINFO
+
+        with utils.SafeLock(self.Connecting):
             if self.Running:
                 self.Running = False
-                xbmc.log("EMBY.emby.http: ---<[ HTTP ]", 1) # LOGINFO
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http: ---<[ {self.EmbyServer.ServerData['ServerId']} HTTP ] 2", 1) # LOGINFO
                 self.Queues["ASYNC"].put((("QUIT", "", {}, False),))
                 self.Queues["DOWNLOAD"].put("QUIT")
                 self.Queues["QUEUEDREQUESTMAIN"].put("QUIT")
                 self.Queues["QUEUEDREQUESTMAINFALLBACK"].put("QUIT")
+                self.HttpIdleEvent.set()
 
                 if utils.websocketenabled:
                     self.Websocket.MessageQueue.put("QUIT")
@@ -99,22 +114,28 @@ class HTTP:
                         self.socket_close(ConnectionId)
 
                 # Verify all threads are stopped
-                while self.ThreadsRunning["ASYNC"] or self.ThreadsRunning["DOWNLOAD"] or self.ThreadsRunning["QUEUEDREQUESTMAIN"] or self.ThreadsRunning["QUEUEDREQUESTMAINFALLBACK"] or self.ThreadsRunning["PING"] or self.ThreadsRunning["WEBSOCKET"] or self.Websocket.Running:
-                    xbmc.log(f"EMBY.emby.http: Wait for thread termination: {self.ThreadsRunning} / {self.Websocket.Running}", 1) # LOGINFO
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): CONDITION: --->[ self.ThreadsRunningCondition ]", 1) # LOGDEBUG
 
-                    if utils.sleep(0.1):
-                        xbmc.sleep(100)
+                with utils.SafeLock(self.ThreadsRunningCondition):
+                    while self.ThreadsRunning["ASYNC"] or self.ThreadsRunning["DOWNLOAD"] or self.ThreadsRunning["QUEUEDREQUESTMAIN"] or self.ThreadsRunning["QUEUEDREQUESTMAINFALLBACK"] or self.ThreadsRunning["PING"] or self.ThreadsRunning["WEBSOCKET"] or self.Websocket.Running:
+                        self.ThreadsRunningCondition.wait(timeout=0.1)
+
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): CONDITION: ---<[ self.ThreadsRunningCondition ]", 1) # LOGDEBUG
+
+                if utils.DebugLog:
+                    xbmc.log(f"EMBY.emby.http (DEBUG): self.ThreadsRunning: {self.ThreadsRunning}", 1) # LOGDEBUG
+                    xbmc.log(f"EMBY.emby.http (DEBUG): self.Websocket.Running: {self.Websocket.Running}", 1) # LOGDEBUG
 
     def socket_addrinfo(self, ConnectionId, Hostname, Force):
         if Hostname in self.AddrInfo and not Force:
             return 0
 
         try:
-            AddrInfo = _socket.getaddrinfo(Hostname, None)
-            xbmc.log(f"EMBY.emby.http: AddrInfo: {AddrInfo}", 0) # LOGDEBUG
+            AddrInfo = socket.getaddrinfo(Hostname, None)
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): AddrInfo: {AddrInfo}", 1) # LOGDEBUG
             self.AddrInfo[Hostname] = (AddrInfo[0][4][0], AddrInfo[0][0])
         except Exception as error:
-            xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Wrong Hostname: {error}", 2) # LOGWARNING
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http: Socket open {ConnectionId}: Wrong Hostname: {error}", 2) # LOGWARNING
 
             if ConnectionId == "MAIN":
                 utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33678), time=utils.displayMessage, sound=False)
@@ -127,16 +148,15 @@ class HTTP:
         return 0
 
     def Requests_Counter(self, Increase):
-        if Increase:
-            self.RequestsCounter += 1
-
-            if self.RequestsCounter == 1:
-                self.RequestBusy['BUSY'].acquire()
-        else:
-            self.RequestsCounter -= 1
-
-            if not self.RequestsCounter:
-                utils.release_lock(self.RequestBusy['BUSY'])
+        with utils.SafeLock(self.CounterLock):
+            if Increase:
+                self.RequestsCounter += 1
+                self.HttpIdleEvent.clear()
+            else:
+                self.RequestsCounter -= 1
+                if self.RequestsCounter <= 0:
+                    self.RequestsCounter = 0
+                    self.HttpIdleEvent.set()
 
     def socket_del(self, ConnectionId):
         if ConnectionId in self.Connection:
@@ -191,19 +211,19 @@ class HTTP:
 
             while True:
                 try:
-                    self.Connection[ConnectionId]["Socket"] = _socket.socket(self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][1], _socket.SOCK_STREAM)
-                    self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, 1)
+                    self.Connection[ConnectionId]["Socket"] = socket.socket(self.AddrInfo[self.Connection[ConnectionId]["Hostname"]][1], socket.SOCK_STREAM)
+                    self.Connection[ConnectionId]["Socket"].setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
                     # CS0 (Best Effort) 0x00 is default
                     # https://bytesolutions.com/dscp-tos-cos-precedence-conversion-chart/
                     # https://en.wikipedia.org/wiki/Type_of_service
                     try:
                         if utils.Tos == "CS4 (Real-time interactive)":
-                            self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_IP, _socket.IP_TOS, 0x80)
+                            self.Connection[ConnectionId]["Socket"].setsockopt(socket.IPPROTO_IP, socket.IP_TOS, 0x80)
                         elif utils.Tos == "CS5, EF (Expedited Forwarding)":
-                            self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_IP, _socket.IP_TOS, 0x184)
+                            self.Connection[ConnectionId]["Socket"].setsockopt(socket.IPPROTO_IP, socket.IP_TOS, 0x184)
                         elif utils.Tos == "CS1, AF11 (Assured Forwarding)":
-                            self.Connection[ConnectionId]["Socket"].setsockopt(_socket.IPPROTO_IP, _socket.IP_TOS, 0x20)
+                            self.Connection[ConnectionId]["Socket"].setsockopt(socket.IPPROTO_IP, socket.IP_TOS, 0x20)
                     except Exception as error:
                         xbmc.log(f"EMBY.emby.http: Socket change IP_TOS Error: {error}", 2) # LOGWARNING
 
@@ -245,12 +265,11 @@ class HTTP:
                             self.socket_del(ConnectionId)
                             return StatusCodeSocket
 
-                    if RetryCounter == 1:
                         continue
 
                     self.socket_del(ConnectionId)
                     xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionId}", 2) # LOGWARNING
-                    xbmc.log(f"EMBY.emby.http: [ ServerUnreachable ] {ConnectionString}", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): [ ServerUnreachable ] {ConnectionString}", 1) # LOGDEBUG
                     return 607
                 except Exception as error:
                     if ConnectionId not in self.Connection:
@@ -266,7 +285,7 @@ class HTTP:
                             self.socket_del(ConnectionId)
                             return StatusCodeSocket
 
-                    if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
+                    if str(error).find("timed out") != -1 or str(error).find("timeout") != -1: # workaround when TimeoutError not raised
                         if RetryCounter <= 10:
                             continue
 
@@ -305,6 +324,18 @@ class HTTP:
                                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33428), time=utils.displayMessage)
 
                             return 608
+                        except TimeoutError:
+                            RetryCounter += 1
+
+                            if RetryCounter <= 10:
+                                if utils.sleep(0.1):
+                                    return 699
+
+                                continue
+
+                            xbmc.log(f"EMBY.emby.http: socket_open ssl {ConnectionId}: Timeout", 2) # LOGWARNING
+                            self.socket_del(ConnectionId)
+                            return 606
                         except Exception as error:
                             RetryCounter += 1
 
@@ -314,7 +345,7 @@ class HTTP:
 
                                 continue
 
-                            if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
+                            if str(error).find("timed out") != -1 or str(error).find("timeout") != -1: # workaround when TimeoutError not raised
                                 xbmc.log(f"EMBY.emby.http: socket_open ssl {ConnectionId}: Timeout", 2) # LOGWARNING
                                 self.socket_del(ConnectionId)
                                 return 606
@@ -329,7 +360,7 @@ class HTTP:
                     self.socket_del(ConnectionId)
                     return 699
 
-            xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} opened", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket {ConnectionId} opened", 1) # LOGDEBUG
             return 0
 
     def socket_close(self, ConnectionId):
@@ -359,10 +390,10 @@ class HTTP:
                 xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} reset error: {error}", 2) # LOGWARNING
 
         else:
-            xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} already closed", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket {ConnectionId} already closed", 1) # LOGDEBUG
             return
 
-        xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} closed", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket {ConnectionId} closed", 1) # LOGDEBUG
 
     def socket_io(self, Request, ConnectionId, Timeout):
         IncomingData = b""
@@ -370,16 +401,12 @@ class HTTP:
         TimeoutCounter = 0
         BytesSend = 0
         BytesSendTotal = len(Request)
-        TimeoutLoops = Timeout / 3 # settimeout = 3 -> calculate seconds
-
-        if Timeout < 3: # low timeouts used for async commands, where response is irrelevant
-            TimeoutSocket = Timeout
-        else:
-            TimeoutSocket = 3
+        TimeoutSocket = 0.1
+        TimeoutLoops = Timeout * 10
 
         while True:
             try:
-                self.Connection[ConnectionId]["Socket"].settimeout(TimeoutSocket) # set timeout
+                self.Connection[ConnectionId]["Socket"].settimeout(TimeoutSocket)
 
                 if Request:
                     while BytesSend < BytesSendTotal:
@@ -387,54 +414,54 @@ class HTTP:
                 else:
                     IncomingData = self.Connection[ConnectionId]["Socket"].recv(1048576)
 
-                    if not IncomingData: # No Data received -> Socket might be closed by Emby server
-                        xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Empty data", 0) # LOGDEBUG
+                    if not IncomingData or utils.SystemShutdown:
+                        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket IO {ConnectionId}: Empty data", 1)
                         StatusCode = 600
 
-                break
+                    break
+
+                if BytesSend >= BytesSendTotal:
+                    break
             except TimeoutError:
-                if not TimeoutLoops or (ConnectionId != "MAIN" and self.RequestBusy["MAIN"].locked()): # Websocket or binary -> wait longer for e.g. images. MAIN queries could block IO
+                if not TimeoutLoops or (ConnectionId != "MAIN" and self.RequestBusy["MAIN"].locked()):
                     continue
 
                 TimeoutCounter += 1
-
                 if TimeoutCounter < TimeoutLoops:
                     continue
 
                 if Request:
-                    xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout", 2) # LOGWARNING
+                    xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout", 2)
 
-                xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket IO {ConnectionId}: ({Request}): Timeout", 1)
                 StatusCode = 603
                 break
             except BrokenPipeError:
-                xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Pipe error", 2) # LOGWARNING
+                xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Pipe error", 2)
                 StatusCode = 605
                 break
             except Exception as error:
-                if str(error).find("timed out") != -1: # workaround when TimeoutError not raised
-                    if not TimeoutLoops or (ConnectionId != "MAIN" and self.RequestBusy["MAIN"].locked()): # Websocket or binary -> wait longer for e.g. images. MAIN queries could block IO
+                if str(error).find("timed out") != -1 or str(error).find("timeout") != -1: # workaround when TimeoutError not raised
+                    if not TimeoutLoops or (ConnectionId != "MAIN" and self.RequestBusy["MAIN"].locked()):
                         continue
 
                     TimeoutCounter += 1
-
                     if TimeoutCounter <= TimeoutLoops:
                         continue
 
                     if Request:
-                        xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 2) # LOGWARNING
-
-                    xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 0) # LOGDEBUG
+                        xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 2)
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 1)
                     StatusCode = 603
                     break
 
-                xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Undefined error {error} / Type: {type(error)}", 3) # LOGERROR
+                xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Undefined error {error} / Type: {type(error)}", 3)
                 StatusCode = 698
                 break
 
         return StatusCode, IncomingData
 
-    def socket_request(self, Method, Handler, Params, Binary, TimeoutSend, TimeoutRecv, ConnectionId, DownloadPath, DownloadFileSize, DownloadName):
+    def socket_request(self, Method, Handler, Params, Binary, TimeoutSend, TimeoutRecv, ConnectionId, DownloadName, OutFile, ProgressBarTotal):
         if ConnectionId not in self.Connection:
             return 601, {}, {}
 
@@ -493,34 +520,24 @@ class HTTP:
             self.Requests_Counter(False)
             return StatusCodeSocket, {}, ""
 
-        if DownloadPath:
-            ProgressBar = xbmcgui.DialogProgressBG()
-            ProgressBar.create("Download", DownloadName)
-            ProgressBarTotal = DownloadFileSize / 100
-            OutFile = open(DownloadPath, 'wb')
-        else:
-            ProgressBar = None
-            ProgressBarTotal = 0
-            OutFile = None
-
         while True:
             StatusCodeSocket, PayloadRecv = self.socket_io("", ConnectionId, TimeoutRecv)
             IncomingData += PayloadRecv
 
             if StatusCodeSocket or utils.SystemShutdown:
-                closeDownload(OutFile, ProgressBar)
+                self.closeDownload(OutFile)
                 self.Requests_Counter(False)
                 return StatusCodeSocket, {}, ""
 
             # Check if header is fully loaded
             if b'\r\n\r\n' not in IncomingData:
-                xbmc.log("EMBY.emby.http: Incomplete header", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Incomplete header", 1) # LOGDEBUG
                 continue
 
             IncomingData = IncomingData.split(b'\r\n\r\n', 1) # Split header/payload
 
             try:
-                IncomingMetaData = IncomingData[0].decode("utf-8").split("\r\n")
+                IncomingMetaData = IncomingData[0].decode("ascii").split("\r\n")
                 StatusCode = int(IncomingMetaData[0].split(" ")[1])
             except Exception as error: # Can happen on Emby server hard reboot
                 xbmc.log(f"EMBY.emby.http: Header error {ConnectionId}: Info: {error}", 3) # LOGERROR
@@ -534,12 +551,12 @@ class HTTP:
             IncomingDataHeader = {}
 
             for IncomingDataHeaderArrayData in IncomingDataHeaderArray:
-                Temp = IncomingDataHeaderArrayData.split(": ")
-                IncomingDataHeader[Temp[0].lower()] = Temp[1]
+                Temp = IncomingDataHeaderArrayData.split(":", 1)
+                IncomingDataHeader[Temp[0].strip().lower()] = Temp[1].strip()
 
             # no trailers allowed due to RFC
             if StatusCode in (304, 101, 204) or Method == "HEAD":
-                closeDownload(OutFile, ProgressBar)
+                self.closeDownload(OutFile)
                 self.Requests_Counter(False)
                 return StatusCode, IncomingDataHeader, ""
 
@@ -551,12 +568,12 @@ class HTTP:
             # Recv payload
             try:
                 if IncomingDataHeader.get('transfer-encoding', "") == "chunked":
-                    PayloadTotal, PayloadTotalLength, StatusCodeSocket = self.getPayloadByChunks(PayloadTotal, PayloadTotalLength, IncomingData[1], ConnectionId, TimeoutRecv, DownloadName, OutFile, ProgressBar, ProgressBarTotal)
+                    PayloadTotal, PayloadTotalLength, StatusCodeSocket = self.getPayloadByChunks(PayloadTotal, PayloadTotalLength, IncomingData[1], ConnectionId, TimeoutRecv, DownloadName, OutFile, ProgressBarTotal)
                 else:
-                    PayloadTotal, PayloadTotalLength, StatusCodeSocket = self.getPayloadByFrames(PayloadTotal, PayloadTotalLength, IncomingData[1], ConnectionId, TimeoutRecv, int(IncomingDataHeader.get("content-length", 0)), DownloadName, OutFile, ProgressBar, ProgressBarTotal)
+                    PayloadTotal, PayloadTotalLength, StatusCodeSocket = self.getPayloadByFrames(PayloadTotal, PayloadTotalLength, IncomingData[1], ConnectionId, TimeoutRecv, int(IncomingDataHeader.get("content-length", 0)), DownloadName, OutFile, ProgressBarTotal)
 
                 if StatusCodeSocket:
-                    closeDownload(OutFile, ProgressBar)
+                    self.closeDownload(OutFile)
                     self.Requests_Counter(False)
                     return 601, {}, ""
 
@@ -576,7 +593,7 @@ class HTTP:
                         StatusCodeSocket, _ = self.socket_io(f"{Method} /{Handler} HTTP/1.1\r\n{HeaderString}Content-Length: {len(ParamsString)}\r\n\r\n{ParamsString}".encode("utf-8"), ConnectionId, TimeoutSend)
 
                     if StatusCodeSocket:
-                        closeDownload(OutFile, ProgressBar)
+                        self.closeDownload(OutFile)
                         self.Requests_Counter(False)
                         return 601, {}, ""
 
@@ -588,7 +605,7 @@ class HTTP:
                 self.Requests_Counter(False)
                 return 612, {}, ""
 
-        closeDownload(OutFile, ProgressBar)
+        self.closeDownload(OutFile)
         PayloadTotal = b''.join(PayloadTotal)
 
         # Decompress data
@@ -612,6 +629,9 @@ class HTTP:
         if isJSON:
             try:
                 return StatusCode, IncomingDataHeader, json.loads(PayloadTotal)
+            except MemoryError:
+                xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: MemoryError", 3) # LOGERROR
+                return 612, {}, ""
             except Exception as error:
                 xbmc.log(f"EMBY.emby.http: Invalid json content {ConnectionId}: {IncomingDataHeader} error: {error} payload: {PayloadTotal}", 3) # LOGERROR
                 return 612, {}, ""
@@ -623,142 +643,135 @@ class HTTP:
                 return 612, {}, ""
 
     def download_file(self):
-        xbmc.log("EMBY.emby.http: THREAD: --->[ file download ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: --->[ Download {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
+        ProgressBar = False
 
         while True:
             Command = self.Queues["DOWNLOAD"].get() # EmbyId, ParentPath, Path, FilePath, FileSize, Name, KodiType, KodiPathIdBeforeDownload, KodiFileId, KodiId
 
             if Command == "QUIT":
-                xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} ] shutdown 1", 0) # LOGDEBUG
-                utils.delFile(Command[3])
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} ] shutdown 1", 1) # LOGDEBUG
                 self.socket_close("DOWNLOAD")
-                self.ThreadsRunning["DOWNLOAD"] = False
+                utils.close_ProgressBar(self.DownloadId)
+                self.disable_thread("DOWNLOAD")
                 return
 
+            EmbyId, PathDownload, FileSize, MediaName, KodiType, KodiPathId, KodiFileId, KodiMediaId, Filename = Command
+            EmbyId = str(EmbyId)
+            KodiFileId = str(KodiFileId)
+
             # check if free space below 2GB
-            if utils.getFreeSpace(Command[2]) < (2097152 + Command[4] / 1024):
+            if utils.getFreeSpace(PathDownload) < (2097152 + FileSize / 1024):
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33429), icon=utils.icon, time=utils.displayMessage, sound=True)
                 xbmc.log("EMBY.emby.http: THREAD: ---<[ file download ] terminated by filesize", 2) # LOGWARNING
                 self.socket_close("DOWNLOAD")
-                self.ThreadsRunning["DOWNLOAD"] = False
+                utils.close_ProgressBar(self.DownloadId)
+                self.disable_thread("DOWNLOAD")
                 return
 
             while True:
                 if self.socket_open(self.EmbyServer.ServerData['ServerUrl'], "DOWNLOAD", True):
                     if utils.sleep(10):
-                        xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} shutdown ]", 0) # LOGDEBUG
-                        self.ThreadsRunning["DOWNLOAD"] = False
+                        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} shutdown ]", 1) # LOGDEBUG
+                        self.disable_thread("DOWNLOAD")
                         return
 
                     continue
 
                 self.update_header("DOWNLOAD")
-                StatusCode, _, _ = self.socket_request("GET", f"Items/{Command[0]}/Download", {}, True, 12, 300, "DOWNLOAD", Command[3], Command[4], Command[5])
 
-                if StatusCode == 601: # quit
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} ] shutdown 2", 0) # LOGDEBUG
-                    utils.delFile(Command[3])
+                if not ProgressBar:
+                    utils.create_ProgressBar(self.DownloadId, utils.Translate(33814), MediaName)
+
+                ProgressBarTotal = FileSize / 100
+                PathDownloadMedia = xbmcvfs.translatePath(os.path.join(PathDownload, KodiType, KodiFileId, ""))
+                utils.mkDir(PathDownloadMedia)
+                PathDownloadMediaFile = os.path.join(PathDownloadMedia, Filename)
+                OutFile = open(PathDownloadMediaFile, 'wb')
+                StatusCode, _, _ = self.socket_request("GET", f"Items/{EmbyId}/Download", {}, True, 12, 300, "DOWNLOAD", MediaName, OutFile, ProgressBarTotal)
+                ProgressBarTotal = 0
+                OutFile = None
+
+                if StatusCode == 601 or utils.SystemShutdown: # quit
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} ] shutdown 2", 1) # LOGDEBUG
+                    utils.delFile(PathDownloadMediaFile)
                     self.socket_close("DOWNLOAD")
-                    self.ThreadsRunning["DOWNLOAD"] = False
+                    utils.close_ProgressBar(self.DownloadId)
+                    self.disable_thread("DOWNLOAD")
                     return
 
                 if StatusCode in (600, 602, 603, 605, 612):
                     xbmc.log(f"EMBY.emby.http: Download retry {StatusCode}", 2) # LOGWARNING
-                    utils.delFile(Command[3])
+                    utils.delFile(PathDownloadMediaFile)
                     self.socket_close("DOWNLOAD")
                     continue
 
                 try:
-                    if StatusCode != 200:
-                        utils.delFile(Command[3])
+                    if StatusCode != 200 or utils.SystemShutdown:
+                        utils.delFile(PathDownloadMediaFile)
                     else:
-                        if Command[9]: # KodiId
+                        if KodiMediaId: # KodiId
                             SQLs = {}
                             dbio.DBOpenRW("video", "download_item_replace", SQLs)
-                            Artworks = ()
-                            ArtworksData = SQLs['video'].get_artworks(Command[9], Command[6])
+                            ArtworksNoUrlParam = SQLs['video'].download_Artwork(KodiMediaId, KodiType, True)
+                            SQLs['video'].update_Name(KodiMediaId, KodiType, True)
+                            SQLs['video'].replace_Path_ContentItem(KodiMediaId, KodiType, PathDownloadMedia, PathDownloadMediaFile)
 
-                            for ArtworkData in ArtworksData:
-                                if ArtworkData[1] in ("poster", "thumb", "landscape"):
-                                    UrlMod = ArtworkData[2].split("|")
-                                    UrlMod = f"{UrlMod[0].replace('-download', '')}-download|redirect-limit=1000"
-                                    SQLs['video'].update_artwork(ArtworkData[0], UrlMod)
-                                    Artworks += ((UrlMod,),)
-
-                            SQLs['video'].update_Name(Command[9], Command[6], True)
-                            SQLs['video'].replace_Path_ContentItem(Command[9], Command[6], Command[2])
-
-                            if Command[6] == "episode":
-                                KodiPathId = SQLs['video'].get_add_path(Command[2], None, Command[1])
-                                Artworks = SQLs['video'].set_Subcontent_download_tags(Command[9], True)
-
-                                if Artworks:
-                                    artworkcache.CacheAllEntries(Artworks, None)
-                            elif Command[6] == "movie":
-                                KodiPathId = SQLs['video'].get_add_path(Command[2], "movie", None)
-                            elif Command[6] == "musicvideo":
-                                KodiPathId = SQLs['video'].get_add_path(Command[2], "musicvideos", None)
+                            if KodiType == "episode":
+                                DownloadPathParent = xbmcvfs.translatePath(os.path.join(PathDownload, KodiType, ""))
+                                KodiParentPathId = SQLs['video'].get_add_path(DownloadPathParent, "tvshows", None)
+                                KodiPathIdNew = SQLs['video'].get_add_path(PathDownloadMedia, None, KodiParentPathId)
+                                ArtworksNoUrlParam += SQLs['video'].download_Subcontent(KodiMediaId, True)
+                            elif KodiType == "movie":
+                                KodiPathIdNew = SQLs['video'].get_add_path(PathDownloadMedia, "movie", None)
+                            elif KodiType == "musicvideo":
+                                KodiPathIdNew = SQLs['video'].get_add_path(PathDownloadMedia, "musicvideos", None)
                             else:
-                                KodiPathId = None
-                                xbmc.log(f"EMBY.emby.http: Download invalid: KodiPathId: {Command[1]['Path']} / {Command[6]}", 2) # LOGWARNING
+                                KodiPathIdNew = None
+                                xbmc.log(f"EMBY.emby.http: Download invalid: {KodiMediaId} / {KodiType}", 2) # LOGWARNING
 
-                            if KodiPathId:
-                                SQLs['video'].replace_PathId(Command[8], KodiPathId)
+                            if KodiPathIdNew:
+                                SQLs['video'].replace_PathId(KodiFileId, KodiPathIdNew)
 
                             dbio.DBCloseRW("video", "download_item_replace", SQLs)
 
-                            if KodiPathId:
+                            if KodiPathIdNew:
                                 dbio.DBOpenRW(self.EmbyServer.ServerData['ServerId'], "download_item", SQLs)
-                                SQLs['emby'].add_DownloadItem(Command[0], Command[7], Command[8], Command[9], Command[6], KodiPathId)
+                                SQLs['emby'].add_DownloadItem(EmbyId, KodiPathId, KodiFileId, KodiMediaId, KodiType, KodiPathIdNew)
                                 dbio.DBCloseRW(self.EmbyServer.ServerData['ServerId'], "download_item", SQLs)
 
-                            artworkcache.CacheAllEntries(Artworks, None)
+                            if ArtworksNoUrlParam:
+                                artworkcache.CacheAllEntries(ArtworksNoUrlParam, "")
 
                     if self.Queues["DOWNLOAD"].isEmpty():
                         utils.refresh_widgets(True)
                 except Exception as error:
-                    xbmc.log(f"EMBY.emby.http: Download Emby server did not respond: error: {error}", 2) # LOGWARNING
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http: Download Emby server did not respond: error: {error}", 2) # LOGWARNING
 
                 break
 
-    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, BusyFunction, ConnectionId, LowPriority, PlaybackCheck):
-        # pause requests by player in progress -> player sync is pause for 5 seconds on each player command
-        if PlaybackCheck: # ConnectionId is set by pings -> do not pause pings, CloseConnection is used by e.g. images -> do not pause image loads
-            if utils.SyncPause.get('playerbusy', False): # Playback has always priority
-                xbmc.log(f"EMBY.emby.http: --->[ Request paused, player busy ] {Handler} / {Params}", 0) # LOGDEBUG
-                utils.PlayerBusy.acquire()
-                utils.PlayerBusy.release()
-                xbmc.log("EMBY.emby.http: ---<[ Request paused, player busy ]", 0) # LOGDEBUG
-
-        # pause low priority requests
-        if LowPriority:
-            while self.RequestsCounter or not self.Queues["QUEUEDREQUESTMAIN"].isEmpty() or not self.Queues["QUEUEDREQUESTMAINFALLBACK"].isEmpty() or (not self.Queues["ASYNC"].isEmpty() and self.ThreadsRunning["ASYNC"]):
-                xbmc.log(f'EMBY.emby.http: --->[ Request paused, low priority ] {not self.Queues["QUEUEDREQUESTMAIN"].isEmpty()} / {not self.Queues["QUEUEDREQUESTMAINFALLBACK"].isEmpty()} / {not self.Queues["ASYNC"].isEmpty()} / {bool(self.RequestsCounter)} / {Handler} / {Params}', 0) # LOGDEBUG
-                self.RequestBusy['BUSY'].acquire()
-                self.RequestBusy['BUSY'].release()
-
-                if utils.sleep(0.1):
-                    xbmc.log("EMBY.emby.http: ---<[ Request paused, low priority shutdown ]", 0) # LOGDEBUG
-                    return noData(601, {}, Binary)
-
-                xbmc.log("EMBY.emby.http: ---<[ Request paused, low priority ]", 0) # LOGDEBUG
+    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, BusyFunction, ConnectionId):
+        CloseConnection = False
 
         # Set Ids
         if not ConnectionId:
-            if CloseConnection:
-                ConnectionId = str(uuid.uuid4())
-            elif self.RequestBusy["MAIN"].locked():
+            if self.RequestBusy["MAIN"].locked():
                 if self.RequestBusy["MAINFALLBACK"].locked():
                     ConnectionId = str(uuid.uuid4())
                     CloseConnection = True
                 else:
                     ConnectionId = "MAINFALLBACK"
-                    self.RequestBusy["MAINFALLBACK"].acquire()
+
+                    while not self.RequestBusy["MAINFALLBACK"].acquire(timeout=0.1):
+                        pass
             else:
                 ConnectionId = "MAIN"
-                self.RequestBusy["MAIN"].acquire()
-        else:
-            self.RequestBusy[ConnectionId].acquire()
+
+                while not self.RequestBusy["MAIN"].acquire(timeout=0.1):
+                    pass
+        else: # Use explicit connection (ping)
+            while not self.RequestBusy[ConnectionId].acquire(timeout=0.1):
+                pass
 
         RequestId = f"REQUEST{ConnectionId}"
         self.Response[RequestId] = False
@@ -777,14 +790,14 @@ class HTTP:
         if ConnectionId not in ("MAIN", "MAINFALLBACK"):
             self.Queues[f"QUEUEDREQUEST{ConnectionId}"] = queue.Queue()
             utils.start_thread(self.queued_request, (ConnectionId,))
-            self.RequestBusy[ConnectionId] = allocate_lock()
-            self.RequestBusy[RequestId] = allocate_lock()
+            self.RequestBusy[ConnectionId] = threading.Lock()
+            self.RequestBusy[RequestId] = threading.Lock()
 
         self.Queues[f"QUEUEDREQUEST{ConnectionId}"].put(((Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId),))
 
         # Check conditions while waiting for data -> BusyFunction
         while True:
-            self.RequestBusy[RequestId].acquire(blocking=True, timeout=0.5)
+            self.RequestBusy[RequestId].acquire(blocking=True, timeout=0.1)
             Data = self.Response[RequestId]
 
             # Data received, request finished
@@ -810,23 +823,23 @@ class HTTP:
         return ReturnData
 
     def queued_request(self, ConnectionId):
-        xbmc.log(f"EMBY.emby.http: THREAD: --->[ Queued request {ConnectionId}: {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: --->[ Queued request {ConnectionId}: {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
 
         while True:
             Incoming = self.Queues[f"QUEUEDREQUEST{ConnectionId}"].get() # EmbyId, ParentPath, Path, FilePath, FileSize, Name, KodiType, KodiPathIdBeforeDownload, KodiFileId, KodiId
 
             if Incoming == "QUIT":
-                xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Queued request {ConnectionId}: {self.EmbyServer.ServerData['ServerId']} ] shutdown 1", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Queued request {ConnectionId}: {self.EmbyServer.ServerData['ServerId']} ] shutdown 1", 1) # LOGDEBUG
 
                 if ConnectionId not in ("MAIN", "MAINFALLBACK"):
                     del self.Queues[f"QUEUEDREQUEST{ConnectionId}"]
                 else:
-                    self.ThreadsRunning[f"QUEUEDREQUEST{ConnectionId}"] = False
+                    self.disable_thread(f"QUEUEDREQUEST{ConnectionId}")
 
                 return
 
             Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId = Incoming
-            xbmc.log(f"EMBY.emby.http: [ http ] Method: {Method} / Handler: {Handler} / Params: {Params} / Binary: {Binary} / ConnectionString: {ConnectionString} / CloseConnection: {CloseConnection} / RequestHeader: {RequestHeader}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): [ http ] Method: {Method} / Handler: {Handler} / Params: {Params} / Binary: {Binary} / ConnectionString: {ConnectionString} / CloseConnection: {CloseConnection} / RequestHeader: {RequestHeader}", 1) # LOGDEBUG
             self.send_request(Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId)
 
     def send_request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId):
@@ -844,7 +857,7 @@ class HTTP:
             if utils.SystemShutdown:
                 self.socket_close(ConnectionId)
                 self.Response[RequestId] = noData(0, {}, Binary)
-                xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Request {self.EmbyServer.ServerData['ServerId']} ] shutdown 2", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Request {self.EmbyServer.ServerData['ServerId']} ] shutdown 2", 1) # LOGDEBUG
                 break
 
             # open socket
@@ -867,11 +880,11 @@ class HTTP:
 
             # Request data with different timeout settings
             if Handler == "System/Ping":
-                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 6, ConnectionId, "", 0, "")
+                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 6, ConnectionId, "", None, 0)
             elif "Subtitles" in Handler:
-                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 30, ConnectionId, "", 0, "")
+                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 30, ConnectionId, "", None, 0)
             else:
-                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 1200, ConnectionId, "", 0, "")
+                StatusCode, Header, Payload = self.socket_request(Method, Handler, Params, Binary, 12, 1200, ConnectionId, "", None, 0)
 
             # Redirects
             if StatusCode in (301, 302, 307, 308):
@@ -938,7 +951,7 @@ class HTTP:
                 break
 
             xbmc.log(f"EMBY.emby.http: [ Statuscode ] {StatusCode}", 3) # LOGERROR
-            xbmc.log(f"EMBY.emby.http: [ Statuscode ] {Payload}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): [ Statuscode ] {Payload}", 1) # LOGDEBUG
             self.Response[RequestId] = noData(StatusCode, {}, Binary)
             break
 
@@ -948,50 +961,56 @@ class HTTP:
         self.Requests_Counter(False)
 
     def websocket_listen(self):
-        xbmc.log(f"EMBY.emby.http: THREAD: --->[ Websocket {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: --->[ Websocket {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
         WarningDisplayed = False
 
         while self.ThreadsRunning["WEBSOCKET"] and self.Running:
-            xbmc.log("EMBY.emby.http: Websocket connecting", 1) # LOGINFO
+            if utils.DebugLog: xbmc.log("EMBY.emby.http: Websocket connecting", 1) # LOGINFO
 
             if self.socket_open(self.EmbyServer.ServerData['ServerUrl'], "WEBSOCKET", False):
                 if utils.sleep(10):
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Download {self.EmbyServer.ServerData['ServerId']} shutdown 1 ]", 0) # LOGDEBUG
-                    self.ThreadsRunning["WEBSOCKET"] = False
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 1 ]", 1) # LOGDEBUG
+                    self.disable_thread("WEBSOCKET")
                     return
 
                 continue
 
             uid = uuid.uuid4()
             EncodingKey = base64.b64encode(uid.bytes).strip().decode('utf-8')
+
+            if not self.ThreadsRunning["WEBSOCKET"] or not self.Running:
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 2 ]", 1) # LOGDEBUG
+                self.disable_thread("WEBSOCKET")
+                return
+
             self.Connection["WEBSOCKET"]["RequestHeader"].update({"Upgrade": "websocket", "Connection": "Upgrade", "Sec-WebSocket-Key": EncodingKey, "Sec-WebSocket-Version": "13"})
-            StatusCode, Header, _ = self.socket_request("GET", f"embywebsocket?api_key={self.EmbyServer.ServerData['AccessToken']}&deviceId={self.EmbyServer.ServerData['DeviceId']}", {}, True, 12, 30, "WEBSOCKET", "", 0, "")
+            StatusCode, Header, Payload = self.socket_request("GET", f"embywebsocket?api_key={self.EmbyServer.ServerData['AccessToken']}&deviceId={self.EmbyServer.ServerData['DeviceId']}", {}, True, 12, 30, "WEBSOCKET", "", None, 0)
 
             if StatusCode == 601: # quit
-                xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} quit ]", 0) # LOGDEBUG
-                self.ThreadsRunning["WEBSOCKET"] = False
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} quit ]", 1) # LOGDEBUG
+                self.disable_thread("WEBSOCKET")
                 return
 
             if StatusCode != 101:
                 self.socket_close("WEBSOCKET")
 
                 if utils.sleep(1):
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 2 ]", 0) # LOGDEBUG
-                    self.ThreadsRunning["WEBSOCKET"] = False
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 2 ]", 1) # LOGDEBUG
+                    self.disable_thread("WEBSOCKET")
                     return
 
             result = Header.get("sec-websocket-accept", "")
 
             if not result:
-                xbmc.log(f"EMBY.emby.http: Websocket {self.EmbyServer.ServerData['ServerId']} sec-websocket-accept not found: Header {Header}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Websocket {self.EmbyServer.ServerData['ServerId']} sec-websocket-accept not found: Header: {Header} / Payload: {Payload}", 1) # LOGDEBUG
 
                 if not WarningDisplayed:
                     utils.Dialog.notification(heading=utils.addon_name, icon="DefaultIconError.png", message=utils.Translate(33235), sound=True, time=utils.displayMessage)
                     WarningDisplayed = True
 
                 if utils.sleep(1):
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 3 ]", 0) # LOGDEBUG
-                    self.ThreadsRunning["WEBSOCKET"] = False
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 3 ]", 1) # LOGDEBUG
+                    self.disable_thread("WEBSOCKET")
                     return
 
                 continue
@@ -1001,11 +1020,11 @@ class HTTP:
             hashed = base64.b64encode(hashlib.sha1(value).digest()).strip().lower().decode('utf-8')
 
             if hashed != result.lower():
-                xbmc.log(f"EMBY.emby.http: Websocket {self.EmbyServer.ServerData['ServerId']} wrong hash", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Websocket {self.EmbyServer.ServerData['ServerId']} wrong hash", 1) # LOGDEBUG
 
                 if utils.sleep(1):
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 4 ]", 0) # LOGDEBUG
-                    self.ThreadsRunning["WEBSOCKET"] = False
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} shutdown 4 ]", 1) # LOGDEBUG
+                    self.disable_thread("WEBSOCKET")
                     return
 
                 continue
@@ -1045,7 +1064,7 @@ class HTTP:
                     fin = FrameHeader[0] >> 7 & 1
 
                     if not fin:
-                        xbmc.log("EMBY.emby.http: Websocket not fin", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Websocket not fin", 1) # LOGDEBUG
                         break
 
                     opcode = FrameHeader[0] & 0xf
@@ -1077,7 +1096,7 @@ class HTTP:
                         FrameLengthEndPos = Curser + FrameLength
 
                         if len(self.WebsocketBuffer) < FrameLengthEndPos: # Incomplete Frame
-                            xbmc.log("EMBY.emby.http: Websocket incomplete frame", 0) # LOGDEBUG
+                            if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Websocket incomplete frame", 1) # LOGDEBUG
                             break
 
                         payload = self.WebsocketBuffer[Curser:FrameLengthEndPos]
@@ -1090,14 +1109,14 @@ class HTTP:
                         if fin and payload:
                             self.Websocket.MessageQueue.put(payload)
                     elif opcode == 0x8: # Connection close
-                        xbmc.log("EMBY.emby.http: Websocket connection closed", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Websocket connection closed", 1) # LOGDEBUG
                         ConnectionClosed = True
                         break
                     elif opcode == 0x9: # Ping
                         if not self.websocket_send(payload, 0xa):  # Pong:
                             break
                     elif opcode == 0xa: # Pong
-                        xbmc.log("EMBY.emby.http: Websocket Pong received", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Websocket Pong received", 1) # LOGDEBUG
                     else:
                         xbmc.log(f"EMBY.hooks.websocket: Uncovered Opcode: {opcode} / Payload: {payload} / FrameHeader: {FrameHeader} / FrameLength: {FrameLength} / FrameMask: {FrameMask}", 3) # LOGERROR
 
@@ -1107,8 +1126,8 @@ class HTTP:
             if ConnectionClosed:
                 break
 
-        self.ThreadsRunning["WEBSOCKET"] = False
-        xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
+        self.disable_thread("WEBSOCKET")
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Websocket {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
 
     def websocket_send(self, payload, opcode):
         if opcode == 0x1:
@@ -1142,7 +1161,7 @@ class HTTP:
 
     # No return values are expected, usually also lower priority
     def async_commands(self):
-        xbmc.log("EMBY.emby.http: THREAD: --->[ Async {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: --->[ Async {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
 
         # Process commands
         while True:
@@ -1166,22 +1185,22 @@ class HTTP:
             for CommandRegular in CommandsRegular:
                 if self.async_commands_worker(CommandRegular, False): # Shutdown
                     self.socket_close("ASYNC")
-                    self.ThreadsRunning["ASYNC"] = False
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Async {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
+                    self.disable_thread("ASYNC")
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Async {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
                     return
 
     def async_commands_worker(self, Command, Priority):
         if Command[0] == "QUIT":
-            xbmc.log("EMBY.emby.http: THREAD: Exit by QUIT", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): THREAD: Exit by QUIT", 1) # LOGDEBUG
             return True
 
-        with self.RequestBusy["ASYNC"]:
+        with utils.SafeLock(self.RequestBusy["ASYNC"]):
             while True:
                 # Connect socket
                 if "ASYNC" not in self.Connection:
                     if self.socket_open(self.EmbyServer.ServerData['ServerUrl'], "ASYNC", False):
                         if utils.sleep(1):
-                            xbmc.log("EMBY.emby.http: THREAD: Exit by Kodi shutdown", 0) # LOGDEBUG
+                            if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): THREAD: Exit by Kodi shutdown", 1) # LOGDEBUG
                             return True
 
                         continue
@@ -1189,20 +1208,20 @@ class HTTP:
                 self.update_header("ASYNC")
 
                 if Priority:
-                    StatusCode, _, _ = self.socket_request(Command[0], Command[1], Command[2], True, 3, 3, "ASYNC", "", 0, "")
+                    StatusCode, _, _ = self.socket_request(Command[0], Command[1], Command[2], True, 3, 3, "ASYNC", "", None, 0)
                 else:
-                    StatusCode, _, _ = self.socket_request(Command[0], Command[1], Command[2], True, 1, 0.1, "ASYNC", "", 0, "")
+                    StatusCode, _, _ = self.socket_request(Command[0], Command[1], Command[2], True, 1, 0.1, "ASYNC", "", None, 0)
 
                 if StatusCode == 601: # quit
-                    xbmc.log("EMBY.emby.http: THREAD: Exit by 601", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): THREAD: Exit by 601", 1) # LOGDEBUG
                     return True
 
                 if StatusCode in (600, 605, 612, 698): # no data received, broken pipes, undefined error, Socket IO error -> Re-try
                     xbmc.log(f"EMBY.emby.http: Async retry {StatusCode}", 2) # LOGWARNING
                     self.socket_close("ASYNC")
 
-                    if not self.Running:
-                        xbmc.log("EMBY.emby.http: THREAD: Exit by not self.Running", 0) # LOGDEBUG
+                    if not self.Running or utils.SystemShutdown:
+                        if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): THREAD: Exit by not self.Running", 1) # LOGDEBUG
                         return True
 
                     continue
@@ -1211,20 +1230,19 @@ class HTTP:
                     if Priority:
                         xbmc.log(f"EMBY.emby.http: Async timeout {StatusCode}", 2) # LOGWARNING -> Emby server is sometimes not responsive, as no response is expected, skip it
 
-                    xbmc.log(f"EMBY.emby.http: Async timeout {StatusCode}", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Async timeout {StatusCode}", 1) # LOGDEBUG
 
                 return False
 
     # Ping server -> keep http sessions open (timer)
     def Ping(self):
-        xbmc.log(f"EMBY.emby.http: THREAD: --->[ Ping {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
-        self.ThreadsRunning["PING"] = True
+        if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: --->[ Ping {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
 
         while True:
             for Counter in range(4): # ping every 3 seconds
                 if not self.Running or utils.sleep(1):
-                    xbmc.log(f"EMBY.emby.http: THREAD: ---<[ Ping {self.EmbyServer.ServerData['ServerId']} ]", 0) # LOGDEBUG
-                    self.ThreadsRunning["PING"] = False
+                    if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): THREAD: ---<[ Ping {self.EmbyServer.ServerData['ServerId']} ]", 1) # LOGDEBUG
+                    self.disable_thread("PING")
                     return
 
                 # Websocket ping
@@ -1233,78 +1251,19 @@ class HTTP:
 
                 # Main connection ping
                 if Counter == 1 and not self.RequestBusy["MAIN"].locked():
-                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAIN", False, False)
+                    self.request("POST", "System/Ping", {}, {}, True, "", None, "MAIN")
 
                 # Mainfallback connection ping
                 if Counter == 2 and not self.RequestBusy["MAINFALLBACK"].locked():
-                    self.request("POST", "System/Ping", {}, {}, True, "", False, None, "MAINFALLBACK", False, False)
+                    self.request("POST", "System/Ping", {}, {}, True, "", None, "MAINFALLBACK")
 
                 # Async connection ping
                 if Counter == 3 and not self.RequestBusy["ASYNC"].locked():
                     self.Queues["ASYNC"].put((("POST", "System/Ping", {}, False),))
 
-    # Intros and Trailers
-    def verify_intros(self, Intro):
-        xbmc.log("EMBY.emby.http: THREAD: --->[ verify intros ]", 0) # LOGDEBUG
-        IntroPathLower = Intro['Path'].lower()
-
-        # Local Trailer
-        if IntroPathLower.find("http") == -1:
-            common.set_streams(Intro)
-            common.set_chapters(Intro, self.EmbyServer.ServerData['ServerId'])
-            common.set_path_filename(Intro, self.EmbyServer.ServerData['ServerId'], None, True)
-            self.Intros.append(Intro)
-            xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] valid local intro", 0) # LOGDEBUG
-            return True
-
-        # skip youtube trailers (not playbable with youtube plugin, make only trouble)
-        if IntroPathLower.find("youtube") != -1:
-            return False
-
-        status_code = self.EmbyServer.API.get_stream_statuscode(Intro['Id'], Intro['MediaSources'][0]['Id'])
-
-        if status_code == 200:
-            common.set_streams(Intro)
-            common.set_chapters(Intro, self.EmbyServer.ServerData['ServerId'])
-            common.set_path_filename(Intro, self.EmbyServer.ServerData['ServerId'], None, True)
-            self.Intros.append(Intro)
-            xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] valid http", 0) # LOGDEBUG
-            return True
-
-        xbmc.log(f"EMBY.emby.http: Invalid Trailer: {Intro['Path']} / {status_code}", 3) # LOGERROR
-        xbmc.log("EMBY.emby.http: THREAD: ---<[ verify intros ] invalid", 0) # LOGDEBUG
-        return False
-
-    def load_Trailers(self, EmbyId):
-        ReceivedIntros = []
-        self.Intros = []
-
-        if utils.localTrailers:
-            LocalTrailers = self.EmbyServer.API.get_local_trailers(EmbyId)
-
-            for LocalTrailer in LocalTrailers:
-                ReceivedIntros.append(LocalTrailer)
-
-        if utils.Trailers:
-            Intros = self.EmbyServer.API.get_intros(EmbyId)
-
-            if 'Items' in Intros:
-                for Intro in Intros['Items']:
-                    ReceivedIntros.append(Intro)
-
-        if ReceivedIntros:
-            Index = 0
-
-            for Index, Intro in enumerate(ReceivedIntros):
-                if self.verify_intros(Intro):
-                    break
-
-            for Intro in ReceivedIntros[Index + 1:]:
-                utils.start_thread(self.verify_intros, (Intro,))
-
-    def getPayloadByFrames(self, PayloadTotal, PayloadTotalLength, PayloadRecv, ConnectionId, TimeoutRecv, PayloadFrameLenght, DownloadName, OutFile, ProgressBar, ProgressBarTotal):
+    def getPayloadByFrames(self, PayloadTotal, PayloadTotalLength, PayloadRecv, ConnectionId, TimeoutRecv, PayloadFrameLenght, DownloadName, OutFile, ProgressBarTotal):
         PayloadFrameTotalLenght = PayloadFrameLenght + PayloadTotalLength
-        PayloadTotalLength, PayloadTotal = processData(PayloadTotal, PayloadTotalLength, PayloadRecv, OutFile, ProgressBar, ProgressBarTotal, DownloadName)
+        PayloadTotalLength, PayloadTotal = self.processData(PayloadTotal, PayloadTotalLength, PayloadRecv, OutFile, DownloadName, ProgressBarTotal)
 
         while PayloadTotalLength < PayloadFrameTotalLenght:
             StatusCodeSocket, PayloadRecv = self.socket_io("", ConnectionId, TimeoutRecv)
@@ -1312,16 +1271,16 @@ class HTTP:
             if StatusCodeSocket:
                 return None, None, StatusCodeSocket
 
-            PayloadTotalLength, PayloadTotal = processData(PayloadTotal, PayloadTotalLength, PayloadRecv, OutFile, ProgressBar, ProgressBarTotal, DownloadName)
+            PayloadTotalLength, PayloadTotal = self.processData(PayloadTotal, PayloadTotalLength, PayloadRecv, OutFile, DownloadName, ProgressBarTotal)
 
         return PayloadTotal, PayloadTotalLength, 0
 
-    def getPayloadByChunks(self, PayloadTotal, PayloadTotalLength, PayloadRecv, ConnectionId, TimeoutRecv, DownloadName, OutFile, ProgressBar, ProgressBarTotal):
+    def getPayloadByChunks(self, PayloadTotal, PayloadTotalLength, PayloadRecv, ConnectionId, TimeoutRecv, DownloadName, OutFile, ProgressBarTotal):
         PayloadChunkBuffer = PayloadRecv
 
         while True:
             if not PayloadChunkBuffer.endswith(b"0\r\n\r\n"):
-                xbmc.log("EMBY.emby.http: Chunks: Load additional data", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Chunks: Load additional data", 1) # LOGDEBUG
                 StatusCodeSocket, PayloadRecv = self.socket_io("", ConnectionId, TimeoutRecv)
 
                 if StatusCodeSocket:
@@ -1333,33 +1292,40 @@ class HTTP:
             ChunkDataLen = int(ChunkedData[0], 16)
 
             if not ChunkDataLen:
-                xbmc.log("EMBY.emby.http: Chunks: Data complete", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Chunks: Data complete", 1) # LOGDEBUG
                 return PayloadTotal, PayloadTotalLength, 0
 
             if len(ChunkedData[1]) - 2 < ChunkDataLen:
-                xbmc.log("EMBY.emby.http: Chunks: Insufficient data", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log("EMBY.emby.http (DEBUG): Chunks: Insufficient data", 1) # LOGDEBUG
                 continue
 
-            PayloadTotalLength, PayloadTotal = processData(PayloadTotal, PayloadTotalLength, ChunkedData[1][:ChunkDataLen], OutFile, ProgressBar, ProgressBarTotal, DownloadName)
+            PayloadTotalLength, PayloadTotal = self.processData(PayloadTotal, PayloadTotalLength, ChunkedData[1][:ChunkDataLen], OutFile, DownloadName, ProgressBarTotal)
             ChunkPosition = ChunkDataLen + len(ChunkedData[0]) + 4
             PayloadChunkBuffer = PayloadChunkBuffer[ChunkPosition:]
 
-def processData(PayloadTotal, PayloadTotalLength, Data, OutFile, ProgressBar, ProgressBarTotal, DownloadName):
-    PayloadTotalLength += len(Data)
+    def closeDownload(self, OutFile):
+        if OutFile:
+            OutFile.close()
 
-    if OutFile:
-        OutFile.write(Data)
-        ProgressBar.update(int(PayloadTotalLength / ProgressBarTotal), "Download", DownloadName)
-    else:
-        PayloadTotal += (Data,)
+            if self.Queues['DOWNLOAD'].isEmpty():
+                utils.close_ProgressBar(self.DownloadId)
 
-    return PayloadTotalLength, PayloadTotal
+    def disable_thread(self, Id):
+        self.ThreadsRunning[Id] = False
 
-def closeDownload(OutFile, ProgressBar):
-    if OutFile:
-        OutFile.close()
-        ProgressBar.close()
-        del ProgressBar
+        with utils.SafeLock(self.ThreadsRunningCondition):
+            self.ThreadsRunningCondition.notify_all()
+
+    def processData(self, PayloadTotal, PayloadTotalLength, Data, OutFile, DownloadName, ProgressBarTotal):
+        PayloadTotalLength += len(Data)
+
+        if OutFile:
+            OutFile.write(Data)
+            utils.update_ProgressBar(self.DownloadId, PayloadTotalLength / ProgressBarTotal, utils.Translate(33760), DownloadName)
+        else:
+            PayloadTotal += (Data,)
+
+        return PayloadTotalLength, PayloadTotal
 
 # Return empty data
 def noData(StatusCode, Header, Binary):
@@ -1369,10 +1335,10 @@ def noData(StatusCode, Header, Binary):
     return (StatusCode, Header, {})
 
 def maskData(mask_key, data):
-    _m = array.array("B", mask_key)
-    _d = array.array("B", data)
+    if not data:
+        return b""
 
-    for i in range(len(_d)):
-        _d[i] ^= _m[i % 4]  # i xor
-
-    return _d.tobytes()
+    full_mask = mask_key * ((len(data) // len(mask_key)) + 1)
+    data_int = int.from_bytes(data, 'big')
+    mask_int = int.from_bytes(full_mask[:len(data)], 'big')
+    return (data_int ^ mask_int).to_bytes(len(data), 'big')

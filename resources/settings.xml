@@ -46,12 +46,6 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
-                <setting id="ThemesEnabled" type="boolean" help="">
-                    <level>0</level>
-                    <visible>false</visible>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
                 <setting label="" id="MinimumSetup" type="string" help="">
                     <level>0</level>
                     <visible>false</visible>
@@ -209,7 +203,12 @@
                 </setting>
             </group>
             <group id="2" label="33766" help="33767">
-                <setting label="33794" id="PauseSyncDuringPlayback" type="boolean" help="33767">
+                <setting label="33843" id="PauseSyncDuringPlayback" type="boolean" help="33767">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33794" id="PauseSyncDuringPlaybackStateChange" type="boolean" help="33767">
                     <level>2</level>
                     <default>true</default>
                     <control type="toggle"/>
@@ -612,57 +611,6 @@
             </group>
         </category>
         <category id="playback" label="30516" help="">
-            <group id="2" label="33298">
-                <setting label="33262" id="enableCinemaMovies" type="boolean" help="">
-                    <level>2</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>
-                <setting label="33263" id="enableCinemaEpisodes" type="boolean" help="">
-                    <level>2</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                </setting>    
-                <setting label="30519" id="askCinema" type="boolean" help="33314">
-                    <level>2</level>
-                    <default>false</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <or>
-                                <condition operator="is" setting="enableCinemaMovies">true</condition>
-                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
-                            </or>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting label="33241" id="localTrailers" type="boolean" help="33314">
-                    <level>2</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <or>
-                                <condition operator="is" setting="enableCinemaMovies">true</condition>
-                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
-                            </or>
-                        </dependency>
-                    </dependencies>
-                </setting>
-                <setting label="33242" id="Trailers" type="boolean" help="33314">
-                    <level>2</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="enable">
-                            <or>
-                                <condition operator="is" setting="enableCinemaMovies">true</condition>
-                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
-                            </or>
-                        </dependency>
-                    </dependencies>
-                </setting>
-            </group>
             <group id="3" label="33419">
                 <setting label="33417" id="enableSkipIntro" type="boolean" help="">
                     <level>2</level>
@@ -1538,6 +1486,329 @@
                 </setting>
             </group>
         </category>
+        <category id="Themes" label="33804" help="">
+            <group id="1" label="33804">
+                <setting label="33805" id="theme_enable_audio" type="boolean" help="">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33806" id="theme_enable_video" type="boolean" help="">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="theme_priority" type="string" label="33816" help="33817">
+                    <level>2</level>
+                    <default>audio</default>
+                    <constraints>
+                        <options>
+                            <option label="33581">audio</option>
+                            <option label="33587">video</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                     <dependencies>
+                        <dependency type="enable">
+                            <and>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </and>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="2" label="33836">
+                <setting id="theme_ThemeBySkipIntro" type="string" label="33834" help="">
+                    <level>2</level>
+                    <default>off</default>
+                    <constraints>
+                        <options>
+                            <option label="33833">off</option>
+                            <option label="33581">audio</option>
+                            <option label="33587">video</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                     <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="theme_ThemeByContent" type="string" label="33835" help="">
+                    <level>2</level>
+                    <default>off</default>
+                    <constraints>
+                        <options>
+                            <option label="33833">off</option>
+                            <option label="33581">audio</option>
+                            <option label="33587">video</option>
+                        </options>
+                    </constraints>
+                    <control type="spinner" format="string"/>
+                     <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="theme_ThemeByContentDuration" type="integer" label="33831" help="">
+                    <level>3</level>
+                    <default>30</default>
+                    <constraints>
+                        <minimum>10</minimum>
+                        <step>1</step>
+                        <maximum>60</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_ThemeByContent">audio</condition>
+                                <condition operator="is" setting="theme_ThemeByContent">video</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="3" label="33410">
+                <setting label="33810" id="theme_enable_homescreen" type="boolean" help="33811">
+                    <level>3</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33840" id="theme_enable_viewseries" type="boolean" help="">
+                    <level>3</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33839" id="theme_enable_viewseason" type="boolean" help="">
+                    <level>3</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33838" id="theme_enable_viewepisode" type="boolean" help="">
+                    <level>3</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33841" id="theme_enable_viewmovie" type="boolean" help="">
+                    <level>3</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="4" label="33842">
+                <setting id="theme_fade_in" type="integer" label="33807" help="33809">
+                    <level>3</level>
+                    <default>1</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>10</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="theme_fade_out" type="integer" label="33808" help="33809">
+                    <level>3</level>
+                    <default>1</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>10</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="theme_delay" type="integer" label="33812" help="33813">
+                    <level>3</level>
+                    <default>1</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>10</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+            <group id="5" label="33410">
+                <setting id="theme_download" label="33814" type="action" help="33815">
+                    <data>NotifyAll(plugin.service.emby-next-gen,themedownload)</data>
+                    <level>3</level>
+                    <control type="button" format="action"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="theme_enable_audio">true</condition>
+                                <condition operator="is" setting="theme_enable_video">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
+        <category id="cinema" label="33820" help="">
+            <group id="1" label="33298">
+                <setting label="33262" id="enableCinemaMovies" type="boolean" help="">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting label="33263" id="enableCinemaEpisodes" type="boolean" help="">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>    
+                <setting label="30519" id="askCinema" type="boolean" help="33314">
+                    <level>2</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="enableCinemaMovies">true</condition>
+                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33822" id="trailer_local" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="enableCinemaMovies">true</condition>
+                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting label="33821" id="trailer_local_folder" type="boolean" help="">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="enableCinemaMovies">true</condition>
+                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+                <setting id="trailer_trailer_selection" label="33819" type="action" help="33815">
+                    <data>NotifyAll(plugin.service.emby-next-gen,remotetrailersselection)</data>
+                    <level>2</level>
+                    <control type="button" format="action"/>
+                </setting>
+                <setting label="" id="trailer_remote_options" type="string" help="">
+                    <level>0</level>
+                    <default>{}</default>
+                    <control type="edit" format="string"/>
+                    <visible>false</visible>
+                </setting>
+                <setting id="trailer_playback" type="integer" label="33824" help="">
+                    <level>2</level>
+                    <default>2</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>10</maximum>
+                    </constraints>
+                    <control type="slider" format="integer">
+                        <popup>false</popup>
+                    </control>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="enableCinemaMovies">true</condition>
+                                <condition operator="is" setting="enableCinemaEpisodes">true</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
         <category id="Interface" label="30235" help="">
             <group id="2" label="33531">
                 <setting label="33116" id="compressArt" type="boolean" help="33322">
@@ -1982,6 +2253,11 @@
         </category>
         <category id="Advanced" label="30022" help="">
             <group id="1" label="30022">
+                <setting label="33826" id="DebugLog" type="boolean">
+                    <level>3</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting label="30504" id="deviceNameOpt" type="boolean" help="33318">
                     <level>3</level>
                     <default>false</default>

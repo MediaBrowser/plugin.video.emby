@@ -6,7 +6,6 @@ from helper import utils, artworkcache
 EmbyTypeMappingShort = {"Movie": "m", "Episode": "e", "MusicVideo": "M", "Audio": "a", "Video": "v", "TvChannel": "t", "Trailer": "T"}
 EmbyArtworkIdShort = {"Primary": "p", "Art": "a", "Banner": "b", "Disc": "d", "Logo": "l", "Thumb": "t", "Backdrop": "B", "Chapter": "c", "SeriesPrimary": "p", "AlbumPrimary": "p", "ParentBackdrop": "B", "ParentThumb": "t", "ParentLogo": "l", "ParentBanner": "b", "AlbumArtists": "p", "ArtistItems": "p"}
 MarkerTypeMapping = {"IntroStart": "Intro Start", "IntroEnd": "Intro End", "CreditsStart": "Credits"}
-MappingIds = {'Playlist': "999999988", 'Season': "999999989", 'Series': "999999990", 'MusicAlbum': "999999991", 'MusicGenre': "999999992", "Studio": "999999994", "Tag": "999999993", "Genre": "999999995", "MusicArtist": "999999996"}
 ImageTagsMappings = {
     "Series": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ("Thumb", 'landscape'), ("Backdrop", 'fanart'), ('Primary', 'thumb'), ("Backdrop", 'landscape'), ("Primary", 'landscape')),
     "Season": (('Primary', 'poster'), ("Art", 'clearart'), ("Banner", 'banner'), ("Disc", 'discart'), ("Logo", 'clearlogo'), ("Thumb", 'thumb'), ('SeriesPrimary', 'poster'), ("ParentThumb", 'thumb'), ("Primary", 'thumb'), ("ParentLogo", 'clearlogo'), ("ParentBackdrop", 'fanart')),
@@ -37,19 +36,17 @@ def load_ExistingItem(Item, EmbyServer, EmbyDB, EmbyType):
         xbmc.log(f"EMBY.core.common: Id not found: {Item}", 3) # LOGERROR
         return False
 
-    LibraryIdExtracted = get_LibraryId_Playlists(Item['LibraryId'])
-
-    if LibraryIdExtracted not in EmbyServer.library.LibrarySyncedNames:
-        xbmc.log(f"EMBY.core.common: Library not synced: {LibraryIdExtracted}", 3) # LOGERROR
+    if Item['LibraryId'] not in EmbyServer.library.LibrarySyncedNames:
+        xbmc.log(f"EMBY.core.common: Library not synced: {Item['LibraryId']}", 3) # LOGERROR
         return False
 
     ExistingItem = EmbyDB.get_item_by_id(Item['Id'], EmbyType)
     ForceNew = False
 
     if ExistingItem and EmbyType in ("Movie", "Video", "MusicVideo", "Episode"):
-        if not ExistingItem[1]: # no KodiItemId assined but Item exists (this means it's a multi version content item (grouped))
+        if not ExistingItem[1] and not ExistingItem[3]: # no KodiItemId and no KodiFileId assigned but Item exists (this means it's a multi version content item (grouped))
             if len(Item['MediaSources']) == 1: # multi version content item (grouped) was released
-                EmbyDB.remove_item(Item['Id'], EmbyType, Item['LibraryId'], False)
+                EmbyDB.remove_item(Item['Id'], EmbyType, Item['LibraryId'])
                 xbmc.log(f"EMBY.core.common: load_ExistingItem, release grouped content: {Item['Name']}", 1) # LOGINFO
                 ForceNew = True
             else:
@@ -96,7 +93,7 @@ def load_ExistingItem(Item, EmbyServer, EmbyDB, EmbyType):
 
         return True
 
-    LibrarySyncedName = EmbyServer.library.LibrarySyncedNames[LibraryIdExtracted]
+    LibrarySyncedName = EmbyServer.library.LibrarySyncedNames[Item['LibraryId']]
 
     if EmbyType == "Movie":
         if not ForceNew and ExistingItem:
@@ -116,9 +113,9 @@ def load_ExistingItem(Item, EmbyServer, EmbyDB, EmbyType):
 
     if EmbyType == "Video":
         if not ForceNew and ExistingItem:
-            Item.update({"LibraryName": LibrarySyncedName, 'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "KodiFileId": ExistingItem[3], "EmbyPresentationKey": ExistingItem[4], "EmbyFolder": ExistingItem[5], "KodiPathId": ExistingItem[6], "isSpecial": ExistingItem[7]})
+            Item.update({"LibraryName": LibrarySyncedName, 'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "KodiFileId": ExistingItem[3], "EmbyPresentationKey": ExistingItem[4], "EmbyFolder": ExistingItem[5], "KodiPathId": ExistingItem[6], "ExtraType": ExistingItem[8]})
         else:
-            Item.update({"LibraryName": LibrarySyncedName, 'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyPresentationKey": None, "EmbyFolder": None, "KodiFileId": None, "KodiPathId": None, "isSpecial": False})
+            Item.update({"LibraryName": LibrarySyncedName, 'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyPresentationKey": None, "EmbyFolder": None, "KodiFileId": None, "KodiPathId": None, "ExtraType": Item.get('ExtraType', None)})
 
         return True
 
@@ -148,9 +145,9 @@ def load_ExistingItem(Item, EmbyServer, EmbyDB, EmbyType):
 
     if EmbyType == "Audio":
         if ExistingItem:
-            Item.update({'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "EmbyFolder": ExistingItem[3], "KodiPathId": ExistingItem[4], "LibraryIds": ExistingItem[5]})
+            Item.update({'KodiItemId': ExistingItem[1], 'UpdateItem': True, "EmbyFavourite": ExistingItem[2], "EmbyFolder": ExistingItem[3], "KodiPathId": ExistingItem[4], "LibraryIds": ExistingItem[5], "ExtraType": ExistingItem[6]})
         else:
-            Item.update({'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyFolder": None, "KodiPathId": None, "LibraryIds": ""})
+            Item.update({'KodiItemId': "", 'UpdateItem': False, "EmbyFavourite": None, "EmbyFolder": None, "KodiPathId": None, "LibraryIds": "", "ExtraType": Item.get('ExtraType', None)})
 
         return True
 
@@ -184,28 +181,34 @@ def get_Bitrate_Codec(Item, StreamType, MediaSource):
 
 def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
     Item['KodiFullPath'] = ""
+
+    if "Id" not in Item:
+        return
+
     isHttpByEmby = False
 
     if Item.get('NoLink'):
         return
 
-    if isDynamic:
-        Dynamic = "dynamic/"
-        Item['LibraryId'] = "0"
-    else:
-        Dynamic = ""
-
     if Item['Type'] in ('Photo', 'PhotoAlbum'):
         if 'Primary' in Item['ImageTags']:
             if 'Path' in Item:
-                Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-{Item['ImageTags']['Primary']}--{quote(utils.get_Filename(Item['Path'], ''))}|redirect-limit=1000"
+                Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-{Item['ImageTags']['Primary']}--{quote(utils.get_Filename(Item['Path'], ''))}"
                 return
 
-            Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-{Item['ImageTags']['Primary']}|redirect-limit=1000"
+            Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-{Item['ImageTags']['Primary']}"
             return
 
-        Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-0|redirect-limit=1000"
+        Item['KodiFullPath'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-0"
         return
+
+    if isDynamic:
+        Dynamic = "dynamic/"
+
+        if 'LibraryId' not in Item or not Item['LibraryId']:
+            Item['LibraryId'] = "0"
+    else:
+        Dynamic = ""
 
     NativeMode = utils.useDirectPaths
     Item['KodiStackedFilename'] = None
@@ -242,6 +245,13 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
         Item['KodiPath'] = Item['KodiPath'].replace("\\\\", "\\")
 
     KodiPathLower = Item['KodiPath'].lower()
+
+    if (KodiPathLower.startswith("http://") or KodiPathLower.startswith("https://")) and KodiPathLower.find("youtube") != -1 and KodiPathLower.find("plugin.video.youtube") == -1:
+        Item['KodiPath'] = f"plugin://plugin.video.youtube/play/?video_id={Item['KodiPath'].rsplit('=', 1)[1]}"
+        Item['KodiFilename'] = Item['KodiPath']
+        Item['KodiFullPath'] = Item['KodiPath']
+        return
+
     Container = Item.get('Container', "")
 
     if Container == 'dvd':
@@ -362,19 +372,19 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
     Item['KodiFullPath'] = f"{Item['KodiPath']}{Item['KodiFilename']}"
 
     if (Item['KodiPath'].startswith("http://127.0.0.1:57342/") or Item['KodiPath'].startswith("dav://127.0.0.1:57342/")) and Item['Type'] != "Audio":
-        Item['KodiFullPath'] += "|redirect-limit=1000"
-        Item['KodiPath'] += "|redirect-limit=1000"
+        Item['KodiFullPath'] += "|redirect-limit=1000&failonerror=false"
+        Item['KodiPath'] += "|redirect-limit=1000&failonerror=false"
 
         if 'KodiPathParent' in Item:
-            Item['KodiPathParent'] += "|redirect-limit=1000"
+            Item['KodiPathParent'] += "|redirect-limit=1000&failonerror=false"
 
     if isHttpByEmby and utils.followhttp:
         Item['KodiPath'] = Item['KodiPath'].replace("/emby_addon_mode/", "http://127.0.0.1:57342/").replace("dav://127.0.0.1:57342/", "http://127.0.0.1:57342/")
-        Item['KodiFullPath'] += "|redirect-limit=1000|connection-timeout={utils.followhttptimeout}"
-        Item['KodiPath'] += f"|connection-timeout={utils.followhttptimeout}"
+        Item['KodiFullPath'] += f"|redirect-limit=1000&failonerror=false&connection-timeout={utils.followhttptimeout}"
+        Item['KodiPath'] += f"|redirect-limit=1000&failonerror=false&connection-timeout={utils.followhttptimeout}"
 
         if 'KodiPathParent' in Item:
-            Item['KodiPathParent'] += "|redirect-limit=1000|connection-timeout={utils.followhttptimeout}"
+            Item['KodiPathParent'] += f"|redirect-limit=1000&failonerror=false&connection-timeout={utils.followhttptimeout}"
 
 # Detect Multipart videos
 def set_multipart(Item, EmbyServer):
@@ -420,12 +430,12 @@ def set_multipart(Item, EmbyServer):
 
 def set_streams(Item):
     if 'MediaSources' not in Item or not Item['MediaSources']:
-        xbmc.log(f"EMBY.core.common: set_streams -> Mediasources not found: {Item['Name']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): set_streams -> Mediasources not found: {Item['Name']}", 1) # LOGDEBUG
         return
 
     # Sort mediasources -> core infos must reference first mediasource
     if Item['MediaSources'][0]['Type'] != "Default":
-        xbmc.log(f"EMBY.core.common: Sort -> First Mediasource is not default: {Item['Name']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Sort -> First Mediasource is not default: {Item['Name']}", 1) # LOGDEBUG
         MediaSourcesLen = len(Item['MediaSources'])
         MediaSourcesSort = MediaSourcesLen * [None]
         Index = 1
@@ -453,8 +463,9 @@ def set_streams(Item):
             MediaSource['KodiRunTimeTicks'] = round(float(RunTimeTicks / 10000000.0), 6)
         else:
             MediaSource['KodiRunTimeTicks'] = None
-            xbmc.log(f"EMBY.core.common: No Runtime found: {MediaSource.get('Id', '-1')}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): No Runtime found: {MediaSource.get('Id', '-1')}", 1) # LOGDEBUG
 
+        Video3DFormat = MediaSource.get('Video3DFormat', None)
         MediaSource['KodiStreams'] = {'Subtitle': [], 'Audio': [], 'Video': []}
 
         for Stream in MediaSource['MediaStreams']:
@@ -475,15 +486,37 @@ def set_streams(Item):
                     Codec = "dtshd_hra"
 
             if Stream['Type'] == "Audio" or Stream['Type'] == "Default":
-                MediaSource['KodiStreams']['Audio'].append({'SampleRate': Stream.get('SampleRate', None), 'BitRate': Stream.get('BitRate', None), 'codec': Codec, 'channels': Stream.get('Channels', None), 'language': Stream.get('Language', None), 'Index': Stream.get('Index', "0"), 'DisplayTitle': Stream.get('DisplayTitle', "unknown").replace(chr(1), "").replace(chr(0), "")})
+                MediaSource['KodiStreams']['Audio'].append({'SampleRate': Stream.get('SampleRate', None), 'BitRate': Stream.get('BitRate', None), 'codec': Codec, 'channels': Stream.get('Channels', None), 'language': Stream.get('Language', ""), 'Index': Stream.get('Index', "0"), 'DisplayTitle': Stream.get('DisplayTitle', "unknown").replace(chr(1), "").replace(chr(0), "")})
             elif Stream['Type'] == "Video":
-                StreamData = {'language': Stream.get('Language', None),'hdrtype': None, 'codec': Codec, 'height': Stream.get('Height', None), 'width': Stream.get('Width', None), '3d': Stream.get('Video3DFormat', None), 'BitRate': Stream.get('BitRate', None), 'Index': Stream.get('Index', "0"), 'aspect': None}
+                StreamData = {'language': Stream.get('Language', ""),'hdrtype': None, 'hdrdetail': "", 'codec': Codec, 'height': Stream.get('Height', None), 'width': Stream.get('Width', None), 'BitRate': Stream.get('BitRate', None), 'Index': Stream.get('Index', "0"), 'aspect': None, 'stereomode': ""}
                 VideoRange = Stream.get('VideoRange', "").lower()
 
                 if VideoRange == "hdr 10":
                     StreamData['hdrtype'] = "hdr10"
-                elif VideoRange in ("hlg", "dolbyvision"):
-                    StreamData['hdrtype'] = VideoRange
+                elif VideoRange == "hlg":
+                    StreamData['hdrtype'] = "hlg"
+                elif VideoRange == "dolbyvision":
+                    StreamData['hdrtype'] = "dolbyvision"
+                    ExtendedVideoSubType = Stream.get('ExtendedVideoSubType', '')
+
+                    if ExtendedVideoSubType and ExtendedVideoSubType != 'None':
+                        if ExtendedVideoSubType == 'DoviProfile50':
+                            StreamData['hdrdetail'] = "5"
+                        elif ExtendedVideoSubType == 'DoviProfile76':
+                            StreamData['hdrdetail'] = "7"
+                        elif ExtendedVideoSubType == 'DoviProfile81':
+                            StreamData['hdrdetail'] = "8.1"
+                        elif ExtendedVideoSubType == 'DoviProfile84':
+                            StreamData['hdrdetail'] = "8.4"
+                        elif ExtendedVideoSubType == 'DoviProfile92':
+                            StreamData['hdrdetail'] = "9.2"
+                        elif ExtendedVideoSubType == 'DoviProfile10':
+                            StreamData['hdrdetail'] = "10"
+
+                if Video3DFormat in ('HalfSideBySide', 'FullSideBySide'):
+                    StreamData['stereomode'] = "left_right"
+                elif Video3DFormat in ('HalfTopAndBottom', 'FullTopAndBottom'):
+                    StreamData['stereomode'] = "top_bottom"
 
                 if "AspectRatio" in Stream:
                     AspectRatio = Stream['AspectRatio'].split(':')
@@ -528,7 +561,7 @@ def set_RunTimeTicks(Item):
         Item['RunTimeTicks'] = RunTimeTicks
     else:
         Item['KodiRunTimeTicks'] = None
-        xbmc.log(f"EMBY.core.common: No Runtime found: {Item.get('Id', '-1')}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): No Runtime found: {Item.get('Id', '-1')}", 1) # LOGDEBUG
 
 def set_overview(Item):
     if 'Overview' in Item:
@@ -565,33 +598,34 @@ def set_mpaa(Item):
     else:
         Item['OfficialRating'] = None
 
-def set_trailer(Item, EmbyServer):
+def set_RemoteTrailerURL(URL):
+    if URL.lower().find("youtube") != -1:
+        try:
+            return f"plugin://plugin.video.youtube/play/?video_id={URL.rsplit('=', 1)[1]}"
+        except Exception as Error:
+            xbmc.log(f"EMBY.core.common: Trailer not valid: {URL} / {Error}", 3) # LOGERROR
+            return False
+
+    return URL
+
+def set_RemoteTrailer(Item, TrailerObject, IncrementalSync):
     Item['Trailer'] = None
 
-    if 'LocalTrailerCount' in Item and Item['LocalTrailerCount']:
-        for IntroLocal in EmbyServer.API.get_local_trailers(Item['Id']):
-            set_streams(IntroLocal)
-            set_chapters(IntroLocal, EmbyServer.ServerData['ServerId'])
-            set_path_filename(IntroLocal, EmbyServer.ServerData['ServerId'], {}, True)
-            Item['Trailer'] = IntroLocal['KodiFullPath']
-            return
-
     if 'RemoteTrailers' in Item and Item['RemoteTrailers']:
-        if 'Url' in Item['RemoteTrailers'][0]:
-            if Item['RemoteTrailers'][0]['Url'].lower().find("youtube") != -1:
-                try:
-                    Item['Trailer'] = f"plugin://plugin.video.youtube/play/?video_id={Item['RemoteTrailers'][0]['Url'].rsplit('=', 1)[1]}"
-                except Exception as Error:
-                    xbmc.log(f"EMBY.core.common: Trailer not valid: {Item['Name']} / {Error}", 3) # LOGERROR
-            else:
-                Item['Trailer'] = Item['RemoteTrailers'][0]['Url']
+        for RemoteTrailer in Item['RemoteTrailers']:
+            if 'Url' in Item['RemoteTrailers'][0]:
+                if not Item['Trailer']:
+                    Item['Trailer'] = set_RemoteTrailerURL(Item['RemoteTrailers'][0]['Url'])
+
+                RemoteTrailer.update({'Id': f"{utils.MappingIds['Trailer']}{Item['Id']}", 'PresentationUniqueKey': None, 'LibraryId': Item['LibraryId'], 'ParentId': Item['Id'], 'ParentType': "Movie", 'Path': RemoteTrailer['Url'], 'KodiParentId': Item['KodiItemId'], 'Type': "Trailer"})
+                TrailerObject.change(RemoteTrailer, IncrementalSync)
 
 def set_PlayCount(UserData):
-    PlayCount = UserData.get('PlayCount', None)
+    PlayCount = UserData.get('PlayCount', 0)
 
     if 'Played' in UserData:
         if not UserData['Played']:
-            KodiPlayCount = None
+            KodiPlayCount = 0
         else:
             if PlayCount:
                 KodiPlayCount = PlayCount
@@ -601,11 +635,14 @@ def set_PlayCount(UserData):
         KodiPlayCount = PlayCount
 
         if not KodiPlayCount: # could be "0" then substitute with "None"
-            KodiPlayCount = None
+            KodiPlayCount = 0
 
     return KodiPlayCount
 
 def set_playstate(Item):
+    if 'KodiLastPlayedDate' in Item and 'KodiPlaybackPositionTicks' in Item and 'KodiPlayCount' in Item:
+        return
+
     if 'UserData' in Item:
         UserData = Item['UserData']
     elif 'CurrentProgram' in Item and 'UserData' in Item['CurrentProgram']:
@@ -616,7 +653,7 @@ def set_playstate(Item):
     Item['KodiPlayCount'] = set_PlayCount(UserData)
 
     if 'LastPlayedDate' in UserData and UserData['LastPlayedDate']:
-        Item['KodiLastPlayedDate'] = utils.convert_to_local(UserData['LastPlayedDate'])
+        Item['KodiLastPlayedDate'] = utils.convert_to_local(UserData['LastPlayedDate'], False, False)
     else:
         Item['KodiLastPlayedDate'] = None
 
@@ -630,7 +667,7 @@ def set_playstate(Item):
 
 def set_DateCreated(Item):
     if 'DateCreated' in Item:
-        Item['KodiDateCreated'] = utils.convert_to_local(Item['DateCreated'])
+        Item['KodiDateCreated'] = utils.convert_to_local(Item['DateCreated'], False, False)
     else:
         Item['KodiDateCreated'] = None
 
@@ -705,7 +742,7 @@ def set_common(Item, ServerId, DynamicNode, IncrementalSync):
                         Item['Cast'].append(People['Name'])
 
                     if 'PrimaryImageTag' in People:
-                        People['imageurl'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{People['Id']}-0-p-{People['PrimaryImageTag']}|redirect-limit=1000"
+                        People['imageurl'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{People['Id']}-0-p-{People['PrimaryImageTag']}"
                     else:
                         People['imageurl'] = ""
                 else:
@@ -719,7 +756,7 @@ def set_common(Item, ServerId, DynamicNode, IncrementalSync):
         if "ArtistItems" in Item:
             for ArtistItem in Item['ArtistItems']:
                 if 'PrimaryImageTag' in ArtistItem:
-                    ArtistItem['imageurl'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{ArtistItem['Id']}-0-p-{ArtistItem['PrimaryImageTag']}|redirect-limit=1000"
+                    ArtistItem['imageurl'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{ArtistItem['Id']}-0-p-{ArtistItem['PrimaryImageTag']}"
                 else:
                     ArtistItem['imageurl'] = ""
     elif IncrementalSync and utils.ArtworkCacheIncremental:
@@ -727,23 +764,20 @@ def set_common(Item, ServerId, DynamicNode, IncrementalSync):
 
 def set_Dates(Item):
     if 'ProductionYear' in Item:
-        Item['KodiProductionYear'] = utils.convert_to_local(Item['ProductionYear'], True)
+        Item['KodiProductionYear'] = utils.convert_to_local(Item['ProductionYear'], False, True)
     else:
-        Item['KodiProductionYear'] = None
+        Item['KodiProductionYear'] = ""
 
     if 'PremiereDate' in Item:
-        Item['KodiPremiereDate'] = utils.convert_to_local(Item['PremiereDate'], True)
+        Item['KodiPremiereDate'] = utils.convert_to_local(Item['PremiereDate'], True, False)
     else:
-        Item['KodiPremiereDate'] = None
+        Item['KodiPremiereDate'] = ""
 
     if not Item['KodiPremiereDate'] and Item['KodiProductionYear']:
-        Item['KodiPremiereDate'] = Item['KodiProductionYear']
+        Item['KodiPremiereDate'] = str(Item['KodiProductionYear'])
 
     if not Item['KodiProductionYear'] and Item['KodiPremiereDate']:
-        Item['KodiProductionYear'] = Item['KodiPremiereDate']
-
-    if Item['KodiProductionYear']:
-        Item['KodiProductionYear'] = Item['KodiProductionYear'][:4]
+        Item['KodiProductionYear'] = Item['KodiPremiereDate'][:4]
 
 def set_chapters(Item, ServerId):
     if 'MediaSources' not in Item:
@@ -756,7 +790,7 @@ def set_chapters(Item, ServerId):
             MediaSourcesChapters = True
             break
 
-    xbmc.log(f"EMBY.core.common: Use items chapterimages {MediaSourcesChapters}", 0) # LOGDEBUG -> Emby 4.8 compatibility
+    if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Use items chapterimages {MediaSourcesChapters}", 1) # LOGDEBUG -> Emby 4.8 compatibility
 
     for MediaSourceIndex, MediaSource in enumerate(Item['MediaSources']):
         MediaSource['KodiChapters'] = {}
@@ -794,9 +828,9 @@ def load_chapter(MediaSource, Chapter, Index, ServerId, ItemId):
         MarkerLabel = quote(MarkerTypeMapping[Chapter['MarkerType']])
 
         if "ImageTag" in Chapter:
-            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-{Chapter['ImageTag']}-{MarkerLabel}|redirect-limit=1000"
+            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-{Chapter['ImageTag']}-{MarkerLabel}"
         else: # inject blank image, otherwise not possible to use text overlay (webservice.py)
-            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-noimage-{MarkerLabel}|redirect-limit=1000"
+            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-noimage-{MarkerLabel}"
     else:
         if "Name" in Chapter:
             Chapter['Name'] = Chapter['Name'].replace("-", " ")
@@ -816,9 +850,9 @@ def load_chapter(MediaSource, Chapter, Index, ServerId, ItemId):
             Chapter["Name"] = "unknown"
 
         if "ImageTag" in Chapter:
-            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-{Chapter['ImageTag']}-{quote(Chapter['Name'])}|redirect-limit=1000"
+            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-{Chapter['ImageTag']}-{quote(Chapter['Name'])}"
         else:
-            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-noimage-{quote(Chapter['Name'])}|redirect-limit=1000"
+            ChapterImage = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Id}-{Index}-c-noimage-{quote(Chapter['Name'])}"
 
     if Chapter["StartPositionTicks"] not in MediaSource['KodiChapters']:
         MediaSource['KodiChapters'][Chapter["StartPositionTicks"]] = ChapterImage
@@ -845,7 +879,7 @@ def set_KodiArtwork(Item, ServerId, DynamicNode):
 
     if not DynamicNode and Item['Type'] == "Audio": # no artwork for synced song content (Kodi handels that based on Albumart etc.)
         if Item["AlbumPrimaryImageTag"] and "AlbumId" in Item:
-            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['AlbumId']}-0-p-{Item['AlbumPrimaryImageTag']}|redirect-limit=1000"
+            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['AlbumId']}-0-p-{Item['AlbumPrimaryImageTag']}"
 
         return
 
@@ -900,40 +934,40 @@ def set_KodiArtwork(Item, ServerId, DynamicNode):
                     if Item[BackDropsKey] and Item[BackDropsKey] != "None":
                         if ImageTagsMapping[1] == "fanart":
                             if "fanart" not in Item['KodiArtwork']["fanart"]:
-                                Item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-B-{Item[BackDropsKey][0]}|redirect-limit=1000"
+                                Item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-B-{Item[BackDropsKey][0]}"
 
                             for index, EmbyArtworkTag in enumerate(Item[BackDropsKey][1:], 1):
                                 if f"fanart{index}" not in Item['KodiArtwork']["fanart"]:
-                                    Item['KodiArtwork']["fanart"][f"fanart{index}"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-{index}-B-{EmbyArtworkTag}|redirect-limit=1000"
+                                    Item['KodiArtwork']["fanart"][f"fanart{index}"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-{index}-B-{EmbyArtworkTag}"
                         else:
                             if not Item['KodiArtwork'][ImageTagsMapping[1]]:
-                                Item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{Item[BackDropsKey][0]}|redirect-limit=1000"
+                                Item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyBackDropsId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{Item[BackDropsKey][0]}"
 
             if EmbyArtworkId:
                 if ImageTagsMapping[1] == "fanart":
                     if "fanart" not in Item['KodiArtwork']["fanart"]:
-                        Item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}|redirect-limit=1000"
+                        Item['KodiArtwork']["fanart"]["fanart"] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}"
                 else:
                     if not Item['KodiArtwork'][ImageTagsMapping[1]]:
-                        Item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}|redirect-limit=1000"
+                        Item['KodiArtwork'][ImageTagsMapping[1]] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyArtworkId}-0-{EmbyArtworkIdShort[ImageTagsMapping[0]]}-{EmbyArtworkTag}"
 
     if utils.AssignEpisodePostersToTVShowPoster:
         if Item['Type'] == "Episode" and 'SeriesId' in Item and "SeriesPrimaryImageTag" in Item and Item["SeriesPrimaryImageTag"] and Item["SeriesPrimaryImageTag"] != "None":
-            Item['KodiArtwork']['poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['SeriesId']}-0-p-{Item['SeriesPrimaryImageTag']}|redirect-limit=1000"
+            Item['KodiArtwork']['poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['SeriesId']}-0-p-{Item['SeriesPrimaryImageTag']}"
 
     if DynamicNode:
         if Item['Type'] == "Episode":
             if 'SeriesId' in Item and "SeriesPrimaryImageTag" in Item and Item["SeriesPrimaryImageTag"] and Item["SeriesPrimaryImageTag"] != "None":
-                Item['KodiArtwork']['tvshow.poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['SeriesId']}-0-p-{Item['SeriesPrimaryImageTag']}|redirect-limit=1000"
+                Item['KodiArtwork']['tvshow.poster'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['SeriesId']}-0-p-{Item['SeriesPrimaryImageTag']}"
 
             if 'ParentThumbItemId' in Item and "ParentThumbImageTag" in Item and Item["ParentThumbImageTag"] and Item["ParentThumbImageTag"] != "None":
-                Item['KodiArtwork']['tvshow.thumb'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentThumbItemId']}-0-p-{Item['ParentThumbImageTag']}|redirect-limit=1000"
+                Item['KodiArtwork']['tvshow.thumb'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentThumbItemId']}-0-p-{Item['ParentThumbImageTag']}"
 
             if 'ParentLogoItemId' in Item and "ParentLogoImageTag" in Item and Item["ParentLogoImageTag"] and Item["ParentLogoImageTag"] != "None":
-                Item['KodiArtwork']['tvshow.clearlogo'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentLogoItemId']}-0-p-{Item['ParentLogoImageTag']}|redirect-limit=1000"
+                Item['KodiArtwork']['tvshow.clearlogo'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentLogoItemId']}-0-p-{Item['ParentLogoImageTag']}"
 
             if 'ParentBackdropItemId' in Item and "ParentBackdropImageTags" in Item and Item["ParentBackdropImageTags"]:
-                Item['KodiArtwork']['tvshow.fanart'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentBackdropItemId']}-0-p-{Item['ParentBackdropImageTags'][0]}|redirect-limit=1000"
+                Item['KodiArtwork']['tvshow.fanart'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['ParentBackdropItemId']}-0-p-{Item['ParentBackdropImageTags'][0]}"
 
     if Item['KodiArtwork']['poster']:
         Item['KodiArtwork']['favourite'] = Item['KodiArtwork']['poster']
@@ -941,11 +975,10 @@ def set_KodiArtwork(Item, ServerId, DynamicNode):
         Item['KodiArtwork']['favourite'] = Item['KodiArtwork']['thumb']
 
     # Add overlay text
-    if Item['Type'] in ("Genre", "Sudio", "Tag", "MusicGenre"):
+    if Item['Type'] in ("Genre", "Studio", "Tag", "MusicGenre"):
         for KodiArtworkKey, KodiArtwork in list(Item['KodiArtwork'].items()):
             if KodiArtwork and KodiArtworkKey != "fanart":
-                KodiArtwork = KodiArtwork.replace("|redirect-limit=1000", "")
-                Item['KodiArtwork'][KodiArtworkKey] = f"{KodiArtwork}-{quote(Item['Name'])}|redirect-limit=1000"
+                Item['KodiArtwork'][KodiArtworkKey] = f"{KodiArtwork}-{quote(Item['Name'])}"
 
 def cache_artwork(KodiArtworks):
     Artworks = ()
@@ -958,7 +991,7 @@ def cache_artwork(KodiArtworks):
             Artworks += ((KodiArtwork,),)
 
     if Artworks:
-        artworkcache.CacheAllEntries(Artworks, None)
+        artworkcache.CacheAllEntries(Artworks, "")
 
 def set_MusicVideoTracks(Item):
     # Try to detect track number
@@ -975,7 +1008,7 @@ def set_MusicVideoTracks(Item):
         if Track.isdigit():
             Item['IndexNumber'] = int(Track)  # remove leading zero e.g. 01
 
-def delete_ContentItemReferences(KodiItemId, KodiFileId, Item, SQLs, KodiType, isSpecial, All):
+def delete_ContentItemReferences(KodiItemId, KodiFileId, ExtraType, SQLs, KodiType, All):
     KodiLibraryTagIds = SQLs["emby"].get_KodiSpecialTagIds()
     SQLs["video"].delete_links_actors(KodiItemId, KodiType)
     SQLs["video"].delete_links_director(KodiItemId, KodiType)
@@ -998,12 +1031,10 @@ def delete_ContentItemReferences(KodiItemId, KodiFileId, Item, SQLs, KodiType, i
     if KodiType == "movie":
         SQLs["video"].common_db.delete_artwork(KodiFileId, "videoversion") # delete videoversions artwork
 
-        if isSpecial:
+        if ExtraType == "Clip": # Special
             SQLs["video"].delete_videoversion(KodiItemId, KodiType)
         else:
             SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(KodiItemId, KodiFileId, KodiType) # delete videoversions
-
-        SQLs['emby'].remove_item_by_parentid(Item['Id'], "Video", Item['LibraryId']) # delete reference specials
 
 def set_VideoCommon(KodiItemId, KodiFileId, Item, SQLs, KodiType):
     SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], KodiItemId, KodiType)
@@ -1014,11 +1045,11 @@ def set_VideoCommon(KodiItemId, KodiFileId, Item, SQLs, KodiType):
     if "KodiStackTimes" in Item:
         SQLs["video"].add_stacktimes(KodiFileId, Item['KodiStackTimes'])
 
-def delete_ContentItem(KodiItemId, KodiFileId, Item, SQLs, KodiType, EmbyType, isSpecial):
-    Delete, _ = SQLs['emby'].remove_item(Item['Id'], EmbyType, Item['LibraryId'], False)
+def delete_ContentItem(KodiItemId, KodiFileId, Item, SQLs, KodiType, EmbyType):
+    Delete = SQLs['emby'].remove_item(Item['Id'], EmbyType, Item['LibraryId'])
 
     if Delete and KodiItemId:  # KodiItemId can be None for multiversion content
-        delete_ContentItemReferences(KodiItemId, KodiFileId, Item, SQLs, KodiType, isSpecial, True)
+        delete_ContentItemReferences(KodiItemId, KodiFileId, Item.get('ExtraType', ""), SQLs, KodiType, True)
 
     return Delete
 
@@ -1033,16 +1064,16 @@ def verify_content(Item, MediaType):
 
     if 'MediaSources' not in Item or not Item['MediaSources']:
         xbmc.log(f"EMBY.core.common: No mediasources found for {MediaType}: {Item['Id']}", 3) # LOGERROR
-        xbmc.log(f"EMBY.core.common: No mediasources found for {MediaType}: {Item}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): No mediasources found for {MediaType}: {Item}", 1) # LOGDEBUG
         return False
 
     if len(Item['MediaSources']) > 0:
         if 'MediaStreams' not in Item['MediaSources'][0] or not Item['MediaSources'][0]['MediaStreams']:
             xbmc.log(f"EMBY.core.common: No mediastreams found for {MediaType}: {Item['Id']} / {Item.get('Path', '')}", 2) # LOGWARNING
-            xbmc.log(f"EMBY.core.common: No mediastreams found for {MediaType}: {Item}", 0) # LOGDEBUG
+            if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): No mediastreams found for {MediaType}: {Item}", 1) # LOGDEBUG
     else:
         xbmc.log(f"EMBY.core.common: Empty mediasources found for {MediaType}: {Item['Id']}", 3) # LOGERROR
-        xbmc.log(f"EMBY.core.common: Empty mediasources found for {MediaType}: {Item}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Empty mediasources found for {MediaType}: {Item}", 1) # LOGDEBUG
         return False
 
     return True
@@ -1062,6 +1093,10 @@ def load_tvchannel(Item, ServerId):
 def set_Favorite(Item):
     if "UserData" in Item and "IsFavorite" in Item['UserData'] and Item['UserData']['IsFavorite']:
         Item['IsFavorite'] = int(Item['UserData']['IsFavorite'])
+    elif 'IsFavorite' in Item and Item['IsFavorite']:
+        Item['IsFavorite'] = int(Item['IsFavorite'])
+    elif "EmbyFavourite" in Item and Item['EmbyFavourite']:
+        Item['IsFavorite'] = 1
     else:
         Item['IsFavorite'] = 0
 
@@ -1211,15 +1246,15 @@ def set_ItemsDependencies(Item, SQLs, WorkerObject, EmbyServer, EmbyType, Increm
                 xbmc.log(f"EMBY.core.common: Detect by PresentationUniqueKey: {Item[SubItemId]} / {Item['PresentationUniqueKey']} / {SearchPresentationUniqueKey}", 1) # LOGINFO
 
         if not Item[SubItemId]:
-            Item[SubItemId] = MappingIds[EmbyType]
+            Item[SubItemId] = utils.MappingIds[EmbyType]
 
             if EmbyType == "MusicAlbum":
                 Item[SubItemId] = f"{Item[SubItemId]}{Item['Id']}"
 
                 if 'AlbumArtists' in Item and Item['AlbumArtists']:
-                    WorkerObject.change({"LibraryId": Item["LibraryId"], "Type": EmbyType, "Id": Item[SubItemId], "Name": Item['Name'], "SortName": Item['Name'], "DateCreated": utils.currenttime(), "ProviderIds": {}, 'ParentId': None, "AlbumArtists": Item['AlbumArtists'], "ArtistItems": [], "AlbumArtist": Item['AlbumArtist']}, IncrementalSync)
+                    WorkerObject.change({"LibraryId": Item["LibraryId"], "Type": EmbyType, "Id": Item[SubItemId], "Name": "--NO INFO--", "SortName": "--NO INFO--", "DateCreated": utils.currenttime(), "ProviderIds": {}, 'ParentId': None, "AlbumArtists": Item['AlbumArtists'], "ArtistItems": [], "AlbumArtist": Item['AlbumArtist']}, IncrementalSync)
                 else:
-                    WorkerObject.change({"LibraryId": Item["LibraryId"], "Type": EmbyType, "Id": Item[SubItemId], "Name": Item['Name'], "SortName": Item['Name'], "DateCreated": utils.currenttime(), "ProviderIds": {}, 'ParentId': None, "AlbumArtists": Item['ArtistItems'], "ArtistItems": [], "AlbumArtist": Item['MusicArtist']}, IncrementalSync)
+                    WorkerObject.change({"LibraryId": Item["LibraryId"], "Type": EmbyType, "Id": Item[SubItemId], "Name": "--NO INFO--", "SortName": "--NO INFO--", "DateCreated": utils.currenttime(), "ProviderIds": {}, 'ParentId': None, "AlbumArtists": Item['ArtistItems'], "ArtistItems": [], "AlbumArtist": Item['MusicArtist']}, IncrementalSync)
             elif EmbyType == "Season":
                 Item["SeasonId"] = f"{Item[SubItemId]}{Item['Id']}"
                 WorkerObject.change({"LibraryId": Item["LibraryId"], "Type": EmbyType, "Id": Item["SeasonId"], "SeriesId": Item["SeriesId"], "Name": "--NO INFO--", "SortName": "--NO INFO--", "DateCreated": utils.currenttime(), "ProviderIds": {}, 'ParentId': None}, IncrementalSync)
@@ -1234,7 +1269,7 @@ def set_MetaItems(Item, SQLs, WorkerObject, EmbyServer, EmbyType, MetaDataId, Ko
         AddSubItem = True
     else:
         for MetaItem in Item[MetaDataId]:
-            if KodiContentCategory in ("music", "video"): # content defined for video and/or music (content included in Kodi's MyVidoe.db and MyVideo.db)
+            if KodiContentCategory in ("music", "video"): # content defined for video and/or music (content included in Kodi's MyMusic.db and MyVideo.db)
                 if KodiContentCategory == "music":
                     Index = 0
                 else:
@@ -1281,7 +1316,7 @@ def set_MetaItems(Item, SQLs, WorkerObject, EmbyServer, EmbyType, MetaDataId, Ko
 
     if AddSubItem:
         Names += ("--NO INFO--",)
-        AddSubItemId = MappingIds[EmbyType]
+        AddSubItemId = utils.MappingIds[EmbyType]
 
         if WorkerObject:
             WorkerObject.change({"LibraryId": LibraryId, "Type": EmbyType, "Id": AddSubItemId, "Name": "--NO INFO--", 'SortName': "--NO INFO--", "DateCreated": utils.currenttime(), "ProviderIds": {}}, IncrementalSync)
@@ -1353,7 +1388,8 @@ def get_MusicArtistInfos(Item, ArtistType, SQLs):
             if ArtistSortname:
                 SortNames.append(SQLs["music"].get_ArtistSortname(ArtistItem['KodiId']))
             else:
-                SortNames.append(ArtistItem['Name'])
+                if ArtistItem['Name']:
+                    SortNames.append(ArtistItem['Name'])
 
         Item[f"{ArtistType}SortName"] = " / ".join(SortNames)
         Item[f"{ArtistType}Name"] = " / ".join(Artists)
@@ -1373,15 +1409,17 @@ def update_multiversion(EmbyDB, EmbyType, EmbyItemId, LibraryId, PresentationUni
 
 def update_boxsets(IncrementalSync, ParentId, LibraryId, SQLs, EmbyServer):
     if IncrementalSync:
-        for BoxSet in EmbyServer.API.get_Items(ParentId, ("BoxSet",), True, {'GroupItemsIntoCollections': True}, "", None, True, True): # Workaround: Emby server does not respect ParentId without Userdata
+        for BoxSet in EmbyServer.API.get_Items(ParentId, ("BoxSet",), True, {'GroupItemsIntoCollections': True}, "", None, True): # Workaround: Emby server does not respect ParentId without Userdata
             SQLs["emby"].add_UpdateItem(BoxSet['Id'], "BoxSet", LibraryId)
 
 # Download icon
 def download_SubnodeIcon(Item, ServerId):
+    global CachedArtworkDownload
+
     if Item['Id'] in CachedArtworkDownload:
         return
 
-    globals()['CachedArtworkDownload'] += (Item['Id'],)
+    CachedArtworkDownload += (Item['Id'],)
     Force = Item['Name'] != "--NO INFO--"
 
     if 'ImageTags' in Item and Item['ImageTags']:
@@ -1393,21 +1431,23 @@ def set_Favorites_Artwork(Item, ServerId):
     if 'KodiArtwork' not in Item:
         Item['KodiArtwork'] = {}
 
-    Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-noimage|redirect-limit=1000"
+    Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id']}-0-p-noimage"
 
     if 'ImageTags' in Item and Item['ImageTags']:
+        ItemId = Item['Id'].replace(utils.MappingIds['Tag'], '')
+
         if "Primary" in Item['ImageTags']:
-            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id'].replace('999999993', '')}-0-p-{Item['ImageTags']['Primary']}|redirect-limit=1000" # 999999993 replacement: Collections assigned to tags -> utils.BoxSetsToTags
+            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{ItemId}-0-p-{Item['ImageTags']['Primary']}"
         elif "Thumb" in Item['ImageTags']:
-            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{Item['Id'].replace('999999993', '')}-0-p-{Item['ImageTags']['Thumb']}|redirect-limit=1000"
+            Item['KodiArtwork']['favourite'] = f"http://127.0.0.1:57342/picture/{ServerId}/p-{ItemId}-0-p-{Item['ImageTags']['Thumb']}"
 
 def set_Favorites_Artwork_Overlay(Label, Content, EmbyItemId, ServerId, ImageUrl):
     OverlayText = quote(f"{Label}\n({Content})")
 
     if ImageUrl:
-        return ImageUrl.replace("|redirect-limit=1000", f"-{OverlayText}|redirect-limit=1000")
+        return f"{ImageUrl}-{OverlayText}"
 
-    return f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyItemId}-0-p-noimage-{OverlayText}|redirect-limit=1000"
+    return f"http://127.0.0.1:57342/picture/{ServerId}/p-{EmbyItemId}-0-p-noimage-{OverlayText}"
 
 def validate_FavoriteImage(Item):
     if 'KodiArtwork' not in Item:
@@ -1425,8 +1465,7 @@ def update_downloaded_info(Item, SQLs, KodiType):
 
         for KodiArtworkId, KodiArtworkUrl in list(Item['KodiArtwork'].items()):
             if KodiArtworkId in ("poster", "thumb", "landscape") and KodiArtworkUrl:
-                KodiArtworkUrlMod = KodiArtworkUrl.split("|")
-                KodiArtworkUrlMod = f"{KodiArtworkUrlMod[0].replace('-download', '')}-download|redirect-limit=1000"
+                KodiArtworkUrlMod = f"{KodiArtworkUrl.replace('-download', '')}-download"
                 Item['KodiArtwork'][KodiArtworkId] = KodiArtworkUrlMod
 
         Item['KodiPath'] = os.path.join(utils.DownloadPath, "EMBY-offline-content", KodiType, "")
@@ -1466,14 +1505,14 @@ def add_multiversion(Item, EmbyType, EmbyServer, SQLs, ServerId, EmbyMusicArtist
         if MediaSource['Type'] == "Default":
             continue
 
-        xbmc.log(f"EMBY.core.common: Multiversion video detected: {Item['Id']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Multiversion video detected: {Item['Id']}", 1) # LOGDEBUG
 
         # Get additional data, actually ParentId and probably PresentationUniqueKey could differ to item's core info
         if 'ItemId' not in MediaSource:
             ItemReferenced = load_Item(MediaSource['Id'], EmbyType, EmbyServer, "add_multiversion", None, SQLs)
 
             if not ItemReferenced:  # Server restarted
-                xbmc.log(f"EMBY.core.common: Multiversion video detected, referenced item not found: {MediaSource['Id']}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Multiversion video detected, referenced item not found: {MediaSource['Id']}", 1) # LOGDEBUG
                 continue
 
             EmbyId = ItemReferenced['Id']
@@ -1503,9 +1542,9 @@ def add_multiversion(Item, EmbyType, EmbyServer, SQLs, ServerId, EmbyMusicArtist
 
             # Remove old Kodi video-db references
             if ItemReferenced['KodiItemId'] and str(Item['KodiItemId']) != str(ItemReferenced['KodiItemId']) and str(Item['KodiFileId']) != str(ItemReferenced['KodiFileId']):
-                delete_ContentItem(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], ItemReferenced, SQLs, utils.EmbyTypeMapping[EmbyType], EmbyType, True)
+                delete_ContentItem(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'], ItemReferenced, SQLs, utils.EmbyTypeMapping[EmbyType], EmbyType)
 
-                if SQLs['video']: # video otherwise unsynced content e.g. specials
+                if SQLs['video']: # video otherwise unsynced content e.g. specials, themes etc.
                     if EmbyType == "Episode":
                         SQLs['video'].delete_episode(ItemReferenced['KodiItemId'], ItemReferenced['KodiFileId'])
                     elif EmbyType in ("Movie", "Video"):
@@ -1522,6 +1561,7 @@ def add_multiversion(Item, EmbyType, EmbyServer, SQLs, ServerId, EmbyMusicArtist
         elif EmbyType == "MusicVideo":
             SQLs["emby"].add_reference_musicvideo(ItemReferenced['Id'], ItemReferenced['LibraryId'], None, None, ItemReferenced['PresentationUniqueKey'], MediaSource['Path'], None, Item['LibraryIds'], EmbyMusicArtistIds, EmbyMusicGenreIds)
         elif EmbyType == "Movie":
+            SQLs["emby"].add_UpdateItem_Parent(EmbyId, "Movie", Item['LibraryId'], Item['KodiItemId'], "Special", "video") # Specials
             ItemReferenced['KodiFileId'] = SQLs["video"].create_entry_file()
             EmbyIdBackup = ItemReferenced['Id'] # workaround for Emby limitiation not unifying progress by version and not respecting subversion specific ItemId
             ItemReferenced['Id'] = Item['Id'] # workaround for Emby limitiation not unifying progress by version and not respecting subversion specific ItemId
@@ -1548,17 +1588,17 @@ def add_multiversion(Item, EmbyType, EmbyServer, SQLs, ServerId, EmbyMusicArtist
 
     # Update video version
     if MovieDefault[0]:
-        xbmc.log(f"EMBY.core.common: Update default video version {Item['Id']} / {Item['KodiItemId']}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): Update default video version {Item['Id']} / {Item['KodiItemId']}", 1) # LOGDEBUG
         SQLs["video"].update_default_movieversion(Item['KodiItemId'], MovieDefault[2], MovieDefault[3], MovieDefault[4])
 
 def load_Item(ItemId, EmbyType, EmbyServer, WorkerName, LibraryId, SQLs):
     if ItemId in CachedItemsMissing:
-        xbmc.log(f"EMBY.core.common: {WorkerName} load missing data from cache: {EmbyType}/{LibraryId}/{ItemId}", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): {WorkerName} load missing data from cache: {EmbyType}/{LibraryId}/{ItemId}", 1) # LOGDEBUG
         Item = CachedItemsMissing[ItemId]
         Item['LibraryId'] = LibraryId
     else:
-        xbmc.log(f"EMBY.core.common: {WorkerName} load missing data from Emby server: {EmbyType}/{LibraryId}/{ItemId}", 0) # LOGDEBUG
-        Item = EmbyServer.API.get_Item(ItemId, (EmbyType,), False, False, False, True, True) # Do not load userdata, as it's slow
+        if utils.DebugLog: xbmc.log(f"EMBY.core.common (DEBUG): {WorkerName} load missing data from Emby server: {EmbyType}/{LibraryId}/{ItemId}", 1) # LOGDEBUG
+        Item = EmbyServer.API.get_Item(ItemId, (EmbyType,), False, False, False) # Do not load userdata, as it's slow
 
         if Item:
             Item['LibraryId'] = LibraryId
@@ -1571,8 +1611,7 @@ def load_Item(ItemId, EmbyType, EmbyServer, WorkerName, LibraryId, SQLs):
                 KodiDB = ''
 
             SQLs["emby"].add_UpdateItem(Item['Id'], Item['Type'], Item['LibraryId'], KodiDB) # Resync items (with userdata) but grouped (faster than single Id queries)
-
-        globals()['CachedItemsMissing'][ItemId] = Item
+            CachedItemsMissing[ItemId] = Item
 
     return Item
 
@@ -1621,10 +1660,7 @@ def remove_old_EmbyMusicGenre(EmbyDB, ItemId, LibraryId, EmbyMusicGenreIds, Musi
 def remove_old_EmbyMusicAlbum(EmbyDB, ItemId, LibraryId, MusicAlbumId, MusicAlbumObject, IncrementalSync):
     EmbyMusicAlbumIdOld = EmbyDB.get_Linked_EmbyMusicAlbum(ItemId, LibraryId)
 
-    if MusicAlbumId:
-        if str(MusicAlbumId) != str(EmbyMusicAlbumIdOld):
-            MusicAlbumObject.remove({'Id': EmbyMusicAlbumIdOld, 'LibraryId': LibraryId}, IncrementalSync)
-    elif EmbyMusicAlbumIdOld:
+    if EmbyMusicAlbumIdOld and str(MusicAlbumId) != str(EmbyMusicAlbumIdOld):
         MusicAlbumObject.remove({'Id': EmbyMusicAlbumIdOld, 'LibraryId': LibraryId}, IncrementalSync)
 
 def delete_MusicAlbum_Links(LibraryId, Links, MusicAlbumObject, IncrementalSync, EmbyDB):
@@ -1641,10 +1677,6 @@ def delete_MusicGenre_Links(LibraryId, Links, MusicGenreObject, IncrementalSync,
     for EmbyMusicGenreId in Links["EmbyMusicGenreId"]:
         if not EmbyDB.isLinked_EmbyMusicGenreId(LibraryId, EmbyMusicGenreId):
             MusicGenreObject.remove({'Id': EmbyMusicGenreId, 'LibraryId': LibraryId}, IncrementalSync)
-
-def get_LibraryId_Playlists(LibraryId_PlaylistId):
-    LibraryId_PlaylistId = LibraryId_PlaylistId.split("_")
-    return LibraryId_PlaylistId[0]
 
 # Array format for LibraryIds: "LibraryId1,LibraryId2;LibraryId3,LibraryId4". ";" is the seperator between Kodi's MyMusic.db and MyVideo.db. "," is the seperator for Emby's librarys
 def get_Ids_MultiContent(IdsStr):
@@ -1715,13 +1747,28 @@ def del_Ids_MultiContentUnique(Ids, Index):
     Ids[Index] = ""
     return ";".join(Ids)
 
-def verify_Userdata_Updates(Item, IncrementalSync):
-    if 'KodiFileId' not in Item or not Item['KodiFileId']:
-        xbmc.log(f"EMBY.core.common: USERDATA, grouped content, skip updates {Item['Id']}", int(IncrementalSync)) # LOG
-        return False
+def verify_KodiIds(Item, IncrementalSync, CheckKodiFileId):
+    if CheckKodiFileId:
+        if 'KodiFileId' not in Item or not Item['KodiFileId']: # Not integrated content (Kodi's database)
+            if 'Id' in Item:
+                if int(IncrementalSync):
+                    xbmc.log(f"EMBY.core.common: KodiFileId, unsynced content, skip updates {Item['Id']}", 1) # LOGINFO
+                elif utils.DebugLog:
+                    xbmc.log(f"EMBY.core.common (DEBUG): KodiFileId, unsynced content, skip updates {Item}", 1) # LOGDEBUG
+            else:
+                xbmc.log(f"EMBY.core.common: KodiFileId, unsynced content, skip updates {Item}", 3) # LOGERROR
 
-    if not Item['KodiItemId']: # Not integrated content (Kodi's database) e.g. specials etc.
-        xbmc.log(f"EMBY.core.episode: USERDATA, unsynced content, skip updates {Item['Id']}", int(IncrementalSync)) # LOG
+            return False
+
+    if 'KodiItemId' not in Item or not Item['KodiItemId']: # Not integrated content (Kodi's database)
+        if 'Id' in Item:
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.common: KodiItemId, unsynced content, skip updates {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.common (DEBUG): KodiItemId, unsynced content, skip updates {Item}", 1) # LOGDEBUG
+        else:
+            xbmc.log(f"EMBY.core.common: KodiItemId, unsynced content, skip updates {Item}", 3) # LOGERROR
+
         return False
 
     return True

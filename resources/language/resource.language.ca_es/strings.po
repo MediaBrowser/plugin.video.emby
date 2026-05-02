@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby per Kodi"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Adreça del servidor"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Nom del servidor"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Forçar la reproducció HTTP"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Mètode d'inici de sessió"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Nivell de registre"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Nom del dispositiu"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Avançat"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Nom d'usuari"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "número de port"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Confirmeu la supressió del fitxer"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Ofereix la supressió després de la reproducció"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Per als episodis"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Per a pel·lícules"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "activa les obres d'art millorades (és a dir, la portada)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Qualitat de vídeo"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Programes de televisió afegits recentment"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Programes de televisió en curs"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Pel·lícules afegides recentment"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Episodis afegits recentment"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Pel·lícules en curs"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Episodis en curs"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Següents episodis"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Pel·lícules preferides"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Espectacles preferits"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Episodis preferits"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Caixes"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Pel·lícules no vistes"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Elements aleatoris"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Elements recomanats"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Interfície"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Restableix la base de dades local de Kodi"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Habilita el missatge de benvinguda"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Vídeos domèstics afegits recentment"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Fotos afegits recentment"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Vídeos domèstics preferits"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Fotos preferides"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Àlbums preferits"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Vídeos musicals afegits recentment"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "En curs Vídeos musicals"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Vídeos musicals no vists"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Pel·lícules"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Programes de televisió"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Opcions Emby"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Transcodificació Emby"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Afegir a favorits"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Eliminar dels preferits"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Configuració"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Suprimeix l'element"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Actualitzar l'element"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Transcodificació"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Verifica la connexió"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Utilitza un nom de dispositiu alternatiu"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Sincronització"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "habiliteu la notificació si el recompte d'actualitzacions és superior a"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Sincronitza programes buits"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Habilita la biblioteca de música"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Mode de reproducció"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Habilita la memòria cau d'obres d'art"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Reproducció"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Credencials de xarxa"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Habilita el mode cinema"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Demana per reproduir tràilers"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Omet la confirmació d'eliminació (utilitza sota el teu propi risc)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Tornar enrere al currículum (en segons)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "Transcodificació H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Ignora les ofertes especials als propers episodis"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Usuaris permanents"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Retard d'inici (en segons)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Habilita el missatge de reinici del servidor"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Habilita contingut nou"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Durada de la finestra emergent de la videoteca"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Durada del pop-up de la biblioteca musical"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "notificacions (en segons)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Genereu un nou identificador de dispositiu"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "permet l'estalvi de pantalla durant les sincronitzacions"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Inici de sessió"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "inici de sessió manual"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Nom d'usuari o correu electrònic"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Habilita el servidor fora de línia"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Mostra el missatge"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Inicieu la sessió amb Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Contrasenya"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Inicieu la sessió"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Seleccioneu el servidor principal"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "El nom d'usuari o la contrasenya no poden estar buits"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "No es pot connectar al servidor seleccionat"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "connectar amb"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Afegeix servidor manualment"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Si us plau, inicieu la sessió"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Canvia l'usuari de Emby Connect"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Amfitrió"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Connexió"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "El servidor o el port no poden estar buits"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Canvia l'usuari de Emby Connect"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Benvingut"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "El servidor s'està reiniciant"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Nom d'usuari o contrasenya no vàlids"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Trieu el flux d'àudio"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Trieu el flux de subtítols"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Vols suprimir el fitxer d'Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Jugar tràilers?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Recollida de caixes"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Reunió:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "S'ha detectat que la base de dades s'ha de tornar a crear per a aquesta versió d'Emby per a Kodi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby for Kodi no funcionarà correctament fins que la base de dades es restableixi."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Completat a:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "S'ha generat un nou identificador de dispositiu. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Atenció! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Complement (per defecte)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Natiu (camins directes)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Habilita la biblioteca de música?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "L'execució del procés de memòria cau pot trigar una mica. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Restableix la memòria cau d'il·lustració existent?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "S'està actualitzant la memòria cau d'il·lustracions"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Esperant la sortida dels fils"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi no pot localitzar el fitxer:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Utilitzeu la substitució del camí d'Emby per formatar correctament el vostre camí o assegurar-vos que el vostre camí s'afegeix al gestor de fitxers de Kodi. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Nou"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Afegeix usuari a la sessió"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Reiniciar la base de dades local"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "emmagatzema a la memòria cau totes les obres d'art"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Sincronitza el tema multimèdia"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Afegir/Eliminar usuari de la sessió"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Afegeix usuari"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Elimina l'usuari"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Elimineu l'usuari de la sessió"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Eliminat"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Afegit"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Esteu segur que voleu restablir la vostra base de dades local de Kodi?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Vols eliminar totes les obres d'art emmagatzemades a la memòria cau?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Restableix tota la configuració del complement Emby?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "El restabliment de la base de dades s'ha completat, ara Kodi es reiniciarà per aplicar els canvis."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Introduïu el nom de la carpeta per a la còpia de seguretat"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Substituir la còpia de seguretat existent?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Còpia de seguretat creada a:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Crear una còpia de seguretat"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Carpeta de còpia de seguretat"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "És important que l'actualització de neteja s'ha eliminat a la vostra configuració avançada per evitar conflictes amb Emby per a Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Actualitzar conjunts de caixa"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Instal·leu el connector del servidor Kodi Companion per aplicar automàticament les actualitzacions de la biblioteca emby a l'inici. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Vols sincronitzar programes buits?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Com que utilitzeu el mode de reproducció natiu amb la música activada, voleu importar la classificació de la música dels fitxers?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Vols reprendre la sincronització anterior?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "habiliteu el servei de servidor web a la configuració de Kodi per permetre l'emmagatzematge a la memòria cau d'obres d'art."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Trobeu més informació a la wiki de github/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Habiliteu el menú contextual"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "habiliteu l'opció de transcodificació"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Usuaris afegits a la sessió"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "les notificacions es retarden durant la reproducció de vídeo (excepte la televisió en directe)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "connector"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Reinicieu Kodi perquè tingui efecte."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Restableix la base de dades local per aplicar el canvi de mode de reproducció."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "s'aplica al mode de reproducció natiu i complement"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "s'aplica només al mode de reproducció de complements"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Habilita els subtítols externs"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Ajust per a connexió remota"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Comprimir il·lustracions (redueix la qualitat)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Habilitar la memòria cau d'obres d'art? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Heu canviat el mode de reproducció. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "S'ha produït un error durant la sincronització. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Seleccioneu les biblioteques que voleu afegir"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Tot"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Reinicieu Kodi per reprendre on ho vau deixar."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Sincronitza la biblioteca amb Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Inclou persones (lent)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Trieu les vistes Emby per sincronitzar-les amb Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Sincronitzar més tard"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Continuar"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "no s'han pogut recuperar les últimes actualitzacions de contingut. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Podeu sincronitzar biblioteques llançant el complement Emby > Afegeix biblioteques."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Seleccioneu la font"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Caixes refrescants"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Reparació de la biblioteca"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Elimina la biblioteca de Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Afegeix servidor"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi ara es reiniciarà per aplicar un petit pedaç per a la vostra versió de Kodi."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Actualitzar la biblioteca"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Habilita Kodi Companion (connector del servidor)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Podeu actualitzar la vostra biblioteca manualment en lloc de confiar en el complement del servidor Kodi. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Actualitzar biblioteques"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Reparació de biblioteques"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Elimina el servidor"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Alguna cosa va fallar. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Eliminació de la biblioteca"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "si us plau, assegureu-vos que les biblioteques del vostre servidor Emby siguin accessibles per a la vostra instal·lació de Kodi i que tingueu configurada la substitució del camí al vostre servidor. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "No es pot connectar a Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "El vostre accés a Emby està restringit."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "El vostre accés a aquest servidor està restringit."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "No es pot connectar a aquest servidor."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Actualitza la informació del servidor"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Torneu a connectar-vos al mateix servidor que es va carregar anteriorment. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "No es poden localitzar les melodies de TV a Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "El vostre suport del tema Emby s'ha sincronitzat amb Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Afegeix biblioteques"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "El pedaç aplicat actualment per a Emby per a Kodi està danyat! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "S'ha aplicat un pedaç!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Només àudio"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Només subtítols"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Activa la selecció d'àudio/subtítols"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "Per evitar errors, actualitzeu Emby for Kodi a la versió: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "comproveu si hi ha actualitzacions"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Restablir la biblioteca de música?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Donar suport a aquest projecte"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "emmascara la informació sensible al registre (no s'aplica al registre de kodi)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "No s'ha pogut crear la còpia de seguretat"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinàmic)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Afegit recentment"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Preferits"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "En curs"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Sense vigilar"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Per primera lletra"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Tens {nombre} actualitzacions pendents. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Us oblideu de la sincronització anterior? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paginació - baixada de fils (per defecte: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Consell de paginació: cada fil de baixada sol·licita el valor màxim dels articles a Emby alhora."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Actualitzeu o repareu les vostres biblioteques per aplicar els canvis següents."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Mostra la barra de progrés si el recompte d'actualitzacions és superior a"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "S'estan processant les actualitzacions"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Força la transcodificació"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Reinicieu Emby per a Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Reiniciant per aplicar el pegat"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Juga amb el mode cinema"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "habiliteu l'opció per jugar amb el mode cinema"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Elimina les biblioteques"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "activa la sincronització durant la reproducció (pot provocar un cert retard)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "El company de Kodi accelera la sincronització d'inici. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sincronitza les puntuacions de Rotten Tomatoes"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Vols sincronitzar les puntuacions de Rotten Tomatoes?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Reinicieu Emby perquè Kodi aplique aquest canvi?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Reinicieu Emby per a Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Reiniciant..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Gestionar biblioteques"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Habilita Emby per a Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Opcions avançades"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Ja s'està executant una sincronització, espereu fins que finalitzi i torneu-ho a provar."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Joc Emby"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Pedaç de recuperació de la base de dades de música"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Tasca reeixida!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "La tasca ha fallat!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Habilita el joc simple (apte per a jugadors externs)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "transcodificació de 10 bits (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Demaneu continuar amb la sincronització si el recompte és superior a"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "transcodificació de 10 bits (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Reprodueix URL remots amb Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Mostra els usuaris ocults a la selecció"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Restableix l'actualització del pedaç"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "últim llançament"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "activa l'etiqueta per a diversos episodis. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Habilita els tràilers locals"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Habilita els tràilers"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Transcodificació"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Format de sortida de vídeo"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Format de sortida d'àudio"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Mostra les opcions al menú del connector"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "informació de la data"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Gèneres"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Estudis"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "lema"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Visió general"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Llocs de producció"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Biblioteques dinàmiques"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Mode de compatibilitat"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Restaura la còpia de seguretat"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Quina obra d'art s'ha de guardar a la memòria cau"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Vídeo"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Música"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "data de sincronització incremental"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Temps de sincronització incremental"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Recollida d'elements eliminats"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "activa el mode cinema (pel·lícules)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "activa el mode cinema (programes de televisió)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Vols suprimir elements també del servidor Emby? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Vols suprimir FITXES també del servidor Emby per esdeveniments de Kodi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Habilita la supressió de FITXES als esdeveniments de Kodi"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Desactiva el suport HTTP2"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "El reinici de Kodi s'ha iniciat a causa dels canvis de advancedsettings.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Mode cinema"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Obra d'art"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Menú"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "El mode de compatibilitat canvia l'identificador del connector a 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "En algunes circumstàncies (WLan, inici retardat de la xarxa, etc.), un inici de connector retardat pot millorar la connectivitat"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Podeu ajustar quina meta informació es carrega per al contingut dinàmic (no sincronitzat). "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Aneu amb compte amb aquesta opció. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Aquesta és una opció de depuració. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Restableix l'identificador únic del dispositiu. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Connecteu-vos a un nou servidor Emby (multiservidor) o torneu a connectar un servidor Emby existent (depuració)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Mostra els usuaris ocults al servidor Emby per a les operacions de connexions."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Afegeix/Elimina/Repara biblioteques, TV en directe, temes."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "sincronitza totes les obres d'art localment amb Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Algunes aparences utilitzen llistes de reproducció xps. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "La valoració d'usuaris és informació addicional que s'ha de sincronitzar amb Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Realitza una resincronització completa de la base de dades de Kodi. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "El mode cinema és una característica d'estrena d'Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Transcodifica la taxa de bits d'àudio"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Velocitat de xarxa. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Informe del nom del dispositiu al servidor Emby."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Informa del progrés de la reproducció a usuaris addicionals."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Gap entre la reproducció aturada i l'inici de la continuació."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Aquesta és una característica del servidor Emby."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Pot estalviar ample de banda"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "En alguns casos és útil mostrar les opcions del menú al menú del connector com a dreceres. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "El menú de contacte admet la gestió de favorits, opcions d'eliminació, seleccions de funcions especials (pel·lícula), etc."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Taxa de bits d'àudio"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Fils màxims de memòria cau d'obres d'art"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "icona animada"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Actualitza la pell a la connexió del servidor Emby"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Carpeta"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "contingut mixt"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "En curs"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "episodis aleatoris"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "programes de televisió aleatoris"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Restabliment de fàbrica"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Els nodes es restableixen"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Esteu segur que voleu restablir els vostres nodes?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Artistes"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Episodis no vists"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Programes de televisió sense veure"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Programes de televisió preferits"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Programa de televisió jugat recentment"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Pròxims episodis"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Programes de televisió"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Jugat recentment"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Episodi reproduït recentment"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr ""
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Etiquetes de programes de televisió"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Etiquetes d'episodi"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "etiquetes de pel·lícules"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "reprendre la pel·lícula"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Països"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Àlbums"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "vídeos musicals"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "etiquetes de vídeo musical"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "vídeos musicals aleatoris"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Reprendre els vídeos musicals"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Vídeos"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Fotos"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Àlbums de fotos"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Etiquetes d'àlbum de fotos"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Etiquetes de fotos"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Etiquetes de vídeo"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Fotos afegides recentment"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Àlbums de fotos afegits recentment"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Vídeos afegits recentment"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Llistes de reproducció"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Audiollibres"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Audiollibres aleatoris"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "No escoltat"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Cançons aleatòries"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "podcasts aleatoris"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr ""
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Els nodes sincronitzats són molt més ràpids que els nodes dinàmics. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Els nodes dinàmics es construeixen sobre la marxa. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "vídeos musicals preferits"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Nodes sincronitzats"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Nodes dinàmics"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Àlbums afegits recentment"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Audiollibres afegits recentment"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Cançons afegides recentment"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Àlbums aleatoris"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Cançons aleatòries"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Audiollibres aleatoris"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "podcasts aleatoris"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "podcasts afegits recentment"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Afegeix/Elimina/Repara biblioteques, TV en directe, temes"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Obre la configuració del connector"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Realitza una resincronització completa de la base de dades de Kodi (incloent contingut que no sigui Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Restableix tots els nodes personalitzats i reconstrueix-los"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Límit de consulta de nodes"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Limiteu les consultes per als nodes de progrés. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr ""
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Utilitzeu l'opció de reprendre la reproducció del servidor Emby"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Aquesta funció desactiva les actualitzacions internes de progrés de Kodi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "bases de dades al buit a l'aturada de Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "La base de dades es reconstruirà i s'optimitzarà pel cost d'un retard de tancament"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Recarrega la pell"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Altres"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Servidor Emby ocupat"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Suprimeix els fitxers d'il·lustració"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Actualització de les vistes"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Server ocupat: sincronització en curs"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "elimina Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Base de dades"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Omet la introducció"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Un quadre de missatge demanarà el salt a la posició final d'introducció"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Marcadors"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Saltar crèdits"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Un quadre de missatge demanarà saltar crèdits"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Demana la introducció de salts"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Demanar crèdits per saltar"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Tancament automàtic de la caixa de missatges després de X segons"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Els quadres de missatges d'opció per saltar la introducció, saltar crèdits, mode cinema i suprimir es tancaran automàticament després de X segons. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Compositors"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "S'ha detectat un fitxer de configuració danyat, restaura el valor predeterminat. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "Error SSL"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "S'ha aturat l'emmagatzematge a la memòria cau d'obres d'art: queda sense espai"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "connexió Websocket fora de línia"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Seleccioneu el servidor Emby"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "seleccioneu les biblioteques a reparar"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "seleccioneu les biblioteques per actualitzar"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "seleccioneu les biblioteques que voleu eliminar"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Cançons per gènere"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "bases de dades al buit"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "assignar pòsters de TVShow als episodis"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "Els pòsters de Kodi de TVShow (imatge principal d'Emby TVShow) s'utilitzaran com a pòsters de Kodi d'episodi.\nActivar aquesta opció requereix una resincronització completa que inclou totes les obres d'art emmagatzemades a la memòria cau.\nAtenció: no utilitzeu l'assistent de sincronització inicial (ometeu-lo) i reviseu la configuració abans de (re)sincronitzar."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "utilitza imatges de fanart per als propers episodis"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "sobreescriu els polzes (Kodi) amb fanarts (Kodi) per al node dels episodis següents"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Utilitzeu un disseny alternatiu per saltar la introducció (missatge)."
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Disseny de la pell d'Embuary"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Habilita el progrés del servidor"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Es mostren les notificacions d'ocupat del servidor Emby"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Canvis de contingut de la consulta"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Canvis de contingut de consulta / dades d'usuari"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Consulteu canvis de contingut/contingut"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Desconnectat del servidor Emby"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "sincronització de canals de televisió en directe"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Sincronització de la televisió en directe"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "paginació: elements sol·licitats (factor per defecte: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Sincronitzar temes"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "verificar l'espai lliure"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Seleccioneu la font dels mitjans"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Utilitzeu solucions alternatives per als problemes de widgets (dinàmics) de Kodi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr "VÍDEO MPEG2"
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "transcodificació de vídeo"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "transcodificació d'àudio"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "límit d'amplada de banda de transcodificació"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "format de sortida de transcodificació"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Àudio"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "Vídeo"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "seleccioneu el flux d'àudio"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "seleccioneu el subtítol"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Especials"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Utilitzeu la substitució del camí"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "La substitució de camins admet imatges de capítols en mode complement. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Assigna actors únics per a cada biblioteca emby"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Episodis"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Registre"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "S'ha cancel·lat la visualització junts"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Esperant els participants"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "començant..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Seleccioneu usuaris"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "clients remots / mireu junts"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Suprimeix el temporitzador"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Afegeix un temporitzador"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Força clients"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Els clients que no admetin mirar junts de manera nativa, seran obligats a participar"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "control de client"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Els clients poden controlar-se entre ells"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Sincronitza els clients amb el mestre"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "El mestre controla la reproducció, la pausa, la recerca"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Espereu les participacions"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Espereu les participacions en segons"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Retard la reproducció"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "retarda l'inici de la reproducció, dóna temps als clients per sincronitzar-se"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "deriva màxima en pausa"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "s'admet asíncronització en mil·lisegons en pausa"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Acceptació automàtica"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Confirmació automàtica de la sol·licitud de client remota entrant"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Retard"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "activa una ordre de cerca després de X segons"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Torna a sincronitzar els clients no compatibles"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Mantenir la connexió"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "estableix la connexió a l'inici (per l'identificador del dispositiu)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Mireu junts"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: elimina el client"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Afegeix un client"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: activa el mode remot"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Desactiva el mode remot"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Habilita"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primària"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Pancarta"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr ""
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "Logotip"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "polze"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Teló de fons"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Capítol"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Compressió"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Resolució màxima"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Limita la resolució de la imatge per un factor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Seleccioneu el flux d'àudio de transcodificació"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "La substitució de camins admet imatges de capítol (extracció) en mode complement. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Habilita la connexió websocket"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Si està desactivat: no hi ha actualitzacions en temps real, no es rebran notificacions i les ordres remotes no funcionaran."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Utilitzeu solucions alternatives per als problemes de marcadors d'episodi de Kodi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi té un error amb els marcadors d'episodi en seleccionar un episodi mitjançant visualitzacions de llista. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi té problemes amb els ginys dinàmics. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Habilita el suport HTTP/2"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi té problemes per reproduir contingut mitjançant el protocol http/2 (desactivat per defecte)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Actualització addicional del widget d'àudio"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "activa una exploració d'àudio de Kodi addicional (falsa) després que Emby informi de les actualitzacions de progrés. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Temps d'espera de la xarxa"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Aquesta opció afecta els temps d'espera de selecció de contingut d'EPG i de diverses versions. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Preferits"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Mireu junts"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Gestiona clients remots"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Unifica les metadades per biblioteca"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Artista musical"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Gènere musical"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Gènere"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Estudi"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Etiqueta"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Col·lecció de pel·lícules"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Col·lecció de programes de televisió"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Col·lecció de vídeos musicals"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Preferits"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Durada del missatge de contingut nou"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Caixes com a etiquetes"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Assigneu boxsets a etiquetes"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Temps d'espera de la xarxa"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "s'ajusten els temps d'espera de la xarxa en segons. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Sincronitza els preferits d'Emby amb els de Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml es modificarà"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Àlbums de fotos afegits recentment"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Continua mirant"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Sincronitza canals de televisió en directe en esdeveniments"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Els canals Livetv es van tornar a sincronitzar a l'inici de Kodi i els canvis d'EPG"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Ubicació de descàrrega"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: descarregar"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: elimina la baixada"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Suprimeix tots els fitxers baixats"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Esteu segur que voleu suprimir tot el contingut fora de línia?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "se suprimirà tot el contingut baixat"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Servidor Emby fora de línia"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Temporades preferides"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "paginació"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Musicista"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Àlbum de música"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Gènere musical"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Àudio"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Pel·lícula"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Vídeo musical"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Sèrie"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Temporada"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Episodi"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "Vídeo"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Àlbum de fotos"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Gènere"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Llista de reproducció"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Canals"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "TV en directe"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Remolc"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Carpeta"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "Caixa"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Persona"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "Etiqueta"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Estudi"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Gestionar servidors"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Reproducció remota"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Baixa contingut"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Menú contextual"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Afegir/eliminar preferits"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Reproducció especial"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Enregistrament"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Actualitza l'element"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Suprimeix l'element"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Vídeos preferits"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Fotos preferides"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "vídeos musicals preferits"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Col·leccions"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Recomanacions"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Pel·lícules preferides"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Boxsets preferits"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "Àlbum de fotos A-Z"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "vídeos de la A a la Z"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Pel·lícules no vistes estrenades recentment"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Pel·lícules d'estrena recent"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "vídeos musicals de la A a la Z"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "Pel·lícules de la A a la Z"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "sèrie A-Z"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Cançons preferides"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Actors preferits"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "àudio preferit"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Cerca"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "En curs (contingut mixt)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Continua mirant (contingut mixt)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Pel·lícules baixades"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Episodis baixats"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Vídeos musicals descarregats"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Pel·lícules"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "Programes de televisió"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Temporades"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Cançons"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr ""
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Marcadors"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Baixar temes (SÍ) o temes d'enllaç (NO)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Seleccioneu el flux d'àudio"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "seleccioneu Còpia de seguretat"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Canviar l'obra gràfica requereix un restabliment de la memòria cau. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Notificacions"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Durada del missatge"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Durada del missatge en segons"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Operacions del servidor"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Connexions"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Suprimeix l'element"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Còpia de seguretat"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: reproducció a distància"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "sèrie baixada"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Estableix imdb com a proveïdor de qualificació predeterminat"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Suposem que la valoració de la comunitat d'Emby reflecteix les valoracions d'imdb"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Episodis següents (contingut mixt)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Continua amb l'última reproducció (contingut mixt)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Continua jugant per darrera vegada"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Anar a mostrar"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Anar a"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Anar a mostrar"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Anar a la temporada"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "S'ha acabat el restabliment dels nodes"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "Límit de longitud de l'URI"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Els límits més alts són més ràpids en alguns casos, però poden provocar problemes d'http 414"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Configuració"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Configuració"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Habilita el missatge fora de línia"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "l'adreça del servidor no és vàlida"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Argument no vàlid"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "No s'ha trobat el camí de descàrrega"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Afegeix enllaços de pel·lícules als programes de televisió"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Pel·lícules assignades a programes de televisió llistats a les visualitzacions de programes de Kodi. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Habilita la sincronització inicial"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Si està desactivat, el contingut d'Emby no es sincronitzarà mentre s'iniciï Kodi"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Utilitzeu la selecció clàssica"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "El menú de selecció es mostra quan hi ha multicontingut disponible"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Contingut deduplicat"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Elimina el contingut similar de diverses biblioteques del servidor Emby"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "estableix la resolució de vídeo més alta com a predeterminada"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "aquesta opció s'aplica a la selecció multiversió de Kodi i requereix la resincronització de la biblioteca a l'activació."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Selecció automàtica de la resolució més alta"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "s'aplica a l'opció clàssica de selecció múltiple"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "activa la notificació de l'API de Kodi"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Informeu d'esdeveniments mitjançant l'API de Kodi per a ús extern"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Accés denegat"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Àlbums per any"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "solters per any"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "solters"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Sengles afegits recentment"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "individuals aleatoris"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Cap"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "No hi ha informació del camí disponible, aneu amb compte amb el que feu!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr ""
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Seleccioneu la biblioteca principal"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Actualitzar LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Actualitzar temes"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Desactiva LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Habilita LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Desactiva els temes"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Habilita els temes"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Seguiu http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "S'accedirà directament al contingut http extern i no es transmetrà mitjançant el servidor Emby. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Seguiu el temps d'espera d'http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Estableix el contingut local com a predeterminat"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "El complement complementari de Kodi no està instal·lat al servidor Emby! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Cancel·la la memòria cau d'obres d'art"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Nombre de treballadors del servei web"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Els valors més alts poden millorar el rendiment, però necessiten més recursos. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Tanca el diàleg d'ocupat"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Pot prevenir els accidents de Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Tipus de servei"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "Capçalera IP (TOS), podria millorar la capacitat de resposta"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Millor esforç)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (enviament accelerat)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (Enviament assegurat)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interactiu en temps real)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "memòria cau d'obres d'art incremental"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "emmagatzema les il·lustracions a la memòria cau automàticament en sincronitzacions parcials"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Gèneres amb icones"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Estudis amb icones"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Etiquetes amb icones"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Remolcs locals"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Carregueu els canvis"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Llindar de resolució"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transcodifica el contingut quan la resolució d'origen està per sobre de la resolució seleccionada"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Llindar de resolució"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transcodifica el contingut quan la resolució d'origen està per sobre de la resolució seleccionada"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "sempre"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "il·limitat"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Resolució de transcodificació"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Il·limitat significa mantenir la resolució d'origen"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Mode de servei web"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Substitució de camí"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr "HTTP"
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiversió"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Actualitza els enllaços de vídeo musical"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Actualitza els enllaços de vídeo musical a la base de dades de música"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Hora no sincronitzada, saltar actualitzacions"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Afegeix enllaços de vídeo musical a la música"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Vídeos musicals assignats a la música que apareix a les visualitzacions de cançons de Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Suprimeix la còpia de seguretat"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Introduïu el nom de la còpia de seguretat"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "La compressió no és compatible, la còpia de seguretat no està disponible."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Còpia de seguretat en curs"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Mètode de sincronització de temes d'àudio"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Mètode de sincronització de temes de vídeo"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "descarregar"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "comandament a distància"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "activa els temes d'àudio"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "activa els temes de vídeo"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Vés a l'àlbum"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Anar a l'artista"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "pausa la sincronització"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Atura la sincronització quan el servidor estigui ocupat amb tasques"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "extracció de miniatures de la vista prèvia del vídeo"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "base de dades de buit"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "penja vídeos de temes locals"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "penja cançons temàtiques locals"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Actualitzar la base de dades d'introducció"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "Actualització del laberint de TV"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Transferència de suports"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Escaneja la carpeta de metadades"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Escaneja biblioteca multimèdia"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Actualitzar els canals d'Internet"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Guia d'actualització"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Baixa subtítols"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Baixeu tràilers locals de pel·lícules de YouTube"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Baixeu cançons temàtiques de televisió local"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Baixeu vídeos de tema local"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Baixeu cançons temàtiques locals"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Detectar intros"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Converteix mitjans"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Actualització en curs"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Tasca programada d'Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Més com això"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Més com això"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Etiquetes de vídeo a casa"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Vídeos casolans preferits"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Etiquetes de vídeo"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Vídeos preferits"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Canvis d'estat de reproducció"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Progrés de sèrie i temporada"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Llistes de reproducció (mixtes)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Joc aleatori"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Joc aleatori"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Avís de Kodi Companion"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion és un complement del servidor Emby que fa un seguiment del contingut suprimit"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Tractament de tràilers"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Remolcs"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "tràilers afegits recentment"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Temes"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Habilita l'àudio"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Habilita el vídeo"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Esvaeix"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "desaparèixer"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Els valors més grans signifiquen un temps d'esvaïment més llarg, zero està desactivat"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "pantalla d'inici"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Reprodueix temes per a ginys"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "inici retardat"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "els valors són en segons"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "descarregar"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Emmagatzema els temes localment per obtenir un millor rendiment"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioritat"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Defineix quin tema es reprodueix primer quan tots dos estan disponibles"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Remolcs remots"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Selecció de tràilers remots"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Introducció al cinema"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Carpeta de tràilers"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Remolcs locals"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Pel·lícula local"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Reproducció del tràiler"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Volum"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Registre de depuració"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "activa el vídeo mitjançant marcadors d'introducció"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Habilita l'àudio mitjançant marcadors d'introducció"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "activa el vídeo per contingut"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Habilita l'àudio per contingut"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Per durada del contingut"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "La transcodificació utilitzada pot provocar una gran càrrega de CPU al servidor"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "apagat"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Marcadors d'introducció"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Contingut"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Temes virtuals"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navegació"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Visualització de l'episodi"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Vista de temporada"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Visualització del programa de televisió"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Visualització de la pel·lícula"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Horaris"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Reproducció"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Actualitza els preferits d'àudio"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Actualitza els preferits de l'àlbum de música"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Actualitza els preferits del vídeo"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Actualitza els preferits dels vídeos musicals"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Actualitza els favorits del boxset"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Actualitza les sèries preferides"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Actualitza els preferits de la temporada"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Actualitza els preferits de la llista de reproducció"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Actualitza els preferits de l'episodi"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Actualitza les pel·lícules preferides"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Actualitza els preferits del gènere"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Actualitza els preferits de l'estudi"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Actualitza els preferits de l'etiqueta"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Actualitza els preferits del gènere musical"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Actualitza els preferits de la persona"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Actualitza els preferits de la persona"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Còpia de seguretat restaurada des de:"
+

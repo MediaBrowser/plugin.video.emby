@@ -1,7 +1,6 @@
 import xbmc
 from . import common_db
 
-
 class TextureDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
@@ -9,11 +8,23 @@ class TextureDatabase:
 
     def add_Index(self):
         try: # xbox issue
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
-            self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
-            self.cursor.execute("ANALYZE")
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_texture_imagehash'")
+            IndexTest = self.cursor.fetchone()
+
+            if not IndexTest:
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
+                self.cursor.execute("ANALYZE")
         except Exception as Error:
             xbmc.log(f"EMBY.database.texture_db: Database add index error: {Error}", 3) # LOGERROR
+
+    def delete_Index(self):
+        try: # xbox issue
+            self.cursor.execute("DROP INDEX IF EXISTS idx_texture_cachedurl")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_texture_imagehash")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.texture_db: Database delete index error: {Error}", 3) # LOGERROR
 
     def add_texture(self, url, cachedUrl, imagehash, size, width, height, KodiTime):
         self.cursor.execute("SELECT id FROM texture WHERE url = ?", (url,))

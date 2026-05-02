@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr ""
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Serveradresse"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Servernavn"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Tving HTTP-avspilling"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Påloggingsmetode"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Loggnivå"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Enhetsnavn"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Avansert"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Brukernavn"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Portnummer"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Bekreft sletting av fil"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Tilby sletting etter avspilling"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "For episoder"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "For filmer"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Aktiver forbedret kunstverk (dvs. omslag)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Videokvalitet"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Nylig lagt til TV-programmer"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Pågående TV-programmer"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Nylig lagt til filmer"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Nylig lagt til episoder"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Pågående filmer"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Pågående episoder"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Neste episoder"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Favorittfilmer"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Favorittshow"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Favorittepisoder"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Bokssett"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Usette filmer"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Tilfeldige gjenstander"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Anbefalte varer"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Grensesnitt"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Tilbakestill lokal Kodi-database"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Aktiver velkomstmelding"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Nylig lagt til hjemmevideoer"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Nylig lagt til bilder"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Favoritt hjemmevideoer"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Favorittbilder"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Favorittalbum"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Nylig lagt til musikkvideoer"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Pågår Musikkvideoer"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Usette musikkvideoer"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmer"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "TV-programmer"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby-alternativer"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Emby-omkoding"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Legg til favoritter"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Fjern fra favoritter"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Innstillinger"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Slett element"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Oppdater element"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Omkode"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Bekreft tilkobling"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Bruk alternativt enhetsnavn"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr ""
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Aktiver varsling hvis oppdateringsantallet er større enn"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Synkroniser tomme show"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Aktiver musikkbibliotek"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Avspillingsmodus"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Aktiver artwork caching"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Avspilling"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Nettverkslegitimasjon"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Aktiver kinomodus"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Be om å spille trailere"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Hopp over slettebekreftelsen (bruk på egen risiko)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Hopp tilbake på CV (i sekunder)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr ""
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Ignorer spesialtilbud i neste episoder"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Permanente brukere"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Oppstartsforsinkelse (i sekunder)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Aktiver server omstart melding"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Aktiver nytt innhold"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Varighet av videobiblioteket dukker opp"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Varighet av musikkbiblioteket dukker opp"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Varsler (i sekunder)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Generer en ny enhets-ID"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Tillat skjermspareren under synkroniseringer"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Logg inn"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Manuell pålogging"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Brukernavn eller e-post"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Aktiver server offline"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Vis melding"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Logg på med Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Passord"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Logg på"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Velg hovedserver"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Brukernavn eller passord kan ikke være tomt"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Kan ikke koble til den valgte serveren"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Koble til"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Legg til server manuelt"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Vennligst logg på"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Endre Emby Connect-bruker"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Vert"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Koble til"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Server eller port kan ikke være tom"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Endre Emby Connect-bruker"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Velkommen"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Server starter på nytt"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Ugyldig brukernavn eller passord"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Velg lydstrømmen"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Velg undertekststrømmen"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Slette fil fra Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Spille trailere?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Samlebokssett"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Samling:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Oppdaget at databasen må gjenskapes for denne versjonen av Emby for Kodi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby for Kodi vil ikke fungere riktig før databasen er tilbakestilt."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Fullført i:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "En ny enhets-ID er generert. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Forsiktig! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Tillegg (standard)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (direkte stier)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Aktivere musikkbibliotek?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Det kan ta litt tid å kjøre hurtigbufringsprosessen. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Tilbakestille eksisterende artwork cache?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Oppdaterer artwork cache"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Venter på at trådene skal gå ut"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi kan ikke finne filen:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Bruk Emby-baneerstatningen for å formatere banen din riktig eller sikre at banen din er lagt til Kodis filbehandler. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Ny"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Legg til bruker til økt"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Utfør lokal databasetilbakestilling"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Cache alle kunstverk"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Synkroniser temamedier"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Legg til/fjern bruker fra økten"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Legg til bruker"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Fjern bruker"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Fjern bruker fra økten"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Fjernet"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Lagt til"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Er du sikker på at du vil tilbakestille din lokale Kodi-database?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Vil du fjerne alle bufrede kunstverk?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Tilbakestille alle Emby-tilleggsinnstillinger?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Tilbakestilling av database er fullført, Kodi vil nå starte på nytt for å bruke endringene."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Skriv inn mappenavn for sikkerhetskopiering"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Erstatte eksisterende sikkerhetskopi?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Opprettet sikkerhetskopi på:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Lag en sikkerhetskopi"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Backup-mappe"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Viktig, cleanonupdate ble fjernet i de avanserte innstillingene dine for å forhindre konflikt med Emby for Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Refresh-bokssett"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Installer serverplugin Kodi Companion for automatisk å bruke emby-bibliotekoppdateringer ved oppstart. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Vil du synkronisere tomme show?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Siden du bruker innebygd avspillingsmodus med musikk aktivert, vil du importere musikkvurdering fra filer?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Gjenoppta forrige synkronisering?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Aktiver webservertjenesten i Kodi-innstillingene for å tillate bufring av kunstverk."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Finn mer informasjon i github-wikien/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Aktiver kontekstmenyen"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Aktiver alternativet for å omkode"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Brukere lagt til i økten"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Varslinger er forsinket under videoavspilling (unntatt direkte tv)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr ""
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Start Kodi på nytt for å tre i kraft."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Tilbakestill den lokale databasen for å bruke endringen i avspillingsmodus."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Gjelder for Native og Add-on avspillingsmodus"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Gjelder kun tilleggsavspillingsmodus"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Aktiver eksterne undertekster"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Juster for ekstern tilkobling"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Komprimer kunstverk (reduserer kvaliteten)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Aktiver artwork caching? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Du har endret avspillingsmodus. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Noe gikk galt under synkroniseringen. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Velg bibliotekene du vil legge til"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Alle"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Start Kodi på nytt for å fortsette der du slapp."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Synkroniser biblioteket til Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Inkluder personer (sakte)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Velg Emby-visningene for å synkronisere med Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Synkroniser senere"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Fortsett"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Kunne ikke hente siste innholdsoppdateringer. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Du kan synkronisere biblioteker ved å starte Emby-tillegget > Legg til biblioteker."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Velg kilden"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Forfriskende bokssett"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Reparasjonsbibliotek"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Fjern biblioteket fra Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Legg til server"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi vil nå starte på nytt for å bruke en liten oppdatering for din Kodi-versjon."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Oppdater bibliotek"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Aktiver Kodi Companion (serverplugin)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Du kan oppdatere biblioteket ditt manuelt i stedet for å stole på serverplugin Kodi-kompanjonen. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Oppdater biblioteker"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Reparer biblioteker"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Fjern server"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Noe gikk galt. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Fjerner bibliotek"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Sørg for at Emby-serverbibliotekene dine er tilgjengelige for Kodi-installasjonen din, og at du har konfigurert baneerstatning på serveren din. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Kan ikke koble til Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Din tilgang til Emby er begrenset."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Din tilgang til denne serveren er begrenset."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Kan ikke koble til denne serveren."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Oppdater serverinformasjon"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Koble til den samme serveren som tidligere ble lastet. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Kan ikke finne TV-låter i Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Emby-temamediet ditt har blitt synkronisert til Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Legg til biblioteker"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Den gjeldende oppdateringen for Emby for Kodi er ødelagt! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "En oppdatering har blitt brukt!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Kun lyd"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Kun undertekster"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Aktiver valg av lyd/teksting"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "For å unngå feil, vennligst oppdater Emby for Kodi til versjon: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Se etter oppdateringer"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Tilbakestille musikkbiblioteket?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Støtt dette prosjektet"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Masker sensitiv informasjon i logg (gjelder ikke kodi-logging)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Kunne ikke opprette sikkerhetskopi"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dynamisk)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Nylig lagt til"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Favoritter"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Pågår"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Usett"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Med første bokstav"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Du har {number} oppdateringer som venter. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Glem den forrige synkroniseringen? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging - last ned tråder (standard: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Paging-tips: Hver nedlastingstråd ber om maksverdien for varer fra Emby samtidig."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Oppdater eller reparer bibliotekene dine for å bruke endringene nedenfor."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Vis fremdriftslinjen hvis oppdateringsantallet er større enn"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Behandler oppdateringer"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Tving omkoding"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Start Emby på nytt for Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Starter på nytt for å sette på lappen"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Spill med kinomodus"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Aktiver muligheten til å spille med kinomodus"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Fjern biblioteker"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Aktiver synkronisering under avspilling (kan forårsake noe etterslep)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Kodi-ledsageren fremskynder oppstartssynkroniseringen. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sync Rotten Tomatoes-vurderinger"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Vil du synkronisere Rotten Tomatoes-vurderinger?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Start Emby på nytt for at Kodi skal bruke denne endringen?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Start Emby på nytt for Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Starter på nytt..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Administrer biblioteker"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Aktiver Emby for Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Avanserte alternativer"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "En synkronisering kjører allerede. Vent til den er fullført og prøv igjen."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Embyspill"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Rescan-oppdatering for musikkdatabase"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Oppgaven lyktes!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Oppgave mislyktes!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Aktiver enkelt spill (ekstern spillervennlig)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr ""
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Be om å fortsette med synkronisering hvis antallet er større enn"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr ""
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Spill av eksterne nettadresser med Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Vis skjulte brukere i utvalg"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Tilbakestill patchoppdatering"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Siste utgivelse"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Aktiver label for multi-episoder. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr "Transcode DVD (MPEG2)"
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr "Bekrefte tilkoblingen? "
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr "Etter år"
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr "Av skuespiller"
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr "Aktiver brukervurderingssynkronisering"
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr "ENDELIG ADVARSEL: Fullstendig tilbakestilling av databasen er nødvendig! "
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr "Databasetilbakestilling kreves, vent til Kodi starter på nytt."
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr "Ugyldig sikkerhetskopibane"
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr "Ugyldig sikkerhetskopi"
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr "Artwork cache pågår"
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr "Webserver må være aktivert for artwork cache. "
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr "Ingen passord funnet, sett passordet til 'kodi'"
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr "Ingen backupbane er angitt"
+
+msgctxt "#33230"
+msgid "select"
+msgstr "velg"
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr "Spesialfunksjoner"
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr "Live TV-synkronisering fullført"
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr "Vennligst installer og aktiver iptvsimple"
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr "Websocket er frakoblet"
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr "Emby-serveravstengning"
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr "Emby-server omstart kreves"
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr "Legg til bibliotek"
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr "Aktiver smarte spillelister (dette kan føre til at Kodi krasjer)"
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr "Aktiver brukervurdering"
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Aktiver lokale trailere"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Aktiver tilhengere"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Omkode"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Utgangsformat video"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Lyd i utgangsformat"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Vis alternativer i plugin-menyen"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Datoinfo"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Sjangre"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Studioer"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr ""
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Oversikt"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Produksjonssteder"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dynamiske biblioteker"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Kompatibilitetsmodus"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Gjenopprett sikkerhetskopi"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Hvilket kunstverk skal bufres"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Musikk"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Inkrementell synkroniseringsdato"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Inkrementell synkroniseringstid"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Samling av fjernede gjenstander"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Aktiver kinomodus (filmer)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Aktiver kinomodus (tv-programmer)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Slette elementer også fra Emby-serveren? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Slette FILER også fra Emby-serveren av Kodi-hendelser? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Aktiver FILE-sletting på Kodi-hendelser"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Deaktiver HTTP2-støtte"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Kodi-omstart startet på grunn av endringer i advancedsettings.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Kinomodus"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Kunstverk"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Meny"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Kompatibilitetsmodus endrer plugin-ID-en til 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "I noen tilfeller (WLan, forsinket nettverksoppstart osv.) kan en forsinket plugin-start forbedre tilkoblingen"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Du kan justere hvilken metainformasjon som lastes inn for dynamisk (ikke synkronisert) innhold. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Vær forsiktig med dette alternativet. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Dette er et feilsøkingsalternativ. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Tilbakestiller den unike enhets-IDen. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Koble til en ny Emby-server (multiserver) eller koble til en eksisterende Emby-server på nytt (feilsøking)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Vis skjulte brukere på Emby-serveren for tilkoblingsoperasjoner."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Legg til/fjern/reparer biblioteker, direktesendt TV, temaer."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Synkroniserer alle kunstverk lokalt til Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Noen skinn bruker xps-spillelister. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Brukervurdering er tilleggsinformasjon som skal synkroniseres til Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Utfører en fullstendig Kodi-databaseresynkronisering. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Kinomodus er en førsteklasses funksjon i Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Omkode lydbithastighet"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Nettverkshastighet. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Enhetsnavn rapport til Emby server."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Rapporter avspillingsfremgang til flere brukere."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Gap mellom avspilling stoppet og fortsettelsesstart."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Dette er en Emby-serverfunksjon."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Kan spare båndbredde"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "I noen tilfeller er det nyttig å vise menyalternativer i plugin-menyen som snarveier. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Contect-menyen støtter administrasjon av favoritter, slettealternativer, valg av (film) spesialfunksjoner osv."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Lydbithastighet"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maksimal artwork cache-tråder"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animert ikon"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Oppdater huden på Emby-servertilkoblingen"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Mappe"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Blandet innhold"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Pågår"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Tilfeldige episoder"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Tilfeldige TV-serier"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Tilbakestilling til fabrikk"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Noder tilbakestilt"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Er du sikker på at du vil tilbakestille nodene dine?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Kunstnere"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Usette episoder"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Usette TV-serier"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Favoritt-TV-programmer"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Nylig spilt TV-program"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Kommende episoder"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "TV-programmer"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Nylig spilt"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Nylig spilt episode"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Direktører"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "TV-show-tagger"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Episodemerker"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Filmlapper"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Fortsett filmen"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Land"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Album"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Musikkvideoer"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Musikkvideomerker"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Tilfeldige musikkvideoer"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Fortsett musikkvideoer"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Videoer"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Bilder"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fotoalbum"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Fotoalbummerker"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Fotolapper"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Videomerker"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Nylig lagt til bilder"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Nylig lagt til fotoalbum"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Nylig lagt til videoer"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Spillelister"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Lydbøker"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Tilfeldige lydbøker"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Ulyttet"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Tilfeldige sanger"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Tilfeldige podcaster"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podcaster"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Synkroniserte noder er mye raskere enn dynamiske noder. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Dynamiske noder bygges i farten. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Favoritt musikkvideoer"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Synkroniserte noder"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dynamiske noder"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Nylig lagt til album"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Nylig lagt til lydbøker"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Nylig lagt til sanger"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Tilfeldige album"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Tilfeldige sanger"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Tilfeldige lydbøker"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Tilfeldige podcaster"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Nylig lagt til podcaster"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Legg til/fjern/reparer biblioteker, direktesendt TV, temaer"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Åpne plugin-innstillinger"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Utfører en fullstendig Kodi-databaseresynkronisering (inkludert innhold som ikke er Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Tilbakestill alle egendefinerte noder og bygg dem på nytt"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Nodespørringsgrense"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Begrens spørringer for fremdriftsnoder. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Noder"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Bruk alternativ for gjenoppta avspilling fra Emby-serveren"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Denne funksjonen deaktiverer Kodis interne fremdriftsoppdateringer. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Vakuumdatabaser ved nedleggelse av Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Database vil bli gjenoppbygget og optimalisert, med kostnaden for en nedleggelsesforsinkelse"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr ""
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Annet"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby-server opptatt"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Slett kunstverkfiler"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Oppdater visninger"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby Server opptatt: Synkronisering pågår"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Slett Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr ""
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Hopp over introen"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "En meldingsboks vil be om hopp til intro sluttposisjon"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Markører"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Hopp over studiepoeng"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "En meldingsboks vil be om hopp over kreditter"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Spør hopp over intro"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Spør hopp over studiepoeng"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Meldingsboksen lukkes automatisk etter X sekunder"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Hopp over intro, hopp over studiepoeng, kinomodus og slett alternativmeldingsbokser lukkes automatisk etter X sekunder. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Komponister"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Ødelagt innstillingsfil oppdaget, gjenopprett standard. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL-feil"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Artwork-bufring stoppet: lite plass"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket-tilkobling offline"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Velg Emby-server"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Velg bibliotekene som skal repareres"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Velg bibliotekene som skal oppdateres"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Velg bibliotekene du vil fjerne"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Sanger etter sjanger"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vakuumdatabaser"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Tildel TVShow-plakater til episoder"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-postere (Emby TVShow primærbilde) vil bli brukt som episode Kodi-postere.\nVeksle dette alternativet krever en fullstendig resynkronisering inkludert alle bufrede kunstverk.\nForsiktig: Ikke bruk veiviseren for init-synkronisering (hopp over den) og gå gjennom innstillingene før (re)synkronisering."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Bruk fanart-bilder for neste episoder"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Overskriver (Kodi) tomler med (Kodi) fanarts for noden for neste episode"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Bruk alternativ hopp over intro (melding) layout"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr ""
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Aktiver serverfremgang"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Emby-serverens opptatt-varsler vises"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Forespørselsinnhold endres"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Forespørsel om endringer i innhold / brukerdata"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Forespørselendringer / innhold"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Koblet fra Emby-serveren"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Synkroniser livetv-kanaler"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr ""
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Paging - elementer forespurt (standardfaktor: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Synkroniseringstemaer"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Bekreft ledig plass"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Velg Mediekilde"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Bruk løsninger for Kodis (dynamiske) widgetproblemer"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Omkode video"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Omkode lyd"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Omkode båndbreddegrense"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Transkode utdataformat"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr ""
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Lyd"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Velg lydstrøm"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Velg undertekst"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Spesialtilbud"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Bruk stisubstitusjon"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Bibytte støtter kapittelbilder i tilleggsmodus. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Tildel unike skuespillere for hvert emby-bibliotek"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Episoder"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Rekord"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Se sammen avlyst"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Venter på deltakere"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Starter..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Velg brukere"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Eksterne klienter / Se sammen"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Slett tidtaker"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Legg til timer"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Tvingsklienter"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Kunder som ikke støtter å se sammen, vil bli tvunget til å delta"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Klientkontroll"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Kunder kan kontrollere hverandre"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Synkroniser klienter til master"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Master kontrollerer avspilling, pause, søk"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Vent på deltakere"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Vent på deltakere på sekunder"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Forsinket avspilling"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Forsinket start av avspilling, gi klientene tid til å synkronisere"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maksimal drift på pause"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Tillat asynkronisering i millisekunder ved pause"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr ""
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Automatisk bekreftelse av innkommende ekstern klientforespørsel"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Forsinkelse"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Utløser en søkekommando etter X sekunder"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Synkroniser ikke-støttede klienter på nytt"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Behold forbindelsen"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Etabler tilkobling ved start (etter enhets-ID)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Se sammen"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Fjern klient"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Legg til klient"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Aktiver ekstern modus"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Deaktiver ekstern modus"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Aktiver"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Primær"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Skive"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Tommel"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Bakgrunn"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Kapitel"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Kompresjon"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maksimal oppløsning"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Begrenser bildeoppløsningen med en faktor. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Velg transencode audiostream"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Bibytte støtter kapittelbilder (utvinning) i tilleggsmodus. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Aktiver websocket-tilkobling"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Hvis deaktivert: Ingen sanntidsoppdateringer, ingen varsler mottas og fjernkommandoer vil ikke fungere."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Bruk løsninger for Kodis episodebokmerkeproblemer"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi har en feil med episodebokmerker når du velger en episode via listevisninger. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi har problemer med dynamiske widgets. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Aktiver HTTP/2-støtte"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi har problemer med å spille innhold via med http/2-protokoll (standard av)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Oppdatering av ekstra lydwidget"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Utløser en ekstra (falsk) Kodi-lydskanning etter at Emby rapporterer fremdriftsoppdateringer. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr ""
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Dette alternativet påvirker tidsavbrudd for valg av EPG og multiversjon av innhold. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Favoritter"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Se sammen"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Administrer eksterne klienter"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Forene metadata etter bibliotek"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Musikkkunstner"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Musikksjanger"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Sjanger"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Samlingsfilmer"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Samling tv-serier"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Samling musikkvideoer"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Favoritter"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Varighet av ny innholdsmelding"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Bokssett som tagger"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Tildel bokssett til tagger"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Tidsavbrudd for nettverk"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Justerer nettverkets tidsavbrudd i sekunder. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Synkroniser Emby-favoritter til Kodi-favoritter"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml vil bli endret"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Nylig lagt til fotoalbum"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Fortsett å se"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Synkroniser livetv-kanaler på arrangementer"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Livetv-kanaler synkronisert på nytt ved Kodi-start og EPG-endringer"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Nedlastingssted"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Last ned"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Slett nedlasting"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Slett alle nedlastede filer"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Er du sikker på at du vil slette alt frakoblet innhold?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Alt nedlastet innhold vil bli slettet"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby-server offline"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Favorittårstider"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr ""
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Musikartist"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Musikkalbum"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Musikksjanger"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Lyd"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Film"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Musikkvideo"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Serie"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Sesong"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr ""
+
+msgctxt "#33587"
+msgid "Video"
+msgstr ""
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fotoalbum"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Sjanger"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Foto"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Spilleliste"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Kanaler"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr ""
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Tilhenger"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Mappe"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "Eskesett"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr ""
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Administrer servere"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Fjernavspilling"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Last ned innhold"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Kontekstmeny"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Favoritt legg til/fjern"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Spesialavspilling"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Opptak"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Oppdater element"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Slett element"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Favorittvideoer"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Favorittbilder"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Favoritt musikkvideoer"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Samlinger"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Anbefalinger"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Favorittfilmer"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Favorittbokssett"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z-videoer"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Nylig utgitte usette filmer"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Nylig utgitte filmer"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z musikkvideoer"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z-filmer"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z-serien"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Favorittsanger"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Favorittskuespillere"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Favoritt lyd"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Søk"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Pågår (blandet innhold)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Fortsett å se (blandet innhold)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Nedlastede filmer"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Nedlastede episoder"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Nedlastede musikkvideoer"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmer"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "TV-programmer"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Sesonger"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Sanger"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Skuespillere"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Bokmerker"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Last ned temaer (JA) eller linktemaer (NEI)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Velg lydstrøm"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Velg Sikkerhetskopiering"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Endring av kunstverk krever en tilbakestilling av bildebuffer. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Varslinger"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Meldingens varighet"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Meldingens varighet i sekunder"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Serveroperasjoner"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Forbindelser"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Slett element"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Sikkerhetskopi"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Fjernspill"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Nedlastet serie"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Sett imdb som standard rangeringsleverandør"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Anta at Embys fellesskapsvurdering gjenspeiler imdb-vurderinger"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Neste episoder (blandet innhold)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Fortsett sist spilt (blandet innhold)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Fortsett sist spilte"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Gå til Vis"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Gå til"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Gå til Vis"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Gå til sesong"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Nullstilling av noder fullført"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI lengdegrense"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "Høyere grenser er raskere i noen tilfeller, men kan utløse http 414-problemer"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Innstillinger"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Innstillinger"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Aktiver frakoblet melding"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Ugyldig serveradresse"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Ugyldig argument"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Nedlastingsbane ikke funnet"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Legg til filmlenker til tv-serier"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Filmer tilordnet tv-serier oppført i Kodis tv-showvisninger. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Aktiver startsynkronisering"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Hvis deaktivert, vil ikke Emby-innhold bli synkronisert mens Kodi starter"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Bruk klassisk utvalg"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Utvalgsmeny vises når multiinnhold er tilgjengelig"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Deduplisert innhold"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Fjerner lignende innhold på flere Emby-serverbiblioteker"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Sett høyeste videooppløsning som standard"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Dette alternativet gjelder for Kodis multiversjonsvalg og krever synkronisering av biblioteket på nytt."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Velg høyeste oppløsning automatisk"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Gjelder klassisk flervalgsalternativ"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Aktiver Kodi API-varsling"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Rapporter hendelser via Kodis API for ekstern bruk"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Tilgang nektet"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Album etter år"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Singler etter år"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Singler"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Singler som nylig ble lagt til"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Tilfeldige singler"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Ingen"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Ingen stiinformasjon tilgjengelig, vær forsiktig med hva du gjør!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "TV-show"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Velg primærbibliotek"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr ""
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr ""
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Deaktiver LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Aktiver LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Deaktiver temaer"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Aktiver temaer"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Følg http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Eksternt http-innhold vil få direkte tilgang og ikke sendes gjennom Emby-serveren. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Følg http-tidsavbrudd"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Sett lokalt innhold som standard"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Kodi-følgetillegget er ikke installert på Emby-serveren! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Avbryt artwork cache"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Antall netttjenestearbeidere"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Høyere verdier kan forbedre ytelsen, men trenger mer ressurser. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Lukk opptatt dialog"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Kan forhindre Kodi-krasj"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Type tjeneste"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP-header (TOS), kan forbedre responsen"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Beste innsats)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr ""
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (assurert videresending)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interaktiv i sanntid)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Inkrementell artwork cache"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Bufre kunstverk automatisk ved delvis synkronisering"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Sjangre med ikoner"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Studioer med ikoner"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Brikker med ikoner"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Lokale trailere"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Lastendringer"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Oppløsningsterskel"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Kode innhold når kildeoppløsningen er over valgt oppløsning"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Oppløsningsterskel"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Kode innhold når kildeoppløsningen er over valgt oppløsning"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "alltid"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "ubegrenset"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Omkodingsoppløsning"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Ubegrenset betyr å beholde kildeoppløsningen"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Webservice-modus"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Bibytte"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Multiversjon"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Oppdater musikkvideolenker"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Oppdaterer musikkvideolenker til musikkdatabase"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Tid ikke synkronisert, hopp over oppdateringer"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Legg til musikkvideolenker til musikk"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Musikkvideoer tilordnet musikk oppført i Kodis sangvisninger."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Slett sikkerhetskopi"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Skriv inn sikkerhetskopinavn"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Komprimering støttes ikke, sikkerhetskopiering ikke tilgjengelig."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Sikkerhetskopiering pågår"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Synkroniseringsmetode for lydtemaer"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Synkroniseringsmetode for videotemaer"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Last ned"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Fjernkontroll"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Aktiver lydtemaer"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Aktiver videotemaer"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Gå til album"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Gå til artist"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Sett synkronisering på pause"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Sett synkronisering på pause når serveren er opptatt med oppgaver"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Video forhåndsvisning av miniatyrbilder"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vakuumdatabase"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Last opp lokale temavideoer"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Last opp lokale temasanger"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Oppdater introdatabasen"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV-labyrintoppdatering"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Overfør media"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Skann metadatamappe"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Skann mediebibliotek"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Oppdater internettkanaler"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr ""
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Last ned undertekster"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Last ned lokale YouTube-filmtrailere"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Last ned lokale TV-temasanger"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Last ned lokale temavideoer"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Last ned lokale temasanger"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Oppdag introer"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Konverter media"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Oppdatering pågår"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX planlagt oppgave"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Mer som dette"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Mer som dette"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Hjemmevideo-tagger"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Favoritt hjemmevideoer"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Videomerker"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Favorittvideoer"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Endre avspillingstilstand"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Serie og sesongfremgang"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Spillelister (blandet)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Tilfeldig avspilling"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Tilfeldig avspilling"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi Companion-advarsel"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion er et Emby-servertillegg som holder styr på slettet innhold"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Behandler tilhengere"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Tilhengere"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Nylig lagt tilhengere"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Temaer"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Aktiver lyd"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Aktiver video"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Fades inn"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Fade ut"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Større verdier betyr lengre fadingstid, null er deaktivert"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Hjemskjerm"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Spiller temaer for widgets"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Forsinket start"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Verdiene er i sekunder"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Last ned"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Lagre temaer lokalt for bedre ytelse"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioritet"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Definerer hvilket tema som spilles først når begge er tilgjengelige"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Fjernhengere"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Valg av fjerntilhengere"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Kinointroer"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Mappehengere"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Lokale trailere"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Lokal film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Traileravspilling"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Bind"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Feilsøkingslogg"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Aktiver video med intro-markører"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Aktiver lyd med intromarkører"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Aktiver video etter innhold"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Aktiver lyd etter innhold"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Etter innholdsvarighet"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Omkoding brukt, kan føre til stor CPU-belastning på serveren"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Av"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Intromarkører"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Innhold"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuelle temaer"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigasjon"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Episodevisning"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Sesongvisning"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "TV-programvisning"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Filmvisning"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Tidspunkter"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Avspilling"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Oppdater lydfavoritter"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Oppdater musikkalbumfavoritter"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Oppdater videofavoritter"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Oppdater musikkvideofavoritter"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Oppdater bokssettfavoritter"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Oppdater seriefavoritter"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Oppdater sesongens favoritter"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Oppdater spillelistefavoritter"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Oppdater episodefavoritter"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Oppdater filmfavoritter"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Oppdater sjangerfavoritter"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Oppdater studiofavoritter"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Oppdater tag-favoritter"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Oppdater musikksjangerfavoritter"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Oppdater personfavoritter"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Oppdater personfavoritter"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Gjenopprettet sikkerhetskopi fra:"
+

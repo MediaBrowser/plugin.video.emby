@@ -1,6 +1,5 @@
-import xbmcgui
 from helper import utils
-
+import xbmcvfs
 
 class CommonDatabase:
     def __init__(self, cursor):
@@ -11,8 +10,7 @@ class CommonDatabase:
 
     # reset
     def delete_tables(self, DatabaseName):
-        ProgressBar = xbmcgui.DialogProgressBG()
-        ProgressBar.create(utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}")
+        utils.create_ProgressBar("delete_tables", utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}")
 
         # Temporay remove triggers
         self.cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='trigger'")
@@ -38,7 +36,7 @@ class CommonDatabase:
         for Table in Tables:
             if Table[0] not in ('version', 'versiontagscan', 'videoversiontype'):
                 Counter += 1
-                ProgressBar.update(int(Counter * Increment), utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}: {Table[0]}")
+                utils.update_ProgressBar("delete_tables", Counter * Increment, utils.Translate(33199), f"{utils.Translate(33415)}-{DatabaseName} {utils.Translate(33416)}: {Table[0]}")
                 self.cursor.execute(f"DELETE FROM {Table[0]}")
 
         # readding triggers
@@ -50,15 +48,20 @@ class CommonDatabase:
             if not Index[0].startswith("sqlite_autoindex"):
                 self.cursor.execute(Index[1])
 
-        ProgressBar.close()
-        del ProgressBar
+        utils.close_ProgressBar("delete_tables")
 
     # artwork
     def delete_artwork(self, KodiId, KodiMediaType):
+        self.cursor.execute("SELECT DISTINCT url FROM art WHERE media_id = ? AND media_type = ?", (KodiId, KodiMediaType))
+        URLs = self.cursor.fetchall()
         self.cursor.execute("DELETE FROM art WHERE media_id = ? AND media_type = ?", (KodiId, KodiMediaType))
+        delete_artworkcache(URLs)
 
     def delete_artwork_force(self, KodiId):
+        self.cursor.execute("SELECT DISTINCT url FROM art WHERE media_id = ?", (KodiId,))
+        URLs = self.cursor.fetchall()
         self.cursor.execute("DELETE FROM art WHERE media_id = ?", (KodiId,))
+        delete_artworkcache(URLs)
 
     def get_artwork_urls(self, media_type):
         self.cursor.execute("SELECT url FROM art WHERE media_type = ?", (media_type,))
@@ -69,28 +72,51 @@ class CommonDatabase:
         return self.cursor.fetchall()
 
     def add_artwork(self, KodiArtworks, KodiId, KodiMediaType):
+        SQLData = ()
+
         for ArtworkId, ImagePath in list(KodiArtworks.items()):
             if ArtworkId != "fanart":
                 if ImagePath:
-                    self.cursor.execute("INSERT INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", (KodiId, KodiMediaType, ArtworkId, ImagePath))
+                    SQLData += ((KodiId, KodiMediaType, ArtworkId, ImagePath),)
             else:
                 for ArtworkFanArtId, ImageFanArtPath in list(KodiArtworks['fanart'].items()):
-                    self.cursor.execute("INSERT INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", (KodiId, KodiMediaType, ArtworkFanArtId, ImageFanArtPath))
+                    SQLData += ((KodiId, KodiMediaType, ArtworkFanArtId, ImageFanArtPath),)
 
+        if SQLData:
+            self.cursor.executemany("INSERT INTO art(media_id, media_type, type, url) VALUES (?, ?, ?, ?)", SQLData)
+
+        del SQLData
 def toggle_path(CurrentPath, NewPath):
     if NewPath == "http://127.0.0.1:57342/":
         if CurrentPath.startswith("/emby_addon_mode/"):
-            return f'{CurrentPath.replace("/emby_addon_mode/", "http://127.0.0.1:57342/")}|redirect-limit=1000'
+            return f'{CurrentPath.replace("/emby_addon_mode/", "http://127.0.0.1:57342/")}|redirect-limit=1000&failonerror=false'
 
         return CurrentPath.replace("dav://127.0.0.1:57342/", "http://127.0.0.1:57342/")
 
     if NewPath == "/emby_addon_mode/":
         if CurrentPath.startswith("http://127.0.0.1:57342/"):
-            return CurrentPath.replace("http://127.0.0.1:57342/", "/emby_addon_mode/").replace("|redirect-limit=1000", "")
+            return CurrentPath.replace("http://127.0.0.1:57342/", "/emby_addon_mode/").replace("|redirect-limit=1000&failonerror=false", "")
 
-        return CurrentPath.replace("dav://127.0.0.1:57342/", "/emby_addon_mode/").replace("|redirect-limit=1000", "")
+        return CurrentPath.replace("dav://127.0.0.1:57342/", "/emby_addon_mode/").replace("|redirect-limit=1000&failonerror=false", "")
     # if NewPath == "dav://127.0.0.1:57342/":
     if CurrentPath.startswith("/emby_addon_mode/"):
-        return f'{CurrentPath.replace("/emby_addon_mode/", "dav://127.0.0.1:57342/")}|redirect-limit=1000'
+        return f'{CurrentPath.replace("/emby_addon_mode/", "dav://127.0.0.1:57342/")}|redirect-limit=1000&failonerror=false'
 
     return CurrentPath.replace("http://127.0.0.1:57342/", "dav://127.0.0.1:57342/")
+
+def delete_artworkcache(Paths):
+    for row in Paths:
+        Path = row[0]
+
+        if not Path:
+            continue
+
+        Hash = utils.kodi_hash(Path)
+        PathBase = f"{utils.FolderUserdataThumbnails}{Hash[0]}/{Hash}"
+
+        for ext in ("jpg", "png"):
+            PathFile = f"{PathBase}.{ext}"
+
+            if xbmcvfs.exists(PathFile):
+                utils.delFile(PathFile)
+                break

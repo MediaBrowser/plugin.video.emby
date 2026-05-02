@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Емби за Коди"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Адрес на сървъра"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Име на сървъра"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "Принудително HTTP възпроизвеждане"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Метод за влизане"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Ниво на дневник"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Име на устройството"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Напреднал"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Потребителско име"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Номер на порт"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Потвърждаване на изтриването на файл"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Предложете изтриване след възпроизвеждане"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "За епизоди"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "За филми"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Разрешаване на подобрени произведения на изкуството (т.е. обложка)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Качество на видеото"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Наскоро добавени телевизионни предавания"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Телевизионни предавания в процес"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Наскоро добавени филми"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Наскоро добавени епизоди"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Филми в процес"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Епизоди в ход"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Следващи епизоди"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Любими филми"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Любими предавания"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Любими епизоди"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Кутии"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Негледани филми"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Случайни предмети"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Препоръчани артикули"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Нулирайте локалната база данни на Kodi"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Активиране на поздравително съобщение"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Наскоро добавени домашни видеоклипове"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Наскоро добавени снимки"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Любими домашни видеоклипове"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Любими снимки"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Любими албуми"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Наскоро добавени музикални видеоклипове"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "В ход Музикални видеоклипове"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Негледани музикални видеоклипове"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Филми"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "Телевизионни предавания"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby опции"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Прекодиране на Emby"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Добавяне към любими"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Премахване от любими"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Настройки"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Изтриване на елемент"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Опресняване на елемент"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Прекодиране"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Проверете връзката"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Използване на алтернативно име на устройство"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Синхронизиране"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Разрешаване на известяване, ако броят на актуализациите е по-голям от"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Синхронизиране на празни предавания"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Активиране на музикална библиотека"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Режим на възпроизвеждане"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Активиране на кеширането на произведения на изкуството"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Възпроизвеждане"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Мрежови идентификационни данни"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Активиране на режим кино"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Поискайте да пуснете трейлъри"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "Пропуснете потвърждението за изтриване (използвайте на свой собствен риск)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Връщане към възобновяване (за секунди)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "Транскод H265/HEVC"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Игнорирайте специалните предложения в следващите епизоди"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Постоянни потребители"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Забавяне при стартиране (в секунди)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Разрешаване на съобщение за рестартиране на сървъра"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Активиране на ново съдържание"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "Продължителност на изскачащия прозорец на видео библиотеката"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "Продължителност на изскачащия прозорец на музикалната библиотека"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Известия (за секунди)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Генериране на нов идентификатор на устройство"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "Разрешаване на скрийнсейвъра по време на синхронизиране"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Вход"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Ръчно влизане"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Потребителско име или имейл"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "Активиране на сървъра офлайн"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Показване на съобщение"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Влезте с Emby Connect"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Парола"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Влезте"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Отказ"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Изберете главен сървър"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "Потребителското име или паролата не могат да бъдат празни"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Не може да се свърже с избрания сървър"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Свързване към"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Ръчно добавяне на сървър"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Моля, влезте"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Промяна на потребителя на Emby Connect"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Домакин"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Свързване"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "Сървърът или портът не могат да бъдат празни"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Промяна на потребителя на Emby Connect"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Добре дошли"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "Сървърът се рестартира"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Невалидно потребителско име или парола"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Изберете аудио потока"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Изберете потока на субтитрите"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Изтриване на файл от Emby?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Пускане на трейлъри?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Събиране на кутии"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Събиране:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Установено е, че базата данни трябва да бъде пресъздадена за тази версия на Emby за Kodi. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Emby за Kodi няма да работи правилно, докато базата данни не бъде нулирана."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Завършено през:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Генериран е нов идентификатор на устройство. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Внимание! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Добавка (по подразбиране)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Native (директни пътища)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Активиране на музикална библиотека?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "Изпълнението на процеса на кеширане може да отнеме известно време. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Нулиране на съществуващ кеш на произведения на изкуството?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Актуализиране на кеша за произведения на изкуството"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Изчакване на нишки за излизане"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "Kodi не може да намери файл:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Използвайте заместването на пътя на Emby, за да форматирате пътя си правилно или да се уверите, че пътят ви е добавен към файловия мениджър на Kodi. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Ново"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Добавяне на потребител към сесия"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Извършване на нулиране на локална база данни"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Кеширане на всички произведения на изкуството"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Синхронизиране на медии с тема"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Добавяне/премахване на потребител от сесията"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Добавяне на потребител"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Премахване на потребител"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Премахване на потребителя от сесията"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Премахнато"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Добавено"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Сигурни ли сте, че искате да нулирате вашата локална база данни Kodi?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Да се ​​премахнат ли всички кеширани илюстрации?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Нулиране на всички настройки на добавката Emby?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Нулирането на базата данни завърши, Kodi ще се рестартира, за да приложи промените."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Въведете име на папка за архивиране"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Замяна на съществуващото архивиране?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Създаден архив на:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Създайте резервно копие"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Архивна папка"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Важно, cleanonupdate беше премахнат във вашите разширени настройки, за да се предотврати конфликт с Emby за Kodi. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Опресняване на кутии"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Инсталирайте сървърния плъгин Kodi Companion за автоматично прилагане на актуализации на библиотеката emby при стартиране. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Искате ли да синхронизирате празни предавания?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Тъй като използвате естествен режим на възпроизвеждане с активирана музика, искате ли да импортирате музикален рейтинг от файлове?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Възобновяване на предишното синхронизиране?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Активирайте услугата на уеб сървъра в настройките на Kodi, за да позволите кеширане на произведения на изкуството."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "Намерете повече информация в github wiki/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Активиране на контекстното меню"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Активирайте опцията за транскодиране"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Потребители, добавени към сесията"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Известията се забавят по време на възпроизвеждане на видео (с изключение на телевизия на живо)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr "Плъгин"
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Рестартирайте Kodi, за да влезе в сила."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Нулирайте локалната база данни, за да приложите промяната в режима на възпроизвеждане."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Прилага се за собствен режим и режим на възпроизвеждане с добавки"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Прилага се само за режим на възпроизвеждане с добавки"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Активиране на външни субтитри"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Настройка за отдалечена връзка"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "Compress artwork (намалява качеството)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Разрешаване на кеширане на произведения на изкуството? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Променихте режима на възпроизвеждане. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Нещо се обърка по време на синхронизирането. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Изберете библиотеките за добавяне"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Всички"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Рестартирайте Kodi, за да продължите оттам, откъдето сте спрели."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Синхронизиране на библиотека с Kodi"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Включване на хора (бавно)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Изберете Emby изгледите за синхронизиране с Kodi. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Синхронизиране по-късно"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Продължете"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Неуспешно извличане на последните актуализации на съдържанието. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "Можете да синхронизирате библиотеки, като стартирате добавката Emby > Добавяне на библиотеки."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Изберете източника"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Опресняване на комплекти кутии"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Библиотека за поправка"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Премахване на библиотека от Kodi"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Добавяне на сървър"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "Kodi сега ще се рестартира, за да приложи малка корекция за вашата версия на Kodi."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Актуализиране на библиотека"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "Активиране на Kodi Companion (плъгин за сървър)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "Можете да актуализирате библиотеката си ръчно, вместо да разчитате на сървърния плъгин Kodi companion. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Актуализиране на библиотеки"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Поправка на библиотеки"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Премахване на сървъра"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Нещо се обърка. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Премахване на библиотеката"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Моля, уверете се, че вашите Emby сървърни библиотеки са достъпни за вашата Kodi инсталация и че имате конфигурирано заместване на пътя на вашия сървър. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Не може да се свърже с Emby."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Достъпът ви до Emby е ограничен."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "Вашият достъп до този сървър е ограничен."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Не може да се свърже с този сървър."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Актуализиране на информацията за сървъра"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Свържете се отново със същия сървър, който е бил зареден преди това. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Не мога да намеря ТВ мелодии в Kodi."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Вашата медия с тема Emby е синхронизирана с Kodi"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Добавяне на библиотеки"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "Текущо приложената корекция за Emby за Kodi е повредена! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Приложена е корекция!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Само аудио"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Само субтитри"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Активиране на избор на аудио/субтитри"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "За да избегнете грешки, моля, актуализирайте Emby за Kodi до версия: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Проверете за актуализации"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Нулиране на музикалната библиотека?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Подкрепете този проект"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Маскиране на чувствителна информация в регистрационния файл (не се отнася за регистриране на коди)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Неуспешно създаване на резервно копие"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(динамичен)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Наскоро добавен"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Любими"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "В ход"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Ненаблюдавано"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "С първата буква"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "Имате {number} чакащи актуализации. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Забравете за предишното синхронизиране? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Страниране - изтегляне на нишки (по подразбиране: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Съвет за пейджинг: Всяка нишка за изтегляне изисква вашата максимална стойност на елементи от Emby едновременно."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Актуализирайте или поправете вашите библиотеки, за да приложите промените по-долу."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "Показва лентата за напредъка, ако броят на актуализациите е по-голям от"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Обработване на актуализации"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Принудително прекодиране"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Рестартирайте Emby за Kodi"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Рестартиране за прилагане на корекцията"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Играйте с режим кино"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Активирайте опцията за игра в режим кино"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Премахване на библиотеки"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Активиране на синхронизиране по време на възпроизвеждане (може да причини известно забавяне)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "Придружителят на Kodi ускорява синхронизирането при стартиране. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Синхронизиране на рейтинги на Rotten Tomatoes"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Искате ли да синхронизирате рейтингите на Rotten Tomatoes?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Рестартиране на Emby за Kodi, за да се приложи тази промяна?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Рестартирайте Emby за Kodi"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Рестартира се..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Управление на библиотеки"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Активирайте Emby за Kodi"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Разширени опции"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Синхронизирането вече се изпълнява, моля, изчакайте да завърши и опитайте отново."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr "Емби"
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Емби игра"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Пач за повторно сканиране на музикална база данни"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "Задачата е успешна!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "Задачата е неуспешна!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Активиране на проста игра (удобен за външен играч)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "Транскодиране 10 бита (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Поискайте да продължите със синхронизирането, ако броят е по-голям от"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "Транскодиране 10 бита (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Възпроизвеждане на отдалечени URL адреси с помощта на Emby"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Показване на скритите потребители в селекцията"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Нулиране на актуализацията на корекцията"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Най-новата версия"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Активиране на етикет за няколко епизода. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Активиране на локални трейлъри"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Активиране на трейлъри"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Прекодиране"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Видео в изходен формат"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Аудио в изходен формат"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Показване на опции в менюто на плъгина"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Информация за дата"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Жанрове"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Студия"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Лозунги"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Общ преглед"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Места на производство"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Динамични библиотеки"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Режим на съвместимост"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Възстановяване на резервно копие"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Кое произведение на изкуството трябва да се кешира"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Видео"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Музика"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Дата на инкрементално синхронизиране"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Инкрементално време за синхронизиране"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Събиране на премахнати елементи"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Активиране на режим кино (филми)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Активиране на кино режим (телевизионни предавания)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Изтриване на елементи и от Emby сървър? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Изтриване на ФАЙЛОВЕ също от Emby сървър чрез събития на Kodi? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Разрешаване на изтриването на ФАЙЛ при събития на Kodi"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "Деактивирайте поддръжката на HTTP2"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "Инициирано е рестартиране на Kodi поради промени в advancedsettings.xml"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr ""
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Режим Кино"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Произведения на изкуството"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Меню"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "Режимът на съвместимост променя идентификатора на приставката на 4.x (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "При някои обстоятелства (WLan, забавено стартиране на мрежата и т.н.) забавеното стартиране на плъгин може да подобри свързаността"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Можете да коригирате каква мета информация да се зарежда за динамично (несинхронизирано) съдържание. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Внимавайте с тази опция. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Това е опция за отстраняване на грешки. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Нулира уникалния идентификатор на устройството. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Свържете се с нов Emby сървър (мултисървър) или свържете отново съществуващ Emby сървър (debug)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Показване на скритите потребители на сървъра на Emby за операции по свързване."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Добавяне/Премахване/Поправяне на библиотеки, телевизия на живо, теми."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Синхронизира всички произведения на изкуството локално с Kodi. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Някои кожи използват xps плейлисти. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "Потребителската оценка е допълнителна информация, която трябва да се синхронизира с Kodi. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Извършва пълно повторно синхронизиране на база данни на Kodi. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "Кино режимът е премиерна функция на Emby. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Прекодиране на аудио битрейт"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Скорост на мрежата. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Доклад за името на устройството до сървъра на Emby."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Докладвайте напредъка на възпроизвеждането на допълнителни потребители."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "Пауза между спряното възпроизвеждане и началото на продължението."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Това е функция на Emby сървър."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Може да спести честотна лента"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "В някои случаи е полезно да се показват опциите на менюто в менюто на плъгина като преки пътища. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "Контактното меню поддържа управление на любими, опции за изтриване, избор на специални функции (филм) и др."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Аудио битрейт"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Максимален брой нишки в кеша на произведения на изкуството"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Анимирана икона"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Опресняване на кожата при връзка със сървър на Emby"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Папка"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Смесено съдържание"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "В ход"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Случайни епизоди"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Случайни телевизионни предавания"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Нулиране на фабричните настройки"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Възлите са нулирани"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Сигурни ли сте, че искате да нулирате вашите възли?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Художници"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Негледани епизоди"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Негледани телевизионни предавания"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Любими телевизионни предавания"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Наскоро пуснато телевизионно шоу"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Предстоящи епизоди"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "Телевизионни предавания"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Наскоро играно"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Наскоро изигран епизод"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Директори"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "Телевизионни предавания"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Етикети за епизоди"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Филмови етикети"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "Възобновете филма"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Държави"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Албуми"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Музикални видеоклипове"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Музикални видео тагове"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Случайни музикални видеоклипове"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Възобновяване на музикални видеоклипове"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Видеоклипове"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Снимки"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Фотоалбуми"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Етикети за фотоалбум"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Фото тагове"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Видео тагове"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Наскоро добавени снимки"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Наскоро добавени фотоалбуми"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Наскоро добавени видеоклипове"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Плейлисти"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Аудиокниги"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Произволни аудиокниги"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Неслушан"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Случайни песни"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Произволни подкасти"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Подкасти"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "Синхронизираните възли са много по-бързи от динамичните възли. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "Динамичните възли се изграждат в движение. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Любими музикални видеоклипове"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Синхронизирани възли"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Динамични възли"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Наскоро добавени албуми"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Наскоро добавени аудиокниги"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Наскоро добавени песни"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Случайни албуми"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Случайни песни"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Произволни аудиокниги"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Произволни подкасти"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Наскоро добавени подкасти"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Добавяне/Премахване/Поправяне на библиотеки, телевизия на живо, теми"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Отворете настройките на плъгина"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Извършва пълно повторно синхронизиране на база данни на Kodi (включително съдържание, различно от Emby). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Нулирайте всички потребителски възли и ги изградете отново"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Ограничение на заявката за възел"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Ограничаване на заявките за възлите на прогреса. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Възли"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "Използвайте опцията за възобновяване на възпроизвеждането от Emby сървъра"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Тази функция деактивира вътрешните актуализации на прогреса на Kodi. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Вакуумни бази данни при изключване на Kodi"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Базата данни ще бъде възстановена и оптимизирана с цената на забавяне на изключване"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr "Презареждане на кожата"
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Друго"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby сървърът е зает"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Изтриване на файлове с произведения на изкуството"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Актуализиране на изгледи"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby сървърът е зает: синхронизирането е в ход"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Изтриване на Kodi"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "База данни"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Пропускане на въведението"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Поле със съобщение ще поиска прескачане до крайната позиция на въведението"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Маркери"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Пропускане на кредити"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Поле със съобщение ще поиска кредити за пропускане"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Попитайте, пропуснете въведението"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Попитайте пропускане на кредити"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Кутията за съобщения се затваря автоматично след X секунди"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "Пропускане на интро, пропускане на надписи, полета за съобщения на режим кино и опция за изтриване ще се затворят автоматично след X секунди. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Композитори"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Открит е повреден файл с настройки, възстановете настройките по подразбиране. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL грешка"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Кеширането на произведения на изкуството е спряно: мястото не достига"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket връзка офлайн"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Изберете Emby сървър"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Изберете библиотеките за поправка"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Изберете библиотеките за актуализиране"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Изберете библиотеките за премахване"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Песни по жанр"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Вакуумни бази данни"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "Присвояване на плакати на TVShow към епизоди"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "TVShow Kodi-плакати (основно изображение на Emby TVShow) ще се използват като Kodi-плакати за епизоди.\nПревключването на тази опция изисква пълно повторно синхронизиране, включително всички кеширани произведения на изкуството.\nВнимание: Не използвайте съветника за инициализиране на синхронизиране (пропуснете го) и прегледайте настройките преди (повторно)синхронизиране."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Използвайте фанарт изображения за следващите епизоди"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Презаписва (Kodi) палци с (Kodi) fanarts за следващ възел за епизоди"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Използване на алтернативно оформление за пропускане на интро (съобщение)."
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr "Дизайн на кожата Embuary"
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "Разрешаване на прогреса на сървъра"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Показват се известия за заетост на Emby сървъра"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "Промени в съдържанието на заявката"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Промени в съдържанието на заявката / потребителски данни"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Промени в съдържанието на заявката / съдържание"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Прекъсната връзка със сървъра Emby"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Синхронизиране на телевизионни канали на живо"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Синхронизиране на телевизия на живо epg"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Страниране - поискани елементи (фактор по подразбиране: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Синхронизиране на теми"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Проверете свободното пространство"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Изберете медиен източник"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Използвайте заобиколни решения за (динамичните) проблеми с джаджи на Kodi"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Прекодиране на видео"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Прекодиране на аудио"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Прекодиране на ограничение на честотната лента"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Прекодиране на изходен формат"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr "ВОРБИС"
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "Прекодиране на телевизия на живо"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Аудио"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "Видео"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Избор на аудиопоток"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Изберете субтитри"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Специални"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Използване на заместване на пътя"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Заместването на пътя поддържа изображения на глави в режим на добавяне. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Задайте уникални актьори за всяка emby библиотека"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Епизоди"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr "EMBY: Запис"
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "Гледането заедно е отменено"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "В очакване на участници"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Стартиране..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Избор на потребители"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Отдалечени клиенти / Гледайте заедно"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Изтриване на таймера"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Добавяне на таймер"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Принудителни клиенти"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Клиенти, които не поддържат гледане заедно, ще бъдат принудени да участват"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Клиентски контрол"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Клиентите могат да се контролират един друг"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Синхронизиране на клиенти към мастер"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "Главният контролира възпроизвеждане, пауза, търсене"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Изчакайте за участие"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Изчакайте участието за секунди"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Забавяне на възпроизвеждането"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Отлагане на старта на възпроизвеждането, дайте време на клиентите за синхронизиране"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Максимален дрифт при пауза"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Разрешено асинхронизиране в милисекунди при пауза"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Автоматично потвърждение"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Автоматично потвърждаване на входяща заявка за отдалечен клиент"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Забавяне"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "Задейства команда за търсене след X секунди"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "Повторно синхронизиране на неподдържани клиенти"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Запазване на връзката"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Установяване на връзка при стартиране (по идентификатор на устройство)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Гледайте заедно"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Премахване на клиент"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Добавяне на клиент"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Активиране на отдалечен режим"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: Деактивиране на дистанционния режим"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Активиране"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Основен"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr "чл"
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr "Банер"
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Диск"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr "Лого"
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Палец"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Фон"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Глава"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Компресия"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Максимална резолюция"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Ограничава разделителната способност на изображението с фактор. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Изберете прекодиран аудиопоток"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Заместването на пътя поддържа изображения на глави (извличане) в режим на добавяне. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Активиране на връзка с websocket"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Ако е деактивирано: Няма актуализации в реално време, няма да се получават известия и отдалечените команди няма да работят."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Използвайте заобиколни решения за проблемите с отметките на епизодите на Kodi"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "Kodi има грешка с отметки за епизоди при избиране на епизод чрез списъчни изгледи. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "Kodi има проблем с динамичните джаджи. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "Активиране на HTTP/2 поддръжка"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "Kodi има проблеми с възпроизвеждането на съдържание чрез http/2 протокол (по подразбиране изключен)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Допълнително опресняване на аудио уиджета"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Задейства допълнително (фалшиво) аудио сканиране на Kodi, след като Emby докладва актуализации на напредъка. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Время за изчакване на мрежата"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Тази опция засяга EPG и времето за избор на съдържание за много версии. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Любими"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Гледайте заедно"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Управление на отдалечени клиенти"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "Унифициране на метаданни по библиотека"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Музикален изпълнител"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Музикален жанр"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Жанр"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Студио"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr "Етикет"
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Колекция филми"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Колекция телевизионни предавания"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Колекция музикални видеоклипове"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Любими"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Продължителност на съобщението с ново съдържание"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Боксетове като тагове"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Присвояване на кутии към тагове"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Таймаут на мрежата"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "Коригиране на мрежовите таймаути в секунди. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Синхронизиране на любимите на Emby с любимите на Kodi"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi favorites.xml ще бъде променен"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Наскоро добавени фотоалбуми"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Продължете да гледате"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Синхронизиране на телевизионни канали на живо за събития"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "Livetv каналите се синхронизират повторно при стартиране на Kodi и EPG промени"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Местоположение за изтегляне"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Изтегляне"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Изтриване на изтеглянето"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Изтриване на всички изтеглени файлове"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Сигурни ли сте, че искате да изтриете цялото офлайн съдържание?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Цялото изтеглено съдържание ще бъде изтрито"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby сървър офлайн"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Любими сезони"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "Пейджинг"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Музикант"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Музикален албум"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Музикален жанр"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Аудио"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Филм"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Музикално видео"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "Серия"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Сезон"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Епизод"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "Видео"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Фотоалбум"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Жанр"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Снимка"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Плейлист"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Канали"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "Телевизия на живо"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Трейлър"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Папка"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr "Кутия"
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Лице"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr "Етикет"
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Студио"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr "Многосъдържание"
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Управление на сървъри"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Отдалечено възпроизвеждане"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Изтегляне на съдържание"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Контекстно меню"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Любимо добавяне/премахване"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Специално възпроизвеждане"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Запис"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Опресняване на елемент"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Изтриване на елемент"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Любими видеоклипове"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Любими снимки"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Любими музикални видеоклипове"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Колекции"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Препоръки"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Любими филми"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Любими бокссетове"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "А-Я фотоалбум"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z видеоклипове"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Наскоро пуснати негледани филми"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Наскоро пуснати филми"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z музикални видеоклипове"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z филми"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "серия A-Z"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Любими песни"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Любими актьори"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Любимо аудио"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Търсене"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "В ход (Смесено съдържание)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Продължете да гледате (Смесено съдържание)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Изтеглени филми"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Изтеглени епизоди"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Изтеглени музикални видеоклипове"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Филми"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr "Телевизионни предавания"
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Сезони"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr "Песни"
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Актьори"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Отметки"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Изтегляне на теми (ДА) или свързване на теми (НЕ)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Избор на аудио поток"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Изберете Архивиране"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "Промяната на илюстрация изисква нулиране на кеша на илюстрацията. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Известия"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Продължителност на съобщението"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Продължителност на съобщението в секунди"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Сървърни операции"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Връзки"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Изтриване на елемент"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Резервно копие"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Дистанционно възпроизвеждане"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Изтеглена серия"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Задайте imdb като доставчик на оценка по подразбиране"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Да приемем, че оценката на общността на Emby отразява оценките в imdb"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Следващи епизоди (Смесено съдържание)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Продължаване на последната игра (Смесено съдържание)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Продължаване на последната игра"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr "Отиди на показване"
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Отидете на"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr "Отиди на показване"
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Преминете към сезона"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "Нулирането на възлите приключи"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "Ограничение на дължината на URI"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "По-високите лимити са по-бързи в някои случаи, но могат да предизвикат проблеми с http 414"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Настройки"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Настройки"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Активиране на офлайн съобщение"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Невалиден адрес на сървъра"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Невалиден аргумент"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "Пътят за изтегляне не е намерен"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Добавяне на връзки към филми към телевизионни предавания"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "Филми, присвоени на телевизионни предавания, изброени в изгледите на tvshow на Kodi. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Активиране на начална синхронизация"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Ако е деактивирано, съдържанието на Emby няма да се синхронизира, докато Kodi стартира"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Използване на класически избор"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "Менюто за избор се показва, когато е налично много съдържание"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr "Многосъдържание"
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Дедупликирано съдържание"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Премахва подобно съдържание на множество Emby сървърни библиотеки"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "Задаване на най-висока видео разделителна способност по подразбиране"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Тази опция се отнася за избора на мултиверсия на Kodi и изисква повторно синхронизиране на библиотеката при превключване."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "Автоматичен избор на най-висока резолюция"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "Прилага се за класическа опция за множествен избор"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Активиране на известието за API на Kodi"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Докладвайте събития чрез API на Kodi за външна употреба"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Достъпът отказан"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Албуми по години"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Необвързани по години"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Необвързани"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Наскоро добавени сингли"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Случайни сингли"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Няма"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Няма налична информация за пътя, внимавайте какво правите!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr "ТВ шоу"
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Изберете основна библиотека"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Опресни LiveTv"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Опресняване на темите"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "Деактивирайте LiveTv"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "Активиране на LiveTv"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Деактивиране на темите"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Активиране на теми"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Следвайте http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "Външното http съдържание ще бъде достъпно директно и няма да се прехвърля през Emby сървър. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Изчакване на следване на http"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Задаване на локално съдържание по подразбиране"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "Придружаващата добавка на Kodi не е инсталирана на Emby сървър! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Отмяна на кеша на произведения на изкуството"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Брой работници на уеб услугата"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "По-високите стойности могат да подобрят производителността, но се нуждаят от повече ресурси. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Затваряне на диалоговия прозорец за заето"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Може да предотврати сривовете на Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Тип услуга"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP хедър (TOS), може да подобри отзивчивостта"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (Най-доброто усилие)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (Ускорено препращане)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (гарантирано препращане)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (интерактивен в реално време)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Инкрементален кеш на произведения на изкуството"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Кеширане на илюстрации автоматично при частични синхронизации"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Жанрове с икони"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Студия с икони"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Етикети с икони"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Местни ремаркета"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Промени в зареждането"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Праг на разделителна способност"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Прекодиране на съдържание, когато разделителната способност на източника е над избраната разделителна способност"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Праг на разделителна способност"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Прекодиране на съдържание, когато разделителната способност на източника е над избраната разделителна способност"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "винаги"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "неограничен"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Резолюция на транскодиране"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Неограничено означава запазване на разделителната способност на източника"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Режим на уеб услуга"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Заместване на пътя"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Мултиверсия"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Опресняване на връзките към музикално видео"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Актуализира връзките към музикално видео към музикална база данни"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Времето не е синхронизирано, пропуснете актуализациите"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Добавете музикалнивидео връзки към музиката"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Музикални видеоклипове, присвоени на музика, посочена в изгледите на песни на Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Изтриване на резервно копие"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Въведете резервно име"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Компресията не се поддържа, архивирането не е налично."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Извършва се архивиране"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Метод за синхронизиране на аудио теми"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Метод за синхронизиране на видео теми"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Изтегляне"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Дистанционно"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Активиране на аудио теми"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Активиране на видео теми"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Отидете на албума"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Отидете на Изпълнител"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Пауза на синхронизирането"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Пауза на синхронизирането, когато сървърът е зает със задачи"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Извличане на миниатюри за визуализация на видео"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Вакуумна база данни"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Качване на местни тематични видеоклипове"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Качете местни тематични песни"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Актуализиране на въвеждащата база данни"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "Актуализация на телевизионния лабиринт"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Трансферна среда"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Сканиране на папка с метаданни"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Сканиране на медийна библиотека"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Опресняване на интернет каналите"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Ръководство за опресняване"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Изтегляне на субтитри"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Изтеглете локални филмови трейлъри от YouTube"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Изтеглете местни телевизионни тематични песни"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Изтеглете видеоклипове с локална тема"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Изтеглете местни тематични песни"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Откриване на въведения"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Конвертиране на медия"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "В ход е опресняване"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Планирана задача на Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Още като това"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Повече като това"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Тагове за домашно видео"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Любими домашни видеоклипове"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Видео тагове"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Любими видеоклипове"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "Състоянието на възпроизвеждане се променя"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Прогрес в серията и сезона"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Плейлисти (смесени)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Произволно възпроизвеждане"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Произволно възпроизвеждане"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Предупреждение за Kodi Companion"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion е добавка за сървър Emby, която следи изтритото съдържание"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Обработка на ремаркета"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Ремаркета"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Наскоро добавени трейлъри"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Теми"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Активиране на аудио"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Активиране на видео"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Изчезване"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Изчезване"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "По-големите стойности означават по-дълго време за затихване, нулата е забранена"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Начален екран"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Възпроизвежда теми за уиджети"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Отложен старт"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Стойностите са в секунди"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Изтегляне"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Съхранявайте темите локално за по-добро представяне"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Приоритет"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Определя коя тема се възпроизвежда първа, когато и двете са налични"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Отдалечени ремаркета"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Отдалечен избор на ремаркета"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Въведение в киното"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Ремаркета с папки"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Местни ремаркета"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Местен филм"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Възпроизвеждане на трейлър"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Обем"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Дневник за отстраняване на грешки"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Разрешаване на видео чрез въвеждащи маркери"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Активиране на аудио чрез интро маркери"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Активиране на видео по съдържание"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Активиране на аудио по съдържание"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "По продължителност на съдържанието"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Използваното транскодиране може да доведе до голямо натоварване на процесора на сървъра"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Изключено"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Въвеждащи маркери"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Съдържание"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Виртуални теми"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Навигация"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Изглед на епизод"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Изглед на сезона"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Изглед на телевизионно шоу"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Изглед на филм"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Времена"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Възпроизвеждане"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Актуализиране на любимите аудио"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Актуализиране на любимите музикални албуми"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Актуализиране на любимите видеоклипове"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Актуализиране на любими музикални видеоклипове"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Актуализиране на фаворити в кутията"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Актуализиране на любимите серии"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Актуализиране на любимите сезони"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Актуализиране на любимите плейлисти"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Актуализиране на любимите епизоди"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Актуализиране на любими филми"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Актуализиране на любимите жанрове"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Актуализиране на любимите в студиото"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Актуализиране на любимите маркери"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Актуализиране на любимите музикални жанрове"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Актуализиране на любимите хора"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Актуализиране на любимите хора"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Възстановено архивиране от:"
+

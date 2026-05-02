@@ -3013,47 +3013,47 @@ msgstr "Podle časového limitu http"
 
 msgctxt "#33715"
 msgid "Set local content as default"
-msgstr ""
+msgstr "Nastavit místní obsah jako výchozí"
 
 msgctxt "#33716"
 msgid "Kodi companion addon not installed on Emby server! Please install"
-msgstr ""
+msgstr "Doplňkový doplněk Kodi není nainstalován na serveru Emby! "
 
 msgctxt "#33717"
 msgid "Cancel artwork cache"
-msgstr ""
+msgstr "Zrušte mezipaměť uměleckých děl"
 
 msgctxt "#33718"
 msgid "Number of webservice workers"
-msgstr ""
+msgstr "Počet pracovníků webové služby"
 
 msgctxt "#33719"
 msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
-msgstr ""
+msgstr "Vyšší hodnoty mohou zlepšit výkon, ale vyžadují více zdrojů. "
 
 msgctxt "#33720"
 msgid "Close busy dialog"
-msgstr ""
+msgstr "Zavřete zaneprázdněný dialog"
 
 msgctxt "#33721"
 msgid "Can prevent Kodi crashes"
-msgstr ""
+msgstr "Může zabránit pádům Kodi"
 
 msgctxt "#33722"
 msgid "Type of service"
-msgstr ""
+msgstr "Typ služby"
 
 msgctxt "#33723"
 msgid "IP header (TOS), could improve responsiveness"
-msgstr ""
+msgstr "IP hlavička (TOS), by mohla zlepšit odezvu"
 
 msgctxt "#33724"
 msgid "CS0 (Best Effort)"
-msgstr ""
+msgstr "CS0 (nejlepší úsilí)"
 
 msgctxt "#33725"
 msgid "CS5, EF (Expedited Forwarding)"
-msgstr ""
+msgstr "CS5, EF (Urychlené přeposílání)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3061,55 +3061,55 @@ msgstr ""
 
 msgctxt "#33727"
 msgid "CS4 (Real-time interactive)"
-msgstr ""
+msgstr "CS4 (interaktivní v reálném čase)"
 
 msgctxt "#33728"
 msgid "Incremental artwork cache"
-msgstr ""
+msgstr "Přírůstková mezipaměť uměleckých děl"
 
 msgctxt "#33729"
 msgid "Cache artwork automatically on partial syncs"
-msgstr ""
+msgstr "Ukládání kresby do mezipaměti automaticky při částečné synchronizaci"
 
 msgctxt "#33730"
 msgid "Genres with icons"
-msgstr ""
+msgstr "Žánry s ikonami"
 
 msgctxt "#33731"
 msgid "Studios with icons"
-msgstr ""
+msgstr "Studios s ikonami"
 
 msgctxt "#33732"
 msgid "Tags with icons"
-msgstr ""
+msgstr "Štítky s ikonami"
 
 msgctxt "#33733"
 msgid "Local trailers"
-msgstr ""
+msgstr "Místní přívěsy"
 
 msgctxt "#33734"
 msgid "Load changes"
-msgstr ""
+msgstr "Načíst změny"
 
 msgctxt "#33735"
 msgid "Resolution threshold"
-msgstr ""
+msgstr "Práh rozlišení"
 
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
-msgstr ""
+msgstr "Překódování obsahu, když je rozlišení zdroje vyšší než zvolené rozlišení"
 
 msgctxt "#33735"
 msgid "Resolution threshold"
-msgstr ""
+msgstr "Práh rozlišení"
 
 msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
-msgstr ""
+msgstr "Překódování obsahu, když je rozlišení zdroje vyšší než zvolené rozlišení"
 
 msgctxt "#33737"
 msgid "always"
-msgstr ""
+msgstr "vždy"
 
 msgctxt "#33738"
 msgid "720"
@@ -3125,19 +3125,19 @@ msgstr ""
 
 msgctxt "#33741"
 msgid "unlimited"
-msgstr ""
+msgstr "neomezeně"
 
 msgctxt "#33742"
 msgid "Transcoding resolution"
-msgstr ""
+msgstr "Rozlišení překódování"
 
 msgctxt "#33743"
 msgid "Unlimited means keep source resolution"
-msgstr ""
+msgstr "Unlimited znamená zachovat rozlišení zdroje"
 
 msgctxt "#33744"
 msgid "Webservice mode"
-msgstr ""
+msgstr "Režim webové služby"
 
 msgctxt "#33745"
 msgid "Webdav"
@@ -3145,7 +3145,7 @@ msgstr ""
 
 msgctxt "#33746"
 msgid "Path substitution"
-msgstr ""
+msgstr "Náhrada cesty"
 
 msgctxt "#33747"
 msgid "Http"
@@ -3153,103 +3153,103 @@ msgstr ""
 
 msgctxt "#33748"
 msgid "EMBY: Multiversion"
-msgstr ""
+msgstr "EMBY: Multiverze"
 
 msgctxt "#33749"
 msgid "Refresh musicvideo links"
-msgstr ""
+msgstr "Obnovte odkazy na hudební videa"
 
 msgctxt "#33750"
 msgid "Updates musicvideo links to music database"
-msgstr ""
+msgstr "Aktualizuje odkazy na hudební videa na hudební databázi"
 
 msgctxt "#33751"
 msgid "Time not synced, skip updates"
-msgstr ""
+msgstr "Čas není synchronizován, přeskočte aktualizace"
 
 msgctxt "#33752"
 msgid "Add musicvideo links to music"
-msgstr ""
+msgstr "Přidat odkazy na hudební videa k hudbě"
 
 msgctxt "#33753"
 msgid "Musicvideos assigned to music listed in Kodi's song views."
-msgstr ""
+msgstr "Hudební videa přiřazená k hudbě uvedené v zobrazení skladeb Kodi."
 
 msgctxt "#33754"
 msgid "Delete backup"
-msgstr ""
+msgstr "Smažte zálohu"
 
 msgctxt "#33755"
 msgid "Enter backup name"
-msgstr ""
+msgstr "Zadejte název zálohy"
 
 msgctxt "#33756"
 msgid "Compression not supported, backup not available."
-msgstr ""
+msgstr "Komprese není podporována, záloha není dostupná."
 
 msgctxt "#33757"
 msgid "Backup in Progress"
-msgstr ""
+msgstr "Probíhá zálohování"
 
 msgctxt "#33758"
 msgid "Audio themes synchronization method"
-msgstr ""
+msgstr "Metoda synchronizace zvukových témat"
 
 msgctxt "#33759"
 msgid "Video themes synchronization method"
-msgstr ""
+msgstr "Metoda synchronizace témat videa"
 
 msgctxt "#33760"
 msgid "Download"
-msgstr ""
+msgstr "Stáhnout"
 
 msgctxt "#33761"
 msgid "Remote"
-msgstr ""
+msgstr "Dálkové"
 
 msgctxt "#33762"
 msgid "Enable audio themes"
-msgstr ""
+msgstr "Povolit zvukové motivy"
 
 msgctxt "#33763"
 msgid "Enable video themes"
-msgstr ""
+msgstr "Povolit motivy videa"
 
 msgctxt "#33764"
 msgid "Go To Album"
-msgstr ""
+msgstr "Přejít na album"
 
 msgctxt "#33765"
 msgid "Go To Artist"
-msgstr ""
+msgstr "Přejít na umělce"
 
 msgctxt "#33766"
 msgid "Pause sync"
-msgstr ""
+msgstr "Pozastavit synchronizaci"
 
 msgctxt "#33767"
 msgid "Pause sync when server is busy with tasks"
-msgstr ""
+msgstr "Pozastavit synchronizaci, když je server zaneprázdněn úkoly"
 
 msgctxt "#33768"
 msgid "Video preview thumbnail extraction"
-msgstr ""
+msgstr "Extrakce miniatur náhledu videa"
 
 msgctxt "#33769"
 msgid "Vacuum database"
-msgstr ""
+msgstr "Vakuová databáze"
 
 msgctxt "#33770"
 msgid "Upload local theme videos"
-msgstr ""
+msgstr "Nahrajte videa s místním tématem"
 
 msgctxt "#33771"
 msgid "Upload local theme songs"
-msgstr ""
+msgstr "Nahrajte místní tematické písně"
 
 msgctxt "#33772"
 msgid "Update intro database"
-msgstr ""
+msgstr "Aktualizujte úvodní databázi"
 
 msgctxt "#33773"
 msgid "TV maze update"
@@ -3257,103 +3257,103 @@ msgstr ""
 
 msgctxt "#33774"
 msgid "Transfer media"
-msgstr ""
+msgstr "Přenos médií"
 
 msgctxt "#33775"
 msgid "Scan metadata folder"
-msgstr ""
+msgstr "Skenovat složku metadat"
 
 msgctxt "#33776"
 msgid "Scan media library"
-msgstr ""
+msgstr "Skenování knihovny médií"
 
 msgctxt "#33777"
 msgid "Refresh internet channels"
-msgstr ""
+msgstr "Obnovte internetové kanály"
 
 msgctxt "#33778"
 msgid "Refresh guide"
-msgstr ""
+msgstr "Průvodce obnovením"
 
 msgctxt "#33779"
 msgid "Download subtitles"
-msgstr ""
+msgstr "Stáhněte si titulky"
 
 msgctxt "#33780"
 msgid "Download local YouTube movie trailers"
-msgstr ""
+msgstr "Stáhněte si místní filmové upoutávky na YouTube"
 
 msgctxt "#33781"
 msgid "Download local TV theme songs"
-msgstr ""
+msgstr "Stáhněte si místní televizní tematické písně"
 
 msgctxt "#33782"
 msgid "Download Local theme videos"
-msgstr ""
+msgstr "Stáhněte si videa s místním tématem"
 
 msgctxt "#33783"
 msgid "Download Local theme songs"
-msgstr ""
+msgstr "Stáhněte si místní tematické písně"
 
 msgctxt "#33784"
 msgid "Detect intros"
-msgstr ""
+msgstr "Detekce úvodů"
 
 msgctxt "#33785"
 msgid "Convert media"
-msgstr ""
+msgstr "Převést média"
 
 msgctxt "#33786"
 msgid "Refresh in progress"
-msgstr ""
+msgstr "Probíhá obnova"
 
 msgctxt "#33787"
 msgid "Emby scripterX scheduled task"
-msgstr ""
+msgstr "Naplánovaná úloha Emby scripterX"
 
 msgctxt "#33788"
 msgid "EMBY: More like this"
-msgstr ""
+msgstr "EMBY: Více takových"
 
 msgctxt "#33789"
 msgid "More like this"
-msgstr ""
+msgstr "Víc takových"
 
 msgctxt "#33790"
 msgid "Homevideo tags"
-msgstr ""
+msgstr "Značky domácího videa"
 
 msgctxt "#33791"
 msgid "Favorite homevideos"
-msgstr ""
+msgstr "Oblíbená domácí videa"
 
 msgctxt "#33792"
 msgid "Video tags"
-msgstr ""
+msgstr "Video tagy"
 
 msgctxt "#33793"
 msgid "Favorite videos"
-msgstr ""
+msgstr "Oblíbená videa"
 
 msgctxt "#33794"
 msgid "Playback state changes"
-msgstr ""
+msgstr "Změní se stav přehrávání"
 
 msgctxt "#33795"
 msgid "Series and season progress"
-msgstr ""
+msgstr "Postup v sérii a sezóně"
 
 msgctxt "#33796"
 msgid "Playlists (mixed)"
-msgstr ""
+msgstr "Seznamy skladeb (smíšené)"
 
 msgctxt "#33797"
 msgid "EMBY: Random play"
-msgstr ""
+msgstr "EMBY: Náhodné přehrávání"
 
 msgctxt "#33798"
 msgid "Random play"
-msgstr ""
+msgstr "Náhodné přehrávání"
 
 msgctxt "#33799"
 msgid "Kodi Companion warning"
@@ -3361,4 +3361,244 @@ msgstr ""
 
 msgctxt "#33800"
 msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion je serverový doplněk Emby, který sleduje smazaný obsah"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Zpracování přívěsů"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Přívěsy"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Nedávno přidané přívěsy"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Témata"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Povolit zvuk"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Povolit video"
+
+msgctxt "#33807"
+msgid "Fade in"
 msgstr ""
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Zhasněte"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Větší hodnoty znamenají delší dobu slábnutí, nula je zakázána"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Úvodní obrazovka"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Přehrává témata pro widgety"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Odložený start"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Hodnoty jsou v sekundách"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Stáhnout"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Ukládejte motivy lokálně pro lepší výkon"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Priorita"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Definuje, které téma se přehraje jako první, pokud jsou oba dostupné"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Dálkové přívěsy"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Výběr vzdálených přívěsů"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Úvod do kina"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Skládací přívěsy"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Místní přívěsy"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Místní film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Přehrávání upoutávky"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "Objem"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr ""
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Povolení videa pomocí značek úvodu"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Povolit zvuk podle značek úvodu"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Povolit video podle obsahu"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Povolit zvuk podle obsahu"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Podle trvání obsahu"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Použité překódování může vést k velkému zatížení CPU na serveru"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Vypnuto"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Úvodní značky"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Obsah"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuální témata"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigace"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Zobrazení epizody"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Výhled na sezónu"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "Zobrazení TV pořadu"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Zobrazení filmu"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "Časování"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Přehrávání"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Aktualizujte oblíbené audio"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Aktualizujte oblíbené hudební album"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Aktualizujte oblíbená videa"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Aktualizujte oblíbené hudební videa"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Aktualizujte oblíbené boxsety"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Aktualizujte oblíbené seriály"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Aktualizujte oblíbené položky sezóny"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Aktualizujte oblíbené seznamy skladeb"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Aktualizujte oblíbené epizody"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Aktualizujte oblíbené filmy"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Aktualizujte oblíbené žánry"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Aktualizujte oblíbené položky studia"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Aktualizujte oblíbené položky"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Aktualizujte oblíbené hudební žánry"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Aktualizujte oblíbené osoby"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Aktualizujte oblíbené osoby"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Obnovená záloha z:"

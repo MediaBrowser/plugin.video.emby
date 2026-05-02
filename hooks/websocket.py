@@ -1,36 +1,51 @@
+import threading
 import json
 import xbmc
-import xbmcgui
 from helper import utils, playerops, queue
 from database import dbio
 
 class WebSocket:
-    def __init__(self, EmbyServer):
+    def __init__(self, EmbyServer, ThreadsRunningCondition):
         self.EmbyServer = EmbyServer
         self.ConnectionInProgress = False
         self.Tasks = {}
-        self.EmbyServerSyncCheckRunning = False
         self.RefreshProgressRunning = False
         self.RefreshProgressInit = False
         self.EPGRefresh = False
         self.Running = False
-        self.ProgressBar = {}
         self.MessageQueue = queue.Queue()
-        xbmc.log("EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: WSClient initializing...", 0) # LOGDEBUG
+        self.LibraryChangedQueue = queue.Queue()
+        self.ProgressCondition = threading.Condition(threading.Lock())
+        self.ThreadsRunningCondition = ThreadsRunningCondition
+        self.EmbyServerSyncCheckIdleEvent = threading.Event()
+        self.RefreshProgressId = f"{self.EmbyServer.ServerData['ServerId']}_refresh_progress"
+        self.RefreshTaskId = f"{self.EmbyServer.ServerData['ServerId']}_task"
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: WSClient initializing...", 1) # LOGDEBUG
 
     def Message(self):  # threaded
-        xbmc.log("EMBY.hooks.websocket: THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: message ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: message ]", 1) # LOGDEBUG
+        self.RefreshProgressId = f"{self.EmbyServer.ServerData['ServerId']}_refresh_progress"
+        self.RefreshTaskId = f"{self.EmbyServer.ServerData['ServerId']}_task"
         self.Running = True
+        utils.start_thread(self.EmbyServerSyncCheck, ())
+        utils.start_thread(self.LibraryChanged, ())
+
+        with utils.SafeLock(self.ThreadsRunningCondition):
+            self.ThreadsRunningCondition.notify_all()
+
+        with utils.SafeLock(self.ProgressCondition):
+            self.ProgressCondition.notify_all()
 
         while True:
             IncomingData = self.MessageQueue.get()
 
             if IncomingData == "QUIT":
-                xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Queue closed", 1) # LOGINFO
+                self.LibraryChangedQueue.put("QUIT")
+                if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: message ]", 1) # LOGDEBUG
                 break
 
             try:
-                xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Incoming data: {IncomingData}", 0) # LOGDEBUG
+                if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Incoming data: {IncomingData}", 1) # LOGDEBUG
                 IncomingData = json.loads(IncomingData)
             except Exception as Error: # connection interrupted and data corrupted
                 xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Incoming data: {IncomingData} / {Error}", 3) # LOGERROR
@@ -51,7 +66,7 @@ class WebSocket:
                         if Event == "clients":
                             playerops.update_Remoteclients(self.EmbyServer.ServerData['ServerId'], Command)
                         elif Event == "connect":
-                            utils.start_thread(self.confirm_remote, (Command[1], Command[2]))
+                            self.confirm_remote(Command[1], Command[2])
                         elif Event == "support":
                             playerops.add_RemoteClientExtendedSupport(self.EmbyServer.ServerData['ServerId'], Command[1])
                         elif Event == "ack":
@@ -73,7 +88,7 @@ class WebSocket:
                     PlaylistItemIds = IncomingData['Data']['Arguments']['PlaylistItemIds'].split(",")
 
                     for PlaylistItemId in PlaylistItemIds:
-                        playerops.RemovePlaylistItem(playerops.PlayerId, PlaylistItemId)
+                        playerops.RemovePlaylistItem(playerops.PlayerId, int(PlaylistItemId))
                 elif IncomingData['Data']['Name'] in ('Mute', 'Unmute'):
                     xbmc.executebuiltin('Mute')
                 elif IncomingData['Data']['Name'] == 'SetVolume':
@@ -128,7 +143,7 @@ class WebSocket:
                     xbmc.executebuiltin('Action(VolumeDown)')
             elif IncomingData['MessageType'] == 'ScheduledTasksInfo':
                 for Task in IncomingData['Data']:
-                    xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Task update: {Task['Name']} / {Task['State']}", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: Task update: {Task['Name']} / {Task['State']}", 1) # LOGDEBUG
                     KeyId = Task.get("Key", "")
                     Key = KeyId.lower()
                     OtherTask = True
@@ -233,7 +248,7 @@ class WebSocket:
                         continue
 
                     if Task["State"] == "Running":
-                        xbmc.log(f"EMBY.hooks.websocket: Emby server task running: {Task['Name']} / {KeyId} ]", 0) # LOGDEBUG
+                        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server task running: {Task['Name']} / {KeyId} ]", 1) # LOGDEBUG
 
                         if Key == "refreshguide":
                             self.EPGRefresh = True
@@ -241,58 +256,55 @@ class WebSocket:
                         if Task["Name"] not in self.Tasks:
                             self.Tasks[Task["Name"]] = True
 
+                            with utils.SafeLock(self.ProgressCondition):
+                                self.ProgressCondition.notify_all()
+
                             if utils.busyMsg:
-                                ProgressBarCreate = xbmcgui.DialogProgressBG()
-                                ProgressBarCreate.create(utils.Translate(33199), utils.Translate(33411))
-                                self.ProgressBar[Task['Name']] = ProgressBarCreate
+                                utils.create_ProgressBar(f"{self.RefreshTaskId}_{Task['Name']}", utils.Translate(33199), utils.Translate(33411))
 
-                            if not self.EmbyServerSyncCheckRunning:
-                                self.EmbyServerSyncCheckRunning = True
-                                utils.start_thread(self.EmbyServerSyncCheck, ())
+                            self.EmbyServerSyncCheckIdleEvent.set()
 
-                        if utils.busyMsg and Task['Name'] in self.ProgressBar and self.ProgressBar[Task['Name']]:
+                        if utils.busyMsg:
                             if 'CurrentProgressPercentage' in Task:
-                                Progress = int(float(Task['CurrentProgressPercentage']))
+                                Progress = float(Task['CurrentProgressPercentage'])
                             else:
                                 Progress = 0
 
-                            self.ProgressBar[Task['Name']].update(Progress, utils.Translate(33199), f"{utils.Translate(33411)}: {Task['Name']}")
+                            utils.update_ProgressBar(f"{self.RefreshTaskId}_{Task['Name']}", Progress, utils.Translate(33199), f"{utils.Translate(33411)}: {Task['Name']}")
                     else:
                         if Task["Name"] in self.Tasks:
-                            if self.Tasks[Task["Name"]]: # ProgressBar close can take a while, therefore check if close is in progress
+                            if self.Tasks[Task["Name"]]:
                                 self.Tasks[Task["Name"]] = False
 
-                                if Task['Name'] in self.ProgressBar:
-                                    self.ProgressBar[Task['Name']].close()
-                                    del self.ProgressBar[Task['Name']]
+                                with utils.SafeLock(self.ProgressCondition):
+                                    self.ProgressCondition.notify_all()
+
+                                utils.close_ProgressBar(f"{self.RefreshTaskId}_{Task['Name']}")
+
             elif IncomingData['MessageType'] == 'RefreshProgress':
                 if not utils.PauseRefreshProgress:
                     continue
 
                 self.RefreshProgressRunning = True
 
+                with utils.SafeLock(self.ProgressCondition):
+                    self.ProgressCondition.notify_all()
+
                 if not self.RefreshProgressInit:
                     self.RefreshProgressInit = True
 
                     if utils.busyMsg:
-                        self.ProgressBar["RefreshProgress"] = [None, "Init"]
-                        self.ProgressBar["RefreshProgress"][0] = xbmcgui.DialogProgressBG()
-                        self.ProgressBar["RefreshProgress"][0].create(utils.Translate(33199), utils.Translate(33411))
-                        self.ProgressBar["RefreshProgress"][1] = "Loaded"
+                        utils.create_ProgressBar(self.RefreshProgressId, utils.Translate(33199), utils.Translate(33411))
+                        utils.update_ProgressBar(self.RefreshProgressId, float(IncomingData['Data']['Progress']), utils.Translate(33199), utils.Translate(33414))
 
-                    if not self.EmbyServerSyncCheckRunning:
-                        self.EmbyServerSyncCheckRunning = True
-                        utils.start_thread(self.EmbyServerSyncCheck, ())
-
-                if utils.busyMsg and "RefreshProgress" in self.ProgressBar and self.ProgressBar["RefreshProgress"][1] == "Loaded":
-                    self.ProgressBar["RefreshProgress"][0].update(int(float(IncomingData['Data']['Progress'])), utils.Translate(33199), utils.Translate(33414))
+                    self.EmbyServerSyncCheckIdleEvent.set()
             elif IncomingData['MessageType'] == 'UserDataChanged':
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.EmbyServer.ServerData['ServerId']}: UserDataChanged ] {IncomingData['Data']['UserDataList']}", 1) # LOGINFO
                 UpdateData = ()
                 RemoveSkippedItems = ()
 
                 if IncomingData['Data']['UserId'] != self.EmbyServer.ServerData['UserId']:
-                    xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: UserDataChanged skip by wrong UserId: {IncomingData['Data']['UserId']}", 0) # LOGDEBUG
+                    if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server {self.EmbyServer.ServerData['ServerId']}: UserDataChanged skip by wrong UserId: {IncomingData['Data']['UserId']}", 1) # LOGDEBUG
                     continue
 
                 if utils.RemoteMode:
@@ -346,7 +358,7 @@ class WebSocket:
                     utils.ItemSkipUpdate.remove(RemoveSkippedItem)
 
                 if UpdateData:
-                    utils.start_thread(self.EmbyServer.library.userdata, (UpdateData, True))
+                    self.LibraryChangedQueue.put((("userdata", UpdateData),))
             elif IncomingData['MessageType'] == 'LibraryChanged':
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.EmbyServer.ServerData['ServerId']}: LibraryChanged ] {IncomingData['Data']}", 1) # LOGINFO
 
@@ -361,7 +373,12 @@ class WebSocket:
                     UpdateItemIds[Index] = (ItemId, "unknown", "unknown")
 
                 UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter duplicates
-                utils.start_thread(self.LibraryChanged, (UpdateItemIds, IncomingData['Data']['ItemsRemoved']))
+
+                if IncomingData['Data']['ItemsRemoved']:
+                    self.LibraryChangedQueue.put((("remove", IncomingData['Data']['ItemsRemoved']),))
+
+                if UpdateItemIds:
+                    self.LibraryChangedQueue.put((("update", UpdateItemIds),))
             elif IncomingData['MessageType'] == 'ServerRestarting':
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.EmbyServer.ServerData['ServerId']}: ServerRestarting ]", 1) # LOGINFO
                 self.close_EmbyServerBusy()
@@ -387,7 +404,7 @@ class WebSocket:
                     elif IncomingData['Data']['Command'] == 'SeekRelative':
                         playerops.Seek(int(IncomingData['Data']['SeekPositionTicks']), True, 0, True)
                     elif IncomingData['Data']['Command'] == "Stop":
-                        playerops.Stop(True)
+                        playerops.Stop(True, False)
                     elif IncomingData['Data']['Command'] == "Unpause":
                         playerops.Unpause(True)
                     elif IncomingData['Data']['Command'] == "Pause":
@@ -402,70 +419,111 @@ class WebSocket:
                 xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Command: {IncomingData['Data']['Command']} / PlayedId: {playerops.PlayerId}", 1) # LOGINFO
 
         self.Running = False
-        xbmc.log("EMBY.hooks.websocket: THREAD: ---<[ message ]", 0) # LOGDEBUG
+
+        with utils.SafeLock(self.ThreadsRunningCondition):
+            self.ThreadsRunningCondition.notify_all()
+
+        with utils.SafeLock(self.ProgressCondition):
+            self.ProgressCondition.notify_all()
+
+        self.EmbyServerSyncCheckIdleEvent.set()
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: message ]", 1) # LOGDEBUG
 
     def EmbyServerSyncCheck(self):
-        xbmc.log(f"EMBY.hooks.websocket: THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: Busy ]", 1) # LOGINFO
-        utils.SyncPause[f"server_busy_{self.EmbyServer.ServerData['ServerId']}"] = True
-        Compare = [False] * len(self.Tasks)
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: EmbyServerSyncCheck ]", 1) # LOGINFO
 
-        while self.Running and (self.RefreshProgressRunning or Compare != list(self.Tasks.values())):
-            self.RefreshProgressRunning = False
+        while True:
+            while True:
+                if self.EmbyServerSyncCheckIdleEvent.wait(timeout=0.1) or not self.Running or utils.SystemShutdown:
+                    break
 
-            if utils.sleep(5): # every 5 seconds a "RefreshProgress" is expected. If not, sync was canceled
-                break
+            utils.update_SyncPause(self.EmbyServer.library.ServerBusyId, True)
+            if utils.DebugLog: xbmc.log("EMBY.hooks.websocket (DEBUG): CONDITION: --->[ ProgressCondition ]", 1)
 
-            Compare = [False] * len(self.Tasks)
+            with utils.SafeLock(self.ProgressCondition):
+                Compare = [False] * len(self.Tasks)
 
-        self.close_EmbyServerBusy()
+                while self.Running and not utils.SystemShutdown and (self.RefreshProgressRunning or Compare != list(self.Tasks.values())):
+                    self.RefreshProgressRunning = False
+                    Wait = 40
 
-        if self.Running:
-            utils.start_thread(self.EmbyServer.library.RunJobs, (True,))
+                    while Wait > 0:
+                        if self.ProgressCondition.wait(timeout=0.1) or utils.SystemShutdown:
+                            break
 
-            if self.EPGRefresh:
-                self.EmbyServer.library.SyncLiveTVEPG()
-                self.EPGRefresh = False
+                        Wait -= 1
 
-        xbmc.log(f"EMBY.hooks.websocket: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: Busy ]", 1) # LOGINFO
+                    Compare = list(self.Tasks.values())
+
+            if utils.DebugLog: xbmc.log("EMBY.hooks.websocket (DEBUG): CONDITION: ---<[ ProgressCondition ]", 1)
+            self.close_EmbyServerBusy()
+
+            if self.Running and not utils.SystemShutdown:
+                utils.unset_SyncLock()
+
+                if self.EPGRefresh:
+                    self.EmbyServer.library.SyncLiveTVEPG()
+                    self.EPGRefresh = False
+
+            if not self.Running or utils.SystemShutdown:
+                xbmc.log(f"EMBY.hooks.websocket: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: EmbyServerSyncCheck ]", 1) # LOGINFO
+                return
 
     def close_EmbyServerBusy(self):
         if utils.busyMsg:
-            if "RefreshProgress" in self.ProgressBar:
-                while self.ProgressBar["RefreshProgress"][1] == "Init":
-                    utils.sleep(1)
+            utils.close_ProgressBar(self.RefreshProgressId)
 
-                self.ProgressBar["RefreshProgress"][0].close()
-                del self.ProgressBar["RefreshProgress"]
-
-            for TaskId, TaskActive in list(self.Tasks.items()):
+            for TaskName, TaskActive in list(self.Tasks.items()):
                 if TaskActive:
-                    self.ProgressBar[TaskId].close()
+                    utils.close_ProgressBar(f"{self.RefreshTaskId}_{TaskName}")
 
         self.Tasks = {}
-        self.RefreshProgressRunning = False
         self.RefreshProgressInit = False
-        self.EmbyServerSyncCheckRunning = False
-        utils.SyncPause[f"server_busy_{self.EmbyServer.ServerData['ServerId']}"] = False
+        self.EmbyServerSyncCheckIdleEvent.clear()
+
+        with utils.SafeLock(self.ProgressCondition):
+            self.ProgressCondition.notify_all()
+
+        utils.update_SyncPause(self.EmbyServer.library.ServerBusyId, False)
 
     def confirm_remote(self, SessionId, Timeout): # threaded
-        xbmc.log(f"EMBY.hooks.websocket: THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: Remote confirm ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: Remote confirm ]", 1) # LOGDEBUG
         self.EmbyServer.API.send_text_msg(SessionId, "remotecommand", f"support|{self.EmbyServer.EmbySession[0]['Id']}", True)
 
         if utils.remotecontrol_auto_ack:
             Ack = True
         else:
-            Ack = utils.Dialog.yesno(heading=utils.addon_name, message="Accept remote connection", autoclose=int(Timeout) * 1000)
+            Ack = utils.Dialog.yesno(heading=utils.addon_name, message="Accept remote connection", autoclose=int(Timeout) * 1000, defaultbutton=11)
 
         if Ack: # send confirm msg
+            playerops.Stop(False, True)
             self.EmbyServer.API.send_text_msg(SessionId, "remotecommand", f"ack|{self.EmbyServer.EmbySession[0]['Id']}|{self.EmbyServer.EmbySession[0]['DeviceName']}|{self.EmbyServer.EmbySession[0]['UserName']}", True)
 
-        xbmc.log(f"EMBY.hooks.websocket: THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: Remote confirm ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: Remote confirm ]", 1) # LOGDEBUG
 
-    def LibraryChanged(self, ItemsUpdated, ItemsRemoved):
-        self.EmbyServer.library.removed(ItemsRemoved, True, False)
-        self.EmbyServer.library.updated(ItemsUpdated, True, False)
+    def LibraryChanged(self):
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: --->[ Emby server {self.EmbyServer.ServerData['ServerId']}: LibraryChangedQueue ]", 1) # LOGDEBUG
 
-        if self.EmbyServerSyncCheckRunning:
-            xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Sync in progress, delay updates", 1) # LOGINFO
-        else:
-            self.EmbyServer.library.RunJobs(True)
+        while True:
+            IncomingData = self.LibraryChangedQueue.get()
+
+            if IncomingData == "QUIT":
+                if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): THREAD: ---<[ Emby server {self.EmbyServer.ServerData['ServerId']}: LibraryChangedQueue ]", 1) # LOGDEBUG
+                break
+
+            Unlock = False
+
+            if IncomingData[0] == "remove":
+                self.EmbyServer.library.removed(IncomingData[1], True, False)
+                Unlock = True
+            elif IncomingData[0] == "update":
+                self.EmbyServer.library.updated(IncomingData[1], True, False)
+                Unlock = True
+            elif IncomingData[0] == "userdata":
+                self.EmbyServer.library.userdata(IncomingData[1], True, True)
+
+            if Unlock:
+                if self.EmbyServerSyncCheckIdleEvent.is_set():
+                    xbmc.log(f"EMBY.hooks.websocket: Emby server {self.EmbyServer.ServerData['ServerId']}: Sync in progress, delay updates", 1) # LOGINFO
+                else:
+                    utils.unset_SyncLock()

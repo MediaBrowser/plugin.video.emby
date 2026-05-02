@@ -39,27 +39,15 @@ def load_MetaData(Payload, isPicture, isAudio):
             MetaData['Overlay'] = ""
     elif isAudio:
         MetaData["PlayerId"] = 0
-        DataFile = PayloadMod[PayloadMod.rfind("/") + 1:]
+        Data = PayloadMod[PayloadMod.rfind("/") + 1:].split("-") # MetaData
         ServerId = PayloadSplit[2]
-
-        if DataFile.startswith("emby-themes-audio-"):
-            DataFile = DataFile.replace("emby-themes-audio-", "a-")
-            Data = DataFile.split("-") # MetaData
-            EmbyId = Data[2]
-            MediaSources = [[{'Id': None, 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': ""}, [], [], []]]
-        else:
-            Data = DataFile.split("-") # MetaData
-            EmbyId = Data[1]
-            MediaSources = [[{'Id': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': ""}, [], [], []]]
+        EmbyId = Data[1]
+        MediaSources = [[{'Id': Data[2], 'IntroStartPositionTicks': 0, 'IntroEndPositionTicks': 0, 'CreditsPositionTicks': 0, 'Path': ""}, [], [], []]]
     else:
         MetaData["PlayerId"] = 1
         EmbyId = PayloadSplit[-3]
         ServerId = PayloadSplit[-6]
         Data = PayloadSplit[-2]
-
-        if Data.startswith("emby-themes-video-"):
-            Data = Data.replace("emby-themes-video-", "v-")
-
         Data = Data.split("-")
         Data[4] = bytes.fromhex(Data[4]).decode('utf-8')
 

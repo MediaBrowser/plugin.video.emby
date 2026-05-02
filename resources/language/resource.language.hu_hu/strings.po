@@ -1,0 +1,3605 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Emby for Kodi next gen\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2023-05-26 20:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: \n"
+"Language: en\n"
+
+msgctxt "#29999"
+msgid "Emby for Kodi"
+msgstr "Emby a Kodi számára"
+
+msgctxt "#30000"
+msgid "Server address"
+msgstr "Szerver címe"
+
+msgctxt "#30001"
+msgid "Server name"
+msgstr "Szerver neve"
+
+msgctxt "#30002"
+msgid "Force HTTP playback"
+msgstr "HTTP-lejátszás kényszerítése"
+
+msgctxt "#30003"
+msgid "Login method"
+msgstr "Bejelentkezési mód"
+
+msgctxt "#30004"
+msgid "Log level"
+msgstr "Napló szint"
+
+msgctxt "#30016"
+msgid "Device name"
+msgstr "Eszköz neve"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Haladó"
+
+msgctxt "#30024"
+msgid "Username"
+msgstr "Felhasználónév"
+
+msgctxt "#30030"
+msgid "Port number"
+msgstr "Port száma"
+
+msgctxt "#30091"
+msgid "Confirm file deletion"
+msgstr "Erősítse meg a fájl törlését"
+
+msgctxt "#30114"
+msgid "Offer delete after playback"
+msgstr "Ajánlat törlés lejátszás után"
+
+msgctxt "#30115"
+msgid "For Episodes"
+msgstr "Epizódokhoz"
+
+msgctxt "#30116"
+msgid "For Movies"
+msgstr "Filmekhez"
+
+msgctxt "#30157"
+msgid "Enable enhanced artwork (i.e. cover art)"
+msgstr "Engedélyezze a továbbfejlesztett grafikát (azaz borítóképet)"
+
+msgctxt "#30160"
+msgid "Video quality"
+msgstr "Videó minőség"
+
+msgctxt "#30170"
+msgid "Recently Added TV Shows"
+msgstr "Nemrég hozzáadott tévéműsorok"
+
+msgctxt "#30171"
+msgid "In Progress TV Shows"
+msgstr "Folyamatban lévő tévéműsorok"
+
+msgctxt "#30174"
+msgid "Recently Added Movies"
+msgstr "Nemrég hozzáadott filmek"
+
+msgctxt "#30175"
+msgid "Recently Added Episodes"
+msgstr "Nemrég hozzáadott epizódok"
+
+msgctxt "#30177"
+msgid "In Progress Movies"
+msgstr "Folyamatban lévő filmek"
+
+msgctxt "#30178"
+msgid "In Progress Episodes"
+msgstr "Folyamatban lévő epizódok"
+
+msgctxt "#30179"
+msgid "Next Episodes"
+msgstr "Következő epizódok"
+
+msgctxt "#30180"
+msgid "Favorite Movies"
+msgstr "Kedvenc filmek"
+
+msgctxt "#30181"
+msgid "Favorite Shows"
+msgstr "Kedvenc műsorok"
+
+msgctxt "#30182"
+msgid "Favorite Episodes"
+msgstr "Kedvenc epizódok"
+
+msgctxt "#30185"
+msgid "Boxsets"
+msgstr "Dobozkészletek"
+
+msgctxt "#30189"
+msgid "Unwatched Movies"
+msgstr "Nem nézett filmek"
+
+msgctxt "#30229"
+msgid "Random Items"
+msgstr "Véletlenszerű tételek"
+
+msgctxt "#30230"
+msgid "Recommended Items"
+msgstr "Ajánlott tételek"
+
+msgctxt "#30235"
+msgid "Interface"
+msgstr "Interfész"
+
+msgctxt "#30239"
+msgid "Reset local Kodi database"
+msgstr "Állítsa vissza a helyi Kodi adatbázist"
+
+msgctxt "#30249"
+msgid "Enable welcome message"
+msgstr "Üdvözlő üzenet engedélyezése"
+
+msgctxt "#30251"
+msgid "Recently added Home Videos"
+msgstr "Nemrég hozzáadott házi videók"
+
+msgctxt "#30252"
+msgid "Recently added Photos"
+msgstr "Nemrég hozzáadott fotók"
+
+msgctxt "#30253"
+msgid "Favourite Home Videos"
+msgstr "Kedvenc otthoni videók"
+
+msgctxt "#30254"
+msgid "Favourite Photos"
+msgstr "Kedvenc fotók"
+
+msgctxt "#30255"
+msgid "Favourite Albums"
+msgstr "Kedvenc albumok"
+
+msgctxt "#30256"
+msgid "Recently added Music videos"
+msgstr "Nemrég hozzáadott zenei videók"
+
+msgctxt "#30257"
+msgid "In progress Music videos"
+msgstr "Folyamatban Zenei videók"
+
+msgctxt "#30258"
+msgid "Unwatched Music videos"
+msgstr "Nem nézett zenei videók"
+
+msgctxt "#30302"
+msgid "Movies"
+msgstr "Filmek"
+
+msgctxt "#30305"
+msgid "TV Shows"
+msgstr "TV-műsorok"
+
+msgctxt "#30401"
+msgid "Emby options"
+msgstr "Emby opciók"
+
+msgctxt "#30402"
+msgid "Emby transcode"
+msgstr "Emby átkódolás"
+
+msgctxt "#30405"
+msgid "Add to favorites"
+msgstr "Hozzáadás a kedvencekhez"
+
+msgctxt "#30406"
+msgid "Remove from favorites"
+msgstr "Eltávolítás a kedvencek közül"
+
+msgctxt "#30408"
+msgid "Settings"
+msgstr "Beállítások"
+
+msgctxt "#30409"
+msgid "EMBY: Delete item"
+msgstr "EMBY: Elem törlése"
+
+msgctxt "#30410"
+msgid "EMBY: Refresh item"
+msgstr "EMBY: Elem frissítése"
+
+msgctxt "#30412"
+msgid "Transcode"
+msgstr "Átkódolás"
+
+msgctxt "#30500"
+msgid "Verify connection"
+msgstr "Ellenőrizze a kapcsolatot"
+
+msgctxt "#30504"
+msgid "Use alternate device name"
+msgstr "Használjon alternatív eszköznevet"
+
+msgctxt "#30506"
+msgid "Sync"
+msgstr "Szinkron"
+
+msgctxt "#30507"
+msgid "Enable notification if update count is greater than"
+msgstr "Értesítés engedélyezése, ha a frissítések száma nagyobb, mint"
+
+msgctxt "#30508"
+msgid "Sync empty shows"
+msgstr "Üres műsorok szinkronizálása"
+
+msgctxt "#30509"
+msgid "Enable music library"
+msgstr "Zenekönyvtár engedélyezése"
+
+msgctxt "#30511"
+msgid "Playback mode"
+msgstr "Lejátszási mód"
+
+msgctxt "#30512"
+msgid "Enable artwork caching"
+msgstr "Engedélyezze az alkotások gyorsítótárazását"
+
+msgctxt "#30516"
+msgid "Playback"
+msgstr "Lejátszás"
+
+msgctxt "#30517"
+msgid "Network credentials"
+msgstr "Hálózati hitelesítő adatok"
+
+msgctxt "#30518"
+msgid "Enable cinema mode"
+msgstr "Mozi mód engedélyezése"
+
+msgctxt "#30519"
+msgid "Ask to play trailers"
+msgstr "Kérje meg az előzetesek lejátszását"
+
+msgctxt "#30520"
+msgid "Skip the delete confirmation (use at your own risk)"
+msgstr "A törlés megerősítésének kihagyása (saját felelősségére használja)"
+
+msgctxt "#30521"
+msgid "Jump back on resume (in seconds)"
+msgstr "Ugrás vissza az önéletrajzhoz (másodpercekben)"
+
+msgctxt "#30522"
+msgid "Transcode H265/HEVC"
+msgstr "H265/HEVC átkód"
+
+msgctxt "#30527"
+msgid "Ignore specials in next episodes"
+msgstr "Hagyja figyelmen kívül a különlegességeket a következő epizódokban"
+
+msgctxt "#30528"
+msgid "Permanent users"
+msgstr "Állandó felhasználók"
+
+msgctxt "#30529"
+msgid "Startup delay (in seconds)"
+msgstr "Indítási késleltetés (másodpercben)"
+
+msgctxt "#30530"
+msgid "Enable server restart message"
+msgstr "Szerver újraindítási üzenet engedélyezése"
+
+msgctxt "#30531"
+msgid "Enable new content"
+msgstr "Új tartalom engedélyezése"
+
+msgctxt "#30532"
+msgid "Duration of the video library pop up"
+msgstr "A videokönyvtár felugró ablakának időtartama"
+
+msgctxt "#30533"
+msgid "Duration of the music library pop up"
+msgstr "A zenei könyvtár felugró ablakának időtartama"
+
+msgctxt "#30534"
+msgid "Notifications (in seconds)"
+msgstr "Értesítések (másodpercekben)"
+
+msgctxt "#30535"
+msgid "Generate a new device Id"
+msgstr "Új eszközazonosító létrehozása"
+
+msgctxt "#30536"
+msgid "Allow the screensaver during syncs"
+msgstr "A képernyővédő engedélyezése szinkronizálás közben"
+
+msgctxt "#30539"
+msgid "Login"
+msgstr "Bejelentkezés"
+
+msgctxt "#30540"
+msgid "Manual login"
+msgstr "Manuális bejelentkezés"
+
+msgctxt "#30543"
+msgid "Username or email"
+msgstr "Felhasználónév vagy e-mail cím"
+
+msgctxt "#30545"
+msgid "Enable server offline"
+msgstr "A szerver offline engedélyezése"
+
+msgctxt "#30547"
+msgid "Display message"
+msgstr "Üzenet megjelenítése"
+
+msgctxt "#30600"
+msgid "Sign in with Emby Connect"
+msgstr "Jelentkezzen be az Emby Connect segítségével"
+
+msgctxt "#30602"
+msgid "Password"
+msgstr "Jelszó"
+
+msgctxt "#30605"
+msgid "Sign in"
+msgstr "Jelentkezzen be"
+
+msgctxt "#30606"
+msgid "Cancel"
+msgstr "Mégse"
+
+msgctxt "#30607"
+msgid "Select main server"
+msgstr "Válassza ki a fő szervert"
+
+msgctxt "#30608"
+msgid "Username or password cannot be empty"
+msgstr "A felhasználónév vagy a jelszó nem lehet üres"
+
+msgctxt "#30609"
+msgid "Unable to connect to the selected server"
+msgstr "Nem lehet csatlakozni a kiválasztott szerverhez"
+
+msgctxt "#30610"
+msgid "Connect to"
+msgstr "Csatlakozás"
+
+msgctxt "#30611"
+msgid "Manually add server"
+msgstr "Szerver manuális hozzáadása"
+
+msgctxt "#30612"
+msgid "Please sign in"
+msgstr "Kérjük, jelentkezzen be"
+
+msgctxt "#30613"
+msgid "Change Emby Connect user"
+msgstr "Változtassa meg az Emby Connect felhasználót"
+
+msgctxt "#30615"
+msgid "Host"
+msgstr "Házigazda"
+
+msgctxt "#30616"
+msgid "Connect"
+msgstr "Csatlakozás"
+
+msgctxt "#30617"
+msgid "Server or port cannot be empty"
+msgstr "A kiszolgáló vagy a port nem lehet üres"
+
+msgctxt "#30618"
+msgid "Change Emby Connect user"
+msgstr "Változtassa meg az Emby Connect felhasználót"
+
+msgctxt "#33000"
+msgid "Welcome"
+msgstr "Isten hozott"
+
+msgctxt "#33006"
+msgid "Server is restarting"
+msgstr "A szerver újraindul"
+
+msgctxt "#33009"
+msgid "Invalid username or password"
+msgstr "Érvénytelen felhasználónév vagy jelszó"
+
+msgctxt "#33013"
+msgid "Choose the audio stream"
+msgstr "Válassza ki az audio adatfolyamot"
+
+msgctxt "#33014"
+msgid "Choose the subtitles stream"
+msgstr "Válassza ki a feliratfolyamot"
+
+msgctxt "#33015"
+msgid "Delete file from Emby?"
+msgstr "Törli a fájlt az Embyből?"
+
+msgctxt "#33016"
+msgid "Play trailers?"
+msgstr "Előzetesek lejátszása?"
+
+msgctxt "#33018"
+msgid "Gathering boxsets"
+msgstr "Gyűjtődobozok"
+
+msgctxt "#33021"
+msgid "Gathering:"
+msgstr "Gyülekezés:"
+
+msgctxt "#33022"
+msgid "Detected the database needs to be recreated for this version of Emby for Kodi. Proceed?"
+msgstr "Azt észleltük, hogy az adatbázist újra létre kell hozni az Emby for Kodi ezen verziójához. "
+
+msgctxt "#33023"
+msgid "Emby for Kodi will not work correctly until the database is reset."
+msgstr "Az Emby for Kodi nem fog megfelelően működni, amíg az adatbázist vissza nem állítják."
+
+msgctxt "#33025"
+msgid "Completed in:"
+msgstr "Befejezve:"
+
+msgctxt "#33033"
+msgid "A new device Id has been generated. Kodi will now restart."
+msgstr "Új eszközazonosító jött létre. "
+
+msgctxt "#33035"
+msgid "Caution! If you choose Native mode, certain Emby features will be missing, such as: Emby cinema mode, direct stream/transcode options and parental access schedule."
+msgstr "Vigyázat! "
+
+msgctxt "#33036"
+msgid "Add-on (default)"
+msgstr "Kiegészítés (alapértelmezett)"
+
+msgctxt "#33037"
+msgid "Native (direct paths)"
+msgstr "Natív (közvetlen elérési utak)"
+
+msgctxt "#33039"
+msgid "Enable music library?"
+msgstr "Engedélyezi a zenei könyvtárat?"
+
+msgctxt "#33042"
+msgid "Running the caching process may take some time. Continue anyway?"
+msgstr "A gyorsítótárazási folyamat futtatása eltarthat egy ideig. "
+
+msgctxt "#33044"
+msgid "Reset existing artwork cache?"
+msgstr "Visszaállítja a meglévő grafikai gyorsítótárat?"
+
+msgctxt "#33045"
+msgid "Updating artwork cache"
+msgstr "Grafikus gyorsítótár frissítése"
+
+msgctxt "#33046"
+msgid "Waiting for threads to exit"
+msgstr "Várakozás a szálak kilépésére"
+
+msgctxt "#33047"
+msgid "Kodi can't locate file:"
+msgstr "A Kodi nem találja a fájlt:"
+
+msgctxt "#33048"
+msgid "Use the Emby path substitution to format your path correctly or ensure your path is added to Kodi's file manager. For more information, check the FAQ in Emby for Kodi's github wiki. Stop syncing?"
+msgstr "Használja az Emby elérési út helyettesítését az elérési út helyes formázásához, vagy győződjön meg arról, hogy az elérési út hozzáadódik a Kodi fájlkezelőjéhez. "
+
+msgctxt "#33049"
+msgid "New"
+msgstr "Új"
+
+msgctxt "#33054"
+msgid "Add user to session"
+msgstr "Felhasználó hozzáadása a munkamenethez"
+
+msgctxt "#33058"
+msgid "Perform local database reset"
+msgstr "Hajtsa végre a helyi adatbázis visszaállítását"
+
+msgctxt "#33059"
+msgid "Cache all artwork"
+msgstr "Az összes műalkotás gyorsítótárazása"
+
+msgctxt "#33060"
+msgid "Sync theme media"
+msgstr "Témahordozó szinkronizálása"
+
+msgctxt "#33061"
+msgid "Add/Remove user from the session"
+msgstr "Felhasználó hozzáadása/eltávolítása a munkamenetből"
+
+msgctxt "#33062"
+msgid "Add user"
+msgstr "Felhasználó hozzáadása"
+
+msgctxt "#33063"
+msgid "Remove user"
+msgstr "Felhasználó eltávolítása"
+
+msgctxt "#33064"
+msgid "Remove user from the session"
+msgstr "Felhasználó eltávolítása a munkamenetből"
+
+msgctxt "#33066"
+msgid "Removed"
+msgstr "Eltávolítva"
+
+msgctxt "#33067"
+msgid "Added"
+msgstr "Hozzáadva"
+
+msgctxt "#33074"
+msgid "Are you sure you want to reset your local Kodi database?"
+msgstr "Biztosan visszaállítja a helyi Kodi-adatbázist?"
+
+msgctxt "#33086"
+msgid "Remove all cached artwork?"
+msgstr "Eltávolítja az összes gyorsítótárazott grafikát?"
+
+msgctxt "#33087"
+msgid "Reset all Emby add-on settings?"
+msgstr "Visszaállítja az Emby-bővítmény összes beállítását?"
+
+msgctxt "#33088"
+msgid "Database reset has completed, Kodi will now restart to apply the changes."
+msgstr "Az adatbázis-visszaállítás befejeződött, a Kodi most újraindul a módosítások alkalmazásához."
+
+msgctxt "#33089"
+msgid "Enter folder name for backup"
+msgstr "Adja meg a mappa nevét a biztonsági mentéshez"
+
+msgctxt "#33090"
+msgid "Replace existing backup?"
+msgstr "Lecseréli a meglévő biztonsági másolatot?"
+
+msgctxt "#33091"
+msgid "Created backup at:"
+msgstr "Biztonsági másolat készült itt:"
+
+msgctxt "#33092"
+msgid "Create a backup"
+msgstr "Készítsen biztonsági másolatot"
+
+msgctxt "#33093"
+msgid "Backup folder"
+msgstr "Biztonsági mentés mappa"
+
+msgctxt "#33097"
+msgid "Important, cleanonupdate was removed in your advanced settings to prevent conflict with Emby for Kodi. Kodi will restart now."
+msgstr "Fontos: a Cleanonupdate eltávolításra került a speciális beállítások közül, hogy elkerüljük az Emby for Kodi-val való ütközést. "
+
+msgctxt "#33098"
+msgid "Refresh boxsets"
+msgstr "Boxkészletek frissítése"
+
+msgctxt "#33099"
+msgid "Install the server plugin Kodi Companion to automatically apply emby library updates at startup. This setting can be found in the add-on settings > sync options > Enable Kodi Companion."
+msgstr "Telepítse a Kodi Companion kiszolgálóbővítményt, hogy az indításkor automatikusan alkalmazza az emby könyvtár frissítéseit. "
+
+msgctxt "#33100"
+msgid "Would you like to sync empty shows?"
+msgstr "Szeretné szinkronizálni az üres műsorokat?"
+
+msgctxt "#33101"
+msgid "Since you are using native playback mode with music enabled, do you want to import music rating from files?"
+msgstr "Mivel natív lejátszási módot használ zenével, szeretne zenei besorolást importálni a fájlokból?"
+
+msgctxt "#33102"
+msgid "Resume the previous sync?"
+msgstr "Folytatja az előző szinkronizálást?"
+
+msgctxt "#33103"
+msgid "Enable the webserver service in the Kodi settings to allow artwork caching."
+msgstr "Engedélyezze a webszerver szolgáltatást a Kodi beállításaiban, hogy engedélyezze a grafikák gyorsítótárazását."
+
+msgctxt "#33104"
+msgid "Find more info in the github wiki/Create-and-restore-from-backup."
+msgstr "További információkat találhat a github wikiben/Create-and-restore-from-backup."
+
+msgctxt "#33105"
+msgid "Enable the context menu"
+msgstr "Engedélyezze a helyi menüt"
+
+msgctxt "#33106"
+msgid "Enable the option to transcode"
+msgstr "Engedélyezze az átkódolás lehetőségét"
+
+msgctxt "#33107"
+msgid "Users added to the session"
+msgstr "Felhasználók hozzáadva a munkamenethez"
+
+msgctxt "#33108"
+msgid "Notifications are delayed during video playback (except live tv)."
+msgstr "Az értesítések késleltetésre kerülnek a videó lejátszása közben (kivéve élő tévéadást)."
+
+msgctxt "#33109"
+msgid "Plugin"
+msgstr ""
+
+msgctxt "#33110"
+msgid "Restart Kodi to take effect."
+msgstr "Indítsa újra a Kodi alkalmazást, hogy életbe lépjen."
+
+msgctxt "#33111"
+msgid "Reset the local database to apply the playback mode change."
+msgstr "Állítsa vissza a helyi adatbázist a lejátszási mód módosításához."
+
+msgctxt "#33112"
+msgid "Applies to Native and Add-on playback mode"
+msgstr "Natív és kiegészítő lejátszási módra vonatkozik"
+
+msgctxt "#33113"
+msgid "Applies to Add-on playback mode only"
+msgstr "Csak a kiegészítő lejátszási módra vonatkozik"
+
+msgctxt "#33114"
+msgid "Enable external subtitles"
+msgstr "Külső feliratok engedélyezése"
+
+msgctxt "#33115"
+msgid "Adjust for remote connection"
+msgstr "Távoli kapcsolat beállítása"
+
+msgctxt "#33116"
+msgid "Compress artwork (reduces quality)"
+msgstr "A grafika tömörítése (csökkenti a minőséget)"
+
+msgctxt "#33117"
+msgid "Enable artwork caching? If not, Kodi will still cache your artwork at a slower pace."
+msgstr "Engedélyezi az alkotások gyorsítótárazását? "
+
+msgctxt "#33118"
+msgid "You've change the playback mode. Kodi needs to be reset to apply the change, would you like to do this now?"
+msgstr "Megváltoztatta a lejátszási módot. "
+
+msgctxt "#33119"
+msgid "Something went wrong during the sync. You'll be able to restore progress when restarting Kodi. If the problem persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Valami hiba történt a szinkronizálás során. "
+
+msgctxt "#33120"
+msgid "Select the libraries to add"
+msgstr "Válassza ki a hozzáadni kívánt könyvtárakat"
+
+msgctxt "#33121"
+msgid "All"
+msgstr "Mind"
+
+msgctxt "#33122"
+msgid "Restart Kodi to resume where you left off."
+msgstr "Indítsa újra a Kodi-t, hogy ott folytassa, ahol abbahagyta."
+
+msgctxt "#33123"
+msgid "Sync library to Kodi"
+msgstr "Könyvtár szinkronizálása a Kodival"
+
+msgctxt "#33124"
+msgid "Include people (slow)"
+msgstr "Emberek bevonása (lassú)"
+
+msgctxt "#33125"
+msgid "Choose the Emby views to sync to Kodi. You can optionally sync libraries at a later time."
+msgstr "Válassza ki a Kodival szinkronizálandó Emby nézeteket. "
+
+msgctxt "#33126"
+msgid "Sync later"
+msgstr "Szinkronizálás később"
+
+msgctxt "#33127"
+msgid "Proceed"
+msgstr "Folytassa"
+
+msgctxt "#33128"
+msgid "Failed to retrieve latest content updates. No content updates will be applied until Kodi is restarted. If this issue persists, please report on the Emby for Kodi forums, with your Kodi log."
+msgstr "Nem sikerült lekérni a legújabb tartalomfrissítéseket. "
+
+msgctxt "#33129"
+msgid "You can sync libraries by launching the Emby add-on > Add libraries."
+msgstr "A könyvtárakat úgy szinkronizálhatja, hogy elindítja az Emby-bővítmény > Könyvtárak hozzáadása lehetőséget."
+
+msgctxt "#33130"
+msgid "Select the source"
+msgstr "Válassza ki a forrást"
+
+msgctxt "#33131"
+msgid "Refreshing boxsets"
+msgstr "Frissítő dobozkészletek"
+
+msgctxt "#33132"
+msgid "Repair library"
+msgstr "Javítási könyvtár"
+
+msgctxt "#33133"
+msgid "Remove library from Kodi"
+msgstr "Távolítsa el a könyvtárat a Kodiból"
+
+msgctxt "#33134"
+msgid "Add server"
+msgstr "Szerver hozzáadása"
+
+msgctxt "#33135"
+msgid "Kodi will now restart to apply a small patch for your Kodi version."
+msgstr "A Kodi most újraindul, hogy egy kis javítást alkalmazzon a Kodi verziójához."
+
+msgctxt "#33136"
+msgid "Update library"
+msgstr "Könyvtár frissítése"
+
+msgctxt "#33137"
+msgid "Enable Kodi Companion (server plugin)"
+msgstr "A Kodi Companion engedélyezése (kiszolgálóbővítmény)"
+
+msgctxt "#33138"
+msgid "You can update your library manually rather than rely on the server plugin Kodi companion. Launch the add-on and update libraries (or per library). To remove content, you'll need to repair the library."
+msgstr "A könyvtárat manuálisan is frissítheti, ahelyett, hogy a Kodi kiszolgálóbővítményre hagyatkozna. "
+
+msgctxt "#33139"
+msgid "Update libraries"
+msgstr "Frissítse a könyvtárakat"
+
+msgctxt "#33140"
+msgid "Repair libraries"
+msgstr "Könyvtárak javítása"
+
+msgctxt "#33141"
+msgid "Remove server"
+msgstr "Szerver eltávolítása"
+
+msgctxt "#33142"
+msgid "Something went wrong. Try again later."
+msgstr "Valami hiba történt. "
+
+msgctxt "#33144"
+msgid "Removing library"
+msgstr "Könyvtár eltávolítása"
+
+msgctxt "#33145"
+msgid "Please make sure your Emby server libraries are accessible to your Kodi installation and that you have path substitution configured on your server. For more information, check the FAQ in Emby for Kodi's github wiki."
+msgstr "Győződjön meg arról, hogy az Emby-kiszolgáló könyvtárai elérhetők a Kodi-telepítés számára, és hogy a kiszolgálón be van állítva az elérési út helyettesítése. "
+
+msgctxt "#33146"
+msgid "Unable to connect to Emby."
+msgstr "Nem lehet csatlakozni az Embyhez."
+
+msgctxt "#33147"
+msgid "Your access to Emby is restricted."
+msgstr "Az Embyhez való hozzáférése korlátozott."
+
+msgctxt "#33148"
+msgid "Your access to this server is restricted."
+msgstr "A szerverhez való hozzáférése korlátozott."
+
+msgctxt "#33149"
+msgid "Unable to connect to this server."
+msgstr "Nem lehet csatlakozni ehhez a szerverhez."
+
+msgctxt "#33150"
+msgid "Update server information"
+msgstr "Frissítse a kiszolgáló adatait"
+
+msgctxt "#33151"
+msgid "Reconnect to the same server that was previously loaded. If you want to use a different server, reset your local database, including your user information."
+msgstr "Csatlakozzon újra ugyanahhoz a kiszolgálóhoz, amelyet korábban betöltött. "
+
+msgctxt "#33152"
+msgid "Unable to locate TV Tunes in Kodi."
+msgstr "Nem található a TV dallamok a Kodiban."
+
+msgctxt "#33153"
+msgid "Your Emby theme media has been synced to Kodi"
+msgstr "Az Emby témájú média szinkronizálva lett a Kodival"
+
+msgctxt "#33154"
+msgid "Add libraries"
+msgstr "Könyvtárak hozzáadása"
+
+msgctxt "#33155"
+msgid "The currently applied patch for Emby for Kodi is corrupted! Please post to the Emby for Kodi forums if this issue persists. This will need to be fixed as soon as possible."
+msgstr "A jelenleg alkalmazott Emby for Kodi javítás sérült! "
+
+msgctxt "#33156"
+msgid "A patch has been applied!"
+msgstr "Egy javítást alkalmaztak!"
+
+msgctxt "#33157"
+msgid "Audio only"
+msgstr "Csak hang"
+
+msgctxt "#33158"
+msgid "Subtitles only"
+msgstr "Csak feliratok"
+
+msgctxt "#33159"
+msgid "Enable audio/subtitles selection"
+msgstr "Hang/feliratok kiválasztásának engedélyezése"
+
+msgctxt "#33160"
+msgid "To avoid errors, please update Emby for Kodi to version: "
+msgstr "A hibák elkerülése érdekében frissítse az Emby for Kodi alkalmazást a következő verzióra: "
+
+msgctxt "#33161"
+msgid "Check for updates"
+msgstr "Frissítések keresése"
+
+msgctxt "#33162"
+msgid "Reset the music library?"
+msgstr "Visszaállítja a zenei könyvtárat?"
+
+msgctxt "#33163"
+msgid "Support this project"
+msgstr "Támogassa ezt a projektet"
+
+msgctxt "#33164"
+msgid "Mask sensitive information in log (does not apply to kodi logging)"
+msgstr "Érzékeny információk maszkolása a naplóban (nem vonatkozik a kodi naplózásra)"
+
+msgctxt "#33165"
+msgid "Failed to create backup"
+msgstr "Nem sikerült biztonsági másolatot készíteni"
+
+msgctxt "#33166"
+msgid "(dynamic)"
+msgstr "(dinamikus)"
+
+msgctxt "#33167"
+msgid "Recently added"
+msgstr "Nemrég hozzáadva"
+
+msgctxt "#33168"
+msgid "Favourites"
+msgstr "Kedvencek"
+
+msgctxt "#33169"
+msgid "In Progress"
+msgstr "Folyamatban"
+
+msgctxt "#33170"
+msgid "Unwatched"
+msgstr "Nem figyeltek"
+
+msgctxt "#33171"
+msgid "By first letter"
+msgstr "Első betűvel"
+
+msgctxt "#33172"
+msgid "You have {number} updates pending. This may take a little while before seeing new content. It might be faster to update your libraries via launching the Emby add-on > update libraries. Proceed anyway?"
+msgstr "{number} függőben lévő frissítése van. "
+
+msgctxt "#33173"
+msgid "Forget about the previous sync? This is not recommended."
+msgstr "Elfelejtette az előző szinkronizálást? "
+
+msgctxt "#33174"
+msgid "Paging - download threads (default: 3)"
+msgstr "Paging – szálak letöltése (alapértelmezett: 3)"
+
+msgctxt "#33175"
+msgid "Paging tip: Each download thread requests your max items value from Emby at the same time."
+msgstr "Lapozási tipp: Minden letöltési szál egyidejűleg kéri a maximális tételértéket az Embytől."
+
+msgctxt "#33176"
+msgid "Update or repair your libraries to apply the changes below."
+msgstr "Frissítse vagy javítsa ki a könyvtárait az alábbi módosítások alkalmazásához."
+
+msgctxt "#33177"
+msgid "Display the progress bar if update count greater than"
+msgstr "A folyamatjelző sáv megjelenítése, ha a frissítések száma nagyobb, mint"
+
+msgctxt "#33178"
+msgid "Processing updates"
+msgstr "Frissítések feldolgozása"
+
+msgctxt "#33179"
+msgid "Force transcode"
+msgstr "Kényszerített átkódolás"
+
+msgctxt "#33180"
+msgid "Restart Emby for Kodi"
+msgstr "Indítsa újra az Embyt a Kodi számára"
+
+msgctxt "#33181"
+msgid "Restarting to apply the patch"
+msgstr "Újraindítás a javítás alkalmazásához"
+
+msgctxt "#33182"
+msgid "Play with cinema mode"
+msgstr "Lejátszás mozi módban"
+
+msgctxt "#33183"
+msgid "Enable the option to play with cinema mode"
+msgstr "Engedélyezze a mozi móddal való lejátszást"
+
+msgctxt "#33184"
+msgid "Remove libraries"
+msgstr "Távolítsa el a könyvtárakat"
+
+msgctxt "#33185"
+msgid "Enable sync during playback (may cause some lag)"
+msgstr "Szinkronizálás engedélyezése lejátszás közben (kis késést okozhat)"
+
+msgctxt "#33186"
+msgid "The Kodi companion speeds up the start up sync. Other syncs are triggered by server events."
+msgstr "A Kodi-társ felgyorsítja az indítási szinkronizálást. "
+
+msgctxt "#33187"
+msgid "Sync Rotten Tomatoes ratings"
+msgstr "Sync Rotten Tomatoes értékelések"
+
+msgctxt "#33188"
+msgid "Would you like to sync Rotten Tomatoes ratings?"
+msgstr "Szeretné szinkronizálni a Rotten Tomatoes értékeléseit?"
+
+msgctxt "#33191"
+msgid "Restart Emby for Kodi to apply this change?"
+msgstr "Újraindítja az Embyt a Kodi számára a módosítás alkalmazásához?"
+
+msgctxt "#33192"
+msgid "Restart Emby for Kodi"
+msgstr "Indítsa újra az Embyt a Kodi számára"
+
+msgctxt "#33193"
+msgid "Restarting..."
+msgstr "Újraindítás..."
+
+msgctxt "#33194"
+msgid "Manage libraries"
+msgstr "Könyvtárak kezelése"
+
+msgctxt "#33195"
+msgid "Enable Emby for Kodi"
+msgstr "Emby engedélyezése a Kodi számára"
+
+msgctxt "#33196"
+msgid "Advanced options"
+msgstr "Speciális beállítások"
+
+msgctxt "#33197"
+msgid "A sync is already running, please wait until it completes and try again."
+msgstr "Egy szinkronizálás már fut. Kérjük, várja meg, amíg befejeződik, és próbálja újra."
+
+msgctxt "#33199"
+msgid "Emby"
+msgstr ""
+
+msgctxt "#33201"
+msgid "Emby play"
+msgstr "Emby játék"
+
+msgctxt "#33202"
+msgid "Music database rescan patch"
+msgstr "Zenei adatbázis újraellenőrzési javítása"
+
+msgctxt "#33203"
+msgid "Task succeeded!"
+msgstr "A feladat sikerült!"
+
+msgctxt "#33204"
+msgid "Task failed!"
+msgstr "A feladat nem sikerült!"
+
+msgctxt "#33205"
+msgid "Enable simple play (external player friendly)"
+msgstr "Egyszerű lejátszás engedélyezése (külső játékosbarát)"
+
+msgctxt "#33206"
+msgid "Transcode 10-bit (H264)"
+msgstr "10 bites átkódolás (H264)"
+
+msgctxt "#33207"
+msgid "Ask to proceed with sync if count greater than"
+msgstr "Kérje meg a szinkronizálás folytatását, ha a szám nagyobb, mint"
+
+msgctxt "#33208"
+msgid "Transcode 10-bit (H265/HEVC)"
+msgstr "10 bites átkódolás (H265/HEVC)"
+
+msgctxt "#33209"
+msgid "Play remote urls using Emby"
+msgstr "Távoli URL-ek lejátszása az Emby használatával"
+
+msgctxt "#33210"
+msgid "Display hidden users in selection"
+msgstr "Rejtett felhasználók megjelenítése a kijelölésben"
+
+msgctxt "#33211"
+msgid "Reset patch update"
+msgstr "Állítsa vissza a javításfrissítést"
+
+msgctxt "#33212"
+msgid "Latest release"
+msgstr "Legújabb kiadás"
+
+msgctxt "#33213"
+msgid "Enable label for multi-episodes. i.e. | # | title"
+msgstr "Címke engedélyezése több epizódhoz. "
+
+msgctxt "#33214"
+msgid "Transcode Divx (MSMPEG4V3)"
+msgstr ""
+
+msgctxt "#33215"
+msgid "Transcode Xvid (MPEG4)"
+msgstr ""
+
+msgctxt "#33216"
+msgid "Transcode Dvd (MPEG2)"
+msgstr ""
+
+msgctxt "#33217"
+msgid "Verify the connection? Recommended: Disable for self-signed certificate only."
+msgstr ""
+
+msgctxt "#33218"
+msgid "By Year"
+msgstr ""
+
+msgctxt "#33219"
+msgid "By Actor"
+msgstr ""
+
+msgctxt "#33220"
+msgid "By Tag"
+msgstr ""
+
+msgctxt "#33221"
+msgid "Enable userrating sync"
+msgstr ""
+
+msgctxt "#33222"
+msgid "FINAL WARNING: Complete database reset is required! If you decline, please stop here and MANUALLY downgrade to previous version."
+msgstr ""
+
+msgctxt "#33223"
+msgid "Database reset required, wait for Kodi restart."
+msgstr ""
+
+msgctxt "#33224"
+msgid "Invalid backup path"
+msgstr ""
+
+msgctxt "#33225"
+msgid "Invalid backup"
+msgstr ""
+
+msgctxt "#33226"
+msgid "Artwork cache in progress"
+msgstr ""
+
+msgctxt "#33227"
+msgid "Webserver must be enabled for artwork cache. Enable now?"
+msgstr ""
+
+msgctxt "#33228"
+msgid "No password found, set password to 'kodi'"
+msgstr ""
+
+msgctxt "#33229"
+msgid "No backup path set"
+msgstr ""
+
+msgctxt "#33230"
+msgid "select"
+msgstr ""
+
+msgctxt "#33231"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#33232"
+msgid "Live TV sync finished"
+msgstr ""
+
+msgctxt "#33233"
+msgid "Please install and enable iptvsimple"
+msgstr ""
+
+msgctxt "#33234"
+msgid "Sync LiveTV"
+msgstr ""
+
+msgctxt "#33235"
+msgid "Websocket is offline"
+msgstr ""
+
+msgctxt "#33236"
+msgid "Emby server shutdown"
+msgstr ""
+
+msgctxt "#33237"
+msgid "Emby server restart required"
+msgstr ""
+
+msgctxt "#33238"
+msgid "Add library"
+msgstr ""
+
+msgctxt "#33239"
+msgid "Enable smart playlists (this could cause Kodi crashes)"
+msgstr ""
+
+msgctxt "#33240"
+msgid "Enable userrating"
+msgstr ""
+
+msgctxt "#33241"
+msgid "Enable local trailers"
+msgstr "Helyi előzetesek engedélyezése"
+
+msgctxt "#33242"
+msgid "Enable trailers"
+msgstr "Előzetesek engedélyezése"
+
+msgctxt "#33243"
+msgid "Transcode"
+msgstr "Átkódolás"
+
+msgctxt "#33244"
+msgid "Output format video"
+msgstr "Kimeneti formátumú videó"
+
+msgctxt "#33245"
+msgid "Output format audio"
+msgstr "Kimeneti formátumú hang"
+
+msgctxt "#33246"
+msgid "Show options in plugin menu"
+msgstr "Opciók megjelenítése a bővítmény menüjében"
+
+msgctxt "#33247"
+msgid "Date info"
+msgstr "Dátum információ"
+
+msgctxt "#33248"
+msgid "Genres"
+msgstr "Műfajok"
+
+msgctxt "#33249"
+msgid "Studios"
+msgstr "Stúdiók"
+
+msgctxt "#33250"
+msgid "Taglines"
+msgstr "Címszavak"
+
+msgctxt "#33251"
+msgid "Overview"
+msgstr "Áttekintés"
+
+msgctxt "#33252"
+msgid "Production locations"
+msgstr "Termelési helyek"
+
+msgctxt "#33253"
+msgid "Dynamic libraries"
+msgstr "Dinamikus könyvtárak"
+
+msgctxt "#33254"
+msgid "Compatibility mode"
+msgstr "Kompatibilitási mód"
+
+msgctxt "#33255"
+msgid "Restore backup"
+msgstr "Biztonsági másolat visszaállítása"
+
+msgctxt "#33256"
+msgid "Which artwork should be cached"
+msgstr "Mely grafikát kell gyorsítótárba helyezni"
+
+msgctxt "#33257"
+msgid "Video"
+msgstr "Videó"
+
+msgctxt "#33258"
+msgid "Music"
+msgstr "Zene"
+
+msgctxt "#33259"
+msgid "Incremental sync date"
+msgstr "Növekményes szinkronizálási dátum"
+
+msgctxt "#33260"
+msgid "Incremental sync time"
+msgstr "Növekményes szinkronizálási idő"
+
+msgctxt "#33261"
+msgid "Collecting removed items"
+msgstr "Az eltávolított elemek összegyűjtése"
+
+msgctxt "#33262"
+msgid "Enable cinema mode (movies)"
+msgstr "Mozi mód engedélyezése (filmek)"
+
+msgctxt "#33263"
+msgid "Enable cinema mode (tv shows)"
+msgstr "Mozi mód engedélyezése (tévéműsorok)"
+
+msgctxt "#33264"
+msgid "Delete items also from Emby server? Final warning, this will also delete the FILES and is not reversible!"
+msgstr "Törli az elemeket az Emby szerverről is? "
+
+msgctxt "#33265"
+msgid "Delete FILES also from Emby server by Kodi events? \n THIS IS VERY DANGEROUS AND NOT REVERSIBLE!"
+msgstr "Törli a FILES-t az Emby szerverről is a Kodi események által? "
+
+msgctxt "#33266"
+msgid "Enable FILE delete on Kodi events"
+msgstr "Fájltörlés engedélyezése a Kodi eseményeken"
+
+msgctxt "#33267"
+msgid "Disable HTTP2 support"
+msgstr "A HTTP2 támogatás letiltása"
+
+msgctxt "#33268"
+msgid "Kodi restart initiated due to advancedsettings.xml changes"
+msgstr "A Kodi újraindítása az advancedsettings.xml fájl módosításai miatt elindult"
+
+msgctxt "#33269"
+msgid "1.3 Mbps HD"
+msgstr "1,3 Mbps HD"
+
+msgctxt "#33270"
+msgid "2.0 Mbps HD"
+msgstr "2,0 Mbps HD"
+
+msgctxt "#33271"
+msgid "3.2 Mbps HD"
+msgstr "3,2 Mbps HD"
+
+msgctxt "#33272"
+msgid "4.7 Mbps HD"
+msgstr "4,7 Mbps HD"
+
+msgctxt "#33273"
+msgid "6.2 Mbps HD"
+msgstr "6,2 Mbps HD"
+
+msgctxt "#33274"
+msgid "7.7 Mbps HD"
+msgstr "7,7 Mbps HD"
+
+msgctxt "#33275"
+msgid "9.2 Mbps HD"
+msgstr "9,2 Mbps HD"
+
+msgctxt "#33276"
+msgid "10.7 Mbps HD"
+msgstr "10,7 Mbps HD"
+
+msgctxt "#33277"
+msgid "12.2 Mbps HD"
+msgstr "12,2 Mbps HD"
+
+msgctxt "#33278"
+msgid "13.7 Mbps HD"
+msgstr "13,7 Mbps HD"
+
+msgctxt "#33279"
+msgid "15.2 Mbps HD"
+msgstr "15,2 Mbps HD"
+
+msgctxt "#33280"
+msgid "16.7 Mbps HD"
+msgstr "16,7 Mbps HD"
+
+msgctxt "#33281"
+msgid "18.2 Mbps HD"
+msgstr "18,2 Mbps HD"
+
+msgctxt "#33282"
+msgid "20.0 Mbps HD"
+msgstr "20,0 Mbps HD"
+
+msgctxt "#33283"
+msgid "25.0 Mbps HD"
+msgstr "25,0 Mbps HD"
+
+msgctxt "#33284"
+msgid "30.0 Mbps HD"
+msgstr "30,0 Mbps HD"
+
+msgctxt "#33285"
+msgid "35.0 Mbps HD"
+msgstr "35,0 Mbps HD"
+
+msgctxt "#33286"
+msgid "40.0 Mbps HD"
+msgstr "40,0 Mbps HD"
+
+msgctxt "#33287"
+msgid "100.0 Mbps HD"
+msgstr "100,0 Mbps HD"
+
+msgctxt "#33288"
+msgid "1000.0 Mbps HD"
+msgstr "1000,0 Mbps HD"
+
+msgctxt "#33289"
+msgid "64 Kbps"
+msgstr ""
+
+msgctxt "#33290"
+msgid "96 Kbps"
+msgstr ""
+
+msgctxt "#33291"
+msgid "128 Kbps"
+msgstr ""
+
+msgctxt "#33292"
+msgid "192 Kbps"
+msgstr ""
+
+msgctxt "#33293"
+msgid "256 Kbps"
+msgstr ""
+
+msgctxt "#33294"
+msgid "320 Kbps"
+msgstr ""
+
+msgctxt "#33295"
+msgid "384 Kbps"
+msgstr ""
+
+msgctxt "#33296"
+msgid "448 Kbps"
+msgstr ""
+
+msgctxt "#33297"
+msgid "512 Kbps"
+msgstr ""
+
+msgctxt "#33298"
+msgid "Cinema mode"
+msgstr "Mozi mód"
+
+msgctxt "#33299"
+msgid "Artwork"
+msgstr "Műalkotás"
+
+msgctxt "#33300"
+msgid "Menu"
+msgstr "Menü"
+
+msgctxt "#33301"
+msgid "Compatibility mode changes the plugin id to 4.x (plugin.video.emby). Don't use it if it's not absolutly required! Never perform updates in this mode!"
+msgstr "A kompatibilitási mód a beépülő modul azonosítóját 4.x-re módosítja (plugin.video.emby). "
+
+msgctxt "#33302"
+msgid "In some circumstances (WLan, delayed network startup etc.) a delayed plugin start can improve connectivity"
+msgstr "Bizonyos körülmények között (WLan, késleltetett hálózati indítás stb.) a beépülő modul késleltetett indítása javíthatja a kapcsolatot"
+
+msgctxt "#33303"
+msgid "You can adjust what meta information are loaded for dynamic (not synced) content. By default only basic information are loaded. Extenting can delay browsing lists."
+msgstr "Beállíthatja, hogy milyen metainformációk legyenek betöltve a dinamikus (nem szinkronizált) tartalomhoz. "
+
+msgctxt "#33304"
+msgid "Be careful with this option. It offers FILE DELETE not only database removal. (Admin permissions are required)"
+msgstr "Legyen óvatos ezzel az opcióval. "
+
+msgctxt "#33305"
+msgid "This is a debug option. You can set the last sync date/time manually. After Kodi restart it will perform the action. Just perform minor adjustments. Setting a date/time too much in the past can cause a huge incremental sync."
+msgstr "Ez egy hibakeresési lehetőség. "
+
+msgctxt "#33306"
+msgid "Resets the unique device id. A manual reconnection to emby server is required. Otherwise the realtime communication could be compromised."
+msgstr "Visszaállítja az egyedi eszközazonosítót. "
+
+msgctxt "#33307"
+msgid "Connect to a new Emby server (multiserver) or reconnect an existing Emby server (debug)"
+msgstr "Csatlakozzon egy új Emby-kiszolgálóhoz (többszerverhez) vagy csatlakozzon újra egy meglévő Emby-kiszolgálóhoz (hibakeresés)"
+
+msgctxt "#33308"
+msgid "Show hidden users on Emby server for connections ops."
+msgstr "Rejtett felhasználók megjelenítése az Emby szerveren a kapcsolati műveletekhez."
+
+msgctxt "#33309"
+msgid "Add/Remove/Repair libraries, live TV, themes."
+msgstr "Könyvtárak, élő TV-műsorok, témák hozzáadása/eltávolítása/javítása."
+
+msgctxt "#33310"
+msgid "Syncs all artwork locally to Kodi. This can take very long. Kodi's webserver must be enabled, but not in SSL mode (not supported yet). Caching can not be interrupted beside restarting Kodi."
+msgstr "Az összes grafikát helyileg szinkronizálja a Kodival. "
+
+msgctxt "#33311"
+msgid "Some skins use xps playlists. Usually not required, leave it off if you don't need them."
+msgstr "Egyes skinek XPS lejátszási listákat használnak. "
+
+msgctxt "#33312"
+msgid "Userrating are additional information to be synced to Kodi. In some minor cases (3rd party plugins like trakt etc.) can interfere with synced userratings. Default should be on. If you change this setting, a full database resync is mandatory to apply the change."
+msgstr "A felhasználói beállítások további információk, amelyeket szinkronizálni kell a Kodival. "
+
+msgctxt "#33313"
+msgid "Performs a complete Kodi database resync. Settings and artwork are optionally reset."
+msgstr "Teljes Kodi-adatbázis-újraszinkronizálást hajt végre. "
+
+msgctxt "#33314"
+msgid "Cinema mode is a premiere feature of Emby. Trailer configurations are support on Emby server (number of trailers to be played etc.)"
+msgstr "A mozi mód az Emby premier funkciója. "
+
+msgctxt "#33315"
+msgid "Transcode audio bitrate"
+msgstr "Átkódolja a hang bitsebességét"
+
+msgctxt "#33316"
+msgid "Network speed. Bitrates which exceeds the bandwidth will be transcoded."
+msgstr "Hálózati sebesség. "
+
+msgctxt "#33318"
+msgid "Devicename report to Emby server."
+msgstr "Eszköznév jelentés az Emby szervernek."
+
+msgctxt "#33319"
+msgid "Report playback progress to additional users."
+msgstr "Jelentse a lejátszás előrehaladását további felhasználóknak."
+
+msgctxt "#33320"
+msgid "Gap between playback stopped and continuation start."
+msgstr "A lejátszás leállítása és a folytatás kezdete közötti távolság."
+
+msgctxt "#33321"
+msgid "This is a Emby server feature."
+msgstr "Ez egy Emby szerver szolgáltatás."
+
+msgctxt "#33322"
+msgid "Can save bandwidth"
+msgstr "Sávszélességet takaríthat meg"
+
+msgctxt "#33323"
+msgid "In some cases it's useful showing menu options in the plugin menu as shortcuts. Also they can be added as favourites etc."
+msgstr "Bizonyos esetekben hasznos a menüopciók megjelenítése a beépülő modul menüjében parancsikonként. "
+
+msgctxt "#33324"
+msgid "Contect menu supports favourites management, delete options, (movie) special features selections etc."
+msgstr "A Kapcsolat menü támogatja a kedvencek kezelését, a törlési lehetőségeket, a (film) speciális funkciók kiválasztását stb."
+
+msgctxt "#33325"
+msgid "Audio Bitrate"
+msgstr "Hang bitráta"
+
+msgctxt "#33326"
+msgid "h264"
+msgstr ""
+
+msgctxt "#33327"
+msgid "hevc"
+msgstr ""
+
+msgctxt "#33328"
+msgid "aac"
+msgstr ""
+
+msgctxt "#33329"
+msgid "ac3"
+msgstr ""
+
+msgctxt "#33330"
+msgid "664 Kbps SD"
+msgstr ""
+
+msgctxt "#33331"
+msgid "996 Kbps HD"
+msgstr ""
+
+msgctxt "#33332"
+msgid "Maximum artwork cache threads"
+msgstr "Maximális grafikai gyorsítótár-szál"
+
+msgctxt "#33333"
+msgid "Animated icon"
+msgstr "Animált ikon"
+
+msgctxt "#33334"
+msgid "Refresh skin on Emby server connection"
+msgstr "Frissítse a felszínt az Emby szerverkapcsolaton"
+
+msgctxt "#33335"
+msgid "Folder"
+msgstr "Mappa"
+
+msgctxt "#33336"
+msgid "Mixed content"
+msgstr "Vegyes tartalom"
+
+msgctxt "#33337"
+msgid "In progress"
+msgstr "Folyamatban"
+
+msgctxt "#33338"
+msgid "Random episodes"
+msgstr "Véletlenszerű epizódok"
+
+msgctxt "#33339"
+msgid "Random TVShows"
+msgstr "Véletlenszerű tévéműsorok"
+
+msgctxt "#33340"
+msgid "Factory reset"
+msgstr "Gyári beállítások visszaállítása"
+
+msgctxt "#33341"
+msgid "Nodes reset"
+msgstr "Csomópontok visszaállítása"
+
+msgctxt "#33342"
+msgid "Are you sure you want to reset your nodes?"
+msgstr "Biztosan visszaállítja a csomópontokat?"
+
+msgctxt "#33343"
+msgid "Artists"
+msgstr "Művészek"
+
+msgctxt "#33344"
+msgid "Unwatched Episodes"
+msgstr "Meg nem nézett epizódok"
+
+msgctxt "#33345"
+msgid "Unwatched TV Shows"
+msgstr "Nem nézett tévéműsorok"
+
+msgctxt "#33346"
+msgid "Favorite TVShows"
+msgstr "Kedvenc tévéműsorok"
+
+msgctxt "#33347"
+msgid "Recently played TV Show"
+msgstr "Nemrég játszott tévéműsor"
+
+msgctxt "#33348"
+msgid "Upcoming episodes"
+msgstr "Következő epizódok"
+
+msgctxt "#33349"
+msgid "TV Shows"
+msgstr "TV-műsorok"
+
+msgctxt "#33350"
+msgid "Recently played"
+msgstr "Nemrég játszották"
+
+msgctxt "#33351"
+msgid "Recently played Episode"
+msgstr "Nemrég lejátszott epizód"
+
+msgctxt "#33352"
+msgid "Directors"
+msgstr "Rendezők"
+
+msgctxt "#33353"
+msgid "TV Show tags"
+msgstr "TV-műsor címkék"
+
+msgctxt "#33354"
+msgid "Episode tags"
+msgstr "Epizódcímkék"
+
+msgctxt "#33356"
+msgid "Movie tags"
+msgstr "Filmcímkék"
+
+msgctxt "#33357"
+msgid "Resume movie"
+msgstr "A film folytatása"
+
+msgctxt "#33358"
+msgid "Countries"
+msgstr "Országok"
+
+msgctxt "#33359"
+msgid "HD"
+msgstr ""
+
+msgctxt "#33360"
+msgid "SD"
+msgstr ""
+
+msgctxt "#33361"
+msgid "4K"
+msgstr ""
+
+msgctxt "#33362"
+msgid "Albums"
+msgstr "Albumok"
+
+msgctxt "#33363"
+msgid "Musicvideos"
+msgstr "Zenei videók"
+
+msgctxt "#33364"
+msgid "Musicvideo tags"
+msgstr "Zenevideó címkék"
+
+msgctxt "#33365"
+msgid "Random musicvideos"
+msgstr "Véletlenszerű zenei videók"
+
+msgctxt "#33366"
+msgid "Resume musicvideos"
+msgstr "Zenei videók folytatása"
+
+msgctxt "#33367"
+msgid "Videos"
+msgstr "Videók"
+
+msgctxt "#33368"
+msgid "Photos"
+msgstr "Fotók"
+
+msgctxt "#33369"
+msgid "Photoalbums"
+msgstr "Fényképalbumok"
+
+msgctxt "#33370"
+msgid "Photoalbum tags"
+msgstr "Fotóalbum-címkék"
+
+msgctxt "#33371"
+msgid "Photo tags"
+msgstr "Fotócímkék"
+
+msgctxt "#33372"
+msgid "Video tags"
+msgstr "Videocímkék"
+
+msgctxt "#33373"
+msgid "Recently added photos"
+msgstr "Nemrég hozzáadott fotók"
+
+msgctxt "#33374"
+msgid "Recently added photoalbums"
+msgstr "Nemrég hozzáadott fotóalbumok"
+
+msgctxt "#33375"
+msgid "Recently added videos"
+msgstr "Nemrég hozzáadott videók"
+
+msgctxt "#33376"
+msgid "Playlists"
+msgstr "Lejátszási listák"
+
+msgctxt "#33377"
+msgid "Audiobooks"
+msgstr "Hangoskönyvek"
+
+msgctxt "#33378"
+msgid "Random audiobooks"
+msgstr "Véletlenszerű hangoskönyvek"
+
+msgctxt "#33379"
+msgid "Unlistened"
+msgstr "Nem hallgatott"
+
+msgctxt "#33380"
+msgid "Random songs"
+msgstr "Véletlenszerű dalok"
+
+msgctxt "#33381"
+msgid "Random podcasts"
+msgstr "Véletlenszerű podcastok"
+
+msgctxt "#33382"
+msgid "Podcasts"
+msgstr "Podcastok"
+
+msgctxt "#33383"
+msgid "Synced nodes are much faster than dynamic nodes. Prefer them where ever possible"
+msgstr "A szinkronizált csomópontok sokkal gyorsabbak, mint a dinamikus csomópontok. "
+
+msgctxt "#33384"
+msgid "Dynamic nodes are build on the fly. This has na impact to performance. Try to avoid where ever possible"
+msgstr "A dinamikus csomópontok menet közben épülnek fel. "
+
+msgctxt "#33385"
+msgid "Favorite musicvideos"
+msgstr "Kedvenc zenei videók"
+
+msgctxt "#33386"
+msgid "Synced nodes"
+msgstr "Szinkronizált csomópontok"
+
+msgctxt "#33387"
+msgid "Dynamic nodes"
+msgstr "Dinamikus csomópontok"
+
+msgctxt "#33388"
+msgid "Recently added albums"
+msgstr "Nemrég hozzáadott albumok"
+
+msgctxt "#33389"
+msgid "Recently added audiobooks"
+msgstr "Nemrég hozzáadott hangoskönyvek"
+
+msgctxt "#33390"
+msgid "Recently added songs"
+msgstr "Nemrég hozzáadott dalok"
+
+msgctxt "#33391"
+msgid "Random albums"
+msgstr "Véletlenszerű albumok"
+
+msgctxt "#33392"
+msgid "Random songs"
+msgstr "Véletlenszerű dalok"
+
+msgctxt "#33393"
+msgid "Random audiobooks"
+msgstr "Véletlenszerű hangoskönyvek"
+
+msgctxt "#33394"
+msgid "Random podcasts"
+msgstr "Véletlenszerű podcastok"
+
+msgctxt "#33395"
+msgid "Recently added podcasts"
+msgstr "Nemrég hozzáadott podcastok"
+
+msgctxt "#33396"
+msgid "Add/Remove/Repair libraries, live TV, themes"
+msgstr "Könyvtárak, élő TV-műsorok, témák hozzáadása/eltávolítása/javítása"
+
+msgctxt "#33398"
+msgid "Open plugin settings"
+msgstr "Nyissa meg a beépülő modul beállításait"
+
+msgctxt "#33400"
+msgid "Performs a complete Kodi database resync (including non Emby content). Settings and artwork are optionally reset."
+msgstr "Teljes Kodi-adatbázis-újraszinkronizálást hajt végre (beleértve a nem Emby-tartalmakat is). "
+
+msgctxt "#33401"
+msgid "Reset all custom nodes and rebuild them"
+msgstr "Állítsa vissza az összes egyéni csomópontot, és építse újra őket"
+
+msgctxt "#33402"
+msgid "Node query limit"
+msgstr "Csomópont-lekérdezési korlát"
+
+msgctxt "#33403"
+msgid "Limit queries for progress nodes. Higher values are slower and uses more resources."
+msgstr "Korlátozza a lekérdezéseket az előrehaladási csomópontokhoz. "
+
+msgctxt "#33404"
+msgid "Nodes"
+msgstr "Csomópontok"
+
+msgctxt "#33405"
+msgid "Use playback resume option from Emby server"
+msgstr "A lejátszás folytatása opció használata az Emby szerverről"
+
+msgctxt "#33406"
+msgid "This function disables Kodi's internal progress updates. Non Emby server content will no longer receive progress updates. Kodi restart is required."
+msgstr "Ez a funkció letiltja a Kodi belső folyamatfrissítéseit. "
+
+msgctxt "#33407"
+msgid "Vacuum databases on Kodi shutdown"
+msgstr "Vákuumos adatbázisok a Kodi leállításakor"
+
+msgctxt "#33408"
+msgid "Database will be rebuild and optimized, by the cost of a shutdown delay"
+msgstr "Az adatbázis újraépítésre és optimalizálásra kerül a leállási késleltetés költségével"
+
+msgctxt "#33409"
+msgid "Reload Skin"
+msgstr ""
+
+msgctxt "#33410"
+msgid "Other"
+msgstr "Egyéb"
+
+msgctxt "#33411"
+msgid "Emby Server busy"
+msgstr "Emby szerver foglalt"
+
+msgctxt "#33412"
+msgid "Delete artwork files"
+msgstr "Törölje a grafikai fájlokat"
+
+msgctxt "#33413"
+msgid "Update views"
+msgstr "Nézetek frissítése"
+
+msgctxt "#33414"
+msgid "Emby Server busy: Sync in progress"
+msgstr "Emby szerver foglalt: Szinkronizálás folyamatban"
+
+msgctxt "#33415"
+msgid "Delete Kodi"
+msgstr "Kodi törlése"
+
+msgctxt "#33416"
+msgid "Database"
+msgstr "Adatbázis"
+
+msgctxt "#33417"
+msgid "Skip intro"
+msgstr "Bevezető kihagyása"
+
+msgctxt "#33418"
+msgid "A message box will ask for jump to intro end position"
+msgstr "Egy üzenetablak kérni fogja, hogy ugorjon a bevezető véghelyzetbe"
+
+msgctxt "#33419"
+msgid "Markers"
+msgstr "Jelölők"
+
+msgctxt "#33420"
+msgid "Skip credits"
+msgstr "Kihagyás"
+
+msgctxt "#33421"
+msgid "A message box will ask for skip credits"
+msgstr "Egy üzenetablak kérni fogja a jóváírások kihagyását"
+
+msgctxt "#33422"
+msgid "Ask skip intro"
+msgstr "Kérdezzen a bevezető átugrása"
+
+msgctxt "#33423"
+msgid "Ask skip credits"
+msgstr "Kérdezzen kreditek kihagyása"
+
+msgctxt "#33424"
+msgid "Message box automatic close after X seconds"
+msgstr "Az üzenetdoboz X másodperc után automatikusan bezárul"
+
+msgctxt "#33425"
+msgid "Skip intro, skip credits, cinema mode and delete option message boxes will automatically close after X seconds. 0 means, automatic close is disabled"
+msgstr "A bevezető átugrása, a kreditek kihagyása, a mozi mód és a törlési opciók üzenetdobozai X másodperc után automatikusan bezáródnak. "
+
+msgctxt "#33426"
+msgid "Composers"
+msgstr "Zeneszerzők"
+
+msgctxt "#33427"
+msgid "Corrupted setting file detected, restore default. Restart in 5 seconds."
+msgstr "Sérült beállítási fájl észlelve, alapértelmezés visszaállítása. "
+
+msgctxt "#33428"
+msgid "SSL Error"
+msgstr "SSL hiba"
+
+msgctxt "#33429"
+msgid "Artwork caching stopped: running low on space"
+msgstr "Az alkotások gyorsítótárazása leállt: fogy a hely"
+
+msgctxt "#33430"
+msgid "Websocket connection offline"
+msgstr "Websocket kapcsolat offline"
+
+msgctxt "#33431"
+msgid "Select Emby server"
+msgstr "Válassza ki az Emby szervert"
+
+msgctxt "#33432"
+msgid "Select the libraries to repair"
+msgstr "Válassza ki a javítani kívánt könyvtárakat"
+
+msgctxt "#33433"
+msgid "Select the libraries to update"
+msgstr "Válassza ki a frissíteni kívánt könyvtárakat"
+
+msgctxt "#33434"
+msgid "Select the libraries to remove"
+msgstr "Válassza ki az eltávolítani kívánt könyvtárakat"
+
+msgctxt "#33435"
+msgid "Songs by genre"
+msgstr "Dalok műfaj szerint"
+
+msgctxt "#33436"
+msgid "Vacuum databases"
+msgstr "Vákuum adatbázisok"
+
+msgctxt "#33437"
+msgid "Assign TVShow posters to episodes"
+msgstr "TVShow poszterek hozzárendelése az epizódokhoz"
+
+msgctxt "#33438"
+msgid "TVShow Kodi-posters (Emby TVShow primary image) will be used as episode Kodi-posters.\nToggle this option requires a complete resync including all cached artwork.\nCaution: Don't use the the init sync wizard (skip it) and review the settings before (re)sync."
+msgstr "A TVShow Kodi-poszterek (Emby TVShow elsődleges képe) Kodi-poszterekként lesznek használva.\nEnnek a beállításnak a váltásához teljes újraszinkronizálásra van szükség, beleértve az összes gyorsítótárazott grafikát.\nVigyázat: Ne használja az init szinkronizálási varázslót (hagyja ki), és ellenőrizze a beállításokat az (újra)szinkronizálás előtt."
+
+msgctxt "#33439"
+msgid "Use fanart images for next up episodes"
+msgstr "Használjon fanart képeket a következő epizódokhoz"
+
+msgctxt "#33440"
+msgid "Overwrites (Kodi) thumbs with (Kodi) fanarts for next up episodes node"
+msgstr "Felülírja a (Kodi) hüvelykujjokat (Kodi) fanartokkal a következő epizódok csomópontjához"
+
+msgctxt "#33441"
+msgid "Use alternative skip intro (message) layout"
+msgstr "Használjon alternatív kihagyás bevezető (üzenet) elrendezést"
+
+msgctxt "#33442"
+msgid "Embuary skin design"
+msgstr ""
+
+msgctxt "#33443"
+msgid "Enable server progress"
+msgstr "A szerver előrehaladásának engedélyezése"
+
+msgctxt "#33444"
+msgid "Emby server busy-notifications are shown"
+msgstr "Megjelennek az Emby szerver foglaltsági értesítései"
+
+msgctxt "#33445"
+msgid "Query content changes"
+msgstr "A lekérdezés tartalma megváltozik"
+
+msgctxt "#33446"
+msgid "Query content changes / userdata"
+msgstr "Tartalomváltozások/felhasználói adatok lekérdezése"
+
+msgctxt "#33447"
+msgid "Query content changes / content"
+msgstr "Tartalomváltozások / tartalom lekérdezése"
+
+msgctxt "#33448"
+msgid "Disconnected from Emby server"
+msgstr "Megszakad a kapcsolat az Emby szerverrel"
+
+msgctxt "#33449"
+msgid "Sync livetv channels"
+msgstr "Élő TV csatornák szinkronizálása"
+
+msgctxt "#33450"
+msgid "Sync livetv epg"
+msgstr "Élő tv szinkronizálása"
+
+msgctxt "#30515"
+msgid "Paging - items requested (default factor: 70)"
+msgstr "Lapozás – kért elemek (alapértelmezett tényező: 70)"
+
+msgctxt "#33451"
+msgid "Sync themes"
+msgstr "Témák szinkronizálása"
+
+msgctxt "#33452"
+msgid "Verify free space"
+msgstr "Ellenőrizze a szabad területet"
+
+msgctxt "#33453"
+msgid "Select Media Source"
+msgstr "Válassza a Médiaforrás lehetőséget"
+
+msgctxt "#33454"
+msgid "Use workarounds for Kodi's (dynamic) widget issues"
+msgstr "Használjon megoldásokat a Kodi (dinamikus) widget-problémáira"
+
+msgctxt "#33455"
+msgid "H264"
+msgstr ""
+
+msgctxt "#33456"
+msgid "HEVC"
+msgstr ""
+
+msgctxt "#33457"
+msgid "AV1"
+msgstr ""
+
+msgctxt "#33458"
+msgid "VP8"
+msgstr ""
+
+msgctxt "#33459"
+msgid "VP9"
+msgstr ""
+
+msgctxt "#33460"
+msgid "WMV3"
+msgstr ""
+
+msgctxt "#33461"
+msgid "MPEG4"
+msgstr ""
+
+msgctxt "#33462"
+msgid "MPEG2VIDEO"
+msgstr ""
+
+msgctxt "#33463"
+msgid "MJPEG"
+msgstr ""
+
+msgctxt "#33464"
+msgid "MSMPEG4V3"
+msgstr ""
+
+msgctxt "#33465"
+msgid "AAC"
+msgstr ""
+
+msgctxt "#33466"
+msgid "MP3"
+msgstr ""
+
+msgctxt "#33467"
+msgid "MP2"
+msgstr ""
+
+msgctxt "#33468"
+msgid "DTS"
+msgstr ""
+
+msgctxt "#33469"
+msgid "AC3"
+msgstr ""
+
+msgctxt "#33470"
+msgid "Transcode video"
+msgstr "Videó átkódolása"
+
+msgctxt "#33471"
+msgid "Transcode audio"
+msgstr "Hang átkódolása"
+
+msgctxt "#33472"
+msgid "Transcode bandwidth limit"
+msgstr "Átkódolási sávszélesség-korlát"
+
+msgctxt "#33473"
+msgid "Transcode output format"
+msgstr "Átkódolási kimeneti formátum"
+
+msgctxt "#33474"
+msgid "EAC3"
+msgstr ""
+
+msgctxt "#33475"
+msgid "PCM MULAW"
+msgstr ""
+
+msgctxt "#33476"
+msgid "PCM S24LE"
+msgstr ""
+
+msgctxt "#33477"
+msgid "VORBIS"
+msgstr ""
+
+msgctxt "#33478"
+msgid "WMAV2"
+msgstr ""
+
+msgctxt "#33479"
+msgid "AC4"
+msgstr ""
+
+msgctxt "#33480"
+msgid "Transcode livetv"
+msgstr "Élő tv átkódolása"
+
+msgctxt "#33481"
+msgid "Audio"
+msgstr "Hang"
+
+msgctxt "#33482"
+msgid "Video"
+msgstr "Videó"
+
+msgctxt "#33483"
+msgid "Select audiostream"
+msgstr "Válassza ki a hangfolyamot"
+
+msgctxt "#33484"
+msgid "Select subtitle"
+msgstr "Válassza ki a feliratot"
+
+msgctxt "#33485"
+msgid "EMBY: Specials"
+msgstr "EMBY: Különlegességek"
+
+msgctxt "#33486"
+msgid "Use path substitution"
+msgstr "Használja az elérési út helyettesítését"
+
+msgctxt "#33487"
+msgid "Path substitution supports chapter images in addon mode. This mode can cause playback issues on some devices."
+msgstr "Az elérési út helyettesítése támogatja a fejezetképeket kiegészítő módban. "
+
+msgctxt "#33488"
+msgid "Assign unique actors for each emby library"
+msgstr "Rendeljen egyedi szereplőket minden emby könyvtárhoz"
+
+msgctxt "#33489"
+msgid "Episodes"
+msgstr "Epizódok"
+
+msgctxt "#33490"
+msgid "EMBY: Record"
+msgstr ""
+
+msgctxt "#33491"
+msgid "Watch together canceled"
+msgstr "A közös megtekintés törölve"
+
+msgctxt "#33492"
+msgid "Waiting for participants"
+msgstr "Várjuk a résztvevőket"
+
+msgctxt "#33493"
+msgid "Starting..."
+msgstr "Kezdődik..."
+
+msgctxt "#33494"
+msgid "Select users"
+msgstr "Válasszon felhasználókat"
+
+msgctxt "#33495"
+msgid "Remote clients / Watch together"
+msgstr "Távoli kliensek / Nézz együtt"
+
+msgctxt "#33496"
+msgid "Delete timer"
+msgstr "Időzítő törlése"
+
+msgctxt "#33497"
+msgid "Add timer"
+msgstr "Időzítő hozzáadása"
+
+msgctxt "#33498"
+msgid "Force clients"
+msgstr "Kényszerítsd az ügyfeleket"
+
+msgctxt "#33499"
+msgid "Clients not supporting watch together natively, will be force to participate"
+msgstr "Azok az ügyfelek, akik nem támogatják a közös nézést natív módon, kénytelenek részt venni"
+
+msgctxt "#33500"
+msgid "Client control"
+msgstr "Ügyfélvezérlés"
+
+msgctxt "#33501"
+msgid "Clients can control each other"
+msgstr "Az ügyfelek irányíthatják egymást"
+
+msgctxt "#33502"
+msgid "Sync clients to master"
+msgstr "Az ügyfelek szinkronizálása a mesterrel"
+
+msgctxt "#33503"
+msgid "Master controls play, pause, seek"
+msgstr "A fő vezérlés a lejátszást, a szünetet, a keresést"
+
+msgctxt "#33504"
+msgid "Wait for participates"
+msgstr "Várd a résztvevőket"
+
+msgctxt "#33505"
+msgid "Wait for participates in seconds"
+msgstr "Várja meg a részvételt másodperceken belül"
+
+msgctxt "#33506"
+msgid "Delay playback"
+msgstr "Késleltetett lejátszás"
+
+msgctxt "#33507"
+msgid "Delay playback start, give clients time to sync"
+msgstr "Késlelteti a lejátszás indítását, hagyjon időt az ügyfeleknek a szinkronizálásra"
+
+msgctxt "#33508"
+msgid "Maximum drift on pause"
+msgstr "Maximális eltolódás a szünetben"
+
+msgctxt "#33509"
+msgid "Allowed async in milliseconds on pause"
+msgstr "Engedélyezett aszinkron ezredmásodpercben szünet esetén"
+
+msgctxt "#33510"
+msgid "Auto ack"
+msgstr "Automatikus megerősítés"
+
+msgctxt "#33511"
+msgid "Auto acknowledge incoming remote client request"
+msgstr "Automatikusan nyugtázza a bejövő távoli kliens kérést"
+
+msgctxt "#33512"
+msgid "Delay"
+msgstr "Késés"
+
+msgctxt "#33513"
+msgid "Triggers a seek command after X seconds"
+msgstr "X másodperc után keresési parancsot indít el"
+
+msgctxt "#33514"
+msgid "Resync unsupported clients"
+msgstr "A nem támogatott ügyfelek újraszinkronizálása"
+
+msgctxt "#33515"
+msgid "Keep connection"
+msgstr "Tartsa a kapcsolatot"
+
+msgctxt "#33516"
+msgid "Establish connection on start (by device id)"
+msgstr "Csatlakozás létrehozása indításkor (eszközazonosító alapján)"
+
+msgctxt "#33517"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Nézzétek együtt"
+
+msgctxt "#33518"
+msgid "EMBY: Remove client"
+msgstr "EMBY: Ügyfél eltávolítása"
+
+msgctxt "#33519"
+msgid "EMBY: Add client"
+msgstr "EMBY: Ügyfél hozzáadása"
+
+msgctxt "#33520"
+msgid "EMBY: Enable remote mode"
+msgstr "EMBY: Távoli mód engedélyezése"
+
+msgctxt "#33521"
+msgid "EMBY: Disable remote mode"
+msgstr "EMBY: A távoli mód letiltása"
+
+msgctxt "#33522"
+msgid "Enable"
+msgstr "Engedélyezés"
+
+msgctxt "#33523"
+msgid "Primary"
+msgstr "Elsődleges"
+
+msgctxt "#33524"
+msgid "Art"
+msgstr ""
+
+msgctxt "#33525"
+msgid "Banner"
+msgstr ""
+
+msgctxt "#33526"
+msgid "Disc"
+msgstr "Lemez"
+
+msgctxt "#33527"
+msgid "Logo"
+msgstr ""
+
+msgctxt "#33528"
+msgid "Thumb"
+msgstr "Hüvelykujj"
+
+msgctxt "#33529"
+msgid "Backdrop"
+msgstr "Háttér"
+
+msgctxt "#33530"
+msgid "Chapter"
+msgstr "Fejezet"
+
+msgctxt "#33531"
+msgid "Compression"
+msgstr "Tömörítés"
+
+msgctxt "#33532"
+msgid "Maximum resolution"
+msgstr "Maximális felbontás"
+
+msgctxt "#33533"
+msgid "Limits the image resolution by a factor. Base is screen resolution. e.g. 50% of 1920x1080"
+msgstr "Tényezővel korlátozza a képfelbontást. "
+
+msgctxt "#33534"
+msgid "Select transencode audiostream"
+msgstr "Válassza ki az átkódolt hangfolyamot"
+
+msgctxt "#33535"
+msgid "Path substitution supports chapter images (extraction) in addon mode. This mode may cause playback issues on some devices. Also disable the folowing Kodi setting: 'Media' -> 'Videos' -> 'Extract video information from files'"
+msgstr "Az elérési út helyettesítése támogatja a fejezetképeket (kivonatolás) addon módban. "
+
+msgctxt "#33536"
+msgid "Enable websocket connection"
+msgstr "Websocket kapcsolat engedélyezése"
+
+msgctxt "#33537"
+msgid "If disabled: No realtime updates, no notifications will be received and remote commands will not work."
+msgstr "Ha le van tiltva: Nem történik valós idejű frissítés, nem érkezik értesítés, és a távoli parancsok sem működnek."
+
+msgctxt "#33538"
+msgid "Use workarounds for Kodi's episode bookmark issues"
+msgstr "Használjon megoldásokat a Kodi-epizód könyvjelzővel kapcsolatos problémáira"
+
+msgctxt "#33539"
+msgid "Kodi has a bug with episode bookmarks when selecting an episode via list views. Episodes selected via widget are not affected. Toggle this option required a complete TVShow resync!"
+msgstr "A Kodinak hibája van az epizódkönyvjelzőkkel kapcsolatban, amikor listanézetben választ ki egy epizódot. "
+
+msgctxt "#33540"
+msgid "Kodi has in issue with dynamic widgets. This option prevents Kodi to query the same content multiple times. (Edge case, default off)"
+msgstr "A Kodinak problémája van a dinamikus widgetekkel. "
+
+msgctxt "#33541"
+msgid "Enable HTTP/2 support"
+msgstr "HTTP/2 támogatás engedélyezése"
+
+msgctxt "#33542"
+msgid "Kodi has issues playing content via with http/2 protocol (default off)"
+msgstr "A Kodinak problémái vannak a tartalom lejátszásával a http/2 protokollon keresztül (alapértelmezett kikapcsolva)"
+
+msgctxt "#33543"
+msgid "Extra audio widget refresh"
+msgstr "Extra audio widget frissítés"
+
+msgctxt "#33544"
+msgid "Triggers an additional (fake) Kodi audio scan after Emby reports progress updates. Skinhelpers need this notification for widget refreshing. Usually skinhelpers refresh both widgets (video and audio) on a video scan notification. If not, you can enable the additional audio scan too."
+msgstr "Kivált egy további (hamis) Kodi hangvizsgálatot, miután Emby beszámol az előrehaladásról. "
+
+msgctxt "#33545"
+msgid "Network timeouts"
+msgstr "Hálózati időtúllépések"
+
+msgctxt "#33546"
+msgid "This option affects EPG and multi version content selection timeouts. In some cases EPG (large number of records) queries can timeout too early. If so, increase the setting."
+msgstr "Ez az opció befolyásolja az EPG és a több verziójú tartalom kiválasztásának időtúllépéseit. "
+
+msgctxt "#33547"
+msgid "EMBY: Favorites"
+msgstr "EMBY: Kedvencek"
+
+msgctxt "#33548"
+msgid "EMBY: Watch together"
+msgstr "EMBY: Nézzétek együtt"
+
+msgctxt "#33549"
+msgid "EMBY: Manage remote clients"
+msgstr "EMBY: Távoli kliensek kezelése"
+
+msgctxt "#33549"
+msgid "Unify metadata by library"
+msgstr "A metaadatok egyesítése könyvtáronként"
+
+msgctxt "#33550"
+msgid "MusicArtist"
+msgstr "Zeneművész"
+
+msgctxt "#33551"
+msgid "MusicGenre"
+msgstr "Zene műfaj"
+
+msgctxt "#33552"
+msgid "Genre"
+msgstr "Műfaj"
+
+msgctxt "#33553"
+msgid "Studio"
+msgstr "Stúdió"
+
+msgctxt "#33554"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33555"
+msgid "Collection movies"
+msgstr "Gyűjteményfilmek"
+
+msgctxt "#33556"
+msgid "Collection tvshows"
+msgstr "Gyűjtemény tv-műsorok"
+
+msgctxt "#33557"
+msgid "Collection musicvideos"
+msgstr "Zenei videók gyűjteménye"
+
+msgctxt "#33558"
+msgid "Favorites"
+msgstr "Kedvencek"
+
+msgctxt "#33559"
+msgid "Duration of new content message"
+msgstr "Az új tartalomüzenet időtartama"
+
+msgctxt "#33560"
+msgid "Boxsets as tags"
+msgstr "Boxsets mint címkék"
+
+msgctxt "#33561"
+msgid "Assign boxsets to tags"
+msgstr "Dobozkészletek hozzárendelése a címkékhez"
+
+msgctxt "#33562"
+msgid "Network timeout"
+msgstr "Hálózati időtúllépés"
+
+msgctxt "#33563"
+msgid "Adjusting the network timeouts in secconds. A change of this setting requires a Kodi restart."
+msgstr "A hálózati időtúllépések beállítása másodpercekben. "
+
+msgctxt "#33564"
+msgid "Sync Emby favorites to Kodi favorites"
+msgstr "Az Emby kedvencek szinkronizálása a Kodi kedvencekkel"
+
+msgctxt "#33565"
+msgid "Kodi favorites.xml will be modified"
+msgstr "Kodi kedvencek.xml módosul"
+
+msgctxt "#33566"
+msgid "Recently added photoalbums"
+msgstr "Nemrég hozzáadott fotóalbumok"
+
+msgctxt "#33355"
+msgid "Continue watching"
+msgstr "Folytasd a nézést"
+
+msgctxt "#33567"
+msgid "Sync livetv channels on events"
+msgstr "Élő TV csatornák szinkronizálása eseményekkel"
+
+msgctxt "#33568"
+msgid "Livetv channels re-synced on Kodi start and EPG changes"
+msgstr "A Livetv csatornák újraszinkronizálva vannak a Kodi indulásakor és az EPG változásaikor"
+
+msgctxt "#33569"
+msgid "Download location"
+msgstr "Letöltés helye"
+
+msgctxt "#33570"
+msgid "EMBY: Download"
+msgstr "EMBY: Letöltés"
+
+msgctxt "#33571"
+msgid "EMBY: Delete download"
+msgstr "EMBY: Letöltés törlése"
+
+msgctxt "#33572"
+msgid "Delete all downloaded files"
+msgstr "Törölje az összes letöltött fájlt"
+
+msgctxt "#33573"
+msgid "Are you sure you want to delete all offline content?"
+msgstr "Biztosan törölni szeretné az összes offline tartalmat?"
+
+msgctxt "#33574"
+msgid "All downloaded content will be deleted"
+msgstr "Minden letöltött tartalom törlődik"
+
+msgctxt "#33575"
+msgid "Emby server offline"
+msgstr "Emby szerver offline"
+
+msgctxt "#33576"
+msgid "Favorite Seasons"
+msgstr "Kedvenc évszakok"
+
+msgctxt "#33577"
+msgid "Paging"
+msgstr "Lapozás"
+
+msgctxt "#33578"
+msgid "Musicartist"
+msgstr "Zenekaros"
+
+msgctxt "#33579"
+msgid "Musicalbum"
+msgstr "Zenei album"
+
+msgctxt "#33580"
+msgid "Musicgenre"
+msgstr "Zenei műfaj"
+
+msgctxt "#33581"
+msgid "Audio"
+msgstr "Hang"
+
+msgctxt "#33582"
+msgid "Movie"
+msgstr "Film"
+
+msgctxt "#33583"
+msgid "Musicvideo"
+msgstr "Zenevideó"
+
+msgctxt "#33584"
+msgid "Series"
+msgstr "sorozat"
+
+msgctxt "#33585"
+msgid "Season"
+msgstr "Szezon"
+
+msgctxt "#33586"
+msgid "Episode"
+msgstr "Epizód"
+
+msgctxt "#33587"
+msgid "Video"
+msgstr "Videó"
+
+msgctxt "#33588"
+msgid "Photoalbum"
+msgstr "Fényképalbum"
+
+msgctxt "#33589"
+msgid "Genre"
+msgstr "Műfaj"
+
+msgctxt "#33590"
+msgid "Photo"
+msgstr "Fotó"
+
+msgctxt "#33591"
+msgid "Playlist"
+msgstr "Lejátszási lista"
+
+msgctxt "#33592"
+msgid "Channels"
+msgstr "Csatornák"
+
+msgctxt "#33593"
+msgid "LiveTV"
+msgstr "Élő TV"
+
+msgctxt "#33594"
+msgid "Trailer"
+msgstr "Előzetes"
+
+msgctxt "#33595"
+msgid "Folder"
+msgstr "Mappa"
+
+msgctxt "#33596"
+msgid "Boxset"
+msgstr ""
+
+msgctxt "#33597"
+msgid "Person"
+msgstr "Személy"
+
+msgctxt "#33598"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#33599"
+msgid "Studio"
+msgstr "Stúdió"
+
+msgctxt "#33600"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#30614"
+msgid "Manage servers"
+msgstr "Szerverek kezelése"
+
+msgctxt "#33601"
+msgid "Remote playback"
+msgstr "Távoli lejátszás"
+
+msgctxt "#33602"
+msgid "Download content"
+msgstr "Tartalom letöltése"
+
+msgctxt "#33603"
+msgid "Context Menu"
+msgstr "Helyi menü"
+
+msgctxt "#33604"
+msgid "Favourite add/remove"
+msgstr "Kedvenc hozzáadás/eltávolítás"
+
+msgctxt "#33605"
+msgid "Specials playback"
+msgstr "Különleges lejátszás"
+
+msgctxt "#33606"
+msgid "Recording"
+msgstr "Felvétel"
+
+msgctxt "#33607"
+msgid "Refresh item"
+msgstr "Frissítse az elemet"
+
+msgctxt "#33143"
+msgid "Delete item"
+msgstr "Elem törlése"
+
+msgctxt "#33608"
+msgid "Favorite videos"
+msgstr "Kedvenc videók"
+
+msgctxt "#33609"
+msgid "Favorite photos"
+msgstr "Kedvenc fényképek"
+
+msgctxt "#33610"
+msgid "Favorite musicvideos"
+msgstr "Kedvenc zenei videók"
+
+msgctxt "#33611"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#33612"
+msgid "Collections"
+msgstr "Gyűjtemények"
+
+msgctxt "#33613"
+msgid "Recommendations"
+msgstr "Ajánlások"
+
+msgctxt "#33614"
+msgid "Favorite movies"
+msgstr "Kedvenc filmek"
+
+msgctxt "#33615"
+msgid "Favorite boxsets"
+msgstr "Kedvenc dobozkészletek"
+
+msgctxt "#33616"
+msgid "A-Z photoalbum"
+msgstr "A-Z fotóalbum"
+
+msgctxt "#33617"
+msgid "A-Z videos"
+msgstr "A-Z videók"
+
+msgctxt "#33618"
+msgid "Recently Released Unwatched Movies"
+msgstr "Nemrég bemutatott, nem nézett filmek"
+
+msgctxt "#33619"
+msgid "Recently Released Movies"
+msgstr "Nemrég megjelent filmek"
+
+msgctxt "#33620"
+msgid "A-Z musicvideos"
+msgstr "A-Z zenei videók"
+
+msgctxt "#33621"
+msgid "A-Z movies"
+msgstr "A-Z filmek"
+
+msgctxt "#33622"
+msgid "A-Z series"
+msgstr "A-Z sorozat"
+
+msgctxt "#33623"
+msgid "Favorite songs"
+msgstr "Kedvenc dalok"
+
+msgctxt "#33624"
+msgid "Favorite actors"
+msgstr "Kedvenc színészek"
+
+msgctxt "#33625"
+msgid "Favorite audio"
+msgstr "Kedvenc hanganyag"
+
+msgctxt "#33626"
+msgid "Search"
+msgstr "Keresés"
+
+msgctxt "#33627"
+msgid "In progress (Mixed content)"
+msgstr "Folyamatban (vegyes tartalom)"
+
+msgctxt "#33628"
+msgid "Continue watching (Mixed content)"
+msgstr "Nézés folytatása (vegyes tartalom)"
+
+msgctxt "#33629"
+msgid "Downloaded movies"
+msgstr "Letöltött filmek"
+
+msgctxt "#33630"
+msgid "Downloaded episodes"
+msgstr "Letöltött epizódok"
+
+msgctxt "#33631"
+msgid "Downloaded musicvideos"
+msgstr "Letöltött zenei videók"
+
+msgctxt "#33632"
+msgid "Movies"
+msgstr "Filmek"
+
+msgctxt "#33633"
+msgid "TVShows"
+msgstr ""
+
+msgctxt "#33634"
+msgid "Seasons"
+msgstr "Évszakok"
+
+msgctxt "#33638"
+msgid "Songs"
+msgstr ""
+
+msgctxt "#33639"
+msgid "Actors"
+msgstr "Színészek"
+
+msgctxt "#33640"
+msgid "Bookmarks"
+msgstr "Könyvjelzők"
+
+msgctxt "#33641"
+msgid "Download themes (YES) or link themes (NO)?"
+msgstr "Témák letöltése (IGEN) vagy linktémák (NEM)?"
+
+msgctxt "#33642"
+msgid "Select audio stream"
+msgstr "Válassza ki az audio adatfolyamot"
+
+msgctxt "#33643"
+msgid "Select Backup"
+msgstr "Válassza a Biztonsági mentés lehetőséget"
+
+msgctxt "#33644"
+msgid "Changing artwork requires an artwork cache reset. Proceed?"
+msgstr "A grafikák megváltoztatásához a grafikák gyorsítótárának alaphelyzetbe állítása szükséges. "
+
+msgctxt "#33645"
+msgid "Notifications"
+msgstr "Értesítések"
+
+msgctxt "#33646"
+msgid "Message duration"
+msgstr "Üzenet időtartama"
+
+msgctxt "#33647"
+msgid "Message duration in seconds"
+msgstr "Az üzenet időtartama másodpercben"
+
+msgctxt "#33648"
+msgid "Server operations"
+msgstr "Szerverműveletek"
+
+msgctxt "#33649"
+msgid "Connections"
+msgstr "Kapcsolatok"
+
+msgctxt "#33650"
+msgid "Delete item"
+msgstr "Elem törlése"
+
+msgctxt "#33651"
+msgid "Backup"
+msgstr "Biztonsági másolat"
+
+msgctxt "#33652"
+msgid "EMBY: Remote play"
+msgstr "EMBY: Távoli lejátszás"
+
+msgctxt "#33653"
+msgid "VC1"
+msgstr ""
+
+msgctxt "#33654"
+msgid "PRORES"
+msgstr ""
+
+msgctxt "#33655"
+msgid "MSMPEG4V2"
+msgstr ""
+
+msgctxt "#33656"
+msgid "AAC LATM"
+msgstr ""
+
+msgctxt "#33657"
+msgid "DTSHD HRA"
+msgstr ""
+
+msgctxt "#33658"
+msgid "DTSHD MA"
+msgstr ""
+
+msgctxt "#33659"
+msgid "PCM S16LE"
+msgstr ""
+
+msgctxt "#33660"
+msgid "TRUEHD"
+msgstr ""
+
+msgctxt "#33661"
+msgid "OPUS"
+msgstr ""
+
+msgctxt "#33662"
+msgid "Downloaded series"
+msgstr "Letöltött sorozat"
+
+msgctxt "#33663"
+msgid "Set imdb as default rating provider"
+msgstr "Az imdb beállítása alapértelmezett minősítés-szolgáltatóként"
+
+msgctxt "#33664"
+msgid "Assume Emby's community rating reflects imdb ratings"
+msgstr "Tételezzük fel, hogy Emby közösségi minősítése az imdb értékelését tükrözi"
+
+msgctxt "#33665"
+msgid "Next Episodes (Mixed content)"
+msgstr "Következő epizódok (vegyes tartalom)"
+
+msgctxt "#33666"
+msgid "Continue last played (Mixed content)"
+msgstr "Utolsó lejátszás folytatása (vegyes tartalom)"
+
+msgctxt "#33667"
+msgid "Continue last played"
+msgstr "Folytatás utolsó lejátszás"
+
+msgctxt "#33668"
+msgid "Go To Show"
+msgstr ""
+
+msgctxt "#33669"
+msgid "EMBY: Go To"
+msgstr "EMBY: Ugrás ide"
+
+msgctxt "#33670"
+msgid "Go To Show"
+msgstr ""
+
+msgctxt "#33671"
+msgid "Go To Season"
+msgstr "Ugrás a szezonra"
+
+msgctxt "#33672"
+msgid "Nodes reset finished"
+msgstr "A csomópontok visszaállítása befejeződött"
+
+msgctxt "#33673"
+msgid "URI length limit"
+msgstr "URI hosszkorlát"
+
+msgctxt "#33674"
+msgid "Higher limits are faster in some cases, but could trigger http 414 issues"
+msgstr "A magasabb határértékek bizonyos esetekben gyorsabbak, de http 414-problémákat okozhatnak"
+
+msgctxt "#33675"
+msgid "EMBY: Settings"
+msgstr "EMBY: Beállítások"
+
+msgctxt "#33676"
+msgid "Settings"
+msgstr "Beállítások"
+
+msgctxt "#33677"
+msgid "Enable offline message"
+msgstr "Offline üzenet engedélyezése"
+
+msgctxt "#33678"
+msgid "Invalid server address"
+msgstr "Érvénytelen szervercím"
+
+msgctxt "#33679"
+msgid "Invalid argument"
+msgstr "Érvénytelen argumentum"
+
+msgctxt "#33680"
+msgid "Download path not found"
+msgstr "A letöltési útvonal nem található"
+
+msgctxt "#33681"
+msgid "Add movie links to tvshows"
+msgstr "Filmhivatkozások hozzáadása a tévéműsorokhoz"
+
+msgctxt "#33682"
+msgid "Movies assigned to tvshows listed in Kodi's tvshow views. Assignment done by Emby collections."
+msgstr "A Kodi tévéműsor-nézeteiben felsorolt tévéműsorokhoz rendelt filmek. "
+
+msgctxt "#33683"
+msgid "Enable start sync"
+msgstr "Engedélyezze a szinkronizálás megkezdését"
+
+msgctxt "#33684"
+msgid "If disabled, Emby content will not be synced while Kodi start"
+msgstr "Ha le van tiltva, az Emby-tartalom nem lesz szinkronizálva a Kodi indításakor"
+
+msgctxt "#33685"
+msgid "Use classic selection"
+msgstr "Használja a klasszikus kijelölést"
+
+msgctxt "#33686"
+msgid "Selection menu is shown when multicontent is available"
+msgstr "A kiválasztási menü akkor jelenik meg, ha több tartalom érhető el"
+
+msgctxt "#33687"
+msgid "Multicontent"
+msgstr ""
+
+msgctxt "#33688"
+msgid "Deduplicate content"
+msgstr "Tartalom ismétlődésének megszüntetése"
+
+msgctxt "#33689"
+msgid "Removes similar content on multiple Emby server libraries"
+msgstr "Eltávolítja a hasonló tartalmat több Emby szerverkönyvtárból"
+
+msgctxt "#33690"
+msgid "Set highest video resolution as default"
+msgstr "A legmagasabb videófelbontás beállítása alapértelmezettként"
+
+msgctxt "#33691"
+msgid "This option applies to Kodi's multiversion selection and requires library re-sync on toggle."
+msgstr "Ez az opció a Kodi több verziójának kiválasztására vonatkozik, és a kapcsolónál a könyvtár újraszinkronizálását igényli."
+
+msgctxt "#33692"
+msgid "Auto select highest resolution"
+msgstr "A legmagasabb felbontás automatikus kiválasztása"
+
+msgctxt "#33693"
+msgid "Applies to classic multiselect option"
+msgstr "A klasszikus többszörös kiválasztás opcióra vonatkozik"
+
+msgctxt "#33694"
+msgid "Enable Kodi API notification"
+msgstr "Engedélyezze a Kodi API értesítést"
+
+msgctxt "#33695"
+msgid "Report events via Kodi's API for external usage"
+msgstr "Jelentse az eseményeket a Kodi API-ján keresztül külső használatra"
+
+msgctxt "#33696"
+msgid "Access denied"
+msgstr "Hozzáférés megtagadva"
+
+msgctxt "#33697"
+msgid "Albums by year"
+msgstr "Albumok évenként"
+
+msgctxt "#33698"
+msgid "Singles by year"
+msgstr "Egyedülállók évenként"
+
+msgctxt "#33699"
+msgid "Singles"
+msgstr "Szinglik"
+
+msgctxt "#33700"
+msgid "Recently added singles"
+msgstr "Nemrég hozzáadott kislemezek"
+
+msgctxt "#33701"
+msgid "Random singles"
+msgstr "Véletlenszerű szinglik"
+
+msgctxt "#33702"
+msgid "None"
+msgstr "Nincs"
+
+msgctxt "#33703"
+msgid "No path info available, be careful what you do!"
+msgstr "Nincs elérhető útvonal információ, legyen óvatos, amit csinál!"
+
+msgctxt "#33704"
+msgid "TVShow"
+msgstr ""
+
+msgctxt "#33705"
+msgid "Select primary library"
+msgstr "Válassza ki az elsődleges könyvtárat"
+
+msgctxt "#33706"
+msgid "Refresh LiveTv"
+msgstr "Frissítse a LiveTv-t"
+
+msgctxt "#33707"
+msgid "Refresh Themes"
+msgstr "Témák frissítése"
+
+msgctxt "#33708"
+msgid "Disable LiveTv"
+msgstr "A LiveTv letiltása"
+
+msgctxt "#33709"
+msgid "Enable LiveTv"
+msgstr "LiveTv engedélyezése"
+
+msgctxt "#33710"
+msgid "Disable Themes"
+msgstr "Témák letiltása"
+
+msgctxt "#33711"
+msgid "Enable Themes"
+msgstr "Témák engedélyezése"
+
+msgctxt "#33712"
+msgid "Follow http"
+msgstr "Kövesse a http"
+
+msgctxt "#33713"
+msgid "External http content will be directly accessed and not piped through Emby server. This option can fix Emby server playback issues."
+msgstr "A külső http tartalom közvetlenül elérhető, nem pedig az Emby szerveren keresztül. "
+
+msgctxt "#33714"
+msgid "Follow http timeout"
+msgstr "Kövesse a http időtúllépést"
+
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Helyi tartalom beállítása alapértelmezettként"
+
+msgctxt "#33716"
+msgid "Kodi companion addon not installed on Emby server! Please install"
+msgstr "A Kodi kiegészítő kiegészítője nincs telepítve az Emby szerverre! "
+
+msgctxt "#33717"
+msgid "Cancel artwork cache"
+msgstr "Az alkotás gyorsítótárának törlése"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "A webszolgáltatás dolgozóinak száma"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "A magasabb értékek javíthatják a teljesítményt, de több erőforrást igényelnek. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Zárja be a foglalt párbeszédpanelt"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Megakadályozhatja a Kodi összeomlását"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "A szolgáltatás típusa"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "IP-fejléc (TOS), javíthatja a válaszkészséget"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (legjobb erőfeszítés)"
+
+msgctxt "#33725"
+msgid "CS5, EF (Expedited Forwarding)"
+msgstr "CS5, EF (gyorsított továbbítás)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (biztosított továbbítás)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (valós idejű interaktív)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Növekményes grafikai gyorsítótár"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Automatikusan gyorsítótárazza a grafikát részleges szinkronizáláskor"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Műfajok ikonokkal"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Stúdiók ikonokkal"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Cimkék ikonokkal"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Helyi pótkocsik"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Változások betöltése"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Felbontási küszöb"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "A tartalom átkódolása, ha a forrás felbontása meghaladja a kiválasztott felbontást"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Felbontási küszöb"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "A tartalom átkódolása, ha a forrás felbontása meghaladja a kiválasztott felbontást"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "mindig"
+
+msgctxt "#33738"
+msgid "720"
+msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "korlátlan"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "Átkódolási felbontás"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Korlátlan a forrásfelbontás megtartása"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "Webszolgáltatás mód"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Útvonal helyettesítés"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY: Több verzió"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Frissítse a zenei videó linkjeit"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "Frissíti a zenei adatbázishoz mutató zenevideó hivatkozásokat"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "Az idő nincs szinkronizálva, a frissítések kihagyása"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Zenei videó hivatkozások hozzáadása a zenéhez"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "A Kodi dalnézeteiben felsorolt zenékhez rendelt zenei videók."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Biztonsági másolat törlése"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Adja meg a biztonsági másolat nevét"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "A tömörítés nem támogatott, a biztonsági mentés nem érhető el."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Biztonsági mentés folyamatban"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Audiótémák szinkronizálási módszere"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Videotémák szinkronizálási módszere"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Letöltés"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "Távirányító"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Hangtémák engedélyezése"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Videótémák engedélyezése"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Ugrás az albumhoz"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Ugrás az előadóhoz"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Szinkronizálás szünetel"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "A szinkronizálás szüneteltetése, ha a szerver elfoglalt feladatokkal"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Videó előnézeti bélyegkép kibontása"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Vákuum adatbázis"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Helyi témájú videók feltöltése"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Helyi főcímdalok feltöltése"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Bevezető adatbázis frissítése"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "TV labirintus frissítés"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "Adathordozó átvitele"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Scan metadata mappa"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Médiatár beolvasása"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Frissítse az internetes csatornákat"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Útmutató frissítése"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Feliratok letöltése"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Helyi YouTube filmelőzetesek letöltése"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Töltse le a helyi TV-címdalokat"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Helyi témájú videók letöltése"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Helyi főcímdalok letöltése"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Bevezetők észlelése"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Média konvertálása"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Frissítés folyamatban"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "Emby scripterX ütemezett feladat"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY: Még ehhez hasonló"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Még több ilyen"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "Homevideo címkék"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Kedvenc házivideók"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "Videocímkék"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Kedvenc videók"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "A lejátszás állapota megváltozik"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Sorozatok és szezon előrehaladása"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Lejátszási listák (vegyes)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY: Véletlenszerű játék"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Véletlenszerű lejátszás"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Kodi Companion figyelmeztetés"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr ""
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Pótkocsik feldolgozása"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Előzetesek"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Nemrég hozzáadott előzetesek"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Témák"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Hang engedélyezése"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Videó engedélyezése"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Elhalványul"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Elhalványul"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "Nagyobb értékek hosszabb elhalványulási időt jelentenek, a nulla le van tiltva"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "Kezdőképernyő"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Témák lejátszása widgetekhez"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Késleltetett indítás"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "Az értékek másodpercben vannak megadva"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Letöltés"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "Tárolja a témákat helyben a jobb teljesítmény érdekében"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Prioritás"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Meghatározza, hogy melyik témát játssza le először, ha mindkettő elérhető"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Távoli pótkocsik"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Távoli pótkocsik kiválasztása"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Mozi bevezetők"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Folyamatos pótkocsik"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Helyi pótkocsik"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Helyi film"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Előzetes lejátszása"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr "kötet"
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "Hibakeresési napló"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Videó engedélyezése bevezető jelölőkkel"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Hang engedélyezése bevezető jelzőkkel"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Videó engedélyezése tartalom szerint"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Hang tartalom szerinti engedélyezése"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Tartalom időtartama szerint"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Átkódolást használnak, ami a szerver nagy CPU-terheléséhez vezethet"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Ki"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Intro markerek"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Tartalom"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Virtuális témák"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr "Navigáció"
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Epizódnézet"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Szezon nézet"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "TV-műsor nézet"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "Filmnézet"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr ""
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Lejátszás"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Frissítse az audio kedvenceket"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Frissítse a zenealbum kedvenceit"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Frissítse kedvenc videóit"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Frissítse a zenevideó kedvenceit"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Boxset kedvencek frissítése"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Frissítse a sorozat kedvenceit"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Frissítse a szezon kedvenceit"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Frissítse a lejátszási listák kedvenceit"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Frissítse az epizód kedvenceit"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Frissítse a kedvenc filmeket"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Frissítse a műfaj kedvenceit"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Frissítse a stúdió kedvenceit"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Frissítse a kedvenceket"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Frissítse a zenei műfaj kedvenceit"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Frissítse a személyek kedvenceit"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Frissítse a személyek kedvenceit"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Biztonsági másolat visszaállítva innen:"
+

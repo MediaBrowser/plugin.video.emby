@@ -17,16 +17,14 @@ class MusicGenre:
         if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "MusicGenre"):
             return False
 
-        xbmc.log(f"EMBY.core.musicgenre: Process item: {Item['Name']}", 0) # DEBUG
-        common.set_Favorite(Item)
+        if utils.DebugLog: xbmc.log(f"EMBY.core.musicgenre (DEBUG): Process item: {Item['Name']}", 1) # DEBUG
 
         # Load Arrays
         KodiItemIds = common.get_Ids_MultiContentUnique(Item['KodiItemId'])
         LibraryIds = common.get_Ids_MultiContent(Item['LibraryIds'])
 
         # Load additional data
-        LibraryIdExtracted = common.get_LibraryId_Playlists(Item['LibraryId'])
-        LibrarySyncedKodiDBs = self.EmbyServer.library.LibrarySyncedKodiDBs.get(f"{LibraryIdExtracted}MusicGenre", "video,music")
+        LibrarySyncedKodiDBs = self.EmbyServer.library.LibrarySyncedKodiDBs.get(f"{Item['LibraryId']}MusicGenre", "video,music")
         NewItem = False
         common.set_Favorites_Artwork(Item, self.EmbyServer.ServerData['ServerId'])
 
@@ -42,7 +40,12 @@ class MusicGenre:
                         UpdateItem['LibraryId'] = LibraryId
                         self.SQLs["emby"].update_EmbyLibraryMapping(UpdateItem['Id'], UpdateItem['LibraryId'])
                         self.SQLs["emby"].update_reference_musicgenre(UpdateItem['Id'], UpdateItem['KodiArtwork']['favourite'], UpdateItem['LibraryId'])
-                        xbmc.log(f"EMBY.core.musicgenre: UPDATE ({KodiDBs[Index]}) {UpdateItem['Name']}: {UpdateItem['Id']} / {UpdateItem['LibraryId']}", int(IncrementalSync)) # LOG
+
+                        if int(IncrementalSync):
+                            xbmc.log(f"EMBY.core.musicgenre: UPDATE ({KodiDBs[Index]}) {UpdateItem['Name']}: {UpdateItem['Id']} / {UpdateItem['LibraryId']}", 1) # LOGINFO
+                        elif utils.DebugLog:
+                            xbmc.log(f"EMBY.core.musicgenre (DEBUG): UPDATE ({KodiDBs[Index]}) {UpdateItem['Name']}: {UpdateItem['Id']} / {UpdateItem['LibraryId']}", 1) # LOGDEBUG
+
                         utils.notify_event("content_update", {"EmbyId": UpdateItem['Id'], "KodiId": UpdateKodiItemIdCurrent, "KodiType": "genre"}, IncrementalSync)
 
                     del UpdateItem
@@ -54,7 +57,12 @@ class MusicGenre:
                 KodiItemIdCurrent = str(self.SQLs[KodiDBs[Index]].get_add_genre(Item['Name']))
                 Item['KodiItemId'] = common.add_Ids_MultiContentUnique(KodiItemIds, Index, KodiItemIdCurrent)
                 NewItem = True
-                xbmc.log(f"EMBY.core.musicgenre: ADD ({KodiDBs[Index]}) {Item['Name']}: {Item['Id']} / {Item['LibraryId']}", int(IncrementalSync)) # LOG
+
+                if int(IncrementalSync):
+                    xbmc.log(f"EMBY.core.musicgenre: ADD ({KodiDBs[Index]}) {Item['Name']}: {Item['Id']} / {Item['LibraryId']}", 1) # LOGINFO
+                elif utils.DebugLog:
+                    xbmc.log(f"EMBY.core.musicgenre (DEBUG): ADD ({KodiDBs[Index]}) {Item['Name']}: {Item['Id']} / {Item['LibraryId']}", 1) # LOGDEBUG
+
                 utils.notify_event("content_add", {"EmbyId": Item['Id'], "KodiId": KodiItemIdCurrent, "KodiType": "genre"}, IncrementalSync)
 
         if NewItem:
@@ -67,13 +75,12 @@ class MusicGenre:
         Item['LibraryIds'], Item['KodiItemId'], _, _ = self.SQLs["emby"].get_KodiIds_LibraryIds_from_ContentItem(Item['Id'], "MusicGenre") # (Re)Load LibraryIds, KodiItemId as refreences could be modify data after collecting
 
         if not Item['LibraryIds']:
-            xbmc.log(f"EMBY.core.musicgenre: SKIP DELETE, LibraryIds not found {Item['Id']} / {Item['LibraryId']}", 0) # DEBUGLOG
+            if utils.DebugLog: xbmc.log(f"EMBY.core.musicgenre (DEBUG): SKIP DELETE, LibraryIds not found {Item['Id']} / {Item['LibraryId']}", 1) # DEBUGLOG
             return
 
-        Deleted, _ = self.SQLs["emby"].remove_item(Item['Id'], "MusicGenre", Item['LibraryId'])
+        Deleted = self.SQLs["emby"].remove_item(Item['Id'], "MusicGenre", Item['LibraryId'])
         KodiItemIds = common.get_Ids_MultiContentUnique(Item['KodiItemId'])
-        LibraryIdExtracted = common.get_LibraryId_Playlists(Item['LibraryId'])
-        LibrarySyncedKodiDBs = self.EmbyServer.library.LibrarySyncedKodiDBs.get(f"{LibraryIdExtracted}MusicGenre", "video,music")
+        LibrarySyncedKodiDBs = self.EmbyServer.library.LibrarySyncedKodiDBs.get(f"{Item['LibraryId']}MusicGenre", "video,music")
         KodiDBsUpdate = LibrarySyncedKodiDBs.split(",")
         LibraryIds = common.get_Ids_MultiContent(Item['LibraryIds'])
 
@@ -92,9 +99,16 @@ class MusicGenre:
                     Item['KodiItemId'] = common.del_Ids_MultiContentUnique(KodiItemIds, IndexDatabase)
 
                     if Deleted:
-                        xbmc.log(f"EMBY.core.musicgenre: DELETE ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", int(IncrementalSync)) # LOG
+                        if int(IncrementalSync):
+                            xbmc.log(f"EMBY.core.musicgenre: DELETE ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", 1) # LOGINFO
+                        elif utils.DebugLog:
+                            xbmc.log(f"EMBY.core.musicgenre (DEBUG): DELETE ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", 1) # LOGDEBUG
+
                     else:
-                        xbmc.log(f"EMBY.core.musicgenre: DELETE PARTIAL ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", int(IncrementalSync)) # LOG
+                        if int(IncrementalSync):
+                            xbmc.log(f"EMBY.core.musicgenre: DELETE PARTIAL ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", 1) # LOGINFO
+                        elif utils.DebugLog:
+                            xbmc.log(f"EMBY.core.musicgenre (DEBUG): DELETE PARTIAL ({KodiDBs[IndexDatabase]}) [{KodiItemIdCurrent}] {Item['Id']} / {Item['LibraryId']}", 1) # LOGDEBUG
 
         if not Deleted:
             self.SQLs['emby'].update_references(Item['Id'], Item['KodiItemId'], "MusicGenre", Item['LibraryIds'])
@@ -106,12 +120,20 @@ class MusicGenre:
         utils.notify_event("content_remove", {"EmbyId": Item['Id'], "KodiId": KodiItemId, "KodiType": "genre"}, IncrementalSync)
 
     def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
+        if not common.verify_KodiIds(Item, IncrementalSync, False):
+            return False
+
+        common.set_Favorite(Item)
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "MusicGenre")
 
         if UpdateKodiFavorite:
             self.set_favorite(Item['IsFavorite'], Item)
 
-        xbmc.log(f"EMBY.core.musicgenre: USERDATA [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.musicgenre: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.musicgenre (DEBUG): USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
         return False
 
     def set_favorite(self, IsFavorite, Item):
