@@ -621,11 +621,11 @@ def set_RemoteTrailer(Item, TrailerObject, IncrementalSync):
                 TrailerObject.change(RemoteTrailer, IncrementalSync)
 
 def set_PlayCount(UserData):
-    PlayCount = UserData.get('PlayCount', 0)
+    PlayCount = UserData.get('PlayCount', None)
 
     if 'Played' in UserData:
         if not UserData['Played']:
-            KodiPlayCount = 0
+            KodiPlayCount = None
         else:
             if PlayCount:
                 KodiPlayCount = PlayCount
@@ -634,8 +634,8 @@ def set_PlayCount(UserData):
     else:
         KodiPlayCount = PlayCount
 
-        if not KodiPlayCount: # could be "0" then substitute with "None"
-            KodiPlayCount = 0
+        if not KodiPlayCount: # could be "0" then substitute with "None", Kodi does not accept 0
+            KodiPlayCount = None
 
     return KodiPlayCount
 
