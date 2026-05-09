@@ -13,30 +13,8 @@ utils.FavoriteQueue = queue.Queue()
 syncEmbyLock = threading.Lock()
 VideoLibrary_OnRemoveLock = threading.Lock()
 SettingsChangedEvent = threading.Event()
-
-def poll_Events(XbmcMonitor):
-    IsScanningMusicOld = False
-    IsScanningVideoOld = False
-
-    while not XbmcMonitor.waitForAbort(0.5):
-        # Get scan status
-        IsScanningMusic = xbmc.getCondVisibility('Library.IsScanningMusic')
-        IsScanningVideo = xbmc.getCondVisibility('Library.IsScanningVideo')
-
-        if IsScanningMusic != IsScanningMusicOld:
-            IsScanningMusicOld = IsScanningMusic
-            if IsScanningMusic:
-                XbmcMonitor.onScanStarted("music")
-            else:
-                XbmcMonitor.onScanFinished("music")
-
-        if IsScanningVideo != IsScanningVideoOld:
-            IsScanningVideoOld = IsScanningVideo
-
-            if IsScanningVideo:
-                XbmcMonitor.onScanStarted("video")
-            else:
-                XbmcMonitor.onScanFinished("video")
+SystemEventsQueue = queue.Queue()
+SystemScansQueue = queue.Queue()
 
 class monitor(xbmc.Monitor):
     def onNotification(self, _sender, method, data):
@@ -66,15 +44,74 @@ class monitor(xbmc.Monitor):
             player.PlayerEventsQueue.put((("remove", data),))
         elif method == "Playlist.OnClear":
             player.PlayerEventsQueue.put((("clear", data),))
-        elif method == 'System.OnWake':
-            xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
+        elif method == "Other.playback_failed": # youtube plugin
+            player.PlayerEventsQueue.put((("stop", '{"end":true}'),))
+        elif method == "Other.playback_init": # youtube plugin
+            player.PlayerEventsQueue.put((("playerid", '{"player":{"playerid":1}}'),))
+        elif method == "Other.playback_started": # youtube plugin
+            player.PlayerEventsQueue.put((("playerid", '{"player":{"playerid":1}}'),))
+#        elif method == "Other.playback_stopped": # youtube plugin
+#            pass
+        else:
+            SystemEventsQueue.put(((method, data),))
+
+    def onScanStarted(self, library):
+        SystemScansQueue.put((("scanstart", library),))
+
+    def onScanFinished(self, library):
+        SystemScansQueue.put((("scanstop", library),))
+
+    def onCleanStarted(self, library):
+        SystemScansQueue.put((("cleanstart", library),))
+
+    def onCleanFinished(self, library):
+        SystemScansQueue.put((("cleanfinsihed", library),))
+
+    def onSettingsChanged(self):
+        SystemEventsQueue.put((("settingschanged",),))
+
+def SystemScans():
+    if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: --->[ system scan ]", 1) # LOGDEBUG
+
+    while True:
+        SystemScan = SystemScansQueue.get()
+        xbmc.log(f"EMBY.hooks.monitor: [ SystemScans: {SystemScan} ]", 1) # LOGINFO
+
+        if SystemScan == "QUIT":
+            if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: ---<[ system scan ] quit", 1) # LOGDEBUG
+            return
+
+        if SystemScan[0] in ('scanstart', 'cleanstart'):
+            utils.update_SyncPause('kodi_rw', True)
+            utils.set_SyncLock()
+        elif SystemScan[0] in ('scanstop', 'cleanfinsihed'):
+            utils.WidgetRefresh[SystemScan[1]] = False
+
+            if not utils.WidgetRefresh['music'] and not utils.WidgetRefresh['video']:
+                utils.update_SyncPause('kodi_rw', False)
+                utils.unset_SyncLock()
+
+def SystemEvents():
+    if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: --->[ system event ]", 1) # LOGDEBUG
+
+    while True:
+        SystemEvent = SystemEventsQueue.get()
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.monitor (DEBUG): SystemEvents received: {SystemEvent}", 1) # LOGDEBUG
+
+        if SystemEvent == "QUIT":
+            if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: ---<[ system event ] quit", 1) # LOGDEBUG
+            return
+
+        if SystemEvent[0] == 'System.OnWake':
+            xbmc.log("EMBY.hooks.monitor: -->[ wake ]", 1) # LOGINFO
             webservice.start()
 
             for EmbyServer in list(utils.EmbyServers.values()):
                 EmbyServer.ServerReconnect(False)
 
             utils.update_SyncPause('kodi_sleep',  False)
-        elif method == 'System.OnSleep':
+            xbmc.log("EMBY.hooks.monitor: --<[ wake ]", 1) # LOGINFO
+        elif SystemEvent[0] == 'System.OnSleep':
             xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
             utils.update_SyncPause('kodi_sleep', True)
 
@@ -89,94 +126,60 @@ class monitor(xbmc.Monitor):
                 if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: ---<[ PlayerEventsQueue ]", 1) # LOGDEBUG
 
             EmbyServer_DisconnectAll()
-        elif method == 'System.OnQuit':
+            xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
+        elif SystemEvent[0] == 'System.OnQuit':
             xbmc.log("EMBY.hooks.monitor: System_OnQuit", 1) # LOGINFO
             ShutDown()
-        elif method == 'Other.managelibsselection':
+        elif SystemEvent[0] == 'Other.managelibsselection':
             utils.start_thread(pluginmenu.select_managelibs, ())
-        elif method == 'Other.deduplicate':
+        elif SystemEvent[0] == 'Other.deduplicate':
             utils.start_thread(deduplicate.deduplicate, ())
-        elif method == 'Other.settings':
+        elif SystemEvent[0] == 'Other.settings':
             utils.start_thread(opensettings, ())
-        elif method == 'Other.backup':
+        elif SystemEvent[0] == 'Other.backup':
             utils.start_thread(backup.Backup, ())
-        elif method == 'Other.restore':
+        elif SystemEvent[0] == 'Other.restore':
             utils.start_thread(backup.Restore, ())
-        elif method == 'Other.backupdelete':
+        elif SystemEvent[0] == 'Other.backupdelete':
             utils.start_thread(backup.Delete, ())
-        elif method == 'Other.skinreload':
+        elif SystemEvent[0] == 'Other.skinreload':
             utils.start_thread(cache.reset_querycache, ()) # Clear Cache
             xbmc.executebuiltin('ReloadSkin()')
             xbmc.log("EMBY.hooks.monitor: Reload skin by notification", 1) # LOGINFO
-        elif method == 'Other.manageserver':
+        elif SystemEvent[0] == 'Other.manageserver':
             utils.start_thread(pluginmenu.manage_servers, (ServerConnect,))
-        elif method == 'Other.databasereset':
+        elif SystemEvent[0] == 'Other.databasereset':
             utils.start_thread(pluginmenu.databasereset, (favorites, ))
-        elif method == 'Other.nodesreset':
+        elif SystemEvent[0] == 'Other.nodesreset':
             utils.start_thread(utils.nodesreset, ())
-        elif method == 'Other.databasevacuummanual':
+        elif SystemEvent[0] == 'Other.databasevacuummanual':
             utils.start_thread(dbio.DBVacuum, ())
-        elif method == 'Other.factoryreset':
+        elif SystemEvent[0] == 'Other.factoryreset':
             utils.start_thread(pluginmenu.factoryreset, (False, favorites))
-        elif method == 'Other.downloadreset':
+        elif SystemEvent[0] == 'Other.downloadreset':
             utils.start_thread(pluginmenu.downloadreset, ("",))
-        elif method == 'Other.themedownload':
+        elif SystemEvent[0] == 'Other.themedownload':
             utils.start_thread(themes.download, ())
-        elif method == 'Other.remotetrailersselection':
+        elif SystemEvent[0] == 'Other.remotetrailersselection':
             utils.start_thread(pluginmenu.remotetrailersselection, ())
-        elif method == 'Other.texturecache':
+        elif SystemEvent[0] == 'Other.texturecache':
             if not utils.artworkcacheenable:
                 utils.Dialog.notification(heading=utils.addon_name, icon=utils.icon, message=utils.Translate(33226), sound=False, time=utils.displayMessage)
             else:
                 utils.start_thread(pluginmenu.cache_textures, ())
-        elif method == 'Other.texturecachecancel':
+        elif SystemEvent[0] == 'Other.texturecachecancel':
             utils.TextureCacheCancel = True
-        elif method == 'VideoLibrary.OnUpdate' and not utils.RemoteMode:  # Buffer updated items -> not overloading threads
-            player.ItemsUpdateQueue.put(data)
-        elif method == 'VideoLibrary.OnRemove' and not utils.RemoteMode:  # Buffer updated items -> not overloading threads
+        elif SystemEvent[0] == 'VideoLibrary.OnUpdate' and not utils.RemoteMode:  # Buffer updated items -> not overloading threads
+            player.ItemsUpdateQueue.put(SystemEvent[1])
+        elif SystemEvent[0] == 'VideoLibrary.OnRemove' and not utils.RemoteMode:  # Buffer updated items -> not overloading threads
             if utils.enableDeleteByKodiEvent:
-                QueueItemsRemove.add(data)
+                QueueItemsRemove.add(SystemEvent[1])
 
                 if not VideoLibrary_OnRemoveLock.locked():
                     utils.start_thread(VideoLibrary_OnRemove, ())
-        elif method == "Other.playback_failed": # youtube plugin
-            player.PlayerEventsQueue.put((("stop", '{"end":true}'),))
-        elif method == "Other.playback_init": # youtube plugin
-            player.PlayerEventsQueue.put((("playerid", '{"player":{"playerid":1}}'),))
-        elif method == "Other.playback_started": # youtube plugin
-            player.PlayerEventsQueue.put((("playerid", '{"player":{"playerid":1}}'),))
-#        elif method == "Other.playback_stopped": # youtube plugin
-#            pass
-
-    def onScanStarted(self, library):
-        xbmc.log(f"EMBY.hooks.monitor: -->[ kodi scan / {library} ]", 1) # LOGINFO
-        utils.update_SyncPause('kodi_rw', True)
-        utils.set_SyncLock()
-
-    def onScanFinished(self, library):
-        xbmc.log(f"EMBY.hooks.monitor: --<[ kodi scan / {library} ]", 1) # LOGINFO
-        utils.WidgetRefresh[library] = False
-
-        if not utils.WidgetRefresh['music'] and not utils.WidgetRefresh['video']:
-            utils.update_SyncPause('kodi_rw', False)
-            utils.unset_SyncLock()
-
-    def onCleanStarted(self, library):
-        xbmc.log(f"EMBY.hooks.monitor: -->[ kodi clean / {library} ]", 1) # LOGINFO
-        utils.update_SyncPause('kodi_rw', True)
-        utils.set_SyncLock()
-
-    def onCleanFinished(self, library):
-        xbmc.log(f"EMBY.hooks.monitor: --<[ kodi clean / {library} ]", 1) # LOGINFO
-        utils.WidgetRefresh[library] = False
-
-        if not utils.WidgetRefresh['music'] and not utils.WidgetRefresh['video']:
-            utils.update_SyncPause('kodi_rw', False)
-            utils.unset_SyncLock()
-
-    def onSettingsChanged(self):
-        xbmc.log("EMBY.hooks.monitor: Settings changed", 1) # LOGINFO
-        SettingsChangedEvent.set()
+        elif SystemEvent[0] == 'settingschanged':
+            xbmc.log("EMBY.hooks.monitor: Settings changed", 1) # LOGINFO
+            SettingsChangedEvent.set()
 
 def opensettings():
     utils.close_dialog("all")
@@ -222,6 +225,30 @@ def VideoLibrary_OnRemove(): # Cache queries to minimize database openings
 
     QueueItemsRemove = set()
     if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: ---<[ VideoLibrary_OnRemove ]", 1) # LOGDEBUG
+
+def poll_Events(XbmcMonitor):
+    IsScanningMusicOld = False
+    IsScanningVideoOld = False
+
+    while not XbmcMonitor.waitForAbort(0.5):
+        # Get scan status
+        IsScanningMusic = xbmc.getCondVisibility('Library.IsScanningMusic')
+        IsScanningVideo = xbmc.getCondVisibility('Library.IsScanningVideo')
+
+        if IsScanningMusic != IsScanningMusicOld:
+            IsScanningMusicOld = IsScanningMusic
+            if IsScanningMusic:
+                XbmcMonitor.onScanStarted("music")
+            else:
+                XbmcMonitor.onScanFinished("music")
+
+        if IsScanningVideo != IsScanningVideoOld:
+            IsScanningVideoOld = IsScanningVideo
+
+            if IsScanningVideo:
+                XbmcMonitor.onScanStarted("video")
+            else:
+                XbmcMonitor.onScanFinished("video")
 
 # Mark as watched/unwatched updates
 def VideoLibrary_OnUpdate():
@@ -560,6 +587,8 @@ def setup():
 def StartUp():
     global FullShutdown
     xbmc.log("EMBY.hooks.monitor: [ Start Emby-next-gen ]", 1) # LOGINFO
+    utils.start_thread(SystemEvents, ())
+    utils.start_thread(SystemScans, ())
     Ret = setup()
 
     if Ret == "stop":  # db upgrade declined
@@ -652,4 +681,6 @@ def ShutDown():
     utils.unset_SyncLock()
     utils.NextGenOnline.set()
     SettingsChangedEvent.set()
+    SystemEventsQueue.put("QUIT")
+    SystemScansQueue.put("QUIT")
     xbmc.log("EMBY.hooks.monitor: Exit Emby-next-gen", 1) # LOGINFO

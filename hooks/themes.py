@@ -15,6 +15,11 @@ ThemeBusy = threading.Lock()
 TerminateTheme = False
 TerminateRestore = False
 Theme = {"PlayerId": 0, "KodiParentId": 0, "KodiParentType": "", "KodiId": 0, "KodiType": "", "EndTimeTicks": 0, "EmbyId": 0, "MediaSourceId": ""}
+PlayerOpsBusy = False
+KodiTypeOld = ""
+KodiType = ""
+KodiIdOld = 0
+KodiId = 0
 
 # Player events (queued by monitor notifications)
 def ThemePlay():
@@ -69,6 +74,11 @@ def PlaybackStart(PlayKodiType, PlayKodiId):
     global Theme
     global VolumeFade
     global VolumeFadeInInterrupt
+    global KodiTypeOld
+    global KodiType
+    global KodiIdOld
+    global KodiId
+    global PlayerOpsBusy
     ThemeLoading = {"PlayerId": 0, "KodiParentId": 0, "KodiParentType": "", "KodiId": 0, "KodiType": "", "EndTimeTicks": 0, "EmbyId": 0, "MediaSourceId": ""}
     QueuedPlayingItem = []
     EmbyId = ""
@@ -237,6 +247,8 @@ def PlaybackStart(PlayKodiType, PlayKodiId):
         if QueuedPlayingItem:
             player.QueuedPlayingItem = QueuedPlayingItem
 
+        PlayerOpsBusy = True
+
         if not playerops.Play(False, ThemeFile, ListItem, True, True):
             del ListItem
             xbmc.executebuiltin(f"SetVolume({VolumeOld})", False)
@@ -245,9 +257,17 @@ def PlaybackStart(PlayKodiType, PlayKodiId):
                 player.PlayItem = (0, "")
 
             clear_theme()
+            PlayerOpsBusy = False
             return
 
         del ListItem
+
+        # Wait for widget refresh
+        utils.sleep(0.5)
+        KodiType, KodiId, _ = get_KodiIds()
+        KodiTypeOld = KodiType
+        KodiIdOld = KodiId
+        PlayerOpsBusy = False
 
         # Fade volume
         if utils.theme_fade_in:
@@ -318,7 +338,7 @@ def PlaybackStop():
     clear_theme()
 
     if utils.theme_fade_out:
-        utils.sleep(0.1) # Kodi needs time until playback actually stopped, monitor notification are not accurate
+        utils.sleep(0.5) # Kodi needs time until playback actually stopped, monitor notification are not accurate
         xbmc.executebuiltin(f"SetVolume({VolumeOld})", False)
         player.Volume = VolumeOld
 
@@ -359,27 +379,27 @@ def ignore_views():
     return False
 
 def get_KodiIds():
-    KodiType = xbmc.getInfoLabel('ListItem.DBTYPE')
+    KodiTypeLocal = xbmc.getInfoLabel('ListItem.DBTYPE')
 
-    if KodiType:
-        KodiTypeReal = KodiType
+    if KodiTypeLocal:
+        KodiTypeReal = KodiTypeLocal
 
-        if KodiType in ("episode", "season"):
-            KodiId = xbmc.getInfoLabel('ListItem.TVShowDBID')
+        if KodiTypeLocal in ("episode", "season"):
+            KodiIdLocal = xbmc.getInfoLabel('ListItem.TVShowDBID')
 
-            if not KodiId:
-                KodiId = xbmc.getInfoLabel('ListItem.Property(TVShowDBID)')
+            if not KodiIdLocal:
+                KodiIdLocal = xbmc.getInfoLabel('ListItem.Property(TVShowDBID)')
 
-            KodiType = "tvshow"
+            KodiTypeLocal = "tvshow"
         else:
-            KodiId = xbmc.getInfoLabel('ListItem.DBID')
+            KodiIdLocal = xbmc.getInfoLabel('ListItem.DBID')
 
-        if KodiId and KodiId.isdigit():
-            KodiId = int(KodiId)
+        if KodiIdLocal and KodiIdLocal.isdigit():
+            KodiIdLocal = int(KodiIdLocal)
         else:
-            KodiId = 0
+            KodiIdLocal = 0
 
-        return KodiType, KodiId, KodiTypeReal
+        return KodiTypeLocal, KodiIdLocal, KodiTypeReal
 
     return "", 0, ""
 
@@ -453,12 +473,24 @@ def clear_theme():
     global Theme
     Theme = {"PlayerId": 0, "KodiParentId": 0, "KodiParentType": "", "KodiId": 0, "KodiType": "", "EndTimeTicks": 0, "EmbyId": 0, "MediaSourceId": ""}
 
+    # Wait for widget refresh
+    global KodiTypeOld
+    global KodiType
+    global KodiIdOld
+    global KodiId
+    utils.sleep(0.5)
+    KodiType, KodiId, _ = get_KodiIds()
+    KodiTypeOld = KodiType
+    KodiIdOld = KodiId
+
 def monitor_Themes():
     if utils.DebugLog: xbmc.log("EMBY.hooks.themes: THREAD: --->[ Monitor themes ]", 1) # LOGDEBUG
     global TerminateRestore
     global TerminateTheme
-    KodiTypeOld = ""
-    KodiIdOld = 0
+    global KodiTypeOld
+    global KodiType
+    global KodiIdOld
+    global KodiId
     utils.start_thread(ThemePlay, ())
     utils.start_thread(PositionTracker, ())
 
@@ -586,6 +618,9 @@ def monitor_Themes():
             if KodiTypeCompare != KodiType or KodiIdCompare != KodiId:
                 break
         else: # no break triggered
+            if PlayerOpsBusy:
+                continue
+
             # Check if item has changed
             if KodiIdOld != KodiId or KodiTypeOld != KodiType:
                 KodiIdOld = KodiId
@@ -626,8 +661,8 @@ def load_KodiItem(KodiContentId, ContentPath, ContentMetadata, StartTimeTicks, T
             PlayerId = 0
             ThemeFile = f"{utils.EmbyServers[ContentMetadata['ServerId']].ServerData['ServerUrl']}/emby/audio/{ContentMetadata['EmbyId']}/stream.aac?MediaSourceId={MediaSourceId}&PlaySessionId={PlaySessionId}&DeviceId={utils.EmbyServers[ContentMetadata['ServerId']].ServerData['DeviceId']}&api_key={utils.EmbyServers[ContentMetadata['ServerId']].ServerData['AccessToken']}&StartTimeTicks={StartTimeTicks}&AudioCodec=aac&Profile=baseline&MaxAudioChannels=1&VideoStreamIndex-1&EnableAutoStreamCopy=false&VideoCodec=copy&stream.acc|seekable=0&failonerror=false&verifypeer=false" # Works
 
-        KodiId = utils.set_EmbyId_ServerId_by_Fake_KodiId(ContentMetadata['EmbyId'], ContentMetadata['ServerId'])
-        KodiItem['dbid'] = KodiId
-        return KodiItem, KodiId, ThemeFile, PlayerId, MediaSourceId, PlaySessionId, ContentMetadata['EmbyId'], MediaSourceId
+        KodiIdLocal = utils.set_EmbyId_ServerId_by_Fake_KodiId(ContentMetadata['EmbyId'], ContentMetadata['ServerId'])
+        KodiItem['dbid'] = KodiIdLocal
+        return KodiItem, KodiIdLocal, ThemeFile, PlayerId, MediaSourceId, PlaySessionId, ContentMetadata['EmbyId'], MediaSourceId
 
     return None, 0, "", 0, "", "", 0, ""
