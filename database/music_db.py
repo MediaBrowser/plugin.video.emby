@@ -259,6 +259,11 @@ class MusicDatabase:
         # Get/keep current Tags
         self.cursor.execute("SELECT comment FROM song WHERE idSong = ?", (KodiItemId,))
         CommentCurrent = self.cursor.fetchone()
+
+        if not CommentCurrent:
+            xbmc.log(f"EMBY.database.music_db: update_song error: {KodiItemId}", 3) # LOGERROR
+            return
+
         CommentsCurrent = CommentCurrent[0].split("\n")
         EmbyLibraryIds = ()
         EmbyPlaylistIds = ()

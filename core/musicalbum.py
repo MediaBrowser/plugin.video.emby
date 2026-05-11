@@ -58,12 +58,12 @@ class MusicAlbum:
             UpdateKodiItemIdCurrent = KodiItemIds[Index]
             UpdateItem['LibraryId'] = LibraryId
             EmbyMusicArtistIds = self.set_metadata(UpdateItem, IncrementalSync)
-            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
             self.SQLs["music"].common_db.delete_artwork(UpdateKodiItemIdCurrent, "album")
             self.SQLs["music"].delete_link_album_artist(UpdateKodiItemIdCurrent)
             self.SQLs["music"].update_album(UpdateKodiItemIdCurrent, UpdateItem['Name'], AlbumType, UpdateItem['AlbumArtistsName'], UpdateItem['KodiProductionYear'], UpdateItem['KodiPremiereDate'], KodiMusicGenre, UpdateItem['Overview'], UpdateItem['KodiArtwork']['thumb'], UpdateItem['CommunityRating'], UpdateItem['KodiLastScraped'], UpdateItem['KodiDateCreated'], UpdateItem['ProviderIds']['MusicBrainzAlbum'], UpdateItem['ProviderIds']['MusicBrainzReleaseGroup'], Compilation, UpdateItem['Studio'], UpdateItem['KodiRunTimeTicks'], UpdateItem['AlbumArtistsSortName'])
             common.set_MusicArtist_links(UpdateKodiItemIdCurrent, self.SQLs, UpdateItem["AlbumArtists"], UpdateItem['LibraryId'], None)
             self.SQLs["music"].common_db.add_artwork(UpdateItem['KodiArtwork'], UpdateKodiItemIdCurrent, "album")
+            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
             self.SQLs["emby"].update_reference_musicalbum(UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds)
 
             if int(IncrementalSync):

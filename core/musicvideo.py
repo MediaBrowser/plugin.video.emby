@@ -54,14 +54,14 @@ class MusicVideo:
             KodiPathIdCurrent = KodiPathIds[Index]
             KodiFileIdCurrent = KodiFileIds[Index]
             EmbyMusicArtistIds, EmbyMusicGenreIds = self.set_metadata(UpdateItem, IncrementalSync)
-            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
-            common.remove_old_EmbyMusicGenre(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicGenreIds, self.MusicGenreObject, IncrementalSync)
             common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem.get('ExtraType', ""), self.SQLs, "musicvideo", False)
             common.set_path_filename(UpdateItem, self.EmbyServer.ServerData['ServerId'], None)
             common.set_multipart(UpdateItem, self.EmbyServer)
             common.update_downloaded_info(UpdateItem, self.SQLs, "musicvideo")
             self.assign_metadata(UpdateItem, KodiItemIdCurrent, KodiFileIdCurrent)
             self.SQLs["video"].update_musicvideos(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem['KodiName'], UpdateItem['KodiArtwork']['poster'], UpdateItem['KodiRunTimeTicks'], UpdateItem['Directors'], UpdateItem['Studio'], UpdateItem['Overview'], UpdateItem['Album'], UpdateItem['MusicArtist'], UpdateItem['MusicGenre'], UpdateItem['IndexNumber'], UpdateItem['KodiPremiereDate'], UpdateItem['KodiFilename'], UpdateItem['KodiStackedFilename'], UpdateItem['KodiDateCreated'], KodiPathIdCurrent, UpdateItem['KodiPath'], bool(PlaylistTag), UpdateItem['KodiFullPath'])
+            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
+            common.remove_old_EmbyMusicGenre(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicGenreIds, self.MusicGenreObject, IncrementalSync)
             self.SQLs["emby"].update_reference_musicvideo(UpdateItem['Id'], UpdateItem['PresentationUniqueKey'], UpdateItem['LibraryId'], EmbyMusicArtistIds, EmbyMusicGenreIds)
 
             if int(IncrementalSync):

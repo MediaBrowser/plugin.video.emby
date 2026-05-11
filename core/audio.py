@@ -75,15 +75,15 @@ class Audio:
             UpdateKodiItemIdCurrent = KodiItemIds[Index]
             UpdateItem['LibraryId'] = LibraryId
             EmbyMusicArtistIds, EmbyMusicGenreIds = self.set_metadata(UpdateItem, IncrementalSync)
-            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
-            common.remove_old_EmbyMusicGenre(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicGenreIds, self.MusicGenreObject, IncrementalSync)
-            common.remove_old_EmbyMusicAlbum(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], UpdateItem["MusicAlbumId"], self.MusicAlbumObject, IncrementalSync)
             self.SQLs["music"].common_db.delete_artwork(UpdateKodiItemIdCurrent, "song")
             self.SQLs["music"].delete_link_song_artist(UpdateKodiItemIdCurrent)
             KodiAlbumIds, KodiAlbumLibraryIds = self.SQLs["emby"].get_MusicAlbum_by_EmbyId(UpdateItem['MusicAlbumId'])
             KodiAlbumId = KodiAlbumIds[KodiAlbumLibraryIds.index(UpdateItem['LibraryId'])]
             self.SQLs["music"].update_song(UpdateKodiItemIdCurrent, UpdateItem['KodiPathId'], KodiAlbumId, UpdateItem['ArtistItemsName'], UpdateItem['MusicGenre'], UpdateItem['Name'], UpdateItem['IndexNumber'], UpdateItem['KodiRunTimeTicks'], UpdateItem['KodiPremiereDate'], UpdateItem['KodiProductionYear'], UpdateItem['KodiFilename'], UpdateItem['CommunityRating'], UpdateItem['Overview'], UpdateItem['KodiDateCreated'], BitRate, SampleRate, Channels, UpdateItem['ProviderIds']['MusicBrainzTrack'], UpdateItem['ArtistItemsSortName'], UpdateItem['KodiPath'], PlaylistId)
             self.set_links(UpdateItem, UpdateKodiItemIdCurrent)
+            common.remove_old_EmbyMusicArtist(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicArtistIds, self.MusicArtistObject, IncrementalSync)
+            common.remove_old_EmbyMusicGenre(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], EmbyMusicGenreIds, self.MusicGenreObject, IncrementalSync)
+            common.remove_old_EmbyMusicAlbum(self.SQLs["emby"], UpdateItem['Id'], UpdateItem['LibraryId'], UpdateItem["MusicAlbumId"], self.MusicAlbumObject, IncrementalSync)
             self.SQLs["emby"].update_reference_audio(UpdateItem['Id'], UpdateItem['LibraryId'], UpdateItem['MusicAlbumId'], EmbyMusicArtistIds, EmbyMusicGenreIds)
 
             if int(IncrementalSync):

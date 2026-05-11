@@ -916,6 +916,7 @@ class EmbyDatabase:
         for EmbyMusicGenreId in EmbyMusicGenreIds:
             SQLData += ((EmbyLibraryId, EmbyId, 0, 0, EmbyMusicGenreId),)
 
+        self.cursor.execute("DELETE FROM EmbyLibraryMapping WHERE EmbyId = ? AND EmbyLibraryId = ?", (EmbyId, EmbyLibraryId))
         self.cursor.executemany("INSERT OR IGNORE INTO EmbyLibraryMapping (EmbyLibraryId, EmbyId, EmbyMusicAlbumId, EmbyMusicArtistId, EmbyMusicGenreId) VALUES (?, ?, ?, ?, ?)", SQLData)
         del SQLData
 
@@ -1723,6 +1724,13 @@ class EmbyDatabase:
         Data = self.cursor.fetchone()
 
         if Data:
+            # This function is used on audio updates, check if it's the last EmbyMusicAlbumId mapping remaining. Returning "" will delete the album.
+            self.cursor.execute("SELECT COUNT(*) FROM EmbyLibraryMapping WHERE EmbyMusicAlbumId = ?", (Data[0],))
+            count = self.cursor.fetchone()[0]
+
+            if count > 1:
+                return ""
+
             return Data[0]
 
         return ""
