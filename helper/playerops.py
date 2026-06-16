@@ -459,7 +459,7 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
         KodiId, KodiType = embydb.get_KodiId_by_EmbyId(EmbyID)
 
         if KodiId: # synced content
-            PlaylistItems.append((EmbyID, None, KodiType, KodiId, None, None, None))
+            PlaylistItems.append((EmbyID, utils.KodiTypeMapping[KodiType], KodiType, KodiId, None, None, None))
         else: # not synced content
             PlaylistItems.append((EmbyID, None, None, None, None, None, None))
 
@@ -509,6 +509,9 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
         elif PlayCommand == "PlaySingle":
             utils.RemoteMode = True
             KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        elif PlayCommand == "PlayLast":
+            utils.RemoteMode = True
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
         else:
             return
 
@@ -516,6 +519,9 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
             InsertPlaylist(PlayerIdPlaylistId, KodiPlaylistIndexStartitem, PlaylistItems[StartIndex][2], PlaylistItems[StartIndex][3])
         else:
             utils.Playlists[PlayerIdPlaylistId].add(PlaylistItems[StartIndex][5], PlaylistItems[StartIndex][4], index=KodiPlaylistIndexStartitem) # Path, ListItem, Index
+
+        if PlayCommand in ("PlayLast", "PlayNext"):
+            return
     else: # picture
         KodiPlaylistIndexStartitem = 0
         xbmc.executebuiltin('Action(Stop)') # Stop everything including slideshow

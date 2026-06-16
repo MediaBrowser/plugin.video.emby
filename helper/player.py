@@ -28,6 +28,7 @@ PlaybackRate = [1.0, 1.0, 1.0]
 PlaylistKodi = [[], [], []]
 PlaylistEmby = [[], [], []]
 PlayingItem = [{}, 0, 0, 0, None, 0, "", ""] # EmbySessionData (QueuedPlayingItem), IntroStartPositionTicks, IntroEndPositionTicks, CreditsPositionTicks, EmbyServer, PlayerId, KodiMediaType, Filename
+PlayingItemInit = [{}, 0, 0, 0, None, 0, "", ""]
 QueuedPlayingItem = []
 MultiselectionDone = False
 PlaylistIndexContent = -2
@@ -56,6 +57,7 @@ def PlayerCommands():
     global PlaylistRemoveItem
     global MultiselectionDone
     global QueuedPlayingItem
+    global PlayingItemInit
     global Trailers
     global PlaylistIndexContent
     global VideoPlayback
@@ -315,7 +317,7 @@ def PlayerCommands():
             # Load playback data
             load_queuePlayingItem()
             EmbyPlaying = True
-            PlayingItem = QueuedPlayingItem
+            PlayingItem = QueuedPlayingItem.copy()
             QueuedPlayingItem = []
             init_EmbyPlayback()
 
@@ -325,6 +327,7 @@ def PlayerCommands():
             xbmc.log("EMBY.hooks.player: --< [ onAVStarted ]", 1) # LOGINFO
         elif Commands[0] == "play": # {"item":{"id":216,"type":"episode"},"player":{"playerid":1,"speed":1}}, '{"item":{"id":1100045814,"type":"song"},"player":{"playerid":-1,"speed":1}
             xbmc.log("EMBY.hooks.player: [ onPlay ]", 1) # LOGINFO
+            PlayingItemInit = QueuedPlayingItem.copy()
             playerops.Stopped = False
 
             with utils.SafeLock(playerops.StoppedCondition):
@@ -440,7 +443,13 @@ def PlayerCommands():
             with utils.SafeLock(playerops.AVStartedCondition):
                 playerops.AVStartedCondition.notify_all()
 
-            if not PlayingItem[0]:
+            if not PlayingItem[0]: # Playback never triggered avstart
+                if len(PlayingItemInit) >= 1 and PlayingItemInit[0]: # Play was triggered, but avstart never did. This can happen on invalid (livetv) streams.
+                    if utils.DebugLog: xbmc.log("EMBY.hooks.player (DEBUG): [ cancel session by PlayingItemInit ]", 1) # LOGDEBUG
+                    PlayingItemInitLocal = PlayingItemInit.copy()
+                    PlayingItemInit = [{}, 0, 0, 0, None, 0, "", ""]
+                    PlayingItemInitLocal[4].API.session_stop(PlayingItemInitLocal[0], PlaylistKodi[PlayingItemInitLocal[5]], PlaylistEmby[PlayingItemInitLocal[5]])
+
                 playerops.RemoteCommand(None, None, "stop")
 
                 with utils.SafeLock(ForceStopCondition):

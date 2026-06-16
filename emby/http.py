@@ -110,7 +110,7 @@ class HTTP:
                     self.Websocket.MessageQueue.put("QUIT")
 
                 for ConnectionId in list(self.Connection.keys()):
-                    if ConnectionId != "ASYNC": # Skip ASYNC as it might include termination info for eserver (e.g. remote playback disconnects)
+                    if ConnectionId != "ASYNC": # Skip ASYNC as it might include termination info for server (e.g. remote playback disconnects)
                         self.socket_close(ConnectionId)
 
                 # Verify all threads are stopped
@@ -414,7 +414,7 @@ class HTTP:
                 else:
                     IncomingData = self.Connection[ConnectionId]["Socket"].recv(1048576)
 
-                    if not IncomingData or utils.SystemShutdown:
+                    if not IncomingData or (utils.SystemShutdown and Timeout > 4):
                         if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket IO {ConnectionId}: Empty data", 1)
                         StatusCode = 600
 
@@ -427,6 +427,7 @@ class HTTP:
                     continue
 
                 TimeoutCounter += 1
+
                 if TimeoutCounter < TimeoutLoops:
                     continue
 
@@ -446,11 +447,13 @@ class HTTP:
                         continue
 
                     TimeoutCounter += 1
+
                     if TimeoutCounter <= TimeoutLoops:
                         continue
 
                     if Request:
                         xbmc.log(f"EMBY.emby.http: Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 2)
+
                     if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket IO {ConnectionId}: ({Request}): Timeout (workaround)", 1)
                     StatusCode = 603
                     break

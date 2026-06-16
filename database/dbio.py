@@ -137,7 +137,7 @@ def DBOpenRW(Databases, TaskId, SQLs):
                         DBConnectionsRW[DBID][0].execute("PRAGMA temp_store=MEMORY")
                         DBConnectionsRW[DBID][0].execute("PRAGMA journal_mode=WAL")
                         DBConnectionsRW[DBID][0].execute("PRAGMA synchronous=NORMAL")
-                        DBConnectionsRW[DBID][0].execute("PRAGMA secure_delete=false")
+                        DBConnectionsRW[DBID][0].execute("PRAGMA secure_delete=OFF")
                         DBConnectionsRW[DBID][1].execute("BEGIN IMMEDIATE TRANSACTION")
                         break
                     except:
