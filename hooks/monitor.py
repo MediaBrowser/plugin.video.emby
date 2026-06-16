@@ -4,7 +4,7 @@ import xbmcvfs
 import xbmc
 from helper import pluginmenu, utils, playerops, xmls, player, queue, deduplicate, backup, cache
 from database import dbio
-from emby import emby
+from emby import emby, httpcache
 from . import webservice, favorites, themes
 
 QueueItemsRemove = set()
@@ -114,17 +114,7 @@ def SystemEvents():
         elif SystemEvent[0] == 'System.OnSleep':
             xbmc.log("EMBY.hooks.monitor: -->[ sleep ]", 1) # LOGINFO
             utils.update_SyncPause('kodi_sleep', True)
-
-            if player.EmbyPlaying and player.PlayingItem[4]:
-                player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
-                if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: --->[ PlayerEventsQueue ]", 1) # LOGDEBUG
-
-                with utils.SafeLock(player.PlayerEventsQueue.ThreadCondition):
-                    while player.PlayerEventsQueue.ItemsQueue:
-                        player.PlayerEventsQueue.ThreadCondition.wait(timeout=0.1)
-
-                if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: ---<[ PlayerEventsQueue ]", 1) # LOGDEBUG
-
+            wait_PlayerEventsQueue()
             EmbyServer_DisconnectAll()
             xbmc.log("EMBY.hooks.monitor: --<[ sleep ]", 1) # LOGINFO
         elif SystemEvent[0] == 'System.OnQuit':
@@ -584,6 +574,17 @@ def setup():
     pluginmenu.factoryreset(True, favorites)
     return False
 
+def wait_PlayerEventsQueue():
+    if player.EmbyPlaying and player.PlayingItem[4]:
+        player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
+        if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: --->[ PlayerEventsQueue ]", 1) # LOGDEBUG
+
+        with utils.SafeLock(player.PlayerEventsQueue.ThreadCondition):
+            while player.PlayerEventsQueue.ItemsQueue:
+                player.PlayerEventsQueue.ThreadCondition.wait(timeout=0.1)
+
+        if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: ---<[ PlayerEventsQueue ]", 1) # LOGDEBUG
+
 def StartUp():
     global FullShutdown
     xbmc.log("EMBY.hooks.monitor: [ Start Emby-next-gen ]", 1) # LOGINFO
@@ -607,6 +608,7 @@ def StartUp():
         utils.start_thread(themes.monitor_Themes, ())
         utils.start_thread(favorites.monitor_Favorites, ())
         utils.start_thread(favorites.emby_change_Favorite, ())
+        utils.start_thread(httpcache.clear, ())
         utils.start_thread(settingschanged, ())
         XbmcMonitor = monitor()  # Init Monitor
         utils.start_thread(poll_Events, (XbmcMonitor,))
@@ -654,17 +656,7 @@ def ShutDown():
         utils.SystemShutdown = True
         utils.FavoriteQueue.put("QUIT")
         player.ItemsUpdateQueue.put("QUIT")
-
-        if player.EmbyPlaying and player.PlayingItem[4]:
-            player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
-            if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: --->[ ThreadCondition ]", 1) # LOGDEBUG
-
-            with utils.SafeLock(player.PlayerEventsQueue.ThreadCondition):
-                while player.PlayerEventsQueue.ItemsQueue:
-                    player.PlayerEventsQueue.ThreadCondition.wait(timeout=0.1)
-
-            if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: ---<[ ThreadCondition ]", 1) # LOGDEBUG
-
+        wait_PlayerEventsQueue()
         EmbyServer_DisconnectAll()
 
         for RemoteCommandQueue in list(playerops.RemoteCommandQueue.values()):

@@ -452,31 +452,31 @@ class MusicDatabase:
         QuotedOld = OldPath != "/emby_addon_mode/"
         self.cursor.execute("SELECT idSong, strVideoURL FROM song WHERE strVideoURL IS NOT NULL")
         VideoURLs = self.cursor.fetchall()
-        SQLData = ()
 
-        for VideoURL in VideoURLs:
-            Data = VideoURL[1].split("/")
-            FileName = Data[-1]
+        if VideoURLs:
+            SQLData = len(VideoURLs) * [()] # pre allocate memory
 
-            if QuotedNew:
-                if QuotedOld:
-                    FileNameNew = FileName
+            for Index, VideoURL in enumerate(VideoURLs):
+                Data = VideoURL[1].split("/")
+                FileName = Data[-1]
+
+                if QuotedNew:
+                    if QuotedOld:
+                        FileNameNew = FileName
+                    else:
+                        FileNameNew = quote(FileName)
                 else:
-                    FileNameNew = quote(FileName)
-            else:
-                if QuotedOld:
-                    FileNameNew = unquote(FileName)
-                else:
-                    FileNameNew = FileName
+                    if QuotedOld:
+                        FileNameNew = unquote(FileName)
+                    else:
+                        FileNameNew = FileName
 
-            Path = f'{"/".join(Data[:-1])}/{FileNameNew}'
-            Path = common_db.toggle_path(Path, NewPath).replace("|redirect-limit=1000&failonerror=false", "")
-            SQLData += ((Path, VideoURL[0]),)
+                Path = f'{"/".join(Data[:-1])}/{FileNameNew}'
+                Path = common_db.toggle_path(Path, NewPath).replace("|redirect-limit=1000&failonerror=false", "")
+                SQLData[Index] = (Path, VideoURL[0])
 
-        if SQLData:
             self.cursor.executemany("UPDATE song SET strVideoURL = ? WHERE idSong = ?", SQLData) # Trailing spaces are used for MusicBrainzTrackID unificaation
-
-        del SQLData
+            del SQLData
 
     # artwork
     def get_artwork(self, KodiId, ContentType):

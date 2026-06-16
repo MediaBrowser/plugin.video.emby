@@ -1724,7 +1724,7 @@ class EmbyDatabase:
         Data = self.cursor.fetchone()
 
         if Data:
-            # This function is used on audio updates, check if it's the last EmbyMusicAlbumId mapping remaining. Returning "" will delete the album.
+            # This function is used on audio updates, check if it's the last EmbyMusicAlbumId mapping remaining. Returning "" will not delete the album.
             self.cursor.execute("SELECT COUNT(*) FROM EmbyLibraryMapping WHERE EmbyMusicAlbumId = ?", (Data[0],))
             count = self.cursor.fetchone()[0]
 

@@ -24,6 +24,7 @@ class Season:
             return False
 
         common.set_PresentationUniqueKey(Item)
+        common.set_overview(Item)
         common.set_ItemsDependencies(Item, self.SQLs, self.SeriesObject, self.EmbyServer, "Series", IncrementalSync, Item['LibraryId'])
         common.set_KodiArtwork(Item, self.EmbyServer.ServerData['ServerId'], False)
 
@@ -59,7 +60,7 @@ class Season:
             if Item['Name'] == "--NO INFO--": # Skip injected items updates
                 return False
 
-            self.SQLs["video"].update_season(Item['KodiParentId'], Item['IndexNumber'], Item['Name'], Item['KodiItemId'])
+            self.SQLs["video"].update_season(Item['KodiParentId'], Item['IndexNumber'], Item['Name'], Item['KodiItemId'], Item['Overview'])
             self.SQLs["emby"].update_reference_generic(Item['Id'], Item['LibraryId'])
 
             if int(IncrementalSync):
@@ -69,7 +70,7 @@ class Season:
 
             utils.notify_event("content_update", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "season"}, IncrementalSync)
         else:
-            self.SQLs["video"].add_season(Item['KodiItemId'], Item['KodiParentId'], Item['IndexNumber'], Item['Name'])
+            self.SQLs["video"].add_season(Item['KodiItemId'], Item['KodiParentId'], Item['IndexNumber'], Item['Name'], Item['Overview'])
             self.SQLs["emby"].add_reference_season(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiParentId'], Item['PresentationUniqueKey'])
 
             if int(IncrementalSync):

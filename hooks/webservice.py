@@ -5,7 +5,7 @@ import socket
 import xbmc
 from hooks import favorites
 from database import dbio
-from emby import metadata
+from emby import metadata, httpcache
 from helper import utils, context, playerops, pluginmenu, player, xmls, queue, cache
 DefaultVideoSettings = xmls.load_defaultvideosettings()
 SubtitlesLanguageDefault = DefaultVideoSettings.get("SubtitlesLanguage", "").lower()
@@ -553,8 +553,11 @@ def build_Path(MetaData, Data):
     Path = f"{utils.EmbyServers[MetaData['ServerId']].ServerData['ServerUrl']}/emby/{Data}{Parameter}MediaSourceId={MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Id']}&PlaySessionId={MetaData['PlaySessionId']}&DeviceId={utils.EmbyServers[MetaData['ServerId']].ServerData['DeviceId']}&api_key={utils.EmbyServers[MetaData['ServerId']].ServerData['AccessToken']}"
     return Path
 
-def send_redirect(client, MetaData, Data):
+def send_redirect(client, MetaData, Data, AddCache=True):
     utils.close_busyDialog()
+
+    if AddCache:
+        httpcache.add(MetaData, Data)
 
     if MetaData['isHttp'] and utils.followhttp:
         SendData = f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {MetaData['MediaSources'][MetaData['SelectionIndexMediaSource']][0]['Path']}\r\nContent-Length: 0\r\nAccept-Ranges: none\r\n\r\n".encode()
@@ -580,8 +583,18 @@ def send_redirect(client, MetaData, Data):
 def GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo):
     # Delayed contents are used for user inputs (selection box for e.g. multicontent versions, transcoding selection etc.)
     # workaround for low Kodi network timeout settings, for long running processes. "delayed_content" folder is actually a redirect to keep timeout below threshold
+
+    # Read from cache -> double/tripple HTTP GET queries are trigger by e.g. live tv, therefore use cached HTTP responses
+    HTTPCache = httpcache.get(Payload)
+
+    if HTTPCache:
+        if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): Use HTTP Cache: {HTTPCache}", 1)
+        send_redirect(client, HTTPCache[0], HTTPCache[1], False)
+        return
+
     global EmbyIdCurrentlyPlaying
 
+    # Delayed content used for e.g. multiselection episodes, trailers etc.
     if isDelayedContent:
         Etag = Payload[1:]
 

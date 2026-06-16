@@ -8,6 +8,9 @@ if utils.DatabaseFiles["video-version"] >= 135:
 else:
     VideoversionTypes = {"regular": 0, "special": 1}
 
+SeasonPlot = utils.DatabaseFiles["video-version"] >= 145
+
+
 class VideoDatabase:
     def __init__(self, cursor):
         self.cursor = cursor
@@ -615,10 +618,13 @@ class VideoDatabase:
 
         return Data
 
-    def add_season(self, KodiSeasonId, KodiShowId, SeasonNumber, SeasonName):
-        self.cursor.execute("INSERT OR REPLACE INTO seasons(idSeason, idShow, season, name) VALUES (?, ?, ?, ?)", (KodiSeasonId, KodiShowId, SeasonNumber, SeasonName)) # IGNORE required for stacked content
+    def add_season(self, KodiSeasonId, KodiShowId, SeasonNumber, SeasonName, Overview):
+        if SeasonPlot:
+            self.cursor.execute("INSERT OR REPLACE INTO seasons(idSeason, idShow, season, name, plot) VALUES (?, ?, ?, ?, ?)", (KodiSeasonId, KodiShowId, SeasonNumber, SeasonName, Overview)) # IGNORE required for stacked content
+        else:
+            self.cursor.execute("INSERT OR REPLACE INTO seasons(idSeason, idShow, season, name) VALUES (?, ?, ?, ?)", (KodiSeasonId, KodiShowId, SeasonNumber, SeasonName)) # IGNORE required for stacked content
 
-    def update_season(self, KodiShowId, SeasonNumber, SeasonName, KodiSeasonId):
+    def update_season(self, KodiShowId, SeasonNumber, SeasonName, KodiSeasonId, Overview):
         self.cursor.execute("SELECT name FROM seasons WHERE idSeason = ?", (KodiSeasonId,))
         Data = self.cursor.fetchone()
 
@@ -627,7 +633,10 @@ class VideoDatabase:
         else:
             SeasonNameMod = SeasonName
 
-        self.cursor.execute("UPDATE seasons SET idShow = ?, season = ?, name = ? WHERE idSeason = ?", (KodiShowId, SeasonNumber, SeasonNameMod, KodiSeasonId))
+        if SeasonPlot:
+            self.cursor.execute("UPDATE seasons SET idShow = ?, season = ?, name = ?, plot = ? WHERE idSeason = ?", (KodiShowId, SeasonNumber, SeasonNameMod, Overview, KodiSeasonId))
+        else:
+            self.cursor.execute("UPDATE seasons SET idShow = ?, season = ?, name = ? WHERE idSeason = ?", (KodiShowId, SeasonNumber, SeasonNameMod, KodiSeasonId))
 
     def create_entry_season(self):
         self.cursor.execute("SELECT coalesce(max(idSeason), 0) FROM seasons")
@@ -1803,83 +1812,114 @@ class VideoDatabase:
         QuotedOld = OldPath != "/emby_addon_mode/"
         self.cursor.execute("SELECT idFile, strFilename FROM files")
         FileNames = self.cursor.fetchall()
-        SQLData = ()
 
-        for FileName in FileNames:
-            if QuotedNew:
-                if QuotedOld:
-                    FileNameNew = FileName[1]
+        if FileNames:
+            SQLData = len(FileNames) * [()] # pre allocate memory
+
+            for Index, FileName in enumerate(FileNames):
+                if QuotedNew:
+                    if QuotedOld:
+                        FileNameNew = FileName[1]
+                    else:
+                        FileNameNew = quote(FileName[1])
                 else:
-                    FileNameNew = quote(FileName[1])
-            else:
-                if QuotedOld:
-                    FileNameNew = unquote(FileName[1])
-                else:
-                    FileNameNew = FileName[1]
+                    if QuotedOld:
+                        FileNameNew = unquote(FileName[1])
+                    else:
+                        FileNameNew = FileName[1]
 
-            SQLData += ((FileNameNew, FileName[0]),)
+                SQLData[Index] = (FileNameNew, FileName[0])
 
-        if SQLData:
             self.cursor.executemany("UPDATE files SET strFilename = ? WHERE idFile = ?", SQLData)
+            del SQLData
 
-        SQLData = ()
         self.cursor.execute("SELECT idPath, strPath FROM path")
         Pathes = self.cursor.fetchall()
 
-        for Path in Pathes:
-            if Path[1].startswith(OldPath):
-                PathMod = common_db.toggle_path(Path[1], NewPath)
-                SQLData += ((PathMod, Path[0]),)
+        if Pathes:
+            SQLData = len(Pathes) * [()] # pre allocate memory
+            Index = 0
 
-        if SQLData:
-            self.cursor.executemany("UPDATE path SET strPath = ? WHERE idPath = ?", SQLData)
+            for Path in Pathes:
+                if Path[1].startswith(OldPath):
+                    PathMod = common_db.toggle_path(Path[1], NewPath)
+                    SQLData[Index] = (PathMod, Path[0])
+                    Index += 1
 
-        SQLData = ()
-        SQLData1 = ()
+            if Index:
+                SQLData = SQLData[:Index]
+                self.cursor.executemany("UPDATE path SET strPath = ? WHERE idPath = ?", SQLData)
+
+            del SQLData
+
         self.cursor.execute("SELECT idMovie, c19, c22 FROM movie")
         Pathes = self.cursor.fetchall()
 
-        for Path in Pathes:
-            if Path[1] and Path[1].startswith(OldPath):
-                PathMod = common_db.toggle_path(Path[1], NewPath)
-                SQLData += ((PathMod, Path[0]),)
+        if Pathes:
+            SQLData = len(Pathes) * [()] # pre allocate memory
+            SQLData1 = len(Pathes) * [()] # pre allocate memory
+            Index = 0
+            Index1 = 0
 
-            if Path[2].startswith(OldPath):
-                PathMod = common_db.toggle_path(Path[2], NewPath)
-                SQLData1 += ((PathMod, Path[0]),)
+            for Path in Pathes:
+                if Path[1] and Path[1].startswith(OldPath):
+                    PathMod = common_db.toggle_path(Path[1], NewPath)
+                    SQLData[Index] = (PathMod, Path[0])
+                    Index += 1
 
-        if SQLData:
-            self.cursor.executemany("UPDATE movie SET c19 = ? WHERE idMovie = ?", SQLData)
+                if Path[2].startswith(OldPath):
+                    PathMod = common_db.toggle_path(Path[2], NewPath)
+                    SQLData1[Index1] = (PathMod, Path[0])
+                    Index1 += 1
 
-        if SQLData1:
-            self.cursor.executemany("UPDATE movie SET c22 = ? WHERE idMovie = ?", SQLData1)
+            if Index:
+                SQLData = SQLData[:Index]
+                self.cursor.executemany("UPDATE movie SET c19 = ? WHERE idMovie = ?", SQLData)
 
-        del SQLData1
-        SQLData = ()
+            if Index1:
+                SQLData1 = SQLData1[:Index1]
+                self.cursor.executemany("UPDATE movie SET c22 = ? WHERE idMovie = ?", SQLData1)
+
+            del SQLData
+            del SQLData1
+
         self.cursor.execute("SELECT idEpisode, c18 FROM episode")
         Pathes = self.cursor.fetchall()
 
-        for Path in Pathes:
-            if Path[1].startswith(OldPath):
-                PathMod = common_db.toggle_path(Path[1], NewPath)
-                SQLData += ((PathMod, Path[0]),)
+        if Pathes:
+            SQLData = len(Pathes) * [()] # pre allocate memory
+            Index = 0
 
-        if SQLData:
-            self.cursor.executemany("UPDATE episode SET c18 = ? WHERE idEpisode = ?", SQLData)
+            for Path in Pathes:
+                if Path[1].startswith(OldPath):
+                    PathMod = common_db.toggle_path(Path[1], NewPath)
+                    SQLData[Index] = (PathMod, Path[0])
+                    Index += 1
 
-        SQLData = ()
+            if Index:
+                SQLData = SQLData[:Index]
+                self.cursor.executemany("UPDATE episode SET c18 = ? WHERE idEpisode = ?", SQLData)
+
+            del SQLData
+
         self.cursor.execute("SELECT idMVideo, c13 FROM musicvideo")
         Pathes = self.cursor.fetchall()
 
-        for Path in Pathes:
-            if Path[1].startswith(OldPath):
-                PathMod = common_db.toggle_path(Path[1], NewPath)
-                SQLData += ((PathMod, Path[0]),)
+        if Pathes:
+            SQLData = len(Pathes) * [()] # pre allocate memory
+            Index = 0
 
-        if SQLData:
-            self.cursor.executemany("UPDATE musicvideo SET c13 = ? WHERE idMVideo = ?", SQLData)
+            for Path in Pathes:
+                if Path[1].startswith(OldPath):
+                    PathMod = common_db.toggle_path(Path[1], NewPath)
+                    SQLData[Index] = (PathMod, Path[0])
+                    Index += 1
 
-        del SQLData
+            if Index:
+                SQLData = SQLData[:Index]
+                self.cursor.executemany("UPDATE musicvideo SET c13 = ? WHERE idMVideo = ?", SQLData)
+
+            del SQLData
 
     def get_add_path(self, Path, MediaType, LinkId=None):
         self.cursor.execute("SELECT idPath FROM path WHERE strPath = ?", (Path,))

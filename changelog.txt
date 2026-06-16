@@ -1,3 +1,13 @@
+12.4.22
+=============
+fix server disconnect issue
+Add season info support (Kodi 22)
+fix livetv sessions
+fix remote commands play next, add to play queue
+fix audio remote playback
+
+
+
 12.4.21
 =============
 fix songs sync issue

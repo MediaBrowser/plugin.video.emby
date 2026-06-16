@@ -1,3 +1,4 @@
+import threading
 import uuid
 import json
 import socket
@@ -8,6 +9,8 @@ from helper import utils, playerops, pluginmenu
 from database import library
 from hooks import favorites
 from . import views, api, http
+
+Disconnect = threading.Lock()
 
 
 class EmbyServer:
@@ -301,19 +304,20 @@ class EmbyServer:
     def ServerDisconnect(self, AccessRestricted=False):
         xbmc.log(f"EMBY.emby.emby: Disconnect: {AccessRestricted}", 1) # LOGINFO
 
-        if self.ServerData['ServerId'] in utils.EmbyServers:
-            if not AccessRestricted:
-                utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
+        with utils.SafeLock(Disconnect):
+            if self.ServerData['ServerId'] in utils.EmbyServers:
+                if not AccessRestricted:
+                    utils.EmbyServers[self.ServerData['ServerId']].API.session_logout()
 
-            utils.EmbyServers[self.ServerData['ServerId']].stop()
-            del utils.EmbyServers[self.ServerData['ServerId']]
+                utils.EmbyServers[self.ServerData['ServerId']].stop()
+                del utils.EmbyServers[self.ServerData['ServerId']]
 
-        utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
-        self.EmbySession = []
-        self.Online = False
+            utils.delFile(f"{utils.FolderAddonUserdata}servers_{self.ServerData['ServerId']}.json")
+            self.EmbySession = []
+            self.Online = False
 
-        with utils.SafeLock(utils.EmbyServerOnlineCondition):
-            utils.EmbyServerOnlineCondition.notify_all()
+            with utils.SafeLock(utils.EmbyServerOnlineCondition):
+                utils.EmbyServerOnlineCondition.notify_all()
 
     def ServerHandshake(self):
         self.EmbySession = self.API.get_device()
