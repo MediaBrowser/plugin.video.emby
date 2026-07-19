@@ -1500,7 +1500,7 @@ def refresh_DynamicNode():
 
 def set_EmbyId_ServerId_by_Fake_KodiId(EmbyId, ServerId): # Maximum value is 2147483648
     if ServerId in EmbyServerIds:
-        ServerIndex = EmbyServerIds.index(ServerId)
+        ServerIndex = EmbyServerIds.index(ServerId) + 1
     else:
         return 0
 
@@ -1531,8 +1531,7 @@ def get_EmbyId_ServerId_by_Fake_KodiId(KodiId):
         FakeNumberKey = MappingIdsListKeys[FakeNumberKey - 1]
         EmbyId = int(f"{MappingIds[FakeNumberKey]}{EmbyId}")
 
-    ServerIndex -= 1
-    ServerId = EmbyServerIds[ServerIndex]
+    ServerId = EmbyServerIds[ServerIndex - 1]
     return EmbyId, ServerId
 
 

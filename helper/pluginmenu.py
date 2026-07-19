@@ -316,8 +316,13 @@ def browse(Handle, Id, query, ParentId, Content, ServerId, LibraryId, ContentSup
             Doublesfilter = set()
             SortItems = {"MusicArtist": (), "MusicAlbum": (), "Audio": (), "Movie": (), "Trailer": (), "BoxSet": (), "Series": (), "Season": (), "Episode": (), "MusicVideo": (), "Video": (), "Photo": (), "PhotoAlbum": (), "TvChannel": (), "Folder": (), "Playlist": (), "Genre": (), "MusicGenre": (), "Person": (), "Tag": (), "Channel": (), "CollectionFolder": (), "Studio": ()}
 
-            for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*RequestParams):
-                add_unifyedItem(Item, Doublesfilter, SortItems)
+            if query == "Playlist":
+                for Index, Item in enumerate(utils.EmbyServers[ServerId].API.get_Items_dynamic(*RequestParams), 1):
+                    Item['IndexNumber'] = Index
+                    add_unifyedItem(Item, Doublesfilter, SortItems)
+            else:
+                for Item in utils.EmbyServers[ServerId].API.get_Items_dynamic(*RequestParams):
+                    add_unifyedItem(Item, Doublesfilter, SortItems)
 
             Content, ItemsListings, WindowIdCheck = unify_Item(SortItems, ItemsListings, Content, ParentId, ServerId, LibraryId, Unsorted, Id, WindowIdCheck, ContentSupported, ContentRequest)
     # Write cache
@@ -441,7 +446,7 @@ def load_ListItem(ParentId, Item, ServerId, ItemsListings, Content, LibraryId, C
         ListItem = Item["ListItem"]
     else:
         if utils.DebugLog: xbmc.log(f"EMBY.helper.pluginmenu (DEBUG): load_ListItem nodetype: Dynamic / {Item['Type']}", 1)
-        ListItem = listitem.set_ListItem(Item, ServerId)
+        ListItem = listitem.set_ListItem(Item, ServerId, None, False, ContentSupported)
 
     if Item.get('IsFolder', False) or Item['Type'] in ("Tag", "Genre", "Person", "MusicGenre", "MusicArtist", "MusicAlbum", "Folder", "PhotoAlbum"):
         StaggeredQuery = Item['Type']
@@ -491,6 +496,18 @@ def add_ListItem(ItemsListings, label, path, artwork, HelpText):
     ListItem.setContentLookup(False)
     ListItem.setProperties({'IsFolder': 'true', 'IsPlayable': 'false'})
     ListItem.setArt({"thumb": artwork, "fanart": "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "landscape": artwork or "special://home/addons/plugin.service.emby-next-gen/resources/fanart.jpg", "clearlogo": "special://home/addons/plugin.service.emby-next-gen/resources/clearlogo.png", "icon": artwork})
+
+    if HelpText == "Photo":
+        ListItem.getPictureInfoTag() # Defines picture
+    elif HelpText == "Audio":
+        InfoTags = ListItem.getMusicInfoTag()
+        InfoTags.setMediaType("song")
+        InfoTags.setTitle(label)
+    else:
+        InfoTags = ListItem.getVideoInfoTag()
+        InfoTags.setMediaType("video")
+        InfoTags.setTitle(label)
+
     ItemsListings.append((path, ListItem, True))
     return ItemsListings
 

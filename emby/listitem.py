@@ -172,7 +172,7 @@ def set_ListItem_from_Kodi_database(KodiItem, Path=None, ContentLookup=True):
     IsFolder = bool(KodiItem['properties']['IsFolder'] == "true")
     return IsFolder, ListItem
 
-def set_ListItem(item, ServerId, Path=None, ContentLookup=True):
+def set_ListItem(item, ServerId, Path=None, ContentLookup=True, ContentSupported=""):
     if 'Name' in item:
         Name = item['Name']
     elif 'SeriesName' in item: # {'ServerId': '2a38697ffc1b428b943aa1b6014e2263', 'PremiereDate': '2024-10-23T22:00:00.0000000Z', 'ProductionYear': 2024, 'IndexNumber': 2, 'ParentIndexNumber': 5, 'ProviderIds': {}, 'Type': 'Episode', 'SeriesName': 'Star Trek: Lower Decks', 'SeriesId': '58574', 'SeriesPrimaryImageTag': 'fb201a2139810a15d125dfea5e981f36', 'ParentThumbItemId': '58574', 'ParentThumbImageTag': '01e69ca501869a469606bc82bd94d300', 'LocationType': 'Virtual'}
@@ -538,6 +538,8 @@ def set_ListItem(item, ServerId, Path=None, ContentLookup=True):
 
         if Path:
             InfoTags.setURL(Path)
+        elif 'KodiFullPath' in item and item['KodiFullPath']:
+            InfoTags.setURL(item['KodiFullPath'])
 
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true',  "KodiType": "song"})
     elif item['Type'] == "BoxSet":
@@ -571,13 +573,19 @@ def set_ListItem(item, ServerId, Path=None, ContentLookup=True):
         set_Path(item, InfoTags)
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
     elif item['Type'] == 'Playlist':
-        InfoTags = listitem.getVideoInfoTag()
+        common.set_path_filename(item, ServerId, None, True)
+
+        if ContentSupported == "audio":
+            InfoTags = listitem.getMusicInfoTag()
+            Properties.update({'IsFolder': 'true', 'IsPlayable': 'true'})
+        else:
+            InfoTags = listitem.getVideoInfoTag()
+            set_Path(item, InfoTags)
+            Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
+
         InfoTags.setTitle(Name)
         common.set_KodiArtwork(item, ServerId, True)
         common.set_overview(item)
-        common.set_path_filename(item, ServerId, None, True)
-        set_Path(item, InfoTags)
-        Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
     elif item['Type'] == "Photo":
         common.set_KodiArtwork(item, ServerId, True)
         item['Width'] = int(item.get('Width', 0))
