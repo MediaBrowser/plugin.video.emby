@@ -1,3 +1,11 @@
+12.4.23
+=============
+fix sync bug
+fix dynamic nodes in native mode
+fix dynamic playlists
+
+
+
 12.4.22
 =============
 fix server disconnect issue

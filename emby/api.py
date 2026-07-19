@@ -183,7 +183,7 @@ class API:
             if not Ids: # Ids are removed in async_get_Items_Ids thread
                 return
 
-            utils.start_thread(self.async_get_Items_Ids, (ItemsQueue, Ids, Dynamic, Basic, ProcessProgressId, LibraryId, MediaType, Extra, BusyFunction, UserData))
+            utils.start_thread(self.async_get_Items_Ids, (ItemsQueue, Ids.copy(), Dynamic, Basic, ProcessProgressId, LibraryId, MediaType, Extra, BusyFunction, UserData))
 
             while True:
                 Items = ItemsQueue.getall()
@@ -248,7 +248,10 @@ class API:
 
                     if 'Items' in Payload:
                         for Item in Payload['Items']:
-                            del Ids[Ids.index(Item['Id'])]
+
+                            if Item['Id'] in Ids:
+                                del Ids[Ids.index(Item['Id'])]
+
                             ItemsQueue.put(Item)
                             CounterFound += 1
                 elif LibraryId and LibraryId.lower() != "unknown": # Kodi start updates, Items must exists
@@ -257,7 +260,10 @@ class API:
                     if 'Items' in Payload:
                         for Item in Payload['Items']:
                             Item['LibraryId'] = LibraryId
-                            del Ids[Ids.index(Item['Id'])]
+
+                            if Item['Id'] in Ids:
+                                del Ids[Ids.index(Item['Id'])]
+
                             ItemsQueue.put(Item)
                             CounterFound += 1
 
@@ -320,9 +326,11 @@ class API:
 
                     for Item in Payload['Items']:
                         if MediaType in ('All', Item['Type']):
-                            if Item['Id'] in Ids:
+                            if Item['Id'] in IdsBackup:
                                 ItemsSorted[IdsBackup.index(Item['Id'])] = Item
-                                del Ids[Ids.index(Item['Id'])]
+
+                                if Item['Id'] in Ids:
+                                    del Ids[Ids.index(Item['Id'])]
                             else:
                                 xbmc.log(f"EMBY.emby.api: ItemId not found in Ids: {Item['Id']}", 2) # LOGWARNING
 
