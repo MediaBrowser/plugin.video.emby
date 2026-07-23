@@ -3109,17 +3109,6 @@ msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
 msgstr "当源分辨率高于所选分辨率时，对内容进行转码"
 
-msgctxt "#33735"
-msgid "Resolution threshold"
-msgstr "分辨率阈值"
-
-msgctxt "#33736"
-msgid "Transcode content when source resolution is above selected resolution"
-msgstr "当源文件分辨率高于选定分辨率时转码内容"
-msgctxt "#33737"
-msgid "always"
-msgstr "总是"
-
 msgctxt "#33738"
 msgid "720"
 msgstr "720"
