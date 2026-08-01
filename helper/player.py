@@ -6,7 +6,7 @@ import json
 import xbmc
 from database import dbio
 from emby import listitem
-from helper import utils, playerops, queue, cache
+from helper import utils, playerops, queue, cache, upnext
 from dialogs import skipintrocredits
 TrackerPaused = False
 VideoPlayback = "READY"
@@ -320,6 +320,7 @@ def PlayerCommands():
             PlayingItem = QueuedPlayingItem.copy()
             QueuedPlayingItem = []
             init_EmbyPlayback()
+            upnext.dispatch(PlayingItem)
 
             if VideoPlayback == "CONTENT":
                 VideoPlayback = "READY"
