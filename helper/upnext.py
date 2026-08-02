@@ -49,18 +49,7 @@ def _send_upnext(server, item_id, runtime_ticks, credits_ticks):
     if current.get("Type") != "Episode" or not current.get("SeriesId"):
         return False
 
-    episodes = server.API.get_Items(
-        current["SeriesId"],
-        ("Episode",),
-        False,
-        {
-            "SortBy": "ParentIndexNumber,IndexNumber,SortName",
-            "SortOrder": "Ascending",
-        },
-        "",
-        None,
-        True,
-    )
+    episodes = server.API.get_Episodes(current["SeriesId"], current["Id"])
     following = _following_episode(episodes, current.get("Id"))
 
     if not following:

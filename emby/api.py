@@ -884,6 +884,15 @@ class API:
 
         return []
 
+    def get_Episodes(self, SeriesId, AdjacentTo):
+        Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'AdjacentTo': AdjacentTo, 'Fields': self.get_Fields("episode", False, False, True), 'EnableImages': True, 'EnableUserData': True}
+        _, _, Payload = self.EmbyServer.http.request("GET", f"Shows/{SeriesId}/Episodes", Params, {}, False, "", None, "")
+
+        if 'Items' in Payload:
+            return Payload['Items']
+
+        return []
+
     def get_NextUp(self, ParentId):
         _, _, Payload = self.EmbyServer.http.request("GET", "Shows/NextUp", {'UserId': self.EmbyServer.ServerData['UserId'], 'ParentId': ParentId, 'Fields': self.get_Fields("episode", False, True, True), 'EnableImages': True, 'EnableUserData': True, 'LegacyNextUp': True}, {}, False, "", None, "")
         embydb = dbio.DBOpenRO(self.EmbyServer.ServerData['ServerId'], "get_NextUp")

@@ -41,6 +41,7 @@ class FakeAPI:
         self.episodes = episodes
         self.get_item_calls = []
         self.get_items_calls = []
+        self.get_episodes_calls = []
 
     def get_Item(self, *args):
         self.get_item_calls.append(args)
@@ -49,6 +50,10 @@ class FakeAPI:
     def get_Items(self, *args):
         self.get_items_calls.append(args)
         return iter(self.episodes)
+
+    def get_Episodes(self, *args):
+        self.get_episodes_calls.append(args)
+        return self.episodes
 
 
 class FakeServer:
@@ -60,6 +65,46 @@ class FakeServer:
             "AccessToken": "secret-token",
             "DeviceId": "secret-device",
         }
+
+
+class EpisodeEndpointTests(unittest.TestCase):
+    def test_requests_server_episode_order_adjacent_to_current_episode(self):
+        dbio = types.ModuleType("database.dbio")
+        listitem = types.ModuleType("emby.listitem")
+        httpcache = types.ModuleType("emby.httpcache")
+
+        with mock.patch.dict(
+            sys.modules,
+            {
+                "database.dbio": dbio,
+                "emby.listitem": listitem,
+                "emby.httpcache": httpcache,
+            },
+        ):
+            api_module = importlib.import_module("emby.api")
+
+        server = mock.Mock()
+        server.ServerData = {"UserId": "user-1"}
+        server.http.request.return_value = (
+            200,
+            {},
+            {"Items": [episode(10, 1, 1), episode(15, 0, 0)]},
+        )
+        api = object.__new__(api_module.API)
+        api.EmbyServer = server
+        api.DynamicListsRemoveFields = ()
+
+        result = api.get_Episodes("series-1", "10")
+
+        self.assertEqual([item["Id"] for item in result], ["10", "15"])
+        request = server.http.request.call_args.args
+        self.assertEqual(request[0:2], ("GET", "Shows/series-1/Episodes"))
+        self.assertEqual(request[2]["AdjacentTo"], "10")
+        self.assertEqual(request[2]["UserId"], "user-1")
+        self.assertTrue(request[2]["EnableImages"])
+        self.assertTrue(request[2]["EnableUserData"])
+        self.assertNotIn("SortBy", request[2])
+        self.assertNotIn("SortOrder", request[2])
 
 
 class UpNextSignalTests(unittest.TestCase):
@@ -165,7 +210,7 @@ class UpNextSignalTests(unittest.TestCase):
         self.assertNotIn("secret-device", serialized)
         self.assertNotIn("emby.example", serialized)
 
-    def test_selects_first_episode_of_next_season_in_explicit_series_order(self):
+    def test_selects_first_episode_of_next_season_in_server_order(self):
         current = episode(20, 1, 10)
         following = episode(21, 2, 1)
         server = FakeServer(current, [episode(19, 1, 9), current, following])
@@ -174,13 +219,50 @@ class UpNextSignalTests(unittest.TestCase):
 
         _, payload = self.decoded_signal()
         self.assertEqual(payload["next_episode"]["episodeid"], "21")
-        args = server.API.get_items_calls[0]
-        self.assertEqual(args[0:3], ("series-1", ("Episode",), False))
-        self.assertEqual(args[3]["SortOrder"], "Ascending")
-        self.assertEqual(
-            args[3]["SortBy"],
-            "ParentIndexNumber,IndexNumber,SortName",
+        self.assertEqual(server.API.get_episodes_calls, [("series-1", "20")])
+        self.assertEqual(server.API.get_items_calls, [])
+
+    def test_selects_special_from_server_defined_aired_order(self):
+        current = episode(10, 1, 1)
+        special = episode(
+            15,
+            0,
+            0,
+            AirsBeforeSeasonNumber=1,
+            AirsBeforeEpisodeNumber=2,
         )
+        server = FakeServer(current, [current, special, episode(11, 1, 2)])
+
+        self.assertTrue(upnext.send_upnext(server, "10", 0, 0))
+
+        _, payload = self.decoded_signal()
+        self.assertEqual(payload["next_episode"]["episodeid"], "15")
+        self.assertEqual(server.API.get_episodes_calls, [("series-1", "10")])
+        self.assertEqual(server.API.get_items_calls, [])
+
+    def test_preserves_server_order_when_episode_indexes_are_missing(self):
+        current = episode(20, None, None, Name="Unnumbered episode")
+        following = episode(21, None, None, Name="Next unnumbered episode")
+        server = FakeServer(current, [current, following])
+
+        self.assertTrue(upnext.send_upnext(server, "20", 0, 0))
+
+        _, payload = self.decoded_signal()
+        self.assertEqual(payload["next_episode"]["episodeid"], "21")
+        self.assertEqual(server.API.get_episodes_calls, [("series-1", "20")])
+        self.assertEqual(server.API.get_items_calls, [])
+
+    def test_selects_server_ordered_second_part_with_duplicate_episode_number(self):
+        current = episode(30, 1, 2, Name="Episode 2, part one")
+        following = episode(31, 1, 2, Name="Episode 2, part two")
+        server = FakeServer(current, [current, following, episode(32, 1, 3)])
+
+        self.assertTrue(upnext.send_upnext(server, "30", 0, 0))
+
+        _, payload = self.decoded_signal()
+        self.assertEqual(payload["next_episode"]["episodeid"], "31")
+        self.assertEqual(server.API.get_episodes_calls, [("series-1", "30")])
+        self.assertEqual(server.API.get_items_calls, [])
 
     def test_does_not_signal_for_non_episode(self):
         current = {"Id": "movie-1", "Type": "Movie", "SeriesId": "series-1"}

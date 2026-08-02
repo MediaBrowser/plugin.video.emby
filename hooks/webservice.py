@@ -446,6 +446,7 @@ def worker_Query(WorkerNumber):  # thread by caller
             if mode == 'play':
                 client.send(sendOK)
                 client.close()
+                player.PlaylistRemoveItem = playerops.GetPlaylistPosition(1)
                 playerops.PlayEmby((params.get('item'),), "PlayNow", -1, -1, utils.EmbyServers[ServerId], 0)
                 if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): THREAD: [ worker_Query/{WorkerNumber} ] event play", 1) # LOGDEBUG
                 continue
