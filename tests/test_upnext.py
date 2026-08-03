@@ -210,6 +210,65 @@ class UpNextSignalTests(unittest.TestCase):
         self.assertNotIn("secret-device", serialized)
         self.assertNotIn("emby.example", serialized)
 
+    def test_rejects_unsafe_server_and_item_ids_before_emitting_urls(self):
+        unsafe_ids = (
+            "11&mode=nodesreset",
+            "11=nodesreset",
+            "11%26mode%3Dnodesreset",
+            "11?mode=nodesreset",
+            "11/mode",
+            "11\\mode",
+            "11\r\nmode",
+        )
+
+        for unsafe_id in unsafe_ids:
+            with self.subTest(identifier=unsafe_id, location="item"):
+                current = episode(10, 1, 1)
+                following = episode(unsafe_id, 1, 2)
+                server = FakeServer(current, [current, following])
+                xbmc.executeJSONRPC.reset_mock()
+
+                self.assertFalse(upnext.send_upnext(server, "10", 0, 0))
+                xbmc.executeJSONRPC.assert_not_called()
+                self.assertEqual(upnext._picture("server-1", unsafe_id, "p", "tag"), "")
+
+            with self.subTest(identifier=unsafe_id, location="server"):
+                current = episode(10, 1, 1)
+                following = episode(11, 1, 2)
+                server = FakeServer(current, [current, following])
+                server.ServerData["ServerId"] = unsafe_id
+                xbmc.executeJSONRPC.reset_mock()
+
+                self.assertFalse(upnext.send_upnext(server, "10", 0, 0))
+                xbmc.executeJSONRPC.assert_not_called()
+                self.assertEqual(upnext._picture(unsafe_id, "11", "p", "tag"), "")
+
+    def test_supports_numeric_guid_and_established_server_ids(self):
+        valid_pairs = (
+            ("2a38697ffc1b428b943aa1b6014e2263", "58574"),
+            (
+                "2a38697f-fc1b-428b-943a-a1b6014e2263",
+                "58575",
+            ),
+        )
+
+        for server_id, item_id in valid_pairs:
+            with self.subTest(server_id=server_id, item_id=item_id):
+                current = episode(10, 1, 1)
+                following = episode(item_id, 1, 2)
+                server = FakeServer(current, [current, following])
+                server.ServerData["ServerId"] = server_id
+                xbmc.executeJSONRPC.reset_mock()
+
+                self.assertTrue(upnext.send_upnext(server, "10", 0, 0))
+
+                _, payload = self.decoded_signal()
+                self.assertEqual(
+                    payload["play_url"],
+                    "plugin://plugin.service.emby-next-gen/"
+                    f"?mode=play&server={server_id}&item={item_id}",
+                )
+
     def test_selects_first_episode_of_next_season_in_server_order(self):
         current = episode(20, 1, 10)
         following = episode(21, 2, 1)

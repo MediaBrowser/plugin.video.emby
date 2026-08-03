@@ -1,6 +1,8 @@
 import base64
 import json
 import math
+import re
+from urllib.parse import urlencode
 
 import xbmc
 
@@ -9,6 +11,7 @@ from helper import utils
 
 ADDON_ENABLED = "System.AddonIsEnabled(service.upnext)"
 ART_TEMPLATE = "http://127.0.0.1:57342/picture/{}/p-{}-0-{}-{}"
+IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 
 
 def dispatch(playing_item):
@@ -56,12 +59,17 @@ def _send_upnext(server, item_id, runtime_ticks, credits_ticks):
         return False
 
     server_id = server.ServerData["ServerId"]
+    following_id = following.get("Id", "")
+
+    if not _valid_identifier(server_id) or not _valid_identifier(following_id):
+        return False
+
     payload = {
         "current_episode": _episode_info(current, server_id),
         "next_episode": _episode_info(following, server_id),
         "play_url": (
             "plugin://plugin.service.emby-next-gen/"
-            f"?mode=play&server={server_id}&item={following.get('Id', '')}"
+            f"?{urlencode((('mode', 'play'), ('server', server_id), ('item', following_id)))}"
         ),
     }
     notification_time = _notification_time(runtime_ticks, credits_ticks)
@@ -171,10 +179,19 @@ def _art(item, server_id):
 
 
 def _picture(server_id, item_id, art_kind, image_tag):
-    if not server_id or not item_id or not _valid_tag(image_tag):
+    if (
+        not _valid_identifier(server_id)
+        or not _valid_identifier(item_id)
+        or art_kind not in ("p", "a", "l", "t", "B")
+        or not _valid_identifier(image_tag)
+    ):
         return ""
 
     return ART_TEMPLATE.format(server_id, item_id, art_kind, image_tag)
+
+
+def _valid_identifier(value):
+    return isinstance(value, (str, int)) and bool(IDENTIFIER_PATTERN.fullmatch(str(value)))
 
 
 def _valid_tag(value):
