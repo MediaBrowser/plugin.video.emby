@@ -1,7 +1,8 @@
 import threading
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, unquote_plus
 import uuid
 import socket
+import re
 import xbmc
 from hooks import favorites
 from database import dbio
@@ -26,6 +27,7 @@ MaxWorkers = utils.WebserviceWorkers
 WorkerQueue = queue.Queue()
 AsyncCommandQueue = queue.Queue()
 DelayedContentCondition = threading.Condition(threading.Lock())
+IdentifierPattern = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 xbmc.log(f"EMBY.hooks.webservice: Number of workers {MaxWorkers}", 1) # LOGINFO
 
 # Load binary files once
@@ -180,7 +182,7 @@ def worker_Query(WorkerNumber):  # thread by caller
         client.settimeout(None)
         data = client.recv(16384).decode()
         if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice: [ worker_Query/{WorkerNumber} ] Incoming Data: {data}", 1) # LOGDEBUG
-        IncomingData = data.split(' ')
+        IncomingData = data.split(' ', 1)
 
         if IncomingData[0] in ("PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "DELETE", "LOCK", "UNLOCK"): # webdav methodS, currently not supported
             client.send(sendNotFound)
@@ -189,7 +191,7 @@ def worker_Query(WorkerNumber):  # thread by caller
 
         # events by event.py
         if IncomingData[0] == "EVENT":
-            args = IncomingData[1].split(";")
+            args = IncomingData[1].split(";", 2)
             if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): [ worker_Query/{WorkerNumber} ] {IncomingData[1]}", 1) # LOGDEBUG
 
 
@@ -363,7 +365,18 @@ def worker_Query(WorkerNumber):  # thread by caller
                 params = params[:-1]
 
             Handle = args[1]
-            params = dict(parse_qsl(params[1:]))
+            Query = params[1:]
+
+            if is_play_query(Query):
+                params = get_play_params(Query)
+
+                if not params:
+                    client.send(sendNotFound)
+                    client.close()
+                    continue
+            else:
+                params = dict(parse_qsl(Query, keep_blank_values=True))
+
             mode = params.get('mode', "")
             ServerId = params.get('server', "")
 
@@ -446,6 +459,7 @@ def worker_Query(WorkerNumber):  # thread by caller
             if mode == 'play':
                 client.send(sendOK)
                 client.close()
+                player.PlaylistRemoveItem = playerops.GetPlaylistPosition(1)
                 playerops.PlayEmby((params.get('item'),), "PlayNow", -1, -1, utils.EmbyServers[ServerId], 0)
                 if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): THREAD: [ worker_Query/{WorkerNumber} ] event play", 1) # LOGDEBUG
                 continue
@@ -485,6 +499,8 @@ def worker_Query(WorkerNumber):  # thread by caller
             client.send(sendOK)
             client.close()
             continue
+
+        IncomingData[1] = IncomingData[1].split(' ', 1)[0]
 
         # Detect content type
         isPicture = False
@@ -526,6 +542,41 @@ def worker_Query(WorkerNumber):  # thread by caller
         del IncomingData
 
     if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): THREAD: ---<[ worker_Query/{WorkerNumber} ] not running", 1) # LOGDEBUG
+
+def is_play_query(Query):
+    for Param in Query.split("&"):
+        Key, Separator, Value = Param.partition("=")
+
+        if Separator and unquote_plus(Key) == "mode" and unquote_plus(Value) == "play":
+            return True
+
+    return False
+
+def get_play_params(Query):
+    if any(Character == ";" or Character.isspace() or ord(Character) < 32 or ord(Character) == 127 for Character in Query):
+        return None
+
+    ParamPairs = parse_qsl(Query, keep_blank_values=True)
+
+    if len(ParamPairs) != 3:
+        return None
+
+    Params = {}
+
+    for Key, Value in ParamPairs:
+        if Key not in ("mode", "server", "item") or Key in Params:
+            return None
+
+        Params[Key] = Value
+
+    if (
+        Params.get("mode") != "play"
+        or not IdentifierPattern.fullmatch(Params.get("server", ""))
+        or not IdentifierPattern.fullmatch(Params.get("item", ""))
+    ):
+        return None
+
+    return Params
 
 def LoadISO(MetaData, client): # native content
     player.MultiselectionDone = True
@@ -626,9 +677,14 @@ def GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo):
 
     # Load parameters from url request
     MetaData = metadata.load_MetaData(Payload, isPicture, isAudio)
-    MetaData['ETag'] = f'{str(uuid.uuid4()).replace("-", "")}{Payload[-5:]}'
 
     if not MetaData: # Invalid request
+        client.send(sendNotFound)
+        return
+
+    MetaData['ETag'] = f'{str(uuid.uuid4()).replace("-", "")}{Payload[-5:]}'
+
+    if isPicture and MetaData['ServerId'] not in utils.EmbyServers:
         client.send(sendNotFound)
         return
 
@@ -652,15 +708,18 @@ def GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo):
         if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): Load artwork: {Payload}", 1) # LOGDEBUG
 
         if not MetaData['Overlay']:
-            if utils.enableCoverArt:
-                Enhancers = "&EnableImageEnhancers=True"
-            else:
-                Enhancers = "&EnableImageEnhancers=False"
+            try:
+                BinaryData, ContentType, _ = utils.EmbyServers[MetaData['ServerId']].API.get_Image_Binary(MetaData['EmbyId'], MetaData['ImageType'], MetaData['ImageIndex'], MetaData['ImageTag'], False)
+            except Exception:
+                client.send(sendNotFound)
+                return
 
-            client.send(f"HTTP/1.1 307 Temporary Redirect\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nLocation: {utils.EmbyServers[MetaData['ServerId']].ServerData['ServerUrl']}/emby/Items/{MetaData['EmbyId']}/Images/{MetaData['ImageType']}/{MetaData['ImageIndex']}?&api_key={utils.EmbyServers[MetaData['ServerId']].ServerData['AccessToken']}{Enhancers}\r\nAccept-Ranges: none\r\nContent-Length: 0\r\n\r\n".encode())
-            return
+            if not BinaryData:
+                client.send(sendNotFound)
+                return
+        else:
+            BinaryData, ContentType, _ = utils.image_overlay(MetaData['ImageTag'], MetaData['ServerId'], MetaData['EmbyId'], MetaData['ImageType'], MetaData['ImageIndex'], MetaData['Overlay'])
 
-        BinaryData, ContentType, _ = utils.image_overlay(MetaData['ImageTag'], MetaData['ServerId'], MetaData['EmbyId'], MetaData['ImageType'], MetaData['ImageIndex'], MetaData['Overlay'])
         client.send(f"HTTP/1.1 200 OK\r\nServer: Emby-Next-Gen\r\nConnection: close\r\nContent-Length: {len(BinaryData)}\r\nContent-Type: {ContentType}\r\nAccept-Ranges: none\r\n\r\n".encode() + BinaryData)
         if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): Loaded Delayed Content for {Payload}", 1) # LOGDEBUG
         return

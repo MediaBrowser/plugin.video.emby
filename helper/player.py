@@ -6,7 +6,7 @@ import json
 import xbmc
 from database import dbio
 from emby import listitem
-from helper import utils, playerops, queue, cache
+from helper import utils, playerops, queue, cache, upnext
 from dialogs import skipintrocredits
 TrackerPaused = False
 VideoPlayback = "READY"
@@ -320,6 +320,7 @@ def PlayerCommands():
             PlayingItem = QueuedPlayingItem.copy()
             QueuedPlayingItem = []
             init_EmbyPlayback()
+            upnext.dispatch(PlayingItem)
 
             if VideoPlayback == "CONTENT":
                 VideoPlayback = "READY"
@@ -407,22 +408,29 @@ def PlayerCommands():
             if utils.DebugLog: xbmc.log("EMBY.hooks.player (DEBUG): --<[ paused ]", 1) # LOGDEBUG
         elif Commands[0] == "stop": # {'end': True, 'item': {'id': 33874, 'type': 'episode'}}; '{"end":false,"item":{"id":107446349,"type":"song"}}'
             xbmc.log("EMBY.hooks.player: [ onPlayBackStopped ]", 1) # LOGINFO
-            PlayItem = (0, "")
             EventData = json.loads(Commands[1])
             KodiId = 0
             KodiTypeId = 0
+
+            if "item" in EventData:
+                if 'id' in EventData['item']:
+                    KodiId = EventData["item"]["id"]
+                    KodiTypeId = EventData["item"]["type"]
+
+            if PlayItem[0] and KodiId and PlayItem != (KodiId, KodiTypeId):
+                xbmc.log(f"EMBY.hooks.player: Ignore stale stop for {KodiTypeId}/{KodiId}", 1) # LOGINFO
+                continue
+
+            PlayItem = (0, "")
             utils.update_SyncPause('playing', False)
             utils.unset_SyncLock()
             ProgressBarEnable = 5
 
             if "item" in EventData: # remove from skipped items list
                 if 'id' in EventData['item']:
-                    KodiId = EventData["item"]["id"]
-                    KodiTypeId = EventData["item"]["type"]
-
-            if KodiId:
-                if not EventData['end']: # remove from skipped items list
-                    ItemsUpdateQueue.put(f'{{"DELETE": [{KodiId}, "{KodiTypeId}"]}}')  # Do not delete the item diectly from utils.ItemKodiSkipUpdate, to keep the events in order
+                    if KodiId:
+                        if not EventData['end']: # remove from skipped items list
+                            ItemsUpdateQueue.put(f'{{"DELETE": [{KodiId}, "{KodiTypeId}"]}}')  # Do not delete the item diectly from utils.ItemKodiSkipUpdate, to keep the events in order
 
                 # Dummy (blankwav) played
                 if ForceStopKodiId == EventData["item"]["id"]:

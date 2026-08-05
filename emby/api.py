@@ -642,12 +642,12 @@ class API:
 
         if UserImage:
             Params["Format"] = "original"
-            _, Header, Payload = self.EmbyServer.http.request("GET", f"Users/{Id}/Images/{ImageType}", Params, {}, True, "", None, "")
+            _, Header, Payload = self.EmbyServer.http.request("GET", f"Users/{Id}/Images/{ImageType}", Params, {}, True, "", None, "", False)
         else:
             if ImageTag:
                 Params["tag"] = ImageTag
 
-            _, Header, Payload = self.EmbyServer.http.request("GET", f"Items/{Id}/Images/{ImageType}/{ImageIndex}", Params, {}, True, "", None, "")
+            _, Header, Payload = self.EmbyServer.http.request("GET", f"Items/{Id}/Images/{ImageType}/{ImageIndex}", Params, {}, True, "", None, "", False)
 
         if 'content-type' in Header:
             ContentType = Header['content-type']
@@ -878,6 +878,15 @@ class API:
 
     def get_upcoming(self, ParentId):
         _, _, Payload = self.EmbyServer.http.request("GET", "Shows/Upcoming", {'ParentId': ParentId, 'Fields': self.get_Fields("episode", True, True, False), 'EnableImages': True}, {}, False, "", None, "")
+
+        if 'Items' in Payload:
+            return Payload['Items']
+
+        return []
+
+    def get_Episodes(self, SeriesId, AdjacentTo):
+        Params = {'UserId': self.EmbyServer.ServerData['UserId'], 'AdjacentTo': AdjacentTo, 'Fields': self.get_Fields("episode", False, False, True), 'EnableImages': True, 'EnableUserData': True}
+        _, _, Payload = self.EmbyServer.http.request("GET", f"Shows/{SeriesId}/Episodes", Params, {}, False, "", None, "")
 
         if 'Items' in Payload:
             return Payload['Items']

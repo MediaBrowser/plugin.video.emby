@@ -1,8 +1,10 @@
 from urllib.parse import unquote
+import re
 import xbmc
 
 MediaIdMapping = {"m": "movie", "e": "episode", "M": "musicvideo", "p": "picture", "a": "audio", "t": "tvchannel", "i": "movie", "T": "video", "v": "video", "c": "channel"} # T=trailer, i=iso
 EmbyArtworkIDs = {"p": "Primary", "a": "Art", "b": "Banner", "d": "Disc", "l": "Logo", "t": "Thumb", "B": "Backdrop", "c": "Chapter"}
+IdentifierPattern = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 MediaSourceContextMenu = -1
 
 def load_MetaData(Payload, isPicture, isAudio):
@@ -22,19 +24,32 @@ def load_MetaData(Payload, isPicture, isAudio):
 
     if isPicture:  # Image/picture
         MetaData["PlayerId"] = -1
-        Data = PayloadMod[PayloadMod.rfind("/") + 1:].split("-") # MetaData
-        ServerId = PayloadSplit[2]
-        EmbyId = Data[1]
-        DataLen = len(Data)
+        Data = PayloadSplit[-1].split("-") # MetaData
 
-        if DataLen < 5:
+        if (
+            len(PayloadSplit) != 4
+            or PayloadSplit[:2] != ["", "picture"]
+            or len(Data) < 5
+            or any(Character.isspace() or ord(Character) < 32 or ord(Character) == 127 for Character in PayloadMod)
+            or "?" in PayloadMod
+            or "#" in PayloadMod
+            or Data[0] != "p"
+            or not IdentifierPattern.fullmatch(PayloadSplit[2])
+            or not IdentifierPattern.fullmatch(Data[1])
+            or not Data[2].isascii()
+            or not Data[2].isdigit()
+            or Data[3] not in EmbyArtworkIDs
+            or not IdentifierPattern.fullmatch(Data[4])
+        ):
             xbmc.log(f"EMBY.hooks.webservice: Invalid picture {PayloadMod}", 2) # LOGERROR
             return {}
 
+        ServerId = PayloadSplit[2]
+        EmbyId = Data[1]
         MetaData.update({'ImageIndex': Data[2], 'ImageType': EmbyArtworkIDs[Data[3]], 'ImageTag': Data[4]})
 
-        if DataLen >= 6 and Data[5]:
-            MetaData['Overlay'] = unquote(Data[5])
+        if len(Data) >= 6 and Data[5]:
+            MetaData['Overlay'] = unquote("-".join(Data[5:]))
         else:
             MetaData['Overlay'] = ""
     elif isAudio:
