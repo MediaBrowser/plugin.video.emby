@@ -1,5 +1,5 @@
 import threading
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, unquote_plus
 import uuid
 import socket
 import re
@@ -182,7 +182,7 @@ def worker_Query(WorkerNumber):  # thread by caller
         client.settimeout(None)
         data = client.recv(16384).decode()
         if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice: [ worker_Query/{WorkerNumber} ] Incoming Data: {data}", 1) # LOGDEBUG
-        IncomingData = data.split(' ')
+        IncomingData = data.split(' ', 1)
 
         if IncomingData[0] in ("PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "DELETE", "LOCK", "UNLOCK"): # webdav methodS, currently not supported
             client.send(sendNotFound)
@@ -191,7 +191,7 @@ def worker_Query(WorkerNumber):  # thread by caller
 
         # events by event.py
         if IncomingData[0] == "EVENT":
-            args = IncomingData[1].split(";")
+            args = IncomingData[1].split(";", 2)
             if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): [ worker_Query/{WorkerNumber} ] {IncomingData[1]}", 1) # LOGDEBUG
 
 
@@ -365,17 +365,17 @@ def worker_Query(WorkerNumber):  # thread by caller
                 params = params[:-1]
 
             Handle = args[1]
-            ParamPairs = parse_qsl(params[1:], keep_blank_values=True)
+            Query = params[1:]
 
-            if any(Key == "mode" and Value == "play" for Key, Value in ParamPairs):
-                params = get_play_params(ParamPairs)
+            if is_play_query(Query):
+                params = get_play_params(Query)
 
                 if not params:
                     client.send(sendNotFound)
                     client.close()
                     continue
             else:
-                params = dict(ParamPairs)
+                params = dict(parse_qsl(Query, keep_blank_values=True))
 
             mode = params.get('mode', "")
             ServerId = params.get('server', "")
@@ -500,6 +500,8 @@ def worker_Query(WorkerNumber):  # thread by caller
             client.close()
             continue
 
+        IncomingData[1] = IncomingData[1].split(' ', 1)[0]
+
         # Detect content type
         isPicture = False
         isAudio = False
@@ -541,7 +543,21 @@ def worker_Query(WorkerNumber):  # thread by caller
 
     if utils.DebugLog: xbmc.log(f"EMBY.hooks.webservice (DEBUG): THREAD: ---<[ worker_Query/{WorkerNumber} ] not running", 1) # LOGDEBUG
 
-def get_play_params(ParamPairs):
+def is_play_query(Query):
+    for Param in Query.split("&"):
+        Key, Separator, Value = Param.partition("=")
+
+        if Separator and unquote_plus(Key) == "mode" and unquote_plus(Value) == "play":
+            return True
+
+    return False
+
+def get_play_params(Query):
+    if any(Character == ";" or Character.isspace() or ord(Character) < 32 or ord(Character) == 127 for Character in Query):
+        return None
+
+    ParamPairs = parse_qsl(Query, keep_blank_values=True)
+
     if len(ParamPairs) != 3:
         return None
 
@@ -661,11 +677,12 @@ def GetRequest(client, Payload, isDelayedContent, isPicture, isAudio, isVideo):
 
     # Load parameters from url request
     MetaData = metadata.load_MetaData(Payload, isPicture, isAudio)
-    MetaData['ETag'] = f'{str(uuid.uuid4()).replace("-", "")}{Payload[-5:]}'
 
     if not MetaData: # Invalid request
         client.send(sendNotFound)
         return
+
+    MetaData['ETag'] = f'{str(uuid.uuid4()).replace("-", "")}{Payload[-5:]}'
 
     if isPicture and MetaData['ServerId'] not in utils.EmbyServers:
         client.send(sendNotFound)

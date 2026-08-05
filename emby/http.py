@@ -363,7 +363,7 @@ class HTTP:
             if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): Socket {ConnectionId} opened", 1) # LOGDEBUG
             return 0
 
-    def socket_close(self, ConnectionId):
+    def socket_close(self, ConnectionId, SkipPing=False):
         if ConnectionId in self.Connection:
             # Close sessions
             if ConnectionId == "WEBSOCKET": # close websocket
@@ -372,7 +372,7 @@ class HTTP:
                     self.websocket_send(b"", 0x8)  # Close
                 except Exception as error:
                     xbmc.log(f"EMBY.emby.http: Socket {ConnectionId} send close error 1: {error}", 2) # LOGWARNING
-            elif ConnectionId in ("MAIN", "MAINFALLBACK", "ASYNC"): # send final ping to change tcp session from keep-alive to close
+            elif ConnectionId in ("MAIN", "MAINFALLBACK", "ASYNC") and not SkipPing: # send final ping to change tcp session from keep-alive to close
                 try:
                     self.Connection[ConnectionId]["Socket"].settimeout(1) # set timeout
                     self.Connection[ConnectionId]["Socket"].send(f'POST {self.Connection[ConnectionId]["SubUrl"]}System/Ping HTTP/1.1\r\nHost: {self.Connection[ConnectionId]["Hostname"]}:{self.Connection[ConnectionId]["Port"]}\r\nContent-Type: application/json; charset=utf-8\r\nAccept-Charset: utf-8\r\nAccept-Encoding: gzip,deflate\r\nUser-Agent: {utils.addon_name}/{utils.addon_version}\r\nConnection: close\r\nAuthorization: Emby Client="{utils.addon_name}", Device="{utils.device_name}", DeviceId="{self.EmbyServer.ServerData["DeviceId"]}", Version="{utils.addon_version}"\r\nContent-Length: 0\r\n\r\n'.encode("utf-8"))
@@ -753,7 +753,7 @@ class HTTP:
 
                 break
 
-    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, BusyFunction, ConnectionId):
+    def request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, BusyFunction, ConnectionId, FollowRedirects=True):
         CloseConnection = False
 
         # Set Ids
@@ -781,7 +781,7 @@ class HTTP:
 
         # Simple request
         if CloseConnection or not BusyFunction or not self.ThreadsRunning["QUEUEDREQUESTMAIN"] or not self.ThreadsRunning["QUEUEDREQUESTMAINFALLBACK"]:
-            self.send_request(Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId)
+            self.send_request(Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId, FollowRedirects)
             Data = self.Response[RequestId]
             del self.Response[RequestId]
 
@@ -796,7 +796,7 @@ class HTTP:
             self.RequestBusy[ConnectionId] = threading.Lock()
             self.RequestBusy[RequestId] = threading.Lock()
 
-        self.Queues[f"QUEUEDREQUEST{ConnectionId}"].put(((Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId),))
+        self.Queues[f"QUEUEDREQUEST{ConnectionId}"].put(((Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId, FollowRedirects),))
 
         # Check conditions while waiting for data -> BusyFunction
         while True:
@@ -841,11 +841,11 @@ class HTTP:
 
                 return
 
-            Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId = Incoming
+            Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, RequestId, FollowRedirects = Incoming
             if utils.DebugLog: xbmc.log(f"EMBY.emby.http (DEBUG): [ http ] Method: {Method} / Handler: {Handler} / Params: {Params} / Binary: {Binary} / ConnectionString: {ConnectionString} / CloseConnection: {CloseConnection} / RequestHeader: {RequestHeader}", 1) # LOGDEBUG
-            self.send_request(Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId)
+            self.send_request(Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId, FollowRedirects)
 
-    def send_request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId):
+    def send_request(self, Method, Handler, Params, RequestHeader, Binary, ConnectionString, CloseConnection, ConnectionId, RequestId, FollowRedirects=True):
         self.Requests_Counter(True)
 
         if not ConnectionString:
@@ -891,6 +891,11 @@ class HTTP:
 
             # Redirects
             if StatusCode in (301, 302, 307, 308):
+                if not FollowRedirects:
+                    self.socket_close(ConnectionId, True)
+                    self.Response[RequestId] = noData(StatusCode, {}, Binary)
+                    break
+
                 self.socket_close(ConnectionId)
                 Location = Header.get("location", "")
                 Scheme, Hostname, Port, _ = utils.get_url_info(Location)

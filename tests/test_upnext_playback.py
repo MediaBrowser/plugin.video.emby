@@ -113,6 +113,8 @@ class PlaybackHarness:
         setattr(parent, name, value)
 
     def _load(self, name, relative_path):
+        if name not in self.saved_modules:
+            self.saved_modules[name] = sys.modules.get(name)
         spec = importlib.util.spec_from_file_location(name, ROOT / relative_path)
         module = importlib.util.module_from_spec(spec)
         sys.modules[name] = module
@@ -185,7 +187,10 @@ class PlaybackHarness:
             skipintroembuarydesign=False,
             CustomDialogParameters=(),
             nodesreset=mock.Mock(),
+            image_overlay=mock.Mock(return_value=(b"overlay-data", "image/png", "png")),
             enableCoverArt=False,
+            compressArt=False,
+            ArtworkLimitations=False,
         )
         dbio = self._module(
             "database.dbio",
@@ -193,6 +198,9 @@ class PlaybackHarness:
             DBCloseRO=mock.Mock(),
         )
         listitem = self._module("emby.listitem")
+        artworkcache = self._module("helper.artworkcache")
+        websocket = self._module("hooks.websocket")
+        xbmcvfs = self._module("xbmcvfs")
         common = self._module("core.common")
         skipintrocredits = self._module(
             "dialogs.skipintrocredits",
@@ -207,6 +215,9 @@ class PlaybackHarness:
             "helper.cache": cache,
             "database.dbio": dbio,
             "emby.listitem": listitem,
+            "helper.artworkcache": artworkcache,
+            "hooks.websocket": websocket,
+            "xbmcvfs": xbmcvfs,
             "core.common": common,
             "dialogs.skipintrocredits": skipintrocredits,
         }
@@ -219,6 +230,8 @@ class PlaybackHarness:
             (helper, "cache", cache),
             (database, "dbio", dbio),
             (emby, "listitem", listitem),
+            (helper, "artworkcache", artworkcache),
+            (hooks, "websocket", websocket),
             (core, "common", common),
             (dialogs, "skipintrocredits", skipintrocredits),
         ):
@@ -233,37 +246,7 @@ class PlaybackHarness:
         self.player = self._load("helper.player", "helper/player.py")
         self._set_attribute(helper, "player", self.player)
 
-        def load_metadata(payload, is_picture, is_audio):
-            path_parts = payload.split("/")
-            image_parts = path_parts[-1].split("-")
-            image_types = {
-                "p": "Primary",
-                "a": "Art",
-                "l": "Logo",
-                "t": "Thumb",
-                "B": "Backdrop",
-            }
-            return {
-                "MediaSources": [],
-                "Payload": payload,
-                "Type": "picture",
-                "ServerId": path_parts[2],
-                "EmbyId": image_parts[1],
-                "MediaType": "p",
-                "ImageIndex": image_parts[2],
-                "ImageType": image_types[image_parts[3]],
-                "ImageTag": image_parts[4],
-                "Overlay": "",
-                "DelayedContentSet": False,
-                "SelectionIndexMediaSource": 0,
-                "SelectionIndexVideoStream": 0,
-                "SelectionIndexAudioStream": 0,
-                "SelectionIndexSubtitleStream": -1,
-                "isDynamic": False,
-                "isHttp": False,
-            }
-
-        metadata = self._module("emby.metadata", load_MetaData=load_metadata)
+        metadata = self._load("emby.metadata", "emby/metadata.py")
         httpcache = self._module("emby.httpcache", get=lambda payload: None)
         favorites = self._module("hooks.favorites")
         context = self._module("helper.context")
@@ -272,7 +255,6 @@ class PlaybackHarness:
             "helper.xmls", load_defaultvideosettings=lambda: {}
         )
         for name, module in (
-            ("emby.metadata", metadata),
             ("emby.httpcache", httpcache),
             ("hooks.favorites", favorites),
             ("helper.context", context),
@@ -293,6 +275,10 @@ class PlaybackHarness:
 
         self.webservice = self._load("hooks.webservice", "hooks/webservice.py")
         self._set_attribute(hooks, "webservice", self.webservice)
+        self.http = self._load("emby.http", "emby/http.py")
+        self._set_attribute(emby, "http", self.http)
+        self.api = self._load("emby.api", "emby/api.py")
+        self._set_attribute(emby, "api", self.api)
         self.utils = utils
         self.pluginmenu = pluginmenu
 
@@ -364,6 +350,16 @@ class UpNextPlaybackIntegrationTests(unittest.TestCase):
 
     def test_rejects_invalid_play_queries_before_sensitive_sinks(self):
         invalid_queries = (
+            "mode=play&server=server-1&item=2;mode=nodesreset",
+            "mode=play&server=server-1&item=2 attacker-suffix",
+            "mode=play&server=server-1&item=2 ",
+            "mode=play&server=server-1&item=2\tattacker-suffix",
+            "mode=play&server=server-1&item=2\x00attacker-suffix",
+            "mode=play&server=server-1&item=2%00attacker-suffix",
+            "mode=play&server=server-1&item=2%09attacker-suffix",
+            "mode=play&server=server-1&item=2%3Bmode%3Dnodesreset",
+            "mode=play&server=server-1&item=2%EF%BC%86mode%EF%BC%9Dnodesreset",
+            "mode=play&server=server-1&item=2\uff06mode\uff1dnodesreset",
             "mode=play&mode=nodesreset&server=server-1&item=2",
             "mode=nodesreset&mode=play&server=server-1&item=2",
             "mode=play&server=server-1&server=other&item=2",
@@ -500,6 +496,144 @@ class UpNextPlaybackIntegrationTests(unittest.TestCase):
         self.assertEqual(missing.sent, [self.harness.webservice.sendNotFound])
         self.assert_credential_free(missing.sent[0])
         wait_for_server.assert_not_called()
+
+    def test_authenticated_image_fetches_reject_redirects_before_second_request(self):
+        api = object.__new__(self.harness.api.API)
+        api.EmbyServer = types.SimpleNamespace(http=mock.Mock())
+        api.EmbyServer.http.request.return_value = (302, {}, b"")
+
+        api.get_Image_Binary("10", "Primary", "0", "aabbcc01", False)
+
+        api.EmbyServer.http.request.assert_called_once_with(
+            "GET",
+            "Items/10/Images/Primary/0",
+            {"EnableImageEnhancers": False, "tag": "aabbcc01"},
+            {},
+            True,
+            "",
+            None,
+            "",
+            False,
+        )
+
+        redirect_locations = (
+            "http://evil.example/collect",
+            "https://evil.example/collect",
+            "http://127.0.0.1:9999/private",
+            "http://169.254.169.254/latest/meta-data",
+            "https://emby.example/redirect-loop",
+        )
+        credentials = {
+            "Authorization": 'Emby Client="test"',
+            "X-Emby-Token": "secret-token",
+            "Cookie": "session=secret-cookie",
+        }
+
+        for location in redirect_locations:
+            with self.subTest(location=location):
+                http = object.__new__(self.harness.http.HTTP)
+                http.EmbyServer = self.harness.server
+                http.Connection = {
+                    "MAIN": {
+                        "Hostname": "emby.example",
+                        "Port": 443,
+                        "RequestHeader": credentials.copy(),
+                    }
+                }
+                http.Response = {}
+                http.RequestBusy = {}
+                http.Requests_Counter = mock.Mock()
+                http.socket_open = mock.Mock(return_value=0)
+                http.socket_close = mock.Mock()
+                http.update_header = mock.Mock()
+                sent_headers = []
+
+                def socket_request(*args):
+                    sent_headers.append(http.Connection["MAIN"]["RequestHeader"].copy())
+                    if len(sent_headers) == 1:
+                        return 302, {"location": location}, b""
+                    return 200, {"content-type": "image/png"}, b"leaked"
+
+                http.socket_request = mock.Mock(side_effect=socket_request)
+                http.send_request(
+                    "GET", "Items/10/Images/Primary/0", {}, {}, True,
+                    "", True, "MAIN", "REQUESTIMAGE", False
+                )
+
+                self.assertEqual(sent_headers, [credentials])
+                self.assertEqual(http.socket_request.call_count, 1)
+                self.assertEqual(http.Response["REQUESTIMAGE"], (302, {}, b""))
+                http.socket_close.assert_called_once_with("MAIN", True)
+
+        http = object.__new__(self.harness.http.HTTP)
+        redirected_socket = mock.Mock()
+        http.Connection = {
+            "MAIN": {
+                "Socket": redirected_socket,
+                "SubUrl": "/emby/",
+                "Hostname": "emby.example",
+                "Port": 443,
+            }
+        }
+        http.socket_close("MAIN", True)
+        redirected_socket.send.assert_not_called()
+        redirected_socket.close.assert_called_once_with()
+
+    def test_malformed_picture_paths_fail_closed_before_network_work(self):
+        invalid_paths = (
+            "/picture/server-1/p-..-0-p-tag",
+            "/picture/server-1/p-http:%2F%2F127.0.0.1-0-p-tag",
+            "/picture/server-1/p-10",
+            "/picture/server-1/p-10-0-x-tag",
+            "/picture/server-1/p-10-0-p-tag/extra",
+            "/picture/server-1/extra/p-10-0-p-tag",
+            "/picture/server%2Fother/p-10-0-p-tag",
+            "/picture/server-1/p-10%2F11-0-p-tag",
+            "/picture/server-1/p-10-1%2F2-p-tag",
+            "/picture/server-1/p-10-\uff10-p-tag",
+            "/picture/server-1/p-10-0-p-..",
+            "/picture/server-1/p-10-0-p-http:%2F%2F127.0.0.1",
+            "/picture/server-1/p-10-0-p-tag%00",
+            "/picture/server-1/p-10--p-tag",
+            "/picture/server-1/x-10-0-p-tag",
+            "/picture/server-1/p-10-0-p-",
+            "/picture/server-1/p-10-0-p-tag?query=1",
+            "/picture/server-1/p-10-0-p-tag\x00suffix",
+            "/picture/server-1/p-10-0-p-t\uff41g",
+        )
+
+        for path in invalid_paths:
+            with self.subTest(path=path), mock.patch.object(
+                self.harness.webservice, "wait_for_Embyserver", return_value=True
+            ) as wait_for_server:
+                self.harness.server.API.get_Image_Binary.reset_mock()
+                self.harness.utils.image_overlay.reset_mock()
+
+                try:
+                    client = self.harness.picture(path)
+                except Exception as error:
+                    self.fail(f"malformed picture path raised {type(error).__name__}: {error}")
+
+                self.assertEqual(client.sent, [self.harness.webservice.sendNotFound])
+                self.assert_credential_free(client.sent[0])
+                wait_for_server.assert_not_called()
+                self.harness.server.API.get_Image_Binary.assert_not_called()
+                self.harness.utils.image_overlay.assert_not_called()
+
+    def test_valid_picture_overlay_preserves_encoded_text_and_local_bytes(self):
+        client = self.harness.picture(
+            "/picture/server-1/p-10-0-p-aabbcc01-Label-One%0A%28Content%29"
+        )
+
+        self.assertEqual(len(client.sent), 1)
+        headers, body = client.sent[0].split(b"\r\n\r\n", 1)
+        self.assertTrue(headers.startswith(b"HTTP/1.1 200 OK\r\n"))
+        self.assertEqual(body, b"overlay-data")
+        self.harness.utils.image_overlay.assert_called_once_with(
+            "aabbcc01", "server-1", "10", "Primary", "0", "Label-One\n(Content)"
+        )
+        self.harness.server.API.get_Image_Binary.assert_not_called()
+        self.assert_credential_free(client.sent[0])
 
     def assert_credential_free(self, response):
         for secret in (

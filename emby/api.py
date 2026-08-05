@@ -642,12 +642,12 @@ class API:
 
         if UserImage:
             Params["Format"] = "original"
-            _, Header, Payload = self.EmbyServer.http.request("GET", f"Users/{Id}/Images/{ImageType}", Params, {}, True, "", None, "")
+            _, Header, Payload = self.EmbyServer.http.request("GET", f"Users/{Id}/Images/{ImageType}", Params, {}, True, "", None, "", False)
         else:
             if ImageTag:
                 Params["tag"] = ImageTag
 
-            _, Header, Payload = self.EmbyServer.http.request("GET", f"Items/{Id}/Images/{ImageType}/{ImageIndex}", Params, {}, True, "", None, "")
+            _, Header, Payload = self.EmbyServer.http.request("GET", f"Items/{Id}/Images/{ImageType}/{ImageIndex}", Params, {}, True, "", None, "", False)
 
         if 'content-type' in Header:
             ContentType = Header['content-type']
