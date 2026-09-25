@@ -1,0 +1,84 @@
+name: Package & Release
+
+on:
+  push:
+    branches: [ next-gen-dev-python3 ]
+    paths:
+      - 'addon.xml'
+      - 'changelog.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version & tag
+        id: meta
+        run: |
+          VERSION=$(grep -oP 'version="\K[0-9.]+(?=")' addon.xml | head -n1)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=plugin.service.emby-next-gen_${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Check tag exists
+        id: tag
+        run: |
+          if git rev-parse "refs/tags/${{ steps.meta.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract changelog
+        id: changelog
+        if: steps.tag.outputs.exists == 'false'
+        shell: bash
+        run: |
+          python3 - "${{ steps.meta.outputs.version }}" "$GITHUB_OUTPUT" <<'PY'
+          import re, sys
+          version, outfile = sys.argv[1], sys.argv[2]
+          text = open('changelog.txt', encoding='utf-8').read().splitlines()
+          idx = next((i for i, l in enumerate(text) if l.strip() == version), None)
+          if idx is None:
+              lines = ['_(no changelog entry found in changelog.txt)_']
+          else:
+              remain = text[idx + 1:]
+              if remain and set(remain[0].strip()) == {'='}:
+                  remain = remain[1:]
+              body = []
+              for l in remain:
+                  s = l.strip()
+                  if not s:
+                      continue
+                  if re.match(r'^\d+\.\d+\.\d+$', s) or (s and set(s) == {'='}):
+                      break
+                  body.append(l)
+              lines = body if body else ['_(no changelog detail)_']
+          with open(outfile, 'a', encoding='utf-8') as f:
+              f.write('changelog<<EOF\n')
+              f.write('\n'.join(lines) + '\n')
+              f.write('EOF\n')
+          PY
+
+      - name: Build zip
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          mkdir -p build/plugin.service.emby-next-gen
+          git archive "${{ github.sha }}" -o build/source.tar
+          tar -xf build/source.tar -C build/plugin.service.emby-next-gen
+          rm -rf build/plugin.service.emby-next-gen/.github
+          cd build && zip -r "plugin.service.emby-next-gen_${{ steps.meta.outputs.version }}.zip" plugin.service.emby-next-gen
+
+      - name: Publish release
+        if: steps.tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: build/plugin.service.emby-next-gen_${{ steps.meta.outputs.version }}.zip

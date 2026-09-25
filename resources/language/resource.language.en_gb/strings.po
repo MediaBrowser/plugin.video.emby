@@ -3099,14 +3099,6 @@ msgctxt "#33736"
 msgid "Transcode content when source resolution is above selected resolution"
 msgstr ""
 
-msgctxt "#33735"
-msgid "Resolution threshold"
-msgstr ""
-
-msgctxt "#33736"
-msgid "Transcode content when source resolution is above selected resolution"
-msgstr ""
-
 msgctxt "#33737"
 msgid "always"
 msgstr ""

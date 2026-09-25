@@ -80,7 +80,7 @@ class Episode:
         common.set_Actor_links(Item['KodiItemId'], self.SQLs, "episode", Item["CastItems"])
         common.set_Writer_links(Item['KodiItemId'], self.SQLs, "episode", Item["WritersItems"])
         common.set_Director_links(Item['KodiItemId'], self.SQLs, "episode", Item["DirectorsItems"])
-        Item['KodiUniqueId'] = self.SQLs["video"].add_uniqueids(Item['KodiItemId'], Item['ProviderIds'], "episode", 'tvdb')
+        Item['KodiUniqueId'] = self.SQLs["video"].add_uniqueids(Item['KodiItemId'], Item['ProviderIds'], "episode", 'tmdb')
         Item['KodiRatingId'] = self.SQLs["video"].add_ratings(Item['KodiItemId'], "episode", "default", Item['CommunityRating'])
 
         if Item['UpdateItem']:
