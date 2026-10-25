@@ -1,7 +1,7 @@
 import threading
 import json
 import xbmc
-from helper import utils, playerops, queue, player
+from helper import utils, playerops, queue, player, cache
 from database import dbio
 
 class WebSocket:
@@ -75,11 +75,13 @@ class WebSocket:
                         elif Event == "ack":
                             playerops.add_RemoteClientExtendedSupportAck(self.ServerData['ServerId'], Command[1], Command[2], Command[3])
                         elif Event == "playsingle":
-                            playerops.PlayEmby([Command[1]], "PlaySingle", 0, Command[2], self.ServerData, self.API, Command[3])
+                            playerops.PlayEmby(True, [Command[1]], "PlaySingle", 0, Command[2], self.ServerData, self.API, Command[3])
+                        elif Event == "playplaylist":
+                            playerops.PlayEmby(True, Command[1].split(","), "PlayPlaylist", int(Command[4]), int(Command[2]), self.ServerData, self.API, Command[3])
                         elif Event == "playinit":
-                            playerops.PlayEmby([Command[1]], "PlayInit", 0, Command[2], self.ServerData, self.API, Command[3])
+                            playerops.PlayEmby(True, [Command[1]], "PlayInit", 0, Command[2], self.ServerData, self.API, Command[3])
                         elif Event == "pause":
-                            playerops.Pause(True, Command[1], Command[2])
+                            playerops.Pause(True, Command[1], Command[2], True)
                         elif Event == "seek":
                             playerops.Seek(Command[1], True, Command[2])
 
@@ -95,46 +97,51 @@ class WebSocket:
                 elif IncomingData['Data']['Name'] in ('Mute', 'Unmute'):
                     xbmc.executebuiltin('Mute')
                 elif IncomingData['Data']['Name'] == 'SetVolume':
-                    xbmc.executebuiltin(f"SetVolume({IncomingData['Data']['Arguments']['Volume']}[,showvolumebar])")
+                    xbmc.executebuiltin(f"SetVolume({IncomingData['Data']['Arguments']['Volume']},showvolumebar)")
                 elif IncomingData['Data']['Name'] == 'SetRepeatMode':
                     RepeatModeEmby = IncomingData["Data"]["Arguments"]["RepeatMode"].lower()
 
                     if RepeatModeEmby == "repeatall":
-                        RepeatMode = "all"
+                        RepeatMode = "RepeatAll"
                     elif RepeatModeEmby == "repeatone":
-                        RepeatMode = "one"
+                        RepeatMode = "RepeatOne"
                     elif RepeatModeEmby == "repeatnone":
-                        RepeatMode = "off"
+                        RepeatMode = "RepeatOff"
                     else:
                         continue
 
-                    utils.SendJson("Player.SetRepeat", f'{{"playerid": {playerops.PlayerId}, "repeat": "{RepeatMode}"}}', True)
+                    xbmc.executebuiltin(f"PlayerControl({RepeatMode})")
                 elif IncomingData['Data']['Name'] == 'SetShuffle':
-                    utils.SendJson("Player.SetShuffle", f'{{"playerid": {playerops.PlayerId}, "shuffle": {IncomingData["Data"]["Arguments"]["Shuffle"].lower()}}}', True)
+                    Shuffle = IncomingData["Data"]["Arguments"]["Shuffle"].lower()
+                    ShuffleCommand = {"true": "RandomOn", "false": "RandomOff"}.get(Shuffle)
+
+                    if ShuffleCommand:
+                        xbmc.executebuiltin(f"PlayerControl({ShuffleCommand})")
+                elif IncomingData['Data']['Name'] == 'SetPlaybackRate':
+                    PlaybackRate = IncomingData["Data"]["Arguments"]["PlaybackRate"]
+                    playerops.SetSpeed(float(PlaybackRate))
                 elif IncomingData['Data']['Name'] == 'SetAudioStreamIndex':
                     StreamIndexEmby = str(IncomingData["Data"]["Arguments"]["Index"])
 
-                    if StreamIndexEmby in player.PlayingItem[9]:
-                        StreamIndexKodi = player.PlayingItem[9][StreamIndexEmby]
-                        utils.SendJson("Player.SetAudioStream", f'{{"playerid": {playerops.PlayerId}, "stream": {StreamIndexKodi}}}', True)
+                    if StreamIndexEmby in player.PlayingItem["IndexMappingAudioEmby"]:
+                        utils.SendJson("Player.SetAudioStream", f'{{"playerid": {playerops.PlayerId}, "stream": {player.PlayingItem["IndexMappingAudioEmby"][StreamIndexEmby]}}}', True)
                 elif IncomingData['Data']['Name'] == 'SetSubtitleStreamIndex':
                     StreamIndexEmby = str(IncomingData["Data"]["Arguments"]["Index"])
 
-                    if StreamIndexEmby in player.PlayingItem[10]:
-                        StreamIndexKodi = player.PlayingItem[10][StreamIndexEmby]
-                        utils.SendJson("Player.SetSubtitle", f'{{"playerid": {playerops.PlayerId}, "subtitle": {StreamIndexKodi}}}', True)
+                    if StreamIndexEmby in player.PlayingItem["IndexMappingSubtitleEmby"]:
+                        utils.SendJson("Player.SetSubtitle", f'{{"playerid": {playerops.PlayerId}, "subtitle": {player.PlayingItem["IndexMappingSubtitleEmby"][StreamIndexEmby]}}}', True)
                 elif IncomingData['Data']['Name'] == 'GoHome':
                     utils.ActivateWindow("home", "")
                 elif IncomingData['Data']['Name'] == 'Guide':
                     utils.ActivateWindow("tvguide", "")
                 elif IncomingData['Data']['Name'] == 'MoveUp':
-                    utils.SendJson("Input.Up", "", True)
+                    xbmc.executebuiltin("Action(Up)")
                 elif IncomingData['Data']['Name'] == 'MoveDown':
-                    utils.SendJson("Input.Down", "", True)
+                    xbmc.executebuiltin("Action(Down)")
                 elif IncomingData['Data']['Name'] == 'MoveRight':
-                    utils.SendJson("Input.Right", "", True)
+                    xbmc.executebuiltin("Action(Right)")
                 elif IncomingData['Data']['Name'] == 'MoveLeft':
-                    utils.SendJson("Input.Left", "", True)
+                    xbmc.executebuiltin("Action(Left)")
                 elif IncomingData['Data']['Name'] == 'ToggleFullscreen':
                     xbmc.executebuiltin('Action(FullScreen)')
                 elif IncomingData['Data']['Name'] == 'ToggleOsdMenu':
@@ -304,7 +311,6 @@ class WebSocket:
                                     self.ProgressCondition.notify_all()
 
                                 utils.close_ProgressBar(f"{self.RefreshTaskId}_{Task['Name']}")
-
             elif IncomingData['MessageType'] == 'RefreshProgress':
                 if not utils.PauseRefreshProgress:
                     continue
@@ -319,9 +325,11 @@ class WebSocket:
 
                     if utils.busyMsg:
                         utils.create_ProgressBar(self.RefreshProgressId, utils.Translate(33199), utils.Translate(33411))
-                        utils.update_ProgressBar(self.RefreshProgressId, float(IncomingData['Data']['Progress']), utils.Translate(33199), utils.Translate(33414))
 
                     self.EmbyServerSyncCheckIdleEvent.set()
+
+                if utils.busyMsg:
+                    utils.update_ProgressBar(self.RefreshProgressId, float(IncomingData['Data']['Progress']), utils.Translate(33199), utils.Translate(33414))
             elif IncomingData['MessageType'] == 'UserDataChanged':
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.ServerData['ServerId']}: UserDataChanged ] {IncomingData['Data']['UserDataList']}", 1) # LOGINFO
                 UpdateData = ()
@@ -330,6 +338,12 @@ class WebSocket:
                 if IncomingData['Data']['UserId'] != self.ServerData['UserId']:
                     if utils.DebugLog: xbmc.log(f"EMBY.hooks.websocket (DEBUG): Emby server {self.ServerData['ServerId']}: UserDataChanged skip by wrong UserId: {IncomingData['Data']['UserId']}", 1) # LOGDEBUG
                     continue
+
+                ItemsUserData = IncomingData['Data']['UserDataList']
+
+                # Update cache
+                for ItemData in ItemsUserData:
+                    cache.update_userdata_Emby(ItemData.get("ItemId", None), self.ServerData['ServerId'], ItemData.get("PlaybackPositionTicks", None), ItemData.get("PlayCount", None), ItemData.get("IsFavorite", None), ItemData.get("Played", None), ItemData.get("LastPlayedDate", None), ItemData.get("PlayedPercentage", None)) # {'PlayedPercentage': 53.10315618015892, 'PlaybackPositionTicks': 13966544280, 'PlayCount': 2, 'IsFavorite': False, 'LastPlayedDate': '2026-09-28T18:47:57.0000000Z', 'Played': False, 'ItemId': '7956217'}
 
                 if utils.RemoteMode:
                     xbmc.log(f"EMBY.hooks.websocket: Emby server {self.ServerData['ServerId']}: UserDataChanged skip by RemoteMode", 1) # LOGINFO
@@ -358,7 +372,7 @@ class WebSocket:
                             ItemSkipUpdateAlbumIds += (AlbumId,)
                             ItemSkipUpdateAlbumSongIds += embydb.get_id_by_albumid(AlbumId)
 
-                for ItemData in IncomingData['Data']['UserDataList']:
+                for ItemData in ItemsUserData:
                     if ItemData['ItemId'] not in utils.ItemSkipUpdate:  # Filter skipped items
                         if ItemData['ItemId'] in ItemSkipUpdateAlbumIds:
                             xbmc.log(f"EMBY.hooks.websocket: Emby server {self.ServerData['ServerId']}: UserDataChanged skip by ItemSkipUpdate ancestors (AlbumId) / Id: {ItemData['ItemId']} / ItemSkipUpdate: {utils.ItemSkipUpdate}", 1) # LOGINFO
@@ -385,12 +399,20 @@ class WebSocket:
                     self.LibraryChangedQueue.put((("userdata", UpdateData),))
             elif IncomingData['MessageType'] == 'LibraryChanged':
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.ServerData['ServerId']}: LibraryChanged ] {IncomingData['Data']}", 1) # LOGINFO
+                ItemsUpdated = IncomingData['Data']['ItemsUpdated'] + IncomingData['Data']['ItemsAdded']
+                ItemsRemoved = IncomingData['Data']['ItemsRemoved']
+
+                # Reset cache
+                for ItemId in ItemsRemoved:
+                    cache.remove(ItemId, self.ServerData['ServerId'])
+
+                for ItemId in ItemsUpdated:
+                    cache.remove(ItemId, self.ServerData['ServerId'])
 
                 if utils.RemoteMode:
                     xbmc.log(f"EMBY.hooks.websocket: Emby server {self.ServerData['ServerId']}: LibraryChanged skip by RemoteMode", 1) # LOGINFO
                     continue
 
-                ItemsUpdated = IncomingData['Data']['ItemsUpdated'] + IncomingData['Data']['ItemsAdded']
                 UpdateItemIds = len(ItemsUpdated) * [None] # preallocate memory
 
                 for Index, ItemId in enumerate(ItemsUpdated):
@@ -398,7 +420,7 @@ class WebSocket:
 
                 UpdateItemIds = list(dict.fromkeys(UpdateItemIds)) # filter duplicates
 
-                if IncomingData['Data']['ItemsRemoved']:
+                if ItemsRemoved:
                     self.LibraryChangedQueue.put((("remove", IncomingData['Data']['ItemsRemoved']),))
 
                 if UpdateItemIds:
@@ -423,7 +445,7 @@ class WebSocket:
                 xbmc.log(f"EMBY.hooks.websocket: [ Emby server {self.ServerData['ServerId']}: RestartRequired ]", 1) # LOGINFO
                 utils.Dialog.notification(heading=utils.addon_name, message=utils.Translate(33237), time=utils.newContentTime)
             elif IncomingData['MessageType'] == 'Play':
-                playerops.PlayEmby(IncomingData['Data']['ItemIds'], IncomingData['Data']['PlayCommand'], int(IncomingData['Data'].get('StartIndex', 0)), int(IncomingData['Data'].get('StartPositionTicks', -1)), self.ServerData, self.API, 0)
+                playerops.PlayEmby(True, IncomingData['Data']['ItemIds'], IncomingData['Data']['PlayCommand'], int(IncomingData['Data'].get('StartIndex', 0)), int(IncomingData['Data'].get('StartPositionTicks', -1)), self.ServerData, self.API, 0)
             elif IncomingData['MessageType'] == 'Playstate':
                 if playerops.PlayerId != -1:
                     if IncomingData['Data']['Command'] == 'Seek':
@@ -435,7 +457,7 @@ class WebSocket:
                     elif IncomingData['Data']['Command'] == "Unpause":
                         playerops.Unpause(True)
                     elif IncomingData['Data']['Command'] == "Pause":
-                        playerops.Pause(True, 0, 0)
+                        playerops.Pause(True, 0, 0, True)
                     elif IncomingData['Data']['Command'] == "PlayPause": # Toggle pause
                         playerops.PauseToggle(True)
                     elif IncomingData['Data']['Command'] == "NextTrack":

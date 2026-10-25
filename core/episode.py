@@ -1,5 +1,5 @@
 import xbmc
-from helper import utils
+from helper import utils, artworkcache
 from . import common, series, season, genre, studio, person
 
 
@@ -105,6 +105,7 @@ class Episode:
             utils.notify_event("content_add", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "episode"}, IncrementalSync)
 
         common.add_multiversion(Item, "Episode", self.Library, self.SQLs, None, None)
+        artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "Episode", Item['KodiFullPath'])
         return not Item['UpdateItem']
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

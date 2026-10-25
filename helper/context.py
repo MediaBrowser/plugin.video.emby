@@ -5,10 +5,9 @@ import xbmc
 import xbmcgui
 from database import dbio
 from emby import listitem, metadata
-from core import common
-from . import utils, playerops, artworkcache
+from . import utils, playerops, artworkcache, cache
 
-xbmcgui.Window(10000).setProperty('EmbyRemoteclient', 'False')
+xbmc.executebuiltin('SetProperty(EmbyRemoteclient,False,10000)')
 
 
 def load_item(KodiId=None, KodiType=None):
@@ -26,6 +25,7 @@ def load_item(KodiId=None, KodiType=None):
 
         EmbyFavourite = None
         EmbyId = None
+        ServerId = None
 
         for ServerId in utils.EmbyServers:
             embydb = dbio.DBOpenRO(ServerId, "contextmenu_item")
@@ -34,6 +34,8 @@ def load_item(KodiId=None, KodiType=None):
 
             if EmbyId:
                 break
+        else:
+            ServerId = None
 
         return EmbyId, ServerId, EmbyFavourite, KodiType
 
@@ -193,11 +195,11 @@ def similar(EmbyType):
         return
 
     if EmbyType in ("Movie", "Video", "Series", "Season", "Episode", "MusicVideo"):
-        utils.ActivateWindow("videos", f"plugin://plugin.service.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+        utils.ActivateWindow("videos", f"plugin://plugin.video.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
     elif EmbyType in ("MusicArtist", "MusicAlbum", "Audio"):
-        utils.ActivateWindow("music", f"plugin://plugin.service.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+        utils.ActivateWindow("music", f"plugin://plugin.audio.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
     else:
-        utils.ActivateWindow("pictures", f"plugin://plugin.service.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+        utils.ActivateWindow("pictures", f"plugin://plugin.image.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
 
 def multiversion():
     Path = xbmc.getInfoLabel('ListItem.Path')
@@ -216,23 +218,35 @@ def multiversion():
     metadata.MediaSourceContextMenu = MetaData['SelectionIndexMediaSource']
 
     if not MetaData["isDynamic"]:
-        utils.SendJson("Player.Open", f'{{"item": {{"{MetaData["Type"]}id": {MetaData["KodiId"]}}}, "options": {{"resume": true}}}}', False)
-    else:
-        PathFile = f"{Path}{xbmc.getInfoLabel('ListItem.Filename')}"
+        videodb = dbio.DBOpenRO("video", "multiversion")
 
-        if MetaData["Type"] not in utils.KodiTypeMapping:
+        if MetaData["KodiType"] == "episode":
+            ItemKodi = videodb.get_episode_metadata_for_listitem(MetaData["KodiId"], "")
+        elif MetaData["KodiType"] == "musicvideo":
+            ItemKodi = videodb.get_musicvideos_metadata_for_listitem(MetaData["KodiId"], "")
+        elif MetaData["KodiType"] in ("movie", "video"):
+            ItemKodi = videodb.get_movie_metadata_for_listitem(MetaData["KodiId"], "")
+        else:
+            ItemKodi = {}
+
+        dbio.DBCloseRO("video", "multiversion")
+
+        if ItemKodi:
+            listitem.set_ListItem_from_Kodi_database(ItemKodi, "")
+            playerops.Play(False, ItemKodi['KodiFullPath'], ItemKodi['ListItem'], False, False)
+    else:
+        if MetaData["KodiType"] not in utils.KodiTypeMapping:
             return
 
-        EmbyType = utils.KodiTypeMapping[MetaData["Type"]]
+        EmbyType = utils.KodiTypeMapping[MetaData["KodiType"]]
         Item = utils.EmbyServers[MetaData["ServerId"]].API.get_Item(MetaData["EmbyId"], (EmbyType,), True, False, False)
 
         if not Item:
             return
 
-        ListItem = listitem.set_ListItem(Item, MetaData["ServerId"], PathFile)
-        KodiPlaylistIndexStartitem = playerops.GetPlaylistSize(1)
-        playerops.XbmcPlaylists[1].add(PathFile, ListItem, index=KodiPlaylistIndexStartitem) # Path, ListItem, Index
-        utils.SendJson("Player.Open", f'{{"item": {{"playlistid": 1, "position": {KodiPlaylistIndexStartitem}}}}}', False)
+        listitem.set_ListItem(Item, MetaData["ServerId"])
+        cache.add_Item(Item, MetaData["ServerId"])
+        playerops.Play(False, Item['KodiFullPath'], Item['ListItem'], False, False)
 
 def specials():
     SpecialFeaturesSelections = []
@@ -248,8 +262,8 @@ def specials():
     for SpecialFeaturesId in SpecialFeaturesIds:
         SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
 
-        if SpecialFeaturesMediasources:
-            SpecialFeaturesSelections.append((SpecialFeaturesMediasources[0][3], SpecialFeaturesId[0]))
+        for SpecialFeaturesMediasource in SpecialFeaturesMediasources.values():
+            SpecialFeaturesSelections.append((SpecialFeaturesMediasource["Name"], SpecialFeaturesMediasource["EmbyId"]))
 
     dbio.DBCloseRO(ServerId, "specials")
     MenuData = []
@@ -267,12 +281,9 @@ def specials():
     SpecialFeatureItem = utils.EmbyServers[ServerId].API.get_Item(ItemId, ('All',), True, False, False) # Workaround: "Video" param not respected by Emby server's IncludeItemTypes (for specials)
 
     if SpecialFeatureItem:
-        ListItem = listitem.set_ListItem(SpecialFeatureItem, ServerId)
-        common.set_path_filename(SpecialFeatureItem, ServerId, None, True)
-        ListItem.setProperty('path', SpecialFeatureItem['KodiFullPath'])
-        Pos = playerops.GetPlaylistPosition(1) + 1
-        playerops.XbmcPlaylists[1].add(SpecialFeatureItem['KodiFullPath'], ListItem, index=Pos)
-        playerops.PlayPlaylistItem(1, Pos)
+        listitem.set_ListItem(SpecialFeatureItem, ServerId)
+        cache.add_Item(SpecialFeatureItem, ServerId)
+        playerops.Play(False, SpecialFeatureItem['KodiFullPath'], SpecialFeatureItem['ListItem'], False, False)
 
 def favorites():
     EmbyId, ServerId, EmbyFavourite, _ = load_item()
@@ -398,7 +409,7 @@ def watchtogether():
 
     playerops.WatchTogether = True
     playerops.enable_remotemode(ServerId)
-    playerops.PlayEmby([EmbyId], "PlayInit", 0, 0, utils.EmbyServers[ServerId].ServerData, utils.EmbyServers[ServerId].API, 0)
+    playerops.PlayEmby(False, [EmbyId], "PlayInit", 0, 0, utils.EmbyServers[ServerId].ServerData, utils.EmbyServers[ServerId].API, 0)
 
     for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
         if SessionId in playerops.RemoteClientData[ServerId]["ExtendedSupportAck"] and SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
@@ -458,7 +469,7 @@ def delete_remoteclients():
 
         playerops.delete_RemoteClient(ServerId, RemoveSessionIds, False)
 
-    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
+    xbmc.executebuiltin(f'SetProperty(EmbyRemoteclient,{playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]["Id"]]},10000)')
 
 def add_remoteclients(ServerId=None):
     if not ServerId:
@@ -508,7 +519,7 @@ def add_remoteclients(ServerId=None):
             playerops.add_RemoteClient(ServerId, ClientData[Selection][0], ClientData[Selection][1], ClientData[Selection][2])
 
     playerops.enable_remotemode(ServerId)
-    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
+    xbmc.executebuiltin(f'SetProperty(EmbyRemoteclient,{playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]["Id"]]},10000)')
 
 def check_ProgressBar(ProgressBar):
     if utils.sleep(0.1):
@@ -554,7 +565,7 @@ def playrandom():
         if not Episodes:
             return
 
-        Index = round(random.uniform(0, len(Episodes) - 1))
+        Index = random.randrange(len(Episodes))
         DBTYPE = "episode"
         DBID = Episodes[Index][0]
     elif DBTYPE == "tvshow":
@@ -566,7 +577,7 @@ def playrandom():
         if not Episodes:
             return
 
-        Index = round(random.uniform(0, len(Episodes) - 1))
+        Index = random.randrange(len(Episodes))
         DBTYPE = "episode"
         DBID = Episodes[Index][0]
     else:
@@ -580,7 +591,7 @@ def playrandom():
         else:
             return
 
-        Index = round(random.uniform(StartIndex, NumItems))
+        Index = random.randrange(StartIndex, NumAllItems)
         DBID = xbmc.getInfoLabel(f"Container.ListItemAbsolute({Index}).DBID")
         DBTYPE = xbmc.getInfoLabel(f"Container.ListItemAbsolute({Index}).DBTYPE")
 

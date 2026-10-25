@@ -1,3 +1,48 @@
+12.5.0
+=============
+fix server timeouts
+fix metadata check
+Replace serveral blocking commands with async commands
+Remove additional blocking stat/HEAD request by disable dateadded=0 readings by advancedsettings.xml
+fix Emby connect
+fix websocket messages
+fix websocket refresh progressbar
+fix http rfc issues
+fix dynamic nodes actor images
+fix dynamic nodes double multicontent selection
+fix m3u musicplaylist player crash
+fix image fallbacks
+fix sync minor issue
+fix random singles node
+improve dynamic node caches
+fix artwork loading (Kodi) freezes
+improve content switch in dynamic nodes
+improve mimetype detection
+improve native mode content detection
+support Kodi tempo for remote playback
+fix several playback session sync issues
+support subbtitle and audiostream selection for remote sessions
+full ipv6 support (untested)
+add music discnumber info (for synced content)
+add music album release type info (for synced content)
+fix fanart artwork caching (Kodi 22)
+fix progress update sync issue
+fix Kodi scan issue (widget refresh)
+fix dynamic node music playlist (autoplay next was not supported)
+fix subtitle disable issue
+improve hash calculation
+support native chapter bookmark for addon mode (http protocol)
+improve hybrid node metadata
+fix MusicVideo artist hybrid node
+fix autoselect highest resolution in native mode
+fix sqlite _ and % escapes (caused false positiv on folder remove)
+fix theme issues
+improve theme also support music, album and musicvideo
+fix youtube content (untested)
+improve youtube id detection
+
+
+
 12.4.24
 =============
 Improve timeouts when server not avialable

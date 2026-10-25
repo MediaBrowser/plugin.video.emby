@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Максимальное усилие)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (ускоренная пересылка)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (ускоренная пересылка)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Восстановлена резервная копия из:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Любимые фильмы"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Любимые бокс-сеты"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Любимые видео"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Любимые фотографии"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Любимые музыкальные клипы"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Недавно добавленные музыкальные клипы"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "В процессе Музыкальные клипы"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Музыкальные клипы от А до Я"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Кино от А до Я"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Сериалы от А до Я"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Фотоальбом от А до Я"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "Видео от А до Я"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Теги домашнего видео"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Любимые домашние видео"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Теги видео"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Непросмотренные музыкальные клипы"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Непросмотренные видео"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Песни по жанрам"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "ТВ-шоу по жанрам"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Кино по жанрам"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Случайные фильмы"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Случайное"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Рекомендуемое"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Случайные эпизоды"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Случайные телешоу"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Случайные музыкальные клипы"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Теги музыкальных видео"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Теги"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Избранное"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Любимые актеры"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Любимые исполнители"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Любимые телешоу"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Предстоящие серии"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Продолжить просмотр"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Недавно добавлено"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Загружать встроенные главы"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Для включения требуется полная повторная синхронизация"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Любимый звук"

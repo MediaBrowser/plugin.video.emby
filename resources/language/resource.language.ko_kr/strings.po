@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0(최선의 노력)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF(신속 전달)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF(신속 전달)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "복원된 백업 위치:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "좋아하는 영화"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "즐겨찾는 박스셋"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "좋아하는 동영상"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "좋아하는 사진"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "좋아하는 뮤직비디오"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "최근 추가된 뮤직 비디오"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "진행중 뮤직비디오"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z 뮤직비디오"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z 영화"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z 시리즈"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z 포토앨범"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z 비디오"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "홈비디오 태그"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "좋아하는 홈 비디오"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "비디오 태그"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "보지 않은 뮤직 비디오"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "시청하지 않은 동영상"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "장르별 노래"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "장르별 tV 쇼"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "장르별 영화"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "무작위 영화"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "랜덤"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "추천"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "임의의 에피소드"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "랜덤 TV쇼"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "임의의 뮤직비디오"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "뮤직비디오 태그"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "태그"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "즐겨찾기"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "좋아하는 배우"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "좋아하는 예술가"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "좋아하는 TV쇼"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "다음 에피소드"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "계속 시청"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "최근 추가됨"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "기본 챕터 다운로드"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "활성화하려면 전체 재동기화가 필요합니다"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "즐겨찾는 오디오"

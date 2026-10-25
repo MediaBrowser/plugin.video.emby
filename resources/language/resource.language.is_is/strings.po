@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Besta tilraun)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (hraðsending)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (hraðsending)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Endurheimt öryggisafrit frá:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Uppáhaldsmyndir"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Uppáhalds kassasett"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Uppáhaldsmyndbönd"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Uppáhaldsmyndir"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Uppáhalds tónlistarmyndbönd"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Nýlega bætt við tónlistarmyndböndum"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Í vinnslu Tónlistarmyndbönd"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z tónlistarmyndbönd"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z kvikmyndir"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z röð"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z myndaalbúm"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z myndbönd"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Heimamyndbandsmerki"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Uppáhalds heimamyndbönd"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Myndbandsmerki"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Óhorft tónlistarmyndbönd"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Óskoðuð myndbönd"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Lög eftir tegund"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Sjónvarpsþættir eftir tegund"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Kvikmyndir eftir tegund"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Tilviljanakenndar kvikmyndir"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Tilviljanakennt"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Mælt með"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Tilviljanakenndir þættir"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Tilviljunarkennd sjónvarpsþættir"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Tilviljunarkennd tónlistarmyndbönd"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Tónlistarmyndband"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Merki"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Uppáhald"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Uppáhaldsleikarar"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Uppáhaldslistamenn"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Uppáhaldssjónvarpsþættir"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Næstu þættir"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Haltu áfram að horfa"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Nýlega bætt við"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Sækja innfædda kafla"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Virkjun krefst fullrar endursamstillingar"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Uppáhalds hljóð"

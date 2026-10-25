@@ -8,7 +8,7 @@ from dialogs import serverconnect, usersconnect, loginconnect, loginmanual, serv
 from helper import utils, playerops, pluginmenu, queue
 from database import library
 from hooks import websocket
-from . import views, api, http
+from . import views, api, http_common
 
 Disconnect = threading.Lock()
 
@@ -30,7 +30,7 @@ class EmbyServer:
         self.WebsocketRunning = [False]
         self.WebsocketMessageQueue = queue.Queue()
         self.HTTPThreadsRunningCondition = threading.Condition(threading.Lock())
-        self.http = http.HTTP(self.ServerData, self.HTTPThreadsRunningCondition, self.WebsocketRunning, self.WebsocketMessageQueue)
+        self.http = http_common.HTTPCommon(self.ServerData, self.HTTPThreadsRunningCondition, self.WebsocketRunning, self.WebsocketMessageQueue)
         self.API = api.API(self.ServerData, self.ViewItems, self.LibrarySyncedNames, self.LibrarySyncedContent, self.LibrarySyncedKodiDBs, self.EmbySession, self.http)
         self.Views = views.Views(self.ServerData, self.ViewItems, self.LibrarySynced, self.API)
         self.library = library.Library(self.ServerData, self.API, self.Views, self.LibrarySynced, self.LibrarySyncedNames, self.LibrarySyncedContent, self.LibrarySyncedKodiDBs)
@@ -484,16 +484,36 @@ class EmbyServer:
             server = ""
 
             if found_server.get('Address') and found_server.get('EndpointAddress'):
-                server = found_server['EndpointAddress'].split(':')[0]
-                parts = found_server['Address'].split(':')
+                EndpointAddress = found_server['EndpointAddress']
+                Address = found_server['Address']
 
-                if len(parts) > 1:
-                    port_string = parts[len(parts) - 1]
-                    server += f":{port_string}"
-                    server = server.strip()
-                    server = server.lower()
+                if "://" in EndpointAddress:
+                    Scheme, EndpointHost = EndpointAddress.split("://", 1)
+                    EndpointHost = EndpointHost.split("/", 1)[0]
 
-                    if 'http' not in server:
+                    if EndpointHost.startswith("["):
+                        EndBracket = EndpointHost.find("]")
+                        if EndBracket != -1:
+                            server = f"{Scheme}://{EndpointHost[:EndBracket + 1]}"
+                    else:
+                        server = f"{Scheme}://{EndpointHost.rsplit(':', 1)[0]}"
+
+                Address = Address.split("://", 1)[-1].split("/", 1)[0]
+
+                if Address.startswith("["):
+                    EndBracket = Address.find("]")
+                    if EndBracket != -1 and len(Address) > EndBracket + 1 and Address[EndBracket + 1] == ":":
+                        Port = Address[EndBracket + 2:]
+                    else:
+                        Port = ""
+                else:
+                    Port = Address.rsplit(":", 1)[-1] if ":" in Address else ""
+
+                if Port.isdigit():
+                    server += f":{Port}"
+                    server = server.strip().lower()
+
+                    if not server.startswith(("http://", "https://")):
                         server = f"http://{server}"
 
             if not server and not found_server.get('Address'):

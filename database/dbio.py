@@ -18,9 +18,11 @@ def DBVacuum():
         utils.update_ProgressBar("DBVacuum", Index / TotalItems, utils.Translate(33436), str(DBID))
 
         if 'version' in DBID:
+            Index += 1
             continue
 
         if not xbmcvfs.exists(DBFile):
+            Index += 1
             continue
 
         if utils.DebugLog: xbmc.log(f"EMBY.database.dbio (DEBUG): ---> DBVacuum: {DBID}", 1) # LOGDEBUG

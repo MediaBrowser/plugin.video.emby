@@ -64,7 +64,7 @@ class BoxSets:
 
                 if BoxSetSerieItemKodiId:
                     for BoxSetMovie in BoxSetMovies:
-                        BoxSetMovieItemKodiId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(BoxSetMovie['Id'], "Movie")
+                        BoxSetMovieItemKodiId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(BoxSetMovie['Id'], BoxSetMovie['Type'])
 
                         if BoxSetMovieItemKodiId:
                             self.SQLs["video"].add_link_movie_tvshow(BoxSetMovieItemKodiId, BoxSetSerieItemKodiId)
@@ -188,8 +188,3 @@ class BoxSets:
         if utils.BoxSetsToTags:
             EmbyTagId = f"{utils.MappingIds['Tag']}{Item['Id']}"
             self.SQLs["emby"].update_favourite(IsFavorite, EmbyTagId, "Tag")
-            KodiTagId = self.SQLs["emby"].get_KodiId_by_EmbyId_EmbyType(EmbyTagId, "Tag")
-
-            if KodiTagId:
-                ItemTag = Item.copy()
-                ItemTag.update({'KodiItemId': KodiTagId, 'Id': EmbyTagId})

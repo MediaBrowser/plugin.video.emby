@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Iň gowy synanyşyk)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Çaltlaşdyrylan ugradyş)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Çaltlaşdyrylan ugradyş)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Dikeldilen ätiýaçlyk nusgasy:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Halaýan filmler"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Halaýan gutular"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Halaýan wideolar"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Halanýan suratlar"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Halaýan aýdym-saz wideolary"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Musicakynda goşulan aýdym-saz wideolary"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Dowam edilýär Aýdym-saz wideolary"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z aýdym-saz wideolary"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z filmleri"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z seriýasy"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z wideolar"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Öý wideosy bellikleri"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Iň halanýan öý wideolary"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Wideo bellikleri"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Gözlenmedik aýdym-saz wideolary"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Görülmedik wideolar"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "reanr boýunça aýdymlar"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "reanr boýunça teleýaýlym görkezişleri"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "reanr boýunça kino"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Tötänleýin filmler"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Tötänleýin"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Maslahat berilýär"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Tötänleýin bölümler"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Tötänleýin telewizion görkezişler"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Tötänleýin aýdym-saz wideolary"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "“Musicvideo” bellikleri"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Bellikler"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Halanýanlar"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Halaýan aktýorlar"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Halaýan aýdymçylar"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Iň halanýan telewizion görkezişler"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Geljekdäki bölümler"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Syn etmegi dowam ediň"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Recentlyakynda goşuldy"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Asyl bölümleri ýükläp al"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Işje girizmek doly täzeden sinhronizasiýany talap edýär"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Halaýan ses"

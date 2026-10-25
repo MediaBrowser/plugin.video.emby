@@ -1,6 +1,6 @@
 import json
 import xbmc
-from helper import utils
+from helper import utils, copy
 from . import common
 
 class PhotoAlbum:
@@ -12,7 +12,7 @@ class PhotoAlbum:
         self.SQLs = SQLs
 
     def change(self, Item, _):
-        EmbyItem = Item.copy()
+        EmbyItem = copy.Object(Item)
         common.set_path_filename(Item, self.Library.ServerData['ServerId'], None, False)
         self.SQLs["emby"].add_reference_photoalbum(Item['Id'], Item['LibraryId'], Item['ParentId'], Item['PresentationUniqueKey'], Item['Path'], Item['KodiFullPath'], json.dumps(EmbyItem))
         del EmbyItem
@@ -29,8 +29,8 @@ class PhotoAlbum:
 
     def userdata(self, Item, IncrementalSync, _UpdateKodiFavorite):
         if int(IncrementalSync):
-            xbmc.log(f"EMBY.core.photoalbum: DELETE {Item['Id']}", 1) # LOGINFO
+            xbmc.log(f"EMBY.core.photoalbum: USERDATA {Item['Id']}", 1) # LOGINFO
         elif utils.DebugLog:
-            xbmc.log(f"EMBY.core.photoalbum (DEBUG): DELETE {Item['Id']}", 1) # LOGDEBUG
+            xbmc.log(f"EMBY.core.photoalbum (DEBUG): USERDATA {Item['Id']}", 1) # LOGDEBUG
 
         return False

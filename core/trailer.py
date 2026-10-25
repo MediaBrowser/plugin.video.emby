@@ -1,6 +1,6 @@
 import json
 import xbmc
-from helper import utils
+from helper import utils, copy
 from . import common
 
 class Trailer:
@@ -12,7 +12,7 @@ class Trailer:
         self.SQLs = SQLs
 
     def change(self, Item, _):
-        EmbyItem = Item.copy()
+        EmbyItem = copy.Object(Item)
 
         if 'Path' in Item and Item['Path']:
             KodiParentId = Item.get('KodiParentId', None)

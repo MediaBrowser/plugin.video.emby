@@ -1,5 +1,5 @@
 import xbmc
-from helper import utils
+from helper import utils, artworkcache
 from . import common, genre, tag, studio, person, trailer
 
 
@@ -131,6 +131,7 @@ class Movies:
         if 'LocalTrailerCount' in Item and Item['LocalTrailerCount']:
             self.SQLs["emby"].add_UpdateItem_Parent(Item['Id'], "Movie", Item['LibraryId'], Item['KodiItemId'], "Trailer", "video")
 
+        artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "Movie", Item['KodiFullPath'])
         return not Item['UpdateItem']
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks

@@ -1,5 +1,5 @@
 import xbmc
-from helper import utils
+from helper import utils, copy, artworkcache
 from . import common, musicgenre, tag, studio, person, musicartist, boxsets
 
 
@@ -35,7 +35,7 @@ class MusicVideo:
             return False
 
         common.swap_mediasources(Item)
-        common.set_MusicVideoTracks(Item)
+        common.set_TracksByMediasourceName(Item)
         common.set_RunTimeTicks(Item)
         common.set_streams(Item)
         common.set_common(Item, self.Library.ServerData['ServerId'], False, IncrementalSync)
@@ -48,7 +48,7 @@ class MusicVideo:
         KodiFileIds = common.get_Ids_SingleContent(Item['KodiFileId'])
 
         for Index, LibraryId in enumerate(LibraryIds):
-            UpdateItem = Item.copy()
+            UpdateItem = copy.Object(Item)
             UpdateItem['LibraryId'] = LibraryId
             KodiItemIdCurrent = KodiItemIds[Index]
             KodiPathIdCurrent = KodiPathIds[Index]
@@ -72,6 +72,7 @@ class MusicVideo:
             utils.notify_event("content_update", {"EmbyId": UpdateItem['Id'], "KodiId": KodiItemIdCurrent, "KodiType": "musicvideo"}, IncrementalSync)
             common.update_boxsets(IncrementalSync, UpdateItem['ParentId'], UpdateItem['LibraryId'], self.SQLs, self.Library) # Update Boxset
             common.add_multiversion(UpdateItem, "MusicVideo", self.Library, self.SQLs, EmbyMusicArtistIds, EmbyMusicGenreIds)
+            artworkcache.CacheNativeChapter(UpdateItem['MediaSources'][0].get('ChaptersNative', []), "MusicVideo", UpdateItem['KodiFullPath'])
             del UpdateItem
 
         # New library (insert new Kodi record)
@@ -101,6 +102,7 @@ class MusicVideo:
             utils.notify_event("content_add", {"EmbyId": Item['Id'], "KodiId": KodiItemIdCurrent, "KodiType": "musicvideo"}, IncrementalSync)
             common.update_boxsets(IncrementalSync, Item['ParentId'], Item['LibraryId'], self.SQLs, self.Library) # Update Boxset
             common.add_multiversion(Item, "MusicVideo", self.Library, self.SQLs, EmbyMusicArtistIds, EmbyMusicGenreIds)
+            artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "MusicVideo", Item['KodiFullPath'])
 
         return not Item['UpdateItem']
 
@@ -161,13 +163,14 @@ class MusicVideo:
 
     def remove(self, Item, IncrementalSync):
         LibraryIdsRemove = ()
-        self.set_favorite(False, Item)
         LibraryIdStr = str(Item['LibraryId'])
         Item['LibraryIds'], Item['KodiItemId'], Item['KodiFileId'], Item['KodiPathId'] = self.SQLs["emby"].get_KodiIds_LibraryIds_from_ContentItem(Item['Id'], "MusicVideo") # (Re)Load LibraryIds, KodiItemId as references could be modify data after collecting
 
         if not Item['LibraryIds']:
             if utils.DebugLog: xbmc.log(f"EMBY.core.musicvideo (DEBUG): SKIP DELETE, LibraryIds not found {Item['Id']} / {Item['LibraryId']}", 1) # DEBUGLOG
             return
+
+        self.set_favorite(False, Item)
 
         # Load Arrays
         LibraryIds = common.get_Ids_SingleContent(Item['LibraryIds'])

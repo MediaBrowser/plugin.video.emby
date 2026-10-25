@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (சிறந்த முயற்சி)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (விரைவான பகிர்தல்)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (விரைவான பகிர்தல்)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "இதிலிருந்து காப்புப்பிரதி மீட்டெடுக்கப்பட்டது:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "பிடித்த திரைப்படங்கள்"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "பிடித்த பெட்டிகள்"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "பிடித்த வீடியோக்கள்"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "பிடித்த புகைப்படங்கள்"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "பிடித்த இசை வீடியோக்கள்"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "சமீபத்தில் சேர்க்கப்பட்ட இசை வீடியோக்கள்"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "இசை வீடியோக்கள் செயல்பாட்டில் உள்ளன"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z இசை வீடியோக்கள்"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z திரைப்படங்கள்"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z தொடர்"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z புகைப்பட ஆல்பம்"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z வீடியோக்கள்"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "முகப்பு வீடியோ குறிச்சொற்கள்"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "பிடித்த வீட்டு வீடியோக்கள்"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "வீடியோ குறிச்சொற்கள்"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "பார்க்கப்படாத இசை வீடியோக்கள்"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "பார்க்காத வீடியோக்கள்"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "வகையின் பாடல்கள்"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "வகையின் டிவி நிகழ்ச்சிகள்"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "வகையின் திரைப்படங்கள்"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "சீரற்ற திரைப்படங்கள்"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "சீரற்ற"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "பரிந்துரைக்கப்பட்டது"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "ரேண்டம் எபிசோடுகள்"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "ரேண்டம் டிவி ஷோக்கள்"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "ரேண்டம் மியூசிக் வீடியோக்கள்"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "இசை வீடியோ குறிச்சொற்கள்"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "குறிச்சொற்கள்"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "பிடித்தவை"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "பிடித்த நடிகர்கள்"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "பிடித்த கலைஞர்கள்"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "பிடித்த டிவி ஷோக்கள்"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "வரவிருக்கும் அத்தியாயங்கள்"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "தொடர்ந்து பார்க்கவும்"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "சமீபத்தில் சேர்க்கப்பட்டது"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "இயல்பான அத்தியாயங்களைப் பதிவிறக்கவும்"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "இயக்குவதற்கு முழுமையான மறுஒத்திசைவு தேவை"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "பிடித்த ஆடியோ"
