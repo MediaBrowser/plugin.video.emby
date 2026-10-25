@@ -178,4 +178,4 @@ class Playlist:
 
         if EmbyLinkedIds[1] or EmbyLinkedIds[2] or EmbyLinkedIds[3]: # Mixed videos
             PlaylistName = KodiItemIds[1].replace("emby_", "").replace("_video", "", 1).replace("_", " ")
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.Library.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype=video&server={self.Library.ServerData['ServerId']}&id={KodiItemIds[1]}", PlaylistName, "window", 10025),))
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Playlist", "Video", Item['Id'], self.Library.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"plugin://plugin.video.emby-next-gen/?mode=playlist&mediatype=video&server={self.Library.ServerData['ServerId']}&id={KodiItemIds[1]}", PlaylistName, "window", 10025),))

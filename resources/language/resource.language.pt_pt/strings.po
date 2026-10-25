@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (melhor esforço)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (encaminhamento acelerado)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (encaminhamento acelerado)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Backup restaurado de:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Filmes favoritos"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Caixas favoritas"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Vídeos favoritos"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Fotos favoritas"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Vídeos musicais favoritos"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Vídeos musicais adicionados recentemente"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Vídeos musicais em andamento"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "vídeos musicais de A-Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "filmes A-Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Série A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Álbum de fotos A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "vídeos A-Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Tags de vídeo doméstico"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Vídeos caseiros favoritos"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Tags de vídeo"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Vídeos musicais não assistidos"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Vídeos não vistos"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Músicas por gênero"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Programas de TV por gênero"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filmes por gênero"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Filmes aleatórios"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Aleatório"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Recomendado"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Episódios aleatórios"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Programas de TV aleatórios"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Vídeos musicais aleatórios"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Tags de vídeo musical"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Etiquetas"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favoritos"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Atores favoritos"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Artistas favoritos"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Programas de TV favoritos"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Próximos episódios"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Continue assistindo"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Adicionado recentemente"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Transferir capítulos nativos"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "A ativação requer uma ressincronização completa"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Áudio favorito"

@@ -3052,7 +3052,7 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (bedste indsats)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
+msgid "EF (Expedited Forwarding)"
 msgstr ""
 
 msgctxt "#33726"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Gendannet sikkerhedskopi fra:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Yndlingsfilm"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Yndlingsbokssæt"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Foretrukne videoer"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Yndlingsbilleder"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Yndlingsmusikvideoer"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Nyligt tilføjede musikvideoer"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "I gang Musikvideoer"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z musikvideoer"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z film"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z serien"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z videoer"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Videomærker"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Favorit hjemmevideoer"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Videomærker"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Usete musikvideoer"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Usete videoer"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Sange efter genre"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "TV-shows efter genre"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Film efter genre"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Tilfældige film"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Tilfældigt"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Anbefalet"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Tilfældige episoder"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Tilfældige tv-udsendelser"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Tilfældige musikvideoer"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Musikvideomærker"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Tags"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favoritter"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Yndlingsskuespillere"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Yndlingskunstnere"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Yndlings-tv-udsendelser"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Kommende episoder"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Fortsæt med at se"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "For nylig tilføjet"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Download oprindelige kapitler"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Aktivering kræver en fuld gensynkronisering"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Favorit lyd"

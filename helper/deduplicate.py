@@ -134,7 +134,7 @@ def deduplicate_by_library(Doubles, EmbyType, LibrarySelectionMetadata, selectio
                 if EmbyId:
                     DoubleData.update({"EmbyServerId": EmbyServerId, "EmbyId": EmbyId, "EmbyLibraryIds": EmbyLibraryIds})
 
-                    if EmbyServerId == LibrarySelectionMetadata[selection][0] and str(LibrarySelectionMetadata[selection][1]) in str(EmbyLibraryIds):
+                    if EmbyServerId == LibrarySelectionMetadata[selection][0] and str(LibrarySelectionMetadata[selection][1]) in EmbyLibraryIds:
                         DoublesData[1] = {"PriorityEmbyId": EmbyId, "PriorityKodiId": KodiId, "PriorityEmbyServerId": EmbyServerId, "PriorityEmbyLibraryId": LibrarySelectionMetadata[selection][1]}
                         xbmc.log(f"EMBY.helper.pluginmenu: Deduplicate, priority content by library {ContentName} [EmbyId: {EmbyId} / KodiId: {KodiId} / LibraryId: {EmbyLibraryIds} / EmbyServerId: {EmbyServerId} / EmbyType: {EmbyType}]", 1) # LOGINFO
 

@@ -1,6 +1,6 @@
 import json
 import xbmc
-from helper import utils
+from helper import utils, copy
 
 class Folder:
     def __init__(self, SQLs):
@@ -10,7 +10,7 @@ class Folder:
         self.SQLs = SQLs
 
     def change(self, Item, IncrementalSync):
-        EmbyItem = Item.copy()
+        EmbyItem = copy.Object(Item)
 
         if 'Path' in Item and Item['Path']:
             if Item['Path'].find("/") >= 0: # Linux

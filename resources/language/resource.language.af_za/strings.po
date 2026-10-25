@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Beste poging)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (versnelde aanstuur)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (versnelde aanstuur)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Hergestelde rugsteun vanaf:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Gunsteling flieks"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Gunsteling boksstelle"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Gunsteling video's"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Gunstelingfoto's"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Gunsteling musiekvideo's"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Musiekvideo's wat onlangs bygevoeg is"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Aan die gang Musiekvideo's"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z musiekvideo's"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z-flieks"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z reeks"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z video's"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Tuisvideo-etikette"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Gunsteling Tuisvideo's"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Video-etikette"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Ongekykte musiekvideo's"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Ongekykte video's"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Liedjies volgens genre"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "TV-programme volgens genre"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Flieks volgens genre"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Willekeurige flieks"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Willekeurig"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Aanbeveel"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Ewekansige episodes"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Willekeurige TV-programme"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Ewekansige musiekvideo's"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Musiekvideo-etikette"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Etikette"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Gunstelinge"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Gunsteling akteurs"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Gunsteling kunstenaars"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Gunsteling TV-programme"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Komende episodes"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Hou aan kyk"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Onlangs bygevoeg"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Laai oorspronklike hoofstukke af"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Aktivering vereis 'n volledige hersinkronisering"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Gunsteling klank"

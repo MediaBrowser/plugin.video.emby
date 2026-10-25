@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Millor esforç)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (enviament accelerat)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (enviament accelerat)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Còpia de seguretat restaurada des de:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Pel·lícules preferides"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Boxsets preferits"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Vídeos preferits"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Fotos preferides"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "vídeos musicals preferits"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Vídeos musicals afegits recentment"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "En curs Vídeos musicals"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "vídeos musicals de la A a la Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Pel·lícules de la A a la Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Sèries de la A a la Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Àlbum de fotos A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "vídeos de la A a la Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Etiquetes de vídeo a casa"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Vídeos domèstics preferits"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Etiquetes de vídeo"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Vídeos musicals no vists"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Vídeos no vistos"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Cançons per gènere"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Programes de televisió per gènere"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Pel·lícules per gènere"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Pel·lícules aleatòries"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Aleatori"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Recomanat"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "episodis aleatoris"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "programes de televisió aleatoris"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "vídeos musicals aleatoris"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "etiquetes de vídeo musical"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Etiquetes"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Preferits"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Actors preferits"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Artistes preferits"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Programes de televisió preferits"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Pròxims episodis"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Continua mirant"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Afegit recentment"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Baixa els capítols natius"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "L’activació requereix una resincronització completa"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "àudio preferit"

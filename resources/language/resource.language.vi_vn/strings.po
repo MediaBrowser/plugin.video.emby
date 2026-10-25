@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Nỗ lực cao nhất)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Chuyển tiếp nhanh)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Chuyển tiếp nhanh)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Đã khôi phục bản sao lưu từ:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Phim yêu thích"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Bộ hộp yêu thích"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Video yêu thích"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Ảnh yêu thích"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Video ca nhạc yêu thích"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Video nhạc được thêm gần đây"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Đang xử lý Video nhạc"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Video ca nhạc từ A-Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Phim từ A đến Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Dòng A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Album ảnh A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "Video A-Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Thẻ video gia đình"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Video gia đình yêu thích"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Thẻ video"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Video nhạc chưa xem"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Video chưa xem"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Bài hát theo thể loại"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Chương trình truyền hình theo thể loại"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Phim theo thể loại"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Phim ngẫu nhiên"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Ngẫu nhiên"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Được đề xuất"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Các tập phim ngẫu nhiên"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Chương trình truyền hình ngẫu nhiên"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Video nhạc ngẫu nhiên"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Thẻ video âm nhạc"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Thẻ"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Yêu thích"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Diễn viên được yêu thích"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Nghệ sĩ được yêu thích"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Chương trình truyền hình được yêu thích"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Các tập sắp tới"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Tiếp tục xem"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Được thêm gần đây"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Tải xuống chương gốc"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Việc bật tính năng này yêu cầu đồng bộ hóa lại toàn bộ"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Âm thanh yêu thích"

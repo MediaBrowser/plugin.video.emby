@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (بهترین تلاش)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5، EF (ارسال سریع)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (ارسال سریع)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "نسخه پشتیبان بازیابی شده از:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "فیلم های مورد علاقه"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "جعبه های مورد علاقه"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "ویدیوهای مورد علاقه"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "عکس های مورد علاقه"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "موزیک ویدیوهای مورد علاقه"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "ویدیوهای موسیقی اخیراً اضافه شده است"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "ویدیوهای موسیقی در حال پیشرفت"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "موزیک ویدیوهای A-Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "فیلم های A-Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "سری A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "آلبوم عکس A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "ویدیوها از A تا Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "برچسب های ویدیوی خانگی"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "فیلم های خانگی مورد علاقه"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "برچسب های ویدیویی"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "موزیک ویدیوهای تماشا نشده"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "ویدیوهای تماشا نشده"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "آهنگ ها بر اساس ژانر"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "نمایش های تلویزیونی بر اساس ژانر"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "فیلم ها بر اساس ژانر"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "فیلم‌های تصادفی"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "تصادفی"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "توصیه‌شده"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "قسمت های تصادفی"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "نمایش های تلویزیونی تصادفی"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "موزیک ویدیوهای تصادفی"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "برچسب‌های ویدیوی موسیقی"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "برچسب‌ها"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "موارد دلخواه"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "بازیگران مورد علاقه"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "هنرمندان مورد علاقه"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "برنامه های تلویزیونی مورد علاقه"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "قسمت های آینده"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "به تماشای خود ادامه دهید"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "اخیرا اضافه شده است"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "بارگیری فصل‌های بومی"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "فعال‌سازی به همگام‌سازی مجدد کامل نیاز دارد"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "صدای مورد علاقه"

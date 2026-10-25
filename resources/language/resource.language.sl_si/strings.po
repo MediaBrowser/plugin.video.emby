@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (po najboljših močeh)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (pospešeno posredovanje)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (pospešeno posredovanje)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Obnovljena varnostna kopija iz:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Priljubljeni filmi"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Priljubljene škatle"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Priljubljeni videi"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Priljubljene fotografije"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Priljubljeni glasbeni videi"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Nedavno dodani glasbeni videi"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "V teku Glasbeni videi"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z glasbeni videi"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z filmi"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "serije A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z videi"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Oznake za domači video"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Priljubljeni domači videoposnetki"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Video oznake"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Neogledani glasbeni videi"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Nepogledani videoposnetki"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Pesmi po zvrsteh"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "TV oddaje po zvrsteh"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filmi po zvrsteh"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Naključni filmi"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Naključno"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Priporočeno"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Naključne epizode"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Naključne TV-oddaje"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Naključni glasbeni videi"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Oznake glasbenega videa"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Oznake"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Priljubljene"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Najljubši igralci"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Najljubši glasbeni izvajalci"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Priljubljene TV-oddaje"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Prihajajoče epizode"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Nadaljujte z gledanjem"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Pred kratkim dodano"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Prenesi izvorna poglavja"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Omogočanje zahteva popolno ponovno sinhronizacijo"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Priljubljeni zvok"

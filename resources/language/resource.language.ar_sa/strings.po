@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (أفضل جهد)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5، EF (إعادة التوجيه السريع)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (إعادة التوجيه السريع)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "استعادة النسخة الاحتياطية من:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "الأفلام المفضلة"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "مجموعات الصناديق المفضلة"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "الفيديوهات المفضلة"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "الصور المفضلة"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "مقاطع الفيديو الموسيقية المفضلة"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "مقاطع الفيديو الموسيقية المضافة مؤخرًا"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "فيديوهات موسيقية قيد التقدم"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "مقاطع فيديو موسيقية من الألف إلى الياء"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "أفلام من الألف إلى الياء"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "سلسلة من الألف إلى الياء"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "ألبوم الصور من الألف إلى الياء"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "فيديوهات من الألف إلى الياء"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "علامات الفيديو المنزلية"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "مقاطع الفيديو المنزلية المفضلة"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "علامات الفيديو"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "مقاطع فيديو موسيقية لم تتم مشاهدتها"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "فيديوهات لم تُشاهد"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "الأغاني حسب النوع"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "الالبرامج التلفزيونية حسب النوع"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "الأفلام حسب النوع"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "أفلام عشوائية"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "عشوائي"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "موصى به"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "حلقات عشوائية"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "برامج تلفزيونية عشوائية"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "مقاطع فيديو موسيقية عشوائية"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "علامات الموسيقى والفيديو"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "الوسوم"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "المفضلة"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "الممثلين المفضلين"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "الفنانون المفضلون"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "البرامج التلفزيونية المفضلة"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "الحلقات القادمة"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "تابع المشاهدة"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "أضيفت مؤخرا"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "تنزيل الفصول الأصلية"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "يتطلب التفعيل إعادة مزامنة كاملة"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "الصوت المفضل"

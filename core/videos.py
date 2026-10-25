@@ -1,6 +1,6 @@
 import json
 import xbmc
-from helper import utils
+from helper import utils, artworkcache
 from . import common, genre, tag, studio, person
 
 
@@ -53,6 +53,7 @@ class Videos:
                 self.SQLs["video"].add_streams(Item['KodiFileId'], Item['MediaSources'][0]['KodiStreams']['Video'], Item['MediaSources'][0]['KodiStreams']['Audio'], Item['MediaSources'][0]['KodiStreams']['Subtitle'], Item['KodiRunTimeTicks'])
                 self.SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiFileId'], "videoversion")
                 self.SQLs["video"].add_movie_version(Item['KodiParentId'], Item['KodiFileId'], Item['KodiPathId'], Item['KodiFilename'], Item['KodiDateCreated'], Item['KodiStackedFilename'], Item['Name'], "movie", "special")
+                artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "Clip", Item['KodiFullPath'])
                 self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
                 self.SQLs["emby"].add_reference_video(Item['Id'], Item['LibraryId'], None, Item['KodiFileId'], Item['ParentId'], Item['PresentationUniqueKey'], Item['Path'], Item['KodiPathId'], Item['ExtraType'], Item['KodiParentId'])
                 if utils.DebugLog: xbmc.log(f"EMBY.core.video (DEBUG): ADD EXTRATYPE {Item['Id']} / {Item['LibraryId']} / {Item['ExtraType']}", 1) # DEBUGLOG
@@ -143,6 +144,7 @@ class Videos:
 
         common.update_boxsets(IncrementalSync, Item['ParentId'], Item['LibraryId'], self.SQLs, self.Library) # Update Boxset
         common.add_multiversion(Item, "Video", self.Library, self.SQLs, None, None)
+        artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "Video", Item['KodiFullPath'])
         return not Item['UpdateItem']
 
     # This updates: Favorite, LastPlayedDate, Playcount, PlaybackPositionTicks
@@ -154,7 +156,10 @@ class Videos:
         Update = False
         common.set_playstate(Item)
         common.set_RunTimeTicks(Item)
-        self.SQLs["video"].set_Favorite_Tag(Item['IsFavorite'], Item['KodiItemId'], "movie")
+
+        if not self.SQLs["video"]: # skip LibraryId 999999998 / shared
+            return False
+
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Video")
 
         if UpdateKodiFavorite:

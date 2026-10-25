@@ -1,6 +1,6 @@
 import sys
-Param = sys.argv[1:]
 
+Param = sys.argv[1:]
 XbmcMonitor = None
 
 def sleep():

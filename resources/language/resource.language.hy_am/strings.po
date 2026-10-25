@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Լավագույն ջանք)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Արագացված վերահասցեավորում)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Արագացված վերահասցեավորում)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Վերականգնված կրկնօրինակը հետևյալից."
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Սիրված ֆիլմեր"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Սիրված տուփեր"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Սիրված տեսանյութեր"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Սիրելի լուսանկարներ"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Սիրված երաժշտական տեսահոլովակներ"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Վերջերս ավելացված երաժշտական տեսանյութեր"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Ընթացքի մեջ է Երաժշտական տեսահոլովակներ"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z երաժշտական տեսահոլովակներ"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z ֆիլմեր"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z շարք"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z ֆոտոալբոմ"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z տեսանյութեր"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Տնային վիդեո պիտակներ"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Սիրելի տնային տեսանյութեր"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Տեսանյութերի պիտակներ"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Չդիտված երաժշտական տեսահոլովակներ"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Չդիտված տեսանյութեր"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Երգեր ըստ ժանրի"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Հեռուստատեսային շոուներ ըստ ժանրի"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Ֆիլմեր ըստ ժանրի"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Պատահական ֆիլմեր"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Պատահական"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Առաջարկվող"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Պատահական դրվագներ"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Պատահական հեռուստաշոուներ"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Պատահական երաժշտական տեսահոլովակներ"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Երաժշտական տեսանյութերի պիտակներ"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Պիտակներ"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Ֆավորիտներ"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Սիրված դերասաններ"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Սիրված արվեստագետներ"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Սիրված հեռուստաշոուներ"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Առաջիկա դրվագներ"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Շարունակեք դիտել"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Վերջերս ավելացված"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Ներբեռնել բնօրինակ գլուխները"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Միացնելու համար անհրաժեշտ է ամբողջական վերասինքրոնացում"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Սիրված աուդիո"

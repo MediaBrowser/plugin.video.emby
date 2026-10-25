@@ -1,5 +1,5 @@
 import xbmc
-from helper import utils
+from helper import utils, copy
 from . import common
 
 KodiDBs = ("music", "video")
@@ -32,7 +32,7 @@ class MusicGenre:
         if Item['Name'] != "--NO INFO--": # update not injected items updates
             for Index in range(2):
                 if KodiItemIds[Index] and KodiDBs[Index] in self.SQLs and self.SQLs[KodiDBs[Index]]: # Update
-                    UpdateItem = Item.copy()
+                    UpdateItem = copy.Object(Item)
                     UpdateKodiItemIdCurrent = KodiItemIds[Index]
                     self.SQLs[KodiDBs[Index]].update_genre(UpdateItem['Name'], UpdateKodiItemIdCurrent)
 
@@ -145,13 +145,18 @@ class MusicGenre:
             Item['KodiArtwork']['favourite'] = self.SQLs["emby"].get_item_by_id(Item['Id'], "MusicGenre")[4]
 
         KodiItemIds = common.get_Ids_MultiContentUnique(Item['KodiItemId'])
-        LibraryIds = common.get_Ids_MultiContentUnique(Item.get('LibraryIds', ""))
+        LibraryIds = common.get_Ids_MultiContent(Item.get('LibraryIds', ""))
 
         if KodiItemIds[0] and "music" in self.SQLs and self.SQLs["music"]: # music
             isPlaylist = False
 
-            if LibraryIds[0] and LibraryIds[0] in self.Library.LibrarySyncedContent and "Playlist" in self.Library.LibrarySyncedContent[LibraryIds[0]]: # Skip playlist subcontent
+            if LibraryIds[0]:
                 isPlaylist = True
+
+                for LibraryId in LibraryIds[0]:
+                    if not LibraryId or LibraryId not in self.Library.LibrarySyncedContent or "Playlist" not in self.Library.LibrarySyncedContent[LibraryId]:
+                        isPlaylist = False
+                        break
 
             if not isPlaylist:
                 Name, hasSongs = self.SQLs["music"].get_Genre_Name_hasSongs(KodiItemIds[0])
@@ -164,13 +169,13 @@ class MusicGenre:
         if KodiItemIds[1] and "video" in self.SQLs and self.SQLs["video"]: # video
             isPlaylist = False
 
-
-# AAAAAAAAAAAAAAAAAAAAAAA
-
-
-
-            if LibraryIds[1] and LibraryIds[1] in self.Library.LibrarySyncedContent and "Playlist" in self.Library.LibrarySyncedContent[LibraryIds[1]]: # Skip playlist subcontent
+            if LibraryIds[1]:
                 isPlaylist = True
+
+                for LibraryId in LibraryIds[1]:
+                    if not LibraryId or LibraryId not in self.Library.LibrarySyncedContent or "Playlist" not in self.Library.LibrarySyncedContent[LibraryId]:
+                        isPlaylist = False
+                        break
 
             if not isPlaylist:
                 Name, hasMusicVideos, _, _ = self.SQLs["video"].get_Genre_Name_hasMusicVideos_hasMovies_hasTVShows(KodiItemIds[1])

@@ -57,7 +57,12 @@ class ServerManual(xbmcgui.WindowXMLDialog):
                 if PortInput:
                     Port = PortInput
 
-                self.ManualAddress = f"{Scheme}://{Hostname}:{Port}{SubUrl}"
+                if ":" in Hostname:
+                    HostHeader = f"[{Hostname}]:{Port}"
+                else:
+                    HostHeader = f"{Hostname}:{Port}"
+
+                self.ManualAddress = f"{Scheme}://{HostHeader}{SubUrl}"
                 self.close()
         # Remind me later
         elif controlId == CANCEL:

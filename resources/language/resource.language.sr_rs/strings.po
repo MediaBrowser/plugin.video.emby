@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "ЦС0 (најбољи труд)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "ЦС5, ЕФ (убрзано прослеђивање)"
+msgid "EF (Expedited Forwarding)"
+msgstr "ЕФ (убрзано прослеђивање)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Враћена резервна копија са:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Омиљени филмови"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Омиљени сетови кутија"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Омиљени видео снимци"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Омиљене фотографије"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Омиљени музички спотови"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Недавно додани музички видео снимци"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "У току Музички спотови"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "А-З музички спотови"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "А-З филмови"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "А-З серија"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "А-З фотоалбум"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "А-З видео снимци"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Хомевидео ознаке"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Омиљени кућни видео снимци"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Видео ознаке"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Негледани музички спотови"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Непрегледани видео-снимци"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Песме по жанру"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "ТВ емисије по жанру"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Филмови по жанру"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Насумични филмови"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Насумично"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Препоручено"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Случајне епизоде"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Случајне ТВ емисије"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Случајни музички видео снимци"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Музички видео ознаке"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Ознаке"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Фаворити"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Омиљени глумци"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Омиљени извођачи"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Омиљене ТВ емисије"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Предстојеће епизоде"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Наставите да гледате"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Недавно додано"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Преузми изворна поглавља"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Омогућавање захтева потпуну поновну синхронизацију"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Омиљени аудио"

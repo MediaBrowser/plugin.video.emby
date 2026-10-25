@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (parim pingutus)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (kiireedastus)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (kiireedastus)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Taastatud varukoopia asukohast:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Lemmikfilmid"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Lemmikkarbid"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "lemmikvideod"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Lemmikfotod"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "lemmikmuusikavideod"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Hiljuti lisatud muusikavideod"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Pooleli Muusikavideod"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z muusikavideod"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z filmid"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z seeria"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z videod"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Koduvideo sildid"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "lemmikkoduvideod"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "videosildid"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Vaatamata muusikavideod"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Vaatamata videod"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Laulud žanrite järgi"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "telesaated žanrite järgi"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filmid žanrite järgi"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Juhuslikud filmid"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Juhuslik"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Soovitatav"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "juhuslikud episoodid"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Juhuslikud telesaated"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "juhuslikud muusikavideod"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Muusikavideo sildid"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Sildid"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Lemmikud"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Lemmiknäitlejad"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Lemmikkunstnikud"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "lemmiksaated"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Tulevased jaod"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Jätkake vaatamist"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Hiljuti lisatud"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Laadi alla algupärased peatükid"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Lubamine nõuab täielikku uuesti sünkroonimist"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "lemmikheli"
