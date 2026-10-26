@@ -72,7 +72,7 @@ def Backup():
         compress_Folder("special://profile/playlists/", ZipFile, (), (), ())
 
         # Backup music database
-        utils.SyncPause["Backup"] = True
+        utils.update_SyncPause("Backup", True)
         utils.update_ProgressBar("Backup", int(7 / 0.10), utils.Translate(33651), "music database")
         busy_KodiDatabase()
         DatabaseSHM = f'{utils.DatabaseFiles["music"]}-shm'
@@ -127,7 +127,7 @@ def Backup():
                     break
 
         compress_Folder("special://profile/Database/", ZipFile, (), ("emby",), ())
-        utils.SyncPause["Backup"] = False
+        utils.update_SyncPause("Backup", False)
 
         # Backup favourites
         utils.update_ProgressBar("Backup", int(10 / 0.10), utils.Translate(33651), "favourites")
@@ -150,13 +150,13 @@ def Restore():
         return
 
     xbmc.log("EMBY.helper.backup: -->[ restore ]", 1) # LOGINFO
-    utils.SystemShutdown = True
     RestoreFile = utils.Dialog.browseSingle(type=1, heading=utils.Translate(33643), shares='files', mask='.zip', defaultt=utils.backupPath)
 
     if not RestoreFile or not RestoreFile.lower().endswith(".zip"):
         xbmc.log(f"EMBY.helper.backup: --<[ restore ] invalid file: {RestoreFile}", 1) # LOGINFO
         return
 
+    utils.SystemShutdown = True
     utils.close_dialog(10146) # addoninformation
     RestoreFile = xbmcvfs.translatePath(RestoreFile)
     FolderExtract = "special://profile/addon_data/plugin.service.emby-next-gen/extract/"

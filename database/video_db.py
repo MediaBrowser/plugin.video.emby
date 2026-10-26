@@ -213,7 +213,7 @@ class VideoDatabase:
         self.cursor.execute("INSERT OR IGNORE INTO videoversion(idFile, idMedia, media_type, itemType, idType) VALUES (?, ?, ?, ?, ?)", (KodiFileId, KodiItemId, KodiType, VideoversionTypes[ContentType], VideoVersionTypeId))
 
     def update_movie(self, KodiItemId, KodiFileId, Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, PremiereDate, idSet, Filename, KodiStackedFilename, DateCreated, VersionName, KodiPathId, Path, KodiFullPath):
-        self.cursor.execute("UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, c21 = ?, c22 = ?, premiered = ?, idSet = ? WHERE idMovie = ?", (Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, KodiFullPath, PremiereDate, idSet, KodiItemId))
+        self.cursor.execute("UPDATE movie SET c00 = ?, c01 = ?, c02 = ?, c03 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c14 = ?, c15 = ?, c16 = ?, c18 = ?, c19 = ?, c20 = ?, c21 = ?, c22 = ?, c23 = ?, premiered = ?, idSet = ? WHERE idMovie = ?", (Name, Overview, ShortOverview, Tagline, RatingId, Writers, Poster, Unique, SortName, RunTimeTicks, OfficialRating, Genre, Directors, OriginalTitle, Studio, Trailer, KodiFanart, ProductionLocation, KodiFullPath, KodiPathId, PremiereDate, idSet, KodiItemId))
         self.update_file(KodiFileId, DateCreated, Filename, KodiStackedFilename)
         self.cursor.execute("DELETE FROM movielinktvshow WHERE idMovie = ?", (KodiItemId,))
         self.cursor.execute("UPDATE path SET strPath = ? WHERE idPath = ?", (Path, KodiPathId))
@@ -255,7 +255,7 @@ class VideoDatabase:
         self.cursor.execute("DELETE FROM files WHERE idFile = ?", (KodiFileId,))
 
     def get_movie_metadata_for_listitem(self, KodiItemId, PathAndFilename):
-        self.cursor.execute("SELECT c00, c01, c02, c03, c06, c10, c11, c12, c14, c15, c16, c18, c19, c21, premiered, userrating, strPath, playCount, lastPlayed, dateAdded, rating, totalTimeInSeconds, resumeTimeInSeconds, votes, rating_type, uniqueid_value, uniqueid_type, strFileName FROM movie_view WHERE idMovie = ?", (KodiItemId,))
+        self.cursor.execute("SELECT c00, c01, c02, c03, c06, c10, c11, c12, c14, c15, c16, c18, c19, c21, premiered, userrating, strPath, playCount, lastPlayed, dateAdded, rating, totalTimeInSeconds, resumeTimeInSeconds, votes, rating_type, uniqueid_value, uniqueid_type, strFileName, strSet, strSetOverview, idSet, videoVersionTypeName FROM movie_view WHERE idMovie = ? AND isDefaultVersion = 1", (KodiItemId,))
         MovieData = self.cursor.fetchone()
 
         if not MovieData:
@@ -267,15 +267,49 @@ class VideoDatabase:
             else:
                 PathAndFilename = f"{MovieData[16]}{MovieData[27]}"
 
-        Artwork = self.get_artwork(KodiItemId, "movie", "")
+        Artwork = self.common_db.get_artwork(KodiItemId, "movie", "")
+        Artwork.update(self.common_db.get_artwork(MovieData[30], "set", "set."))
         People = self.get_people_artwork(KodiItemId, "movie")
 
         # get ratings
         self.cursor.execute("SELECT rating_type, rating, votes FROM rating WHERE media_id = ? AND media_type = ?", (KodiItemId, "movie"))
         Ratings = self.cursor.fetchall()
-        return {'mediatype': "movie", "dbid": KodiItemId, 'title': MovieData[0], 'Overview': MovieData[1], 'ShortOverview': MovieData[2], 'Tagline': MovieData[3], 'Writer': MovieData[4], 'SortName': MovieData[5], 'duration': MovieData[6], 'MPAA': MovieData[7], 'genre': MovieData[8], 'Director': MovieData[9], 'OriginalTitle': MovieData[10], 'StudioName': MovieData[11], 'ProductionLocation': MovieData[13], 'CriticRating': MovieData[15], 'KodiPremiereDate': MovieData[14], 'playcount': MovieData[17], 'lastplayed': MovieData[18], 'KodiDateCreated': MovieData[19], 'CommunityRating': MovieData[20], 'Trailer': MovieData[12], 'path': MovieData[16], 'pathandfilename': PathAndFilename, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'People': People, 'artwork': Artwork, 'KodiRunTimeTicks': MovieData[21], 'KodiPlaybackPositionTicks': MovieData[22], 'Rating': MovieData[20], 'Votes': MovieData[23], 'RatingType': MovieData[24], 'UniqueIdValue': MovieData[25], 'UniqueIdType': MovieData[26], 'Ratings': Ratings}
+
+        # get showlinks
+        self.cursor.execute("SELECT idShow FROM movielinktvshow WHERE idMovie = ?", (KodiItemId,))
+        ShowIds = self.cursor.fetchall()
+        ShowLinks = ()
+
+        if ShowIds:
+            ShowIdList = []
+
+            for Row in ShowIds:
+                ShowIdList.append(Row[0])
+
+            Query = "SELECT c00 FROM tvshow WHERE idShow IN (" + ",".join("?" * len(ShowIdList)) + ")"
+            self.cursor.execute(Query, tuple(ShowIdList))
+            ShowData = self.cursor.fetchall()
+
+            for Row in ShowData:
+                ShowLinks += (Row[0],)
+
+        # Get tags
+        Tags = self.get_Tags(KodiItemId, "movie")
+
+        # UniqueIds
+        UniqueIds = self.get_UniqueIds(KodiItemId, "movie")
+        return {'KodiMetadataMediatype': "movie", "KodiMetadataDBID": KodiItemId, 'KodiMetadataTitle': MovieData[0], 'KodiMetadataOverview': MovieData[1], 'KodiMetadataShortOverview': MovieData[2], 'KodiMetadataTagline': MovieData[3], 'KodiMetadataWriter': MovieData[4], 'KodiMetadataSortName': MovieData[5], 'KodiMetadataDuration': MovieData[6], 'KodiMetadataMPAA': MovieData[7], 'KodiMetadataGenre': MovieData[8], 'KodiMetadataDirector': MovieData[9], 'OriginalTitle': MovieData[10], 'KodiMetadataStudioName': MovieData[11], 'KodiMetadataProductionLocation': MovieData[13], 'KodiMetadataUserRating': MovieData[15], 'KodiMetadataPremiereDate': MovieData[14], 'KodiMetadataPlaycount': MovieData[17], 'KodiMetadataLastplayed': MovieData[18], 'KodiMetadataDateCreated': MovieData[19], 'KodiMetadataCommunityRating': MovieData[20], 'KodiMetadataTrailer': MovieData[12], 'KodiMetadataPath': MovieData[16], 'KodiMetadataPathandfilename': PathAndFilename, 'KodiMetadataProperties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'KodiMetadataPeople': People, 'KodiMetadataArtwork': Artwork, 'KodiMetadataRunTimeTicks': MovieData[21], 'KodiMetadataPlaybackPositionTicks': MovieData[22], 'KodiMetadataVotes': MovieData[23], 'KodiMetadataRatingType': MovieData[24], 'KodiMetadataUniqueIdValue': MovieData[25], 'KodiMetadataUniqueIdType': MovieData[26], 'KodiMetadataRatings': Ratings, 'KodiMetadataSet': MovieData[28], 'KodiMetadataSetOverview': MovieData[29], 'KodiMetadataSetId': MovieData[30], 'KodiMetadataVideoAssetTitle': MovieData[31], 'KodiMetadataShowLinks': ShowLinks, 'KodiMetadataTags': Tags, 'KodiMetadataUniqueIds': UniqueIds}
 
     # musicvideo
+    def get_path_runtime_by_musicvideoid(self, KodiId):
+        self.cursor.execute("SELECT idMVideo, c13, c04 FROM musicvideo WHERE idMVideo = ?", (KodiId,))
+        Data = self.cursor.fetchone()
+
+        if Data:
+            return [Data]
+
+        return []
+
     def get_musicvideos_doubles(self):
         Data = {}
         self.cursor.execute("SELECT c00, premiered, c10, c09, c12 FROM musicvideo GROUP BY c00, premiered, c10, c09, c12 HAVING COUNT(c00) > 1")
@@ -310,9 +344,9 @@ class VideoDatabase:
 
         # c15 (not used by Kodi) contains if it's a playlist
         if isPlaylist and not isPlaylistItem or not isPlaylist and isPlaylistItem: # Skip tracknumber updates
-            self.cursor.execute("UPDATE musicvideo SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c13 = ?, premiered = ? WHERE idMVideo = ?", (Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, KodiFullPath, PremiereDate, KodiItemId))
+            self.cursor.execute("UPDATE musicvideo SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c13 = ?, c14 = ?, premiered = ? WHERE idMVideo = ?", (Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, KodiFullPath, KodiPathId, PremiereDate, KodiItemId))
         else:
-            self.cursor.execute("UPDATE musicvideo SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c13 = ?, premiered = ? WHERE idMVideo = ?", (Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, KodiFullPath, PremiereDate, KodiItemId))
+            self.cursor.execute("UPDATE musicvideo SET c00 = ?, c01 = ?, c04 = ?, c05 = ?, c06 = ?, c08 = ?, c09 = ?, c10 = ?, c11 = ?, c12 = ?, c13 = ?, c14 = ?, premiered = ? WHERE idMVideo = ?", (Name, Poster, RunTimeTicks, Directors, Studio, Overview, Album, Artist, Genre, IndexNumber, KodiFullPath, KodiPathId, PremiereDate, KodiItemId))
 
         self.update_file(KodiFileId, DateCreated, Filename, KodiStackedFilename)
         self.cursor.execute("UPDATE path SET strPath = ? WHERE idPath = ?", (Path, KodiPathId))
@@ -339,12 +373,13 @@ class VideoDatabase:
             else:
                 PathAndFilename = f"{MusicVideoData[11]}{MusicVideoData[12]}"
 
-        Artwork = self.get_artwork(KodiItemId, "musicvideo", "")
+        Artwork = self.common_db.get_artwork(KodiItemId, "musicvideo", "")
         People = self.get_people_artwork(KodiItemId, "musicvideo")
-        return {'mediatype': "musicvideo", "dbid": KodiItemId, 'title': MusicVideoData[0], 'duration': MusicVideoData[1], 'Director': MusicVideoData[2], 'StudioName': MusicVideoData[3], 'Overview': MusicVideoData[4], 'Album': MusicVideoData[5], 'genre': MusicVideoData[6], 'track': MusicVideoData[7], 'KodiPremiereDate': MusicVideoData[8], 'playcount': MusicVideoData[9], 'lastplayed': MusicVideoData[10], 'path': MusicVideoData[11], 'pathandfilename': PathAndFilename, 'properties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'People': People, 'artwork': Artwork, 'KodiRunTimeTicks': MusicVideoData[13], 'KodiPlaybackPositionTicks': MusicVideoData[14], 'KodiDateCreated': MusicVideoData[15]}
+        Tags = self.get_Tags(KodiItemId, "musicvideo")
+        return {'KodiMetadataMediatype': "musicvideo", "KodiMetadataDBID": KodiItemId, 'KodiMetadataTitle': MusicVideoData[0], 'KodiMetadataDuration': MusicVideoData[1], 'KodiMetadataDirector': MusicVideoData[2], 'KodiMetadataStudioName': MusicVideoData[3], 'KodiMetadataOverview': MusicVideoData[4], 'KodiMetadataAlbum': MusicVideoData[5], 'KodiMetadataGenre': MusicVideoData[6], 'KodiMetadataTrack': MusicVideoData[7], 'KodiMetadataPremiereDate': MusicVideoData[8], 'KodiMetadataPlaycount': MusicVideoData[9], 'KodiMetadataLastplayed': MusicVideoData[10], 'KodiMetadataPath': MusicVideoData[11], 'KodiMetadataPathandfilename': PathAndFilename, 'KodiMetadataProperties': {'IsFolder': 'false', 'IsPlayable': 'true'}, 'KodiMetadataPeople': People, 'KodiMetadataArtwork': Artwork, 'KodiMetadataRunTimeTicks': MusicVideoData[13], 'KodiMetadataPlaybackPositionTicks': MusicVideoData[14], 'KodiMetadataDateCreated': MusicVideoData[15], 'KodiMetadataTags': Tags}
 
     def get_musicvideos_recentlyadded_albums(self, Tag):
-        self.cursor.execute(f'select actor_link.actor_id, musicvideo.c09, musicvideo.c10, musicvideo.idMVideo from musicvideo JOIN files ON files.idFile=musicvideo.idFile JOIN actor_link ON actor_link.media_id=musicvideo.idMVideo AND actor_link.media_type="musicvideo" JOIN tag_link ON tag_link.media_id=musicvideo.idMVideo AND tag_link.media_type="musicvideo" JOIN tag ON tag.tag_id=tag_link.tag_id AND tag.name="{Tag}" GROUP BY musicvideo.c10,musicvideo.c09 ORDER BY files.dateadded DESC LIMIT {utils.maxnodeitems}')
+        self.cursor.execute(f'select actor_link.actor_id, musicvideo.c09, musicvideo.c10, musicvideo.idMVideo from musicvideo JOIN files ON files.idFile=musicvideo.idFile JOIN actor_link ON actor_link.media_id=musicvideo.idMVideo AND actor_link.media_type="musicvideo" JOIN tag_link ON tag_link.media_id=musicvideo.idMVideo AND tag_link.media_type="musicvideo" JOIN tag ON tag.tag_id=tag_link.tag_id AND tag.name=? GROUP BY musicvideo.c10,musicvideo.c09 ORDER BY files.dateadded DESC LIMIT {utils.maxnodeitems}', (Tag,))
         return self.cursor.fetchall()
 
     def get_musicvideos_KodiId_MusicBrainzId_Artist_Title(self):
@@ -568,18 +603,27 @@ class VideoDatabase:
         if not SeriesData:
             return {}
 
-        if SeriesData[14] and SeriesData[16]:
-            UnWatchedEpisodes = int(SeriesData[14]) - int(SeriesData[16])
+        if SeriesData[14]:
+            if SeriesData[16]:
+                UnWatchedEpisodes = int(SeriesData[14]) - int(SeriesData[16])
+            else:
+                UnWatchedEpisodes = int(SeriesData[14])
         else:
             UnWatchedEpisodes = 0
 
-        Artwork = self.get_artwork(KodiShowId, "tvshow", "")
+        Artwork = self.common_db.get_artwork(KodiShowId, "tvshow", "")
         People = self.get_people_artwork(KodiShowId, "tvshow")
 
         # get ratings
         self.cursor.execute("SELECT rating_type, rating, votes FROM rating WHERE media_id = ? AND media_type = ?", (KodiShowId, "tvshow"))
         Ratings = self.cursor.fetchall()
-        return {'mediatype': "tvshow", "dbid": KodiShowId, 'title': SeriesData[0], 'SeriesName': SeriesData[0], 'Overview': SeriesData[1], 'Status': SeriesData[2], 'KodiPremiereDate': SeriesData[3], 'genre': SeriesData[4], 'OriginalTitle': SeriesData[5], 'UniqueIdLink': SeriesData[6], 'MPAA': SeriesData[7], 'StudioName': SeriesData[8], 'SortName': SeriesData[9], 'CriticRating': SeriesData[10], 'duration': SeriesData[11], 'lastplayed': SeriesData[12], 'CommunityRating': SeriesData[13], 'path': f"videodb://tvshows/titles/{KodiShowId}/", 'properties': {'TotalEpisodes': SeriesData[14], 'TotalSeasons': SeriesData[15], 'WatchedEpisodes': SeriesData[16], 'UnWatchedEpisodes': UnWatchedEpisodes, 'IsFolder': 'true', 'IsPlayable': 'true'}, 'People': People, 'artwork': Artwork, 'KodiDateCreated': SeriesData[17], 'Ratings': Ratings, 'RatingType': SeriesData[18]}
+
+        # Get tags
+        Tags = self.get_Tags(KodiShowId, "tvshow")
+
+        # UniqueIds
+        UniqueIds = self.get_UniqueIds(KodiShowId, "tvshow")
+        return {'KodiMetadataMediatype': "tvshow", "KodiMetadataDBID": KodiShowId, 'KodiMetadataTitle': SeriesData[0], 'KodiMetadataSeriesName': SeriesData[0], 'KodiMetadataOverview': SeriesData[1], 'KodiMetadataStatus': SeriesData[2], 'KodiMetadataPremiereDate': SeriesData[3], 'KodiMetadataGenre': SeriesData[4], 'KodiMetadataOriginalTitle': SeriesData[5], 'KodiMetadataUniqueIdLink': SeriesData[6], 'KodiMetadataMPAA': SeriesData[7], 'KodiMetadataStudioName': SeriesData[8], 'KodiMetadataSortName': SeriesData[9], 'KodiMetadataUserRating': SeriesData[10], 'KodiMetadataDuration': SeriesData[11], 'KodiMetadataLastplayed': SeriesData[12], 'KodiMetadataCommunityRating': SeriesData[13], 'KodiMetadataPath': f"videodb://tvshows/titles/{KodiShowId}/", 'KodiMetadataProperties': {'TotalEpisodes': SeriesData[14], 'TotalSeasons': SeriesData[15], 'WatchedEpisodes': SeriesData[16], 'UnWatchedEpisodes': UnWatchedEpisodes, 'IsFolder': 'true', 'IsPlayable': 'true'}, 'KodiMetadataPeople': People, 'KodiMetadataArtwork': Artwork, 'KodiMetadataDateCreated': SeriesData[17], 'KodiMetadataRatings': Ratings, 'KodiMetadataRatingType': SeriesData[18], 'KodiMetadataTags': Tags, 'KodiMetadataUniqueIds': UniqueIds}
 
     def add_link_movie_tvshow(self, KodiMovieId, KodiShowId):
         self.cursor.execute("INSERT OR REPLACE INTO movielinktvshow(idMovie, idShow) VALUES (?, ?)", (KodiMovieId, KodiShowId))
@@ -675,14 +719,18 @@ class VideoDatabase:
         if not SeasonData:
             return {}
 
-        if SeasonData[11] and SeasonData[12]:
-            UnWatchedEpisodes = int(SeasonData[11]) - int(SeasonData[12])
+        if SeasonData[11]:
+            if SeasonData[12]:
+                UnWatchedEpisodes = int(SeasonData[11]) - int(SeasonData[12])
+            else:
+                UnWatchedEpisodes = int(SeasonData[11])
         else:
             UnWatchedEpisodes = 0
 
-        Artwork = self.get_artwork(KodiSeasonId, "season", "")
+        Artwork = self.common_db.get_artwork(KodiSeasonId, "season", "")
+        Artwork.update(self.common_db.get_artwork(SeasonData[10], "tvshow", "tvshow."))
         People = self.get_people_artwork(KodiSeasonId, "season")
-        return {'mediatype': "season", "dbid": KodiSeasonId, 'ParentIndexNumber': SeasonData[0], 'title': SeasonData[1], 'CriticRating': SeasonData[2], 'SeriesName': SeasonData[3], 'Overview': SeasonData[4], 'KodiPremiereDate': SeasonData[5], 'genre': SeasonData[6], 'StudioName': SeasonData[7], 'MPAA': SeasonData[8], 'firstaired': SeasonData[9], 'path': f"videodb://tvshows/titles/{SeasonData[10]}/{SeasonData[0]}/", 'properties': {'TVShowDBID': SeasonData[10], 'NumEpisodes': SeasonData[11], 'WatchedEpisodes': SeasonData[12], 'UnWatchedEpisodes': UnWatchedEpisodes, 'IsFolder': 'true', 'IsPlayable': 'true'}, 'People': People, 'artwork': Artwork}
+        return {'KodiMetadataMediatype': "season", "KodiMetadataDBID": KodiSeasonId, 'KodiMetadataParentIndexNumber': SeasonData[0], 'KodiMetadataTitle': SeasonData[1], 'KodiMetadataUserRating': SeasonData[2], 'KodiMetadataSeriesName': SeasonData[3], 'KodiMetadataOverview': SeasonData[4], 'KodiMetadataPremiereDate': SeasonData[5], 'KodiMetadataGenre': SeasonData[6], 'KodiMetadataStudioName': SeasonData[7], 'KodiMetadataMPAA': SeasonData[8], 'KodiMetadataFirstaired': SeasonData[9], 'KodiMetadataPath': f"videodb://tvshows/titles/{SeasonData[10]}/{SeasonData[0]}/", 'KodiMetadataProperties': {'TVShowDBID': SeasonData[10], 'NumEpisodes': SeasonData[11], 'WatchedEpisodes': SeasonData[12], 'UnWatchedEpisodes': UnWatchedEpisodes, 'IsFolder': 'true', 'IsPlayable': 'true'}, 'KodiMetadataPeople': People, 'KodiMetadataArtwork': Artwork}
 
     def get_showid_by_episodeid(self, KodiEpisodeId):
         self.cursor.execute("SELECT idShow FROM episode WHERE idEpisode = ?", (KodiEpisodeId,))
@@ -810,15 +858,17 @@ class VideoDatabase:
 
         People = self.get_people_artwork(KodiItemId, "episode")
         People += self.get_people_artwork(EpisodeData[29], "tvshow")
-        Artwork = self.get_artwork(KodiItemId, "episode", "")
-        Artwork.update(self.get_artwork(EpisodeData[29], "tvshow", "tvshow."))
-        Artwork.update(self.get_artwork(EpisodeData[30], "season", "season."))
+        Artwork = self.common_db.get_artwork(KodiItemId, "episode", "")
+        Artwork.update(self.common_db.get_artwork(EpisodeData[29], "tvshow", "tvshow."))
+        Artwork.update(self.common_db.get_artwork(EpisodeData[30], "season", "season."))
 
         # get Ratings
         self.cursor.execute("SELECT rating_type, rating, votes FROM rating WHERE media_id = ? AND media_type = ?", (KodiItemId, "episode"))
         Ratings = self.cursor.fetchall()
 
-        return {'mediatype': "episode", "dbid": KodiItemId, 'title': EpisodeData[0], 'Overview': EpisodeData[1], 'Writer': EpisodeData[2], 'KodiPremiereDate': EpisodeData[3], 'duration': EpisodeData[4], 'Director': EpisodeData[5], 'ParentIndexNumber': EpisodeData[6], 'IndexNumber': EpisodeData[7], 'OriginalTitle': EpisodeData[8], 'SortParentIndexNumber': EpisodeData[9], 'SortIndexNumber': EpisodeData[10], 'UniqueIdLink': EpisodeData[11], 'CriticRating': EpisodeData[12], 'playcount': EpisodeData[13], 'lastplayed': EpisodeData[14], 'SeriesName': EpisodeData[18], 'genre': EpisodeData[15], 'StudioName': EpisodeData[16], 'path': EpisodeData[17], 'pathandfilename': PathAndFilename, 'properties': {'TVShowDBID': EpisodeData[29], 'IsFolder': 'false', 'IsPlayable': 'true'}, 'People': People, 'artwork': Artwork, 'KodiRunTimeTicks': EpisodeData[20], 'KodiPlaybackPositionTicks': EpisodeData[21], 'Rating': EpisodeData[22], 'Votes': EpisodeData[23], 'RatingType': EpisodeData[24], 'UniqueIdValue': EpisodeData[25], 'UniqueIdType': EpisodeData[26], 'Ratings': Ratings, 'MPAA': EpisodeData[27], 'KodiDateCreated': EpisodeData[28]}
+        # UniqueIds
+        UniqueIds = self.get_UniqueIds(KodiItemId, "episode")
+        return {'KodiMetadataMediatype': "episode", "KodiMetadataDBID": KodiItemId, 'KodiMetadataTitle': EpisodeData[0], 'KodiMetadataOverview': EpisodeData[1], 'KodiMetadataWriter': EpisodeData[2], 'KodiMetadataPremiereDate': EpisodeData[3], 'KodiMetadataDuration': EpisodeData[4], 'KodiMetadataDirector': EpisodeData[5], 'KodiMetadataParentIndexNumber': EpisodeData[6], 'KodiMetadataIndexNumber': EpisodeData[7], 'KodiMetadataOriginalTitle': EpisodeData[8], 'KodiMetadataSortParentIndexNumber': EpisodeData[9], 'KodiMetadataSortIndexNumber': EpisodeData[10], 'KodiMetadataUniqueIdLink': EpisodeData[11], 'KodiMetadataCriticRating': EpisodeData[12], 'KodiMetadataPlaycount': EpisodeData[13], 'KodiMetadataLastplayed': EpisodeData[14], 'KodiMetadataSeriesName': EpisodeData[18], 'KodiMetadataGenre': EpisodeData[15], 'KodiMetadataStudioName': EpisodeData[16], 'KodiMetadataPath': EpisodeData[17], 'KodiMetadataPathandfilename': PathAndFilename, 'KodiMetadataProperties': {'TVShowDBID': EpisodeData[29], 'IsFolder': 'false', 'IsPlayable': 'true'}, 'KodiMetadataPeople': People, 'KodiMetadataArtwork': Artwork, 'KodiMetadataRunTimeTicks': EpisodeData[20], 'KodiMetadataPlaybackPositionTicks': EpisodeData[21], 'KodiMetadataRating': EpisodeData[22], 'KodiMetadataVotes': EpisodeData[23], 'KodiMetadataRatingType': EpisodeData[24], 'KodiMetadataUniqueIdValue': EpisodeData[25], 'KodiMetadataUniqueIdType': EpisodeData[26], 'KodiMetadataRatings': Ratings, 'KodiMetadataMPAA': EpisodeData[27], 'KodiMetadataDateCreated': EpisodeData[28], 'KodiMetadataUniqueIds': UniqueIds}
 
     # boxsets
     def add_boxset(self, strSet, strOverview):
@@ -953,7 +1003,7 @@ class VideoDatabase:
 
         while True:
             try:
-                self.cursor.execute("UPDATE OR IGNORE actor SET name = ?, art_urls = ? WHERE actor_id = ?", (PersonNameMod, ArtUrl, PersonId))
+                self.cursor.execute("UPDATE actor SET name = ?, art_urls = ? WHERE actor_id = ?", (PersonNameMod, ArtUrl, PersonId))
                 break
             except Exception as Error:
                 if utils.DebugLog: xbmc.log(f"EMBY.database.video_db (DEBUG): Update person, Duplicate ActorName detected: {PersonNameMod} / {Error}", 1) # LOGDEBUG
@@ -1029,16 +1079,6 @@ class VideoDatabase:
 
         return "", "", False, False, False
 
-    def get_artist_metadata_for_listitem(self, KodiItemId):
-        self.cursor.execute("SELECT name, art_urls FROM actor WHERE actor_id = ?", (KodiItemId,))
-        ItemData = self.cursor.fetchone()
-
-        if not ItemData:
-            return {}
-
-        Artwork = {"poster": ItemData[1]}
-        return {'mediatype': "actor", "dbid": KodiItemId, 'title': ItemData[0], 'artist': ItemData[0], 'path': f"videodb://musicvideos/artists/{KodiItemId}/", 'properties': {'IsFolder': 'true', 'IsPlayable': 'true'}, 'artwork': Artwork}
-
     def del_musicartist(self, ArtistId):
         self.delete_people_by_Id(ArtistId)
 
@@ -1061,7 +1101,7 @@ class VideoDatabase:
     def get_people_artwork(self, KodiItemId, ContentType):
         People = ()
         PeopleCounter = 0
-        self.cursor.execute("SELECT actor_id, role FROM actor_link WHERE media_id = ? and media_type = ?", (KodiItemId, ContentType))
+        self.cursor.execute("SELECT actor_id, role FROM actor_link WHERE media_id = ? AND media_type = ? ORDER BY cast_order", (KodiItemId, ContentType))
         ActorLinks = self.cursor.fetchall()
 
         for ActorLink in ActorLinks:
@@ -1232,20 +1272,14 @@ class VideoDatabase:
         else: # Keep favorites tag
             self.cursor.execute("SELECT tag_id FROM tag_link WHERE media_id = ? AND media_type = ?", (MediaId, MediaType))
             TagIds = self.cursor.fetchall()
-            SQLData = ()
 
             for TagId in TagIds:
-                self.cursor.execute("SELECT EXISTS(SELECT 1 FROM tag WHERE tag_id = ? AND name NOT LIKE ?)", (TagId, "% (Favorites)"))
+                self.cursor.execute("SELECT EXISTS(SELECT 1 FROM tag WHERE tag_id = ? AND name NOT LIKE ?)", (TagId[0], "% (Favorites)"))
 
                 if self.cursor.fetchone()[0]:
-                    SQLData += ((MediaId, MediaType),)
+                    self.cursor.execute("DELETE FROM tag_link WHERE tag_id = ? AND media_id = ? AND media_type = ?", (TagId[0], MediaId, MediaType))
 
-            if SQLData:
-                self.cursor.executemany("DELETE FROM tag_link WHERE media_id = ? AND media_type = ?", SQLData)
-
-            del SQLData
-
-    def get_collection_tags(self, LibraryTag, KodiMediaType):
+    def get_collection_tags(self, LibraryTag, KodiType):
         self.cursor.execute("SELECT tag_id, name FROM tag WHERE name LIKE ?", ("% (Collection)",))
         CollectionItems = self.cursor.fetchall()
         CollectionIds = ()
@@ -1263,16 +1297,16 @@ class VideoDatabase:
             LibraryTagId = self.cursor.fetchone()
 
             if LibraryTagId:
-                self.cursor.execute("SELECT DISTINCT media_id FROM tag_link WHERE tag_id = ?", (LibraryTagId[0],))
+                self.cursor.execute("SELECT DISTINCT media_id FROM tag_link WHERE tag_id = ? AND media_type = ?", (LibraryTagId[0], KodiType))
                 ValidMediaIds = self.cursor.fetchall()
             else:
                 return (), ()
         else:
-            self.cursor.execute("SELECT DISTINCT media_id FROM tag_link WHERE media_type = ?", (KodiMediaType,))
+            self.cursor.execute("SELECT DISTINCT media_id FROM tag_link WHERE media_type = ?", (KodiType,))
             ValidMediaIds = self.cursor.fetchall()
 
         for ValidMediaId in  ValidMediaIds:
-            self.cursor.execute("SELECT DISTINCT tag_id FROM tag_link WHERE media_id = ? AND media_type = ?", (ValidMediaId[0], KodiMediaType))
+            self.cursor.execute("SELECT DISTINCT tag_id FROM tag_link WHERE media_id = ? AND media_type = ?", (ValidMediaId[0], KodiType))
             TagIds = self.cursor.fetchall()
 
             for TagId in TagIds:
@@ -1310,7 +1344,12 @@ class VideoDatabase:
         return "", False, False, False
 
     def delete_tag(self, Name):
-        self.cursor.execute("DELETE FROM tag WHERE name = ?", (Name,))
+        self.cursor.execute("SELECT tag_id FROM tag WHERE name = ?", (Name,))
+        TagId = self.cursor.fetchone()
+
+        if TagId:
+            self.cursor.execute("DELETE FROM tag_link WHERE tag_id = ?", (TagId[0],))
+            self.cursor.execute("DELETE FROM tag WHERE tag_id = ?", (TagId[0],))
 
     def delete_tag_by_Id(self, TagId):
         TagName = ""
@@ -1347,6 +1386,20 @@ class VideoDatabase:
             self.add_link_tag(TagId, KodiItemId, KodiType)
         else:
             self.cursor.execute("DELETE FROM tag_link WHERE tag_id = ? AND media_type = ? AND media_id = ?", (TagId, KodiType, KodiItemId))
+
+    def get_Tags(self, KodiItemId, KodiType):
+        self.cursor.execute("SELECT tag_id FROM tag_link WHERE media_id = ? AND media_type = ?", (KodiItemId, KodiType))
+        TagIds = self.cursor.fetchall()
+        Tags = ()
+
+        for Row in TagIds:
+            self.cursor.execute("SELECT name FROM tag WHERE tag_id = ?", (Row[0],))
+            TagData = self.cursor.fetchone()
+
+            if TagData:
+                Tags += (TagData[0],)
+
+        return Tags
 
     # genres
     def get_add_genre(self, GenreName):
@@ -1522,6 +1575,16 @@ class VideoDatabase:
         del SQLData1
         return UniqueId
 
+    def get_UniqueIds(self, KodiItemId, KodiType):
+        self.cursor.execute("SELECT type, value FROM uniqueid WHERE media_id = ? AND media_type = ?", (KodiItemId, KodiType))
+        UniqueIdData = self.cursor.fetchall()
+        UniqueIds = {}
+
+        for Row in UniqueIdData:
+            UniqueIds[Row[0]] = Row[1]
+
+        return UniqueIds
+
     # bookmarks
     def get_bookmark_urls_all(self):
         self.cursor.execute("SELECT thumbNailImage FROM bookmark")
@@ -1552,7 +1615,7 @@ class VideoDatabase:
 
             if Progress:
                 if CurrentProgress != Progress:
-                    self.cursor.execute("UPDATE bookmark SET timeInSeconds = ?, totalTimeInSeconds = ? WHERE idFile = ?", (Progress, Runtime, KodiFileId))
+                    self.cursor.execute("UPDATE bookmark SET timeInSeconds = ?, totalTimeInSeconds = ? WHERE idFile = ? AND type = ?", (Progress, Runtime, KodiFileId, 1))
                     Update = True
             else:
                 self.cursor.execute("DELETE FROM bookmark WHERE idFile = ? AND type = ?", (KodiFileId, "1"))
@@ -1602,16 +1665,6 @@ class VideoDatabase:
         del SQLData
 
     # artwork
-    def get_artwork(self, KodiItemId, ContentType, PrefixKey):
-        Artwork = {}
-        self.cursor.execute("SELECT type, url FROM art WHERE media_id = ? AND media_type = ?", (KodiItemId, ContentType))
-        ArtworksData = self.cursor.fetchall()
-
-        for ArtworkData in ArtworksData:
-            Artwork[f"{PrefixKey}{ArtworkData[0]}"] = ArtworkData[1]
-
-        return Artwork
-
     def get_artworks(self, KodiItemId, ContentType):
         self.cursor.execute("SELECT art_id, type, url FROM art WHERE media_id = ? and media_type = ?", (KodiItemId, ContentType))
         return self.cursor.fetchall()
@@ -1653,6 +1706,8 @@ class VideoDatabase:
             self.cursor.execute("SELECT idFile, c00 FROM movie WHERE idMovie = ?", (KodiId,))
         elif KodiType == "musicvideo":
             self.cursor.execute("SELECT idFile, c00 FROM musicvideo WHERE idMVideo = ?", (KodiId,))
+        else:
+            return ()
 
         ContentInfo = self.cursor.fetchone()
 
@@ -1727,12 +1782,9 @@ class VideoDatabase:
         for ArtworkData in ArtworksData:
             if ArtworkData[1] in ("poster", "thumb", "landscape"):
                 if Download:
-                    if ArtworkData[2].startswith("image://"):
-                        UrlMod = ArtworkData[2].replace('%7Credirect-limit%3D1000%26failonerror%3Dfalse', '-download%7Credirect-limit%3D1000%26failonerror%3Dfalse')
-                    else:
-                        UrlMod = f"{ArtworkData[2].replace('|redirect-limit=1000&failonerror=false', '')}-download|redirect-limit=1000&failonerror=false"
+                    UrlMod = utils.set_Artwork_Overlay("download", ArtworkData[2])
                 else:
-                    UrlMod = ArtworkData[2].replace("-download", "")
+                    UrlMod = utils.set_Artwork_Overlay("", ArtworkData[2])
 
                 SQLData += ((UrlMod, ArtworkData[0]),)
                 TextureDBUrls += ((ArtworkData[2],),)
@@ -1767,10 +1819,13 @@ class VideoDatabase:
         CurrentName = self.cursor.fetchone()
 
         if CurrentName:
+            NewName = CurrentName[0]
+
+            while NewName.endswith(" (download)"):
+                NewName = NewName[:-11]
+
             if isDownloaded:
-                NewName = f"{CurrentName[0]} (download)"
-            else:
-                NewName = CurrentName[0].replace(" (download)", "")
+                NewName = f"{NewName} (download)"
 
             NameChanged = bool(CurrentName[0] != NewName)
 

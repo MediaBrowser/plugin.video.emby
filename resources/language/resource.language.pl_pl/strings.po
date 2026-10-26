@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (najlepszy wysiłek)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (przyspieszone przekazywanie)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (przyspieszone przekazywanie)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Przywrócono kopię zapasową z:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Ulubione filmy"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Ulubione zestawy pudełek"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Ulubione filmy"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Ulubione zdjęcia"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Ulubione teledyski"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Niedawno dodane teledyski"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Teledyski w trakcie odtwarzania"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Teledyski od A do Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Filmy od A do Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Seria A–Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Album fotograficzny od A do Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "Filmy od A do Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Tagi wideo domowego"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Ulubione wideo"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Tagi wideo"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Nieobejrzane teledyski"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Nieobejrzane wideo"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Utwory według gatunku"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Seriale według gatunku"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filmy według gatunku"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Losowe filmy"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Losowe"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Polecane"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Odcinki losowe"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Losowe programy telewizyjne"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Losowe teledyski"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Tagi teledysków"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Tagi"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Ulubione"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Ulubieni aktorzy"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Ulubieni artyści"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Ulubione programy telewizyjne"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Nadchodzące odcinki"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Kontynuuj oglądanie"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Niedawno dodane"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Pobierz natywne rozdziały"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Włączenie wymaga pełnej ponownej synchronizacji"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Ulubiony dźwięk"

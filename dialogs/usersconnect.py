@@ -32,6 +32,7 @@ class UsersConnect(xbmcgui.WindowXMLDialog):
     def onAction(self, action):
         if action in (ACTION_BACK, ACTION_PREVIOUS_MENU, ACTION_PARENT_DIR):
             self.close()
+            return
 
         if action in (ACTION_SELECT_ITEM, ACTION_MOUSE_LEFT_CLICK):
             if self.getFocusId() == LIST:

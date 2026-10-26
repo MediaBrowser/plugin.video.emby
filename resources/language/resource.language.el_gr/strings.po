@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Βέλτιστη προσπάθεια)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Ταχεία προώθηση)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Ταχεία προώθηση)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Επαναφορά αντιγράφου ασφαλείας από:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Αγαπημένες ταινίες"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Αγαπημένα κουτιά"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Αγαπημένα βίντεο"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Αγαπημένες φωτογραφίες"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Αγαπημένα μουσικά βίντεο"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Μουσικά βίντεο που προστέθηκαν πρόσφατα"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Μουσικά βίντεο σε εξέλιξη"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Α-Ζ μουσικά βίντεο"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Ταινίες A-Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Σειρά A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Α-Ζ φωτοάλμπουμ"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "Α-Ω βίντεο"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Ετικέτες οικιακού βίντεο"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Αγαπημένα βίντεο στο σπίτι"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Ετικέτες βίντεο"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Μουσικά βίντεο που δεν έχουν παρακολουθηθεί"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Βίντεο που δεν έχουν προβληθεί"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Τραγούδια ανά είδος"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Τηλεοπτικές εκπομπές ανά είδος"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Ταινίες ανά είδος"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Τυχαίες ταινίες"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Τυχαίο"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Προτεινόμενα"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Τυχαία επεισόδια"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Τυχαίες τηλεοπτικές εκπομπές"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Τυχαία μουσικά βίντεο"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Ετικέτες μουσικών βίντεο"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Ετικέτες"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Αγαπημένα"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Αγαπημένοι ηθοποιοί"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Αγαπημένοι καλλιτέχνες"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Αγαπημένες τηλεοπτικές εκπομπές"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Προσεχή επεισόδια"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Συνεχίστε να παρακολουθείτε"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Προστέθηκε πρόσφατα"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Λήψη εγγενών κεφαλαίων"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Η ενεργοποίηση απαιτεί πλήρη επανασυγχρονισμό"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Αγαπημένος ήχος"

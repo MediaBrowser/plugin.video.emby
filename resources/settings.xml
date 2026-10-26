@@ -111,6 +111,11 @@
                     <default>false</default>
                     <control type="toggle"/>
                 </setting>
+                <setting id="NativeChapterDownload" label="33897" type="boolean" help="33898">
+                    <level>2</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
                 <setting id="BoxSetsToTags" label="33560" type="boolean" help="33561">
                     <level>2</level>
                     <default>false</default>
@@ -1643,18 +1648,11 @@
                 </setting>
             </group>
             <group id="2" label="33836">
-                <setting id="theme_ThemeBySkipIntro" type="string" label="33834" help="">
+                <setting id="theme_ThemeBySkipIntro" type="boolean" label="33834" help="">
                     <level>2</level>
-                    <default>off</default>
-                    <constraints>
-                        <options>
-                            <option label="33833">off</option>
-                            <option label="33581">audio</option>
-                            <option label="33587">video</option>
-                        </options>
-                    </constraints>
-                    <control type="spinner" format="string"/>
-                     <dependencies>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
                         <dependency type="enable">
                             <or>
                                 <condition operator="is" setting="theme_enable_audio">true</condition>
@@ -1663,18 +1661,11 @@
                         </dependency>
                     </dependencies>
                 </setting>
-                <setting id="theme_ThemeByContent" type="string" label="33835" help="">
+                <setting id="theme_ThemeByContent" type="boolean" label="33835" help="">
                     <level>2</level>
-                    <default>off</default>
-                    <constraints>
-                        <options>
-                            <option label="33833">off</option>
-                            <option label="33581">audio</option>
-                            <option label="33587">video</option>
-                        </options>
-                    </constraints>
-                    <control type="spinner" format="string"/>
-                     <dependencies>
+                    <default>false</default>
+                    <control type="toggle"/>
+                    <dependencies>
                         <dependency type="enable">
                             <or>
                                 <condition operator="is" setting="theme_enable_audio">true</condition>
@@ -1696,10 +1687,7 @@
                     </control>
                     <dependencies>
                         <dependency type="enable">
-                            <or>
-                                <condition operator="is" setting="theme_ThemeByContent">audio</condition>
-                                <condition operator="is" setting="theme_ThemeByContent">video</condition>
-                            </or>
+                            <condition operator="is" setting="theme_ThemeByContent">true</condition>
                         </dependency>
                     </dependencies>
                 </setting>
@@ -2422,10 +2410,11 @@
                     <default>CS0 (Best Effort)</default>
                     <constraints>
                         <options>
-                            <option label="33727">CS4 (Real-time interactive)</option>
                             <option label="33724">CS0 (Best Effort)</option>
-                            <option label="33725">CS5, EF (Expedited Forwarding)</option>
                             <option label="33726">CS1, AF11 (Assured Forwarding)</option>
+                            <option label="33727">CS4 (Real-time interactive)</option>
+                            <option label="33861">CS5 (Signaling)</option>
+                            <option label="33725">EF (Expedited Forwarding)</option>
                         </options>
                     </constraints>
                     <control type="spinner" format="string"/>

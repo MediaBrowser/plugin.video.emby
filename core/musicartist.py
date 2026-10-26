@@ -1,5 +1,5 @@
 import xbmc
-from helper import utils
+from helper import utils, copy
 from . import common
 
 KodiDBs = ("music", "video")
@@ -37,7 +37,7 @@ class MusicArtist:
             for Index, KodiItemIdsByDatabase in enumerate(KodiItemIds):
                 if KodiItemIdsByDatabase and KodiDBs[Index] in self.SQLs and self.SQLs[KodiDBs[Index]]:
                     for SubIndex, KodiItemIdByDatabase in enumerate(KodiItemIdsByDatabase):
-                        UpdateItem = Item.copy()
+                        UpdateItem = copy.Object(Item)
                         UpdateKodiItemIdCurrent = KodiItemIdByDatabase
                         UpdateItem['LibraryId'] = LibraryIds[Index][SubIndex]
 
@@ -155,14 +155,7 @@ class MusicArtist:
 
     def set_favorite(self, IsFavorite, Item, Video=True, Music=True): # Kodi Favorites
         KodiItemIds = common.get_Ids_MultiContent(Item['KodiItemId'])
-
-# AAAAAAAAAAAAA
-
         LibraryIds = common.get_Ids_MultiContent(Item.get('LibraryIds', ""))
-
-
-
-
 
         if KodiItemIds[1] and Video and "video" in self.SQLs and self.SQLs["video"]: # video
             for Index, KodiItemId in enumerate(KodiItemIds[1]): # musicvideo artists

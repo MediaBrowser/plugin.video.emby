@@ -3052,7 +3052,7 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Beste innsats)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
+msgid "EF (Expedited Forwarding)"
 msgstr ""
 
 msgctxt "#33726"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Gjenopprettet sikkerhetskopi fra:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Favorittfilmer"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Favorittbokssett"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Favorittvideoer"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Favorittbilder"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Favoritt musikkvideoer"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Nylig lagt til musikkvideoer"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Pågår Musikkvideoer"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z musikkvideoer"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z-filmer"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z-serien"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z fotoalbum"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z-videoer"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Hjemmevideo-tagger"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Favoritt hjemmevideoer"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Videomerker"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Usette musikkvideoer"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Usette videoer"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Sanger etter sjanger"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "TV-programmer etter sjanger"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filmer etter sjanger"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Tilfeldige filmer"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Tilfeldig"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Anbefalt"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Tilfeldige episoder"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Tilfeldige TV-serier"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Tilfeldige musikkvideoer"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Musikkvideomerker"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Etiketter"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favoritter"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Favorittskuespillere"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Favorittartister"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Favoritt-TV-programmer"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Kommende episoder"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Fortsett å se"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Nylig lagt til"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Last ned opprinnelige kapitler"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Aktivering krever en fullstendig resynkronisering"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Favoritt lyd"

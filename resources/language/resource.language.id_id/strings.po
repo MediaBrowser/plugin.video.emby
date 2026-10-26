@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Upaya Terbaik)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Penerusan yang Dipercepat)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Penerusan yang Dipercepat)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Memulihkan cadangan dari:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Film Favorit"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Boxset favorit"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Video favorit"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Foto Favorit"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Video musik favorit"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Video musik yang baru ditambahkan"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Sedang berlangsung Video musik"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Video musik A-Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "Film A-Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "seri A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Album foto A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "Video A-Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Tag video rumahan"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Video Rumah Favorit"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Tag video"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Video Musik yang Belum Ditonton"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Video yang belum ditonton"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Lagu berdasarkan genre"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Acara TV berdasarkan genre"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Film berdasarkan genre"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Film acak"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Acak"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Direkomendasikan"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Episode acak"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Acara TV Acak"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Video musik acak"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Tag video musik"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Tag"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favorit"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Aktor favorit"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Artis favorit"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Acara TV Favorit"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Episode mendatang"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Lanjutkan menonton"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Baru-baru ini ditambahkan"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Unduh bab asli"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Mengaktifkan memerlukan sinkronisasi ulang penuh"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Audio favorit"

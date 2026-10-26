@@ -46,7 +46,6 @@ class monitor(xbmc.Monitor):
             player.PlayerEventsQueue.put((("clear", data),))
         elif method == "Other.playback_failed": # youtube plugin
             player.PlayerEventsQueue.put((("stop", '{"end":true, "fail":true}'),))
-
         elif method == "Other.playback_init": # youtube plugin
             player.PlayerEventsQueue.put((("playerid", '{"player":{"playerid":1}}'),))
         elif method == "Other.playback_started": # youtube plugin
@@ -134,7 +133,7 @@ def SystemEvents():
         elif SystemEvent[0] == 'Other.backupdelete':
             utils.start_thread(backup.Delete, ())
         elif SystemEvent[0] == 'Other.skinreload':
-            utils.start_thread(cache.reset_querycache, ()) # Clear Cache
+            utils.start_thread(cache.reset, ()) # Clear Cache
             xbmc.executebuiltin('ReloadSkin()')
             xbmc.log("EMBY.hooks.monitor: Reload skin by notification", 1) # LOGINFO
         elif SystemEvent[0] == 'Other.manageserver':
@@ -324,19 +323,18 @@ def VideoLibrary_OnUpdate():
             if 'Progress' in EmbyUpdateItem:
                 if 'PlayCount' in EmbyUpdateItem:
                     EmbyServer.API.set_progress(EmbyId, EmbyUpdateItem['Progress'], EmbyUpdateItem['PlayCount'])
-                    UpdateUserDataCached = ((str(EmbyId), 0, "", EmbyUpdateItem['PlayCount'], False, 0),)
+                    cache.update_userdata_Kodi(str(EmbyId), ServerId, None, None, None, None, EmbyUpdateItem['PlayCount'])
                 else:
                     if not KodiDB:
                         KodiDB = dbio.DBOpenRO("video", "VideoLibrary_OnUpdate")
 
                     PlayCount = KodiDB.get_playcount(EmbyUpdateItem['KodiItemId'], EmbyUpdateItem['KodiType'])
                     EmbyServer.API.set_progress(EmbyId, EmbyUpdateItem['Progress'], PlayCount)
-                    UpdateUserDataCached = ((str(EmbyId), 0, "", PlayCount, False, 0),)
+                    cache.update_userdata_Kodi(str(EmbyId), ServerId, None, None, None, None, PlayCount)
             else:
                 EmbyServer.API.set_played(EmbyId, EmbyUpdateItem['PlayCount'])
-                UpdateUserDataCached = ((str(EmbyId), None, "", EmbyUpdateItem['PlayCount'], False, 0),)
+                cache.update_userdata_Kodi(str(EmbyId), ServerId, None, None, None, None, EmbyUpdateItem['PlayCount'])
 
-            cache.update_querycache_userdata(UpdateUserDataCached)
             xbmc.log(f"EMBY.hooks.monitor: VideoLibrary_OnUpdate ItemSkipUpdate: {utils.ItemSkipUpdate}", 1) # LOGINFO
 
 def ServerConnect(ServerSettings):
@@ -367,7 +365,6 @@ def settingschanged():
         enableCoverArtPreviousValue = utils.enableCoverArt
         maxnodeitemsPreviousValue = utils.maxnodeitems
         AddonModePathPreviousValue = utils.AddonModePath
-        websocketenabledPreviousValue = utils.websocketenabled
         curltimeoutsPreviousValue = utils.curltimeouts
         curlBoxSetsToTagsPreviousValue = utils.BoxSetsToTags
         DownloadPathPreviousValue = utils.DownloadPath
@@ -404,11 +401,6 @@ def settingschanged():
         # Toggle node items limit
         if maxnodeitemsPreviousValue != utils.maxnodeitems:
             utils.nodesreset()
-
-        # Toggle websocket connection
-        if websocketenabledPreviousValue != utils.websocketenabled:
-            for EmbyServer in list(utils.EmbyServers.values()):
-                EmbyServer.toggle_websocket(utils.websocketenabled)
 
         # Toggle collection tags
         if curlBoxSetsToTagsPreviousValue != utils.BoxSetsToTags:
@@ -501,9 +493,11 @@ def get_digits(Text):
 def setup():
     # Wait for homescreen (Kodi fully loaded)
     if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): --->[ wait for homescreen ]", 1) # LOGDEBUG
+    Counter = 0
 
-    while not xbmc.getCondVisibility('Window.IsActive(10000)'):
+    while not xbmc.getCondVisibility('Window.IsActive(10000)') and Counter < 120: # timeout after 120 Seconds
         utils.sleep(1)
+        Counter += 1
 
     if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): ---<[ wait for homescreen ]", 1) # LOGDEBUG
 
@@ -576,7 +570,7 @@ def setup():
     return False
 
 def wait_PlayerEventsQueue():
-    if player.EmbyPlaying and player.PlayingItem[4]:
+    if player.EmbyPlaying and player.PlayingItem["EmbyServer"]:
         player.PlayerEventsQueue.put((("stop", '{"end":"quit"}'),))
         if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): CONDITION: --->[ PlayerEventsQueue ]", 1) # LOGDEBUG
 
@@ -643,11 +637,17 @@ def StartUp():
             utils.start_thread(ServersConnect, ())
 
         utils.NextGenOnline.set()
+        utils.start_thread(init_widget_refresh, ())
 
         while not XbmcMonitor.waitForAbort(0.1):
             pass
 
     ShutDown()
+
+def init_widget_refresh():
+    utils.sleep(1)
+    utils.refresh_widgets(True)
+    utils.refresh_widgets(False)
 
 def ShutDown():
     global FullShutdown

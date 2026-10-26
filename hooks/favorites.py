@@ -1,3 +1,4 @@
+import threading
 import xbmc
 import xbmcvfs
 from helper import utils
@@ -6,6 +7,7 @@ from database import dbio
 
 KodiFavFile = "special://profile/favourites.xml"
 FavoriteUpdatedByEmby = False
+FavoriteUpdateLock = threading.Lock()
 
 
 def monitor_Favorites():
@@ -31,10 +33,11 @@ def monitor_Favorites():
             continue
 
         # Skip favorite update
-        if FavoriteUpdatedByEmby:
-            FavoriteUpdatedByEmby = False
-            FavoritesCached = get_Favorites()
-            continue
+        with utils.SafeLock(FavoriteUpdateLock):
+            if FavoriteUpdatedByEmby:
+                FavoriteUpdatedByEmby = False
+                FavoritesCached = get_Favorites()
+                continue
 
         # Check if favorite.xml file has changed (by timestamp)
         if FavoriteTimestamp < TimestampReadOut:
@@ -124,12 +127,12 @@ def monitor_Favorites():
                             KodiItemId = Temp[5][:-4]
                             EmbyType = "Playlist"
                             ContentType = "music"
-                        elif Path.startswith("plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype=video"):
+                        elif Path.startswith("plugin://plugin.video.emby-next-gen/?mode=playlist&mediatype=video"):
                             Temp = Path.split("id=")
                             KodiItemId = Temp[-1]
                             EmbyType = "Playlist"
                             ContentType = "video"
-                        elif Path.startswith("plugin://plugin.service.emby-next-gen/?mode=playlist&mediatype=audio"):
+                        elif Path.startswith("plugin://plugin.audio.emby-next-gen/?mode=playlist&mediatype=audio"):
                             Temp = Path.split("id=")
                             KodiItemId = Temp[-1]
                             EmbyType = "Playlist"
@@ -181,7 +184,7 @@ def monitor_Favorites():
 
                             if len(FolderIds) >= 4:
                                 ServerId = FolderIds[4]
-                        elif FavoriteChanged.get("thumbnail", "").startswith("image://emby@http%3A%2F%2F127.0.0.1%3A57342") or FavoriteChanged.get("thumbnail", "").startswith("image://epg@http%3A%2F%2F127.0.0.1%3A57342"): # by picure url metadata
+                        elif FavoriteChanged.get("thumbnail", "").startswith("image://emby@dav%3A%2F%2F127.0.0.1%3A57342") or FavoriteChanged.get("thumbnail", "").startswith("image://epg@dav%3A%2F%2F127.0.0.1%3A57342"): # by picure url metadata
                             ValidImage = utils.image_url_decode(FavoriteChanged["thumbnail"])
                             FolderIds = ValidImage.split("/")
 
@@ -578,28 +581,17 @@ def get_existing_favorite(Favorite, Favorites, PathCheck):
 
     return FoundInPath, FoundInPathFiltered, PathIndex, bool(Path)
 
-def update_favorite(Favorite, Path, ImageUrl):
-    FavoriteUpdated = Favorite.copy()
-
-    if ImageUrl:
-        FavoriteUpdated["thumbnail"] = ImageUrl
-
-    if 'path' in Favorite:
-        FavoriteUpdated["path"] = Path
-    else:
-        FavoriteUpdated["windowparameter"] = Path
-
-    return FavoriteUpdated
-
 def send_favorite(Favorite):
     global FavoriteUpdatedByEmby
-    FavoriteUpdatedByEmby = True
-    FavoriteTitle = Favorite["title"].replace('"', '\\"')
 
-    if 'path' in Favorite:
-        utils.SendJson("Favourites.AddFavourite", f'{{"type":"{Favorite["type"]}", "title":"{FavoriteTitle}", "thumbnail":"{Favorite["thumbnail"]}", "path":"{Favorite["path"]}"}}', False)
-    else:
-        utils.SendJson("Favourites.AddFavourite", f'{{"type":"{Favorite["type"]}", "title":"{FavoriteTitle}", "thumbnail":"{Favorite["thumbnail"]}", "windowparameter":"{Favorite["windowparameter"]}", "window":"{Favorite["window"]}"}}', False)
+    with utils.SafeLock(FavoriteUpdateLock):
+        FavoriteUpdatedByEmby = True
+        FavoriteTitle = Favorite["title"].replace('"', '\\"')
+
+        if 'path' in Favorite:
+            utils.SendJson("Favourites.AddFavourite", f'{{"type":"{Favorite["type"]}", "title":"{FavoriteTitle}", "thumbnail":"{Favorite["thumbnail"]}", "path":"{Favorite["path"]}"}}', False)
+        else:
+            utils.SendJson("Favourites.AddFavourite", f'{{"type":"{Favorite["type"]}", "title":"{FavoriteTitle}", "thumbnail":"{Favorite["thumbnail"]}", "windowparameter":"{Favorite["windowparameter"]}", "window":"{Favorite["window"]}"}}', False)
 
 def emby_change_Favorite(): # Threaded / queued
     if utils.DebugLog: xbmc.log("EMBY.hooks.favorites (DEBUG): THREAD: --->[ Kodi favorites mods ]", 1) # LOGDEBUG
@@ -608,7 +600,7 @@ def emby_change_Favorite(): # Threaded / queued
         utils.sleep(0.5)
         Favorites = utils.FavoriteQueue.getall()
 
-        if Favorites == ["QUIT"]:
+        if "QUIT" in Favorites:
             if utils.DebugLog: xbmc.log("EMBY.hooks.favorites (DEBUG): THREAD: ---<[ Kodi favorites mods ]", 1) # LOGDEBUG
             return
 
@@ -665,7 +657,7 @@ def set_Favorites(Enabled):
         FavoritesCurrent = get_Favorites()
 
         for Index, ImageUrl in enumerate(FavoritesCurrent["ImageUrl"]):
-            if ImageUrl.startswith("http://127.0.0.1:57342/"):
+            if ImageUrl.startswith("http://127.0.0.1:57342/") or ImageUrl.startswith("dav://127.0.0.1:57342/") or ImageUrl.startswith("image://emby@dav%3A%2F%2F127.0.0.1%3A57342") or ImageUrl.startswith("image://epg@dav%3A%2F%2F127.0.0.1%3A57342"):
                 send_favorite(FavoritesCurrent["Favorites"][Index])
     else:
         for EmbyServer in list(utils.EmbyServers.values()):
@@ -695,7 +687,7 @@ def update_Audio(Library):
     AudioObject = audio.Audio(Library, SQLs)
     RecordsPercent = len(AudioInfos) / 100
 
-    for Index, AudioInfo in enumerate(AudioInfos):
+    for Index, AudioInfo in enumerate(AudioInfos, 1):
         if AudioInfo[0]:
             AudioObject.set_favorite(AudioInfo[0], {"KodiItemId": AudioInfo[1], "Id": AudioInfo[2], "LibraryIds": AudioInfo[3]})
 
@@ -714,7 +706,7 @@ def update_MusicAlbum(Library):
     MusicAlbumObject = musicalbum.MusicAlbum(Library, SQLs)
     RecordsPercent = len(MusicAlbumInfos) / 100
 
-    for Index, MusicAlbumInfo in enumerate(MusicAlbumInfos):
+    for Index, MusicAlbumInfo in enumerate(MusicAlbumInfos, 1):
         if MusicAlbumInfo[0]:
             MusicAlbumObject.set_favorite(MusicAlbumInfo[0], {"KodiItemId": MusicAlbumInfo[1], "Id": MusicAlbumInfo[2], "LibraryIds": MusicAlbumInfo[3]})
 
@@ -733,7 +725,7 @@ def update_Video(Library):
     VideoObject = videos.Videos(Library, SQLs)
     RecordsPercent = len(VideoInfos) / 100
 
-    for Index, VideoInfo in enumerate(VideoInfos):
+    for Index, VideoInfo in enumerate(VideoInfos, 1):
         if VideoInfo[0]:
             VideoObject.set_favorite(VideoInfo[0], {"KodiItemId": VideoInfo[2], "Id": VideoInfo[3], "KodiFileId": VideoInfo[1]})
 
@@ -753,7 +745,7 @@ def update_MusicVideo(Library):
     MusicVideoObject = musicvideo.MusicVideo(Library, SQLs)
     RecordsPercent = len(MusicVideoInfos) / 100
 
-    for Index, MusicVideoInfo in enumerate(MusicVideoInfos):
+    for Index, MusicVideoInfo in enumerate(MusicVideoInfos, 1):
         if MusicVideoInfo[0]:
             MusicVideoObject.set_favorite(MusicVideoInfo[0], {"KodiItemId": MusicVideoInfo[2], "Id": MusicVideoInfo[3], "KodiFileId": MusicVideoInfo[1], "LibraryIds": MusicVideoInfo[4]})
 
@@ -772,7 +764,7 @@ def update_BoxSet(Library):
     BoxSetObject = boxsets.BoxSets(Library, SQLs)
     RecordsPercent = len(BoxSetInfos) / 100
 
-    for Index, BoxSetInfo in enumerate(BoxSetInfos):
+    for Index, BoxSetInfo in enumerate(BoxSetInfos, 1):
         if BoxSetInfo[0]:
             BoxSetObject.set_favorite(BoxSetInfo[0], {"KodiItemId": BoxSetInfo[1], "Id": BoxSetInfo[2]})
 
@@ -791,7 +783,7 @@ def update_Series(Library):
     SeriesObject = series.Series(Library, SQLs)
     RecordsPercent = len(SeriesInfos) / 100
 
-    for Index, SeriesInfo in enumerate(SeriesInfos):
+    for Index, SeriesInfo in enumerate(SeriesInfos, 1):
         if SeriesInfo[0]:
             SeriesObject.set_favorite(SeriesInfo[0], {"KodiItemId": SeriesInfo[1], "Id": SeriesInfo[2]})
 
@@ -810,7 +802,7 @@ def update_Season(Library):
     SeasonObject = season.Season(Library, SQLs)
     RecordsPercent = len(SeasonInfos) / 100
 
-    for Index, SeasonInfo in enumerate(SeasonInfos):
+    for Index, SeasonInfo in enumerate(SeasonInfos, 1):
         if SeasonInfo[0]:
             SeasonObject.set_favorite(SeasonInfo[0], {"KodiItemId": SeasonInfo[1], "Id": SeasonInfo[3], "KodiParentId": SeasonInfo[2]})
 
@@ -828,7 +820,7 @@ def update_Playlist(Library):
     PlaylistObject = playlist.Playlist(Library, {})
     RecordsPercent = len(PlaylistInfo) / 100
 
-    for Index, PlaylistInfo in enumerate(PlaylistInfo):
+    for Index, PlaylistInfo in enumerate(PlaylistInfo, 1):
         if PlaylistInfo[0]:
             PlaylistObject.set_favorite(PlaylistInfo[0], {"KodiItemId": PlaylistInfo[1], "Id": PlaylistInfo[3], "KodiArtwork": {'favourite': PlaylistInfo[2]}})
 
@@ -846,7 +838,7 @@ def update_Episode(Library):
     EpisodeObject = episode.Episode(Library, SQLs)
     RecordsPercent = len(EpisodeInfos) / 100
 
-    for Index, EpisodeInfo in enumerate(EpisodeInfos):
+    for Index, EpisodeInfo in enumerate(EpisodeInfos, 1):
         if EpisodeInfo[0]:
             EpisodeObject.set_favorite(EpisodeInfo[0], {"KodiItemId": EpisodeInfo[1], "Id": EpisodeInfo[3], "KodiFileId": EpisodeInfo[2]})
 
@@ -865,7 +857,7 @@ def update_Movie(Library):
     MovieObject = movies.Movies(Library, SQLs)
     RecordsPercent = len(MoviesInfos) / 100
 
-    for Index, MovieInfo in enumerate(MoviesInfos):
+    for Index, MovieInfo in enumerate(MoviesInfos, 1):
         if MovieInfo[0]:
             MovieObject.set_favorite(MovieInfo[0], {"KodiItemId": MovieInfo[1], "Id": MovieInfo[3], "KodiFileId": MovieInfo[2]})
 
@@ -884,7 +876,7 @@ def update_Genre(Library):
     GenreObject = genre.Genre(Library, SQLs)
     RecordsPercent = len(GenresInfos) / 100
 
-    for Index, GenreInfo in enumerate(GenresInfos):
+    for Index, GenreInfo in enumerate(GenresInfos, 1):
         if GenreInfo[0]:
             GenreObject.set_favorite(GenreInfo[0], {"KodiItemId": GenreInfo[1], "Id": GenreInfo[3], "KodiArtwork": {'favourite': GenreInfo[2]}})
 
@@ -903,7 +895,7 @@ def update_Studio(Library):
     StudioObject = studio.Studio(Library, SQLs)
     RecordsPercent = len(StudioInfos) / 100
 
-    for Index, StudioInfo in enumerate(StudioInfos):
+    for Index, StudioInfo in enumerate(StudioInfos, 1):
         if StudioInfo[0]:
             StudioObject.set_favorite(StudioInfo[0], {"KodiItemId": StudioInfo[1], "Id": StudioInfo[3], "KodiArtwork": {'favourite': StudioInfo[2]}})
 
@@ -922,7 +914,7 @@ def update_Tag(Library):
     TagObject = tag.Tag(Library, SQLs)
     RecordsPercent = len(TagsInfos) / 100
 
-    for Index, TagInfo in enumerate(TagsInfos):
+    for Index, TagInfo in enumerate(TagsInfos, 1):
         if TagInfo[0]:
             TagObject.set_favorite(TagInfo[0], {"KodiItemId": TagInfo[1], "Id": TagInfo[3], "KodiArtwork": {'favourite': TagInfo[2]}})
 
@@ -941,7 +933,7 @@ def update_MusicGenre(Library):
     MusicGenreObject = musicgenre.MusicGenre(Library, SQLs)
     RecordsPercent = len(MusicGenreInfos) / 100
 
-    for Index, MusicGenreInfo in enumerate(MusicGenreInfos):
+    for Index, MusicGenreInfo in enumerate(MusicGenreInfos, 1):
         if MusicGenreInfo[0]:
             MusicGenreObject.set_favorite(MusicGenreInfo[0], {"KodiItemId": MusicGenreInfo[1], "Id": MusicGenreInfo[3], "KodiArtwork": {'favourite': MusicGenreInfo[2]}, "LibraryIds": MusicGenreInfo[4]})
 
@@ -961,7 +953,7 @@ def update_Person(Library):
     PersonObject = person.Person(Library, SQLs)
     RecordsPercent = len(PersonInfos) / 100
 
-    for Index, PersonInfo in enumerate(PersonInfos):
+    for Index, PersonInfo in enumerate(PersonInfos, 1):
         if PersonInfo[0]:
             PersonObject.set_favorite(PersonInfo[0], {"KodiItemId": PersonInfo[1], "Id": PersonInfo[2]})
 
@@ -980,7 +972,7 @@ def update_MusicArtist(Library):
     MusicArtistObject = musicartist.MusicArtist(Library, SQLs)
     RecordsPercent = len(MusicArtistInfos) / 100
 
-    for Index, MusicArtistInfo in enumerate(MusicArtistInfos):
+    for Index, MusicArtistInfo in enumerate(MusicArtistInfos, 1):
         if MusicArtistInfo[0]:
             MusicArtistObject.set_favorite(MusicArtistInfo[0], {"KodiItemId": MusicArtistInfo[1], "Id": MusicArtistInfo[2], "LibraryIds": MusicArtistInfo[3]})
 

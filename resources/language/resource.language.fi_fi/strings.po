@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (paras ponnistus)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (nopeutettu edelleenlähetys)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (nopeutettu edelleenlähetys)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "Palautettu varmuuskopio osoitteesta:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Suosikkielokuvat"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Suosikkilaatikot"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Suosikkivideot"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Suosikkikuvat"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Suosikkimusiikkivideot"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Äskettäin lisätyt musiikkivideot"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Käynnissä Musiikkivideot"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z musiikkivideot"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z -elokuvat"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z-sarja"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z valokuva-albumi"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z -videoita"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Kotivideotunnisteet"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Suosikkikotivideot"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Videotunnisteet"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Katsomattomat musiikkivideot"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Katsomattomat videot"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Kappaleita genren mukaan"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "TV-sarjat genren mukaan"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Elokuvat genren mukaan"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Satunnaiset elokuvat"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Satunnainen"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Suositellut"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Satunnaisia jaksoja"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Satunnaiset TV-ohjelmat"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Satunnaisia musiikkivideoita"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Musiikkivideotunnisteet"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Tunnisteet"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Suosikit"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Suosikkinäyttelijät"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Suosikkiartistit"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Suosikki-TV-ohjelmat"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Tulevat jaksot"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Jatka katsomista"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Äskettäin lisätty"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Lataa alkuperäiset luvut"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Käyttöönotto vaatii täyden uudelleensynkronoinnin"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Suosikkiääni"

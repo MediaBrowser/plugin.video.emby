@@ -224,6 +224,34 @@ def advanced_settings():
             SectionMain = add_replace_Section("curlclienttimeout", "network", f"<curlclienttimeout>{utils.curltimeouts}</curlclienttimeout>", SectionMain)
             Changed = True
 
+    SectionData = get_Section(SectionMain, "videolibrary")
+
+    if not SectionData:
+        SectionMain += '\n  <videolibrary>'
+        SectionMain += '\n      <dateadded>0</dateadded>' # Disable read dateadded from files, this results in blocking stat/HEAD request in webservice.py
+        SectionMain += '\n  </videolibrary>'
+        Changed = True
+    else:
+        SectionData = get_Section(SectionMain, "dateadded")
+
+        if "0" != SectionData:
+            SectionMain = add_replace_Section("dateadded", "videolibrary", "<dateadded>0</dateadded>", SectionMain)
+            Changed = True
+
+    SectionData = get_Section(SectionMain, "musiclibrary")
+
+    if not SectionData:
+        SectionMain += '\n  <musiclibrary>'
+        SectionMain += '\n      <dateadded>0</dateadded>'
+        SectionMain += '\n  </musiclibrary>'
+        Changed = True
+    else:
+        SectionData = get_Section(SectionMain, "dateadded")
+
+        if "0" != SectionData:
+            SectionMain = add_replace_Section("dateadded", "musiclibrary", "<dateadded>0</dateadded>", SectionMain)
+            Changed = True
+
     SectionData = get_Section(SectionMain, "pathsubstitution")
 
     if not SectionData:

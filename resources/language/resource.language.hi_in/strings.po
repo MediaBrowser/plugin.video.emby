@@ -3052,7 +3052,7 @@ msgid "CS0 (Best Effort)"
 msgstr "सीएस0 (सर्वोत्तम प्रयास)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
+msgid "EF (Expedited Forwarding)"
 msgstr "सीएस5, ईएफ (शीघ्र अग्रेषण)"
 
 msgctxt "#33726"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "यहां से बैकअप पुनर्स्थापित किया गया:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "पसंदीदा फिल्में"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "पसंदीदा बॉक्ससेट"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "पसंदीदा वीडियो"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "पसंदीदा तस्वीरें"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "पसंदीदा संगीत वीडियो"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "हाल ही में जोड़े गए संगीत वीडियो"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "संगीत वीडियो प्रगति पर है"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "ए-जेड संगीत वीडियो"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "ए-जेड फिल्में"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "ए-जेड श्रृंखला"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "ए-जेड फोटोएल्बम"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "ए-जेड वीडियो"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "होमवीडियो टैग"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "पसंदीदा होम वीडियो"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "वीडियो टैग"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "न देखे गए संगीत वीडियो"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "नहीं देखे गए वीडियो"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "शैली के अनुसार गीत"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "शैली के अनुसार टीवी शो"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "शैली के अनुसार फ़िल्में"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "रैंडम फ़िल्में"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "यादृच्छिक"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "अनुशंसित"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "यादृच्छिक एपिसोड"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "रैंडम टीवी शो"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "यादृच्छिक संगीत वीडियो"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "म्यूजिकवीडियो टैग"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "टैग"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "पसंदीदा"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "पसंदीदा अभिनेता"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "पसंदीदा कलाकार"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "पसंदीदा टीवी शो"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "आगामी एपिसोड"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "देखना जारी रखें"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "हाल ही में जोड़ा गया"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "मूल अध्याय डाउनलोड करें"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "सक्षम करने के लिए पूर्ण पुनः-सिंक आवश्यक है"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "पसंदीदा ऑडियो"

@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (Cel mai bun efort)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (Redirecționare accelerată)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (Redirecționare accelerată)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "copie de rezervă restaurată de la:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Filme preferate"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Cutii preferate"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Videoclipuri preferate"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Fotografii favorite"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Videoclipuri muzicale preferate"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Clipuri muzicale adăugate recent"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "În curs Clipuri muzicale"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "videoclipuri muzicale de la A la Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "filme de la A la Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Seria A-Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "Album foto A-Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "videoclipuri de la A la Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "Etichete video de acasă"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Videoclipuri preferate de acasă"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Etichete video"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Videoclipuri muzicale nevizionate"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Videoclipuri nevizionate"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Cântece după gen"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Emisiuni TV după gen"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Filme după gen"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Filme aleatorii"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Aleatoriu"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Recomandate"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Episoade aleatorii"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Emisiuni TV aleatorii"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "videoclipuri muzicale aleatorii"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Etichete de muzică video"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Etichete"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favorite"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Actori preferați"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Artiști preferați"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Emisiuni TV preferate"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Episoade viitoare"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Continuați să vizionați"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Adăugat recent"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Descarcă capitolele native"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "Activarea necesită o resincronizare completă"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "Audio preferat"

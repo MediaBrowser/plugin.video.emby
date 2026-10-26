@@ -3052,8 +3052,8 @@ msgid "CS0 (Best Effort)"
 msgstr "CS0 (সেরা প্রচেষ্টা)"
 
 msgctxt "#33725"
-msgid "CS5, EF (Expedited Forwarding)"
-msgstr "CS5, EF (দ্রুত ফরোয়ার্ডিং)"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (দ্রুত ফরোয়ার্ডিং)"
 
 msgctxt "#33726"
 msgid "CS1, AF11 (Assured Forwarding)"
@@ -3603,3 +3603,158 @@ msgctxt "#33860"
 msgid "Restored backup from:"
 msgstr "এর থেকে ব্যাকআপ পুনরুদ্ধার করা হয়েছে:"
 
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "প্রিয় সিনেমা"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "প্রিয় বক্সসেট"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "প্রিয় ভিডিও"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "প্রিয় ছবি"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "প্রিয় মিউজিক ভিডিও"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "সম্প্রতি যোগ করা মিউজিক ভিডিও"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "মিউজিক ভিডিও চলছে"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "A-Z মিউজিক ভিডিও"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "A-Z চলচ্চিত্র"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "A-Z সিরিজ"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "A-Z ফটোঅ্যালবাম"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "A-Z ভিডিও"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "হোমভিডিও ট্যাগ"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "প্রিয় হোম ভিডিও"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "ভিডিও ট্যাগ"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "অদেখা মিউজিক ভিডিও"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "না-দেখা ভিডিও"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "জেনার অনুসারে গান"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "জেনার অনুসারে টিভি শো"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "জেনার অনুসারে সিনেমা"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "এলোমেলো সিনেমা"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "এলোমেলো"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "প্রস্তাবিত"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "এলোমেলো পর্ব"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "এলোমেলো টিভি শো"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "এলোমেলো মিউজিক ভিডিও"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "মিউজিক ভিডিও ট্যাগ"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "ট্যাগ"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "প্রিয়"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "প্রিয় অভিনেতা"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "প্রিয় শিল্পী"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "প্রিয় টিভি শো"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "আসন্ন পর্ব"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "দেখা চালিয়ে যান"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "সম্প্রতি যোগ করা হয়েছে"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "নেটিভ অধ্যায় ডাউনলোড করুন"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "চালু করতে সম্পূর্ণ পুনঃসিঙ্ক প্রয়োজন"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "প্রিয় অডিও"
