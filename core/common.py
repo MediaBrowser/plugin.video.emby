@@ -318,10 +318,10 @@ def set_path_filename(Item, ServerId, MediaSource, isDynamic=False):
         Temp = Item['KodiPath'].rsplit(PathSeperator, 1)[1]
 
         if Item['Type'] == "Series":
-            Item['KodiPathParent'] = f"{Item['KodiPath'].replace(Temp, '')}"
+            Item['KodiPathParent'] = Item['KodiPath'][:len(Item['KodiPath']) - len(Temp)]
             Item['KodiPath'] += PathSeperator
         else:
-            Item['KodiPath'] = f"{Item['KodiPath'].replace(Temp, '')}"
+            Item['KodiPath'] = Item['KodiPath'][:len(Item['KodiPath']) - len(Temp)]
     else:
         if Item['Type'] in EmbyTypeMappingShort:
             ContextMenuTags = ""
@@ -1111,7 +1111,7 @@ def set_TracksByMediasourceName(Item):
         if Track.isdigit():
             Item['IndexNumber'] = int(Track)  # remove leading zero e.g. 01
 
-def delete_ContentItemReferences(KodiItemId, KodiFileId, ExtraType, SQLs, KodiType, All):
+def delete_ContentItemReferences(KodiItemId, KodiFileId, ExtraType, SQLs, KodiType, All, DeleteStreams):
     KodiLibraryTagIds = SQLs["emby"].get_KodiSpecialTagIds()
     SQLs["video"].delete_links_actors(KodiItemId, KodiType)
     SQLs["video"].delete_links_director(KodiItemId, KodiType)
@@ -1126,7 +1126,9 @@ def delete_ContentItemReferences(KodiItemId, KodiFileId, ExtraType, SQLs, KodiTy
     if All: # Delete Resumepoints
         SQLs["video"].delete_bookmark(KodiFileId, 1)
 
-    SQLs["video"].delete_streams(KodiFileId)
+    if DeleteStreams:
+        SQLs["video"].delete_streams(KodiFileId)
+
     SQLs["video"].delete_stacktimes(KodiFileId)
     SQLs["video"].delete_ratings(KodiItemId, KodiType)
     SQLs["video"].common_db.delete_artwork(KodiItemId, KodiType)
@@ -1134,10 +1136,11 @@ def delete_ContentItemReferences(KodiItemId, KodiFileId, ExtraType, SQLs, KodiTy
     if KodiType == "movie":
         SQLs["video"].common_db.delete_artwork(KodiFileId, "videoversion") # delete videoversions artwork
 
-        if ExtraType == "Clip": # Special
-            SQLs["video"].delete_videoversion(KodiItemId, KodiType)
+        if ExtraType: # Extra
+            if ExtraType not in ("ThemeVideo", "Trailer"): # Special
+                SQLs["video"].delete_videoversion(KodiItemId, KodiType)
         else:
-            SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(KodiItemId, KodiFileId, KodiType) # delete videoversions
+            SQLs["video"].delete_videoversion_by_KodiId_notKodiFileId_KodiType(KodiItemId, KodiFileId, KodiType) # delete videoversions (childs, but keep parent)
 
 def set_VideoCommon(KodiItemId, KodiFileId, Item, SQLs, KodiType):
     SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], KodiItemId, KodiType)
@@ -1152,7 +1155,7 @@ def delete_ContentItem(KodiItemId, KodiFileId, Item, SQLs, KodiType, EmbyType):
     Delete = SQLs['emby'].remove_item(Item['Id'], EmbyType, Item['LibraryId'])
 
     if Delete and KodiItemId:  # KodiItemId can be None for multiversion content
-        delete_ContentItemReferences(KodiItemId, KodiFileId, Item.get('ExtraType', ""), SQLs, KodiType, True)
+        delete_ContentItemReferences(KodiItemId, KodiFileId, Item.get('ExtraType', ""), SQLs, KodiType, True, True)
 
     return Delete
 

@@ -32,6 +32,7 @@ class Movies:
 
         # ungroup versions
         isMultiVersion = False
+        Item["KodiSetId"] = None
 
         if Item['UpdateItem']:
             MultiVersionsFound = self.SQLs["emby"].get_movieversions(Item['Id'])
@@ -52,6 +53,9 @@ class Movies:
                         LastPlayedTicksCompare = LastPlayedTicks
                         Item.update({'KodiPlayCount': playCount, 'KodiLastPlayedDate': lastPlayed, 'KodiPlaybackPositionTicks': timeInSeconds, 'IsFavorite': Item['EmbyFavourite']})
 
+                    if not Item["KodiSetId"]:
+                        Item["KodiSetId"] = self.SQLs["video"].get_setId(MultiVersionFound[2])
+
                 for MultiVersionFound in MultiVersionsFound:
                     self.remove({'KodiFileId': MultiVersionFound[1], 'KodiItemId': MultiVersionFound[2], 'Id': MultiVersionFound[0], 'KodiPathId': MultiVersionFound[3], 'LibraryId': Item['LibraryId']}, False)
 
@@ -67,7 +71,7 @@ class Movies:
         self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
 
         if Item['UpdateItem'] and not isMultiVersion:
-            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "movie", False)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "movie", False, Item['MediaSources'][0]['KodiStreams']['Subtitle'] or Item['MediaSources'][0]['KodiStreams']['Audio'] or Item['MediaSources'][0]['KodiStreams']['Video'])
             common.set_path_filename(Item, self.Library.ServerData['ServerId'], None)
             common.set_multipart(Item, self.Library)
             common.update_downloaded_info(Item, self.SQLs, "movie")
@@ -105,7 +109,7 @@ class Movies:
 
             utils.notify_event("content_update", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "movie"}, IncrementalSync)
         else:
-            self.SQLs["video"].add_movie(Item['KodiItemId'], Item['KodiFileId'], Item['Name'], Item['Overview'], Item['ShortOverview'], Item['Tagline'], Item['KodiRatingId'], Item['Writers'], Item['KodiArtwork']['poster'], Item['KodiUniqueId'], Item['SortName'], Item['KodiRunTimeTicks'], Item['OfficialRating'], Item['Genre'], Item['Directors'], Item['OriginalTitle'], Item['Studio'], Item['Trailer'], Item['KodiArtwork']['fanart'].get('fanart', None), Item['ProductionLocations'][0], Item['KodiFullPath'], Item['KodiPathId'], Item['KodiPremiereDate'], Item['KodiFilename'], Item['KodiDateCreated'], None, Item['KodiStackedFilename'], Item['MediaSources'][0]['Name'])
+            self.SQLs["video"].add_movie(Item['KodiItemId'], Item['KodiFileId'], Item['Name'], Item['Overview'], Item['ShortOverview'], Item['Tagline'], Item['KodiRatingId'], Item['Writers'], Item['KodiArtwork']['poster'], Item['KodiUniqueId'], Item['SortName'], Item['KodiRunTimeTicks'], Item['OfficialRating'], Item['Genre'], Item['Directors'], Item['OriginalTitle'], Item['Studio'], Item['Trailer'], Item['KodiArtwork']['fanart'].get('fanart', None), Item['ProductionLocations'][0], Item['KodiFullPath'], Item['KodiPathId'], Item['KodiPremiereDate'], Item['KodiFilename'], Item['KodiDateCreated'], Item["KodiSetId"], Item['KodiStackedFilename'], Item['MediaSources'][0]['Name'])
             self.SQLs["emby"].add_reference_movie(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiFileId'], Item['PresentationUniqueKey'], Item['Path'], Item['KodiPathId'])
 
             if int(IncrementalSync):

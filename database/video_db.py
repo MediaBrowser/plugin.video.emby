@@ -103,6 +103,21 @@ class VideoDatabase:
 
             return "", "", ""
 
+        if ContentType == "movie":
+            self.cursor.execute("SELECT idMedia FROM videoversion WHERE idFile = ? AND media_type = ?", (KodiFileId, "movie"))
+            DataVideoversion = self.cursor.fetchone()
+
+            if DataVideoversion:
+                self.cursor.execute("SELECT idFile FROM movie WHERE idMovie = ?", (DataVideoversion[0],))
+                DataMovie = self.cursor.fetchone()
+
+                if DataMovie:
+                    KodiFileId = DataMovie[0]
+                else:
+                    return "", "", ""
+        else:
+            return "", "", ""
+
         self.cursor.execute("SELECT idPath, strFilename FROM files WHERE idFile = ?", (KodiFileId,))
         DataFile = self.cursor.fetchone()
 
@@ -112,11 +127,11 @@ class VideoDatabase:
 
             if DataPath:
                 if ContentType == "movie":
-                    self.cursor.execute("SELECT c00 FROM movie WHERE idMovie = ?", (KodiItemId,))
+                    self.cursor.execute("SELECT c00, idMovie FROM movie WHERE idFile = ?", (KodiFileId,))
                 elif ContentType == "musicvideo":
-                    self.cursor.execute("SELECT c00 FROM musicvideo WHERE idMVideo = ?", (KodiItemId,))
+                    self.cursor.execute("SELECT c00, idMVideo FROM musicvideo WHERE idFile = ?", (KodiFileId,))
                 elif ContentType == "episode":
-                    self.cursor.execute("SELECT c00 FROM episode WHERE idEpisode = ?", (KodiItemId,))
+                    self.cursor.execute("SELECT c00, idEpisode FROM episode WHERE idFile = ?", (KodiFileId,))
                 else:
                     return "", "", ""
 
@@ -124,7 +139,7 @@ class VideoDatabase:
 
                 if ItemData:
                     for ImageId in ("poster", "thumb"):
-                        self.cursor.execute("SELECT url FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (KodiItemId, ContentType, ImageId))
+                        self.cursor.execute("SELECT url FROM art WHERE media_id = ? AND media_type = ? AND type = ?", (ItemData[1], ContentType, ImageId))
                         ArtworkData = self.cursor.fetchone()
 
                         if ArtworkData:
@@ -175,6 +190,15 @@ class VideoDatabase:
         return "", "", -1
 
     # movies
+    def get_setId(self, KodiId):
+        self.cursor.execute("SELECT idSet FROM movie WHERE idMovie = ?", (KodiId,))
+        SetInfo = self.cursor.fetchone()
+
+        if SetInfo:
+            return SetInfo[0]
+
+        return 0
+
     def get_path_runtime_by_movieid(self, KodiId):
         self.cursor.execute("SELECT idMovie, c22, c11 FROM movie WHERE idMovie = ?", (KodiId,))
         Data = self.cursor.fetchone()
@@ -1137,7 +1161,6 @@ class VideoDatabase:
         #FLAG_HEARING_IMPAIRED = 0x0080
         #FLAG_VISUAL_IMPAIRED = 0x0100
         SQLData = ()
-        self.cursor.execute("DELETE FROM streamdetails WHERE idFile = ?", (KodiFileId,))
 
         if utils.DatabaseFiles["video-version"] >= 149:
             for track in videostream:
@@ -1204,6 +1227,8 @@ class VideoDatabase:
                     SQLData += ((KodiFileId, 2, None, None, None, None, None, None, None, None, None, None, None, track['language']),)
 
         if SQLData:
+            self.cursor.execute("DELETE FROM streamdetails WHERE idFile = ?", (KodiFileId,))
+
             if utils.DatabaseFiles["video-version"] >= 149:
                 self.cursor.executemany("INSERT INTO streamdetails(idFile, iStreamType, strVideoCodec, fVideoAspect, iVideoWidth, iVideoHeight, iVideoDuration, strStereoMode, strVideoLanguage, strHdrType, strAudioCodec, iAudioChannels, strAudioLanguage, strSubtitleLanguage, strHdrDetail, iSource, iVersion, iFlags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", SQLData)
             elif utils.DatabaseFiles["video-version"] >= 148:

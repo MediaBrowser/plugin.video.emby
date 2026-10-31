@@ -38,6 +38,7 @@ Trailers = []
 ItemKodiSkipUpdate = []
 PlayerEventsQueue = queue.Queue()
 ItemsUpdateQueue = queue.Queue()
+DeleteContentQueue = queue.Queue()
 SkipIntroDialog = skipintrocredits.SkipIntro("script-emby-skipintrodialog.xml", *utils.CustomDialogParameters)
 SkipIntroDialogEmbuary = skipintrocredits.SkipIntro("script-emby-skipintrodialogembuary.xml", *utils.CustomDialogParameters)
 SkipCreditsDialog = skipintrocredits.SkipIntro("script-emby-skipcreditsdialog.xml", *utils.CustomDialogParameters)
@@ -795,24 +796,36 @@ def stop_playback(delete, PlaybackEnded):
     # Set watched status
     if delete and PlayingItemLocal["Filename"]:
         if utils.offerDelete:
-            RunTimeTicks = int(PlayingItemLocal["EmbySessionData"]['RunTimeTicks'])
-            PositionTicks = int(PlayingItemLocal["EmbySessionData"]['PositionTicks'])
+            DeleteContentQueue.put(PlayingItemLocal)
 
-            if RunTimeTicks > 10:
-                if PositionTicks > RunTimeTicks * 0.90:  # 90% Progress
-                    DeleteMsg = False
+def DeleteContent():
+    if utils.DebugLog: xbmc.log("EMBY.helper.player (DEBUG): THREAD: --->[ DeleteContent ]", 1) # LOGDEBUG
 
-                    if PlayingItemLocal["KodiType"] == 'episode' and utils.deleteTV:
-                        DeleteMsg = True
-                    elif PlayingItemLocal["KodiType"] == 'movie' and utils.deleteMovies:
-                        DeleteMsg = True
+    while True:
+        DeleteItem = DeleteContentQueue.get()
 
-                    if DeleteMsg:
-                        xbmc.log("EMBY.helper.player: Offer delete option", 1) # LOGINFO
+        if DeleteItem == "QUIT":
+            if utils.DebugLog: xbmc.log("EMBY.helper.player (DEBUG): THREAD: ---<[ DeleteContent ] quit", 1) # LOGDEBUG
+            return
 
-                        if utils.Dialog.yesno(heading=utils.Translate(33015), message=PlayingItemLocal["Filename"], autoclose=int(utils.autoclose) * 1000):
-                            PlayingItemLocal["EmbyServer"].API.delete_item(PlayingItemLocal["EmbySessionData"]['ItemId'])
-                            PlayingItemLocal["EmbyServer"].library.removed((PlayingItemLocal["EmbySessionData"]['ItemId'],), True)
+        RunTimeTicks = int(DeleteItem["EmbySessionData"]['RunTimeTicks'])
+        PositionTicks = int(DeleteItem["EmbySessionData"]['PositionTicks'])
+
+        if RunTimeTicks > 10:
+            if PositionTicks > RunTimeTicks * 0.90:  # 90% Progress
+                DeleteMsg = False
+
+                if DeleteItem["KodiType"] == 'episode' and utils.deleteTV:
+                    DeleteMsg = True
+                elif DeleteItem["KodiType"] == 'movie' and utils.deleteMovies:
+                    DeleteMsg = True
+
+                if DeleteMsg:
+                    xbmc.log("EMBY.helper.player: Offer delete option", 1) # LOGINFO
+
+                    if utils.Dialog.yesno(heading=utils.Translate(33015), message=DeleteItem["Filename"], autoclose=int(utils.autoclose) * 1000):
+                        DeleteItem["EmbyServer"].API.delete_item(DeleteItem["EmbySessionData"]['ItemId'])
+                        DeleteItem["EmbyServer"].library.removed((DeleteItem["EmbySessionData"]['ItemId'],), True)
 
 def load_Trailer(ServerId):
     global VideoPlayback
@@ -1418,3 +1431,4 @@ SkipIntroDialogEmbuary.set_JumpFunction(jump_Intro)
 SkipCreditsDialog.set_JumpFunction(jump_Credits)
 utils.start_thread(PlayerCommands, ())
 utils.start_thread(PositionTracker, ())
+utils.start_thread(DeleteContent, ())

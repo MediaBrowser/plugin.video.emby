@@ -1,3 +1,15 @@
+12.5.1
+=============
+fix delete after watched deadlock
+fix specials sync (folder structure: other folders than "specials" are now supported) (https://github.com/MediaBrowser/plugin.video.emby/issues/601)
+fix Empty MediaStreams during sync erase Kodi-generated streamdetails for STRM/ISO items (https://github.com/MediaBrowser/plugin.video.emby/issues/599)
+fix Race condition when updating the last sync date/time causes automatic updates to be mistaken for user changes (Race condition when updating the last sync date/time causes automatic updates to be mistaken for user changes)
+fix duplicate cards in favorites when adding movie with multiple versions (https://github.com/MediaBrowser/plugin.video.emby/issues/596)
+fix theme play bug
+fix multiversion boxset assignment on updates
+
+
+
 12.5.0
 =============
 fix server timeouts

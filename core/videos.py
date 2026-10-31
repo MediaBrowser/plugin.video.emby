@@ -29,8 +29,8 @@ class Videos:
         if not common.load_ExistingItem(Item, self.Library, self.SQLs["emby"], "Video"):
             return False
 
-        if 'ExtraType' in Item:
-            if Item['ExtraType'] == "Clip": # Specials
+        if 'ExtraType' in Item and Item['ExtraType']:
+            if Item['ExtraType'] not in ("ThemeVideo", "Trailer"): # Specials
                 if Item['UpdateItem']:
                     self.SQLs["video"].delete_special(Item['KodiParentId'], Item['KodiFileId'], "movie")
                     self.SQLs["emby"].remove_item(Item['Id'], "Video", Item['LibraryId'])
@@ -53,7 +53,7 @@ class Videos:
                 self.SQLs["video"].add_streams(Item['KodiFileId'], Item['MediaSources'][0]['KodiStreams']['Video'], Item['MediaSources'][0]['KodiStreams']['Audio'], Item['MediaSources'][0]['KodiStreams']['Subtitle'], Item['KodiRunTimeTicks'])
                 self.SQLs["video"].common_db.add_artwork(Item['KodiArtwork'], Item['KodiFileId'], "videoversion")
                 self.SQLs["video"].add_movie_version(Item['KodiParentId'], Item['KodiFileId'], Item['KodiPathId'], Item['KodiFilename'], Item['KodiDateCreated'], Item['KodiStackedFilename'], Item['Name'], "movie", "special")
-                artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "Clip", Item['KodiFullPath'])
+                artworkcache.CacheNativeChapter(Item['MediaSources'][0].get('ChaptersNative', []), "ExtraTypes", Item['KodiFullPath'])
                 self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
                 self.SQLs["emby"].add_reference_video(Item['Id'], Item['LibraryId'], None, Item['KodiFileId'], Item['ParentId'], Item['PresentationUniqueKey'], Item['Path'], Item['KodiPathId'], Item['ExtraType'], Item['KodiParentId'])
                 if utils.DebugLog: xbmc.log(f"EMBY.core.video (DEBUG): ADD EXTRATYPE {Item['Id']} / {Item['LibraryId']} / {Item['ExtraType']}", 1) # DEBUGLOG
@@ -65,7 +65,7 @@ class Videos:
                 return False
 
         if Item['LibraryId'] == "999999998": # Trailer in extra trailer folder
-            if Item.get('ParentId', ""): # Items from extra trailer folder has no ParentId
+            if Item.get('ParentId', ""): # Items from extra trailer folder have no ParentId (due to Emby API limitations, trailer folder was queried by a regular IncludeItemTypes=Video -> filter trailers only)
                 return False
 
             self.SQLs["emby"].add_reference_video_parent(Item['Id'], Item['LibraryId'], None, Item['PresentationUniqueKey'], Item['Path'], Item.get('ExtraType', ""), None, None, json.dumps(Item))
@@ -95,7 +95,7 @@ class Videos:
         self.SQLs["emby"].add_streamdata(Item['Id'], Item['MediaSources'])
 
         if Item['UpdateItem']:
-            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "movie", False)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "movie", False, Item['MediaSources'][0]['KodiStreams']['Subtitle'] or Item['MediaSources'][0]['KodiStreams']['Audio'] or Item['MediaSources'][0]['KodiStreams']['Video'])
             common.set_path_filename(Item, self.Library.ServerData['ServerId'], None)
             common.set_multipart(Item, self.Library)
             common.update_downloaded_info(Item, self.SQLs, "movie")
