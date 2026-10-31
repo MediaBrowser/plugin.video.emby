@@ -303,6 +303,7 @@ ProgressBarsLock = threading.Lock()
 JsonId = 1
 ArtworkDelete = set()
 ArtworkDeleteLock = threading.Lock()
+SyncDateLock = threading.Lock()
 
 # Kodi hash
 CRC_TABLE = []
@@ -1561,8 +1562,10 @@ def set_syncdate(TimeStampConvert):
 
         if isinstance(LocalTime, str) and len(LocalTime) >= 10:
             TimeStamp = datetime.fromisoformat(LocalTime)
-            set_settings("syncdate", TimeStamp.strftime('%Y-%m-%d'))
-            set_settings("synctime", TimeStamp.strftime('%H:%M'))
+
+            with SafeLock(SyncDateLock):
+                set_settings("syncdate", TimeStamp.strftime('%Y-%m-%d'))
+                set_settings("synctime", TimeStamp.strftime('%H:%M'))
 
 def load_settings_bool(setting):
     for _ in range(10):

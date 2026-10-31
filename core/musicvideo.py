@@ -54,7 +54,7 @@ class MusicVideo:
             KodiPathIdCurrent = KodiPathIds[Index]
             KodiFileIdCurrent = KodiFileIds[Index]
             EmbyMusicArtistIds, EmbyMusicGenreIds = self.set_metadata(UpdateItem, IncrementalSync)
-            common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem.get('ExtraType', ""), self.SQLs, "musicvideo", False)
+            common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, UpdateItem.get('ExtraType', ""), self.SQLs, "musicvideo", False, Item['MediaSources'][0]['KodiStreams']['Subtitle'] or Item['MediaSources'][0]['KodiStreams']['Audio'] or Item['MediaSources'][0]['KodiStreams']['Video'])
             common.set_path_filename(UpdateItem, self.Library.ServerData['ServerId'], None)
             common.set_multipart(UpdateItem, self.Library)
             common.update_downloaded_info(UpdateItem, self.SQLs, "musicvideo")
@@ -208,7 +208,7 @@ class MusicVideo:
                 Item['KodiItemId'] = common.del_Ids_SingleContent(KodiItemIds, KodiItemIdCurrent)
                 Item['KodiFileId'] = common.del_Ids_SingleContent(KodiFileIds, KodiFileIdCurrent)
                 Item['KodiPathId'] = common.del_Ids_SingleContent(KodiPathIds, KodiPathIdCurrent)
-                common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, Item.get('ExtraType', ""), self.SQLs, "musicvideo", False)
+                common.delete_ContentItemReferences(KodiItemIdCurrent, KodiFileIdCurrent, Item.get('ExtraType', ""), self.SQLs, "musicvideo", False, True)
             else:
                 KodiItemIdCurrent = None
                 KodiFileIdCurrent = None

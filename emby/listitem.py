@@ -253,6 +253,11 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
     else: # Letter, Tag, Genre, MusicGenre,  etc
         common.set_KodiArtwork(Item, ServerId, True)
 
+    # Fake Id is necessary, otherwise Kodi does not report notifications via monitor.py
+    if 'Id' in Item and Item['Id']:
+        Item['KodiId'] = utils.set_EmbyId_ServerId_by_Fake_KodiId(Item['Id'], ServerId) # Maximum value is 2147483648
+
+    # Set path
     if 'KodiFullPath' not in Item or not Item['KodiFullPath']:
         common.set_path_filename(Item, ServerId, None, True)
 
@@ -264,6 +269,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
             Item['KodiFullPath'] = f"{Item['KodiId']}.".join(Temp)
             Item['KodiFullPath'] = f"{Item['KodiFullPath']}&!seekable=fake.pvr" # Fake pvr, to avoid progress updates and homescreen refreshes and avoid matching Pathes for listitem
 
+    # ListItem
     ListItem = xbmcgui.ListItem(label=Name, offscreen=True, path=Item['KodiFullPath'])
     Properties.update({'embyserverid': str(ServerId), 'embyid': str(Item.get('Id', ""))})
     InfoTags = None
@@ -289,7 +295,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_IMDBNumber(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_ResumePoint(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_Path(Item, InfoTags)
         set_FilenameAndPath(Item, InfoTags)
         Properties.update({'IsFolder': 'false', 'IsPlayable': 'true'})
@@ -318,7 +324,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_IMDBNumber(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_ResumePoint(Item, InfoTags)
         set_Path(Item, InfoTags)
         set_FilenameAndPath(Item, InfoTags)
@@ -350,7 +356,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_IMDBNumber(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_Path(Item, InfoTags)
         ListItem.setContentLookup(False)
 
@@ -390,7 +396,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_IMDBNumber(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_Path(Item, InfoTags)
         isSpecial = "IndexNumber" in Item and not Item["IndexNumber"]
         ListItem.setContentLookup(False)
@@ -436,7 +442,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_IMDBNumber(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_ResumePoint(Item, InfoTags)
         set_Path(Item, InfoTags)
         set_FilenameAndPath(Item, InfoTags)
@@ -474,7 +480,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_Directors(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_ResumePoint(Item, InfoTags)
         set_Path(Item, InfoTags)
         set_FilenameAndPath(Item, InfoTags)
@@ -498,7 +504,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_Studios(Item, InfoTags)
         set_Writers(Item, InfoTags)
         set_Directors(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_ResumePoint(Item, InfoTags)
         set_Path(Item, InfoTags)
         set_FilenameAndPath(Item, InfoTags)
@@ -523,7 +529,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
             InfoTags.setTitle(Name)
             InfoTags.setArtist(Name)
             set_Genres(Item, InfoTags)
-            set_EmbyIdAsKodiIdAudio(Item, InfoTags, ServerId, "artist")
+            set_DbIdAudio(Item, InfoTags, "artist")
             set_MusicBrainzArtistID(Item, InfoTags)
             set_Comment(Item, InfoTags)
             Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
@@ -541,7 +547,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_Year(Item, InfoTags)
         set_Duration(Item, InfoTags)
         set_Genres(Item, InfoTags)
-        set_EmbyIdAsKodiIdAudio(Item, InfoTags, ServerId, "album")
+        set_DbIdAudio(Item, InfoTags, "album")
         set_MusicBrainzAlbumID(Item, InfoTags)
         set_MusicBrainzAlbumArtistID(Item, InfoTags)
         set_MusicBrainzReleaseGroupID(Item, InfoTags)
@@ -563,7 +569,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_PlaycountAudio(Item, InfoTags)
         set_LastPlayed(Item, InfoTags)
         set_Genres(Item, InfoTags)
-        set_EmbyIdAsKodiIdAudio(Item, InfoTags, ServerId, "song")
+        set_DbIdAudio(Item, InfoTags, "song")
         set_MusicBrainzArtistID(Item, InfoTags)
         set_MusicBrainzAlbumID(Item, InfoTags)
         set_MusicBrainzAlbumArtistID(Item, InfoTags)
@@ -597,7 +603,7 @@ def set_ListItem(Item, ServerId, ContentSupported="", StartOffset=0.0, isTheme=F
         set_Directors(Item, InfoTags)
         set_UserRating(Item, InfoTags)
         set_Premiered(Item, InfoTags)
-        set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId)
+        set_DbIdVideo(Item, InfoTags)
         set_Path(Item, InfoTags)
         Properties.update({'IsFolder': 'true', 'IsPlayable': 'false'})
         ListItem.setContentLookup(False)
@@ -1006,15 +1012,13 @@ def set_Trailer(Item, InfoTags):
     if Trailer:
         InfoTags.setTrailer(Trailer)
 
-def set_EmbyIdAsKodiIdVideo(Item, InfoTags, ServerId): # Fake Id is necessary, otherwise Kodi does not report notifications via monitor.py
-    if 'Id' in Item and Item['Id']:
-        Item['KodiId'] = utils.set_EmbyId_ServerId_by_Fake_KodiId(Item['Id'], ServerId)
-        InfoTags.setDbId(Item['KodiId']) # Maximum value is 2147483648
+def set_DbIdVideo(Item, InfoTags):
+    if 'KodiId' in Item and Item['KodiId']:
+        InfoTags.setDbId(Item['KodiId'])
 
-def set_EmbyIdAsKodiIdAudio(Item, InfoTags, ServerId, KodiType): # Fake Id is necessary, otherwise Kodi does not report notifications via monitor.py
-    if 'Id' in Item and Item['Id']:
-        Item['KodiId'] = utils.set_EmbyId_ServerId_by_Fake_KodiId(Item['Id'], ServerId)
-        InfoTags.setDbId(Item['KodiId'], KodiType) # Maximum value is 2147483648
+def set_DbIdAudio(Item, InfoTags, KodiType):
+    if 'KodiId' in Item and Item['KodiId']:
+        InfoTags.setDbId(Item['KodiId'], KodiType)
 
 def set_ListItem_StreamInfo(Content, InfoTags, Duration, StreamInfo):
     if Content == "video":

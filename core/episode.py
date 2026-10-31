@@ -63,7 +63,7 @@ class Episode:
             Item['ParentIndexNumber'] = SeasonNumber
 
         if Item['UpdateItem']:
-            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "episode", False)
+            common.delete_ContentItemReferences(Item['KodiItemId'], Item['KodiFileId'], Item.get('ExtraType', ""), self.SQLs, "episode", False, Item['MediaSources'][0]['KodiStreams']['Subtitle'] or Item['MediaSources'][0]['KodiStreams']['Audio'] or Item['MediaSources'][0]['KodiStreams']['Video'])
             common.set_path_filename(Item, self.Library.ServerData['ServerId'], None)
             common.set_multipart(Item, self.Library)
             common.update_downloaded_info(Item, self.SQLs, "episode")

@@ -358,18 +358,22 @@ def settingschanged():
         if utils.DebugLog: xbmc.log("EMBY.hooks.monitor (DEBUG): THREAD: --->[ reload settings ]", 1) # LOGDEBUG
         utils.close_dialog(10146) # addoninformation
         RestartKodi = False
-        syncdatePrevious = utils.syncdate
-        synctimePrevious = utils.synctime
-        enablehttp2Previous = utils.enablehttp2
-        xspplaylistsPreviousValue = utils.xspplaylists
-        enableCoverArtPreviousValue = utils.enableCoverArt
-        maxnodeitemsPreviousValue = utils.maxnodeitems
-        AddonModePathPreviousValue = utils.AddonModePath
-        curltimeoutsPreviousValue = utils.curltimeouts
-        curlBoxSetsToTagsPreviousValue = utils.BoxSetsToTags
-        DownloadPathPreviousValue = utils.DownloadPath
-        SyncFavoritesPreviousValue = utils.SyncFavorites
-        utils.InitSettings()
+
+        with utils.SafeLock(utils.SyncDateLock):
+            syncdatePrevious = utils.syncdate
+            synctimePrevious = utils.synctime
+            enablehttp2Previous = utils.enablehttp2
+            xspplaylistsPreviousValue = utils.xspplaylists
+            enableCoverArtPreviousValue = utils.enableCoverArt
+            maxnodeitemsPreviousValue = utils.maxnodeitems
+            AddonModePathPreviousValue = utils.AddonModePath
+            curltimeoutsPreviousValue = utils.curltimeouts
+            curlBoxSetsToTagsPreviousValue = utils.BoxSetsToTags
+            DownloadPathPreviousValue = utils.DownloadPath
+            SyncFavoritesPreviousValue = utils.SyncFavorites
+            utils.InitSettings()
+            syncdateCurrent = utils.syncdate
+            synctimeCurrent = utils.synctime
 
         # Http2 mode or curltimeouts changed, rebuild advanced settings -> restart Kodi
         if enablehttp2Previous != utils.enablehttp2 or curltimeoutsPreviousValue != utils.curltimeouts:
@@ -419,14 +423,17 @@ def settingschanged():
             return
 
         # Manual adjusted sync time/date
-        if syncdatePrevious != utils.syncdate or synctimePrevious != utils.synctime:
-            xbmc.log("EMBY.hooks.monitor: [ Trigger KodiStartSync due to setting changed ]", 1) # LOGINFO
-            SyncTimestamp = f"{utils.syncdate} {utils.synctime}:00"
-            SyncTimestamp = utils.convert_to_gmt(SyncTimestamp)
+        if syncdatePrevious != syncdateCurrent or synctimePrevious != synctimeCurrent:
+            SyncTimestamp = utils.convert_to_gmt(f"{syncdateCurrent} {synctimeCurrent}:00")
 
-            for EmbyServer in list(utils.EmbyServers.values()):
-                EmbyServer.library.set_syncdate(SyncTimestamp)
-                utils.start_thread(EmbyServer.library.KodiStartSync, (False,))
+            if SyncTimestamp:
+                xbmc.log("EMBY.hooks.monitor: [ Trigger KodiStartSync due to setting changed ]", 1) # LOGINFO
+
+                for EmbyServer in list(utils.EmbyServers.values()):
+                    EmbyServer.library.set_syncdate(SyncTimestamp)
+                    utils.start_thread(EmbyServer.library.KodiStartSync, (False,))
+            else:
+                xbmc.log(f"EMBY.hooks.monitor: Invalid sync date/time: {syncdateCurrent} {synctimeCurrent}", 2) # LOGWARNING
 
         for EmbyServer in list(utils.EmbyServers.values()):
             EmbyServer.API.update_settings()
@@ -671,6 +678,7 @@ def ShutDown():
         utils.SettingsChangedCondition.notify_all()
 
     player.PlayerEventsQueue.put("QUIT")
+    player.DeleteContentQueue.put("QUIT")
     utils.SystemShutdown = True
     utils.unset_SyncLock()
     utils.NextGenOnline.set()
