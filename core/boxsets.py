@@ -178,7 +178,9 @@ class BoxSets:
 
     def set_favorite(self, IsFavorite, Item):
         common.validate_FavoriteImage(Item)
-        self.SQLs["emby"].update_favourite(IsFavorite, Item['Id'], "BoxSet")
+
+        if "emby" in self.SQLs and  self.SQLs["emby"]:
+            self.SQLs["emby"].update_favourite(IsFavorite, Item['Id'], "BoxSet")
 
         if IsFavorite and not Item['KodiArtwork']['favourite'] or 'Name' not in Item:
             _, Item['KodiArtwork']['favourite'], Item['Name'] = self.SQLs["video"].get_favoriteData(None, Item['KodiItemId'], "set")
@@ -187,4 +189,6 @@ class BoxSets:
 
         if utils.BoxSetsToTags:
             EmbyTagId = f"{utils.MappingIds['Tag']}{Item['Id']}"
-            self.SQLs["emby"].update_favourite(IsFavorite, EmbyTagId, "Tag")
+
+            if "emby" in self.SQLs and  self.SQLs["emby"]:
+                self.SQLs["emby"].update_favourite(IsFavorite, EmbyTagId, "Tag")

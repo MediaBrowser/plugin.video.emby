@@ -1,3 +1,10 @@
+12.5.2
+=============
+adjust default paging limits
+fix favorites sync (toggle favorite sync option).
+
+
+
 12.5.1
 =============
 fix delete after watched deadlock

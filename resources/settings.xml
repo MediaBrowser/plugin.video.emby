@@ -339,7 +339,7 @@
                 </setting>
                 <setting id="MusicartistPaging" type="integer" label="33578" help="33175">
                     <level>3</level>
-                    <default>15000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -351,7 +351,7 @@
                 </setting>
                 <setting id="MusicalbumPaging" type="integer" label="33579" help="33175">
                     <level>3</level>
-                    <default>10000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -363,7 +363,7 @@
                 </setting>
                 <setting id="AudioPaging" type="integer" label="33581" help="33175">
                     <level>3</level>
-                    <default>25000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -387,7 +387,7 @@
                 </setting>
                 <setting id="MusicvideoPaging" type="integer" label="33583" help="33175">
                     <level>3</level>
-                    <default>10000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -423,7 +423,7 @@
                 </setting>
                 <setting id="EpisodePaging" type="integer" label="33586" help="33175">
                     <level>3</level>
-                    <default>10000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -435,7 +435,7 @@
                 </setting>
                 <setting id="VideoPaging" type="integer" label="33587" help="33175">
                     <level>3</level>
-                    <default>10000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -519,7 +519,7 @@
                 </setting>
                 <setting id="LiveTVPaging" type="integer" label="33593" help="33175">
                     <level>3</level>
-                    <default>20000</default>
+                    <default>5000</default>
                     <constraints>
                         <minimum>1000</minimum>
                         <step>1000</step>
@@ -591,7 +591,7 @@
                 </setting>
                 <setting id="FolderPaging" type="integer" label="33595" help="33175">
                     <level>3</level>
-                    <default>100000</default>
+                    <default>10000</default>
                     <constraints>
                         <minimum>10000</minimum>
                         <step>10000</step>
@@ -603,10 +603,10 @@
                 </setting>
                 <setting id="PersonPaging" type="integer" label="33597" help="33175">
                     <level>3</level>
-                    <default>100000</default>
+                    <default>10000</default>
                     <constraints>
-                        <minimum>10000</minimum>
-                        <step>10000</step>
+                        <minimum>1000</minimum>
+                        <step>1000</step>
                         <maximum>200000</maximum>
                     </constraints>
                     <control type="slider" format="integer">

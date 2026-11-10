@@ -989,8 +989,11 @@ class HTTP:
 
                 if RequestId in self.RequestBusy:
                     del self.RequestBusy[RequestId]
-            elif RequestId in self.RequestBusy and self.RequestBusy[RequestId].locked():
-                self.RequestBusy[RequestId].release()
+            else:
+                RequestLock = self.RequestBusy.get(RequestId)
+
+                if RequestLock is not None and RequestLock.locked():
+                    RequestLock.release()
 
     def update_header(self, ConnectionId):
         if 'X-Emby-Token' not in self.Connection[ConnectionId]["RequestHeader"] and self.ServerData['AccessToken'] and self.ServerData['UserId']:
