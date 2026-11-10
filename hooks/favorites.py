@@ -813,19 +813,19 @@ def update_Season(Library):
     utils.close_ProgressBar("update_Season")
 
 def update_Playlist(Library):
-    embydb = dbio.DBOpenRO(Library.ServerData['ServerId'], "update_Playlist")
-    PlaylistInfo = embydb.get_FavoriteInfos("Playlist") # EmbyFavourite, KodiId, EmbyArtwork, EmbyId
-    dbio.DBCloseRO(Library.ServerData['ServerId'], "update_Playlist")
+    SQLs = {"emby": dbio.DBOpenRO(Library.ServerData['ServerId'], "update_Playlist")}
+    PlaylistInfo = SQLs["emby"].get_FavoriteInfos("Playlist") # EmbyFavourite, KodiId, EmbyArtwork, EmbyId, EmbyLinkedId
     utils.create_ProgressBar("update_Playlist", utils.Translate(33199), utils.Translate(33851))
-    PlaylistObject = playlist.Playlist(Library, {})
+    PlaylistObject = playlist.Playlist(Library, SQLs)
     RecordsPercent = len(PlaylistInfo) / 100
 
     for Index, PlaylistInfo in enumerate(PlaylistInfo, 1):
         if PlaylistInfo[0]:
-            PlaylistObject.set_favorite(PlaylistInfo[0], {"KodiItemId": PlaylistInfo[1], "Id": PlaylistInfo[3], "KodiArtwork": {'favourite': PlaylistInfo[2]}})
+            PlaylistObject.set_favorite(PlaylistInfo[0], {"KodiItemId": PlaylistInfo[1], "Id": PlaylistInfo[3], "KodiArtwork": {'favourite': PlaylistInfo[2]}, "EmbyLinkedId": PlaylistInfo[4]})
 
         utils.update_ProgressBar("update_Playlist", Index / RecordsPercent, utils.Translate(33851), str(PlaylistInfo[1]))
 
+    dbio.DBCloseRO(Library.ServerData['ServerId'], "update_Playlist")
     del PlaylistObject
     utils.close_ProgressBar("update_Playlist")
 

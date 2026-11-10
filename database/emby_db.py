@@ -1672,6 +1672,8 @@ class EmbyDatabase:
             self.cursor.execute(f"SELECT EmbyFavourite, KodiFileId, KodiId, EmbyId, LibraryIds FROM {Table}")
         elif Table == "MusicGenre":
             self.cursor.execute(f"SELECT EmbyFavourite, KodiId, EmbyArtwork, EmbyId, LibraryIds FROM {Table}")
+        elif Table == "Playlist":
+            self.cursor.execute(f"SELECT EmbyFavourite, KodiId, EmbyArtwork, EmbyId, EmbyLinkedId FROM {Table}")
         else:
             self.cursor.execute(f"SELECT EmbyFavourite, KodiId, EmbyArtwork, EmbyId FROM {Table}")
 
