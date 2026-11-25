@@ -1,11 +1,13 @@
+import os
+import random
+import xbmcvfs
 import xbmc
 import xbmcgui
 from database import dbio
-from emby import listitem
-from core import common
-from . import utils, playerops, artworkcache
+from emby import listitem, metadata
+from . import utils, playerops, artworkcache, cache
 
-xbmcgui.Window(10000).setProperty('EmbyRemoteclient', 'False')
+xbmc.executebuiltin('SetProperty(EmbyRemoteclient,False,10000)')
 
 
 def load_item(KodiId=None, KodiType=None):
@@ -15,7 +17,7 @@ def load_item(KodiId=None, KodiType=None):
     if not KodiType:
         KodiType = xbmc.getInfoLabel('ListItem.DBTYPE')
 
-    xbmc.log(f"EMBY.helper.context: load_item ServerId: {ServerId}, KodiType: {KodiType}, ListItemEmbyId: {ListItemEmbyId}, ListItem.FolderPath: {xbmc.getInfoLabel('ListItem.FolderPath')}", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): load_item ServerId: {ServerId}, KodiType: {KodiType}, ListItemEmbyId: {ListItemEmbyId}, ListItem.FolderPath: {xbmc.getInfoLabel('ListItem.FolderPath')}", 1) # LOGDEBUG
 
     if not ServerId:
         if not KodiId:
@@ -23,6 +25,7 @@ def load_item(KodiId=None, KodiType=None):
 
         EmbyFavourite = None
         EmbyId = None
+        ServerId = None
 
         for ServerId in utils.EmbyServers:
             embydb = dbio.DBOpenRO(ServerId, "contextmenu_item")
@@ -31,28 +34,12 @@ def load_item(KodiId=None, KodiType=None):
 
             if EmbyId:
                 break
+        else:
+            ServerId = None
 
         return EmbyId, ServerId, EmbyFavourite, KodiType
 
     return ListItemEmbyId, ServerId, None, KodiType
-
-def update_Artwork(KodiId, KodiType, SQLs, Add):
-    Artworks = ()
-    ArtworksData = SQLs['video'].get_artworks(KodiId, KodiType)
-
-    for ArtworkData in ArtworksData:
-        if ArtworkData[3] in ("poster", "thumb", "landscape"):
-            UrlMod = ArtworkData[4].split("|")
-
-            if Add:
-                UrlMod = f"{UrlMod[0].replace('-download', '')}-download|redirect-limit=1000"
-            else:
-                UrlMod = ArtworkData[4].replace("-download", "")
-
-            SQLs['video'].update_artwork(ArtworkData[0], UrlMod)
-            Artworks += ((UrlMod,),)
-
-    return Artworks
 
 def deletedownload():
     KodiTypeListItem = xbmc.getInfoLabel('ListItem.DBTYPE')
@@ -65,41 +52,61 @@ def deletedownload():
         dbio.DBCloseRO("video", f"deletedownload_get_{KodiTypeListItem}")
     else:
         KodiType = KodiTypeListItem
-        DeleteItems = ((KodiIdListItem, xbmc.getInfoLabel('ListItem.FileName'), KodiType),)
+        DeleteItems = ((KodiIdListItem, xbmc.getInfoLabel('ListItem.FileName')),)
 
-    Artworks = ()
+    TextureDBUrls = ()
     SQLs = {}
     dbio.DBOpenRW("video", "deletedownload_item_replace", SQLs)
+    ServerIdOld = ""
+    ServerId = ""
 
-    for DeleteItem in DeleteItems:
-        EmbyId, ServerId, _, _ = load_item(DeleteItem[0], KodiType)
+    for KodiIdListItem, KodiFileName in DeleteItems:
+        EmbyId = ""
+
+        if "emby" in SQLs and SQLs["emby"]:
+            EmbyId, _ = SQLs["emby"].get_EmbyId_EmbyFavourite_by_KodiId_KodiType(KodiIdListItem, KodiType)
+
+        if not EmbyId:
+            EmbyId, ServerId, _, _ = load_item(KodiIdListItem, KodiType)
 
         if not EmbyId:
             continue
 
-        dbio.DBOpenRW(ServerId, "deletedownload_item", SQLs)
+        if ServerIdOld != ServerId:
+            if ServerIdOld:
+                dbio.DBCloseRW(ServerIdOld, "deletedownload_item", SQLs)
+
+            dbio.DBOpenRW(ServerId, "deletedownload_item", SQLs)
+            ServerIdOld = ServerId
+
         KodiPathIdBeforeDownload, KodiFileId, KodiId = SQLs['emby'].get_DownloadItem_PathId_FileId(EmbyId)
+        KodiFileId = str(KodiFileId)
+        EmbyId = str(EmbyId)
         SQLs['emby'].delete_DownloadItem(EmbyId)
-        SQLs['video'].update_Name(DeleteItem[0], DeleteItem[2], False)
+        SQLs['video'].update_Name(KodiId, KodiType, False)
 
         if KodiPathIdBeforeDownload:
+            PathStream = SQLs['video'].get_Path(KodiPathIdBeforeDownload)
             SQLs['video'].replace_PathId(KodiFileId, KodiPathIdBeforeDownload)
-            Artworks += update_Artwork(DeleteItem[0], KodiType, SQLs, False)
-            FilePath = utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-offline-content")
-            FilePath = utils.PathAddTrailing(f"{FilePath}{KodiType}")
-            SQLs['video'].replace_Path_ContentItem(KodiId, KodiType, utils.AddonModePath, utils.translatePath(FilePath).decode('utf-8'))
-            FilePath = f"{FilePath}{DeleteItem[1]}"
-            utils.delFile(FilePath)
-
-        dbio.DBCloseRW(ServerId, "deletedownload_item", SQLs)
+            TextureDBUrls += SQLs['video'].download_Artwork(KodiId, KodiType, False)
+            PathStreamFile = os.path.join(PathStream.replace("|redirect-limit=1000&failonerror=false", ""), f"{KodiFileName}|redirect-limit=1000&failonerror=false")
+            SQLs['video'].replace_Path_ContentItem(KodiId, KodiType, PathStream, PathStreamFile)
+            DownloadPath = xbmcvfs.translatePath(os.path.join(utils.DownloadPath, "EMBY-offline-content", KodiType, KodiFileId, ""))
+            DownloadFile = os.path.join(DownloadPath, KodiFileName)
+            utils.delFile(DownloadFile)
+            utils.rmFolder(DownloadPath)
 
         if KodiType == "episode":
-            Artworks += SQLs['video'].set_Subcontent_download_tags(KodiId, False)
+            TextureDBUrls += SQLs['video'].download_Subcontent(KodiId, False)
+
+    if ServerId:
+        dbio.DBCloseRW(ServerId, "deletedownload_item", SQLs)
 
     dbio.DBCloseRW("video", "deletedownload_item_replace", SQLs)
-    Artworks = list(dict.fromkeys(Artworks)) # filter doubles
-    artworkcache.CacheAllEntries(Artworks, None)
+    TextureDBUrls = list(dict.fromkeys(TextureDBUrls)) # filter doubles
+    artworkcache.CacheAllEntries(TextureDBUrls, "")
     utils.refresh_widgets(True)
+    xbmc.executebuiltin('Container.Refresh')
 
 def download():
     KodiTypeListItem = xbmc.getInfoLabel('ListItem.DBTYPE')
@@ -108,49 +115,36 @@ def download():
 
     if KodiTypeListItem in ("season", "tvshow"):
         KodiType = "episode"
-        DownloadItems = videodb.get_Fileinfo_by_SubcontentId(KodiIdListItem, KodiTypeListItem)
+        DownloadItems = videodb.get_Fileinfo_by_SubcontentId(KodiIdListItem, KodiTypeListItem)  # idEpisode, idParentPath, idPath, idFile, strFilename, c00 (Name), strPath, idShow
     else:
         KodiType = KodiTypeListItem
         DownloadItems = videodb.get_Fileinfo(KodiIdListItem, KodiType)
 
     dbio.DBCloseRO("video", "download_item")
 
-    for DownloadItem in DownloadItems: # KodiId, ParentPath, KodiPathIdBeforeDownload, KodiFileId, Filename, Name
-        EmbyId, ServerId, _, _ = load_item(DownloadItem[0], KodiType)
+    for KodiMediaId, KodiPathId, KodiFileId, KodiFilename, KodiMediaName in DownloadItems:
+        EmbyId, ServerId, _, _ = load_item(KodiMediaId, KodiType)
 
         if not EmbyId:
             continue
 
-        Path = utils.PathAddTrailing(f"{utils.DownloadPath}EMBY-offline-content")
-
-        if not utils.mkDir(Path):
-            utils.Dialog.notification(heading=utils.Translate(33558), message=utils.Translate(33680), icon=utils.icon, time=utils.displayMessage)
-            return
-
-        Path = utils.PathAddTrailing(f"{Path}{KodiType}")
-
-        if not utils.mkDir(Path):
-            utils.Dialog.notification(heading=utils.Translate(33558), message=utils.Translate(33680), icon=utils.icon, time=utils.displayMessage)
-            return
-
-        Path = utils.translatePath(Path).decode('utf-8')
-        FilePath = f"{Path}{DownloadItem[4]}"
+        PathDownload = os.path.join(utils.DownloadPath, "EMBY-offline-content", "")
         embydb = dbio.DBOpenRO(ServerId, "download_item")
         FileSize = embydb.get_FileSize(EmbyId)
         dbio.DBCloseRO(ServerId, "download_item")
 
         if FileSize:
-            utils.EmbyServers[ServerId].API.download_file(EmbyId, DownloadItem[1], Path, FilePath, FileSize, DownloadItem[5], KodiType, DownloadItem[2], DownloadItem[3], DownloadItem[0])
+            utils.EmbyServers[ServerId].API.download_file(EmbyId, PathDownload, FileSize, KodiMediaName, KodiType, KodiPathId, KodiFileId, KodiMediaId, KodiFilename)
 
 def gotoshow():
     KodiId = xbmc.getInfoLabel('ListItem.DBID')
     videodb = dbio.DBOpenRO("video", "gotoshow")
     KodiShowId = videodb.get_showid_by_episodeid(KodiId)
     dbio.DBCloseRO("video", "gotoshow")
-    xbmc.log(f"EMBY.helper.context: Gotoshow, ShowId = {KodiShowId}", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): Gotoshow, ShowId = {KodiShowId}", 1) # LOGDEBUG
 
     if KodiShowId:
-        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "videos", "parameters": ["videodb://tvshows/titles/{KodiShowId}", "return"]}}}}')
+        utils.ActivateWindow("videos", f"videodb://tvshows/titles/{KodiShowId}")
 
 def gotoseason():
     KodiId = xbmc.getInfoLabel('ListItem.DBID')
@@ -158,10 +152,101 @@ def gotoseason():
     videodb = dbio.DBOpenRO("video", "gotoshow")
     KodiShowId = videodb.get_showid_by_episodeid(KodiId)
     dbio.DBCloseRO("video", "gotoshow")
-    xbmc.log(f"EMBY.helper.context: Gotoseason, ShowId = {KodiShowId}, Season = {KodiSeason}", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): Gotoseason, ShowId = {KodiShowId}, Season = {KodiSeason}", 1) # LOGDEBUG
 
     if KodiShowId:
-        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "videos", "parameters": ["videodb://tvshows/titles/{KodiShowId}/{KodiSeason}", "return"]}}}}')
+        utils.ActivateWindow("videos", f"videodb://tvshows/titles/{KodiShowId}/{KodiSeason}")
+
+def gotoalbum():
+    KodiId = xbmc.getInfoLabel('ListItem.DBID')
+    musicdb = dbio.DBOpenRO("music", "gotoalbum")
+    KodiAlbumId = musicdb.get_albumid_by_songid(KodiId)
+    dbio.DBCloseRO("music", "gotoalbum")
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): gotoalbum, AlbumId = {KodiAlbumId}", 1) # LOGDEBUG
+
+    if KodiAlbumId:
+        utils.ActivateWindow("music", f"musicdb://albums/{KodiAlbumId}/")
+
+def gotoalbumartist():
+    KodiId = xbmc.getInfoLabel('ListItem.DBID')
+    musicdb = dbio.DBOpenRO("music", "gotoalbumartist")
+    KodiArtistId = musicdb.get_albumartistid_by_albumid(KodiId)
+    dbio.DBCloseRO("music", "gotoalbumartist")
+
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): gotoalbumartist, ArtistId = {KodiArtistId}", 1) # LOGDEBUG
+
+    if KodiArtistId:
+        utils.ActivateWindow("music", f"musicdb://artists/{KodiArtistId}/")
+
+def gotoartist():
+    KodiId = xbmc.getInfoLabel('ListItem.DBID')
+    musicdb = dbio.DBOpenRO("music", "gotoartist")
+    KodiArtistId = musicdb.get_artistid_by_songid(KodiId)
+    dbio.DBCloseRO("music", "gotoartist")
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): gotoartist, ArtistId = {KodiArtistId}", 1) # LOGDEBUG
+
+    if KodiArtistId:
+        utils.ActivateWindow("music", f"musicdb://artists/{KodiArtistId}/")
+
+def similar(EmbyType):
+    EmbyId, ServerId, _, _ = load_item()
+
+    if not EmbyId:
+        return
+
+    if EmbyType in ("Movie", "Video", "Series", "Season", "Episode", "MusicVideo"):
+        utils.ActivateWindow("videos", f"plugin://plugin.video.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+    elif EmbyType in ("MusicArtist", "MusicAlbum", "Audio"):
+        utils.ActivateWindow("music", f"plugin://plugin.audio.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+    else:
+        utils.ActivateWindow("pictures", f"plugin://plugin.image.emby-next-gen/?id={EmbyId}&mode=browse&query=similar&server={ServerId}&parentid=0&content=all&libraryid=0")
+
+def multiversion():
+    Path = xbmc.getInfoLabel('ListItem.Path')
+    PathFiltered = Path.replace("dav://127.0.0.1:57342", "").replace("http://127.0.0.1:57342", "").replace("/emby_addon_mode", "")
+    MetaData = metadata.load_MetaData(PathFiltered, False, False)
+    Selection = []
+
+    for MediaSource in MetaData['MediaSources']:
+        Selection.append(f"{MediaSource[0]['Name']} - {utils.SizeToText(float(MediaSource[0]['Size']))} - {MediaSource[0]['Path']}")
+
+    MetaData['SelectionIndexMediaSource'] = utils.Dialog.select(utils.Translate(33453), Selection)
+
+    if MetaData['SelectionIndexMediaSource'] == -1: # Cancel
+        return
+
+    metadata.MediaSourceContextMenu = MetaData['SelectionIndexMediaSource']
+
+    if not MetaData["isDynamic"]:
+        videodb = dbio.DBOpenRO("video", "multiversion")
+
+        if MetaData["KodiType"] == "episode":
+            ItemKodi = videodb.get_episode_metadata_for_listitem(MetaData["KodiId"], "")
+        elif MetaData["KodiType"] == "musicvideo":
+            ItemKodi = videodb.get_musicvideos_metadata_for_listitem(MetaData["KodiId"], "")
+        elif MetaData["KodiType"] in ("movie", "video"):
+            ItemKodi = videodb.get_movie_metadata_for_listitem(MetaData["KodiId"], "")
+        else:
+            ItemKodi = {}
+
+        dbio.DBCloseRO("video", "multiversion")
+
+        if ItemKodi:
+            listitem.set_ListItem_from_Kodi_database(ItemKodi, "")
+            playerops.Play(False, ItemKodi['KodiFullPath'], ItemKodi['ListItem'], False, False)
+    else:
+        if MetaData["KodiType"] not in utils.KodiTypeMapping:
+            return
+
+        EmbyType = utils.KodiTypeMapping[MetaData["KodiType"]]
+        Item = utils.EmbyServers[MetaData["ServerId"]].API.get_Item(MetaData["EmbyId"], (EmbyType,), True, False, False)
+
+        if not Item:
+            return
+
+        listitem.set_ListItem(Item, MetaData["ServerId"])
+        cache.add_Item(Item, MetaData["ServerId"])
+        playerops.Play(False, Item['KodiFullPath'], Item['ListItem'], False, False)
 
 def specials():
     SpecialFeaturesSelections = []
@@ -177,8 +262,8 @@ def specials():
     for SpecialFeaturesId in SpecialFeaturesIds:
         SpecialFeaturesMediasources = embydb.get_mediasource(SpecialFeaturesId[0])
 
-        if SpecialFeaturesMediasources:
-            SpecialFeaturesSelections.append((SpecialFeaturesMediasources[0][3], SpecialFeaturesId[0]))
+        for SpecialFeaturesMediasource in SpecialFeaturesMediasources.values():
+            SpecialFeaturesSelections.append((SpecialFeaturesMediasource["Name"], SpecialFeaturesMediasource["EmbyId"]))
 
     dbio.DBCloseRO(ServerId, "specials")
     MenuData = []
@@ -193,15 +278,12 @@ def specials():
         return
 
     ItemId = SpecialFeaturesSelections[resp][1]
-    SpecialFeatureItem = utils.EmbyServers[ServerId].API.get_Item(ItemId, ['Movie'], True, False, True)
+    SpecialFeatureItem = utils.EmbyServers[ServerId].API.get_Item(ItemId, ('All',), True, False, False) # Workaround: "Video" param not respected by Emby server's IncludeItemTypes (for specials)
 
     if SpecialFeatureItem:
-        li = listitem.set_ListItem(SpecialFeatureItem, ServerId)
-        common.set_path_filename(SpecialFeatureItem, ServerId, None, True)
-        li.setProperty('path', SpecialFeatureItem['KodiFullPath'])
-        Pos = playerops.GetPlayerPosition(1) + 1
-        utils.Playlists[1].add(SpecialFeatureItem['KodiFullPath'], li, index=Pos)
-        playerops.PlayPlaylistItem(1, Pos)
+        listitem.set_ListItem(SpecialFeatureItem, ServerId)
+        cache.add_Item(SpecialFeatureItem, ServerId)
+        playerops.Play(False, SpecialFeatureItem['KodiFullPath'], SpecialFeatureItem['ListItem'], False, False)
 
 def favorites():
     EmbyId, ServerId, EmbyFavourite, _ = load_item()
@@ -229,11 +311,11 @@ def refreshitem():
 
 def deleteitem():
     EmbyId, ServerId, _, KodiType = load_item()
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): Delete item, metadata: {ServerId}, KodiType: {KodiType}, EmbyId: {EmbyId}", 1) # LOGDEBUG
 
     if not EmbyId:
         return
 
-    EmbyIds = ()
     embydb = dbio.DBOpenRO(ServerId, "contextmenu_item")
 
     if KodiType == "season":
@@ -260,6 +342,7 @@ def deleteitem():
 
     if utils.Dialog.yesno(heading=utils.Translate(33015), message=Path):
         for EmbyId in EmbyIds:
+            if utils.DebugLog: xbmc.log(f"EMBY.helper.context (DEBUG): Delete item: EmbyId: {EmbyId}", 1) # LOGDEBUG
             utils.EmbyServers[ServerId].API.delete_item(EmbyId)
             utils.EmbyServers[ServerId].library.removed([EmbyId], True)
 
@@ -310,18 +393,23 @@ def watchtogether():
     if not EmbyId:
         return
 
+    # Disable previous remote sessions
     playerops.disable_RemoteClients(ServerId)
     playerops.WatchTogether = False
     playerops.RemoteControl = False
     utils.RemoteMode = False
+    playerops.Stop(False, True)
 
+    # Enable new remote session
     if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
         add_remoteclients(ServerId)
 
         if len(playerops.RemoteClientData[ServerId]["SessionIds"]) <= 1:
             return
 
-    playerops.PlayEmby([EmbyId], "PlayInit", 0, 0, utils.EmbyServers[ServerId], 0, False)
+    playerops.WatchTogether = True
+    playerops.enable_remotemode(ServerId)
+    playerops.PlayEmby(False, [EmbyId], "PlayInit", 0, 0, utils.EmbyServers[ServerId].ServerData, utils.EmbyServers[ServerId].API, 0)
 
     for SessionId in playerops.RemoteClientData[ServerId]["SessionIds"]:
         if SessionId in playerops.RemoteClientData[ServerId]["ExtendedSupportAck"] and SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
@@ -348,11 +436,14 @@ def watchtogether():
                     utils.EmbyServers[ServerId].API.send_seek(SessionId, 0, True)
 
         if check_ProgressBar(ProgressBar):
+            # cancel remote session
+            playerops.disable_RemoteClients(ServerId)
+            playerops.WatchTogether = False
+            playerops.RemoteControl = False
+            utils.RemoteMode = False
             return
 
     ProgressBar.close()
-    playerops.WatchTogether = True
-    playerops.enable_remotemode(ServerId)
     playerops.Unpause(False)
 
 def delete_remoteclients():
@@ -376,9 +467,9 @@ def delete_remoteclients():
         for Selection in Selections:
             RemoveSessionIds.append(SessionIds[Selection])
 
-        playerops.delete_RemoteClient(ServerId, RemoveSessionIds)
+        playerops.delete_RemoteClient(ServerId, RemoveSessionIds, False)
 
-    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
+    xbmc.executebuiltin(f'SetProperty(EmbyRemoteclient,{playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]["Id"]]},10000)')
 
 def add_remoteclients(ServerId=None):
     if not ServerId:
@@ -428,7 +519,7 @@ def add_remoteclients(ServerId=None):
             playerops.add_RemoteClient(ServerId, ClientData[Selection][0], ClientData[Selection][1], ClientData[Selection][2])
 
     playerops.enable_remotemode(ServerId)
-    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', str(playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]['Id']]))
+    xbmc.executebuiltin(f'SetProperty(EmbyRemoteclient,{playerops.RemoteClientData[ServerId]["SessionIds"] != [utils.EmbyServers[ServerId].EmbySession[0]["Id"]]},10000)')
 
 def check_ProgressBar(ProgressBar):
     if utils.sleep(0.1):
@@ -460,3 +551,48 @@ def Record():
     else: # Add recoding
         if utils.Dialog.yesno(heading=utils.addon_name, message=utils.Translate(33497)):
             utils.EmbyServers[Temp[0]].API.set_timer(Temp[1])
+
+def playrandom():
+    DBTYPE = xbmc.getInfoLabel("ListItem.DBTYPE")
+
+    if DBTYPE == "season":
+        TVShowDBID = xbmc.getInfoLabel("ListItem.TVShowDBID")
+        DBID = xbmc.getInfoLabel('ListItem.DBID')
+        videodb = dbio.DBOpenRO("video", "playrandomseason")
+        Episodes = videodb.get_episodes_by_seasonId(TVShowDBID, DBID)
+        dbio.DBCloseRO("video", "playrandomseason")
+
+        if not Episodes:
+            return
+
+        Index = random.randrange(len(Episodes))
+        DBTYPE = "episode"
+        DBID = Episodes[Index][0]
+    elif DBTYPE == "tvshow":
+        DBID = xbmc.getInfoLabel('ListItem.DBID')
+        videodb = dbio.DBOpenRO("video", "playrandomtvshow")
+        Episodes = videodb.get_episodes_by_tvshowId(DBID)
+        dbio.DBCloseRO("video", "playrandomtvshow")
+
+        if not Episodes:
+            return
+
+        Index = random.randrange(len(Episodes))
+        DBTYPE = "episode"
+        DBID = Episodes[Index][0]
+    else:
+        NumAllItems = xbmc.getInfoLabel("Container.NumAllItems()")
+        NumItems = xbmc.getInfoLabel("Container.NumItems()")
+
+        if NumAllItems and NumItems:
+            NumItems = int(NumItems)
+            NumAllItems = int(NumAllItems)
+            StartIndex = NumAllItems - NumItems
+        else:
+            return
+
+        Index = random.randrange(StartIndex, NumAllItems)
+        DBID = xbmc.getInfoLabel(f"Container.ListItemAbsolute({Index}).DBID")
+        DBTYPE = xbmc.getInfoLabel(f"Container.ListItemAbsolute({Index}).DBTYPE")
+
+    utils.SendJson("Player.Open", f'{{"item": {{"{DBTYPE}id": {DBID}}}, "options": {{"resume": false}}}}', True)

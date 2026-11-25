@@ -1,5 +1,5 @@
+import xbmc
 from . import common_db
-
 
 class TextureDatabase:
     def __init__(self, cursor):
@@ -7,8 +7,24 @@ class TextureDatabase:
         self.common_db = common_db.CommonDatabase(cursor)
 
     def add_Index(self):
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
-        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
+        try: # xbox issue
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_texture_imagehash'")
+            IndexTest = self.cursor.fetchone()
+
+            if not IndexTest:
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_cachedurl on texture (cachedurl)")
+                self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_texture_imagehash on texture (imagehash)")
+                self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.texture_db: Database add index error: {Error}", 3) # LOGERROR
+
+    def delete_Index(self):
+        try: # xbox issue
+            self.cursor.execute("DROP INDEX IF EXISTS idx_texture_cachedurl")
+            self.cursor.execute("DROP INDEX IF EXISTS idx_texture_imagehash")
+            self.cursor.execute("ANALYZE")
+        except Exception as Error:
+            xbmc.log(f"EMBY.database.texture_db: Database delete index error: {Error}", 3) # LOGERROR
 
     def add_texture(self, url, cachedUrl, imagehash, size, width, height, KodiTime):
         self.cursor.execute("SELECT id FROM texture WHERE url = ?", (url,))
@@ -28,3 +44,10 @@ class TextureDatabase:
             self.cursor.execute("UPDATE sizes SET size = ?, width = ?, height = ?, usecount = ?, lastusetime = ? WHERE idtexture = ?", (size, width, height, "1", KodiTime, idtexture))
         else:
             self.cursor.execute("INSERT INTO sizes (idtexture, size, width, height, usecount, lastusetime) VALUES (?, ?, ?, ?, ?, ?)", (idtexture, size, width, height, "1", KodiTime))
+
+    def delete_textures(self, Urls):
+        Placeholders = ",".join("?" * len(Urls))
+        self.cursor.execute(f"SELECT cachedurl FROM texture WHERE url IN ({Placeholders})", Urls)
+        CachedUrls = self.cursor.fetchall()
+        self.cursor.execute(f"DELETE FROM texture WHERE url IN ({Placeholders})", Urls)
+        return CachedUrls

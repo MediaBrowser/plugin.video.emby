@@ -1,71 +1,43 @@
-from _thread import allocate_lock
-import xbmc
-
+import collections
+import threading
 
 class Queue:
     def __init__(self):
-        self.Lock = allocate_lock()
-        self.QueuedItems = ()
-        self.Lock.acquire()
-        self.Busy = allocate_lock()
+        self.ItemsQueue = collections.deque()
+        self.ThreadCondition = threading.Condition(threading.Lock())
+
+    def put(self, data):
+        with self.ThreadCondition:
+            if isinstance(data, (list, tuple)):
+                self.ItemsQueue.extend(data)
+            else:
+                self.ItemsQueue.append(data)
+            self.ThreadCondition.notify_all()
 
     def get(self):
-        ReturnData = ()
+        while True:
+            with self.ThreadCondition:
+                if self.ItemsQueue:
+                    return self.ItemsQueue.popleft()
 
-        try:
-            self.Lock.acquire()
-
-            with self.Busy:
-                ReturnData = self.QueuedItems[0]
-                self.QueuedItems = self.QueuedItems[1:]
-
-                if self.Lock.locked():
-                    if self.QueuedItems:
-                        self.Lock.release()
-                else:
-                    if not self.QueuedItems:
-                        self.Lock.acquire()
-        except Exception as Error:
-            xbmc.log(f"EMBY.helper.queue: get: {Error}, queuelen: {len(ReturnData)}", 2) # LOGWARNING
-
-        return ReturnData
+                self.ThreadCondition.wait(timeout=0.1)
 
     def getall(self):
-        ReturnData = ()
+        while True:
+            with self.ThreadCondition:
+                if self.ItemsQueue:
+                    items = list(self.ItemsQueue)
+                    self.ItemsQueue.clear()
+                    self.ThreadCondition.notify_all()
+                    return items
 
-        try:
-            self.Lock.acquire()
-
-            with self.Busy:
-                ReturnData = self.QueuedItems
-                self.QueuedItems = ()
-
-                if not self.Lock.locked():
-                    self.Lock.acquire()
-
-        except Exception as Error:
-            xbmc.log(f"EMBY.helper.queue: getall: {Error}, queuelen: {len(ReturnData)}", 2) # LOGWARNING
-
-        return ReturnData
-
-    def put(self, Data):
-        with self.Busy:
-            if isinstance(Data, list):
-                self.QueuedItems += tuple(Data)
-            elif isinstance(Data, tuple):
-                self.QueuedItems += Data
-            else:
-                self.QueuedItems += (Data,)
-
-            if self.Lock.locked():
-                self.Lock.release()
+                self.ThreadCondition.wait(timeout=0.1)
 
     def clear(self):
-        with self.Busy:
-            if not self.Lock.locked():
-                self.Lock.acquire()
-
-            self.QueuedItems = ()
+        with self.ThreadCondition:
+            self.ItemsQueue.clear()
+            self.ThreadCondition.notify_all()
 
     def isEmpty(self):
-        return not bool(self.QueuedItems)
+        with self.ThreadCondition:
+            return not self.ItemsQueue

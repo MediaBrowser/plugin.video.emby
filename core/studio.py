@@ -3,17 +3,19 @@ from helper import utils
 from . import common
 
 class Studio:
-    def __init__(self, EmbyServer, SQLs):
-        self.EmbyServer = EmbyServer
+    def __init__(self, Library, SQLs):
+        self.Library = Library
+        self.SQLs = SQLs
+
+    def update_SQLs(self, SQLs): # When paused, databases are closed and re-opened -> Update database
         self.SQLs = SQLs
 
     def change(self, Item, IncrementalSync):
-        if not common.load_ExistingItem(Item, self.EmbyServer, self.SQLs["emby"], "Studio"):
+        if not common.load_ExistingItem(Item, self.Library, self.SQLs["emby"], "Studio"):
             return False
 
-        xbmc.log(f"EMBY.core.studio: Process item: {Item['Name']}", 0) # DEBUG
-        isFavorite = common.set_Favorite(Item)
-        ImageUrl = common.set_Favorites_Artwork(Item, self.EmbyServer.ServerData['ServerId'])
+        if utils.DebugLog: xbmc.log(f"EMBY.core.studio (DEBUG): Process item: {Item['Name']}", 1) # DEBUG
+        common.set_Favorites_Artwork(Item, self.Library.ServerData['ServerId'])
 
         if Item['KodiItemId']: # existing item
             if Item['Name'] == "--NO INFO--": # Skip injected items updates
@@ -21,50 +23,82 @@ class Studio:
                 return False
 
             self.SQLs["video"].update_studio(Item['Name'], Item['KodiItemId'])
-            self.SQLs["emby"].update_reference_studio(Item['Id'], isFavorite, ImageUrl, Item['LibraryId'])
-            xbmc.log(f"EMBY.core.studio: UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", int(IncrementalSync)) # LOG
-            utils.notify_event("content_update", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "studio"}, IncrementalSync)
+            self.SQLs["emby"].update_reference_studio(Item['Id'], Item['KodiArtwork']['favourite'], Item['LibraryId'])
+
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.studio: UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.studio (DEBUG): UPDATE [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGDEBUG
+
+            utils.notify_event("content_update", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "studio"}, IncrementalSync)
         else:
             Item['KodiItemId'] = self.SQLs["video"].get_add_studio(Item['Name'])
-            self.SQLs["emby"].add_reference_studio(Item['Id'], Item['LibraryId'], Item['KodiItemId'], isFavorite, ImageUrl)
-            xbmc.log(f"EMBY.core.studio: ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", int(IncrementalSync)) # LOG
-            utils.notify_event("content_add", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "studio"}, IncrementalSync)
+            self.SQLs["emby"].add_reference_studio(Item['Id'], Item['LibraryId'], Item['KodiItemId'], Item['KodiArtwork']['favourite'])
 
-        self.set_favorite(isFavorite, Item['KodiItemId'], ImageUrl, Item['Id'])
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.studio: ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.studio (DEBUG): ADD [{Item['KodiItemId']}] {Item['Name']}: {Item['Id']}", 1) # LOGDEBUG
+
+            utils.notify_event("content_add", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "studio"}, IncrementalSync)
+
+        common.download_SubnodeIcon(Item, self.Library.ServerData['ServerId']) # Download icon
         return not Item['UpdateItem']
 
     def remove(self, Item, IncrementalSync):
-        if self.SQLs["emby"].remove_item(Item['Id'], "Studio", Item['LibraryId']):
-            self.set_favorite(False, Item['KodiItemId'], "", Item['Id'])
-            self.SQLs["video"].delete_studio_by_Id(Item['KodiItemId'])
-            xbmc.log(f"EMBY.core.studio: DELETE [{Item['KodiItemId']}] {Item['Id']}", int(IncrementalSync)) # LOG
-            utils.notify_event("content_remove", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "studio"}, IncrementalSync)
+        Delete = self.SQLs["emby"].remove_item(Item['Id'], "Studio", Item['LibraryId'])
 
-    def userdata(self, Item):
-        ImageUrl = ""
+        if Delete:
+            if not common.verify_KodiIds(Item, IncrementalSync, False):
+                return
 
-        if Item['IsFavorite']:
-            ImageUrl = self.SQLs["emby"].get_item_by_id(Item['Id'], "Studio")[3]
+            self.set_favorite(False, Item)
+            StudioName = self.SQLs["video"].delete_studio_by_Id(Item['KodiItemId'])
 
-        self.set_favorite(Item['IsFavorite'], Item['KodiItemId'], ImageUrl, Item['Id'])
+            if int(IncrementalSync):
+                xbmc.log(f"EMBY.core.studio: DELETE {StudioName}: [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+            elif utils.DebugLog:
+                xbmc.log(f"EMBY.core.studio (DEBUG): DELETE {StudioName}: [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
+            self.Library.Views.remove_synced_subnode(Item['Id'], Item['LibraryId'], "Studio", StudioName) # Delete genre xml node
+            utils.notify_event("content_remove", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "studio"}, IncrementalSync)
+
+    def userdata(self, Item, IncrementalSync, UpdateKodiFavorite):
+        if not common.verify_KodiIds(Item, IncrementalSync, False):
+            return False
+
+        common.set_Favorite(Item)
         self.SQLs["emby"].update_favourite(Item['IsFavorite'], Item['Id'], "Studio")
-        utils.reset_querycache("Studio")
-        xbmc.log(f"EMBY.core.sudio: USERDATA studio [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
-        utils.notify_event("content_changed", {"EmbyId": f"{Item['Id']}", "KodiId": f"{Item['KodiItemId']}", "KodiType": "studio"}, True)
+
+        if UpdateKodiFavorite:
+            self.set_favorite(Item['IsFavorite'], Item)
+
+        utils.notify_event("content_changed", {"EmbyId": Item['Id'], "KodiId": Item['KodiItemId'], "KodiType": "studio"}, True)
+
+        if int(IncrementalSync):
+            xbmc.log(f"EMBY.core.studio: USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGINFO
+        elif utils.DebugLog:
+            xbmc.log(f"EMBY.core.studio (DEBUG): USERDATA [{Item['KodiItemId']}] {Item['Id']}", 1) # LOGDEBUG
+
         return False
 
-    def set_favorite(self, isFavorite, KodiItemId, ImageUrl, EmbyItemId):
-        Name, hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Studio_Name(KodiItemId)
+    def set_favorite(self, IsFavorite, Item):
+        common.validate_FavoriteImage(Item)
 
-        if not Name:
-            xbmc.log(f"EMBY.core.sudio: set_favorite, item not found {KodiItemId}", 2) # LOGWARNING
+        if IsFavorite and not Item['KodiArtwork']['favourite']:
+            Item['KodiArtwork']['favourite'] = self.SQLs["emby"].get_item_by_id(Item['Id'], "Studio")[3]
+
+        Item['Name'], hasMusicVideos, hasMovies, hasTVShows = self.SQLs["video"].get_Studio_Name(Item['KodiItemId'])
+
+        if not Item['Name']:
+            xbmc.log(f"EMBY.core.studio: set_favorite, item not found {Item['KodiItemId']}", 2) # LOGWARNING
             return
 
-        if hasMovies or not isFavorite:
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "Movies", EmbyItemId, self.EmbyServer.ServerData['ServerId'], ImageUrl), isFavorite, f"videodb://movies/studios/{KodiItemId}/", Name, "window", 10025),))
+        if hasMovies or not IsFavorite:
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "Movies", Item['Id'], self.Library.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"videodb://movies/studios/{Item['KodiItemId']}/", Item['Name'].replace('"', "'"), "window", 10025),))
 
-        if hasTVShows or not isFavorite:
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "TV Shows", EmbyItemId, self.EmbyServer.ServerData['ServerId'], ImageUrl), isFavorite, f"videodb://tvshows/studios/{KodiItemId}/", Name, "window", 10025),))
+        if hasTVShows or not IsFavorite:
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "TV Shows", Item['Id'], self.Library.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"videodb://tvshows/studios/{Item['KodiItemId']}/", Item['Name'].replace('"', "'"), "window", 10025),))
 
-        if hasMusicVideos or not isFavorite:
-            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "Musicvideos", EmbyItemId, self.EmbyServer.ServerData['ServerId'], ImageUrl), isFavorite, f"videodb://musicvideos/studios/{KodiItemId}/", Name, "window", 10025),))
+        if hasMusicVideos or not IsFavorite:
+            utils.FavoriteQueue.put(((common.set_Favorites_Artwork_Overlay("Studio", "Musicvideos", Item['Id'], self.Library.ServerData['ServerId'], Item['KodiArtwork']['favourite']), IsFavorite, f"videodb://musicvideos/studios/{Item['KodiItemId']}/", Item['Name'].replace('"', "'"), "window", 10025),))

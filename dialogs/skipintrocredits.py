@@ -9,7 +9,7 @@ class SkipIntro(xbmcgui.WindowXMLDialog):
     def set_JumpFunction(self, JumpFunction):
         self.JumpFunction = JumpFunction
 
-    def onFocus(self, controlId):
+    def onFocus(self, _controlId):
         self.dialog_open = True
 
     def onAction(self, action):

@@ -3015,10 +3015,750 @@ msgctxt "#33715"
 msgid "Set local content as default"
 msgstr ""
 
+msgctxt "#33715"
+msgid "Set local content as default"
+msgstr "Définir le contenu local par défaut"
+
 msgctxt "#33716"
 msgid "Kodi companion addon not installed on Emby server! Please install"
-msgstr ""
+msgstr "Le module complémentaire compagnon Kodi n'est pas installé sur le serveur Emby ! "
 
 msgctxt "#33717"
 msgid "Cancel artwork cache"
+msgstr "Annuler le cache des illustrations"
+
+msgctxt "#33718"
+msgid "Number of webservice workers"
+msgstr "Nombre de travailleurs du service Web"
+
+msgctxt "#33719"
+msgid "Higher values can improve performance but needs more resources. Changes are applied after a Kodi restart."
+msgstr "Des valeurs plus élevées peuvent améliorer les performances mais nécessitent plus de ressources. "
+
+msgctxt "#33720"
+msgid "Close busy dialog"
+msgstr "Fermer la boîte de dialogue occupé"
+
+msgctxt "#33721"
+msgid "Can prevent Kodi crashes"
+msgstr "Peut empêcher les plantages de Kodi"
+
+msgctxt "#33722"
+msgid "Type of service"
+msgstr "Type de prestation"
+
+msgctxt "#33723"
+msgid "IP header (TOS), could improve responsiveness"
+msgstr "en-tête IP (TOS), pourrait améliorer la réactivité"
+
+msgctxt "#33724"
+msgid "CS0 (Best Effort)"
+msgstr "CS0 (meilleur effort)"
+
+msgctxt "#33725"
+msgid "EF (Expedited Forwarding)"
+msgstr "EF (transfert accéléré)"
+
+msgctxt "#33726"
+msgid "CS1, AF11 (Assured Forwarding)"
+msgstr "CS1, AF11 (transfert assuré)"
+
+msgctxt "#33727"
+msgid "CS4 (Real-time interactive)"
+msgstr "CS4 (interactif en temps réel)"
+
+msgctxt "#33728"
+msgid "Incremental artwork cache"
+msgstr "Cache incrémentiel des illustrations"
+
+msgctxt "#33729"
+msgid "Cache artwork automatically on partial syncs"
+msgstr "Mettre automatiquement en cache les illustrations lors des synchronisations partielles"
+
+msgctxt "#33730"
+msgid "Genres with icons"
+msgstr "Genres avec icônes"
+
+msgctxt "#33731"
+msgid "Studios with icons"
+msgstr "Studios avec icônes"
+
+msgctxt "#33732"
+msgid "Tags with icons"
+msgstr "Balises avec icônes"
+
+msgctxt "#33733"
+msgid "Local trailers"
+msgstr "Remorques locales"
+
+msgctxt "#33734"
+msgid "Load changes"
+msgstr "Changements de charge"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Seuil de résolution"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transcoder le contenu lorsque la résolution de la source est supérieure à la résolution sélectionnée"
+
+msgctxt "#33735"
+msgid "Resolution threshold"
+msgstr "Seuil de résolution"
+
+msgctxt "#33736"
+msgid "Transcode content when source resolution is above selected resolution"
+msgstr "Transcoder le contenu lorsque la résolution de la source est supérieure à la résolution sélectionnée"
+
+msgctxt "#33737"
+msgid "always"
+msgstr "toujours"
+
+msgctxt "#33738"
+msgid "720"
 msgstr ""
+
+msgctxt "#33739"
+msgid "1080"
+msgstr ""
+
+msgctxt "#33740"
+msgid "2160"
+msgstr ""
+
+msgctxt "#33741"
+msgid "unlimited"
+msgstr "illimité"
+
+msgctxt "#33742"
+msgid "Transcoding resolution"
+msgstr "résolution de transcodage"
+
+msgctxt "#33743"
+msgid "Unlimited means keep source resolution"
+msgstr "Illimité signifie conserver la résolution source"
+
+msgctxt "#33744"
+msgid "Webservice mode"
+msgstr "mode service Web"
+
+msgctxt "#33745"
+msgid "Webdav"
+msgstr ""
+
+msgctxt "#33746"
+msgid "Path substitution"
+msgstr "Substitution de chemin"
+
+msgctxt "#33747"
+msgid "Http"
+msgstr ""
+
+msgctxt "#33748"
+msgid "EMBY: Multiversion"
+msgstr "EMBY : Multiversion"
+
+msgctxt "#33749"
+msgid "Refresh musicvideo links"
+msgstr "Actualiser les liens musicaux et vidéo"
+
+msgctxt "#33750"
+msgid "Updates musicvideo links to music database"
+msgstr "met à jour les liens vers les vidéos musicales vers la base de données musicale"
+
+msgctxt "#33751"
+msgid "Time not synced, skip updates"
+msgstr "heure non synchronisée, ignorer les mises à jour"
+
+msgctxt "#33752"
+msgid "Add musicvideo links to music"
+msgstr "Ajouter des liens vidéo musicaux à la musique"
+
+msgctxt "#33753"
+msgid "Musicvideos assigned to music listed in Kodi's song views."
+msgstr "Vidéos musicales attribuées à la musique répertoriée dans les vues de chansons de Kodi."
+
+msgctxt "#33754"
+msgid "Delete backup"
+msgstr "Supprimer la sauvegarde"
+
+msgctxt "#33755"
+msgid "Enter backup name"
+msgstr "Entrez le nom de la sauvegarde"
+
+msgctxt "#33756"
+msgid "Compression not supported, backup not available."
+msgstr "Compression non prise en charge, sauvegarde non disponible."
+
+msgctxt "#33757"
+msgid "Backup in Progress"
+msgstr "Sauvegarde en cours"
+
+msgctxt "#33758"
+msgid "Audio themes synchronization method"
+msgstr "Méthode de synchronisation des thèmes audio"
+
+msgctxt "#33759"
+msgid "Video themes synchronization method"
+msgstr "Méthode de synchronisation des thèmes vidéo"
+
+msgctxt "#33760"
+msgid "Download"
+msgstr "Télécharger"
+
+msgctxt "#33761"
+msgid "Remote"
+msgstr "À distance"
+
+msgctxt "#33762"
+msgid "Enable audio themes"
+msgstr "Activer les thèmes audio"
+
+msgctxt "#33763"
+msgid "Enable video themes"
+msgstr "Activer les thèmes vidéo"
+
+msgctxt "#33764"
+msgid "Go To Album"
+msgstr "Aller à l'album"
+
+msgctxt "#33765"
+msgid "Go To Artist"
+msgstr "Aller à l'artiste"
+
+msgctxt "#33766"
+msgid "Pause sync"
+msgstr "Suspendre la synchronisation"
+
+msgctxt "#33767"
+msgid "Pause sync when server is busy with tasks"
+msgstr "Suspendre la synchronisation lorsque le serveur est occupé par des tâches"
+
+msgctxt "#33768"
+msgid "Video preview thumbnail extraction"
+msgstr "Extraction des miniatures de l'aperçu vidéo"
+
+msgctxt "#33769"
+msgid "Vacuum database"
+msgstr "Base de données sous vide"
+
+msgctxt "#33770"
+msgid "Upload local theme videos"
+msgstr "Télécharger des vidéos thématiques locales"
+
+msgctxt "#33771"
+msgid "Upload local theme songs"
+msgstr "Télécharger des chansons thématiques locales"
+
+msgctxt "#33772"
+msgid "Update intro database"
+msgstr "Mettre à jour la base de données d'introduction"
+
+msgctxt "#33773"
+msgid "TV maze update"
+msgstr "mise à jour du labyrinthe TV"
+
+msgctxt "#33774"
+msgid "Transfer media"
+msgstr "médias de transfert"
+
+msgctxt "#33775"
+msgid "Scan metadata folder"
+msgstr "Analyser le dossier de métadonnées"
+
+msgctxt "#33776"
+msgid "Scan media library"
+msgstr "Analyser la médiathèque"
+
+msgctxt "#33777"
+msgid "Refresh internet channels"
+msgstr "Actualiser les chaînes Internet"
+
+msgctxt "#33778"
+msgid "Refresh guide"
+msgstr "Actualiser le guide"
+
+msgctxt "#33779"
+msgid "Download subtitles"
+msgstr "Télécharger les sous-titres"
+
+msgctxt "#33780"
+msgid "Download local YouTube movie trailers"
+msgstr "Téléchargez des bandes-annonces de films YouTube locaux"
+
+msgctxt "#33781"
+msgid "Download local TV theme songs"
+msgstr "Téléchargez des chansons thématiques pour la télévision locale"
+
+msgctxt "#33782"
+msgid "Download Local theme videos"
+msgstr "Télécharger des vidéos sur le thème local"
+
+msgctxt "#33783"
+msgid "Download Local theme songs"
+msgstr "Télécharger des chansons thématiques locales"
+
+msgctxt "#33784"
+msgid "Detect intros"
+msgstr "Détecter les introductions"
+
+msgctxt "#33785"
+msgid "Convert media"
+msgstr "Convertir le média"
+
+msgctxt "#33786"
+msgid "Refresh in progress"
+msgstr "Actualisation en cours"
+
+msgctxt "#33787"
+msgid "Emby scripterX scheduled task"
+msgstr "tâche planifiée Emby scripterX"
+
+msgctxt "#33788"
+msgid "EMBY: More like this"
+msgstr "EMBY : Plus comme ça"
+
+msgctxt "#33789"
+msgid "More like this"
+msgstr "Plus comme ça"
+
+msgctxt "#33790"
+msgid "Homevideo tags"
+msgstr "balises vidéo personnelles"
+
+msgctxt "#33791"
+msgid "Favorite homevideos"
+msgstr "Vidéos personnelles préférées"
+
+msgctxt "#33792"
+msgid "Video tags"
+msgstr "balises vidéo"
+
+msgctxt "#33793"
+msgid "Favorite videos"
+msgstr "Vidéos préférées"
+
+msgctxt "#33794"
+msgid "Playback state changes"
+msgstr "changements d’état de lecture"
+
+msgctxt "#33795"
+msgid "Series and season progress"
+msgstr "Progression des séries et des saisons"
+
+msgctxt "#33796"
+msgid "Playlists (mixed)"
+msgstr "Playlists (mixtes)"
+
+msgctxt "#33797"
+msgid "EMBY: Random play"
+msgstr "EMBY : Lecture aléatoire"
+
+msgctxt "#33798"
+msgid "Random play"
+msgstr "Jeu aléatoire"
+
+msgctxt "#33799"
+msgid "Kodi Companion warning"
+msgstr "Avertissement de Kodi Companion"
+
+msgctxt "#33800"
+msgid "Kodi Companion is a Emby server addon which keeps track of deleted content"
+msgstr "Kodi Companion est un module complémentaire de serveur Emby qui assure le suivi du contenu supprimé"
+
+msgctxt "#33801"
+msgid "Processing trailers"
+msgstr "Remorques de traitement"
+
+msgctxt "#33802"
+msgid "Trailers"
+msgstr "Remorques"
+
+msgctxt "#33803"
+msgid "Recently added trailers"
+msgstr "Bandes-annonces récemment ajoutées"
+
+msgctxt "#33804"
+msgid "Themes"
+msgstr "Thèmes"
+
+msgctxt "#33805"
+msgid "Enable audio"
+msgstr "Activer le son"
+
+msgctxt "#33806"
+msgid "Enable video"
+msgstr "Activer la vidéo"
+
+msgctxt "#33807"
+msgid "Fade in"
+msgstr "Fondu entrant"
+
+msgctxt "#33808"
+msgid "Fade out"
+msgstr "Fondu en fondu"
+
+msgctxt "#33809"
+msgid "Larger values means longer fading time, zero is disabled"
+msgstr "des valeurs plus grandes signifient un temps de fondu plus long, zéro est désactivé"
+
+msgctxt "#33810"
+msgid "Homescreen"
+msgstr "écran d'accueil"
+
+msgctxt "#33811"
+msgid "Plays themes for widgets"
+msgstr "Lit des thèmes pour les widgets"
+
+msgctxt "#33812"
+msgid "Delayed start"
+msgstr "Démarrage différé"
+
+msgctxt "#33813"
+msgid "Values are in seconds"
+msgstr "les valeurs sont en secondes"
+
+msgctxt "#33814"
+msgid "Download"
+msgstr "Télécharger"
+
+msgctxt "#33815"
+msgid "Store themes locally for better performance"
+msgstr "stockez les thèmes localement pour de meilleures performances"
+
+msgctxt "#33816"
+msgid "Priority"
+msgstr "Priorité"
+
+msgctxt "#33817"
+msgid "Defines which theme plays first when both available"
+msgstr "Définit quel thème est joué en premier lorsque les deux sont disponibles"
+
+msgctxt "#33818"
+msgid "Remote trailers"
+msgstr "Remorques distantes"
+
+msgctxt "#33819"
+msgid "Remote trailers selection"
+msgstr "Sélection des remorques à distance"
+
+msgctxt "#33820"
+msgid "Cinema intros"
+msgstr "Intros au cinéma"
+
+msgctxt "#33821"
+msgid "Folder trailers"
+msgstr "Remorques de dossiers"
+
+msgctxt "#33822"
+msgid "Local trailers"
+msgstr "Remorques locales"
+
+msgctxt "#33823"
+msgid "Local movie"
+msgstr "Film local"
+
+msgctxt "#33824"
+msgid "Trailer playback"
+msgstr "Lecture de la bande-annonce"
+
+msgctxt "#33825"
+msgid "Volume"
+msgstr ""
+
+msgctxt "#33826"
+msgid "Debug log"
+msgstr "journal de débogage"
+
+msgctxt "#33827"
+msgid "Enable video by intro markers"
+msgstr "Activer la vidéo par marqueurs d'introduction"
+
+msgctxt "#33828"
+msgid "Enable audio by intro markers"
+msgstr "Activer l'audio par les marqueurs d'introduction"
+
+msgctxt "#33829"
+msgid "Enable video by content"
+msgstr "Activer la vidéo par contenu"
+
+msgctxt "#33830"
+msgid "Enable audio by content"
+msgstr "Activer l'audio par contenu"
+
+msgctxt "#33831"
+msgid "By content duration"
+msgstr "Par durée du contenu"
+
+msgctxt "#33832"
+msgid "Transcoding used, can lead to heavy CPU load on the server"
+msgstr "Transcodage utilisé, peut entraîner une charge CPU importante sur le serveur"
+
+msgctxt "#33833"
+msgid "Off"
+msgstr "Désactivé"
+
+msgctxt "#33834"
+msgid "Intro markers"
+msgstr "Marqueurs d'introduction"
+
+msgctxt "#33835"
+msgid "Content"
+msgstr "Contenu"
+
+msgctxt "#33836"
+msgid "Virtual themes"
+msgstr "Thèmes virtuels"
+
+msgctxt "#33837"
+msgid "Navigation"
+msgstr ""
+
+msgctxt "#33838"
+msgid "Episode view"
+msgstr "Vue épisode"
+
+msgctxt "#33839"
+msgid "Season view"
+msgstr "Vue de la saison"
+
+msgctxt "#33840"
+msgid "TV Show view"
+msgstr "vue de l'émission télévisée"
+
+msgctxt "#33841"
+msgid "Movie view"
+msgstr "visionnage du film"
+
+msgctxt "#33842"
+msgid "Timings"
+msgstr "horaires"
+
+msgctxt "#33843"
+msgid "Playback"
+msgstr "Lecture"
+
+msgctxt "#33844"
+msgid "Update audio favorites"
+msgstr "Mettre à jour les favoris audio"
+
+msgctxt "#33845"
+msgid "Update musicalbum favorites"
+msgstr "Mettre à jour les favoris des albums musicaux"
+
+msgctxt "#33846"
+msgid "Update video favorites"
+msgstr "Mettre à jour les favoris vidéo"
+
+msgctxt "#33847"
+msgid "Update musicvideo favorites"
+msgstr "Mettre à jour les favoris des vidéos musicales"
+
+msgctxt "#33848"
+msgid "Update boxset favorites"
+msgstr "Mettre à jour les favoris du coffret"
+
+msgctxt "#33849"
+msgid "Update series favorites"
+msgstr "Mettre à jour les favoris des séries"
+
+msgctxt "#33850"
+msgid "Update season favorites"
+msgstr "Mettre à jour les favoris de la saison"
+
+msgctxt "#33851"
+msgid "Update playlist favorites"
+msgstr "Mettre à jour les favoris de la liste de lecture"
+
+msgctxt "#33852"
+msgid "Update episode favorites"
+msgstr "Mettre à jour les favoris des épisodes"
+
+msgctxt "#33853"
+msgid "Update movie favorites"
+msgstr "Mettre à jour les favoris des films"
+
+msgctxt "#33854"
+msgid "Update genre favorites"
+msgstr "Mettre à jour les favoris du genre"
+
+msgctxt "#33855"
+msgid "Update studio favorites"
+msgstr "Mettre à jour les favoris du studio"
+
+msgctxt "#33856"
+msgid "Update tag favorites"
+msgstr "Mettre à jour les favoris des balises"
+
+msgctxt "#33857"
+msgid "Update musicgenre favorites"
+msgstr "Mettre à jour les favoris des genres musicaux"
+
+msgctxt "#33858"
+msgid "Update person favorites"
+msgstr "Mettre à jour les favoris des personnes"
+
+msgctxt "#33859"
+msgid "Update person favorites"
+msgstr "Mettre à jour les favoris des personnes"
+
+msgctxt "#33860"
+msgid "Restored backup from:"
+msgstr "Sauvegarde restaurée à partir de :"
+
+msgctxt "#33861"
+msgid "CS5 (Signaling)"
+msgstr ""
+
+msgctxt "#33862"
+msgid "Favorite Movies"
+msgstr "Films favoris"
+
+msgctxt "#33863"
+msgid "Favorite Boxsets"
+msgstr "Coffrets favoris"
+
+msgctxt "#33864"
+msgid "Favorite Videos"
+msgstr "Vidéos préférées"
+
+msgctxt "#33865"
+msgid "Favorite Photos"
+msgstr "Photos favorites"
+
+msgctxt "#33866"
+msgid "Favorite Musicvideos"
+msgstr "Vidéos musicales préférées"
+
+msgctxt "#33867"
+msgid "Recently Added Musicvideos"
+msgstr "Vidéos musicales ajoutées récemment"
+
+msgctxt "#33868"
+msgid "In Progress Musicvideos"
+msgstr "Vidéos musicales en cours"
+
+msgctxt "#33869"
+msgid "A-Z Musicvideos"
+msgstr "Vidéos musicaux de A à Z"
+
+msgctxt "#33870"
+msgid "A-Z Movies"
+msgstr "films de A à Z"
+
+msgctxt "#33871"
+msgid "A-Z TV Shows"
+msgstr "Séries de A à Z"
+
+msgctxt "#33872"
+msgid "A-Z Photoalbums"
+msgstr "album photo de A à Z"
+
+msgctxt "#33873"
+msgid "A-Z Videos"
+msgstr "vidéos de A à Z"
+
+msgctxt "#33874"
+msgid "Homevideo Tags"
+msgstr "balises vidéo personnelles"
+
+msgctxt "#33875"
+msgid "Favorite Homevideos"
+msgstr "Vidéos personnelles favorites"
+
+msgctxt "#33876"
+msgid "Video Tags"
+msgstr "Balises vidéo"
+
+msgctxt "#33877"
+msgid "Unwatched Musicvideos"
+msgstr "Vidéos musicales non vues"
+
+msgctxt "#33878"
+msgid "Unwatched Videos"
+msgstr "Vidéos non visionnées"
+
+msgctxt "#33879"
+msgid "Genre Songs"
+msgstr "Chansons par genre"
+
+msgctxt "#33880"
+msgid "Genre TV Shows"
+msgstr "Séries par genre"
+
+msgctxt "#33881"
+msgid "Genre Movies"
+msgstr "Films par genre"
+
+msgctxt "#33882"
+msgid "Random Movies"
+msgstr "Films aléatoires"
+
+msgctxt "#33883"
+msgid "Random"
+msgstr "Aléatoire"
+
+msgctxt "#33884"
+msgid "Recommended"
+msgstr "Recommandé"
+
+msgctxt "#33885"
+msgid "Random Episodes"
+msgstr "Épisodes aléatoires"
+
+msgctxt "#33886"
+msgid "Random TV Shows"
+msgstr "Émissions de télévision aléatoires"
+
+msgctxt "#33887"
+msgid "Random Musicvideos"
+msgstr "Vidéos musicales aléatoires"
+
+msgctxt "#33888"
+msgid "Musicvideo Tags"
+msgstr "Tags de vidéos musicales"
+
+msgctxt "#33889"
+msgid "Tags"
+msgstr "Tags"
+
+msgctxt "#33890"
+msgid "Favorites"
+msgstr "Favoris"
+
+msgctxt "#33891"
+msgid "Favorite Actors"
+msgstr "Acteurs préférés"
+
+msgctxt "#33892"
+msgid "Favorite Artists"
+msgstr "Artistes préférés"
+
+msgctxt "#33893"
+msgid "Favorite TV Shows"
+msgstr "Émissions de télévision préférées"
+
+msgctxt "#33894"
+msgid "Upcoming Episodes"
+msgstr "Épisodes à venir"
+
+msgctxt "#33895"
+msgid "Continue Watching"
+msgstr "Continuer à regarder"
+
+msgctxt "#33896"
+msgid "Recently Added"
+msgstr "Récemment ajouté"
+
+msgctxt "#33897"
+msgid "Download native chapters"
+msgstr "Télécharger les chapitres natifs"
+
+msgctxt "#33898"
+msgid "Enable requires a full resync"
+msgstr "L’activation nécessite une resynchronisation complète"
+
+msgctxt "#33899"
+msgid "Favorite Audio"
+msgstr "audio préféré"

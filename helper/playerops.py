@@ -1,11 +1,11 @@
+import threading
 import xbmc
+import xbmcvfs
 import xbmcgui
-from helper import utils, queue
+from helper import utils, queue, cache
 from database import dbio
 from emby import listitem
-from core import common
 
-Pictures = []
 PlayerId = -1
 PlayerPause = False
 RemoteClientData = {} # {"ServerId": {"SessionIds": [], "Usernames": {SessionId: UserName, ...}, "Devicenames": {SessionId: DeviceName, ...}, "ExtendedSupport": [], "ExtendedSupportAck": []}
@@ -15,149 +15,441 @@ RemotePlaybackInit = False
 EmbyIdPlaying = 0
 WatchTogether = False
 AVStarted = False
+AVStart = False
 AVChange = False
-RemoteCommandActive = [0, 0, 0, 0, 0] # prevent loops when client has control [Pause, Unpause, Seek, Stop, Play]
+Stopped = True
+AVStartedCondition = threading.Condition(threading.Lock())
+AVChangeCondition = threading.Condition(threading.Lock())
+StoppedCondition = threading.Condition(threading.Lock())
+RemoteCommandActive = [0, 0, 0, 0, 0, 0, 0] # prevent loops when client has control [Pause, Unpause, Seek, Stop, Play, NextTrack, PreviousTrack]
+XbmcPlayer = xbmc.Player() # Init Player
+XbmcPlaylists = [xbmc.PlayList(0), xbmc.PlayList(1)] # Init Playlists
+PlaylistsPosition = [-1, -1, -1]
+PlaybackRate = [1.0, 1.0, 1.0]
+RepeatMode = ['RepeatNone', 'RepeatNone', 'RepeatNone']
+Shuffled = [False, False, False]
+PauseLock = threading.Lock()
+RemoteCommandActiveLock = threading.Lock()
+
+def RemoteCommandActiveAdd(CommandId):
+    with utils.SafeLock(RemoteCommandActiveLock):
+        RemoteCommandActive[CommandId] += 1
+
+def RemoteCommandActiveRelease(CommandId):
+    with utils.SafeLock(RemoteCommandActiveLock):
+        if RemoteCommandActive[CommandId] > 0:
+            RemoteCommandActive[CommandId] -= 1
+
+def RemoteCommandActiveConsume(CommandId):
+    with utils.SafeLock(RemoteCommandActiveLock):
+        if RemoteCommandActive[CommandId] > 0:
+            RemoteCommandActive[CommandId] -= 1
+            return False
+
+        return True
+
+def RemoteCommandActiveGet(CommandId):
+    with utils.SafeLock(RemoteCommandActiveLock):
+        return RemoteCommandActive[CommandId]
+
+def RemoteCommandActiveReset():
+    global RemoteCommandActive
+
+    with utils.SafeLock(RemoteCommandActiveLock):
+        RemoteCommandActive = [0, 0, 0, 0, 0, 0, 0]
+
+def reload_PlaylistHandles(PlaylistId):
+    XbmcPlaylists[PlaylistId] = xbmc.PlayList(PlaylistId)
 
 def enable_remotemode(ServerId):
-    globals()["RemoteControl"] = True
+    global RemoteControl
+    RemoteControl = True
     utils.RemoteMode = True
     send_RemoteClients(ServerId, [], True)
 
-def ClearPlaylist(PlaylistId):
-    utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {{"playlistid": {PlaylistId}}}}}')
-    xbmc.log("EMBY.helper.playerops: [ ClearPlaylist ]", 1) # LOGINFO
+def GetTempo():
+    if PlayerId != -1:
+        Tempo = xbmc.getInfoLabel('Player.PlaySpeed')
 
-def InsertPlaylist(PlaylistId, Position, KodiType, KodiId):
-    utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Insert", "params": {{"playlistid": {PlaylistId}, "position": {Position}, "item": {{"{KodiType}id": {KodiId}}}}}}}')
-    xbmc.log("EMBY.helper.playerops: [ InsertPlaylist ]", 1) # LOGINFO
+        if Tempo:
+            try:
+                Tempo = float(Tempo)
+            except:
+                return 0
 
-def GetPlaylistItems(PlaylistId):
-    Result = utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "Playlist.GetItems", "params": {{"properties": ["file"], "playlistid": {PlaylistId}}}}}', True)
+            if Tempo == 0.76:
+                Tempo = 0.75
 
-    if Result:
-        Result = Result.get("result", {})
+            return Tempo
+
+    return 0
+
+def SetSpeed(Speed):
+    if PlayerId != -1: # Tempo accepct only ranges between 0.75 to 1.55
+        if Speed < 0.75: # Not possible by Kodi
+            return
+
+        if Speed > 1.54:
+            if Speed < 1.5:
+                Speed = 1
+            else:
+                Speed = 2
+
+            utils.SendJson("Player.SetSpeed", f'{{"playerid": {PlayerId}, "speed": {int(Speed)}}}', True) # fast forward
+        else: # Try set Tempo
+            Result = utils.SendJson("Settings.GetSettingValue", '{"setting": "videoplayer.usedisplayasclock"}', True)
+
+            if Result:
+                Result = Result.get("result", {})
+                UseDisplayAsClock = Result.get("value", False)
+            else:
+                UseDisplayAsClock = False
+
+            if not UseDisplayAsClock: # Tempo not supported when UseDisplayAsClock is disabled
+                if Speed < 1.5:
+                    Speed = 1
+                else:
+                    Speed = 2
+
+                utils.SendJson("Player.SetSpeed", f'{{"playerid": {PlayerId}, "speed": {int(Speed)}}}', True) # fast forward
+            else:
+                if Speed == 0.75:
+                    Speed = 0.76
+
+                utils.SendJson("Player.SetSpeed", f'{{"playerid": {PlayerId}, "speed": 1}}', True) # fast forward
+                utils.SendJson("Player.SetTempo", f'{{"playerid": {PlayerId}, "tempo": {float(Speed)}}}', True) # playback speed
+
+def GetStreamInfo(IndexMappingSubtitleEmby, IndexMappingSubtitleKodi):
+    if PlayerId != -1:
+        Result = utils.SendJson("Player.GetProperties", f'{{"playerid": {PlayerId}, "properties": ["currentaudiostream", "subtitleenabled", "currentsubtitle", "subtitles"]}}', True)
 
         if Result:
-            return Result.get("items", [])
+            Result = Result.get("result", {})
+        else:
+            return -1, -1, False, {}, {}
 
-    xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: Result={Result}", 3) # LOGERROR
+        KodiSubtitles = Result.get("subtitles", [])
+
+        # Sort: External subtitles always last
+        if KodiSubtitles and len(IndexMappingSubtitleEmby) == len(KodiSubtitles):
+            KodiSubtitlesIndexExternal = []
+            KodiSubtitlesIndexInternal = []
+            KodiSubtitlesIndex = []
+            IndexMappingSubtitleEmbyKeyByIndex = []
+            Valid = True
+
+            for KodiSubtitle in KodiSubtitles:
+                Name = KodiSubtitle.get("name", "")
+
+                if 'index' not in KodiSubtitle:
+                    Valid = False
+                    break
+
+                if "(External)" in Name:
+                    KodiSubtitlesIndexExternal.append(KodiSubtitle['index'])
+                else:
+                    KodiSubtitlesIndexInternal.append(KodiSubtitle['index'])
+
+            if Valid:
+                KodiSubtitlesIndex = KodiSubtitlesIndexInternal + KodiSubtitlesIndexExternal
+
+                for Key in IndexMappingSubtitleEmby:
+                    IndexMappingSubtitleEmbyKeyByIndex.append(Key)
+
+                for Index, KodiSubtitlsIndex in enumerate(KodiSubtitlesIndex):
+                    Key = IndexMappingSubtitleEmbyKeyByIndex[Index]
+                    IndexMappingSubtitleEmby[Key] = KodiSubtitlsIndex
+                    IndexMappingSubtitleKodi[KodiSubtitlsIndex] = Key
+
+        KodiSubtitleIndex = Result.get("currentsubtitle", -1)
+
+        if KodiSubtitleIndex:
+            if KodiSubtitleIndex != -1:
+                KodiSubtitleIndex = KodiSubtitleIndex.get("index", -1)
+        else:
+            KodiSubtitleIndex = -1
+
+        KodiAudioIndex = Result.get("currentaudiostream", -1)
+
+        if KodiAudioIndex:
+            if KodiAudioIndex != -1:
+                KodiAudioIndex = KodiAudioIndex.get("index", -1)
+        else:
+            KodiAudioIndex = -1
+
+        return KodiAudioIndex, KodiSubtitleIndex, Result.get("subtitleenabled", False), IndexMappingSubtitleEmby, IndexMappingSubtitleKodi
+
+    return -1, -1, False, {}, {}
+
+def InsertPlaylist(PlaylistId, Position, KodiType, KodiId):
+    if PlaylistId != -1:
+        utils.SendJson("Playlist.Insert", f'{{"playlistid": {PlaylistId}, "position": {Position}, "item": {{"{KodiType}id": {KodiId}}}}}', False)
+        xbmc.log("EMBY.helper.playerops: [ InsertPlaylist ]", 1) # LOGINFO
+    else:
+        xbmc.log(f"EMBY.helper.playerops: InsertPlaylist failed: PlaylistId={PlaylistId}", 3) # LOGERROR
+
+def GetPlaylistItems(PlaylistId):
+    if PlaylistId != -1:
+        Result = utils.SendJson("Playlist.GetItems", f'{{"properties": ["file"], "playlistid": {PlaylistId}}}', True)
+
+        if Result:
+            Result = Result.get("result", {})
+
+            if Result:
+                return Result.get("items", [])
+
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: Result={Result}", 3) # LOGERROR
+    else:
+        xbmc.log(f"EMBY.helper.playerops: GetPlaylistItems failed: PlaylistId={PlaylistId}", 3) # LOGERROR
+
     return []
 
-def GetPlayerInfo(PlayerIdLocal):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position", "time", "totaltime"]}}, "id": 1}}', True).get("result", {})
+def GetPlaylistPosition(PlaylistId):
+    if -1 < PlaylistId < 2:
+        try:
+            PlaylistsPosition[PlaylistId] = XbmcPlaylists[PlaylistId].getposition()
+            if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): [ GetPlaylistPosition ] {PlaylistsPosition[PlaylistId]}", 1) # LOGINFO
+            return PlaylistsPosition[PlaylistId]
+        except:
+            try:
+                reload_PlaylistHandles(PlaylistId)
+                PlaylistsPosition[PlaylistId] = XbmcPlaylists[PlaylistId].getposition()
+                xbmc.log(f"EMBY.helper.playerops: [ GetPlaylistPosition ] reloaded, {PlaylistsPosition[PlaylistId]}", 1) # LOGINFO
+                return PlaylistsPosition[PlaylistId]
+            except:
+                xbmc.log("EMBY.helper.playerops: [ GetPlaylistPosition ] failed", 3) # LOGERROR
+                PlaylistsPosition[PlaylistId] = -1
+                return -1
+    elif PlaylistId == 2:
+        Ret = utils.SendJson("Player.GetProperties", '{"playerid":2,"properties":["position", "playlistid"]}', False)
+        PlaylistsPosition[PlaylistId] = int(Ret.get("result", {}).get("position", -1))
+        return PlaylistsPosition[PlaylistId]
 
-    if Result:
-        xbmc.log("EMBY.helper.playerops: [ GetPlayerInfo ]", 1) # LOGINFO
-        TimeStamp = Result.get("totaltime", {})
-        Duration = 0
-
-        if TimeStamp:
-            Duration = get_EmbyTicks(TimeStamp)
-
-        TimeStamp = Result.get("time", {})
-        PositionTicks = 0
-
-        if TimeStamp:
-            PositionTicks = get_EmbyTicks(TimeStamp)
-
-        return Result.get("position", -1), PositionTicks, Duration
-
-    xbmc.log(f"EMBY.helper.playerops: GetPlayerInfo failed: Result={Result}", 3) # LOGERROR
-    return -1, 0, 0
-
-def GetPlayerPosition(PlayerIdLocal):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{{"playerid":{PlayerIdLocal},"properties": ["position"]}}, "id": 1}}', True)
-
-    if Result:
-        Result = Result.get("result", {})
-        xbmc.log("EMBY.helper.playerops: [ GetPlayerPosition ]", 1) # LOGINFO
-        return Result.get("position", -1)
-
-    xbmc.log(f"EMBY.helper.playerops: GetPlayerPosition failed: Result={Result}", 3) # LOGERROR
     return -1
 
 def GetPlaylistSize(PlaylistId):
-    Result = utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.GetProperties", "params":{{"playlistid":{PlaylistId},"properties": ["size"]}}, "id": 1}}').get("result", {})
+    if PlaylistId != -1:
+        try:
+            Size = XbmcPlaylists[PlaylistId].size()
+            xbmc.log(f"EMBY.helper.playerops: [ GetPlaylistSize ] {Size}", 1) # LOGINFO
+            return Size
+        except:
+            try:
+                reload_PlaylistHandles(PlaylistId)
+                Size = XbmcPlaylists[PlaylistId].size()
+                xbmc.log(f"EMBY.helper.playerops: [ GetPlaylistSize ] reloaded, {Size}", 1) # LOGINFO
+                return Size
+            except:
+                xbmc.log("EMBY.helper.playerops: [ GetPlaylistSize ] failed", 3) # LOGERROR
+                return 0
 
-    if Result:
-        xbmc.log("EMBY.helper.playerops: [ GetPlaylistSize ]", 1) # LOGINFO
-        return Result.get("size", 0)
-
-    xbmc.log(f"EMBY.helper.playerops: GetPlaylistSize failed: Result={Result}", 3) # LOGERROR
     return 0
 
-def GetActivePlayer():
-    Result = utils.SendJson('{"jsonrpc":"2.0","method":"Player.GetActivePlayers","id":1}', {}).get("result", {})
-
-    if Result:
-        xbmc.log(f"EMBY.helper.playerops: [ GetActivePlayer ] {Result}", 1) # LOGINFO
-        return True
-
-    xbmc.log("EMBY.helper.playerops: GetActivePlayer: No active player", 1) # LOGINFO
-    return False
-
 def PlayPlaylistItem(PlaylistId, Index):
-    utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Open","params":{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": false}}   }},"id":1}}')
-    globals()['PlayerId'] = PlaylistId
+    global PlayerId
+
+    if PlaylistId != -1:
+        utils.SendJson("Player.Open", f'{{"item":{{"playlistid":{PlaylistId},"position":{Index}}} ,"options": {{"resume": false}}}}', True)
+        PlayerId = PlaylistId
+    else:
+        xbmc.log(f"EMBY.helper.playerops: PlayPlaylistItem failed: PlaylistId={PlaylistId}", 3) # LOGERROR
+
+def GetPlayerFilepath():
+    if XbmcPlayer.isPlaying():
+        try:
+            Filepath = XbmcPlayer.getPlayingFile()
+            xbmc.log(f"EMBY.helper.playerops: [ GetPlayerFilepath ] {Filepath}", 1) # LOGINFO
+            return Filepath
+        except:
+            pass
+
+    xbmc.log("EMBY.helper.playerops: GetPlayerFilepath: No active player", 1) # LOGINFO
+    return ""
 
 def AddSubtitle(Path):
-    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Player.AddSubtitle", "params":{{"playerid": 1, "subtitle":"{Path}"}}, "id": 1}}', True)
+    SubtitleIndexAdded = -1
+    Path = xbmcvfs.translatePath(Path)
 
-def SetSubtitle(Enable):
-    if Enable:
-        utils.SendJson('{"jsonrpc":"2.0", "method":"Player.SetSubtitle", "params":{"playerid":1, "subtitle":"on"}, "id": 1}')
+    if not wait_AVStarted():
+        return -1
+
+    Ret = utils.SendJson("Player.GetProperties", '{"playerid":1,"properties":["subtitles"]}', False)
+    SubtitleCount = len(Ret.get("result", {}).get("subtitles", []))
+    utils.SendJson("Player.AddSubtitle", f'{{"playerid":1, "subtitle":"{Path}"}}', False)
+    xbmc.log(f"EMBY.helper.playerops: [ AddSubtitle ] {Path}", 1) # LOGINFO
+
+    # Wait for subtitle added
+    for _ in range(50):
+        Ret = utils.SendJson("Player.GetProperties", '{"playerid":1,"properties":["subtitles"]}', False)
+        Subtitles = Ret.get("result", {}).get("subtitles", [])
+
+        if len(Subtitles) > SubtitleCount:
+            SubtitleIndexAdded = Subtitles[-1]["index"]
+            break
+
+        utils.sleep(0.1)
+
+    return SubtitleIndexAdded
+
+def SelectSubtitle(Index):
+    if XbmcPlayer.isPlaying():
+        try:
+            XbmcPlayer.setSubtitleStream(Index)
+            xbmc.log(f"EMBY.helper.playerops: [ SelectSubtitle ] {Index}", 1) # LOGINFO
+        except:
+            xbmc.log(f"EMBY.helper.playerops: [ SelectSubtitle ] failed {Index}", 1) # LOGINFO
     else:
-        utils.SendJson('{"jsonrpc":"2.0", "method":"Player.SetSubtitle", "params":{"playerid":1, "subtitle":"off"}, "id": 1}')
+        xbmc.log(f"EMBY.helper.playerops: [ SelectSubtitle ] failed, not playing {Index}", 1) # LOGINFO
 
-    xbmc.log(f"EMBY.helper.playerops: [ SetSubtitle ] {Enable}", 1) # LOGINFO
+def EnableSubtitle(Enable):
+    if XbmcPlayer.isPlaying():
+        try:
+            XbmcPlayer.showSubtitles(Enable)
+            xbmc.log(f"EMBY.helper.playerops: [ EnableSubtitle ] {Enable}", 1) # LOGINFO
+        except:
+            xbmc.log(f"EMBY.helper.playerops: [ EnableSubtitle ] failed {Enable}", 1) # LOGINFO
+    else:
+        xbmc.log(f"EMBY.helper.playerops: [ EnableSubtitle ] failed, not playing {Enable}", 1) # LOGINFO
 
 def RemovePlaylistItem(PlaylistId, Index):
-    utils.SendJson(f'{{"jsonrpc":"2.0", "method":"Playlist.Remove", "params":{{"playlistid":{PlaylistId}, "position":{Index}}}}}')
+    if PlaylistId != -1:
+        utils.SendJson("Playlist.Remove", f'{{"playlistid":{PlaylistId}, "position":{Index}}}', False)
+        xbmc.log(f"EMBY.helper.playerops: [ RemovePlaylistItem ] PlaylistId={PlaylistId} Index: {Index}", 1) # LOGINFO
+    else:
+        xbmc.log(f"EMBY.helper.playerops: RemovePlaylistItem failed: PlaylistId={PlaylistId}", 3) # LOGERROR
 
 def Next():
-    if PlayerId != -1:
-        PlaylistPosition = GetPlayerPosition(PlayerId)
-        PlaylistPosition += 1
+    global PlayerPause
+    global AVStarted
 
-        if PlaylistPosition >= 0:
-            utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GoTo","params":{{"playerid":{PlayerId},"to":{PlaylistPosition}}},"id":1}}', True)
-            xbmc.log("EMBY.helper.playerops: [ Next ]", 1) # LOGINFO
+    if PlayerId == 2:
+        RemoteCommandActiveAdd(5)
+        xbmc.executebuiltin("Action(right)")
+        xbmc.log("EMBY.helper.playerops: [ Next ], Picture", 1) # LOGINFO
     else:
-        xbmc.log(f"EMBY.helper.playerops: Next failed: PlayerId={PlayerId}", 3) # LOGERROR
+        if XbmcPlayer.isPlaying():
+            RemoteCommandActiveAdd(5)
 
-    globals()['PlayerPause'] = False
+            try:
+                xbmc.executebuiltin("PlayerControl(Next)")
+                xbmc.log("EMBY.helper.playerops: [ Next ]", 1)
+                PlayerPause = False
+                AVStarted = False
+                return
+            except:
+                RemoteCommandActiveRelease(5)
+                xbmc.log(f"EMBY.helper.playerops: Next failed: PlayerId={PlayerId}", 3) # LOGERROR
+        else:
+            xbmc.log(f"EMBY.helper.playerops: Next failed, not playing: PlayerId={PlayerId}", 3) # LOGERROR
 
 def Previous():
-    if PlayerId != -1:
-        PlaylistPosition = GetPlayerPosition(PlayerId)
-        PlaylistPosition -= 1
+    global PlayerPause
+    global AVStarted
 
-        if PlaylistPosition >= 0:
-            utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GoTo","params":{{"playerid":{PlayerId},"to":{PlaylistPosition}}},"id":1}}', True)
-            xbmc.log("EMBY.helper.playerops: [ Previous ]", 1) # LOGINFO
+    if PlayerId == 2:
+        RemoteCommandActiveAdd(6)
+        xbmc.executebuiltin("Action(left)")
+        xbmc.log("EMBY.helper.playerops: [ Previous ], Picture", 1) # LOGINFO
     else:
-        xbmc.log(f"EMBY.helper.playerops: Previous failed: PlayerId={PlayerId}", 3) # LOGERROR
+        if XbmcPlayer.isPlaying():
+            RemoteCommandActiveAdd(6)
 
-    globals()['PlayerPause'] = False
+            try:
+                xbmc.executebuiltin("PlayerControl(Previous)")
+                xbmc.log("EMBY.helper.playerops: [ Previous ]", 1) # LOGINFO
+                PlayerPause = False
+                AVStarted = False
+                return
+            except:
+                RemoteCommandActiveRelease(6)
+                xbmc.log("EMBY.helper.playerops: Previous failed", 3) # LOGERROR
+        else:
+            xbmc.log("EMBY.helper.playerops: Previous failed, not playing", 3) # LOGERROR
 
-def Stop(isRemote=False, LocalPlayerId=None):
-    if not LocalPlayerId:
-        LocalPlayerId = PlayerId
+def Stop(isRemote=False, Wait=False):
+    global PlayerPause
+    global AVStarted
+    AVStarted = False
+    PlayerPause = False
 
-    if LocalPlayerId != -1:
-        if GetActivePlayer():
+    if PlayerId == 2:
+        PlayerPause = False
+
+        if isRemote:
+            RemoteCommandActiveAdd(3)
+
+        xbmc.executebuiltin("Action(Stop)")
+        xbmc.log("EMBY.helper.playerops: [ Stop ], Picture", 1) # LOGINFO
+    else:
+        if XbmcPlayer.isPlaying():
             if isRemote:
-                globals()['RemoteCommandActive'][3] += 1
+                RemoteCommandActiveAdd(3)
+
+            PlayerPause = False
+            xbmc.executebuiltin(f'PlayerControl(Stop, {PlayerId})')
+
+            if Wait:
+                while XbmcPlayer.isPlaying():
+                    if utils.sleep(0.1):
+                        break
 
             xbmc.log("EMBY.helper.playerops: [ Stop ]", 1) # LOGINFO
         else:
             xbmc.log("EMBY.helper.playerops: Stop: No active player", 1) # LOGINFO
 
-        utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Stop","params":{{"playerid":{LocalPlayerId}}},"id":1}}', True)
-    else:
-        xbmc.log(f"EMBY.helper.playerops: Stop failed: PlayerId={LocalPlayerId}", 3) # LOGERROR
+def Play(isRemote, Path, ListItem, Windowed, WaitForPlayback):
+    global PlayerPause
+    global AVStarted
+    AVStarted = False
+    PlayerPause = False
 
-    globals()['PlayerPause'] = False
+    if isRemote:
+        RemoteCommandActiveAdd(4)
+
+    xbmc.log("EMBY.helper.playerops: [ Play ]", 1) # LOGINFO
+    XbmcPlayer.play(Path, listitem=ListItem, windowed=Windowed)
+
+    if WaitForPlayback:
+        Timeout = 0
+
+        # Wait for playback
+        while not XbmcPlayer.isPlaying():
+            utils.close_busyDialog(True)
+            Timeout += 1
+
+            if utils.sleep(0.1):
+                if isRemote:
+                    RemoteCommandActiveRelease(4)
+
+                xbmc.log("EMBY.helper.playerops: [ Play ] shutdown", 3) # LOGERROR
+                return False
+
+            if Timeout > 100: # 10 seconds timeout
+                if isRemote:
+                    RemoteCommandActiveRelease(4)
+
+                xbmc.log("EMBY.helper.playerops: [ Play ] timeout play", 3) # LOGERROR
+                return False
+
+        # Wait for full player init
+        if not wait_AVStarted(True):
+            if isRemote:
+                RemoteCommandActiveRelease(4)
+
+            xbmc.log("EMBY.helper.playerops: [ Play ] timeout avstart", 3) # LOGERROR
+            return False
+
+    return True
+
+def UpdateInfoTag(ListItem):
+    if XbmcPlayer.isPlaying():
+        try:
+            XbmcPlayer.updateInfoTag(ListItem)
+            return True
+        except:
+            pass
+
+    return False
 
 def PauseToggle(isRemote=False):
     if PlayerPause:
@@ -167,33 +459,71 @@ def PauseToggle(isRemote=False):
 
     xbmc.log("EMBY.helper.playerops: [ PauseToggle ]", 1) # LOGINFO
 
-def Pause(isRemote=False, PositionTicks=0, TimeStamp=0):
-    if PlayerId != -1 and not PlayerPause:
-        if isRemote:
-            globals()['RemoteCommandActive'][0] += 1
+def Pause(isRemote=False, PositionTicks=0, TimeStamp=0, WaitForPlayback=False):
+    global PlayerPause
 
-        utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.PlayPause","params":{{"playerid":{PlayerId}}},"id":1}}')
-        globals()['PlayerPause'] = True
-        xbmc.log("EMBY.helper.playerops: [ Pause ]", 1) # LOGINFO
+    with utils.SafeLock(PauseLock):
+        if not PlayerPause:
+            if PlayerId == 2:
+                if WaitForPlayback:
+                    if not wait_AVStarted(False):
+                        xbmc.log("EMBY.helper.playerops: Pause (forced) failed, player not playing", 3) # LOGERROR
+                        return
 
-        if TimeStamp:
-            Seek(PositionTicks, isRemote, TimeStamp)
-    else:
-        xbmc.log(f"EMBY.helper.playerops: Pause failed: PlayerId={PlayerId} / PlayerPause={PlayerPause}", 3) # LOGERROR
+                if isRemote:
+                    RemoteCommandActiveAdd(0)
+
+                xbmc.executebuiltin("Action(Pause)")
+                PlayerPause = True
+                xbmc.log("EMBY.helper.playerops: [ Pause ], Picture", 1) # LOGINFO
+            else:
+                if WaitForPlayback:
+                    if not wait_AVStarted(False):
+                        xbmc.log("EMBY.helper.playerops: Pause (forced) failed, player not playing", 3) # LOGERROR
+                        return
+
+                if XbmcPlayer.isPlaying():
+                    if isRemote:
+                        RemoteCommandActiveAdd(0)
+
+                    xbmc.executebuiltin('PlayerControl(Play)')
+                    PlayerPause = True
+                    xbmc.log("EMBY.helper.playerops: [ Pause ]", 1) # LOGINFO
+
+                    if TimeStamp:
+                        Seek(PositionTicks, isRemote, TimeStamp)
+                else:
+                    xbmc.log("EMBY.helper.playerops: Pause failed, player not playing", 3) # LOGERROR
+        else:
+            xbmc.log(f"EMBY.helper.playerops: Pause failed: PlayerId={PlayerId} / PlayerPause={PlayerPause}", 3) # LOGERROR
 
 def Unpause(isRemote=False):
-    if PlayerId != -1 and PlayerPause:
-        if isRemote:
-            globals()['RemoteCommandActive'][1] += 1
+    global PlayerPause
 
-        utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.PlayPause","params":{{"playerid":{PlayerId}}},"id":1}}')
-        globals()['PlayerPause'] = False
-        xbmc.log("EMBY.helper.playerops: [ Unpause ]", 1) # LOGINFO
-    else:
-        xbmc.log(f"EMBY.helper.playerops: Unpause failed: PlayerId={PlayerId} / PlayerPause={PlayerPause}", 3) # LOGERROR
+    with utils.SafeLock(PauseLock):
+        if PlayerPause:
+            if PlayerId == 2:
+                if isRemote:
+                    RemoteCommandActiveAdd(1)
+
+                xbmc.executebuiltin("Action(Pause)")
+                PlayerPause = False
+                xbmc.log("EMBY.helper.playerops: [ Unpause ], Picture", 1) # LOGINFO
+            else:
+                if XbmcPlayer.isPlaying():
+                    if isRemote:
+                        RemoteCommandActiveAdd(1)
+
+                    xbmc.executebuiltin('PlayerControl(Play)')
+                    xbmc.log("EMBY.helper.playerops: [ Unpause ]", 1) # LOGINFO
+                else:
+                    xbmc.log("EMBY.helper.playerops: Unpause failed, player not playing", 3) # LOGERROR
+
+                PlayerPause = False
+        else:
+            xbmc.log(f"EMBY.helper.playerops: Unpause failed: PlayerId={PlayerId} / PlayerPause={PlayerPause}", 3) # LOGERROR
 
 def TicksToTimestamp(Ticks, TimeStamp):
-    DeltaTime = 0
     Ticks = float(Ticks)
 
     if TimeStamp:
@@ -206,210 +536,252 @@ def TicksToTimestamp(Ticks, TimeStamp):
 def Seek(SeekPositionTicksQuery, isRemote=False, TimeStamp=0, Relative=False):
     if PlayerId != -1:
         if not wait_AVStarted():
-            xbmc.log(f"EMBY.helper.playerops: Seek: avstart not set: seek={SeekPositionTicksQuery}", 3) # LOGERROR
+            xbmc.log(f"EMBY.helper.playerops: Seek: avstart not set: seek={SeekPositionTicksQuery}", 3)
             return
 
-        WarningLogSend = False
-        SeekPositionTicks = SeekPositionTicksQuery
+        if XbmcPlayer.isPlaying():
+            WarningLogSend = False
+            TargetTicks = float(SeekPositionTicksQuery)
+            RemoteCounterAdded = False
 
-        for _ in range(5): # try 5 times
-            CurrentPositionTicks = PlayBackPosition()
+            if TimeStamp:
+                DeltaTicks = utils.get_unixtime_emby_format() - float(TimeStamp)
+                xbmc.log(f"EMBY.helper.playerops: DeltaTime: {DeltaTicks}ms", 1)
+                TargetTicks += DeltaTicks
 
-            if CurrentPositionTicks == -1:
-                return
+            for _ in range(5):
+                CurrentPositionTicks = PlayBackPosition()
 
-            if Relative:
-                SeekPositionTicks = CurrentPositionTicks + SeekPositionTicksQuery
+                if CurrentPositionTicks == 0:
+                    if RemoteCounterAdded:
+                        RemoteCommandActiveRelease(2)
 
-            Hours, Minutes, Seconds, Milliseconds, Ticks = TicksToTimestamp(SeekPositionTicks, TimeStamp)
-            Drift = (Ticks - CurrentPositionTicks) / 10000 # in milliseconds
+                    return
 
-            if -utils.remotecontrol_drift < Drift < utils.remotecontrol_drift:
-                xbmc.log(f"EMBY.helper.playerops: [ seek, allowed drift / Drift={Drift}]", 1) # LOGINFO
-                return
+                if Relative:
+                    FinalTicks = CurrentPositionTicks + TargetTicks
+                else:
+                    FinalTicks = TargetTicks
 
-            if isRemote:
-                globals()['RemoteCommandActive'][2] += 1
+                Drift = (FinalTicks - CurrentPositionTicks) / 10000.0
 
-            if utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.Seek","params":{{"playerid":{PlayerId},"value":{{"time":{{"hours":{Hours},"minutes":{Minutes},"seconds":{Seconds},"milliseconds": {Milliseconds}}}}}}},"id":1}}', True):
-                xbmc.log(f"EMBY.helper.playerops: Seek / SeekPositionTicks: {Ticks} / TimeStamp: {TimeStamp} / Drift: {Drift}", 1) # LOGINFO
-                return
+                if -utils.remotecontrol_drift < Drift < utils.remotecontrol_drift:
+                    xbmc.log(f"EMBY.helper.playerops: [ seek, allowed drift / Drift={Drift}]", 1)
 
-            if not WarningLogSend:
-                WarningLogSend = True
-                xbmc.log("EMBY.helper.playerops: Seek not send, delay", 2) # LOGWARNING
+                    if RemoteCounterAdded:
+                        RemoteCommandActiveRelease(2)
 
-            if utils.sleep(0.1):
-                return
+                    return
 
-        xbmc.log(f"EMBY.helper.playerops: Seek not set: seek={SeekPositionTicks}", 3) # LOGERROR
+                if isRemote and not RemoteCounterAdded:
+                    RemoteCommandActiveAdd(2)
+                    RemoteCounterAdded = True
+
+                try:
+                    XbmcPlayer.seekTime(FinalTicks / 10000000.0)
+                    xbmc.log(f"EMBY.helper.playerops: Seek / FinalTicks: {int(FinalTicks)} / TimeStamp: {TimeStamp} / Drift: {Drift}", 1)
+                    return
+
+                except:
+                    if not WarningLogSend:
+                        xbmc.log("EMBY.helper.playerops: Seek failed, retrying...", 2)
+                        WarningLogSend = True
+
+                xbmc.sleep(100)
+
+            if RemoteCounterAdded:
+                RemoteCommandActiveRelease(2)
+
+            xbmc.log(f"EMBY.helper.playerops: Seek not set: seek={TargetTicks}", 3)
     else:
-        xbmc.log(f"EMBY.helper.playerops: Seek failed: PlayerId={PlayerId}", 3) # LOGERROR
+        xbmc.log(f"EMBY.helper.playerops: Seek failed: PlayerId={PlayerId}", 3)
 
 # wait for prezise progress information
 def PlayBackPositionExact():
     PlaybackPositionCompare = 0
     PlaybackPosition = 0
 
-    for _ in range(10): # timeout 2 seconds
-        PlaybackPosition = PlayBackPosition()
+    if XbmcPlayer.isPlaying():
+        for _ in range(10): # timeout 2 seconds
+            PlaybackPosition = PlayBackPosition()
 
-        if PlaybackPosition == -1:
-            return 0
+            if PlayerPause:
+                if PlaybackPositionCompare == PlaybackPosition:
+                    return PlaybackPosition
+            else:
+                Delta = PlaybackPosition - PlaybackPositionCompare
 
-        if PlayerPause:
-            if PlaybackPositionCompare == PlaybackPosition:
-                return PlaybackPosition
-        else:
-            Delta = PlaybackPosition - PlaybackPositionCompare
+                if PlaybackPosition and -7000000 < Delta < 7000000: # Allow 500ms delta
+                    if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): Exact playback position found", 1) # LOGDEBUG
+                    return PlaybackPosition
 
-            if PlaybackPosition and -7000000 < Delta < 7000000: # Allow 500ms delta
-                xbmc.log("EMBY.helper.playerops: Exact playback position found", 0) # LOGDEBUG
-                return PlaybackPosition
+            if utils.sleep(0.2):
+                return 0
 
-        if utils.sleep(0.2):
-            return 0
+            PlaybackPositionCompare = PlaybackPosition
 
-        PlaybackPositionCompare = PlaybackPosition
-
-    xbmc.log("EMBY.helper.playerops: Unable to detect exact playback position", 2) # LOGWARNING
-    return PlaybackPosition
-
-def PlayBackPosition():
-    if PlayerId != -1:
-        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["time"]}},"id":1}}').get("result", {})
-
-        if Result:
-            TimeStamp = Result.get("time", {})
-
-            if TimeStamp:
-                return get_EmbyTicks(TimeStamp)
-
-        xbmc.log(f"EMBY.helper.playerops: PlayBackPosition failed: Result={Result}", 2) # LOGWARNING
-    else:
-        xbmc.log(f"EMBY.helper.playerops: PlayBackPosition failed: PlayerId={PlayerId}", 2) # LOGWARNING
-
-    return -1
-
-def PlayBackDuration():
-    if PlayerId != -1:
-        Result = utils.SendJson(f'{{"jsonrpc":"2.0","method":"Player.GetProperties","params":{{"playerid":{PlayerId},"properties": ["totaltime"]}},"id":1}}').get("result", {})
-
-        if Result:
-            TimeStamp = Result.get("totaltime", {})
-
-            if TimeStamp:
-                return get_EmbyTicks(TimeStamp)
-
-        xbmc.log(f"EMBY.helper.playerops: PlayBackDuration failed: Result={Result}", 2) # LOGWARNING
-    else:
-        xbmc.log(f"EMBY.helper.playerops: PlayBackDuration failed: PlayerId={PlayerId}", 2) # LOGWARNING
+        xbmc.log("EMBY.helper.playerops: Unable to detect exact playback position", 2) # LOGWARNING
+        return PlaybackPosition
 
     return 0
 
-def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, TimeStamp, isRemote=True):
+def PlayBackPosition():
+    if XbmcPlayer.isPlaying():
+        try:
+            return max(int(XbmcPlayer.getTime() * 10000000), 0)
+        except:
+            xbmc.log("EMBY.helper.playerops: PlayBackPosition failed, player", 2) # LOGWARNING
+            return 0
+
+    if utils.DebugLog: xbmc.log("EMBY.helper.playerops: PlayBackPosition failed, player not playing", 2) # LOGWARNING
+    return 0
+
+def PlayBackDuration():
+    if XbmcPlayer.isPlaying():
+        try:
+            return max(int(XbmcPlayer.getTotalTime() * 10000000), 0)
+        except:
+            xbmc.log("EMBY.helper.playerops: PlayBackDuration failed, player", 2) # LOGWARNING
+            return 0
+
+    xbmc.log("EMBY.helper.playerops: PlayBackDuration failed, player not playing", 2) # LOGWARNING
+    return 0
+
+def PlayEmby(isRemote, ItemIds, PlayCommand, StartIndex, StartPositionTicks, ServerData, API, TimeStamp):
+    global WatchTogether
+    global RemotePlaybackInit
+    global RemoteControl
+    global EmbyIdPlaying
+    global PlayerId
+    global AVStarted
+    global PlayerPause
+
     if not ItemIds:
         xbmc.log("EMBY.helper.playerops: PlayEmby, no ItemIds received", 2) # LOGWARNING
         return
 
-    if utils.remotecontrol_client_control:
-        globals().update({"WatchTogether": False, "RemotePlaybackInit": True, "RemoteControl": True})
-    else:
-        globals().update({"WatchTogether": False, "RemotePlaybackInit": True, "RemoteControl": False})
-
+    WatchTogether = False
+    RemotePlaybackInit = True
+    RemoteControl = utils.remotecontrol_client_control
     utils.RemoteMode = False
-    PlaylistItems = []
-    DelayedQueryEmbyIds = ()
     StartIndex = max(StartIndex, 0)
-    embydb = dbio.DBOpenRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
+    hasVideo = False
+    hasAudio = False
+    hasPicture = False
+
+    # Check if content is synced and load item data
+    embydb = dbio.DBOpenRO(ServerData['ServerId'], "AddPlaylistItem")
+    LoadFromServer = False
+    PlaylistItems = len(ItemIds) * [None] # pre allocate memory
 
     for Index, EmbyID in enumerate(ItemIds):
         KodiId, KodiType = embydb.get_KodiId_by_EmbyId(EmbyID)
 
         if KodiId: # synced content
-            PlaylistItems.append((EmbyID, None, KodiType, KodiId, None, None, None))
+            if KodiType == "song": # pictures are not synced to kodi, cannot be local
+                hasAudio = True
+            else:
+                hasVideo = True
+
+            PlaylistItems[Index] = [EmbyID, utils.KodiTypeMapping[KodiType], KodiType, KodiId, None, None, None]
         else: # not synced content
-            PlaylistItems.append((EmbyID, None, None, None, None, None, None))
+            PlaylistItems[Index] = [EmbyID, None, None, None, None, None, None]
+            LoadFromServer = True
 
-            if Index != StartIndex:
-                DelayedQueryEmbyIds += (str(EmbyID),)
+    dbio.DBCloseRO(ServerData['ServerId'], "AddPlaylistItem")
 
-    dbio.DBCloseRO(EmbyServer.ServerData['ServerId'], "AddPlaylistItem")
+    # Load Additional data from server check content
+    if LoadFromServer:
+        Items = len(ItemIds) * [None] # pre allocate memory
+        ItemIdsString = [str(ItemId) for ItemId in ItemIds] # Convert Emby Id (integer) to string values
 
-    # Load not synced startitem
-    if not PlaylistItems[StartIndex][2]: # dynamic item
-        Item = EmbyServer.API.get_Item(ItemIds[StartIndex], ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False)
+        for Index, Item in enumerate(API.get_Items_Ids(ItemIdsString, ["All"], True, False, "", "", {}, None, False)): # Use "All" to disable sorting by API
+            if not Item: # skip empty or synced content item
+                continue
 
-        if not Item:
+            if Item["Type"] == "Audio":
+                hasAudio = True
+            elif Item["Type"] == "Photo":
+                hasPicture = True
+            else:
+                hasVideo = True
+
+            Items[Index] = Item
+
+    # Select player
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): PlayEmby: hasAudio: {hasAudio} / hasPicture: {hasPicture} / hasVideo: {hasVideo}", 1) # LOGDEBUG
+    EmbyIdPlaying = int(PlaylistItems[StartIndex][0])
+
+    if hasPicture:
+        PlayerIdPlaylistId = 2
+        PlayerId = 2
+        KodiPlaylistIndexStartitem = 0
+        xbmc.executebuiltin('Action(Stop)') # Stop everything including slideshow
+        utils.SendJson("Playlist.Clear", '{"playlistid": 2}', False)
+        PlaylistsPosition[2] = -1
+    elif hasVideo:
+        PlayerIdPlaylistId = 1
+        PlayerId = 1
+    else:
+        PlayerIdPlaylistId = 0
+        PlayerId = 0
+
+    # Load StartIndex item
+    if not PlaylistItems[StartIndex][1]: # Load data for unsynced content or picture playlist
+        PlaylistItems[StartIndex] = load_Remoteitems(Items[StartIndex], PlaylistItems[StartIndex], ServerData['ServerId'])
+
+    # Prepare music/video playlist for StartIndex item and start playback
+    if PlayerIdPlaylistId != 2: # Audio or video
+        if PlayCommand in ("PlayNow", "PlayNext"):
+            KodiPlaylistIndexStartitem = GetPlaylistPosition(PlayerIdPlaylistId) + 1
+        elif PlayCommand == "PlayInit":
+            utils.RemoteMode = True
+            WatchTogether = True
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        elif PlayCommand == "PlaySingle":
+            utils.RemoteMode = True
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        elif PlayCommand == "PlayLast":
+            utils.RemoteMode = True
+            KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
+        else:
+            RemotePlaybackInit = False
             return
 
-        ListItem = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
-        common.set_path_filename(Item, EmbyServer.ServerData['ServerId'], None, True)
-
-        if "UserData" in Item and "PlaybackPositionTicks" in Item["UserData"] and Item["UserData"]["PlaybackPositionTicks"]:
-            PlaylistItems[StartIndex] = (Item['Id'], Item['Type'], None, None, ListItem, Item['KodiFullPath'], Item["UserData"]["PlaybackPositionTicks"])
-        else:
-            PlaylistItems[StartIndex] = (Item['Id'], Item['Type'], None, None, ListItem, Item['KodiFullPath'], 0)
-
-        if Item['Type'] not in utils.QueryCache:
-            utils.QueryCache[Item['Type']] = {}
-
-        utils.QueryCache[Item['Type']]["remoteplayback"] = [True, ((Item['KodiFullPath'], ListItem, False), )]
-
-    globals()["EmbyIdPlaying"] = int(PlaylistItems[StartIndex][0])
-
-    if PlaylistItems[StartIndex][1] == "Audio":
-        PlayerIdPlaylistId = 0
-        globals()['PlayerId'] = 0
-    elif PlaylistItems[StartIndex][1] == "Photo":
-        PlayerIdPlaylistId = 2
-    else: # video
-        PlayerIdPlaylistId = 1
-        globals()['PlayerId'] = 1
-
-    if PlayCommand in ("PlayNow", "PlayNext"):
-        KodiPlaylistIndexStartitem = GetPlayerPosition(PlayerIdPlaylistId) + 1
-    elif PlayCommand == "PlayInit":
-        utils.RemoteMode = True
-        globals()['WatchTogether'] = True
-        Stop(isRemote)
-        KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
-    elif PlayCommand == "PlaySingle":
-        utils.RemoteMode = True
-        KodiPlaylistIndexStartitem = GetPlaylistSize(PlayerIdPlaylistId)
-    else:
-        return
-
-    if PlayerIdPlaylistId != 2: # Audio or video
         if PlaylistItems[StartIndex][2]: # synced item (KodiType available)
             InsertPlaylist(PlayerIdPlaylistId, KodiPlaylistIndexStartitem, PlaylistItems[StartIndex][2], PlaylistItems[StartIndex][3])
         else:
-            utils.Playlists[PlayerIdPlaylistId].add(PlaylistItems[StartIndex][5], PlaylistItems[StartIndex][4], index=KodiPlaylistIndexStartitem) # Path, ListItem, Index
-    else: # picture
-        globals()["Pictures"].append((Item['KodiFullPath'], ListItem))
-        utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Item["KodiFullPath"]}"}}}}}}')
+            XbmcPlaylists[PlayerIdPlaylistId].add(PlaylistItems[StartIndex][5], PlaylistItems[StartIndex][4], index=KodiPlaylistIndexStartitem) # Path, ListItem, Index
 
-    if PlayerIdPlaylistId == 2: # picture
-        globals()["Pictures"][KodiPlaylistIndexStartitem][1].select(True)
-        xbmc.executebuiltin('Action(Stop)')
-        xbmc.executebuiltin('Action(Back)')
-        ClearPlaylist(2)
-    else:
-        globals()['RemoteCommandActive'][4] += 1
-        globals().update({"AVStarted": False, "PlayerPause": False})
+        if PlayCommand in ("PlayLast", "PlayNext"):
+            RemotePlaybackInit = False
+            return
+
+        RemotePlaybackInit = False
+
+        # Start playback
+        if isRemote:
+            RemoteCommandActiveAdd(4)
+
+        AVStarted = False
+        PlayerPause = False
+
+        with utils.SafeLock(AVStartedCondition):
+            AVStartedCondition.notify_all()
+
         StartPositionTicks = int(StartPositionTicks)
 
         if PlaylistItems[StartIndex][2]: # KodiType
             if PlayCommand == "PlayInit":
-                utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.Open", "params": {{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": false}}}}, "id": 1}}')
+                utils.SendJson("Player.Open", f'{{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": false}}}}', False)
             else:
                 if StartPositionTicks != -1:
                     Hours, Minutes, Seconds, Milliseconds, _ = TicksToTimestamp(StartPositionTicks, TimeStamp)
-                    utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.Open", "params": {{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": {{"hours": {Hours}, "minutes": {Minutes}, "seconds": {Seconds}, "milliseconds": {Milliseconds}}}}}}}, "id": 1}}')
+                    utils.SendJson("Player.Open", f'{{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": {{"hours": {Hours}, "minutes": {Minutes}, "seconds": {Seconds}, "milliseconds": {Milliseconds}}}}}}}', False)
                 else:
-                    utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.Open", "params": {{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": true}}}}, "id": 1}}')
+                    utils.SendJson("Player.Open", f'{{"item": {{"{PlaylistItems[StartIndex][2]}id": {PlaylistItems[StartIndex][3]}}}, "options": {{"resume": true}}}}', False)
         else:
-            utils.SendJson(f'{{"jsonrpc": "2.0", "method": "Player.Open", "params": {{"item": {{"playlistid":{PlayerIdPlaylistId}, "position": {KodiPlaylistIndexStartitem}}}}}, "id": 1}}')
+            PlayPlaylistItem(PlayerIdPlaylistId, KodiPlaylistIndexStartitem)
 
             if PlayCommand != "PlayInit":
                 if StartPositionTicks != -1:
@@ -418,82 +790,88 @@ def PlayEmby(ItemIds, PlayCommand, StartIndex, StartPositionTicks, EmbyServer, T
                     Seek(PlaylistItems[StartIndex][6], True, TimeStamp) # Resumeposition not respected by Kodi if "Player.Open" adresses a playlist/playlist position. Use seek as workaround
 
         if PlayCommand == "PlayInit":
-            Pause(isRemote)
+            Pause(False, 0, 0, True)
 
         WindowId = xbmcgui.getCurrentWindowId()
 
         if PlayerIdPlaylistId == 0 and WindowId != 12006:
-            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "visualisation"}}')
+            utils.ActivateWindow("visualisation", "", False, 0)
         elif PlayerIdPlaylistId == 1 and WindowId != 12005:
-            utils.SendJson('{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {"window": "fullscreenvideo"}}')
+            utils.ActivateWindow("fullscreenvideo", "", False, 0)
 
-    globals()['RemotePlaybackInit'] = False
-
-    #load additional items after playback started
-    if PlayCommand not in ("PlayInit", "PlaySingle"):
-        if DelayedQueryEmbyIds:
-            for Item in EmbyServer.API.get_Items_Ids(DelayedQueryEmbyIds, ["Episode", "Movie", "Trailer", "MusicVideo", "Audio", "Video", "Photo"], True, False, "", None, {}):
-                ListItem = listitem.set_ListItem(Item, EmbyServer.ServerData['ServerId'])
-                common.set_path_filename(Item, EmbyServer.ServerData['ServerId'], None, True)
-
-                for Index, PlaylistItem in enumerate(PlaylistItems):
-                    if str(Item['Id']) == str(PlaylistItem[0]):
-                        if "UserData" in Item and "PlaybackPositionTicks" in Item["UserData"] and Item["UserData"]["PlaybackPositionTicks"]:
-                            PlaylistItems[Index] = (Item['Id'], Item['Type'], None, None, ListItem, Item['KodiFullPath'], Item["UserData"]["PlaybackPositionTicks"])
-                        else:
-                            PlaylistItems[Index] = (Item['Id'], Item['Type'], None, None, ListItem, Item['KodiFullPath'], 0)
-
-                        if Item['Type'] not in utils.QueryCache:
-                            utils.QueryCache[Item['Type']] = {}
-
-                        utils.QueryCache[Item['Type']]["remoteplayback"] = [True, ((Item['KodiFullPath'], ListItem, False), )]
-                        continue
-
-        for Index, PlaylistItem in enumerate(PlaylistItems):
-            if Index == StartIndex:
+    # Load Additional data from server
+    if LoadFromServer:
+        for Index, Item in enumerate(Items):
+            if not Item:
                 continue
 
             InsertPosition = KodiPlaylistIndexStartitem + Index
 
             if PlayerIdPlaylistId != 2:
-                if PlaylistItem[2]: # synced item
-                    InsertPlaylist(PlayerIdPlaylistId, InsertPosition, PlaylistItem[2], PlaylistItem[3])
+                if Index == StartIndex:
+                    continue
+
+                PlaylistItems[Index] = load_Remoteitems(Item, PlaylistItems[Index], ServerData['ServerId'])
+
+                if PlaylistItems[Index][2]: # synced item
+                    InsertPlaylist(PlayerIdPlaylistId, InsertPosition, PlaylistItems[Index][2], PlaylistItems[Index][3])
                 else:
-                    utils.Playlists[PlayerIdPlaylistId].add(PlaylistItem[5], PlaylistItem[4], index=InsertPosition) # Path, ListItem, Index
+                    XbmcPlaylists[PlayerIdPlaylistId].add(PlaylistItems[Index][5], PlaylistItems[Index][4], index=InsertPosition) # Path, ListItem, Index
             else:
-                Pictures.append((PlaylistItem[5], PlaylistItem[4]))
+                PlaylistItems[Index] = load_Remoteitems(Item, PlaylistItems[Index], ServerData['ServerId'])
+                utils.SendJson("Playlist.Add", f'{{"playlistid":2,"item":{{"file":"{PlaylistItems[Index][5]}"}}}}', False)
+
+        del Items
 
     if PlayerIdPlaylistId == 2: # picture
-        utils.SendJson(f'{{"jsonrpc": "2.0", "id": 1, "method": "GUI.ActivateWindow", "params": {{"window": "pictures", "parameters": ["plugin://plugin.service.emby-next-gen/?mode=remotepictures&position={KodiPlaylistIndexStartitem}", "return"]}}}}')
+        RemotePlaybackInit = False
 
-    for Index, Picture in enumerate(Pictures):
-        if Index != 0:
-            utils.SendJson(f'{{"jsonrpc":"2.0","id":1,"method":"Playlist.Add","params":{{"playlistid":2,"item":{{"file":"{Picture[0]}"}}}}}}')
+        if isRemote:
+            RemoteCommandActiveAdd(4)
+
+        utils.SendJson("Player.Open", f'{{"item": {{"playlistid": 2, "position": {StartIndex}}}}}', False)
+
+def load_Remoteitems(Item, PlaylistItem, ServerId):
+    listitem.set_ListItem(Item, ServerId)
+
+    if PlaylistItem[1]: # Kodi content
+        PlaylistItem[4] = Item['ListItem']
+        PlaylistItem[5] = Item['KodiFullPath']
+    else:
+        if "UserData" in Item and "PlaybackPositionTicks" in Item["UserData"] and Item["UserData"]["PlaybackPositionTicks"]:
+            PlaylistItem = [Item['Id'], Item['Type'], None, None, Item['ListItem'], Item['KodiFullPath'], Item["UserData"]["PlaybackPositionTicks"]]
+        else:
+            PlaylistItem = [Item['Id'], Item['Type'], None, None, Item['ListItem'], Item['KodiFullPath'], 0]
+
+        cache.add_Item(Item, ServerId)
+
+    return PlaylistItem
 
 def add_RemoteClient(ServerId, SessionId, DeviceName, UserName):
     if SessionId not in RemoteClientData[ServerId]["SessionIds"]:
-        globals()['RemoteClientData'][ServerId]["SessionIds"].append(SessionId)
-        globals()['RemoteClientData'][ServerId]["Usernames"][SessionId] = UserName
-        globals()['RemoteClientData'][ServerId]["Devicenames"][SessionId] = DeviceName
+        RemoteClientData[ServerId]["SessionIds"].append(SessionId)
+        RemoteClientData[ServerId]["Usernames"][SessionId] = UserName
+        RemoteClientData[ServerId]["Devicenames"][SessionId] = DeviceName
 
         if utils.EmbyServers[ServerId].EmbySession[0]['Id'] != SessionId:
-            globals()['RemoteCommandQueue'][SessionId] = queue.Queue()
-            utils.start_thread(thread_RemoteCommands, (ServerId, SessionId))
+            RemoteCommandQueue[SessionId] = queue.Queue()
+            utils.start_thread(thread_RemoteCommands, (ServerId, SessionId, RemoteCommandQueue[SessionId]))
 
 def add_RemoteClientExtendedSupport(ServerId, SessionId):
     if SessionId not in RemoteClientData[ServerId]["ExtendedSupport"]:
-        globals()['RemoteClientData'][ServerId]["ExtendedSupport"].append(SessionId)
+        RemoteClientData[ServerId]["ExtendedSupport"].append(SessionId)
 
 def add_RemoteClientExtendedSupportAck(ServerId, SessionId, DeviceName, UserName):
     if SessionId not in RemoteClientData[ServerId]["ExtendedSupportAck"]:
         add_RemoteClient(ServerId, SessionId, DeviceName, UserName)
-        globals()['RemoteClientData'][ServerId]["ExtendedSupportAck"].append(SessionId)
+        RemoteClientData[ServerId]["ExtendedSupportAck"].append(SessionId)
         send_RemoteClients(ServerId, RemoteClientData[ServerId]["ExtendedSupportAck"], False)
 
 def init_RemoteClient(ServerId):
-    globals()['RemoteClientData'][ServerId] = {"SessionIds": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "Usernames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['UserName']}, "Devicenames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['DeviceName']}, "ExtendedSupport": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "ExtendedSupportAck": [utils.EmbyServers[ServerId].EmbySession[0]['Id']]}
+    if ServerId in utils.EmbyServers and utils.EmbyServers[ServerId].EmbySession:
+        RemoteClientData[ServerId] = {"SessionIds": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "Usernames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['UserName']}, "Devicenames": {utils.EmbyServers[ServerId].EmbySession[0]['Id']: utils.EmbyServers[ServerId].EmbySession[0]['DeviceName']}, "ExtendedSupport": [utils.EmbyServers[ServerId].EmbySession[0]['Id']], "ExtendedSupportAck": [utils.EmbyServers[ServerId].EmbySession[0]['Id']]}
 
-def delete_RemoteClient(ServerId, SessionIds, Force=False):
+def delete_RemoteClient(ServerId, SessionIds, Priority):
     if ServerId not in RemoteClientData:
         xbmc.log(f"EMBY.helper.playerops: ServerId {ServerId} not found in RemoteClientData", 2) # LOGWARNING
         return
@@ -503,34 +881,40 @@ def delete_RemoteClient(ServerId, SessionIds, Force=False):
 
     for SessionId in SessionIds:
         if SessionId in RemoteClientData[ServerId]["ExtendedSupport"]:
-            globals()['RemoteClientData'][ServerId]["ExtendedSupport"].remove(SessionId)
+            RemoteClientData[ServerId]["ExtendedSupport"].remove(SessionId)
 
         if SessionId in RemoteClientData[ServerId]["ExtendedSupportAck"]:
-            globals()['RemoteClientData'][ServerId]["ExtendedSupportAck"].remove(SessionId)
+            RemoteClientData[ServerId]["ExtendedSupportAck"].remove(SessionId)
 
-        globals()['RemoteClientData'][ServerId]["SessionIds"].remove(SessionId)
-        del globals()['RemoteClientData'][ServerId]["Usernames"][SessionId]
-        del globals()['RemoteClientData'][ServerId]["Devicenames"][SessionId]
+        if SessionId in RemoteClientData[ServerId]["SessionIds"]:
+            RemoteClientData[ServerId]["SessionIds"].remove(SessionId)
+        else:
+            xbmc.log(f"EMBY.helper.playerops: SessionId {SessionId} not found in RemoteClientData", 2) # LOGWARNING
+            continue
+
+        del RemoteClientData[ServerId]["Usernames"][SessionId]
+        del RemoteClientData[ServerId]["Devicenames"][SessionId]
 
         if SessionId in RemoteCommandQueue:
-            globals()['RemoteCommandQueue'][SessionId].put("QUIT")
+            RemoteCommandQueue[SessionId].put("QUIT")
 
         if SessionId == utils.EmbyServers[ServerId].EmbySession[0]['Id']:
             SelfRemove = True
 
-    send_RemoteClients(ServerId, ClientExtendedSupportAck, Force)
+    send_RemoteClients(ServerId, ClientExtendedSupportAck, Priority)
 
     # Remove self
     if SelfRemove:
-        xbmc.log("EMBY.helper.playerops: Self removed from remote clients ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): Self removed from remote clients ]", 1) # LOGDEBUG
         disable_RemoteClients(ServerId, False)
 
     # Disable remote mode when self device is the only one left
     if len(RemoteClientData[ServerId]["SessionIds"]) == 1 and RemoteClientData[ServerId]["SessionIds"][0] == utils.EmbyServers[ServerId].EmbySession[0]['Id']:
-        xbmc.log("EMBY.helper.playerops: Reset remote clients due to no more participants ]", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): Reset remote clients due to no more participants ]", 1) # LOGDEBUG
         disable_RemoteClients(ServerId)
 
 def update_Remoteclients(ServerId, Data):
+    global RemoteControl
     ServerSessionId = utils.EmbyServers[ServerId].EmbySession[0]['Id']
     SessionIds = Data[1].split(";")
     ExtendedSupport = Data[2].split(";")
@@ -544,32 +928,37 @@ def update_Remoteclients(ServerId, Data):
 
     # Stop new threads
     for SessionId in SessionIds:
-        globals()['RemoteCommandQueue'][SessionId] = queue.Queue()
-        utils.start_thread(thread_RemoteCommands, (ServerId, SessionId))
+        if SessionId == ServerSessionId:
+            continue
+
+        RemoteCommandQueue[SessionId] = queue.Queue()
+        utils.start_thread(thread_RemoteCommands, (ServerId, SessionId, RemoteCommandQueue[SessionId]))
 
     if ServerSessionId not in SessionIds:
         xbmc.log("EMBY.helper.playerops: delete remote clients", 1) # LOGINFO
         disable_RemoteClients(ServerId, False)
     else:
-        globals()['RemoteClientData'][ServerId] = {"SessionIds": SessionIds, "ExtendedSupport": ExtendedSupport, "ExtendedSupportAck": ExtendedSupportAck, "Usernames": {}, "Devicenames": {}}
+        RemoteClientData[ServerId] = {"SessionIds": SessionIds, "ExtendedSupport": ExtendedSupport, "ExtendedSupportAck": ExtendedSupportAck, "Usernames": {}, "Devicenames": {}}
 
         for Index, SessionId in enumerate(SessionIds):
-            globals()['RemoteClientData'][ServerId]["Usernames"][SessionId] = Usernames[Index]
-            globals()['RemoteClientData'][ServerId]["Devicenames"][SessionId] = Devicenames[Index]
+            RemoteClientData[ServerId]["Usernames"][SessionId] = Usernames[Index]
+            RemoteClientData[ServerId]["Devicenames"][SessionId] = Devicenames[Index]
 
         # Disable remote mode when self device is the only one left
         if len(RemoteClientData[ServerId]["SessionIds"]) == 1 and RemoteClientData[ServerId]["SessionIds"][0] == ServerSessionId:
             disable_RemoteClients(ServerId)
         else:
-            xbmcgui.Window(10000).setProperty('EmbyRemoteclient', 'True')
+            xbmc.executebuiltin('SetProperty(EmbyRemoteclient,True,10000)')
 
             if utils.remotecontrol_sync_clients:
-                globals()["RemoteControl"] = True
+                RemoteControl = True
 
             utils.RemoteMode = True
 
 def disable_RemoteClients(ServerId, ResetRemoteClients=True):
-    xbmcgui.Window(10000).setProperty('EmbyRemoteclient', 'False')
+    global RemoteControl
+    global WatchTogether
+    xbmc.executebuiltin('SetProperty(EmbyRemoteclient,False,10000)')
 
     if utils.RemoteMode:
         if ResetRemoteClients:
@@ -578,13 +967,15 @@ def disable_RemoteClients(ServerId, ResetRemoteClients=True):
                     utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", "clients|||||", True)
 
         init_RemoteClient(ServerId)
-        globals().update({"WatchTogether": False, "RemoteControl": False, "RemoteCommandActive": [0, 0, 0, 0, 0]})
+        RemoteControl = False
+        WatchTogether = False
+        RemoteCommandActiveReset()
         utils.RemoteMode = False
 
         if not utils.EmbyServers[ServerId].library.LockKodiStartSync.locked():
             utils.start_thread(utils.EmbyServers[ServerId].library.KodiStartSync, (False,))
 
-def send_RemoteClients(ServerId, SendSessionIds, Force):
+def send_RemoteClients(ServerId, SendSessionIds, Priority):
     if not utils.remotecontrol_sync_clients:
         return
 
@@ -607,87 +998,78 @@ def send_RemoteClients(ServerId, SendSessionIds, Force):
 
     for SessionId in SendSessionIds:
         if SessionId != utils.EmbyServers[ServerId].EmbySession[0]['Id']:
-            utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", Data, Force)
+            utils.EmbyServers[ServerId].API.send_text_msg(SessionId, "remotecommand", Data, Priority)
 
 # Remote control clients
-def RemoteCommand(ServerId, selfSessionId, Command, EmbyId=-1):
-    xbmc.log(f"EMBY.helper.playerops: --> [ remotecommand received: {Command} / {RemoteCommandActive} ]", 0) # LOGDEBUG
+def RemoteCommand(ServerId, selfSessionId, Command, EmbyId=-1, PlaylistPosition=-1):
+    global WatchTogether
+    global RemoteControl
+
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): --> [ remotecommand received: {Command} / {RemoteCommandActive} ]", 1) # LOGDEBUG
 
     if Command == "stop":
         if WatchTogether:
-            delete_RemoteClient(ServerId, [utils.EmbyServers[ServerId].EmbySession[0]['Id']])
-            globals().update({'WatchTogether': False, 'RemoteControl': False})
+            if ServerId:
+                delete_RemoteClient(ServerId, [utils.EmbyServers[ServerId].EmbySession[0]['Id']], True)
+
+            WatchTogether = False
+            RemoteControl = False
             utils.RemoteMode = False
 
-        if RemoteCommandActive[3] > 0:
-            RemoteCommandActive[3] -= 1
-        else:
-            globals()['RemoteCommandActive'][3] = 0
-
-            if not WatchTogether and ServerId:
-                queue_RemoteCommand(ServerId, selfSessionId, "stop")
+        if RemoteCommandActiveConsume(3) and not WatchTogether and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "stop")
     elif Command == "pause":
-        if RemoteCommandActive[0] > 0:
-            RemoteCommandActive[0] -= 1
-        else:
-            globals()['RemoteCommandActive'][0] = 0
-
-            if ServerId:
-                queue_RemoteCommand(ServerId, selfSessionId, "pause")
+        if RemoteCommandActiveConsume(0) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "pause")
     elif Command == "unpause":
-        if RemoteCommandActive[1] > 0:
-            RemoteCommandActive[1] -= 1
-        else:
-            globals()['RemoteCommandActive'][1] = 0
-
-            if ServerId:
-                queue_RemoteCommand(ServerId, selfSessionId, "unpause")
+        if RemoteCommandActiveConsume(1) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "unpause")
     elif Command == "seek":
-        if RemoteCommandActive[2] > 0:
-            RemoteCommandActive[2] -= 1
-        else:
-            globals()['RemoteCommandActive'][2] = 0
-
-            if ServerId:
-                queue_RemoteCommand(ServerId, selfSessionId, "seek")
+        if RemoteCommandActiveConsume(2) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "seek")
     elif Command == "play":
-        if RemoteCommandActive[4] > 0:
-            RemoteCommandActive[4] -= 1
-        else:
-            globals()['RemoteCommandActive'][4] = 0
-            queue_RemoteCommand(ServerId, selfSessionId, (("play", EmbyId),))
+        if RemoteCommandActiveConsume(4) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, (("play", EmbyId, PlaylistPosition),))
+    elif Command == "nexttrack":
+        if RemoteCommandActiveConsume(5) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "nexttrack")
+    elif Command == "previoustrack":
+        if RemoteCommandActiveConsume(6) and ServerId:
+            queue_RemoteCommand(ServerId, selfSessionId, "previoustrack")
 
-    xbmc.log(f"EMBY.helper.playerops: --< [ remotecommand received: {Command} / {RemoteCommandActive} ]", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): --< [ remotecommand received: {Command} / {RemoteCommandActive} ]", 1) # LOGDEBUG
 
 def RemoteClientResync(ServerId, SessionId, LocalEmbyIdPlaying):
-    xbmc.log(f"EMBY.helper.playerops: THREAD: --->[ Remote client resync: {SessionId} ]", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): THREAD: --->[ Remote client resync: {SessionId} ]", 1) # LOGDEBUG
 
     if utils.sleep(utils.remotecontrol_resync_time):
-        xbmc.log(f"EMBY.helper.playerops: THREAD: ---<[ Remote client resync: {SessionId} ] shutdown", 0) # LOGDEBUG
+        if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): THREAD: ---<[ Remote client resync: {SessionId} ] shutdown", 1) # LOGDEBUG
         return
 
     if EmbyIdPlaying == LocalEmbyIdPlaying:
         xbmc.log(f"EMBY.helper.playerops: resync started {SessionId}", 1) # LOGINFO
         PositionTicks = PlayBackPosition()
-
-        if PositionTicks != -1:
-            utils.EmbyServers[ServerId].API.send_seek(SessionId, PositionTicks, True)
+        utils.EmbyServers[ServerId].API.send_seek(SessionId, PositionTicks, True)
     else:
         xbmc.log(f"EMBY.helper.playerops: resync skipped {SessionId}", 2) # LOGWARNING
 
-    xbmc.log(f"EMBY.helper.playerops: THREAD: ---<[ Remote client resync: {SessionId} ]", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): THREAD: ---<[ Remote client resync: {SessionId} ]", 1) # LOGDEBUG
 
 def queue_RemoteCommand(ServerId, selfSessionId, Command):
-    for SessionId in RemoteClientData[ServerId]["SessionIds"]:
-        if SessionId != selfSessionId:
-            globals()['RemoteCommandQueue'][SessionId].put(Command)
+    if ServerId in RemoteClientData:
+        for SessionId in RemoteClientData[ServerId]["SessionIds"].copy():
+            if SessionId != selfSessionId:
+                RemoteQueue = RemoteCommandQueue.get(SessionId)
 
-def thread_RemoteCommands(ServerId, SessionId):
-    xbmc.log(f"EMBY.helper.playerops: THREAD: --->[ Remote command queue: {SessionId} ]", 0) # LOGDEBUG
+                if RemoteQueue:
+                    RemoteQueue.put(Command)
+
+def thread_RemoteCommands(ServerId, SessionId, RemoteQueue):
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): THREAD: --->[ Remote command queue: {SessionId} ]", 1) # LOGDEBUG
     API = utils.EmbyServers[ServerId].API
 
     while True:
-        Command = globals()['RemoteCommandQueue'][SessionId].get()
+        Command = RemoteQueue.get()
         xbmc.log(f"EMBY.helper.playerops: Remote command: {Command} {SessionId}", 1) # LOGINFO
 
         if Command == "QUIT":
@@ -708,17 +1090,13 @@ def thread_RemoteCommands(ServerId, SessionId):
                 xbmc.log(f"EMBY.helper.playerops: remotecommand send: stop {SessionId}", 1) # LOGINFO
         elif Command == "pause":
             PositionTicks = PlayBackPosition()
-
-            if PositionTicks == -1:
-                continue
-
             Timestamp = utils.get_unixtime_emby_format()
 
             if SessionId in RemoteClientData[ServerId]["ExtendedSupportAck"]:
                 API.send_text_msg(SessionId, "remotecommand", f"pause|{PositionTicks}|{Timestamp}", True)
             else:
                 API.send_pause(SessionId, True)
-                globals()['RemoteCommandQueue'][SessionId].put("seek")
+                RemoteQueue.put("seek")
 
             xbmc.log(f"EMBY.helper.playerops: remotecommand send: pause {SessionId}", 1) # LOGINFO
         elif Command == "unpause":
@@ -747,38 +1125,86 @@ def thread_RemoteCommands(ServerId, SessionId):
             PositionTicks = PlayBackPositionExact()
 
             if SessionId in RemoteClientData[ServerId]["ExtendedSupportAck"]:
-                API.send_text_msg(SessionId, "remotecommand", f"playsingle|{Command[1]}|{PositionTicks}|{TimeStamp}", True)
+                if str(Command[1]).find(",") == -1:
+                    API.send_text_msg(SessionId, "remotecommand", f"playsingle|{Command[1]}|{PositionTicks}|{TimeStamp}", True)
+                else:
+                    API.send_text_msg(SessionId, "remotecommand", f"playplaylist|{Command[1]}|{PositionTicks}|{TimeStamp}|{Command[2]}", True) # ItemIds, Position, Timestamp, Playlistposition
             else:
-                API.send_play(SessionId, Command[1], "PlayNow", PlayBackPositionExact(), True)
+                API.send_play(SessionId, Command[1], "PlayNow", PositionTicks, True)
 
                 if utils.remotecontrol_resync_clients:
                     utils.start_thread(RemoteClientResync, (ServerId, SessionId, EmbyIdPlaying))
 
             xbmc.log(f"EMBY.helper.playerops: remotecommand send: play {SessionId} {Command[1]} {PositionTicks} {TimeStamp}", 1) # LOGINFO
+        elif Command == "nexttrack":
+            API.send_nexttrack(SessionId, True)
+        elif Command == "previoustrack":
+            API.send_previoustrack(SessionId, True)
 
-    xbmc.log(f"EMBY.helper.playerops: THREAD: ---<[ Remote command queue: {SessionId} ]", 0) # LOGDEBUG
+    if utils.DebugLog: xbmc.log(f"EMBY.helper.playerops (DEBUG): THREAD: ---<[ Remote command queue: {SessionId} ]", 1) # LOGDEBUG
 
 def get_EmbyTicks(KodiTimeStamp): # Position(ticks) in Emby format 1 tick = 10000ms
     return max(KodiTimeStamp['hours'] * 36000000000 + KodiTimeStamp['minutes'] * 600000000 + KodiTimeStamp['seconds'] * 10000000 + KodiTimeStamp['milliseconds'] * 10000, 0)
 
-def wait_AVStarted():
-    for _ in range(200): # Wait for avstart, timeout 20 seconds
-        if AVStarted:
-            return True
+def wait_AVStarted(BusyDialogClose=False):
+    Timeout = 100 # 10 seconds
 
-        if utils.sleep(0.1):
-            return False
+    with utils.SafeLock(AVStartedCondition):
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: --->[ AVStartedCondition ]", 1) # LOGDEBUG
 
-    xbmc.log("EMBY.helper.playerops: AVstart not set", 3) # LOGERROR
-    return False
+        while not AVStarted:
+            if Timeout <= 0:
+                if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ AVStartedCondition ] timeout", 1) # LOGDEBUG
+                xbmc.log("EMBY.helper.playerops: AVstart timeout", 3)
+                return False
+
+            if BusyDialogClose:
+                utils.close_busyDialog(True)
+
+            if AVStartedCondition.wait(timeout=0.1):
+                pass
+
+            Timeout -= 1
+
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ AVStartedCondition ]", 1) # LOGDEBUG
+        return True
 
 def wait_AVChanged():
-    for _ in range(200): # Wait for avstart, timeout 20 seconds
-        if AVChange:
-            return True
+    Timeout = 100 # 10 seconds
 
-        if utils.sleep(0.1):
-            return False
+    with utils.SafeLock(AVChangeCondition):
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: --->[ AVChangeCondition ]", 1) # LOGDEBUG
 
-    xbmc.log("EMBY.helper.playerops: AVchange not set", 3) # LOGERROR
-    return False
+        while not AVChange:
+            if Timeout <= 0:
+                if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ AVChangeCondition ] timeout", 1) # LOGDEBUG
+                xbmc.log("EMBY.helper.playerops: AVchange timeout", 3)
+                return False
+
+            if AVChangeCondition.wait(timeout=0.1):
+                pass
+
+            Timeout -= 1
+
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ AVChangeCondition ]", 1) # LOGDEBUG
+        return True
+
+def wait_Stopped():
+    Timeout = 100 # 10 seconds
+
+    with utils.SafeLock(StoppedCondition):
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: --->[ StoppedCondition ]", 1) # LOGDEBUG
+
+        while not Stopped:
+            if Timeout <= 0:
+                if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ StoppedCondition ] timeout", 1) # LOGDEBUG
+                xbmc.log("EMBY.helper.playerops: Stopped timeout", 3)
+                return False
+
+            if StoppedCondition.wait(timeout=0.1):
+                pass
+
+            Timeout -= 1
+
+        if utils.DebugLog: xbmc.log("EMBY.helper.playerops (DEBUG): CONDITION: ---<[ StoppedCondition ]", 1) # LOGDEBUG
+        return True
